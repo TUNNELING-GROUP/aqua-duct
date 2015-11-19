@@ -3,4 +3,5 @@ syntax: glob
 *.prmtop*
 *.binpos*
 *.traj*
+*.nc*
 
