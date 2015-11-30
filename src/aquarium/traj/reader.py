@@ -6,6 +6,8 @@ Created on Nov 19, 2015
 
 
 import MDAnalysis as mda
+from aquarium.traj.selections import SelectionMDA
+
 
 class Reader(object):
     
@@ -76,5 +78,5 @@ class ReadAmberNetCDFviaMDA(Reader):
             raise StopIteration
 
     def parse_selection(self,selection):
-        return self.trajectory_object.select_atoms(selection)
+        return SelectionMDA(self.trajectory_object.select_atoms(selection))
 
