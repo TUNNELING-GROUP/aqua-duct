@@ -5,6 +5,8 @@ syntax: glob
 *.traj*
 *.nc*
 
+*.pyc
+
 .project
 .pydevproject
 

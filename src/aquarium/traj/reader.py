@@ -4,6 +4,8 @@ Created on Nov 19, 2015
 @author: tljm
 '''
 
+from aquarium import tests as aqtests
+
 import MDAnalysis as mda
 
 class Reader(object):
@@ -23,7 +25,11 @@ class ReadAmberNetCDF(Reader):
     pass
 
 
-
-
-reader = ReadAmberNetCDF("topology","trajectory")
-reader.open_trajectory()
+if __name__ == "__main__":
+    topology = aqtests.get("simple.prmtop")
+    trajectory = aqtests.get("simple.nc")
+    reader = ReadAmberNetCDF(topology,trajectory)
+    print reader.topology_file_name
+    print reader.trajectory_file_name
+    reader.open_trajectory()
+    
