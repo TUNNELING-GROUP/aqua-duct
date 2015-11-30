@@ -53,6 +53,7 @@ class Reader(object):
     def parse_selection(self,selection):
         # should parse and return selection object
         # is this object updated automatically depends on the particular implementation of Reader class
+        # in particular MDA updates postions of atoms accoriding to current frame, to renew selection one has to parse it again
         raise NotImplementedError()
 
 class ReadAmberNetCDFviaMDA(Reader):

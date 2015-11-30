@@ -15,4 +15,14 @@ if __name__ == "__main__":
     #print list(reader.iterate_over_frames())
     CA = reader.parse_selection("protein and name CA")
     for frame in reader.iterate_over_frames():
-        print CA.center_of_mass()
+        if frame >= 20:
+            break
+        print frame,CA.center_of_mass()
+
+    H2O = reader.parse_selection("(resname WAT) and (around 6 (resnum 88 or resnum 90 or resnum 136))")
+
+    for frame in reader.iterate_over_frames():
+        H2O = reader.parse_selection("(resname WAT) and (around 6 (resnum 88 or resnum 90 or resnum 136))")
+        if frame >= 200:
+            break
+        print H2O.unique_resnums()
