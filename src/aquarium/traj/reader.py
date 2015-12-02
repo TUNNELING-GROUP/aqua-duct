@@ -56,6 +56,15 @@ class Reader(object):
         # in particular MDA updates postions of atoms accoriding to current frame, to renew selection one has to parse it again
         raise NotImplementedError()
 
+    def select_resnum(self,resnum):
+        # should return selection object
+        raise NotImplementedError()
+
+    def select_multiple_resnum(self,resnum_list):
+        # should return selection object
+        raise NotImplementedError()
+
+
 class ReadAmberNetCDFviaMDA(Reader):
 
     def open_trajectory(self):
@@ -81,3 +90,16 @@ class ReadAmberNetCDFviaMDA(Reader):
     def parse_selection(self,selection):
         return SelectionMDA(self.trajectory_object.select_atoms(selection))
 
+    def select_resnum(self,resnum):
+        assert isinstance(resnum,(int,long))
+        return self.parse_selection("resnum %d" % resnum)
+
+    def select_multiple_resnum(self,resnum_list):
+        assert isinstance(resnum_list, list)
+        selection = None
+        for resnum in resnum_list:
+            if selection is None:
+                selection = self.select_resnum(resnum)
+            else:
+                selection += self.select_resnum(resnum)
+        return SelectionMDA(selection)

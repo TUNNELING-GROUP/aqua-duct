@@ -23,7 +23,7 @@ class Selection(object):
         # should iterate over residues in the selection returning object of the same type
         raise NotImplementedError()
 
-    def unique_resnums(self):
+    def unique_resids(self):
         # should return array of resids
         raise NotImplementedError()
 
@@ -39,16 +39,28 @@ class Selection(object):
         # should return modified ConvexHull object
         return ConvexHull(self.atom_positions())
 
+    def uniquify(self):
+        # should change selection to unique atoms only
+        raise NotImplementedError()
+
+    def __add__(self, other):
+        raise NotImplementedError()
+
 
 class SelectionMDA(mda.core.AtomGroup.AtomGroup,
                    Selection):
 
-
     def iterate_over_residues(self):
         return (self.__class__(R) for R in self.residues)
 
-    def unique_resnums(self):
-        return np.unique(self.resnums)
+    def unique_resids(self):
+        return np.unique(self.resids)
 
     def atom_positions(self):
         return self.positions
+
+    def __add__(self, other):
+        return SelectionMDA(self._atoms + other._atoms)
+
+    def uniquify(self):
+        self.__init__(mda.core.AtomGroup.AtomGroup(set(self._atoms)))
