@@ -4,7 +4,8 @@
 import MDAnalysis as mda
 import numpy as np
 
-from aquarium.geom.convexhull import ConvexHull
+#from aquarium.geom.convexhull_pyhull import ConvexHull
+from aquarium.geom.convexhull_scipy import ConvexHull
 
 class Selection(object):
 

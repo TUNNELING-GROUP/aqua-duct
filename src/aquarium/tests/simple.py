@@ -94,7 +94,7 @@ if __name__ == "__main__":
         print frame
         # get chull
         chull = scope.get_convexhull_of_atom_positions()
-        print "convexhull points no %d" % len(chull.vertices)
+        print "convexhull points no %d" % len(chull.vertices_points)
         for wat in all_H2O.iterate_over_residues():
             if wat.resids.tolist()[0] not in waters_ids_in_scope_over_frames[frame].tolist():
                 if chull.point_within(wat.center_of_mass()):
