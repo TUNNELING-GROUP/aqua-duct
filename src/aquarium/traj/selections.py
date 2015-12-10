@@ -28,6 +28,9 @@ class Selection(object):
         # should return array of resids
         raise NotImplementedError()
 
+    def unique_resids_number(self):
+        return len(self.unique_resids())
+
     def atom_positions(self):
         # should return numpy (x,3) array
         raise NotImplementedError()
@@ -46,7 +49,11 @@ class Selection(object):
 
     def __add__(self, other):
         raise NotImplementedError()
+    
+    def first_resid(self):
+        return self.resids.tolist()[0]
 
+#TODO: decide if methods should be properties or not 
 
 class SelectionMDA(mda.core.AtomGroup.AtomGroup,
                    Selection):

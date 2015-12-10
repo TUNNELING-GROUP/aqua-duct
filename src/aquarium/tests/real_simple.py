@@ -1,6 +1,7 @@
 
 from aquarium import tests as aqtests
 from aquarium.traj.reader import ReadAmberNetCDFviaMDA
+from aquarium.traj.paths import GenericPath
 
 if __name__ == "__main__":
 
@@ -10,8 +11,10 @@ if __name__ == "__main__":
     print "Read trajectory..."
     reader = ReadAmberNetCDFviaMDA(topology, trajectory)
 
-   
     traj_object = "(resname WAT) and (around 6 (resnum 88 or resnum 90 or resnum 136))"
+    traj_scope = "protein"
+    
+    scope = reader.parse_selection(traj_scope)
     
     max_frame = float('inf')
     max_frame = 19
@@ -37,25 +40,37 @@ if __name__ == "__main__":
         # remeber ids of water in object in current frame
         waters_ids_in_object_over_frames.update({frame:H2O.unique_resids()})
         
+        
+    print "Init paths container..."
+    # type and frames, consecutive elements correspond to residues in all_H2O
+    paths = [GenericPath() for dummy in xrange(all_H2O.unique_resids_number())]
 
-    print "Forward trajectory scan..."
+    print "Trajectory scan..."
     # loop over frames
-    # forward direction
     for frame in reader.iterate_over_frames():
         if frame > max_frame:
             break
         print "Frame",frame
         
-        # get chull
+        # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
-        print "convexhull points no %d" % len(chull.vertices_points)
-        for wat in all_H2O.iterate_over_residues():
-            if wat.resids.tolist()[0] not in waters_ids_in_object_over_frames[frame].tolist():
-                if wat.resids.tolist()[0] in waters_ids_in_scope_over_frames[frame].tolist():
-                    if chull.point_within(wat.center_of_mass()):
-                        pass
-                    #print "%r in scope" % wat,
-        #print ""
+        print "\tCurrent %s convexhull of %d points" % (traj_scope, len(chull.vertices_ids))
+        # loop over waters in all waters
+        for nr,wat in enumerate(all_H2O.iterate_over_residues()):
+            if chull.point_within(wat.center_of_mass()):
+                # in scope
+                if wat.first_resid() not in waters_ids_in_object_over_frames[frame]:
+                    paths[nr].add_scope(frame)
+                else:
+                    # in object
+                    paths[nr].add_object(frame)
+            
+    print "Extract coordinates..."
+    
+    for nr,wat in enumerate(all_H2O.iterate_over_residues()):
+        coords = [wat.center_of_mass() for frame in reader.iterate_over_frames() if frame <= max_frame]
+        print coords
+        
     
     
     exit(0)
