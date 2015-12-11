@@ -43,7 +43,7 @@ if __name__ == "__main__":
     traj_scope = "protein"
 
     max_frame = float('inf')
-    max_frame = 19
+    #max_frame = 19
     traj_scope = "protein"
     traj_over_scope = "(resname WAT) and (around 2 protein)"
     traj_object = "(resname WAT) and (around 6 (resnum 88 or resnum 90 or resnum 136))"
