@@ -14,8 +14,8 @@ from sys import stderr
 
 def pbar(maxval=100):
     # returns new progress bar
-    widgets = [pb.Percentage(),
-               pb.Bar(),
+    widgets = [pb.Percentage(), ' ',
+               pb.Bar(), ' ',
                pb.ETA()]
     return pb.ProgressBar(widgets=widgets,
                           maxval=maxval).start()

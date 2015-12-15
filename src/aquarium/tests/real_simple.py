@@ -13,10 +13,10 @@ def CHullCheck(point):
 def CHullCheck_init(args):
     CHullCheck.chull = copy.deepcopy(args[0])
 
-def CHullCheck_pool(chull,threads=3):
+def CHullCheck_pool(chull,threads=2):
     return mp.Pool(threads, CHullCheck_init, [(chull,)])
 
-def CHullCheck_exec(chull,points,threads=3):
+def CHullCheck_exec(chull,points,threads=2):
     pool = CHullCheck_pool(chull,threads=threads) 
     out = pool.map(CHullCheck, points)
     pool.close()
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = float('inf')
-    max_frame = 999
+    max_frame = 99
 
     ########################
 
@@ -116,8 +116,9 @@ if __name__ == "__main__":
 
         for nr,cir in enumerate(zip(all_H2O_coords,is_wat_within_chull,all_resids)):
             coord,ischull,resid = cir
-            paths[nr].add_coord(coord)
+            
             if ischull:
+                paths[nr].add_coord(coord)
                 # in scope
                 if resid not in waters_ids_in_object_over_frames[frame]:
                     paths[nr].add_scope(frame)
@@ -134,6 +135,8 @@ if __name__ == "__main__":
     
     zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
     all_H2O,paths = zip(*[(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0])
+    
+    
     
     
             

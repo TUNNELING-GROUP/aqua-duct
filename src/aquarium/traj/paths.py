@@ -160,6 +160,43 @@ class GenericPath(object):
         for path_out in paths_out:
             yield path_in,path_core,path_out
 
+    def get_single_path_coords(self,spath,smooth=None):
+        # returns coordinates for single path
+        # single path coprises of in,scope,out parts
+        # smooth has to be callable accepting coords
+        
+        p_in,p_scope,p_out = spath
+        
+        # get smoothed coords
+        if smooth:
+            coords = smooth(self.coords).tolist()
+        else:
+            coords = self.coords
+            
+        if len(self.frames) == len(coords):
+            # not full trajectory
+            in_ = []
+            for f in p_in:
+                in_.append(coords[self.frames.index(f)])
+            scope_ = []
+            for f in p_scope:
+                scope_.append(coords[self.frames.index(f)])
+            out_ = []
+            for f in p_out:
+                out_.append(coords[self.frames.index(f)])
+        else:
+            # full trajectory
+            in_ = []
+            for f in p_in:
+                in_.append(coords[f])
+            scope_ = []
+            for f in p_scope:
+                scope_.append(coords[f])
+            out_ = []
+            for f in p_out:
+                out_.append(coords[f])
+
+        return in_,scope_,out_
             
 if __name__ == "__main__":
     
