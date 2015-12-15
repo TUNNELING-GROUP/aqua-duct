@@ -13,13 +13,28 @@ def CHullCheck(point):
 def CHullCheck_init(args):
     CHullCheck.chull = copy.deepcopy(args[0])
 
+def CHullCheck_pool(chull,threads=3):
+    return mp.Pool(threads, CHullCheck_init, [(chull,)])
+
+def CHullCheck_exec(chull,points,threads=3):
+    pool = CHullCheck_pool(chull,threads=threads) 
+    out = pool.map(CHullCheck, points)
+    pool.close()
+    pool.join()
+    del pool
+    return out
 
 if __name__ == "__main__":
+
+
+    ########################
 
     topology = aqtests.get("simple.prmtop")
     trajectory = aqtests.get("simple.nc")
 
-    print "Read trajectory..."
+    ########################
+    
+    log.message("Read trajectory...")
     reader = ReadAmberNetCDFviaMDA(topology, trajectory)
 
     traj_object = "(resname WAT) and (around 6 (resnum 88 or resnum 90 or resnum 136))"
@@ -28,66 +43,76 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = float('inf')
-    max_frame = 99
+    max_frame = 999
 
-    print "Loop over frames: search of waters in object..."
+    ########################
+
+    log.message("Loop over frames: search of waters in object...")
     pbar = log.pbar(max_frame)
     
     # loop over frames
     # scan for waters in object
     waters_ids_in_object_over_frames = {}
     all_H2O= None
+    
     for frame in reader.iterate_over_frames():
         if frame > max_frame:
             break
 
         # current water selection
         H2O = reader.parse_selection(traj_object)
+        
+        # find convex hull of protein
+        chull = scope.get_convexhull_of_atom_positions()
+
+        H2O_coords = list(H2O.center_of_mass_of_residues())
+        is_wat_within_chull = CHullCheck_exec(chull, H2O_coords)
+        
+        # discard wat out of scope
+        H2O_new = None
+        for iwwc,wat in zip(is_wat_within_chull,H2O.iterate_over_residues()):
+            if iwwc:
+                if H2O_new is None:
+                    H2O_new = wat
+                else:
+                    H2O_new += wat
+        
         # add it to all waters in object
         if all_H2O:
-            all_H2O += H2O
+            all_H2O += H2O_new
             all_H2O.uniquify()
         else:
-            all_H2O = H2O
+            all_H2O = H2O_new
+        
         # remeber ids of water in object in current frame
-        waters_ids_in_object_over_frames.update({frame:H2O.unique_resids()})
+        waters_ids_in_object_over_frames.update({frame:H2O_new.unique_resids()})
         
         pbar.update(frame)
 
     pbar.finish()
         
-    print "Number of residues to trace:",all_H2O.unique_resids_number()
+    log.message("Number of residues to trace: %d" % all_H2O.unique_resids_number())
         
-    print "Init paths container..."
+    log.message("Init paths container...")
     # type and frames, consecutive elements correspond to residues in all_H2O
     paths = [GenericPath() for dummy in xrange(all_H2O.unique_resids_number())]
-
-
-   
-    
-    print "Trajectory scan..."
-    pbar = pb.ProgressBar(widgets=[pb.Percentage(), pb.Bar(), pb.ETA()], maxval=max_frame).start()
+  
+    log.message("Trajectory scan...")
+    pbar = log.pbar(max_frame)
 
     # loop over frames
     for frame in reader.iterate_over_frames():
         if frame > max_frame:
             break
-        #print "Frame",frame
         
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
-        #print "\tCurrent %s convexhull of %d points" % (traj_scope, len(chull.vertices_ids))
 
-        pool = mp.Pool(3, CHullCheck_init, [(chull,)])
-
-        #score = pool.map(Function, args_list)
-        
         all_H2O_coords = list(all_H2O.center_of_mass_of_residues())
-        is_wat_within_chull = pool.map(CHullCheck, all_H2O_coords)
+        is_wat_within_chull = CHullCheck_exec(chull, all_H2O_coords)
+
         all_resids = [wat.first_resid() for wat in all_H2O.iterate_over_residues()]
         
-        pool.close()
-        pool.join()
 
         for nr,cir in enumerate(zip(all_H2O_coords,is_wat_within_chull,all_resids)):
             coord,ischull,resid = cir
@@ -104,12 +129,13 @@ if __name__ == "__main__":
     
     pbar.finish()
     
-    print "Discard residues with empyt paths..."
+    log.message("Discard residues with empty paths...")
     
     
     zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
     all_H2O,paths = zip(*[(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0])
-        
+    
+    
             
     '''
     print "Extract coordinates..."
