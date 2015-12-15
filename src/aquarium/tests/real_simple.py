@@ -57,7 +57,9 @@ if __name__ == "__main__":
         print "\tCurrent %s convexhull of %d points" % (traj_scope, len(chull.vertices_ids))
         # loop over waters in all waters
         for nr,wat in enumerate(all_H2O.iterate_over_residues()):
-            if chull.point_within(wat.center_of_mass()):
+            coord = wat.center_of_mass()
+            paths[nr].add_coord(coord)
+            if chull.point_within(coord):
                 # in scope
                 if wat.first_resid() not in waters_ids_in_object_over_frames[frame]:
                     paths[nr].add_scope(frame)
@@ -65,12 +67,13 @@ if __name__ == "__main__":
                     # in object
                     paths[nr].add_object(frame)
             
+    '''
     print "Extract coordinates..."
     
     for nr,wat in enumerate(all_H2O.iterate_over_residues()):
         coords = [wat.center_of_mass() for frame in reader.iterate_over_frames() if frame <= max_frame]
         print coords
-        
+    ''' 
     
     
     exit(0)

@@ -78,7 +78,10 @@ class GenericPath(object):
         
         self.types = []
         self.frames = []
-
+        self.coords = []
+        
+    def add_coord(self,coord):
+        self.coords.append(coord)
     
     def add_object(self,frame):
         self.types.append(self.object_name)
