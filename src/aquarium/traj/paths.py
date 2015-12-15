@@ -139,7 +139,7 @@ class GenericPath(object):
             yield current_path
 
 
-    def find_paths(self):
+    def find_paths(self,fullonly=False):
         paths_out = list(self.get_paths_out())
         paths_in = list(self.get_paths_in())
         
@@ -154,11 +154,19 @@ class GenericPath(object):
             else:
                 path_core = []
                 path_out = []
+            if len(path_in) == 0 or len(path_core) == 0 or len(path_out) == 0:
+                if fullonly:
+                    continue
             yield path_in,path_core,path_out
-        path_in = []
-        path_core = []
-        for path_out in paths_out:
-            yield path_in,path_core,path_out
+        if not fullonly:
+            path_in = []
+            path_core = []
+            for path_out in paths_out:
+                yield path_in,path_core,path_out
+            
+    def find_paths_coords(self,smooth=None,fullonly=False):
+        for path in self.find_paths(fullonly=fullonly):
+            yield self.get_single_path_coords(path, smooth=smooth)
 
     def get_single_path_coords(self,spath,smooth=None):
         # returns coordinates for single path
