@@ -4,6 +4,7 @@ syntax: glob
 *.binpos*
 *.traj*
 *.nc*
+*.pdb*
 
 *.pyc
 
