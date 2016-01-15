@@ -29,15 +29,15 @@ if __name__ == "__main__":
 
     ########################
 
-    topology = aqtests.get("simple.prmtop")
-    trajectory = aqtests.get("simple.nc")
+    topology = aqtests.get("../../../real_traj/1cqz/1cqz_B_HH_FS.prmtop")
+    trajectory = aqtests.get("../../../real_traj/1cqz/prod1.nc")
 
     ########################
     
     log.message("Read trajectory...")
     reader = ReadAmberNetCDFviaMDA(topology, trajectory)
 
-    traj_object = "(resname WAT) and (around 6 (resnum 88 or resnum 90 or resnum 136))"
+    traj_object = "(resname WAT) and (around 6 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))"
     traj_scope = "protein"
     
     scope = reader.parse_selection(traj_scope)
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     log.message("Discard residues with empty paths...")
     
     
-    zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
+    #zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
     all_H2O,paths = zip(*[(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0])
     
     

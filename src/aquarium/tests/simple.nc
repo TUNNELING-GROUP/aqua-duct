@@ -1,1 +1,0 @@
-../../../real_traj/1QXJ/prod20ns.nc
