@@ -8,7 +8,7 @@ import multiprocessing as mp
 import copy
 
 cpu_count = mp.cpu_count()
-optimal_threads = cpu_count + 1 # is it really optimal?
+optimal_threads = 2*cpu_count + 1 # is it really optimal?
 
 def CHullCheck(point):
     return CHullCheck.chull.point_within(point)
@@ -32,8 +32,8 @@ if __name__ == "__main__":
 
     ########################
 
-    topology = aqtests.get("../../../real_traj/1cqz/1cqz_B_HH_FS.prmtop")
-    trajectory = aqtests.get("../../../real_traj/1cqz/prod1.nc")
+    topology = aqtests.get("../../../real_traj/1qxj/1QXJ_complex.prmtop")
+    trajectory = aqtests.get("../../../real_traj/1qxj/prod1-1.nc")
 
     ########################
 
@@ -43,12 +43,15 @@ if __name__ == "__main__":
     reader = ReadAmberNetCDFviaMDA(topology, trajectory)
 
     traj_object = "(resname WAT) and (around 6 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))"
+    traj_object = "(resname WAT) and (around 6 resnum 375)"
     traj_scope = "protein"
-    
+
+    backbone = reader.parse_selection("protein and backbone")
+
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    #max_frame = 99
+    max_frame = 199
 
     ########################
 

@@ -170,7 +170,7 @@ class GenericPath(object):
 
     def get_single_path_coords(self,spath,smooth=None):
         # returns coordinates for single path
-        # single path coprises of in,scope,out parts
+        # single path comprises of in,scope,out parts
         # smooth has to be callable accepting coords
         
         p_in,p_scope,p_out = spath
