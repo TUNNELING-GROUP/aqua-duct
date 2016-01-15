@@ -7,16 +7,19 @@ from aquarium.utils import log
 import multiprocessing as mp
 import copy
 
+cpu_count = mp.cpu_count()
+optimal_threads = cpu_count + 1 # is it really optimal?
+
 def CHullCheck(point):
     return CHullCheck.chull.point_within(point)
 
 def CHullCheck_init(args):
     CHullCheck.chull = copy.deepcopy(args[0])
 
-def CHullCheck_pool(chull,threads=2):
+def CHullCheck_pool(chull,threads=optimal_threads):
     return mp.Pool(threads, CHullCheck_init, [(chull,)])
 
-def CHullCheck_exec(chull,points,threads=2):
+def CHullCheck_exec(chull,points,threads=optimal_threads):
     pool = CHullCheck_pool(chull,threads=threads) 
     out = pool.map(CHullCheck, points)
     pool.close()
@@ -33,7 +36,9 @@ if __name__ == "__main__":
     trajectory = aqtests.get("../../../real_traj/1cqz/prod1.nc")
 
     ########################
-    
+
+    log.message("Optimal threads count: %d" % optimal_threads)
+
     log.message("Read trajectory...")
     reader = ReadAmberNetCDFviaMDA(topology, trajectory)
 
@@ -66,7 +71,7 @@ if __name__ == "__main__":
         chull = scope.get_convexhull_of_atom_positions()
 
         H2O_coords = list(H2O.center_of_mass_of_residues())
-        is_wat_within_chull = CHullCheck_exec(chull, H2O_coords)
+        is_wat_within_chull = CHullCheck_exec(chull, H2O_coords, threads=1)
         
         # discard wat out of scope
         H2O_new = None
