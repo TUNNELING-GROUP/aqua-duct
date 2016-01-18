@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+from aquarium.geom import traces
+
 
 def showit(gen):
     def patched(*args, **kwargs):
@@ -10,8 +12,6 @@ def showit(gen):
         plt.show()
         return obj
     return patched
-
-
 
 def get_ax3d(fig,sub=111):
     return fig.add_subplot(sub, projection='3d')
@@ -62,5 +62,37 @@ class GenericTracePlotter(object):
                 self.single_trace(trace, color=color[nr], **kwargs)
                     
                     
-                    
-        
+class SimpleProteinPlotter(GenericTracePlotter):
+
+    @showit
+    def protein_trace(self,protein,smooth=None,color=('c','m','y'),**kwargs):
+        # assumes protein is reader object
+        #TODO: iterate over chains?
+        bb = protein.parse_selection("protein and backbone")
+        coords = bb.get_positions()
+        cdiff = traces.diff(coords)
+        split = np.argwhere(cdiff > 2.5) #TODO: magic constant
+        ns = len(split)
+        if ns == 0:
+            self.single_trace(coords,color=color,**kwargs)
+        else:
+            split.shape = (ns,)
+            for nr,csplit in enumerate([0]+split.tolist()):
+                cc = color[nr%len(color)]
+                if nr == ns:
+                    scoords = coords[csplit+1:]
+                elif nr == 0:
+                    scoords = coords[csplit:split[nr]]
+                else:
+                    scoords = coords[csplit+1:split[nr]]
+                if smooth:
+                    scoords = smooth(scoords)
+                self.single_trace(scoords,color=cc,**kwargs)
+
+
+class SinglePathPlotter(SimpleProteinPlotter):
+
+    @showit
+    def paths_traces(self,spaths,color=('r','g','b'),**kwargs):
+        for spath in spaths:
+            self.path_trace(spath,color)
