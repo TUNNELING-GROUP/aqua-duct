@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
+from aquarium.geom import traces
+
 
 def showit(gen):
     def patched(*args, **kwargs):
@@ -10,8 +12,6 @@ def showit(gen):
         plt.show()
         return obj
     return patched
-
-
 
 def get_ax3d(fig,sub=111):
     return fig.add_subplot(sub, projection='3d')
@@ -62,5 +62,13 @@ class GenericTracePlotter(object):
                 self.single_trace(trace, color=color[nr], **kwargs)
                     
                     
-                    
-        
+class SimpleProteinPlotter(GenericTracePlotter):
+
+    @showit
+    def protein_trace(self,protein,smooth=None,color='c',**kwargs):
+        # assumes protein is reader object
+        #TODO: iterate over chains?
+        bb = protein.parse_selection("protein and backbone")
+        coords = bb.get_positions()
+        cdiff = traces.diff(coords)
+

@@ -1,7 +1,8 @@
 
 from aquarium import tests as aqtests
 from aquarium.traj.reader import ReadAmberNetCDFviaMDA
-from aquarium.traj.paths import GenericPath
+from aquarium.traj.paths import GenericPaths,yield_single_paths
+from aquarium.geom.smooth import WindowSmooth
 from aquarium.utils import log
 
 import multiprocessing as mp
@@ -51,13 +52,13 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 199
+    max_frame = 99
 
     ########################
 
     log.message("Loop over frames: search of waters in object...")
     pbar = log.pbar(max_frame)
-    
+
     # loop over frames
     # scan for waters in object
     waters_ids_in_object_over_frames = {}
@@ -69,12 +70,16 @@ if __name__ == "__main__":
 
         # current water selection
         H2O = reader.parse_selection(traj_object)
-        
+
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
 
         H2O_coords = list(H2O.center_of_mass_of_residues())
-        is_wat_within_chull = CHullCheck_exec(chull, H2O_coords, threads=1)
+        current_threads = len(H2O_coords)
+        #current_threads = 1
+        if current_threads > optimal_threads:
+            current_threads = optimal_threads
+        is_wat_within_chull = CHullCheck_exec(chull, H2O_coords, threads=current_threads)
         
         # discard wat out of scope
         H2O_new = None
@@ -103,7 +108,7 @@ if __name__ == "__main__":
         
     log.message("Init paths container...")
     # type and frames, consecutive elements correspond to residues in all_H2O
-    paths = [GenericPath() for dummy in xrange(all_H2O.unique_resids_number())]
+    paths = [GenericPaths(resid) for resid in all_H2O.unique_resids()]
   
     log.message("Trajectory scan...")
     pbar = log.pbar(max_frame)
@@ -140,10 +145,12 @@ if __name__ == "__main__":
     
     log.message("Discard residues with empty paths...")
     
-    
     #zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
     all_H2O,paths = zip(*[(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0])
-    
+
+    log.message("Create separate paths...")
+
+    spaths = list(yield_single_paths(paths,smooth=WindowSmooth().smooth))
     
     
     

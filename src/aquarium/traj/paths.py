@@ -67,15 +67,19 @@ def right(a,b):
 
 #TODO: create utils module
 
-class GenericPath(object):
+class GenericPaths(object):
     # object to store paths... is it required?
     # could be nice to have as it can be armed with methods for getting in and out paths
     object_name = 'o'
     scope_name = 's'
     out_name = 'n'
 
-    def __init__(self):
-        
+    def __init__(self,id):
+
+        # id is any type of object; it is used as identifier
+
+        self.id = id
+
         self.types = []
         self.frames = []
         self.coords = []
@@ -205,10 +209,32 @@ class GenericPath(object):
                 out_.append(coords[f])
 
         return in_,scope_,out_
-            
+
+
+def yield_single_paths(gps,smooth=None,fullonly=False):
+    # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
+    for gp in gps:
+        id = gp.id
+        for paths,coords in zip(gp.find_paths(fullonly=fullonly),
+                                gp.find_paths_coords(smooth=smooth,fullonly=fullonly)):
+            yield SinglePath(id,paths,coords)
+
+
+class SinglePath(object):
+    # special class
+    # represents one path
+
+    def __init__(self,id,paths,coords):
+
+        self.id = id
+        self.paths = paths
+        self.coords = coords
+
+
+
 if __name__ == "__main__":
     
-    p = GenericPath()
+    p = GenericPaths()
     p.types = ['s', 'o', 's', 'o', 'o', 'o', 'o', 's', 's', 's', 's', 's', 's']
     p.frames = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
     
