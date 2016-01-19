@@ -62,7 +62,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 199
+    max_frame = 99
 
     ########################
 
@@ -160,7 +160,15 @@ if __name__ == "__main__":
 
     log.message("Create separate paths...")
 
-    spaths = list(yield_single_paths(paths_))
+
+    spaths = []
+    pbar = log.pbar(len(paths_))
+    for nr,sp in enumerate(yield_single_paths(paths_)):
+        spaths.append(sp)
+        pbar.update(nr)
+    pbar.finish()
+
+    #spaths = list(yield_single_paths(paths_))
     
     
     max_step = np.array([np.max(traces.diff(np.vstack([c for c in sp.coords if len(c) > 0]))) for sp in spaths])

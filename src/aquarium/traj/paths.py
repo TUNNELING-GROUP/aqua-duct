@@ -245,6 +245,18 @@ class SinglePath(object):
     def paths(self):
         return self.path_in,self.path_object,self.path_out
 
+    @property
+    def paths_cont(self):
+        #return sum(map(list,self.paths))
+        return self.path_in+self.path_object+self.path_out
+
+    @property
+    def begins(self):
+        return self.paths_cont[0]
+    @property
+    def ends(self):
+        return self.paths_cont[-1]
+
     @tupleify
     def get_smooth_coords(self,smooth):
         # smooth should be callable and should return an object of length equal to submitted one

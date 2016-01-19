@@ -39,7 +39,11 @@ class GenericTracePlotter(object):
                        coords[:,2],
                        c=color,**kwargs)
     @showit
-    def path_trace(self,path,color=('r','g','b'),**kwargs):
+    def path_trace(self,path,color=('r','g','b'),
+                   plot_in=True,
+                   plot_object=True,
+                   plot_out=True,
+                   **kwargs):
         
         for nr,trace in enumerate(path):
             # mid points!
@@ -59,7 +63,8 @@ class GenericTracePlotter(object):
                     if len(path[1]) > 0:
                         midp = np.mean(np.vstack((trace[0],path[1][-1])),0)
                         trace = np.vstack((midp,trace))
-                self.single_trace(trace, color=color[nr], **kwargs)
+                if (nr == 0 and plot_in) or (nr == 1 and plot_object) or (nr == 2 and plot_out):
+                    self.single_trace(trace, color=color[nr], **kwargs)
                     
                     
 class SimpleProteinPlotter(GenericTracePlotter):
@@ -95,4 +100,4 @@ class SinglePathPlotter(SimpleProteinPlotter):
     @showit
     def single_path_traces(self,spaths,smooth=None,color=('r','g','b'),**kwargs):
         for spath in spaths:
-            self.path_trace(spath.get_smooth_coords(smooth),color=color)
+            self.path_trace(spath.get_smooth_coords(smooth),color=color,**kwargs)
