@@ -93,6 +93,6 @@ class SimpleProteinPlotter(GenericTracePlotter):
 class SinglePathPlotter(SimpleProteinPlotter):
 
     @showit
-    def single_path_traces(self,spaths,color=('r','g','b'),**kwargs):
+    def single_path_traces(self,spaths,smooth=None,color=('r','g','b'),**kwargs):
         for spath in spaths:
-            self.path_trace(spath.coords,color=color)
+            self.path_trace(spath.get_smooth_coords(smooth),color=color)

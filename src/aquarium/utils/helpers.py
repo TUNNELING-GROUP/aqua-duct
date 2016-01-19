@@ -21,6 +21,15 @@ def listify(gen):
         return [obj]
     return patched
 
+def tupleify(gen):
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        obj = gen(*args, **kwargs)
+        if isinstance(obj,Iterable):
+            return tuple(obj)
+        return (obj,)
+    return patched
+
 def arrayify(gen):
     @wraps(gen)
     def patched(*args, **kwargs):

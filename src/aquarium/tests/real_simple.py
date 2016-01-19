@@ -36,11 +36,15 @@ if __name__ == "__main__":
     ########################
 
     topology = aqtests.get("../../../real_traj/1qxj/1QXJ_complex.prmtop")
+    trajectory = aqtests.get("../../../real_traj/1qxj/prod_1qxj.nc")
+
+    '''
     trajectory = []
     trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-1.nc"))
     trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-2.nc"))
     trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-3.nc"))
     trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-4.nc"))
+    '''
 
     ########################
 
