@@ -3,10 +3,12 @@ from aquarium import tests as aqtests
 from aquarium.traj.reader import ReadAmberNetCDFviaMDA
 from aquarium.traj.paths import GenericPaths,yield_single_paths
 from aquarium.geom.smooth import WindowSmooth
+from aquarium.geom import traces
 from aquarium.utils import log
 
 import multiprocessing as mp
 import copy
+import numpy as np
 
 cpu_count = mp.cpu_count()
 optimal_threads = 2*cpu_count + 1 # is it really optimal?
@@ -34,7 +36,11 @@ if __name__ == "__main__":
     ########################
 
     topology = aqtests.get("../../../real_traj/1qxj/1QXJ_complex.prmtop")
-    trajectory = aqtests.get("../../../real_traj/1qxj/prod1-1.nc")
+    trajectory = []
+    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-1.nc"))
+    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-2.nc"))
+    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-3.nc"))
+    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-4.nc"))
 
     ########################
 
@@ -52,7 +58,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 99
+    max_frame = 199
 
     ########################
 
@@ -117,7 +123,7 @@ if __name__ == "__main__":
     for frame in reader.iterate_over_frames():
         if frame > max_frame:
             break
-        
+
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
 
@@ -125,11 +131,11 @@ if __name__ == "__main__":
         is_wat_within_chull = CHullCheck_exec(chull, all_H2O_coords)
 
         all_resids = [wat.first_resid() for wat in all_H2O.iterate_over_residues()]
-        
+
 
         for nr,cir in enumerate(zip(all_H2O_coords,is_wat_within_chull,all_resids)):
             coord,ischull,resid = cir
-            
+
             if ischull:
                 paths[nr].add_coord(coord)
                 # in scope
@@ -139,21 +145,22 @@ if __name__ == "__main__":
                     # in object
                     paths[nr].add_object(frame)
 
-        pbar.update(frame)    
-    
+        pbar.update(frame)
+
     pbar.finish()
     
     log.message("Discard residues with empty paths...")
     
     #zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
-    all_H2O,paths = zip(*[(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0])
+    all_H2O_,paths_ = zip(*[(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0])
 
     log.message("Create separate paths...")
 
-    spaths = list(yield_single_paths(paths,smooth=WindowSmooth().smooth))
+    spaths = list(yield_single_paths(paths_))
     
     
-    
+    max_step = np.array([np.max(traces.diff(np.vstack([c for c in sp.coords if len(c) > 0]))) for sp in spaths])
+
             
     '''
     print "Extract coordinates..."

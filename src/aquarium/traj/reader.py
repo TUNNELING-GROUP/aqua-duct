@@ -13,7 +13,9 @@ class Reader(object):
     
     def __init__(self,topology,trajectory):
         assert isinstance(topology, str)
-        assert isinstance(trajectory, str)
+        if not isinstance(trajectory,str):
+            for trj in trajectory:
+                assert isinstance(trj, str)
         
         self.topology_file_name = topology
         self.trajectory_file_name = trajectory
