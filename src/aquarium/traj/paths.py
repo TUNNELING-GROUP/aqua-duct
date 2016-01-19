@@ -5,6 +5,8 @@ Created on Dec 10, 2015
 '''
 
 from itertools import izip
+import numpy as np
+from aquarium.utils.helpers import tupleify
 
 def is_iterable(l):
     try:
@@ -168,55 +170,48 @@ class GenericPaths(object):
             for path_out in paths_out:
                 yield path_in,path_core,path_out
             
-    def find_paths_coords(self,smooth=None,fullonly=False):
+    def find_paths_coords(self,fullonly=False):
         for path in self.find_paths(fullonly=fullonly):
-            yield self.get_single_path_coords(path, smooth=smooth)
+            yield self.get_single_path_coords(path)
 
-    def get_single_path_coords(self,spath,smooth=None):
+    def get_single_path_coords(self,spath):
         # returns coordinates for single path
         # single path comprises of in,scope,out parts
-        # smooth has to be callable accepting coords
+
+        p_in,p_object,p_out = spath
         
-        p_in,p_scope,p_out = spath
-        
-        # get smoothed coords
-        if smooth:
-            coords = smooth(self.coords).tolist()
-        else:
-            coords = self.coords
-            
-        if len(self.frames) == len(coords):
+        if len(self.frames) == len(self.coords):
             # not full trajectory
             in_ = []
             for f in p_in:
-                in_.append(coords[self.frames.index(f)])
-            scope_ = []
-            for f in p_scope:
-                scope_.append(coords[self.frames.index(f)])
+                in_.append(self.coords[self.frames.index(f)])
+            object_ = []
+            for f in p_object:
+                object_.append(self.coords[self.frames.index(f)])
             out_ = []
             for f in p_out:
-                out_.append(coords[self.frames.index(f)])
+                out_.append(self.coords[self.frames.index(f)])
         else:
             # full trajectory
             in_ = []
             for f in p_in:
-                in_.append(coords[f])
-            scope_ = []
-            for f in p_scope:
-                scope_.append(coords[f])
+                in_.append(self.coords[f])
+            object_ = []
+            for f in p_object:
+                object_.append(self.coords[f])
             out_ = []
             for f in p_out:
-                out_.append(coords[f])
+                out_.append(self.coords[f])
 
-        return in_,scope_,out_
+        return in_,object_,out_
 
 
-def yield_single_paths(gps,smooth=None,fullonly=False):
+def yield_single_paths(gps, fullonly=False):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
     for gp in gps:
         id = gp.id
         for paths,coords in zip(gp.find_paths(fullonly=fullonly),
-                                gp.find_paths_coords(smooth=smooth,fullonly=fullonly)):
+                                gp.find_paths_coords(fullonly=fullonly)):
             yield SinglePath(id,paths,coords)
 
 
@@ -224,13 +219,48 @@ class SinglePath(object):
     # special class
     # represents one path
 
+
     def __init__(self,id,paths,coords):
 
         self.id = id
-        self.paths = paths
-        self.coords = coords
+        self.path_in,self.path_object,self.path_out = paths
+        self.coords_in,self.coords_object,self.coords_out = coords
 
+        #return np.vstack([c for c in self._coords if len(c) > 0])
 
+    @property
+    def size(self):
+        return sum(map(len,self.paths))
+
+    @property
+    def coords(self):
+        return self.coords_in,self.coords_object,self.coords_out
+
+    @property
+    def coords_cont(self):
+        # returns coords as one array
+        return np.vstack([c for c in self.coords if len(c) > 0])
+
+    @property
+    def paths(self):
+        return self.path_in,self.path_object,self.path_out
+
+    @tupleify
+    def get_smooth_coords(self,smooth):
+        # smooth should be callable and should return an object of length equal to submitted one
+        # get continuous coords
+        if smooth:
+            coords_smooth = smooth(self.coords_cont)
+        else:
+            coords_smooth = self.coords_cont
+        # now lets return tupple of coords
+        nr = 0
+        for path in self.paths:
+            if len(path) > 0:
+                yield np.array(coords_smooth[nr:len(path)]).tolist()
+                nr += len(path)
+            else:
+                yield []
 
 if __name__ == "__main__":
     

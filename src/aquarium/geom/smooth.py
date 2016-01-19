@@ -9,17 +9,29 @@ from aquarium.utils.helpers import arrayify
 import numpy as np
 
 class Smooth(object):
-    
+
+    def __init__(self,recursive=None):
+
+        self.recursive = recursive
+
     def smooth(self,coords):
         raise NotImplementedError("Missing implementation")
 
     def __call__(self,coords):
+        if self.recursive:
+            coords_smooth = None
+            for r in xrange(self.recursive):
+                if coords_smooth is not None:
+                    coords_smooth = self.smooth(coords_smooth)
+                else:
+                    coords_smooth = self.smooth(coords)
+            return coords_smooth
         return self.smooth(coords)
 
 class WindowSmooth(Smooth):
     
-    def __init__(self,window=5,function=np.mean):
-
+    def __init__(self,window=5,function=np.mean,**kwargs):
+        Smooth.__init__(self,**kwargs)
         self.window = window
         self.function = function
 
