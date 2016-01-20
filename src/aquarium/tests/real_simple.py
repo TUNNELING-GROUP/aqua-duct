@@ -11,7 +11,8 @@ import copy
 import numpy as np
 
 cpu_count = mp.cpu_count()
-optimal_threads = 2*cpu_count + 1 # is it really optimal?
+optimal_threads = int(1.5*cpu_count + 1) # is it really optimal?
+optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 
 def CHullCheck(point):
     return CHullCheck.chull.point_within(point)
@@ -35,9 +36,13 @@ if __name__ == "__main__":
 
     ########################
 
+    # holender
     topology = aqtests.get("../../../real_traj/1qxj/1QXJ_complex.prmtop")
     trajectory = aqtests.get("../../../real_traj/1qxj/prod_1qxj.nc")
+    # mysz
 
+
+    # following does not wor properly with MDAnalysis
     '''
     trajectory = []
     trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-1.nc"))
@@ -62,7 +67,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 99
+    #max_frame = 99
 
     ########################
 
@@ -161,11 +166,8 @@ if __name__ == "__main__":
     log.message("Create separate paths...")
 
 
-    spaths = []
     pbar = log.pbar(len(paths_))
-    for nr,sp in enumerate(yield_single_paths(paths_)):
-        spaths.append(sp)
-        pbar.update(nr)
+    spaths = [sp for sp,nr in yield_single_paths(paths_,progress=True) if pbar.update(nr) is None]
     pbar.finish()
 
     #spaths = list(yield_single_paths(paths_))

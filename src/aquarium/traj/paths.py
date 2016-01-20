@@ -206,13 +206,17 @@ class GenericPaths(object):
         return in_,object_,out_
 
 
-def yield_single_paths(gps, fullonly=False):
+def yield_single_paths(gps, fullonly=False, progress=False):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
-    for gp in gps:
+    for nr,gp in enumerate(gps):
         id = gp.id
         for paths,coords in zip(gp.find_paths(fullonly=fullonly),
                                 gp.find_paths_coords(fullonly=fullonly)):
-            yield SinglePath(id,paths,coords)
+            if progress:
+                yield SinglePath(id,paths,coords),nr
+
+            else:
+                yield SinglePath(id,paths,coords)
 
 
 class SinglePath(object):
@@ -253,9 +257,20 @@ class SinglePath(object):
     @property
     def begins(self):
         return self.paths_cont[0]
+
     @property
     def ends(self):
         return self.paths_cont[-1]
+
+    @property
+    def has_in(self):
+        return len(self.path_in) > 0
+    @property
+    def has_object(self):
+        return len(self.path_object) > 0
+    @property
+    def has_out(self):
+        return len(self.path_out) > 0
 
     @tupleify
     def get_smooth_coords(self,smooth):
