@@ -27,11 +27,11 @@ class GenericTracePlotter(object):
         self.fig = plt.figure()
         self.ax = self.fig.add_subplot(111, projection='3d') 
         
-        self.ax.set_axis_bgcolor('none')
-        self.ax.axis('off')
-        
         self.fig.subplots_adjust(left=0,bottom=0,right=1,top=1)
         self.fig.set_facecolor('w')
+
+        self.ax.set_axis_bgcolor('none')
+        self.ax.axis('off')
 
     @showit
     def single_trace(self,coords,color='r',**kwargs):

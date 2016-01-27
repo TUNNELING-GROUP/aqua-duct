@@ -31,6 +31,8 @@ def CHullCheck_exec(chull,points,threads=optimal_threads):
     del pool
     return out
 
+#TODO: do not destroy pools of workers
+
 if __name__ == "__main__":
 
 
@@ -77,7 +79,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 99
+    #max_frame = 99
 
     ########################
 
