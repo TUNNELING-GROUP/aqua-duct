@@ -37,9 +37,13 @@ if __name__ == "__main__":
     ########################
 
     # holender
+    '''
     topology = aqtests.get("../../../real_traj/1qxj/1QXJ_complex.prmtop")
     trajectory = aqtests.get("../../../real_traj/1qxj/prod_1qxj.nc")
+    '''
     # mysz
+    topology = aqtests.get("../../../real_traj/1cqz/1cqz_B_HH_FS.prmtop")
+    trajectory = aqtests.get("../../../real_traj/1cqz/prod_1cqz.nc")
 
 
     # following does not wor properly with MDAnalysis
@@ -58,8 +62,14 @@ if __name__ == "__main__":
     log.message("Read trajectory...")
     reader = ReadAmberNetCDFviaMDA(topology, trajectory)
 
+    # holender
+    '''
     traj_object = "(resname WAT) and (around 6 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))"
     traj_object = "(resname WAT) and (around 6 resnum 375)"
+    '''
+    # mysz
+    traj_object = "(resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))"
+
     traj_scope = "protein"
 
     backbone = reader.parse_selection("protein and backbone")
@@ -67,7 +77,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    #max_frame = 99
+    max_frame = 199
 
     ########################
 
