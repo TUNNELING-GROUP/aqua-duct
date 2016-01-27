@@ -1,6 +1,8 @@
-
-import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.colors import colorConverter
+cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)
+import matplotlib.pyplot as plt
+
 import numpy as np
 
 from aquarium.geom import traces
@@ -33,6 +35,7 @@ class GenericTracePlotter(object):
 
     @showit
     def single_trace(self,coords,color='r',**kwargs):
+        color = cc(color)
         coords = np.array(coords)
         self.ax.plot3D(coords[:,0],
                        coords[:,1],
@@ -44,7 +47,7 @@ class GenericTracePlotter(object):
                    plot_object=True,
                    plot_out=True,
                    **kwargs):
-        
+        color = map(cc,color)
         for nr,trace in enumerate(path):
             # mid points!
             if len(trace) > 0:
@@ -79,7 +82,7 @@ class SimpleProteinPlotter(GenericTracePlotter):
         split = np.argwhere(cdiff > 2.5) #TODO: magic constant
         ns = len(split)
         if ns == 0:
-            self.single_trace(coords,color=color,**kwargs)
+            self.single_trace(smooth(coords),color=color[0],**kwargs) #TODO: color conversion is buggy
         else:
             split.shape = (ns,)
             for nr,csplit in enumerate([0]+split.tolist()):
@@ -92,7 +95,7 @@ class SimpleProteinPlotter(GenericTracePlotter):
                     scoords = coords[csplit+1:split[nr]]
                 if smooth:
                     scoords = smooth(scoords)
-                self.single_trace(scoords,color=cc,**kwargs)
+                self.single_trace(scoords,color=color,**kwargs)
 
 
 class SinglePathPlotter(SimpleProteinPlotter):
