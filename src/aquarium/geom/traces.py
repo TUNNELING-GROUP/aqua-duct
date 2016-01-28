@@ -12,6 +12,26 @@ def diff(trace):
 
     return np.array(trace_diff)
 
-
+def midpoints(path):
+    n = len(path)
+    for nr,trace in enumerate(path):
+        # mid points!
+        if len(trace) > 0:
+            if nr == 0:
+                if len(path[nr+1]) > 0:
+                    midp = np.mean(np.vstack((trace[-1], path[nr + 1][0])), 0)
+                    trace = np.vstack((trace,midp))
+            elif nr == n-1:
+                if len(path[nr-1]) > 0:
+                    midp = np.mean(np.vstack((trace[0], path[nr - 1][-1])), 0)
+                    trace = np.vstack((midp,trace))
+            else:
+                if len(path[nr-1]) > 0:
+                    midp = np.mean(np.vstack((trace[0], path[nr - 1][-1])), 0)
+                    trace = np.vstack((midp,trace))
+                if len(path[nr+1]) > 0:
+                    midp = np.mean(np.vstack((trace[-1], path[nr + 1][0])), 0)
+                    trace = np.vstack((trace,midp))
+        yield trace
 
 

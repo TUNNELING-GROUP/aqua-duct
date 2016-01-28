@@ -4,10 +4,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from aquarium.geom import traces
-
 # matplotlib specific
 # mpl color converter
-cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)
+#cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)
+cc = lambda c,alpha=1.0 : colorConverter.to_rgb(c)
 
 def showit(gen):
     def patched(*args, **kwargs):
@@ -54,24 +54,9 @@ class SimpleTracePlotter(object):
         # path is a tuple of length 3, its elements represent in,object, out parts of path
         # color is a tuple of length 3, its elements correspond to colors of consecutive path parts
         color = map(cc,color)
-        for nr,trace in enumerate(path):
+        for nr,trace in enumerate(traces.midpoints(path)):
             # mid points!
             if len(trace) > 0:
-                if nr == 0:
-                    if len(path[1]) > 0:
-                        midp = np.mean(np.vstack((trace[-1],path[1][0])),0)
-                        trace = np.vstack((trace,midp))
-                if nr == 1:
-                    if len(path[0]) > 0:
-                        midp = np.mean(np.vstack((trace[0],path[0][-1])),0)
-                        trace = np.vstack((midp,trace))
-                    if len(path[2]) > 0:
-                        midp = np.mean(np.vstack((trace[-1],path[2][0])),0)
-                        trace = np.vstack((trace,midp))
-                if nr == 2:
-                    if len(path[1]) > 0:
-                        midp = np.mean(np.vstack((trace[0],path[1][-1])),0)
-                        trace = np.vstack((midp,trace))
                 if (nr == 0 and plot_in) or (nr == 1 and plot_object) or (nr == 2 and plot_out):
                     self.single_trace(trace, color=color[nr], **kwargs)
                     
