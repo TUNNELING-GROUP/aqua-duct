@@ -21,33 +21,38 @@ def get_ax3d(fig,sub=111):
 
 
 
-class GenericTracePlotter(object):
+class SimpleTracePlotter(object):
 
-    @showit
-    def init_ax(self):
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot(111, projection='3d') 
-        
-        self.fig.subplots_adjust(left=0,bottom=0,right=1,top=1)
-        self.fig.set_facecolor('w')
+    def plot_line(self,coords,color,**kwargs):
+        raise NotImplementedError('This is base class.')
 
-        self.ax.set_axis_bgcolor('none')
-        self.ax.axis('off')
 
-    @showit
-    def single_trace(self,coords,color='r',**kwargs):
-        color = cc(color)
-        coords = np.array(coords)
-        self.ax.plot3D(coords[:,0],
-                       coords[:,1],
-                       coords[:,2],
-                       c=color,**kwargs)
-    @showit
+    '''
     def path_trace(self,path,color=('r','g','b'),
                    plot_in=True,
                    plot_object=True,
                    plot_out=True,
                    **kwargs):
+        raise NotImplementedError('This is base class.')
+    '''
+
+
+    def single_trace(self,coords,color='r',**kwargs):
+        # coords is a trace
+        # color is a single color
+        color = cc(color)
+        coords = np.array(coords)
+        # call plot_line
+        self.plot_line(coords,color,**kwargs)
+
+
+    def path_trace(self,path,color=('r','g','b'),
+                   plot_in=True,
+                   plot_object=True,
+                   plot_out=True,
+                   **kwargs):
+        # path is a tuple of length 3, its elements represent in,object, out parts of path
+        # color is a tuple of length 3, its elements correspond to colors of consecutive path parts
         color = map(cc,color)
         for nr,trace in enumerate(path):
             # mid points!
@@ -71,9 +76,8 @@ class GenericTracePlotter(object):
                     self.single_trace(trace, color=color[nr], **kwargs)
                     
                     
-class SimpleProteinPlotter(GenericTracePlotter):
+class SimpleProteinPlotter(SimpleTracePlotter):
 
-    @showit
     def protein_trace(self,protein,smooth=None,color=('c','m','y'),**kwargs):
         # assumes protein is reader object
         #TODO: iterate over chains?
@@ -99,9 +103,34 @@ class SimpleProteinPlotter(GenericTracePlotter):
                 self.single_trace(scoords,color=color,**kwargs)
 
 
-class SinglePathPlotter(SimpleProteinPlotter):
+class SimplePathPlotter(SimpleTracePlotter):
 
-    @showit
     def single_path_traces(self,spaths,smooth=None,color=('r','g','b'),**kwargs):
         for spath in spaths:
             self.path_trace(spath.get_smooth_coords(smooth),color=color,**kwargs)
+
+
+
+class MPLTracePlotter(SimplePathPlotter, SimpleProteinPlotter):
+
+    @showit
+    def init_ax(self):
+        self.fig = plt.figure()
+        self.ax = self.fig.add_subplot(111, projection='3d')
+
+        self.fig.subplots_adjust(left=0,bottom=0,right=1,top=1)
+        self.fig.set_facecolor('w')
+
+        self.ax.set_axis_bgcolor('none')
+        self.ax.axis('off')
+
+    @showit
+    def plot_line(self,coords,color,**kwargs):
+        self.ax.plot3D(coords[:,0],
+                       coords[:,1],
+                       coords[:,2],
+                       c=color,**kwargs)
+
+
+
+
