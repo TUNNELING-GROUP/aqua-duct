@@ -1,12 +1,13 @@
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import colorConverter
-cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)
 import matplotlib.pyplot as plt
-
 import numpy as np
 
 from aquarium.geom import traces
 
+# matplotlib specific
+# mpl color converter
+cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)
 
 def showit(gen):
     def patched(*args, **kwargs):
