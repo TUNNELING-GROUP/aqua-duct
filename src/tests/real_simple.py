@@ -1,5 +1,4 @@
 
-from aquarium import tests as aqtests
 from aquarium.traj.reader import ReadAmberNetCDFviaMDA
 from aquarium.traj.paths import GenericPaths,yield_single_paths
 from aquarium.geom.smooth import WindowSmooth
@@ -44,8 +43,8 @@ if __name__ == "__main__":
     trajectory = aqtests.get("../../../real_traj/1qxj/prod_1qxj.nc")
     '''
     # mysz
-    topology = aqtests.get("../../../real_traj/1cqz/1cqz_B_HH_FS.prmtop")
-    trajectory = aqtests.get("../../../real_traj/1cqz/prod_1cqz.nc")
+    topology = "real_traj/1cqz/1cqz_B_HH_FS.prmtop"
+    trajectory = "real_traj/1cqz/prod_1cqz.nc"
 
 
     # following does not wor properly with MDAnalysis
@@ -79,7 +78,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 199
+    max_frame = 99
 
     ########################
 
