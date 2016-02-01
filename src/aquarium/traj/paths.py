@@ -6,44 +6,11 @@ Created on Dec 10, 2015
 
 from itertools import izip
 import numpy as np
-from aquarium.utils.helpers import tupleify
-
-def is_iterable(l):
-    try:
-        _ = (e for e in l)
-        return True
-    except TypeError:
-        pass
-    return False
-
-
-def listify(gen):
-    # http://argandgahandapandpa.wordpress.com/2009/03/29/python-generator-to-list-decorator/
-    # improved by tljm: for non iterable objects it returns list of one element: the object
-    def patched(*args, **kwargs):
-        obj = gen(*args, **kwargs)
-        if is_iterable(obj):
-            return list(obj)
-        return [obj]
-
-    return patched
-
-def sortify(gen):
-    # http://argandgahandapandpa.wordpress.com/2009/03/29/python-generator-to-list-decorator/
-    # improved by tljm: for non iterable objects it returns list of one element: the object
-    def patched(*args, **kwargs):
-        obj = gen(*args, **kwargs)
-        if is_iterable(obj):
-            obj = list(obj)
-            obj.sort()
-            return obj
-        return [obj]
-
-    return patched
+from aquarium.utils.helpers import tupleify, sortify, is_iterable, listify
 
    
 # paths/list manipulations
-
+# following part of conde comes directly from the very initial tcl/vmd implementaion
 def union(a,b):
     return [aa for aa in a if aa in b]
 
@@ -54,7 +21,6 @@ def glue(a,b):
         return g
     return []
 
-@listify
 def xor(a,b):
     ab = union(a,b)
     for e in glue(a,b):
@@ -67,12 +33,16 @@ def left(a,b):
 def right(a,b):
     return union(b,xor(a,b))
 
-#TODO: create utils module
+class PathTypesCodes():
+    path_in_code = 'i'
+    path_object_code = 'c'
+    path_out_code = 'o'
+    
 
 class GenericPaths(object):
     # object to store paths... is it required?
     # could be nice to have as it can be armed with methods for getting in and out paths
-    object_name = 'o'
+    object_name = 'c'
     scope_name = 's'
     out_name = 'n'
 
@@ -219,7 +189,7 @@ def yield_single_paths(gps, fullonly=False, progress=False):
                 yield SinglePath(id,paths,coords)
 
 
-class SinglePath(object):
+class SinglePath(object,PathTypesCodes):
     # special class
     # represents one path
 
@@ -253,6 +223,12 @@ class SinglePath(object):
     def paths_cont(self):
         #return sum(map(list,self.paths))
         return self.path_in+self.path_object+self.path_out
+
+    @property
+    def types_cont(self):
+        return [self.path_in_code for _ in self.path_in]+\
+    [self.path_object_code for _ in self.path_object]+\
+    [self.path_out_code for _ in self.path_out]
 
     @property
     def begins(self):
@@ -289,15 +265,3 @@ class SinglePath(object):
             else:
                 yield []
 
-if __name__ == "__main__":
-    
-    p = GenericPaths()
-    p.types = ['s', 'o', 's', 'o', 'o', 'o', 'o', 's', 's', 's', 's', 's', 's']
-    p.frames = [0, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
-    
-    for t,f in izip(p.types,p.frames):
-        print t,f
-    
-    print list(p.get_paths_in())
-    print list(p.get_paths_out())
-    print list(p.find_paths())
