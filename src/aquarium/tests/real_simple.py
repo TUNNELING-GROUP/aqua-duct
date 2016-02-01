@@ -72,7 +72,7 @@ if __name__ == "__main__":
     traj_object = "(resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))"
     #traj_object = "(resname WAT) and (around 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))"
 
-    traj_scope = "protein and backbone"
+    traj_scope = "backbone" # backbone only
 
 
     backbone = reader.parse_selection("protein and backbone")
