@@ -71,14 +71,14 @@ if __name__ == "__main__":
     # mysz
     traj_object = "(resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))"
 
-    traj_scope = "protein"
+    traj_scope = "backbone"
 
     backbone = reader.parse_selection("protein and backbone")
 
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 99
+    max_frame = 199
 
     ########################
 

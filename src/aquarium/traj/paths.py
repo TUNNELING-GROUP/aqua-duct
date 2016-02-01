@@ -221,14 +221,11 @@ class SinglePath(object,PathTypesCodes):
 
     @property
     def paths_cont(self):
-        #return sum(map(list,self.paths))
         return self.path_in+self.path_object+self.path_out
 
     @property
     def types_cont(self):
-        return [self.path_in_code for _ in self.path_in]+\
-    [self.path_object_code for _ in self.path_object]+\
-    [self.path_out_code for _ in self.path_out]
+        return ([self.path_in_code]*len(self.path_in))+([self.path_object_code]*len(self.path_object))+([self.path_out_code]*len(self.path_out))
 
     @property
     def begins(self):
