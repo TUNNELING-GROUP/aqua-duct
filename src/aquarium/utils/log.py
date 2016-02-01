@@ -19,8 +19,10 @@ def pbar(maxval=100):
                pb.ETA()]
     return pb.ProgressBar(widgets=widgets,
                           maxval=maxval).start()
-    
-    
+
+#TODO: try to add tqdm as an alternative for progressbarr which does not work very well in ipython
+
+
 level = logging.CRITICAL
 format = 'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]: %(message)s'
 
