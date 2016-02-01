@@ -108,7 +108,7 @@ class SinglePathPlotter(object):
         if state_function is None:
             self.cgo_object.clean()
             for nr,spath in enumerate(spaths):
-                self.add_single_path_continous_trace(spath,smooth=smooth,color=color)
+                self.add_single_path_continous_trace(spath,smooth=smooth,color=color,**kwargs)
             ConnectToPymol.add_cgo_object(name,self.cgo_object.get(),state=1)
         # else if state_function is not None
         else:
@@ -128,7 +128,7 @@ class SinglePathPlotter(object):
                 for nr,spath in enumerate(spaths):
                     mins,maxs = state_function(nr,spath)
                     if state >= mins and state <= maxs:
-                        self.add_single_path_continous_trace(spath,smooth=smooth,color=color)
+                        self.add_single_path_continous_trace(spath,smooth=smooth,color=color,**kwargs)
                 ConnectToPymol.add_cgo_object(name,self.cgo_object.get(),state=state)
 
 
