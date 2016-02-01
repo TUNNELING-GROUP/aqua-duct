@@ -9,8 +9,11 @@ import numpy as np
 from aquarium.utils.helpers import tupleify, sortify, is_iterable, listify
 
    
+########################################################################################################################
 # paths/list manipulations
-# following part of conde comes directly from the very initial tcl/vmd implementaion
+# following part of code comes directly from the very initial tcl/vmd implementation
+# all following functions should return list
+
 def union(a,b):
     return [aa for aa in a if aa in b]
 
@@ -21,6 +24,7 @@ def glue(a,b):
         return g
     return []
 
+@listify
 def xor(a,b):
     ab = union(a,b)
     for e in glue(a,b):
@@ -32,6 +36,8 @@ def left(a,b):
 
 def right(a,b):
     return union(b,xor(a,b))
+
+########################################################################################################################
 
 class PathTypesCodes():
     path_in_code = 'i'
