@@ -78,7 +78,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 199
+    #max_frame = 999
 
     ########################
 
