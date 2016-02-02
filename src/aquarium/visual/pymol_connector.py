@@ -3,6 +3,7 @@
 
 from aquarium.geom import traces
 from aquarium.visual.quickplot import cc
+from aquarium.traj.paths import list_blocks_to_slices
 
 import pymol
 
@@ -76,7 +77,7 @@ class SinglePathPlotter(object):
     def add_single_path_continous_trace(self,
                                        spath,
                                        smooth=None,
-                                       color=('r','g','b'),
+                                       color=('r','g','b','y'),
                                        plot_in=True,
                                        plot_object=True,
                                        plot_out=True,
@@ -88,7 +89,18 @@ class SinglePathPlotter(object):
             # mid points!
             if len(trace) > 0:
                 if (nr == 0 and plot_in) or (nr == 1 and plot_object) or (nr == 2 and plot_out):
-                    self.cgo_object.add(trace,cc(color[nr]))
+                    if nr == 1:
+                        #this is special case of object
+                        sts = list(list_blocks_to_slices(spath.gtypes_object))
+                        for strace,gtype in zip(traces.midpoints(tuple([trace[s,:] for s in sts])),
+                                                [spath.gtypes_object[s] for s in sts]):
+                            if gtype[0] == 'c':
+                                c = color[1]
+                            else:
+                                c = color[3]
+                            self.cgo_object.add(strace,cc(c))
+                    else:
+                        self.cgo_object.add(trace,cc(color[nr]))
                 else:
                     self.cgo_object.new()
             else:
@@ -99,7 +111,7 @@ class SinglePathPlotter(object):
     def paths_trace(self,
                     spaths,
                     smooth=None,
-                    color=('r','g','b'),
+                    color=('r','g','b','y'),
                     name='paths',
                     state_function=None,
                     **kwargs):

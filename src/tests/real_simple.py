@@ -78,7 +78,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    #max_frame = 999
+    max_frame = 999
 
     ########################
 
@@ -125,7 +125,6 @@ if __name__ == "__main__":
         
         # remeber ids of water in object in current frame
         waters_ids_in_object_over_frames.update({frame:H2O_new.unique_resids()})
-        
         pbar.update(frame)
 
     pbar.finish()

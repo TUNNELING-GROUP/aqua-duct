@@ -150,6 +150,10 @@ class GenericPaths(object):
         for path in self.find_paths(fullonly=fullonly):
             yield self.get_single_path_coords(path)
 
+    def find_paths_types(self,fullonly=False):
+        for path in self.find_paths(fullonly=fullonly):
+            yield self.get_single_path_types(path)
+
     def get_single_path_coords(self,spath):
         # returns coordinates for single path
         # single path comprises of in,scope,out parts
@@ -181,18 +185,67 @@ class GenericPaths(object):
 
         return in_,object_,out_
 
+    def get_single_path_types(self,spath):
+        # returns typess for single path
+        # single path comprises of in,scope,out parts
+
+        #TODO: join it with get_single_path_coords
+
+        p_in,p_object,p_out = spath
+
+        if len(self.frames) == len(self.types):
+            # not full trajectory
+            in_ = []
+            for f in p_in:
+                in_.append(self.types[self.frames.index(f)])
+            object_ = []
+            for f in p_object:
+                object_.append(self.types[self.frames.index(f)])
+            out_ = []
+            for f in p_out:
+                out_.append(self.types[self.frames.index(f)])
+        else:
+            # full trajectory
+            in_ = []
+            for f in p_in:
+                in_.append(self.types[f])
+            object_ = []
+            for f in p_object:
+                object_.append(self.types[f])
+            out_ = []
+            for f in p_out:
+                out_.append(self.types[f])
+
+        return in_,object_,out_
+
 
 def yield_single_paths(gps, fullonly=False, progress=False):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
     for nr,gp in enumerate(gps):
         id = gp.id
-        for paths,coords in zip(gp.find_paths(fullonly=fullonly),
-                                gp.find_paths_coords(fullonly=fullonly)):
+        for paths,coords,types in zip(gp.find_paths(fullonly=fullonly),
+                                      gp.find_paths_coords(fullonly=fullonly),
+                                      gp.find_paths_types(fullonly=fullonly)):
             if progress:
-                yield SinglePath(id,paths,coords),nr
+                yield SinglePath(id,paths,coords,types),nr
 
             else:
-                yield SinglePath(id,paths,coords)
+                yield SinglePath(id,paths,coords,types)
+
+def list_blocks_to_slices(l):
+    n = len(l)
+    if n in [0,1]:
+        yield slice(None,None,None)
+    if n > 1:
+        prev = l[0]
+        prev_nr = 0
+        for nr,e in enumerate(l[1:]):
+            if e == prev:
+                continue
+            yield slice(prev_nr,nr+1,1)
+            prev = e
+            prev_nr = nr+1
+        yield slice(prev_nr,nr+2,1)
 
 
 class SinglePath(object,PathTypesCodes):
@@ -200,11 +253,14 @@ class SinglePath(object,PathTypesCodes):
     # represents one path
 
 
-    def __init__(self,id,paths,coords):
+    empty_coords = np.zeros((0,3))
+
+    def __init__(self,id,paths,coords,gtypes):
 
         self.id = id
         self.path_in,self.path_object,self.path_out = paths
-        self.coords_in,self.coords_object,self.coords_out = coords
+        self.coords_in,self.coords_object,self.coords_out = map(np.array,coords)
+        self.gtypes_in,self.gtypes_object,self.gtypes_out = gtypes
 
         #return np.vstack([c for c in self._coords if len(c) > 0])
 
@@ -232,6 +288,14 @@ class SinglePath(object,PathTypesCodes):
     @property
     def types_cont(self):
         return ([self.path_in_code]*len(self.path_in))+([self.path_object_code]*len(self.path_object))+([self.path_out_code]*len(self.path_out))
+
+    @property
+    def gtypes(self):
+        return self.gtypes_in,self.gtypes_object,self.gtypes_out
+
+    @property
+    def gtypes_cont(self):
+        return self.gtypes_in+self.gtypes_object+self.gtypes_out
 
     @property
     def begins(self):
@@ -263,8 +327,8 @@ class SinglePath(object,PathTypesCodes):
         nr = 0
         for path in self.paths:
             if len(path) > 0:
-                yield np.array(coords_smooth[nr:len(path)]).tolist()
+                yield np.array(coords_smooth[nr:nr+len(path)])
                 nr += len(path)
             else:
-                yield []
+                yield self.empty_coords
 
