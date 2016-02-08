@@ -26,7 +26,7 @@ def pbar(maxval=100):
 
 class pbar(object):
 
-    def __init__(self,maxval=100,kind='pyprind'):
+    def __init__(self,maxval=100,kind='tqdm'):
         self.__kind = kind
 
         self.__maxval = maxval

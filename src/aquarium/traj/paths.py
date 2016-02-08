@@ -52,7 +52,7 @@ class GenericPaths(object):
     scope_name = 's'
     out_name = 'n'
 
-    def __init__(self,id):
+    def __init__(self,id,min_pf=None,max_pf=None):
 
         # id is any type of object; it is used as identifier
 
@@ -61,18 +61,26 @@ class GenericPaths(object):
         self.types = []
         self.frames = []
         self.coords = []
-        
+
+        # following is required to correct in and out paths that begin or end in scope and
+        # begin or end at the very begining of MD or at very end of MD
+
+        self.max_possible_frame = max_pf
+        self.min_possible_frame = min_pf
+
     def add_coord(self,coord):
         self.coords.append(coord)
     
     def add_object(self,frame):
-        self.types.append(self.object_name)
-        self.frames.append(frame)
-        
+        self.add_type(frame,self.object_name)
+
     def add_scope(self,frame):
-        self.types.append(self.scope_name)
+        self.add_type(frame,self.scope_name)
+
+    def add_type(self,frame,ftype):
+        self.types.append(ftype)
         self.frames.append(frame)
-        
+
     @property
     def max_frame(self):
         return max(self.frames)
@@ -139,11 +147,29 @@ class GenericPaths(object):
             if len(path_in) == 0 or len(path_core) == 0 or len(path_out) == 0:
                 if fullonly:
                     continue
+            #TODO: make separate method/function for that
+            # correct for max/min possible frame
+            if self.max_possible_frame is not None:
+                if len(path_out) > 0:
+                    if path_out[-1] >= self.max_possible_frame:
+                        path_core += path_out
+                        path_out = []
+            if self.min_possible_frame is not None:
+                if len(path_in) > 0:
+                    if path_in[0] <= self.min_possible_frame:
+                        path_core = path_in + path_core
+                        path_in = []
             yield path_in,path_core,path_out
         if not fullonly:
             path_in = []
             path_core = []
             for path_out in paths_out:
+                # correct for max/min possible frame
+                if self.max_possible_frame is not None:
+                    if len(path_out) > 0:
+                        if path_out[-1] >= self.max_possible_frame:
+                            path_core += path_out
+                            path_out = []
                 yield path_in,path_core,path_out
             
     def find_paths_coords(self,fullonly=False):
@@ -255,12 +281,12 @@ class SinglePath(object,PathTypesCodes):
 
     empty_coords = np.zeros((0,3))
 
-    def __init__(self,id,paths,coords,gtypes):
+    def __init__(self, id, paths, coords, types):
 
         self.id = id
         self.path_in,self.path_object,self.path_out = paths
         self.coords_in,self.coords_object,self.coords_out = map(np.array,coords)
-        self.gtypes_in,self.gtypes_object,self.gtypes_out = gtypes
+        self.types_in, self.types_object, self.types_out = types
 
         #return np.vstack([c for c in self._coords if len(c) > 0])
 
@@ -277,6 +303,20 @@ class SinglePath(object,PathTypesCodes):
         # returns coords as one array
         return np.vstack([c for c in self.coords if len(c) > 0])
 
+
+    @property
+    def coords_first_in(self):
+        if len(self.path_in) > 0:
+            return self.coords_in[0]
+    @property
+    def coords_last_out(self):
+        if len(self.path_out) > 0:
+            return self.coords_out[-1]
+
+    @property
+    def coords_fi_lo(self):
+        return np.array([c.tolist() for c in (self.coords_first_in,self.coords_last_out) if c is not None])
+
     @property
     def paths(self):
         return self.path_in,self.path_object,self.path_out
@@ -291,11 +331,11 @@ class SinglePath(object,PathTypesCodes):
 
     @property
     def gtypes(self):
-        return self.gtypes_in,self.gtypes_object,self.gtypes_out
+        return self.types_in, self.types_object, self.types_out
 
     @property
     def gtypes_cont(self):
-        return self.gtypes_in+self.gtypes_object+self.gtypes_out
+        return self.types_in + self.types_object + self.types_out
 
     @property
     def begins(self):
@@ -332,3 +372,49 @@ class SinglePath(object,PathTypesCodes):
             else:
                 yield self.empty_coords
 
+
+
+if __name__ == "__main__":
+
+    import numpy as np
+
+
+    print "in starts at 0"
+    gp = GenericPaths(id=0,min_pf=0,max_pf=100)
+
+    frames = range(20)
+    types = gp.scope_name * 10 + gp.object_name * 10
+    coords = np.random.randn(20,3)
+    for f,t,c in zip(frames,types,coords):
+        gp.add_coord(c)
+        gp.add_type(f,t)
+
+    print list(gp.find_paths())
+    print list(gp.find_paths_types())
+
+
+    print "in starts at 1"
+    gp = GenericPaths(id=0,min_pf=0,max_pf=100)
+
+    frames = range(1,21)
+    types = gp.scope_name * 10 + gp.object_name * 10
+    coords = np.random.randn(20,3)
+    for f,t,c in zip(frames,types,coords):
+        gp.add_coord(c)
+        gp.add_type(f,t)
+
+    print list(gp.find_paths())
+    print list(gp.find_paths_types())
+
+    print "out ends at 29"
+    gp = GenericPaths(id=0,min_pf=0,max_pf=10)
+
+    frames = range(0,30)
+    types = gp.scope_name * 10 + gp.object_name * 10 + gp.scope_name * 10
+    coords = np.random.randn(30,3)
+    for f,t,c in zip(frames,types,coords):
+        gp.add_coord(c)
+        gp.add_type(f,t)
+
+    print list(gp.find_paths())
+    print list(gp.find_paths_types())

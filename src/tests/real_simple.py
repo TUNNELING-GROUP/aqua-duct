@@ -78,7 +78,7 @@ if __name__ == "__main__":
     scope = reader.parse_selection(traj_scope)
     
     max_frame = reader.number_of_frames
-    max_frame = 999
+    #max_frame = 999
 
     ########################
 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         
     log.message("Init paths container...")
     # type and frames, consecutive elements correspond to residues in all_H2O
-    paths = [GenericPaths(resid) for resid in all_H2O.unique_resids()]
+    paths = [GenericPaths(resid,min_pf=0,max_pf=max_frame) for resid in all_H2O.unique_resids()]
   
     log.message("Trajectory scan...")
     pbar = log.pbar(max_frame)
@@ -181,7 +181,14 @@ if __name__ == "__main__":
     pbar.finish()
 
     #spaths = list(yield_single_paths(paths_))
-    
+
+    # do clusterization
+
+    # collect inlets coords
+    coords_in = [(sp.coords_cont[0],sp.id) for sp in spaths] + [(sp.coords_cont[-1],sp.id) for sp in spaths]
+
+
+
     
     max_step = np.array([np.max(traces.diff(np.vstack([c for c in sp.coords if len(c) > 0]))) for sp in spaths])
 
