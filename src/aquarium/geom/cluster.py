@@ -1,9 +1,8 @@
 import numpy as np
 
 from sklearn.cluster import DBSCAN
-from sklearn import metrics
-from sklearn.datasets.samples_generator import make_blobs
-from sklearn.preprocessing import StandardScaler
+#from sklearn import metrics
+#from sklearn.preprocessing import StandardScaler
 
 
 
