@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     scope = reader.parse_selection(traj_scope)
     
-    max_frame = reader.number_of_frames
+    max_frame = reader.number_of_frames - 1
     #max_frame = 999
 
     ########################
@@ -190,7 +190,7 @@ if __name__ == "__main__":
 
     coords_inlets = np.vstack([sp.coords_fi_lo for sp in spaths if sp.coords_fi_lo.shape[0] > 0])
 
-    clusters = perform_clustering(coords_inlets,esp=5.,min_samples=3)
+    clusters = perform_clustering(coords_inlets,eps=5.,min_samples=3)
 
     
     max_step = np.array([np.max(traces.diff(np.vstack([c for c in sp.coords if len(c) > 0]))) for sp in spaths])
