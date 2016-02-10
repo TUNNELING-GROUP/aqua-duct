@@ -188,9 +188,14 @@ if __name__ == "__main__":
     # collect inlets coords
     #coords_inlets = [(sp.coords_cont[0],sp.id) for sp in spaths] + [(sp.coords_cont[-1],sp.id) for sp in spaths]
 
-    coords_inlets = np.vstack([sp.coords_fi_lo for sp in spaths if sp.coords_fi_lo.shape[0] > 0])
+    # inlets
+    coords_inlets_id = [(sp.coords_fi_lo,sp.id) for sp in spaths]
+    coords_inlets = np.vstack([cii[0] for cii in coords_inlets_id if cii[0].shape[0] > 0])
+    inlets_id = np.hstack([[cii[1]]*cii[0].shape[0] for cii in coords_inlets_id if cii[0].shape[0] > 0]).tolist()
 
     clusters = perform_clustering(coords_inlets,eps=5.,min_samples=3)
+
+
 
     
     max_step = np.array([np.max(traces.diff(np.vstack([c for c in sp.coords if len(c) > 0]))) for sp in spaths])
