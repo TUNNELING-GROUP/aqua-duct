@@ -3,8 +3,8 @@ from Cython.Build import cythonize
 
 
 setup(
-    ext_modules = cythonize('aquarium/*.py')
+    ext_modules = cythonize('aqueduct/*.py')
 )
 setup(
-    ext_modules = cythonize('aquarium/*/*.py')
+    ext_modules = cythonize('aqueduct/*/*.py')
 )

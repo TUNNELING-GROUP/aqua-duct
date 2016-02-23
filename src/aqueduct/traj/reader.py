@@ -6,7 +6,7 @@ Created on Nov 19, 2015
 
 
 import MDAnalysis as mda
-from aquarium.traj.selections import SelectionMDA
+from aqueduct.traj.selections import SelectionMDA
 
 
 class Reader(object):

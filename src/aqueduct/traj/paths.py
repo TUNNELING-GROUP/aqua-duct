@@ -6,7 +6,7 @@ Created on Dec 10, 2015
 
 from itertools import izip
 import numpy as np
-from aquarium.utils.helpers import tupleify, sortify, is_iterable, listify
+from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify
 
    
 ########################################################################################################################
