@@ -3,7 +3,7 @@ from matplotlib.colors import colorConverter
 import matplotlib.pyplot as plt
 import numpy as np
 
-from aquarium.geom import traces
+from aqueduct.geom import traces
 # matplotlib specific
 # mpl color converter
 #cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)

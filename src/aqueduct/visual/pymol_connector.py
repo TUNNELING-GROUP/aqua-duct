@@ -4,9 +4,9 @@
 import numpy as np
 
 
-from aquarium.geom import traces
-from aquarium.visual.quickplot import cc
-from aquarium.traj.paths import list_blocks_to_slices
+from aqueduct.geom import traces
+from aqueduct.visual.quickplot import cc
+from aqueduct.traj.paths import list_blocks_to_slices
 
 import pymol
 

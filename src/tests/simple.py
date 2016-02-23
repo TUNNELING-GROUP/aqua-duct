@@ -1,6 +1,6 @@
 
-from aquarium import tests as aqtests
-from aquarium.traj.reader import ReadAmberNetCDFviaMDA
+from aqueduct import tests as aqtests
+from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
 
 if __name__ == "__main__":
 

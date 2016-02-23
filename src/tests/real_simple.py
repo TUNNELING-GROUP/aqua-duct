@@ -1,10 +1,19 @@
 
-from aquarium.traj.reader import ReadAmberNetCDFviaMDA
-from aquarium.traj.paths import GenericPaths,yield_single_paths
-from aquarium.geom.smooth import WindowSmooth
-from aquarium.geom import traces
-from aquarium.utils import log
-from aquarium.geom.cluster import perform_clustering
+from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
+from aqueduct.traj.paths import GenericPaths,yield_single_paths
+from aqueduct.geom.smooth import WindowSmooth
+from aqueduct.geom import traces
+from aqueduct.utils import log
+from aqueduct.geom.cluster import perform_clustering
+
+
+import os
+
+def aqtest(filename):
+        path = os.path.dirname(__file__)
+        filename_with_path = os.path.join(path, filename)
+
+        return os.path.abspath(filename_with_path)
 
 import multiprocessing as mp
 import copy
@@ -40,21 +49,21 @@ if __name__ == "__main__":
 
     # holender
     '''
-    topology = aqtests.get("../../../real_traj/1qxj/1QXJ_complex.prmtop")
-    trajectory = aqtests.get("../../../real_traj/1qxj/prod_1qxj.nc")
+    topology = aqtest("../../real_traj/1qxj/1QXJ_complex.prmtop")
+    trajectory = aqtest("../../real_traj/1qxj/prod_1qxj.nc")
     '''
     # mysz
-    topology = "real_traj/1cqz/1cqz_B_HH_FS.prmtop"
-    trajectory = "real_traj/1cqz/prod_1cqz.nc"
+    topology = aqtest("../../real_traj/1cqz/1cqz_B_HH_FS.prmtop")
+    trajectory = aqtest("../../real_traj/1cqz/prod_1cqz.nc")
 
 
     # following does not wor properly with MDAnalysis
     '''
     trajectory = []
-    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-1.nc"))
-    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-2.nc"))
-    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-3.nc"))
-    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-4.nc"))
+    trajectory.append(aqtest("../../real_traj/1qxj/prod1-1.nc"))
+    trajectory.append(aqtest("../../real_traj/1qxj/prod1-2.nc"))
+    trajectory.append(aqtest("../../real_traj/1qxj/prod1-3.nc"))
+    trajectory.append(aqtest("../../real_traj/1qxj/prod1-4.nc"))
     '''
 
     ########################
@@ -195,9 +204,7 @@ if __name__ == "__main__":
 
     clusters = perform_clustering(coords_inlets,eps=5.,min_samples=3)
 
-
-
-    
+    # what is it?
     max_step = np.array([np.max(traces.diff(np.vstack([c for c in sp.coords if len(c) > 0]))) for sp in spaths])
 
 

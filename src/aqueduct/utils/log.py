@@ -42,7 +42,7 @@ class pbar(object):
         elif self.__kind == "tqdm":
             # it does not work as expected
             from tqdm import tqdm
-            self.__pbar = tqdm(leave=True,ascii=True,total=maxval)
+            self.__pbar = tqdm(leave=True,ascii=True,total=maxval,dynamic_ncols=True,ncols=20)
         elif self.__kind == "pyprind":
             import pyprind
             self.__pbar = pyprind.ProgBar(maxval)

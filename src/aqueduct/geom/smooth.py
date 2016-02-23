@@ -4,7 +4,7 @@ Created on Dec 15, 2015
 @author: tljm
 '''
 
-from aquarium.utils.helpers import arrayify
+from aqueduct.utils.helpers import arrayify
 
 import numpy as np
 

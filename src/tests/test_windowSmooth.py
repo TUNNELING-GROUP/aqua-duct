@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import numpy as np
 
-from aquarium.geom.smooth import WindowSmooth
+from aqueduct.geom.smooth import WindowSmooth
 
 
 class TestWindowSmooth(TestCase):
