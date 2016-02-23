@@ -49,8 +49,8 @@ if __name__ == "__main__":
 
     # holender
     '''
-    topology = aqtests.get("../../../real_traj/1qxj/1QXJ_complex.prmtop")
-    trajectory = aqtests.get("../../../real_traj/1qxj/prod_1qxj.nc")
+    topology = aqtest("../../real_traj/1qxj/1QXJ_complex.prmtop")
+    trajectory = aqtest("../../real_traj/1qxj/prod_1qxj.nc")
     '''
     # mysz
     topology = aqtest("../../real_traj/1cqz/1cqz_B_HH_FS.prmtop")
@@ -60,10 +60,10 @@ if __name__ == "__main__":
     # following does not wor properly with MDAnalysis
     '''
     trajectory = []
-    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-1.nc"))
-    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-2.nc"))
-    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-3.nc"))
-    trajectory.append(aqtests.get("../../../real_traj/1qxj/prod1-4.nc"))
+    trajectory.append(aqtest("../../real_traj/1qxj/prod1-1.nc"))
+    trajectory.append(aqtest("../../real_traj/1qxj/prod1-2.nc"))
+    trajectory.append(aqtest("../../real_traj/1qxj/prod1-3.nc"))
+    trajectory.append(aqtest("../../real_traj/1qxj/prod1-4.nc"))
     '''
 
     ########################
