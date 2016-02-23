@@ -195,9 +195,7 @@ if __name__ == "__main__":
 
     clusters = perform_clustering(coords_inlets,eps=5.,min_samples=3)
 
-
-
-    
+    # what is it?
     max_step = np.array([np.max(traces.diff(np.vstack([c for c in sp.coords if len(c) > 0]))) for sp in spaths])
 
 
