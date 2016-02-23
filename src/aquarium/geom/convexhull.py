@@ -15,3 +15,14 @@ from multiprocessing import Queue,Manager,Lock,Value,Process
 manager = Manager() 
 Q = manager.Queue(4) # queue
 '''
+
+
+'''
+def get_queue(no_of_threads):
+    
+    manager = Manager()
+    return manager.Queue(no_of_threads)
+
+
+class PointWithinConvexHull_Worker(object):
+'''
