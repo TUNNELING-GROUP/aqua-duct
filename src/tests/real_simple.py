@@ -115,7 +115,7 @@ if __name__ == "__main__":
         #current_threads = 1
         if current_threads > optimal_threads:
             current_threads = optimal_threads
-        is_wat_within_chull = CHullCheck_exec(chull, H2O_coords, threads=current_threads)
+        is_wat_within_chull = CHullCheck_exec(chull, H2O_coords, threads=current_threads) # this stores if wat is in the scope
         
         # discard wat out of scope
         H2O_new = None
