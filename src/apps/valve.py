@@ -146,6 +146,7 @@ class ValveConfig(object):
         common(section)
         common_traj_data(section)
 
+        config.set(section, 'clear_in_object_info', 'False')
 
         ################
         # stage III
@@ -185,6 +186,31 @@ class ValveConfig(object):
         with open(filename, 'w') as fs:
             self.save_config_stream(fs)
 
+def check_res_in_scope(options,scope,res,res_coords):
+    if options.scope_convexhull == 'True':
+        # find convex hull of protein
+        chull = scope.get_convexhull_of_atom_positions()
+        current_threads = len(res_coords)
+        #current_threads = 1
+        if current_threads > optimal_threads:
+            current_threads = optimal_threads
+
+        is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=current_threads)
+    else:
+        res_uids = res.unique_resids()
+        res_in_scope_uids = reader.parse_selection(options.scope).unique_resids()
+        is_res_in_scope = [ruid in res_in_scope_uids for ruid in res_uids]
+    return is_res_in_scope
+
+def get_res_in_scope(is_res_in_scope,res):
+    res_new = None
+    for iris,r in zip(is_res_in_scope,res.iterate_over_residues()):
+        if iris:
+            if res_new is None:
+                res_new = r
+            else:
+                res_new += r
+    return res_new
 
 if __name__ == "__main__":
     # argument parsing
@@ -248,7 +274,7 @@ if __name__ == "__main__":
         # this creates scope
 
         log.message("Loop over frames: search of waters in object...")
-        pbar = log.pbar(max_frame,kind=goptions.pbar)
+        pbar = log.pbar(max_frame,kind=pbar_name)
 
         scope = reader.parse_selection(options.scope)
 
@@ -262,33 +288,15 @@ if __name__ == "__main__":
             # current res selection
             res = reader.parse_selection(options.object)
 
-            # to check if res is in scope we have two methods:
-            # is it within convex hull of scope
-            # is it in scope
-
+            # check is res are in scope
             if options.scope_convexhull == 'True':
                 res_coords = list(res.center_of_mass_of_residues())
-                # find convex hull of protein
-                chull = scope.get_convexhull_of_atom_positions()
-                current_threads = len(res_coords)
-                #current_threads = 1
-                if current_threads > optimal_threads:
-                    current_threads = optimal_threads
-
-                is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=current_threads)
+                is_res_in_scope = check_res_in_scope(options,scope,res,res_coords)
             else:
-                res_uids = res.unique_resids()
-                res_in_scope_uids = reader.parse_selection(options.scope).unique_resids()
-                is_res_in_scope = [ruid in res_in_scope_uids for ruid in res_uids]
+                is_res_in_scope = check_res_in_scope(options,scope,res,None)
 
             # discard res out of scope
-            res_new = None
-            for iris,r in zip(is_res_in_scope,res.iterate_over_residues()):
-                if iris:
-                    if res_new is None:
-                        res_new = r
-                    else:
-                        res_new += r
+            res_new = get_res_in_scope(is_res_in_scope,res)
 
             # add it to all res in object
             if res_new is not None:
@@ -314,7 +322,7 @@ if __name__ == "__main__":
             with gzip.open(options.save,mode='w',compresslevel=9) as f:
                 pickle.dump({'all_res':all_res,'res_ids_in_object_over_frames':res_ids_in_object_over_frames},f)
 
-    elif options.execute == 'skip':
+    elif options.execute in ['skip']:
 
         if options.load:
             log.message('Loading data dump from %s file.' % options.load)
@@ -328,7 +336,7 @@ if __name__ == "__main__":
                 res_ids_in_object_over_frames = loaded_data['res_ids_in_object_over_frames']
 
     else:
-        raise NotImplementedError('exec mode %s not implemented' % options['exec'])
+        raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
     ################################################################################
     # STAGE II
@@ -340,6 +348,10 @@ if __name__ == "__main__":
     log.message('Execute mode is %s' % options.execute)
     if options.execute == 'run':
 
+        if options.clear_in_object_info == 'True':
+            log.message('Clear data on residues in object over frames - this will be recalculated.')
+            res_ids_in_object_over_frames = {}
+
         log.message("Init paths container")
         # type and frames, consecutive elements correspond to residues in all_H2O
         paths = [GenericPaths(resid,min_pf=0,max_pf=max_frame) for resid in all_res.unique_resids()]
@@ -347,29 +359,36 @@ if __name__ == "__main__":
         log.message("Trajectory scan...")
         pbar = log.pbar(max_frame,kind=pbar_name)
 
-
         scope = reader.parse_selection(options.scope)
 
         for frame in reader.iterate_over_frames():
             if frame > max_frame:
                 break
 
-            # find convex hull of protein
-            chull = scope.get_convexhull_of_atom_positions()
+            all_res_coords = list(all_res.center_of_mass_of_residues())
 
-            all_res_coords = list(all_H2O.center_of_mass_of_residues())
-            is_wat_within_chull = CHullCheck_exec(chull, all_H2O_coords)
+            # check is res are in scope
+            is_res_in_scope = check_res_in_scope(options,scope,all_res,all_res_coords)
 
-            all_resids = [wat.first_resid() for wat in all_H2O.iterate_over_residues()]
+            all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
 
-
-            for nr,cir in enumerate(zip(all_H2O_coords,is_wat_within_chull,all_resids)):
-                coord,ischull,resid = cir
-
-                if ischull:
+            for nr,(coord, isscope, resid) in enumerate(zip(all_res_coords,is_res_in_scope,all_resids)):
+                if isscope:
                     paths[nr].add_coord(coord)
+
+                    # do we have info on res_ids_in_object_over_frames?
+                    if not res_ids_in_object_over_frames.has_key(frame):
+                        res = reader.parse_selection(options.object)
+                        # discard res out of scope
+                        res_new = get_res_in_scope(is_res_in_scope,res)
+                        # remeber ids of res in object in current frame
+                        if res_new is not None:
+                            res_ids_in_object_over_frames.update({frame:res_new.unique_resids()})
+                        else:
+                            res_ids_in_object_over_frames.update({frame:[]})
+
                     # in scope
-                    if resid not in waters_ids_in_object_over_frames[frame]:
+                    if resid not in res_ids_in_object_over_frames[frame]:
                         paths[nr].add_scope(frame)
                     else:
                         # in object
@@ -379,18 +398,62 @@ if __name__ == "__main__":
 
         pbar.finish()
 
-    log.message("Discard residues with empty paths...")
+        if options.save:
+            log.message('Saving data dump in %s file.' % options.save)
+            with gzip.open(options.save,mode='w',compresslevel=9) as f:
+                pass
+                pickle.dump({'all_res':all_res,'paths':paths},f)
 
-    #zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
-    all_H2O_,paths_ = zip(*[(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0])
+    elif options.execute == 'skip':
+
+        if options.load:
+            log.message('Loading data dump from %s file.' % options.load)
+            with gzip.open(options.save,mode='r') as f:
+                loaded_data = pickle.load(f)
+            paths = {}
+            all_res = None
+            if 'all_res' in loaded_data.keys():
+                all_res = loaded_data['all_res']
+            if 'paths' in loaded_data.keys():
+                paths = loaded_data['paths']
+
+    else:
+        raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
 
+
+    ################################################################################
+    # STAGE III
+    log.message('Starting Stage III')
+
+    options = config.get_stage_options(2)
+
+    # execute?
+    log.message('Execute mode is %s' % options.execute)
+    if options.execute == 'run':
+
+        if options.discard_empty_paths == 'True':
+            log.message("Discard residues with empty paths...")
+
+            #zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
+            all_res_,paths_ = zip(*[(r,path) for r,path in zip(all_res.iterate_over_residues(),paths) if len(path.frames) > 0])
+
+            all_res = all_res_
+            paths = paths_
+
+        log.message("Create separate paths...")
+
+        pbar = log.pbar(len(paths),kind='tqdm')
+        spaths = [sp for sp,nr in yield_single_paths(paths,progress=True) if pbar.update(nr) is None]
+
+
+        pbar.finish()
+        #print spaths
 
         if options.save:
             log.message('Saving data dump in %s file.' % options.save)
             with gzip.open(options.save,mode='w',compresslevel=9) as f:
                 pass
-                #pickle.dump({'all_res':all_res,'res_ids_in_object_over_frames':res_ids_in_object_over_frames},f)
 
     elif options.execute == 'skip':
 
@@ -399,14 +462,7 @@ if __name__ == "__main__":
             with gzip.open(options.save,mode='r') as f:
                 loaded_data = pickle.load(f)
 
-
-
-
-
-
-
-
-
-
+    else:
+        raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
 
