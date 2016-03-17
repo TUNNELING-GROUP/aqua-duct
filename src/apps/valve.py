@@ -10,6 +10,11 @@ from aqueduct.utils import log
 import multiprocessing as mp
 import copy
 import numpy as np
+import cPickle as pickle
+import gzip
+from aqueduct.traj.paths import GenericPaths,yield_single_paths
+
+from collections import namedtuple
 
 cpu_count = mp.cpu_count()
 optimal_threads = int(1.5*cpu_count + 1) # is it really optimal?
@@ -37,21 +42,26 @@ class ValveConfig(object):
     def __init__(self):
         self.config = self.get_default_config()
 
+    def __make_options_nt(self,options):
+        options_nt = namedtuple('Options',options.keys())
+        return options_nt(**options)
+
     @staticmethod
     def common_config_names():
-        # exec - what to do: skip, run
+        # execute - what to do: skip, run
         # load - load previous results form file name
         # save - save results to file name
-        return 'exec load save'.split()
+        return 'execute load save'.split()
 
     @staticmethod
     def common_traj_data_config_names():
-        # top - top file name
-        # nc - netcdf file name
         # scope - scope definition
         # scope_convexhull - take convex hull of scope, true of false
         # object - object definition
-        return 'top nc scope scope_convexhull object'.split()
+        return 'scope scope_convexhull object'.split()
+
+    def global_name(self):
+        return 'global settings'
 
     def stage_names(self, nr=None):
         if nr is None:
@@ -79,15 +89,21 @@ class ValveConfig(object):
                     value = self.config.get(section, name)
                     if (value is not None) and (options[name] is None):
                         options.update({name: value})
-        return options
+        return self.__make_options_nt(options)
 
-    def get_options(self, stage):
+    def get_global_options(self):
+        section = self.global_name()
+        names = self.config.options(section)
+        options = {name: self.config.get(section, name) for name in names}
+        return self.__make_options_nt(options)
+
+    def get_stage_options(self, stage):
         assert isinstance(stage, int)
         stage_name = self.stage_names(stage)
         names = self.config.options(stage_name)
         options = {name: self.config.get(stage_name, name) for name in names}
-        options.update(self.get_common_traj_data(stage))
-        return options
+        options.update(self.get_common_traj_data(stage)._asdict())
+        return self.__make_options_nt(options)
 
     def get_default_config(self):
         config = ConfigParser.RawConfigParser()
@@ -99,6 +115,18 @@ class ValveConfig(object):
         def common_traj_data(section):
             for setting in self.common_traj_data_config_names():
                 config.set(section, setting)
+
+        ################
+        # global settings
+        section = self.global_name()
+        config.add_section(section)
+
+        # top - top file name
+        # nc - netcdf file name
+        config.set(section, 'top')
+        config.set(section, 'nc')
+
+        config.set(section, 'pbar','tqdm')
 
         ################
         # stage I
@@ -188,59 +216,57 @@ if __name__ == "__main__":
     log.message('Load config file')
     config.load_config(args.config_file)
 
-    # prepare traj_dat_options
-    top = None
-    nc = None
-    traj_scope = None
-    #traj_object = None
+    log.message("Optimal threads count: %d" % optimal_threads)
 
-    scope_convexhull = None
+    # get global options
 
-    reader = None
+    goptions = config.get_global_options()
 
+    pbar_name = goptions.pbar
+
+    ################################################################################
+    # STAGE 0
+
+    # read trajectory
+
+    topology = goptions.top
+    trajectory = goptions.nc
+
+    log.message("Read trajectory...")
+    reader = ReadAmberNetCDFviaMDA(topology, trajectory)
+
+    ################################################################################
     # STAGE I
     log.message('Starting Stage I')
-    options = config.get_options(0)
-    print options
+
+    options = config.get_stage_options(0)
+    max_frame = 100
+
     # execute?
-    if options['exec'] == 'run':
-        log.message('exec mode is run')
-
-        # this reads trajectory
-        log.message('Try to read trajectory')
-        if not (top == options['top'] and nc == options['nc']):
-            top,nc = options['top'],options['nc']
-            reader = ReadAmberNetCDFviaMDA(top, nc)
-            max_frame = reader.number_of_frames - 1
+    log.message('Execute mode is %s' % options.execute)
+    if options.execute == 'run':
         # this creates scope
-        log.message('Create scope')
-        if traj_scope != options['scope']:
-            traj_scope = options['scope']
-            scope = reader.parse_selection(traj_scope)
-
-        traj_object = options['object']
-        scope_convexhull = options['scope_convexhull']
 
         log.message("Loop over frames: search of waters in object...")
-        pbar = log.pbar(max_frame)
+        pbar = log.pbar(max_frame,kind=goptions.pbar)
+
+        scope = reader.parse_selection(options.scope)
 
         # create some containers
         res_ids_in_object_over_frames = {}
         all_res = None
 
-        max_frame = 100
         for frame in reader.iterate_over_frames():
             if frame > max_frame:
                 break
             # current res selection
-            res = reader.parse_selection(traj_object)
-
+            res = reader.parse_selection(options.object)
 
             # to check if res is in scope we have two methods:
             # is it within convex hull of scope
             # is it in scope
 
-            if scope_convexhull == 'True':
+            if options.scope_convexhull == 'True':
                 res_coords = list(res.center_of_mass_of_residues())
                 # find convex hull of protein
                 chull = scope.get_convexhull_of_atom_positions()
@@ -252,7 +278,7 @@ if __name__ == "__main__":
                 is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=current_threads)
             else:
                 res_uids = res.unique_resids()
-                res_in_scope_uids = reader.parse_selection(traj_scope).unique_resids()
+                res_in_scope_uids = reader.parse_selection(options.scope).unique_resids()
                 is_res_in_scope = [ruid in res_in_scope_uids for ruid in res_uids]
 
             # discard res out of scope
@@ -264,7 +290,6 @@ if __name__ == "__main__":
                     else:
                         res_new += r
 
-
             # add it to all res in object
             if res_new is not None:
                 if all_res:
@@ -272,8 +297,6 @@ if __name__ == "__main__":
                     all_res.uniquify()
                 else:
                     all_res = res_new
-
-            print all_res
 
             # remeber ids of res in object in current frame
             if res_new is not None:
@@ -286,14 +309,95 @@ if __name__ == "__main__":
 
         log.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
-    elif options['exec'] == 'skip':
-        log.message('exec mode is skip')
+        if options.save:
+            log.message('Saving data dump in %s file.' % options.save)
+            with gzip.open(options.save,mode='w',compresslevel=9) as f:
+                pickle.dump({'all_res':all_res,'res_ids_in_object_over_frames':res_ids_in_object_over_frames},f)
+
+    elif options.execute == 'skip':
+
+        if options.load:
+            log.message('Loading data dump from %s file.' % options.load)
+            with gzip.open(options.save,mode='r') as f:
+                loaded_data = pickle.load(f)
+            res_ids_in_object_over_frames = {}
+            all_res = None
+            if 'all_res' in loaded_data.keys():
+                all_res = loaded_data['all_res']
+            if 'res_ids_in_object_over_frames' in loaded_data.keys():
+                res_ids_in_object_over_frames = loaded_data['res_ids_in_object_over_frames']
+
     else:
         raise NotImplementedError('exec mode %s not implemented' % options['exec'])
 
+    ################################################################################
+    # STAGE II
+    log.message('Starting Stage II')
+
+    options = config.get_stage_options(1)
+
+    # execute?
+    log.message('Execute mode is %s' % options.execute)
+    if options.execute == 'run':
+
+        log.message("Init paths container")
+        # type and frames, consecutive elements correspond to residues in all_H2O
+        paths = [GenericPaths(resid,min_pf=0,max_pf=max_frame) for resid in all_res.unique_resids()]
+
+        log.message("Trajectory scan...")
+        pbar = log.pbar(max_frame,kind=pbar_name)
+
+
+        scope = reader.parse_selection(options.scope)
+
+        for frame in reader.iterate_over_frames():
+            if frame > max_frame:
+                break
+
+            # find convex hull of protein
+            chull = scope.get_convexhull_of_atom_positions()
+
+            all_res_coords = list(all_H2O.center_of_mass_of_residues())
+            is_wat_within_chull = CHullCheck_exec(chull, all_H2O_coords)
+
+            all_resids = [wat.first_resid() for wat in all_H2O.iterate_over_residues()]
+
+
+            for nr,cir in enumerate(zip(all_H2O_coords,is_wat_within_chull,all_resids)):
+                coord,ischull,resid = cir
+
+                if ischull:
+                    paths[nr].add_coord(coord)
+                    # in scope
+                    if resid not in waters_ids_in_object_over_frames[frame]:
+                        paths[nr].add_scope(frame)
+                    else:
+                        # in object
+                        paths[nr].add_object(frame)
+
+            pbar.update(frame)
+
+        pbar.finish()
+
+    log.message("Discard residues with empty paths...")
+
+    #zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
+    all_H2O_,paths_ = zip(*[(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0])
 
 
 
+        if options.save:
+            log.message('Saving data dump in %s file.' % options.save)
+            with gzip.open(options.save,mode='w',compresslevel=9) as f:
+                pass
+                #pickle.dump({'all_res':all_res,'res_ids_in_object_over_frames':res_ids_in_object_over_frames},f)
+
+    elif options.execute == 'skip':
+
+        if options.load:
+            log.message('Loading data dump from %s file.' % options.load)
+            with gzip.open(options.save,mode='r') as f:
+                loaded_data = pickle.load(f)
 
 
 
