@@ -1,0 +1,39 @@
+[global settings]
+top = ../../real_traj/1cqz/1cqz_B_HH_FS.prmtop
+nc = ../../real_traj/1cqz/prod_1cqz.nc
+pbar = tqdm
+
+[find traceable residues]
+execute = skip
+load = stage_I.dump
+save = stage_I.dump
+scope = backbone
+scope_convexhull = True
+object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
+
+[find raw paths]
+execute = skip
+load = stage_II.dump
+save = stage_II.dump
+#scope = None
+#scope_convexhull = None
+#object = None
+clear_in_object_info = False
+
+[create separate frames]
+execute = run
+load = None
+save = None
+discard_empty_paths = False
+
+[inlets clusterisation]
+execute = None
+load = None
+save = None
+
+[analysis]
+execute = None
+load = None
+save = None
+
+
