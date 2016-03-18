@@ -28,8 +28,8 @@ discard_empty_paths = True
 
 [inlets clusterisation]
 execute = run
-load = None
-save = None
+load = stage_IV.dump
+save = stage_IV.dump
 dbscan_eps = 5.0
 dbscan_min_samples = 3
 

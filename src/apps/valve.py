@@ -21,6 +21,8 @@ cpu_count = mp.cpu_count()
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
+__version__ = 'beta'
+
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 
 def CHullCheck(point):
@@ -520,7 +522,10 @@ if __name__ == "__main__":
         if options.save not in ['None']:
             log.message('Saving data dump in %s file.' % options.save)
             with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                pass
+                pickle.dump({'coords_inlets_id':coords_inlets_id,
+                             'coords_inlets':coords_inlets,
+                             'inlets_id':inlets_id,
+                             'clusters':clusters},f)
 
     elif options.execute == 'skip':
 
@@ -528,6 +533,16 @@ if __name__ == "__main__":
             log.message('Loading data dump from %s file.' % options.load)
             with gzip.open(options.save, mode='r') as f:
                 loaded_data = pickle.load(f)
-
+                coords_inlets_id = []
+                coords_inlets = np.array([])
+                inlets_id = []
+                if 'loaded_data' in loaded_data.keys():
+                    loaded_data = loaded_data['loaded_data']
+                if 'coords_inlets_id' in loaded_data.keys():
+                    coords_inlets_id = loaded_data['coords_inlets_id']
+                if 'coords_inlets' in loaded_data.keys():
+                    coords_inlets = loaded_data['coords_inlets']
+                if 'inlets_id' in loaded_data.keys():
+                    inlets_id = loaded_data['inlets_id']
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
