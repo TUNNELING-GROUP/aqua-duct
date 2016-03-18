@@ -315,7 +315,7 @@ class SinglePath(object,PathTypesCodes):
 
     @property
     def coords_fi_lo(self):
-        return np.array([c.tolist() for c in (self.coords_first_in,self.coords_last_out) if c is not None])
+        return np.array([(c.tolist(),nr) for nr,c in enumerate((self.coords_first_in,self.coords_last_out)) if c is not None])
 
     @property
     def paths(self):

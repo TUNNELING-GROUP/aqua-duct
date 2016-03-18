@@ -2,6 +2,7 @@
 This is driver for aqueduct.
 '''
 
+from aqueduct import version as aqueduct_version
 
 from aqueduct.utils import log
 
@@ -29,7 +30,7 @@ cpu_count = mp.cpu_count()
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
-__version__ = 'beta'
+__version__ = '20160318 beta'
 
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 
@@ -255,18 +256,7 @@ def get_res_in_scope(is_res_in_scope, res):
 
 
 if __name__ == "__main__":
-<<<<<<< working copy
-
-    pbar = log.pbar(10,kind='tqdm')
-    for q in range(1,11):
-        pbar.update(q)
-    pbar.finish()
-
-    #pbar.finish()
-    
-=======
     ################################################################################
->>>>>>> destination
     # argument parsing
     import argparse
     parser = argparse.ArgumentParser(description="Valve, Aqueduct driver",
@@ -290,7 +280,10 @@ if __name__ == "__main__":
     ################################################################################
     # begin!
     log.message(greetings_aqueduct()) # nice greetings
-
+    log.message('Aqueduct version %s' % aqueduct_version())
+    log.message('Valve driver version %s' % __version__)
+    log.message(sep())
+    
     assert args.config_file is not None, "No config file provided."
 
     # load config file
@@ -321,6 +314,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
+    max_frame = 100
 
     # execute?
     if options.execute == 'run':
@@ -328,6 +322,7 @@ if __name__ == "__main__":
 
         log.message("Loop over frames - search of residues in object:")
         pbar = log.pbar(max_frame, kind=pbar_name)
+        
 
         scope = reader.parse_selection(options.scope)
 
@@ -474,13 +469,7 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
-<<<<<<< working copy
 
-
-
-
-=======
->>>>>>> destination
     ################################################################################
     # STAGE III
     log.message(sep())
@@ -503,26 +492,9 @@ if __name__ == "__main__":
 
         log.message("Create separate paths:")
 
-<<<<<<< working copy
-            all_res = all_res_
-            paths = paths_
-
-        log.message("Create separate paths...")
-
-        pbar = log.pbar(len(paths),kind='tqdm')
-        for q in range(10):
-            pbar.update(1)
-        pbar.finish()
-        
-        print 'hej?'
-        
-        pbar = log.pbar(len(paths),kind='tqdm')
-        spaths = [sp for sp,nr in yield_single_paths(paths,progress=True) if pbar.update(nr) is None]
-
-=======
         pbar = log.pbar(len(paths), kind=pbar_name)
         spaths = [sp for sp, nr in yield_single_paths(paths, progress=True) if pbar.update(nr + 1) is None]
->>>>>>> destination
+
 
         pbar.finish()
 
@@ -557,7 +529,8 @@ if __name__ == "__main__":
     if options.execute == 'run':
 
         # find coords of inlets and id
-        coords_inlets_id = [(sp.coords_fi_lo, sp.id) for sp in spaths]
+        print spaths[5].coords_fi_lo
+        coords_inlets_id = [sp.coords_fi_lo+(sp.id,) for sp in spaths]
         # find nr of inlets
         nr_of_inlets = len([None for cii in coords_inlets_id if cii[0].shape[0] > 0])
 
@@ -627,49 +600,71 @@ if __name__ == "__main__":
 
         ############
         print >> fh, asep()
-        print >> fh, "Number of tracable residues:",len(paths)
+        print >> fh, "Number of traceable residues:",len(paths)
         print >> fh, "Number of separate paths:",len(spaths)
 
         ############
         print >> fh, asep()
         print >> fh, "List of separate paths"
-        header_template = "\t".join(['%7s']*7)
-        print >> fh, header_template % tuple("Nr ID Begin IN OBJ OUT End".split())
+        header_template = " ".join(['%7s']*7)
+        print >> fh, header_template % tuple("Nr ID Begin INP OBJ OUT End".split())
         for nr,sp in enumerate(spaths):
             line = []
             for e in (nr,sp.id,sp.begins,len(sp.path_in),len(sp.path_object),len(sp.path_out), sp.ends):
                 line += ["%7d" % e]
-            print >> fh, "\t".join(line)
+            print >> fh, " ".join(line)
 
         ############
         print >> fh, asep()
         print >> fh, "Spearate paths lenghts"
-        header_template = "\t".join(['%7s']*2+['%7s']*3)
-        print >> fh, header_template % tuple("Nr ID IN OBJ OUT".split())
-        line_template = "\t".join(['%7d']*2 + ['%7.1f']*3)
+        header_template = " ".join(['%7s']*2+['%9s']*3)
+        print >> fh, header_template % tuple("Nr ID INP OBJ OUT".split())
+        line_template = " ".join(['%7d']*2 + ['%9.1f']*3)
         for nr,sp in enumerate(spaths):
             line = [nr, sp.id]
             for e in sp.coords_in,sp.coords_object,sp.coords_out:
-                if len(e) > 0:
+                if len(e) > 1:
                     line += [sum(traces.diff(e))]
                 else:
-                    line += [0]
+                    line += [float('nan')]
             print >> fh, line_template % tuple(line)
 
         ############
         print >> fh, asep()
         print >> fh, "Spearate paths average step lenghts"
-        header_template = "\t".join(['%7s']*2+['%7s']*6)
-        print >> fh, header_template % tuple("Nr ID IN INstd OBJ OBJstd OUT OUTstd".split())
-        line_template = "\t".join(['%7d']*2 + ['%7.1f','%7.2f']*3)
+        header_template = " ".join(['%7s']*2+['%7s']*6)
+        print >> fh, header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
+        line_template = " ".join(['%7d']*2 + ['%7.1f','%7.2f']*3)
         for nr,sp in enumerate(spaths):
             line = [nr, sp.id]
             for e in sp.coords_in,sp.coords_object,sp.coords_out:
-                if len(e) > 0:
+                if len(e) > 1:
                     line += [np.mean(traces.diff(e))]
                     line += [np.std(traces.diff(e))]
                 else:
-                    line += [0,0]
+                    line += [float('nan')]
+                    line += [float('nan')]
+            print >> fh, line_template % tuple(line)
+
+        ############
+        print >> fh, asep()
+        print >> fh, "Number of inlets:",len(inlets_id)
+        print >> fh, "Number of clusters:", len(set([c for c in clusters if c != -1]))
+        print >> fh, "Outliers:",{True:'yes',False:'no'}[-1 in clusters]
+        print >> fh, "Spearate paths inlets clusters"
+        header_template = " ".join(['%7s']*2+['%7s']*2)
+        print >> fh, header_template % tuple("Nr ID INP OUT".split())
+        line_template = " ".join(['%7d']*2 + ['%7d']*2)
+        for nr,sp in enumerate(spaths):
+            line = [nr, sp.id]
+            if sp.id in inlets_id:
+                pass
+            else:
+                pass
+            print coords_inlets_id
+            print inlets_id
+            print clusters
+            
             print >> fh, line_template % tuple(line)
 
         if options.save not in ['None']:
