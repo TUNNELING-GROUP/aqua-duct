@@ -2,6 +2,9 @@
 This is driver for aqueduct.
 '''
 
+
+import sys
+import os
 import ConfigParser
 
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
@@ -16,6 +19,8 @@ from aqueduct.traj.paths import GenericPaths, yield_single_paths
 from aqueduct.geom.cluster import perform_clustering
 
 from collections import namedtuple
+
+from aqueduct.geom import traces
 
 cpu_count = mp.cpu_count()
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
@@ -211,6 +216,13 @@ def greetings_aqueduct():
 ------------------------------------------------'''
     return greet
 
+
+def sep():
+    return '------------------------------------------------'
+
+def asep():
+    return '-'*72
+
 def check_res_in_scope(options, scope, res, res_coords):
     if options.scope_convexhull == 'True':
         # find convex hull of protein
@@ -240,11 +252,9 @@ def get_res_in_scope(is_res_in_scope, res):
 
 
 if __name__ == "__main__":
-
-
+    ################################################################################
     # argument parsing
     import argparse
-
     parser = argparse.ArgumentParser(description="Valve, Aqueduct driver",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -252,13 +262,10 @@ if __name__ == "__main__":
                         help="Dumps template config file. Supress all other output or actions.")
 
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
-
     args = parser.parse_args()
-
-    config = ValveConfig()
-
+    ################################################################################
     # special option for dumping template config
-
+    config = ValveConfig() # config template
     if args.dump_template_conf:
         import StringIO
 
@@ -266,47 +273,45 @@ if __name__ == "__main__":
         config.save_config_stream(config_dump)
         print config_dump.getvalue()
         exit()
+    ################################################################################
+    # begin!
+    log.message(greetings_aqueduct()) # nice greetings
 
-    print greetings_aqueduct()
-
-    assert args.config_file is not None
+    assert args.config_file is not None, "No config file provided."
 
     # load config file
-    log.message('Load config file')
-    config.load_config(args.config_file)
+    with log.fbm('Load configuration file'):
+        config.load_config(args.config_file)
 
     log.message("Optimal threads count: %d" % optimal_threads)
 
     # get global options
-
     goptions = config.get_global_options()
-
     pbar_name = goptions.pbar
 
     ################################################################################
     # STAGE 0
 
-    # read trajectory
-
-    topology = goptions.top
-    trajectory = goptions.nc
-
-    log.message("Read trajectory...")
-    reader = ReadAmberNetCDFviaMDA(topology, trajectory)
+    with log.fbm('Read trajectory'):
+        # read trajectory
+        topology = goptions.top
+        trajectory = goptions.nc
+        reader = ReadAmberNetCDFviaMDA(topology, trajectory)
 
     ################################################################################
     # STAGE I
-    log.message('Starting Stage I')
-
+    log.message(sep())
+    log.message('Starting Stage I: %s' % config.stage_names(0))
     options = config.get_stage_options(0)
-    max_frame = 1000
+    log.message('Execute mode: %s' % options.execute)
+
+    max_frame = reader.number_of_frames - 1
 
     # execute?
-    log.message('Execute mode is %s' % options.execute)
     if options.execute == 'run':
         # this creates scope
 
-        log.message("Loop over frames: search of waters in object...")
+        log.message("Loop over frames - search of residues in object:")
         pbar = log.pbar(max_frame, kind=pbar_name)
 
         scope = reader.parse_selection(options.scope)
@@ -351,45 +356,46 @@ if __name__ == "__main__":
         log.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
         if options.save not in ['None']:
-            log.message('Saving data dump in %s file.' % options.save)
-            with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                pickle.dump({'all_res': all_res, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames}, f)
+            with log.fbm('Saving data dump in %s file' % options.save):
+                with gzip.open(options.save, mode='w', compresslevel=9) as f:
+                    pickle.dump({'all_res': all_res, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames}, f)
 
     elif options.execute in ['skip']:
 
         if options.load not in ['None']:
-            log.message('Loading data dump from %s file.' % options.load)
-            with gzip.open(options.save, mode='r') as f:
-                loaded_data = pickle.load(f)
-            res_ids_in_object_over_frames = {}
-            all_res = None
-            if 'all_res' in loaded_data.keys():
-                all_res = loaded_data['all_res']
-            if 'res_ids_in_object_over_frames' in loaded_data.keys():
-                res_ids_in_object_over_frames = loaded_data['res_ids_in_object_over_frames']
+            with log.fbm('Loading data dump from %s file' % options.load):
+                with gzip.open(options.save, mode='r') as f:
+                    loaded_data = pickle.load(f)
+                res_ids_in_object_over_frames = {}
+                all_res = None
+                if 'all_res' in loaded_data.keys():
+                    all_res = loaded_data['all_res']
+                if 'res_ids_in_object_over_frames' in loaded_data.keys():
+                    res_ids_in_object_over_frames = loaded_data['res_ids_in_object_over_frames']
 
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
     ################################################################################
     # STAGE II
-    log.message('Starting Stage II')
-
+    log.message(sep())
+    log.message('Starting Stage II: %s' % config.stage_names(1))
     options = config.get_stage_options(1)
+    log.message('Execute mode: %s' % options.execute)
 
     # execute?
-    log.message('Execute mode is %s' % options.execute)
     if options.execute == 'run':
 
         if options.clear_in_object_info == 'True':
-            log.message('Clear data on residues in object over frames - this will be recalculated.')
+            log.message('Clear data on residues in object over frames.This will be recalculated.')
+            log.message('This will be recalculated on demand.')
             res_ids_in_object_over_frames = {}
 
-        log.message("Init paths container")
-        # type and frames, consecutive elements correspond to residues in all_H2O
-        paths = [GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids()]
+        with log.fbm("Init paths container"):
+            # type and frames, consecutive elements correspond to residues in all_H2O
+            paths = [GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids()]
 
-        log.message("Trajectory scan...")
+        log.message("Trajectory scan:")
         pbar = log.pbar(max_frame, kind=pbar_name)
 
         scope = reader.parse_selection(options.scope)
@@ -432,48 +438,48 @@ if __name__ == "__main__":
         pbar.finish()
 
         if options.save not in ['None']:
-            log.message('Saving data dump in %s file.' % options.save)
-            with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                pass
-                pickle.dump({'all_res': all_res, 'paths': paths}, f)
+            with log.fbm('Saving data dump in %s file' % options.save):
+                with gzip.open(options.save, mode='w', compresslevel=9) as f:
+                    pass
+                    pickle.dump({'all_res': all_res, 'paths': paths}, f)
 
     elif options.execute == 'skip':
 
         if options.load not in ['None']:
-            log.message('Loading data dump from %s file.' % options.load)
-            with gzip.open(options.save, mode='r') as f:
-                loaded_data = pickle.load(f)
-            paths = []
-            all_res = None
-            if 'all_res' in loaded_data.keys():
-                all_res = loaded_data['all_res']
-            if 'paths' in loaded_data.keys():
-                paths = loaded_data['paths']
+            with log.fbm('Loading data dump from %s file' % options.load):
+                with gzip.open(options.save, mode='r') as f:
+                    loaded_data = pickle.load(f)
+                paths = []
+                all_res = None
+                if 'all_res' in loaded_data.keys():
+                    all_res = loaded_data['all_res']
+                if 'paths' in loaded_data.keys():
+                    paths = loaded_data['paths']
 
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
     ################################################################################
     # STAGE III
-    log.message('Starting Stage III')
-
+    log.message(sep())
+    log.message('Starting Stage III: %s' % config.stage_names(2))
     options = config.get_stage_options(2)
+    log.message('Execute mode: %s' % options.execute)
 
     # execute?
-    log.message('Execute mode is %s' % options.execute)
     if options.execute == 'run':
 
         if options.discard_empty_paths == 'True':
-            log.message("Discard residues with empty paths...")
+            with log.fbm("Discard residues with empty paths"):
+                # zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
+                all_res_, paths_ = zip(
+                    *[(r, path) for r, path in zip(all_res.iterate_over_residues(), paths) if len(path.frames) > 0])
+                all_res = all_res_
+                paths = paths_
+                del all_res_
+                del paths_
 
-            # zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
-            all_res_, paths_ = zip(
-                *[(r, path) for r, path in zip(all_res.iterate_over_residues(), paths) if len(path.frames) > 0])
-
-            all_res = all_res_
-            paths = paths_
-
-        log.message("Create separate paths...")
+        log.message("Create separate paths:")
 
         pbar = log.pbar(len(paths), kind=pbar_name)
         spaths = [sp for sp, nr in yield_single_paths(paths, progress=True) if pbar.update(nr + 1) is None]
@@ -481,68 +487,154 @@ if __name__ == "__main__":
         pbar.finish()
 
         if options.save not in ['None']:
-            log.message('Saving data dump in %s file.' % options.save)
-            with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                pickle.dump({'paths': paths, 'spaths': spaths}, f)
+            with log.fbm('Saving data dump in %s file' % options.save):
+                with gzip.open(options.save, mode='w', compresslevel=9) as f:
+                    pickle.dump({'paths': paths, 'spaths': spaths}, f)
 
     elif options.execute == 'skip':
 
         if options.load not in ['None']:
-            log.message('Loading data dump from %s file.' % options.load)
-            with gzip.open(options.save, mode='r') as f:
-                loaded_data = pickle.load(f)
-            spaths = []
-            if 'spaths' in loaded_data.keys():
-                spaths = loaded_data['spaths']
-            if 'paths' in loaded_data.keys():
-                paths = loaded_data['paths']
+            with log.fbm('Loading data dump from %s file' % options.load):
+                with gzip.open(options.save, mode='r') as f:
+                    loaded_data = pickle.load(f)
+                spaths = []
+                if 'spaths' in loaded_data.keys():
+                    spaths = loaded_data['spaths']
+                if 'paths' in loaded_data.keys():
+                    paths = loaded_data['paths']
 
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
     ################################################################################
     # STAGE IV
-    log.message('Starting Stage IV')
-
+    log.message(sep())
+    log.message('Starting Stage IV: %s' % config.stage_names(3))
     options = config.get_stage_options(3)
+    log.message('Execute mode: %s' % options.execute)
 
     # execute?
-    log.message('Execute mode is %s' % options.execute)
     if options.execute == 'run':
 
         # find coords of inlets and id
         coords_inlets_id = [(sp.coords_fi_lo, sp.id) for sp in spaths]
-        # extract coords and id into separate lists
-        coords_inlets = np.vstack([cii[0] for cii in coords_inlets_id if cii[0].shape[0] > 0])
-        inlets_id = np.hstack([[cii[1]] * cii[0].shape[0] for cii in coords_inlets_id if cii[0].shape[0] > 0]).tolist()
-        # perform clusterization
+        # find nr of inlets
+        nr_of_inlets = len([None for cii in coords_inlets_id if cii[0].shape[0] > 0])
 
-        clusters = perform_clustering(coords_inlets, eps=float(options.dbscan_eps), min_samples=int(options.dbscan_min_samples))
+        if nr_of_inlets > 0:
+            with log.fbm("Performing clusterization"):
+                # extract coords and id into separate lists
+                coords_inlets = np.vstack([cii[0] for cii in coords_inlets_id if cii[0].shape[0] > 0])
+                inlets_id = np.hstack([[cii[1]] * cii[0].shape[0] for cii in coords_inlets_id if cii[0].shape[0] > 0]).tolist()
+                # perform clusterization
+                clusters = perform_clustering(coords_inlets, eps=float(options.dbscan_eps), min_samples=int(options.dbscan_min_samples))
+        else:
+            log.message("No inlets found. Clusterization skipped.")
+            coords_inlets = np.array([])
+            inlets_id = []
+            clusters = np.array([])
 
         if options.save not in ['None']:
-            log.message('Saving data dump in %s file.' % options.save)
-            with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                pickle.dump({'coords_inlets_id':coords_inlets_id,
-                             'coords_inlets':coords_inlets,
-                             'inlets_id':inlets_id,
-                             'clusters':clusters},f)
+            with log.fbm('Saving data dump in %s file' % options.save):
+                with gzip.open(options.save, mode='w', compresslevel=9) as f:
+                    pickle.dump({'coords_inlets_id':coords_inlets_id,
+                                 'coords_inlets':coords_inlets,
+                                 'inlets_id':inlets_id,
+                                 'clusters':clusters},f)
 
     elif options.execute == 'skip':
 
         if options.load not in ['None']:
-            log.message('Loading data dump from %s file.' % options.load)
-            with gzip.open(options.save, mode='r') as f:
-                loaded_data = pickle.load(f)
-                coords_inlets_id = []
-                coords_inlets = np.array([])
-                inlets_id = []
-                if 'loaded_data' in loaded_data.keys():
-                    loaded_data = loaded_data['loaded_data']
-                if 'coords_inlets_id' in loaded_data.keys():
-                    coords_inlets_id = loaded_data['coords_inlets_id']
-                if 'coords_inlets' in loaded_data.keys():
-                    coords_inlets = loaded_data['coords_inlets']
-                if 'inlets_id' in loaded_data.keys():
-                    inlets_id = loaded_data['inlets_id']
+            with log.fbm('Loading data dump from %s file' % options.load):
+                with gzip.open(options.save, mode='r') as f:
+                    loaded_data = pickle.load(f)
+                    coords_inlets_id = []
+                    coords_inlets = np.array([])
+                    inlets_id = []
+                    clusters = np.array([])
+                    if 'coords_inlets_id' in loaded_data.keys():
+                        coords_inlets_id = loaded_data['coords_inlets_id']
+                    if 'coords_inlets' in loaded_data.keys():
+                        coords_inlets = loaded_data['coords_inlets']
+                    if 'inlets_id' in loaded_data.keys():
+                        inlets_id = loaded_data['inlets_id']
+                    if 'clusters' in loaded_data.keys():
+                        clusters = loaded_data['clusters']
+    else:
+        raise NotImplementedError('exec mode %s not implemented' % options.execute)
+
+    ################################################################################
+    # STAGE V
+    log.message(sep())
+    log.message('Starting Stage V: %s' % config.stage_names(4))
+    options = config.get_stage_options(4)
+    log.message('Execute mode: %s' % options.execute)
+
+    # execute?
+    if options.execute == 'run':
+        # file handle?
+        if options.save not in ['None']:
+            fh = open(options.save,'w')
+        else:
+            log.message('Using standard output.')
+            log.message(sep())
+            log.message('')
+            fh = sys.stdout
+
+        ############
+        print >> fh, asep()
+        print >> fh, 'Aqueduct analysis'
+
+        ############
+        print >> fh, asep()
+        print >> fh, "Number of tracable residues:",len(paths)
+        print >> fh, "Number of separate paths:",len(spaths)
+
+        ############
+        print >> fh, asep()
+        print >> fh, "List of separate paths"
+        header_template = "\t".join(['%7s']*7)
+        print >> fh, header_template % tuple("Nr ID Begin IN OBJ OUT End".split())
+        for nr,sp in enumerate(spaths):
+            line = []
+            for e in (nr,sp.id,sp.begins,len(sp.path_in),len(sp.path_object),len(sp.path_out), sp.ends):
+                line += ["%7d" % e]
+            print >> fh, "\t".join(line)
+
+        ############
+        print >> fh, asep()
+        print >> fh, "Spearate paths lenghts"
+        header_template = "\t".join(['%7s']*2+['%7s']*3)
+        print >> fh, header_template % tuple("Nr ID IN OBJ OUT".split())
+        line_template = "\t".join(['%7d']*2 + ['%7.1f']*3)
+        for nr,sp in enumerate(spaths):
+            line = [nr, sp.id]
+            for e in sp.coords_in,sp.coords_object,sp.coords_out:
+                if len(e) > 0:
+                    line += [sum(traces.diff(e))]
+                else:
+                    line += [0]
+            print >> fh, line_template % tuple(line)
+
+        ############
+        print >> fh, asep()
+        print >> fh, "Spearate paths average step lenghts"
+        header_template = "\t".join(['%7s']*2+['%7s']*6)
+        print >> fh, header_template % tuple("Nr ID IN INstd OBJ OBJstd OUT OUTstd".split())
+        line_template = "\t".join(['%7d']*2 + ['%7.1f','%7.2f']*3)
+        for nr,sp in enumerate(spaths):
+            line = [nr, sp.id]
+            for e in sp.coords_in,sp.coords_object,sp.coords_out:
+                if len(e) > 0:
+                    line += [np.mean(traces.diff(e))]
+                    line += [np.std(traces.diff(e))]
+                else:
+                    line += [0,0]
+            print >> fh, line_template % tuple(line)
+
+        if options.save not in ['None']:
+            fh.close()
+    elif options.execute == 'skip':
+        pass
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)

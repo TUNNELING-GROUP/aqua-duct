@@ -75,5 +75,17 @@ warning = logging.warning
 error = logging.error
 critical = logging.critical
 
-def message(mess):
-    print >> stderr, mess
+class fbm(object):
+    # feedback message
+    def __init__(self,info):
+        message(info+'...',cont=True)
+    def __enter__(self):
+        pass
+    def __exit__(self, type, value, traceback):
+        message("OK.")
+
+def message(mess,cont=False):
+    if cont:
+        print >> stderr, mess,
+    else:
+        print >> stderr, mess
