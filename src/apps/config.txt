@@ -21,15 +21,17 @@ save = stage_II.dump
 clear_in_object_info = False
 
 [create separate frames]
+execute = skip
+load = stage_III.dump
+save = stage_III.dump
+discard_empty_paths = True
+
+[inlets clusterisation]
 execute = run
 load = None
 save = None
-discard_empty_paths = False
-
-[inlets clusterisation]
-execute = None
-load = None
-save = None
+dbscan_eps = 5.0
+dbscan_min_samples = 3
 
 [analysis]
 execute = None

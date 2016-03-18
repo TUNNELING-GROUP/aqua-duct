@@ -42,7 +42,7 @@ class pbar(object):
         elif self.__kind == "tqdm":
             # it does not work as expected
             from tqdm import tqdm
-            self.__pbar = tqdm(leave=True,ascii=True,total=maxval,dynamic_ncols=True,ncols=20)
+            self.__pbar = tqdm(leave=True,ascii=True,total=maxval)
         elif self.__kind == "pyprind":
             import pyprind
             self.__pbar = pyprind.ProgBar(maxval)
@@ -59,6 +59,8 @@ class pbar(object):
     def finish(self):
         if self.__kind == "progressbar":
             self.__pbar.finish()
+        if self.__kind == "tqdm":
+            self.__pbar.close()
 
 
 
