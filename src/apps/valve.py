@@ -3,12 +3,15 @@ This is driver for aqueduct.
 '''
 
 
+from aqueduct.utils import log
+
+
 import sys
 import os
+
 import ConfigParser
 
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
-from aqueduct.utils import log
 
 import multiprocessing as mp
 import copy
@@ -252,7 +255,18 @@ def get_res_in_scope(is_res_in_scope, res):
 
 
 if __name__ == "__main__":
+<<<<<<< working copy
+
+    pbar = log.pbar(10,kind='tqdm')
+    for q in range(1,11):
+        pbar.update(q)
+    pbar.finish()
+
+    #pbar.finish()
+    
+=======
     ################################################################################
+>>>>>>> destination
     # argument parsing
     import argparse
     parser = argparse.ArgumentParser(description="Valve, Aqueduct driver",
@@ -288,6 +302,7 @@ if __name__ == "__main__":
     # get global options
     goptions = config.get_global_options()
     pbar_name = goptions.pbar
+
 
     ################################################################################
     # STAGE 0
@@ -459,6 +474,13 @@ if __name__ == "__main__":
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
+<<<<<<< working copy
+
+
+
+
+=======
+>>>>>>> destination
     ################################################################################
     # STAGE III
     log.message(sep())
@@ -481,8 +503,26 @@ if __name__ == "__main__":
 
         log.message("Create separate paths:")
 
+<<<<<<< working copy
+            all_res = all_res_
+            paths = paths_
+
+        log.message("Create separate paths...")
+
+        pbar = log.pbar(len(paths),kind='tqdm')
+        for q in range(10):
+            pbar.update(1)
+        pbar.finish()
+        
+        print 'hej?'
+        
+        pbar = log.pbar(len(paths),kind='tqdm')
+        spaths = [sp for sp,nr in yield_single_paths(paths,progress=True) if pbar.update(nr) is None]
+
+=======
         pbar = log.pbar(len(paths), kind=pbar_name)
         spaths = [sp for sp, nr in yield_single_paths(paths, progress=True) if pbar.update(nr + 1) is None]
+>>>>>>> destination
 
         pbar.finish()
 
