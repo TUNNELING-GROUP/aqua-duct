@@ -12,6 +12,8 @@ from os import linesep
 
 from sys import stderr
 
+import time
+
 '''
 def pbar(maxval=100):
     # returns new progress bar
@@ -22,18 +24,93 @@ def pbar(maxval=100):
                           maxval=maxval).start()
 '''
 
+# TODO: smart time string
+def smart_time_string(s, rl=0):
+    output = ''
+    rl += 1
+    if rl > 2:
+        output = ''
+    else:
+        t = 1.4
+        # seconds
+        if s < t * 60:
+            output = "%2.2d s" % s
+        elif s < t * 3600:
+            output = ("%2.2d m" % (int(s) / 60)) + ' ' + smart_time_string(int(s) % 60, rl).strip()
+        elif s < t * 3600 * 24:
+            output = ("%2.2d h" % (int(s) / 3600)) + ' ' + smart_time_string(int(s) % 3600, rl).strip()
+        elif True:  # s < t*3600*24*365:
+            output =  ("%d d" % (int(s) / (3600 * 24))) + ' ' + smart_time_string(int(s) % (3600 * 24), rl).strip()
+    return (output+" "*10)[:10]
+
+class SimpleProgressBar(object):
+
+    def __init__(self,maxval=None):
+        assert isinstance(maxval,(int,long))
+        assert maxval > 0
+
+        self.maxval = maxval
+        self.current = 0
+
+        self.overrun_notice = True
+        self.begin = time.time()
+        self.tcurrent = self.begin
+        self.show()
+
+    def ETA(self):
+        if self.current == 0:
+            return '?'
+        diff = self.tcurrent - self.begin
+        periteration = diff/self.current
+        expected = periteration*self.maxval
+        eta = periteration*(self.maxval-self.current)
+
+        return smart_time_string(eta)
+
+    def percent(self):
+        percent = float(self.current)/float(self.maxval)*100
+        return percent
+
+
+    def show(self):
+        percent = self.percent()
+        if percent > 100:
+            if self.overrun_notice:
+                stderr.write(linesep)
+                self.overrun_notice = False
+            stderr.write("%d iterations out of %d. Total time: %s\r" % (self.current,self.maxval,self.ttime()))
+        else:
+            stderr.write("%3d%% ETA: %s\r" % (self.percent(),self.ETA()))
+
+    def update(self,step):
+        if step > 0:
+            self.current += 1
+        self.tcurrent = time.time()
+        self.show()
+
+    def ttime(self):
+        return smart_time_string(self.tcurrent-self.begin)
+
+    def finish(self):
+        self.update(0)
+        stderr.write(linesep)
+        stderr.write("Total time: %s" % self.ttime())
+        stderr.write(linesep)
+
 #TODO: try to add tqdm as an alternative for progressbarr which does not work very well in ipython
 
 
 class pbar(object):
 
-    def __init__(self,maxval=100,kind='tqdm'):
+    def __init__(self,maxval=100,kind='simple'):
         self.__kind = kind
 
         self.__maxval = maxval
 
         self.__curval = 0
 
+        if self.__kind == "simple":
+            self.__pbar = SimpleProgressBar(maxval=maxval)
         if self.__kind == "progressbar":
             import progressbar as pb
             widgets = [pb.Percentage(), ' ',
@@ -58,7 +135,7 @@ class pbar(object):
             self.__pbar.update(val)
 
     def finish(self):
-        if self.__kind == "progressbar":
+        if self.__kind in ["progressbar","simple"]:
             self.__pbar.finish()
         if self.__kind == "tqdm":
             self.__pbar.close()

@@ -4,7 +4,7 @@ nc = ../../real_traj/1cqz/prod_1cqz.nc
 pbar = pyprind
 
 [traceable_residues]
-execute = run
+execute = skip
 load = full/stage_I.dump
 save = full/stage_I.dump
 scope = backbone
@@ -12,19 +12,19 @@ scope_convexhull = True
 object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
 
 [raw_paths]
-execute = run
+execute = skip
 load = full/stage_II.dump
 save = full/stage_II.dump
 clear_in_object_info = False
 
 [separate_paths]
-execute = run
+execute = skip
 load = full/stage_III.dump
 save = full/stage_III.dump
 discard_empty_paths = True
 
 [inlets_clusterization]
-execute = run
+execute = skip
 load = full/stage_IV.dump
 save = full/stage_IV.dump
 apply_smoothing = False

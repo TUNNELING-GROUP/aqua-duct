@@ -147,7 +147,7 @@ class ValveConfig(object):
         config.set(section, 'top')
         config.set(section, 'nc')
 
-        config.set(section, 'pbar', 'pyprind')
+        config.set(section, 'pbar', 'simple')
 
         ################
         # stage I
@@ -423,7 +423,6 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    # max_frame = 1000
 
     # execute?
     if options.execute == 'run':
@@ -733,7 +732,7 @@ if __name__ == "__main__":
         # file hSobrietyandle?
         if options.save not in ['None']:
             fh = open(options.save, 'w')
-            log.message('Using user provided file.')
+            log.message('Using user provided file (%s).' % options.save)
             log.message(sep())
             log.message('')
         else:
@@ -765,7 +764,7 @@ if __name__ == "__main__":
 
         ############
         print >> fh, asep()
-        print >> fh, "Spearate paths lenghts"
+        print >> fh, "Separate paths lengths"
         header_template = " ".join(['%7s'] * 2 + ['%9s'] * 3)
         header = header_template % tuple("Nr ID INP OBJ OUT".split())
         print >> fh, thead(header)
@@ -781,7 +780,7 @@ if __name__ == "__main__":
 
         ############
         print >> fh, asep()
-        print >> fh, "Spearate paths average step lenghts"
+        print >> fh, "Separate paths average step lengths"
         header_template = " ".join(['%7s'] * 2 + ['%8s'] * 6)
         header = header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
         print >> fh, thead(header)
@@ -823,7 +822,7 @@ if __name__ == "__main__":
 
         ############
         print >> fh, asep()
-        print >> fh, "Spearate paths inlets clusters"
+        print >> fh, "Separate paths inlets clusters"
         header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2 + ['%8s'] * 1)
         header = header_template % tuple("Nr ID INP OUT Type".split())
         print >> fh, thead(header)
@@ -835,10 +834,10 @@ if __name__ == "__main__":
             if len(ids) > 0:
                 for iid in ids:
                     if inlet_type[iid] == InletTypeCodes.inlet_in_code:
-                        inp = clusters[iid]
+                        inp = int(clusters[iid])
                     if inlet_type[iid] == InletTypeCodes.inlet_out_code:
-                        out = clusters[iid]
-            line.extend([str(inp), str(out)])
+                        out = int(clusters[iid])
+            line.extend(map(str,[inp, out]))
             # type?
             if inp is None and out is None:
                 ctype = 'internal'
