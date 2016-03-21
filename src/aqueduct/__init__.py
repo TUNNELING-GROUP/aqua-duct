@@ -3,7 +3,7 @@ def version():
 
 
 def version_nice():
-    return 'v'+'.'.join(map(str,version())) + ' 20160321'
+    return '.'.join(map(str,version())) + ' 20160321'
 
 
 def greetings():

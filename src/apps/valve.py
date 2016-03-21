@@ -37,7 +37,7 @@ def version():
 
 
 def version_nice():
-    return 'v' + '.'.join(map(str, version())) + ' 20160321'
+    return '.'.join(map(str, version())) + ' 20160321'
 
 
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
@@ -199,7 +199,7 @@ class ValveConfig(object):
         section = self.smooth_name()
         config.add_section(section)
         config.set(section, 'method', 'window')
-        config.set(section, 'recursive','0')
+        config.set(section, 'recursive', '0')
         config.set(section, 'window', '5')
         config.set(section, 'function', 'mean')
 
@@ -297,6 +297,7 @@ def sep():
 def asep():
     return '=' * 72
 
+
 def thead(line):
     header = tsep(line)
     header += os.linesep
@@ -305,8 +306,10 @@ def thead(line):
     header += tsep(line)
     return header
 
+
 def tsep(line):
-    return '-'*len(line)
+    return '-' * len(line)
+
 
 ################################################################################
 # save - load helpers
@@ -425,7 +428,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    #max_frame = 1000
+    # max_frame = 1000
 
     # execute?
     if options.execute == 'run':
@@ -764,7 +767,6 @@ if __name__ == "__main__":
             for e in (nr, sp.id, sp.begins, len(sp.path_in), len(sp.path_object), len(sp.path_out), sp.ends):
                 line += ["%7d" % e]
             print >> fh, " ".join(line)
-
 
         ############
         print >> fh, asep()
