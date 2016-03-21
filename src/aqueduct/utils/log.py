@@ -8,6 +8,7 @@ __all__ = ['debug','info','warning','error','critical','pbar']
 
 import logging
 
+from os import linesep
 
 from sys import stderr
 
@@ -64,8 +65,9 @@ class pbar(object):
 
 
 
-level = logging.CRITICAL
-format = 'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]: %(message)s'
+level = logging.WARNING
+#format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
+format = linesep+'AQUARIUM:%(levelname)s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
 
 logging.basicConfig(format=format, level=level)
 

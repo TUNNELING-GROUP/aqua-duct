@@ -1,8 +1,10 @@
-'''
+"""
 This is driver for aqueduct.
-'''
+"""
 
+from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct import version as aqueduct_version
+from aqueduct import greetings as greetings_aqueduct
 
 from aqueduct.utils import log
 from aqueduct.geom.smooth import WindowSmooth
@@ -22,7 +24,7 @@ import gzip
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.geom.cluster import perform_clustering
 
-from collections import namedtuple
+from collections import namedtuple, OrderedDict
 
 from aqueduct.geom import traces
 
@@ -30,36 +32,22 @@ cpu_count = mp.cpu_count()
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
-__version__ = '20160318 beta'
+def version():
+    return 0, 1, 0
+
+
+def version_nice():
+    return 'v' + '.'.join(map(str, version())) + ' 20160321'
+
 
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
-
-def CHullCheck(point):
-    return CHullCheck.chull.point_within(point)
-
-
-def CHullCheck_init(args):
-    CHullCheck.chull = copy.deepcopy(args[0])
-
-
-def CHullCheck_pool(chull, threads=optimal_threads):
-    return mp.Pool(threads, CHullCheck_init, [(chull,)])
-
-
-def CHullCheck_exec(chull, points, threads=optimal_threads):
-    pool = CHullCheck_pool(chull, threads=threads)
-    out = pool.map(CHullCheck, points)
-    pool.close()
-    pool.join()
-    del pool
-    return out
-
 
 class ValveConfig(object):
     def __init__(self):
         self.config = self.get_default_config()
 
-    def __make_options_nt(self, options):
+    @staticmethod
+    def __make_options_nt(options):
         options_nt = namedtuple('Options', options.keys())
         return options_nt(**options)
 
@@ -77,13 +65,16 @@ class ValveConfig(object):
         # object - object definition
         return 'scope scope_convexhull object'.split()
 
-    def global_name(self):
-        return 'global settings'
+    @staticmethod
+    def global_name():
+        return 'global'
 
-    def cluster_name(self):
+    @staticmethod
+    def cluster_name():
         return 'clusterization'
-    
-    def smooth_name(self):
+
+    @staticmethod
+    def smooth_name():
         return 'smooth'
 
     def stage_names(self, nr=None):
@@ -91,13 +82,13 @@ class ValveConfig(object):
             return [self.stage_names(nr) for nr in range(5)]
         else:
             if nr == 0:
-                return 'find traceable residues'
+                return 'traceable_residues'
             elif nr == 1:
-                return 'find raw paths'
+                return 'raw_paths'
             elif nr == 2:
-                return 'create separate frames'
+                return 'separate_paths'
             elif nr == 3:
-                return 'inlets clusterisation'
+                return 'inlets_clusterization'
             elif nr == 4:
                 return 'analysis'
         raise NotImplementedError('Stage %r is not implemented.' % nr)
@@ -134,6 +125,12 @@ class ValveConfig(object):
         options = {name: self.config.get(section, name) for name in names}
         return self.__make_options_nt(options)
 
+    def get_smooth_options(self):
+        section = self.smooth_name()
+        names = self.config.options(section)
+        options = {name: self.config.get(section, name) for name in names}
+        return self.__make_options_nt(options)
+
     def get_default_config(self):
         config = ConfigParser.RawConfigParser()
 
@@ -155,7 +152,7 @@ class ValveConfig(object):
         config.set(section, 'top')
         config.set(section, 'nc')
 
-        config.set(section, 'pbar', 'tqdm')
+        config.set(section, 'pbar', 'pyprind')
 
         ################
         # stage I
@@ -198,20 +195,29 @@ class ValveConfig(object):
         config.set(section, 'apply_smoothing', 'True')
 
         ################
+        # smooth
+        section = self.smooth_name()
+        config.add_section(section)
+        config.set(section, 'method', 'window')
+        config.set(section, 'recursive','0')
+        config.set(section, 'window', '5')
+        config.set(section, 'function', 'mean')
+
+        ################
         # clusterization
         section = self.cluster_name()
         config.add_section(section)
         config.set(section, 'method', 'dbscan')
         config.set(section, 'eps', '5.0')
         config.set(section, 'min_samples', '3')
- 
+
         ################
         # stage V
         # analysis
         section = self.stage_names(4)
         config.add_section(section)
-
         common(section)
+        config.remove_option(section, 'load')
 
         return config
 
@@ -225,25 +231,33 @@ class ValveConfig(object):
         with open(filename, 'w') as fs:
             self.save_config_stream(fs)
 
-def greetings_aqueduct():
-    greet = '''------------------------------------------------
-           ~ ~ ~ A Q U E D U C T ~ ~ ~
-################################################
-####        ########        ########        ####
-##            ####            ####            ##
-#              ##              ##              #
-#              ##              ##              #
-#              ##              ##              #
-#              ##              ##              #
-------------------------------------------------'''
-    return greet
+
+################################################################################
+# convex hull helpers
+
+def CHullCheck(point):
+    return CHullCheck.chull.point_within(point)
 
 
-def sep():
-    return '------------------------------------------------'
+def CHullCheck_init(args):
+    CHullCheck.chull = copy.deepcopy(args[0])
 
-def asep():
-    return '-'*72
+
+def CHullCheck_pool(chull, threads=optimal_threads):
+    return mp.Pool(threads, CHullCheck_init, [(chull,)])
+
+
+def CHullCheck_exec(chull, points, threads=optimal_threads):
+    pool = CHullCheck_pool(chull, threads=threads)
+    out = pool.map(CHullCheck, points)
+    pool.close()
+    pool.join()
+    del pool
+    return out
+
+
+################################################################################
+# in scope helper
 
 def check_res_in_scope(options, scope, res, res_coords):
     if options.scope_convexhull == 'True':
@@ -273,10 +287,90 @@ def get_res_in_scope(is_res_in_scope, res):
     return res_new
 
 
+################################################################################
+# separators
+
+def sep():
+    return '------------------------------------------------'
+
+
+def asep():
+    return '=' * 72
+
+def thead(line):
+    header = tsep(line)
+    header += os.linesep
+    header += line
+    header += os.linesep
+    header += tsep(line)
+    return header
+
+def tsep(line):
+    return '-'*len(line)
+
+################################################################################
+# save - load helpers
+
+def save_dump(filename, data_to_save, **kwargs):
+    with log.fbm('Saving data dump in %s file' % filename):
+        with gzip.open(filename, mode='w', compresslevel=9) as f:
+            # first version:
+            pickle.dump({'version': version(),
+                         'aqueduct_version': aqueduct_version()}, f)
+            # then data to save:
+            pickle.dump(data_to_save, f)
+            # then other kwargs
+            pickle.dump(kwargs, f)
+
+
+def load_dump(filename):
+    with log.fbm('Loading data dump from %s file' % filename):
+        with gzip.open(filename, mode='r') as f:
+            # version!
+            loaded_data = pickle.load(f)
+            check_versions(loaded_data)
+            # loaded data!
+            loaded_data = pickle.load(f)
+            # enything else?
+            try:
+                other_data = pickle.load(f)
+                loaded_data.update({'other_data': other_data})
+            except:
+                pass
+        loaded_data_nt = namedtuple('LoadedData', loaded_data.keys())
+        return loaded_data_nt(**loaded_data)
+
+
+def check_version_compilance(current, loaded, what):
+    if current[0] > loaded[0]:
+        log.error(
+            'Loaded data has %s major version lower then the application, possible problems with API compilance.' % what)
+    if current[0] < loaded[0]:
+        log.error(
+            'Loaded data has %s major version higher then the application, possible problems with API compilance.' % what)
+    if current[1] > loaded[1]:
+        log.warning(
+            'Loaded data has %s minor version lower then the application, possible problems with API compilance.' % what)
+    if current[1] < loaded[1]:
+        log.warning(
+            'Loaded data has %s minor version higher then the application, possible problems with API compilance.' % what)
+
+
+def check_versions(version_dict):
+    assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
+    assert 'version' in version_dict, "File is corrupted, cannot read version data."
+    assert 'aqueduct_version' in version_dict, "File is corrupted, cannot read version data."
+    check_version_compilance(aqueduct_version(), version_dict['aqueduct_version'], 'Aqueduct')
+    check_version_compilance(version(), version_dict['version'], 'Valve')
+
+
+################################################################################
+
 if __name__ == "__main__":
     ################################################################################
     # argument parsing
     import argparse
+
     parser = argparse.ArgumentParser(description="Valve, Aqueduct driver",
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
@@ -287,7 +381,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     ################################################################################
     # special option for dumping template config
-    config = ValveConfig() # config template
+    config = ValveConfig()  # config template
     if args.dump_template_conf:
         import StringIO
 
@@ -297,11 +391,11 @@ if __name__ == "__main__":
         exit()
     ################################################################################
     # begin!
-    log.message(greetings_aqueduct()) # nice greetings
-    log.message('Aqueduct version %s' % aqueduct_version())
-    log.message('Valve driver version %s' % __version__)
+    log.message(greetings_aqueduct())  # nice greetings
+    log.message('Aqueduct version %s' % aqueduct_version_nice())
+    log.message('Valve driver version %s' % version_nice())
     log.message(sep())
-    
+
     assert args.config_file is not None, "No config file provided."
 
     # load config file
@@ -313,7 +407,6 @@ if __name__ == "__main__":
     # get global options
     goptions = config.get_global_options()
     pbar_name = goptions.pbar
-
 
     ################################################################################
     # STAGE 0
@@ -332,7 +425,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    max_frame = 1000
+    #max_frame = 1000
 
     # execute?
     if options.execute == 'run':
@@ -340,7 +433,6 @@ if __name__ == "__main__":
 
         log.message("Loop over frames - search of residues in object:")
         pbar = log.pbar(max_frame, kind=pbar_name)
-        
 
         scope = reader.parse_selection(options.scope)
 
@@ -383,24 +475,28 @@ if __name__ == "__main__":
 
         log.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
+        ###########
+        # S A V E #
+        ###########
         if options.save not in ['None']:
-            with log.fbm('Saving data dump in %s file' % options.save):
-                with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                    pickle.dump({'all_res': all_res, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames}, f)
+            save_dump(options.save,
+                      {'all_res': all_res, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames},
+                      options=options._asdict())
 
     elif options.execute in ['skip']:
 
+        ###########
+        # L O A D #
+        ###########
         if options.load not in ['None']:
-            with log.fbm('Loading data dump from %s file' % options.load):
-                with gzip.open(options.save, mode='r') as f:
-                    loaded_data = pickle.load(f)
-                res_ids_in_object_over_frames = {}
-                all_res = None
-                if 'all_res' in loaded_data.keys():
-                    all_res = loaded_data['all_res']
-                if 'res_ids_in_object_over_frames' in loaded_data.keys():
-                    res_ids_in_object_over_frames = loaded_data['res_ids_in_object_over_frames']
-
+            loaded_data = load_dump(options.load)
+            res_ids_in_object_over_frames = {}
+            all_res = None
+            if 'all_res' in loaded_data._asdict().keys():
+                all_res = loaded_data.all_res
+            if 'res_ids_in_object_over_frames' in loaded_data._asdict().keys():
+                res_ids_in_object_over_frames = loaded_data.res_ids_in_object_over_frames
+            del loaded_data
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
@@ -444,7 +540,7 @@ if __name__ == "__main__":
                     paths[nr].add_coord(coord)
 
                     # do we have info on res_ids_in_object_over_frames?
-                    if not res_ids_in_object_over_frames.has_key(frame):
+                    if frame not in res_ids_in_object_over_frames:
                         res = reader.parse_selection(options.object)
                         # discard res out of scope
                         res_new = get_res_in_scope(is_res_in_scope, res)
@@ -465,28 +561,28 @@ if __name__ == "__main__":
 
         pbar.finish()
 
+        ###########
+        # S A V E #
+        ###########
         if options.save not in ['None']:
-            with log.fbm('Saving data dump in %s file' % options.save):
-                with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                    pass
-                    pickle.dump({'all_res': all_res, 'paths': paths}, f)
+            save_dump(options.save, {'all_res': all_res, 'paths': paths}, options=options._asdict())
 
-    elif options.execute == 'skip':
+    elif options.execute in ['skip']:
 
+        ###########
+        # L O A D #
+        ###########
         if options.load not in ['None']:
-            with log.fbm('Loading data dump from %s file' % options.load):
-                with gzip.open(options.save, mode='r') as f:
-                    loaded_data = pickle.load(f)
-                paths = []
-                all_res = None
-                if 'all_res' in loaded_data.keys():
-                    all_res = loaded_data['all_res']
-                if 'paths' in loaded_data.keys():
-                    paths = loaded_data['paths']
-
+            loaded_data = load_dump(options.load)
+            paths = []
+            all_res = None
+            if 'all_res' in loaded_data._asdict().keys():
+                all_res = loaded_data.all_res
+            if 'paths' in loaded_data._asdict().keys():
+                paths = loaded_data.paths
+            del loaded_data
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
-
 
     ################################################################################
     # STAGE III
@@ -513,26 +609,26 @@ if __name__ == "__main__":
         pbar = log.pbar(len(paths), kind=pbar_name)
         spaths = [sp for sp, nr in yield_single_paths(paths, progress=True) if pbar.update(nr + 1) is None]
 
-
         pbar.finish()
 
+        ###########
+        # S A V E #
+        ###########
         if options.save not in ['None']:
-            with log.fbm('Saving data dump in %s file' % options.save):
-                with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                    pickle.dump({'paths': paths, 'spaths': spaths}, f)
+            save_dump(options.save, {'paths': paths, 'spaths': spaths}, options=options._asdict())
 
-    elif options.execute == 'skip':
-
+    elif options.execute in ['skip']:
+        ###########
+        # L O A D #
+        ###########
         if options.load not in ['None']:
-            with log.fbm('Loading data dump from %s file' % options.load):
-                with gzip.open(options.save, mode='r') as f:
-                    loaded_data = pickle.load(f)
-                spaths = []
-                if 'spaths' in loaded_data.keys():
-                    spaths = loaded_data['spaths']
-                if 'paths' in loaded_data.keys():
-                    paths = loaded_data['paths']
-
+            loaded_data = load_dump(options.load)
+            spaths = []
+            if 'spaths' in loaded_data._asdict().keys():
+                spaths = loaded_data.spaths
+            if 'paths' in loaded_data._asdict().keys():
+                paths = loaded_data.paths
+            del loaded_data
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
@@ -543,29 +639,39 @@ if __name__ == "__main__":
     options = config.get_stage_options(3)
     log.message('Execute mode: %s' % options.execute)
     coptions = config.get_cluster_options()
-    
+    soptions = config.get_smooth_options()
+
     # execute?
     if options.execute == 'run':
         # apply smoothing?
         if options.apply_smoothing == 'True':
             with log.fbm('Applying smoothing'):
-                smooth = WindowSmooth() # TODO: read smooth options
+                assert soptions.method == 'window', 'Unknown smoothing method %s.' % soptions.method
+                assert soptions.function in ['mean', 'median'], 'Unknown smoothing function %s.' % soptions.function
+                if soptions.function == 'mean':
+                    smooth = WindowSmooth(window=int(soptions.window),
+                                          recursive=int(soptions.recursive),
+                                          function=np.mean)
+                elif soptions.function == 'median':
+                    smooth = WindowSmooth(window=int(soptions.window),
+                                          recursive=int(soptions.recursive),
+                                          function=np.median)
                 for sp in spaths:
                     sp.apply_smoothing(smooth)
-         
+
         # find coords of inlets, type and id
         inlet_coords = []
         inlet_type = []
         inlet_id = []
         inlet_spnr = []
-        for nr,sp in enumerate(spaths):
-            for inlet,itype in sp.coords_filo:
+        for nr, sp in enumerate(spaths):
+            for inlet, itype in sp.coords_filo:
                 inlet_coords.append(inlet.tolist())
                 inlet_type.append(itype)
                 inlet_id.append(sp.id)
                 inlet_spnr.append(nr)
-                #print nr,sp.id,inlet,itype
-        
+                # print nr,sp.id,inlet,itype
+
         # find nr of inlets
         nr_of_inlets = len(inlet_id)
 
@@ -573,41 +679,47 @@ if __name__ == "__main__":
             with log.fbm("Performing clusterization"):
                 assert coptions.method == 'dbscan', 'Unknown clusterization method %s.' % coptions.method
                 # perform clusterization
-                clusters = perform_clustering(inlet_coords, eps=float(coptions.eps), min_samples=int(coptions.min_samples))
+                clusters = perform_clustering(np.array(inlet_coords), eps=float(coptions.eps),
+                                              min_samples=int(coptions.min_samples))
         else:
             log.message("No inlets found. Clusterization skipped.")
             clusters = np.array([])
 
+        ###########
+        # S A V E #
+        ###########
         if options.save not in ['None']:
-            with log.fbm('Saving data dump in %s file' % options.save):
-                with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                    pickle.dump({'inlet_coords':inlet_coords,
-                                 'inlet_type':inlet_type,
-                                 'inlet_id':inlet_id,
-                                 'inlet_spnr':inlet_spnr,
-                                 'clusters':clusters},f)
+            save_dump(options.save, {'inlet_coords': inlet_coords,
+                                     'inlet_type': inlet_type,
+                                     'inlet_id': inlet_id,
+                                     'inlet_spnr': inlet_spnr,
+                                     'clusters': clusters},
+                      options=options._asdict(),
+                      coptions=coptions._asdict(),
+                      ooptions=soptions._asdict())
 
-    elif options.execute == 'skip':
-
+    elif options.execute in ['skip']:
+        ###########
+        # L O A D #
+        ###########
         if options.load not in ['None']:
-            with log.fbm('Loading data dump from %s file' % options.load):
-                with gzip.open(options.save, mode='r') as f:
-                    loaded_data = pickle.load(f)
-                    inlet_coords = []
-                    inlet_type = []
-                    inlet_id = []
-                    inlet_spnr = []
-                    clusters = np.array([])
-                    if 'inlet_coords' in loaded_data.keys():
-                        inlet_coords = loaded_data['inlet_coords']
-                    if 'inlet_type' in loaded_data.keys():
-                        coords_inlets = loaded_data['inlet_type']
-                    if 'inlet_id' in loaded_data.keys():
-                        inlet_id = loaded_data['inlet_id']
-                    if 'inlet_spnr' in loaded_data.keys():
-                        inlet_spnr = loaded_data['inlet_spnr']
-                    if 'clusters' in loaded_data.keys():
-                        clusters = loaded_data['clusters']
+            loaded_data = load_dump(options.load)
+            inlet_coords = []
+            inlet_type = []
+            inlet_id = []
+            inlet_spnr = []
+            clusters = np.array([])
+            if 'inlet_coords' in loaded_data._asdict().keys():
+                inlet_coords = loaded_data.inlet_coords
+            if 'inlet_type' in loaded_data._asdict().keys():
+                inlet_type = loaded_data.inlet_type
+            if 'inlet_id' in loaded_data._asdict().keys():
+                inlet_id = loaded_data.inlet_id
+            if 'inlet_spnr' in loaded_data._asdict().keys():
+                inlet_spnr = loaded_data.inlet_spnr
+            if 'clusters' in loaded_data._asdict().keys():
+                clusters = loaded_data.clusters
+            del loaded_data
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
@@ -622,7 +734,7 @@ if __name__ == "__main__":
     if options.execute == 'run':
         # file hSobrietyandle?
         if options.save not in ['None']:
-            fh = open(options.save,'w')
+            fh = open(options.save, 'w')
             log.message('Using user provided file.')
             log.message(sep())
             log.message('')
@@ -638,29 +750,32 @@ if __name__ == "__main__":
 
         ############
         print >> fh, asep()
-        print >> fh, "Number of traceable residues:",len(paths)
-        print >> fh, "Number of separate paths:",len(spaths)
+        print >> fh, "Number of traceable residues:", len(paths)
+        print >> fh, "Number of separate paths:", len(spaths)
 
         ############
         print >> fh, asep()
         print >> fh, "List of separate paths"
-        header_template = " ".join(['%7s']*7)
-        print >> fh, header_template % tuple("Nr ID Begin INP OBJ OUT End".split())
-        for nr,sp in enumerate(spaths):
+        header_template = " ".join(['%7s'] * 7)
+        header = header_template % tuple("Nr ID Begin INP OBJ OUT End".split())
+        print >> fh, thead(header)
+        for nr, sp in enumerate(spaths):
             line = []
-            for e in (nr,sp.id,sp.begins,len(sp.path_in),len(sp.path_object),len(sp.path_out), sp.ends):
+            for e in (nr, sp.id, sp.begins, len(sp.path_in), len(sp.path_object), len(sp.path_out), sp.ends):
                 line += ["%7d" % e]
             print >> fh, " ".join(line)
+
 
         ############
         print >> fh, asep()
         print >> fh, "Spearate paths lenghts"
-        header_template = " ".join(['%7s']*2+['%9s']*3)
-        print >> fh, header_template % tuple("Nr ID INP OBJ OUT".split())
-        line_template = " ".join(['%7d']*2 + ['%9.1f']*3)
-        for nr,sp in enumerate(spaths):
+        header_template = " ".join(['%7s'] * 2 + ['%9s'] * 3)
+        header = header_template % tuple("Nr ID INP OBJ OUT".split())
+        print >> fh, thead(header)
+        line_template = " ".join(['%7d'] * 2 + ['%9.1f'] * 3)
+        for nr, sp in enumerate(spaths):
             line = [nr, sp.id]
-            for e in sp.coords_in,sp.coords_object,sp.coords_out:
+            for e in sp.coords_in, sp.coords_object, sp.coords_out:
                 if len(e) > 1:
                     line += [sum(traces.diff(e))]
                 else:
@@ -670,12 +785,13 @@ if __name__ == "__main__":
         ############
         print >> fh, asep()
         print >> fh, "Spearate paths average step lenghts"
-        header_template = " ".join(['%7s']*2+['%8s']*6)
-        print >> fh, header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
-        line_template = " ".join(['%7d']*2 + ['%8.2f','%8.3f']*3)
-        for nr,sp in enumerate(spaths):
+        header_template = " ".join(['%7s'] * 2 + ['%8s'] * 6)
+        header = header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
+        print >> fh, thead(header)
+        line_template = " ".join(['%7d'] * 2 + ['%8.2f', '%8.3f'] * 3)
+        for nr, sp in enumerate(spaths):
             line = [nr, sp.id]
-            for e in sp.coords_in,sp.coords_object,sp.coords_out:
+            for e in sp.coords_in, sp.coords_object, sp.coords_out:
                 if len(e) > 1:
                     line += [np.mean(traces.diff(e))]
                     line += [np.std(traces.diff(e))]
@@ -686,40 +802,46 @@ if __name__ == "__main__":
 
         ############
         print >> fh, asep()
-        print >> fh, "Number of inlets:",len(inlet_id)
+        print >> fh, "Number of inlets:", len(inlet_id)
         no_of_clusters = len(set([c for c in clusters if c != -1]))
         print >> fh, "Number of clusters:", no_of_clusters
-        print >> fh, "Outliers:",{True:'yes',False:'no'}[-1 in clusters]
-        
+        print >> fh, "Outliers:", {True: 'yes', False: 'no'}[-1 in clusters]
+
         ############
         print >> fh, asep()
         print >> fh, "Clusters summary"
         clusters_list = list(set(clusters.tolist()))
         clusters_list.sort()
-        header_template = " ".join(['%7s']*3)
-        print >> fh, header_template % tuple("Nr Cluster Size".split())
-        line_template = " ".join(['%7d']*3)
-        for nr,c in enumerate(clusters_list):
-            line = [nr,int(c),clusters.tolist().count(c)]
+        header_template = " ".join(['%7s'] * 5)
+        header = header_template % tuple("Nr Cluster Size INP OUT".split())
+        print >> fh, thead(header)
+        line_template = " ".join(['%7d'] * 5)
+        for nr, c in enumerate(clusters_list):
+            line = [nr, int(c), clusters.tolist().count(c)]
+            # inlets types of current cluster
+            its = [inlet_type[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
+            line.append(its.count(InletTypeCodes.inlet_in_code))
+            line.append(its.count(InletTypeCodes.inlet_out_code))
             print >> fh, line_template % tuple(line)
-        
+
         ############
         print >> fh, asep()
         print >> fh, "Spearate paths inlets clusters"
-        header_template = " ".join(['%7s']*2+['%7s']*2+['%8s']*1)
-        print >> fh, header_template % tuple("Nr ID INP OUT Type".split())
-        line_template = " ".join(['%7d']*2 + ['%7s']*2+ ['%8s']*1)
-        for nr,sp in enumerate(spaths):
+        header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2 + ['%8s'] * 1)
+        header = header_template % tuple("Nr ID INP OUT Type".split())
+        print >> fh, thead(header)
+        line_template = " ".join(['%7d'] * 2 + ['%7s'] * 2 + ['%8s'] * 1)
+        for nr, sp in enumerate(spaths):
             line = [nr, sp.id]
-            ids = [nr for nr,iid in enumerate(inlet_id) if iid == sp.id]
-            inp,out = None,None
+            ids = [nr for nr, iid in enumerate(inlet_id) if iid == sp.id]
+            inp, out = None, None
             if len(ids) > 0:
                 for iid in ids:
                     if inlet_type[iid] == InletTypeCodes.inlet_in_code:
                         inp = clusters[iid]
                     if inlet_type[iid] == InletTypeCodes.inlet_out_code:
                         out = clusters[iid]
-            line.extend([str(inp),str(out)])
+            line.extend([str(inp), str(out)])
             # type?
             if inp is None and out is None:
                 ctype = 'internal'

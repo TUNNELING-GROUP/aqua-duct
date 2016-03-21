@@ -6,5 +6,5 @@ setup(
     ext_modules = cythonize('aqueduct/*.py')
 )
 setup(
-    ext_modules = cythonize('aqueduct/*/*.py')
+    ext_modules = cythonize('aqueduct/*/*.py'), requires=['numpy']
 )

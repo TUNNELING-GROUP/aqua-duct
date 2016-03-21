@@ -1,42 +1,45 @@
-[global settings]
+[global]
 top = ../../real_traj/1cqz/1cqz_B_HH_FS.prmtop
 nc = ../../real_traj/1cqz/prod_1cqz.nc
 pbar = pyprind
 
-[find traceable residues]
-execute = skip
+[traceable_residues]
+execute = run
 load = full/stage_I.dump
 save = full/stage_I.dump
 scope = backbone
 scope_convexhull = True
 object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
 
-[find raw paths]
-execute = skip
+[raw_paths]
+execute = run
 load = full/stage_II.dump
 save = full/stage_II.dump
 clear_in_object_info = False
 
-[create separate frames]
-execute = skip
+[separate_paths]
+execute = run
 load = full/stage_III.dump
 save = full/stage_III.dump
 discard_empty_paths = True
 
-[inlets clusterisation]
+[inlets_clusterization]
 execute = run
 load = full/stage_IV.dump
 save = full/stage_IV.dump
 apply_smoothing = False
 
+[analysis]
+execute = run
+save = full/results.txt
+
+[smooth]
+method = window
+recursive = 0
+window = 5
+function = mean
+
 [clusterization]
 method = dbscan
 eps = 5.0
 min_samples = 3
-
-[analysis]
-execute = run
-load = None
-save = full/results_nosmooth.txt
-
-
