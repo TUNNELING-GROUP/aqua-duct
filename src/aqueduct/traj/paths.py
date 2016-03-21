@@ -274,7 +274,12 @@ def list_blocks_to_slices(l):
         yield slice(prev_nr,nr+2,1)
 
 
-class SinglePath(object,PathTypesCodes):
+class InletTypeCodes:
+    inlet_in_code = 'inin'
+    inlet_out_code = 'inout'
+
+
+class SinglePath(object,PathTypesCodes,InletTypeCodes):
     # special class
     # represents one path
 
@@ -314,8 +319,9 @@ class SinglePath(object,PathTypesCodes):
             return self.coords_out[-1]
 
     @property
-    def coords_fi_lo(self):
-        return np.array([(c.tolist(),nr) for nr,c in enumerate((self.coords_first_in,self.coords_last_out)) if c is not None])
+    def coords_filo(self):
+        # first in and last out plus type!
+        return [(inlet,{0:self.inlet_in_code,1:self.inlet_out_code}[nr]) for nr,inlet in enumerate((self.coords_first_in,self.coords_last_out)) if inlet is not None]
 
     @property
     def paths(self):
@@ -371,7 +377,12 @@ class SinglePath(object,PathTypesCodes):
                 nr += len(path)
             else:
                 yield self.empty_coords
-
+    
+    def apply_smoothing(self,smooth):
+        # applies smoothing
+        # this is permamant change
+        self.coords_in,self.coords_object,self.coords_out = self.get_smooth_coords(smooth)
+        
 
 
 if __name__ == "__main__":

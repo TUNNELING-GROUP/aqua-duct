@@ -24,15 +24,19 @@ save = full/stage_III.dump
 discard_empty_paths = True
 
 [inlets clusterisation]
-execute = skip
+execute = run
 load = full/stage_IV.dump
 save = full/stage_IV.dump
-dbscan_eps = 5.0
-dbscan_min_samples = 3
+apply_smoothing = False
+
+[clusterization]
+method = dbscan
+eps = 5.0
+min_samples = 3
 
 [analysis]
 execute = run
 load = None
-save = None
+save = full/results_nosmooth.txt
 
 

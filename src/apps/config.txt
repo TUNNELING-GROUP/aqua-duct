@@ -27,8 +27,13 @@ discard_empty_paths = True
 execute = run
 load = stage_IV.dump
 save = stage_IV.dump
-dbscan_eps = 5.0
-dbscan_min_samples = 3
+apply_smoothing = True
+
+[clusterization]
+method = dbscan
+eps = 5.0
+min_samples = 3
+
 
 [analysis]
 execute = run

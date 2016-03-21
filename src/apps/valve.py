@@ -5,7 +5,7 @@ This is driver for aqueduct.
 from aqueduct import version as aqueduct_version
 
 from aqueduct.utils import log
-
+from aqueduct.geom.smooth import WindowSmooth
 
 import sys
 import os
@@ -19,7 +19,7 @@ import copy
 import numpy as np
 import cPickle as pickle
 import gzip
-from aqueduct.traj.paths import GenericPaths, yield_single_paths
+from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.geom.cluster import perform_clustering
 
 from collections import namedtuple
@@ -80,6 +80,12 @@ class ValveConfig(object):
     def global_name(self):
         return 'global settings'
 
+    def cluster_name(self):
+        return 'clusterization'
+    
+    def smooth_name(self):
+        return 'smooth'
+
     def stage_names(self, nr=None):
         if nr is None:
             return [self.stage_names(nr) for nr in range(5)]
@@ -120,6 +126,12 @@ class ValveConfig(object):
         names = self.config.options(stage_name)
         options = {name: self.config.get(stage_name, name) for name in names}
         options.update(self.get_common_traj_data(stage)._asdict())
+        return self.__make_options_nt(options)
+
+    def get_cluster_options(self):
+        section = self.cluster_name()
+        names = self.config.options(section)
+        options = {name: self.config.get(section, name) for name in names}
         return self.__make_options_nt(options)
 
     def get_default_config(self):
@@ -181,12 +193,18 @@ class ValveConfig(object):
         section = self.stage_names(3)
         config.add_section(section)
 
-
-        config.set(section, 'dbscan_eps', '5.0')
-        config.set(section, 'dbscan_min_samples', '3')
-
         common(section)
 
+        config.set(section, 'apply_smoothing', 'True')
+
+        ################
+        # clusterization
+        section = self.cluster_name()
+        config.add_section(section)
+        config.set(section, 'method', 'dbscan')
+        config.set(section, 'eps', '5.0')
+        config.set(section, 'min_samples', '3')
+ 
         ################
         # stage V
         # analysis
@@ -314,7 +332,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    max_frame = 100
+    max_frame = 1000
 
     # execute?
     if options.execute == 'run':
@@ -524,35 +542,49 @@ if __name__ == "__main__":
     log.message('Starting Stage IV: %s' % config.stage_names(3))
     options = config.get_stage_options(3)
     log.message('Execute mode: %s' % options.execute)
-
+    coptions = config.get_cluster_options()
+    
     # execute?
     if options.execute == 'run':
-
-        # find coords of inlets and id
-        print spaths[5].coords_fi_lo
-        coords_inlets_id = [sp.coords_fi_lo+(sp.id,) for sp in spaths]
+        # apply smoothing?
+        if options.apply_smoothing == 'True':
+            with log.fbm('Applying smoothing'):
+                smooth = WindowSmooth() # TODO: read smooth options
+                for sp in spaths:
+                    sp.apply_smoothing(smooth)
+         
+        # find coords of inlets, type and id
+        inlet_coords = []
+        inlet_type = []
+        inlet_id = []
+        inlet_spnr = []
+        for nr,sp in enumerate(spaths):
+            for inlet,itype in sp.coords_filo:
+                inlet_coords.append(inlet.tolist())
+                inlet_type.append(itype)
+                inlet_id.append(sp.id)
+                inlet_spnr.append(nr)
+                #print nr,sp.id,inlet,itype
+        
         # find nr of inlets
-        nr_of_inlets = len([None for cii in coords_inlets_id if cii[0].shape[0] > 0])
+        nr_of_inlets = len(inlet_id)
 
         if nr_of_inlets > 0:
             with log.fbm("Performing clusterization"):
-                # extract coords and id into separate lists
-                coords_inlets = np.vstack([cii[0] for cii in coords_inlets_id if cii[0].shape[0] > 0])
-                inlets_id = np.hstack([[cii[1]] * cii[0].shape[0] for cii in coords_inlets_id if cii[0].shape[0] > 0]).tolist()
+                assert coptions.method == 'dbscan', 'Unknown clusterization method %s.' % coptions.method
                 # perform clusterization
-                clusters = perform_clustering(coords_inlets, eps=float(options.dbscan_eps), min_samples=int(options.dbscan_min_samples))
+                clusters = perform_clustering(inlet_coords, eps=float(coptions.eps), min_samples=int(coptions.min_samples))
         else:
             log.message("No inlets found. Clusterization skipped.")
-            coords_inlets = np.array([])
-            inlets_id = []
             clusters = np.array([])
 
         if options.save not in ['None']:
             with log.fbm('Saving data dump in %s file' % options.save):
                 with gzip.open(options.save, mode='w', compresslevel=9) as f:
-                    pickle.dump({'coords_inlets_id':coords_inlets_id,
-                                 'coords_inlets':coords_inlets,
-                                 'inlets_id':inlets_id,
+                    pickle.dump({'inlet_coords':inlet_coords,
+                                 'inlet_type':inlet_type,
+                                 'inlet_id':inlet_id,
+                                 'inlet_spnr':inlet_spnr,
                                  'clusters':clusters},f)
 
     elif options.execute == 'skip':
@@ -561,16 +593,19 @@ if __name__ == "__main__":
             with log.fbm('Loading data dump from %s file' % options.load):
                 with gzip.open(options.save, mode='r') as f:
                     loaded_data = pickle.load(f)
-                    coords_inlets_id = []
-                    coords_inlets = np.array([])
-                    inlets_id = []
+                    inlet_coords = []
+                    inlet_type = []
+                    inlet_id = []
+                    inlet_spnr = []
                     clusters = np.array([])
-                    if 'coords_inlets_id' in loaded_data.keys():
-                        coords_inlets_id = loaded_data['coords_inlets_id']
-                    if 'coords_inlets' in loaded_data.keys():
-                        coords_inlets = loaded_data['coords_inlets']
-                    if 'inlets_id' in loaded_data.keys():
-                        inlets_id = loaded_data['inlets_id']
+                    if 'inlet_coords' in loaded_data.keys():
+                        inlet_coords = loaded_data['inlet_coords']
+                    if 'inlet_type' in loaded_data.keys():
+                        coords_inlets = loaded_data['inlet_type']
+                    if 'inlet_id' in loaded_data.keys():
+                        inlet_id = loaded_data['inlet_id']
+                    if 'inlet_spnr' in loaded_data.keys():
+                        inlet_spnr = loaded_data['inlet_spnr']
                     if 'clusters' in loaded_data.keys():
                         clusters = loaded_data['clusters']
     else:
@@ -585,9 +620,12 @@ if __name__ == "__main__":
 
     # execute?
     if options.execute == 'run':
-        # file handle?
+        # file hSobrietyandle?
         if options.save not in ['None']:
             fh = open(options.save,'w')
+            log.message('Using user provided file.')
+            log.message(sep())
+            log.message('')
         else:
             log.message('Using standard output.')
             log.message(sep())
@@ -632,9 +670,9 @@ if __name__ == "__main__":
         ############
         print >> fh, asep()
         print >> fh, "Spearate paths average step lenghts"
-        header_template = " ".join(['%7s']*2+['%7s']*6)
+        header_template = " ".join(['%7s']*2+['%8s']*6)
         print >> fh, header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
-        line_template = " ".join(['%7d']*2 + ['%7.1f','%7.2f']*3)
+        line_template = " ".join(['%7d']*2 + ['%8.2f','%8.3f']*3)
         for nr,sp in enumerate(spaths):
             line = [nr, sp.id]
             for e in sp.coords_in,sp.coords_object,sp.coords_out:
@@ -648,23 +686,53 @@ if __name__ == "__main__":
 
         ############
         print >> fh, asep()
-        print >> fh, "Number of inlets:",len(inlets_id)
-        print >> fh, "Number of clusters:", len(set([c for c in clusters if c != -1]))
+        print >> fh, "Number of inlets:",len(inlet_id)
+        no_of_clusters = len(set([c for c in clusters if c != -1]))
+        print >> fh, "Number of clusters:", no_of_clusters
         print >> fh, "Outliers:",{True:'yes',False:'no'}[-1 in clusters]
+        
+        ############
+        print >> fh, asep()
+        print >> fh, "Clusters summary"
+        clusters_list = list(set(clusters.tolist()))
+        clusters_list.sort()
+        header_template = " ".join(['%7s']*3)
+        print >> fh, header_template % tuple("Nr Cluster Size".split())
+        line_template = " ".join(['%7d']*3)
+        for nr,c in enumerate(clusters_list):
+            line = [nr,int(c),clusters.tolist().count(c)]
+            print >> fh, line_template % tuple(line)
+        
+        ############
+        print >> fh, asep()
         print >> fh, "Spearate paths inlets clusters"
-        header_template = " ".join(['%7s']*2+['%7s']*2)
-        print >> fh, header_template % tuple("Nr ID INP OUT".split())
-        line_template = " ".join(['%7d']*2 + ['%7d']*2)
+        header_template = " ".join(['%7s']*2+['%7s']*2+['%8s']*1)
+        print >> fh, header_template % tuple("Nr ID INP OUT Type".split())
+        line_template = " ".join(['%7d']*2 + ['%7s']*2+ ['%8s']*1)
         for nr,sp in enumerate(spaths):
             line = [nr, sp.id]
-            if sp.id in inlets_id:
-                pass
-            else:
-                pass
-            print coords_inlets_id
-            print inlets_id
-            print clusters
-            
+            ids = [nr for nr,iid in enumerate(inlet_id) if iid == sp.id]
+            inp,out = None,None
+            if len(ids) > 0:
+                for iid in ids:
+                    if inlet_type[iid] == InletTypeCodes.inlet_in_code:
+                        inp = clusters[iid]
+                    if inlet_type[iid] == InletTypeCodes.inlet_out_code:
+                        out = clusters[iid]
+            line.extend([str(inp),str(out)])
+            # type?
+            if inp is None and out is None:
+                ctype = 'internal'
+            if inp is not None and out is None:
+                ctype = 'incoming'
+            if inp is None and out is not None:
+                ctype = 'outgoing'
+            if inp is not None and out is not None:
+                if inp == out:
+                    ctype = 'in-out'
+                else:
+                    ctype = 'through'
+            line.append(ctype)
             print >> fh, line_template % tuple(line)
 
         if options.save not in ['None']:
