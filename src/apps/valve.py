@@ -2,31 +2,26 @@
 This is driver for aqueduct.
 """
 
-from aqueduct import version_nice as aqueduct_version_nice
-from aqueduct import version as aqueduct_version
-from aqueduct import greetings as greetings_aqueduct
-
-from aqueduct.utils import log
-from aqueduct.geom.smooth import WindowSmooth
-
-import sys
-import os
-
 import ConfigParser
-
-from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
-
-import multiprocessing as mp
-import copy
-import numpy as np
 import cPickle as pickle
+import copy
 import gzip
-from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
-from aqueduct.geom.cluster import perform_clustering
-
+import multiprocessing as mp
+import os
+import sys
 from collections import namedtuple, OrderedDict
 
+import numpy as np
+
+from aqueduct import greetings as greetings_aqueduct
+from aqueduct import version as aqueduct_version
+from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
+from aqueduct.geom.cluster import perform_clustering
+from aqueduct.geom.smooth import WindowSmooth
+from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
+from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
+from aqueduct.utils import log
 
 cpu_count = mp.cpu_count()
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
