@@ -34,7 +34,7 @@ def version():
 
 
 def version_nice():
-    return '.'.join(map(str, version())) + ' 20160321'
+    return '.'.join(map(str, version())) + ' 20160322'
 
 
 def get_timestamp():
