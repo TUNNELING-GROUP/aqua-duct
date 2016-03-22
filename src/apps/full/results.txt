@@ -1,5 +1,6 @@
 ========================================================================
 Aqueduct analysis
+2016-03-21 18:34:48
 ========================================================================
 Number of traceable residues: 151
 Number of separate paths: 162
@@ -515,8 +516,8 @@ Clusters summary
 ---------------------------------------
       0      -1       4       1       3
       1       0     243     124     119
-      2       1      35      19      16
-      3       2       4       0       4
+      2       1       4       0       4
+      3       2      35      19      16
 ========================================================================
 Separate paths inlets clusters
 ----------------------------------------
@@ -533,22 +534,22 @@ Separate paths inlets clusters
       8     401       0       0   in-out
       9     404       0       0   in-out
      10     411       0       0   in-out
-     11     421       0       2  through
+     11     421       0       1  through
      12     443       0       0   in-out
      13     444       0       0   in-out
      14     466       0       0   in-out
      15     495       0       0   in-out
      16     499       0       0   in-out
-     17     500       1       2  through
+     17     500       2       1  through
      18     588       0    None incoming
      19     620       0       0   in-out
      20     648       0       0   in-out
      21     679       0       0   in-out
-     22     713       1       2  through
-     23     819       0       1  through
+     22     713       2       1  through
+     23     819       0       2  through
      24     835       0       0   in-out
      25     841       0       0   in-out
-     26     851       1       1   in-out
+     26     851       2       2   in-out
      27     878       0       0   in-out
      28    1234       0       0   in-out
      29    1334       0       0   in-out
@@ -572,43 +573,43 @@ Separate paths inlets clusters
      47    2328       0       0   in-out
      48    2350       0       0   in-out
      49    2388       0       0   in-out
-     50    2404       1       1   in-out
+     50    2404       2       2   in-out
      51    2450       0       0   in-out
      52    2457       0    None incoming
      53    2597       0       0   in-out
      54    2651       0       0   in-out
      55    2716       0       0   in-out
      56    2812       0       0   in-out
-     57    2914       1       0  through
+     57    2914       2       0  through
      58    2984       0       0   in-out
-     59    3092       0       1  through
-     60    3095       1       0  through
-     61    3128       1       1   in-out
+     59    3092       0       2  through
+     60    3095       2       0  through
+     61    3128       2       2   in-out
      62    3187       0      -1  through
      63    3222       0       0   in-out
      64    3269       0       0   in-out
      65    3338       0       0   in-out
      66    3340       0       0   in-out
-     67    3397       1       0  through
+     67    3397       2       0  through
      68    3443       0    None incoming
-     69    3470       1       1   in-out
+     69    3470       2       2   in-out
      70    3530       0       0   in-out
      71    3759       0    None incoming
      72    3832       0       0   in-out
      73    3908       0       0   in-out
      74    4056       0       0   in-out
      75    4056       0       0   in-out
-     76    4066       1       1   in-out
+     76    4066       2       2   in-out
      77    4152    None    None internal
      78    4240       0       0   in-out
      79    4286    None    None internal
      80    4316       0       0   in-out
      81    4378    None       0 outgoing
-     82    4420       1    None incoming
-     83    4528    None       1 outgoing
-     84    4657       1       0  through
+     82    4420       2    None incoming
+     83    4528    None       2 outgoing
+     84    4657       2       0  through
      85    4756       0       0   in-out
-     86    4764    None       1 outgoing
+     86    4764    None       2 outgoing
      87    4802       0       0   in-out
      88    4802       0       0   in-out
      89    4868       0       0   in-out
@@ -616,7 +617,7 @@ Separate paths inlets clusters
      91    4910       0    None incoming
      92    4952       0       0   in-out
      93    5013       0    None incoming
-     94    5065       1       1   in-out
+     94    5065       2       2   in-out
      95    5093       0       0   in-out
      96    5112       0       0   in-out
      97    5173       0       0   in-out
@@ -640,7 +641,7 @@ Separate paths inlets clusters
     115    5897       0    None incoming
     116    6023       0    None incoming
     117    6371    None    None internal
-    118    6570       1       1   in-out
+    118    6570       2       2   in-out
     119    6705       0    None incoming
     120    6733    None       0 outgoing
     121    6740       0       0   in-out
@@ -650,10 +651,10 @@ Separate paths inlets clusters
     125    7118       0       0   in-out
     126    7189       0       0   in-out
     127    7189       0       0   in-out
-    128    7208    None       1 outgoing
-    129    7412    None       1 outgoing
+    128    7208    None       2 outgoing
+    129    7412    None       2 outgoing
     130    7470       0       0   in-out
-    131    7615       1       1   in-out
+    131    7615       2       2   in-out
     132    7655       0       0   in-out
     133    7729    None       0 outgoing
     134    7771       0    None incoming
@@ -662,8 +663,8 @@ Separate paths inlets clusters
     137    7845       0       0   in-out
     138    7903       0       0   in-out
     139    7974       0       0   in-out
-    140    7985       0       2  through
-    141    7985       0       2  through
+    140    7985       0       1  through
+    141    7985       0       1  through
     142    8118       0       0   in-out
     143    8118       0       0   in-out
     144    8141       0       0   in-out
@@ -675,12 +676,12 @@ Separate paths inlets clusters
     150    8312       0       0   in-out
     151    8412       0       0   in-out
     152    8511       0       0   in-out
-    153    8520       1       1   in-out
-    154    8611       1       1   in-out
-    155    8611       1       1   in-out
+    153    8520       2       2   in-out
+    154    8611       2       2   in-out
+    155    8611       2       2   in-out
     156    8621       0       0   in-out
     157    8626       0       0   in-out
-    158    8627       1       0  through
+    158    8627       2       0  through
     159    8659      -1       0  through
     160    8664       0    None incoming
     161    8772       0       0   in-out

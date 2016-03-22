@@ -9,6 +9,8 @@ import gzip
 import multiprocessing as mp
 import os
 import sys
+import time
+import datetime
 from collections import namedtuple, OrderedDict
 
 import numpy as np
@@ -34,6 +36,9 @@ def version():
 def version_nice():
     return '.'.join(map(str, version())) + ' 20160321'
 
+
+def get_timestamp():
+    return str(datetime.datetime(*tuple(time.localtime())[:6]))
 
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 
@@ -226,6 +231,10 @@ class ValveConfig(object):
         with open(filename, 'w') as fs:
             self.save_config_stream(fs)
 
+    def dump_crucial_options(self):
+        output = ''
+        # global
+        
 
 ################################################################################
 # convex hull helpers
@@ -423,7 +432,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-
+    
     # execute?
     if options.execute == 'run':
         # this creates scope
@@ -744,6 +753,7 @@ if __name__ == "__main__":
         ############
         print >> fh, asep()
         print >> fh, 'Aqueduct analysis'
+        print >> fh, get_timestamp()
 
         ############
         print >> fh, asep()

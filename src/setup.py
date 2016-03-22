@@ -20,6 +20,7 @@ setup(name='Aqueduct',
                 'sklearn (>=0.14)',
                 'MDAnalysis (>=0.12)',
                 ],
+      provides=['aqueduct'],
       classifiers=[
           'Development Status :: 4 - Beta',
           'Environment :: Console',

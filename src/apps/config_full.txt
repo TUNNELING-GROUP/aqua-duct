@@ -24,14 +24,14 @@ save = full/stage_III.dump
 discard_empty_paths = True
 
 [inlets_clusterization]
-execute = skip
+execute = run
 load = full/stage_IV.dump
 save = full/stage_IV.dump
 apply_smoothing = False
 
 [analysis]
 execute = run
-save = full/results.txt
+save = None
 
 [smooth]
 method = window
