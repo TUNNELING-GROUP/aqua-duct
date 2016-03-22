@@ -1,7 +1,7 @@
 [global]
 top = ../../real_traj/1cqz/1cqz_B_HH_FS.prmtop
 nc = ../../real_traj/1cqz/prod_1cqz.nc
-pbar = pyprind
+pbar = simple
 
 [traceable_residues]
 execute = skip
@@ -42,4 +42,4 @@ function = mean
 [clusterization]
 method = dbscan
 eps = 5.0
-min_samples = 3
+min_samples = 5

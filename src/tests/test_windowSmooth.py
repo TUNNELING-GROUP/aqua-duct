@@ -23,3 +23,8 @@ class TestWindowSmooth(TestCase):
         for r,o in zip(ws(self.simple_data),self.simple_output):
             for e,l in zip(r,o):
                 self.assertEquals(e,l)
+
+
+if __name__ == '__main__':
+    import unittest
+    unittest.main()

@@ -39,7 +39,7 @@ class WindowSmooth(Smooth):
     def smooth(self,coords):
         
         n = len(coords)
-        
+
         for pos in xrange(n):
             if pos < self.window:
                 lo = None
@@ -51,4 +51,4 @@ class WindowSmooth(Smooth):
                 hi = pos+self.window
             
             yield self.function(coords[slice(lo,hi,None)],0).tolist()
-            
+
