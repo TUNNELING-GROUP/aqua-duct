@@ -1,7 +1,21 @@
 '''
-Created on Dec 15, 2015
+Collection of helpers - functions and decorators.
 
-@author: tljm
+Decorators:
+
+    .. autosummary::
+    
+        listify
+        sortify
+        tupleify
+        arraify
+        
+Functions:
+
+    .. autosummary::
+    
+        is_iterable
+
 '''
 
 from collections import Iterable
@@ -14,6 +28,13 @@ import numpy as np
 
 
 def is_iterable(l):
+    '''
+    Checks if provided obejct is iterable.
+    Returns True is it is iterable, otherwise returns False.
+    
+        :param str sender
+    
+    '''
     try:
         _ = (e for e in l)
         return True
@@ -37,9 +58,10 @@ def sortify(gen):
     return patched
 
 def listify(gen):
-    "Convert a generator into a function which returns a list"
+    '''Convert a generator into a function which returns a list
     #http://argandgahandapandpa.wordpress.com/2009/03/29/python-generator-to-list-decorator/
     # improved by TM: for non iterable objects it returns list of one element: the object
+    '''
     @wraps(gen)
     def patched(*args, **kwargs):
         obj = gen(*args, **kwargs)

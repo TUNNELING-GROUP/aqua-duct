@@ -11,4 +11,6 @@ syntax: glob
 .project
 .pydevproject
 .idea
+.settings
+docs/build
 

@@ -7,31 +7,19 @@ Created on Dec 15, 2015
 __all__ = ['debug','info','warning','error','critical','pbar']
 
 import logging
-
-from os import linesep
-
-from sys import stderr
-
 import time
 
-'''
-def pbar(maxval=100):
-    # returns new progress bar
-    widgets = [pb.Percentage(), ' ',
-               pb.Bar(), ' ',
-               pb.ETA()]
-    return pb.ProgressBar(widgets=widgets,
-                          maxval=maxval).start()
-'''
+from os import linesep
+from sys import stderr
 
-# TODO: smart time string
+
 def smart_time_string(s, rl=0):
     output = ''
     rl += 1
     if rl > 2:
         output = ''
     else:
-        t = 1.4
+        t = 1.1
         # seconds
         if s < t * 60:
             output = "%2.2d s" % s
@@ -53,6 +41,8 @@ class SimpleProgressBar(object):
         self.current = 0
 
         self.overrun_notice = True
+        self.overrun = False
+        
         self.begin = time.time()
         self.tcurrent = self.begin
         self.show()
@@ -78,9 +68,10 @@ class SimpleProgressBar(object):
             if self.overrun_notice:
                 stderr.write(linesep)
                 self.overrun_notice = False
-            stderr.write("%d iterations out of %d. Total time: %s\r" % (self.current,self.maxval,self.ttime()))
-        else:
-            stderr.write("%3d%% ETA: %s\r" % (self.percent(),self.ETA()))
+                self.overrun = True
+            stderr.write("\r%d iterations out of %d. Total time: %s" % (self.current,self.maxval,self.ttime()))
+        elif not self.overrun:
+            stderr.write("\r%3d%% ETA: %s" % (self.percent(),self.ETA()))
 
     def update(self,step):
         if step > 0:
