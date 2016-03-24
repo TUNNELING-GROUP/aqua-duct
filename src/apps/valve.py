@@ -31,12 +31,11 @@ optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
 def version():
-    return 0, 1, 0
+    return 0, 1, 1
 
 
 def version_nice():
-    return '.'.join(map(str, version())) + ' 20160322'
-
+    return '.'.join(map(str, version()))
 
 def get_timestamp():
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
@@ -433,7 +432,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    
+
     # execute?
     if options.execute == 'run':
         # this creates scope
