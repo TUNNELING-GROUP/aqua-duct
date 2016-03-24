@@ -433,8 +433,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    max_frame = 100
-
+    
     # execute?
     if options.execute == 'run':
         # this creates scope
