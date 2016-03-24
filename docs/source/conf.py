@@ -42,6 +42,12 @@ extensions = [
 intersphinx_mapping = {'python': ('http://docs.python.org/2', None),
                        'numpy': ('http://docs.scipy.org/doc/numpy/', None),}
 
+autoclass_content = 'class'
+#autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'special-members', 'show-inheritance']
+autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance','undoc-members']
+autodoc_member_order = 'bysource'
+
+todo_include_todos = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
