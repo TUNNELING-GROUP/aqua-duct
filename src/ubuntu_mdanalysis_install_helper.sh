@@ -10,4 +10,4 @@ export LD_LIBRARY_PATH=
 
 $PIP install "netCDF4>=1.0" $@
 
-$PIP install "MDAnalysis[AMBER]>=0.12" $@
+$PIP install "MDAnalysis[AMBER]>=0.14" $@

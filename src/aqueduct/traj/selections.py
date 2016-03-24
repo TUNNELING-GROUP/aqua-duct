@@ -6,6 +6,8 @@ import numpy as np
 
 #from aqueduct.geom.convexhull_pyhull import ConvexHull
 from aqueduct.geom.convexhull import ConvexHull
+from aqueduct.utils.helpers import int2range
+
 
 class Selection(object):
 
@@ -72,3 +74,25 @@ class SelectionMDA(mda.core.AtomGroup.AtomGroup,
 
     def uniquify(self):
         self.__init__(mda.core.AtomGroup.AtomGroup(set(self._atoms)))
+
+
+class CompactSelectionMDA(object):
+
+    def __init__(self,sMDA):
+
+        self.indices = map(lambda x: x+1,map(int,sMDA.indices))
+
+    def toSelectionMDA(self,reader):
+
+        sMDA = None
+
+        for pr in int2range(self.indices).split():
+            if sMDA is None:
+                sMDA = reader.parse_selection('bynum '+pr)
+            else:
+                sMDA += reader.parse_selection('bynum '+pr)
+
+        return sMDA
+
+
+

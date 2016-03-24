@@ -3,10 +3,8 @@
 #from distutils.core import setup
 from setuptools import find_packages,setup
 
-
-# Dynamically calculate the version
-version = __import__('aqueduct').version()
-version = '.'.join(map(str,version))
+version = __import__('aqueduct').version() # version tuple
+version = '.'.join(map(str,version)) # version str
 
 setup(name='aqueduct',
       version=version,
@@ -18,7 +16,7 @@ setup(name='aqueduct',
       install_requires=['numpy>=1.7',
                 'scipy>=0.13',
                 'scikit-learn>=0.14',
-                'MDAnalysis[AMBER]>=0.12',
+                'MDAnalysis[AMBER]>=0.14',
                 ],
       extras_requires={'visual': ['matplotlib','pymol>=1.4']},
       provides=['aqueduct'],
@@ -30,4 +28,3 @@ setup(name='aqueduct',
           'Programming Language :: Python :: 2.7',
           ],
       )
-

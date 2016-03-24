@@ -8,6 +8,53 @@ from functools import wraps
 import numpy as np
 
 
+def int2range(l):
+    '''
+    Transforms list of integers in to a string of ranges.
+
+    For example, a following list::
+
+        [0,1,2,4,5,7,9]
+
+    is transformed into::
+
+        0:2 4:5 7 9
+
+    :param l list: input list of int
+    :return: string of ranges
+    :rtype: str
+    '''
+    out = []
+    l = list(set(l))
+    l.sort()
+    previous = None
+    for e in l:
+        if previous is None:
+            previous = e
+            out.append(e)
+            out.append(':')
+            out.append(None)
+            continue
+        else:
+            if previous + 1 == e:
+                out[-1] = e
+                previous = e
+                continue
+            else:
+                while out[-1] in [None, ':']:
+                    out.pop(-1)
+                out.append(' ')
+                out.append(e)
+                out.append(':')
+                out.append(None)
+                previous = e
+                continue
+    while out[-1] in [None,':']:
+        out.pop(-1)
+    out = ''.join(map(str,out))
+    return out
+
+
 def is_iterable(l):
     '''
     Checks if provided obejct is iterable.
@@ -17,11 +64,15 @@ def is_iterable(l):
     
     :return: True if submited object is iterable otherwise returns False.
     :rtype: boolean
-    
+
+    .. warning::
+
+        Current implementation cannot be used with generators!
+
     .. todo::
     
         Current implementation is primitive and HAVE TO be replaced.
-    
+
     '''
     try:
         _ = (e for e in l)

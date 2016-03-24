@@ -23,6 +23,7 @@ from aqueduct.geom.cluster import perform_clustering
 from aqueduct.geom.smooth import WindowSmooth
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
+from aqueduct.traj.selections import CompactSelectionMDA
 from aqueduct.utils import log
 
 cpu_count = mp.cpu_count()
@@ -432,7 +433,8 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    
+    max_frame = 100
+
     # execute?
     if options.execute == 'run':
         # this creates scope
@@ -485,8 +487,10 @@ if __name__ == "__main__":
         # S A V E #
         ###########
         if options.save not in ['None']:
+            csmda = CompactSelectionMDA(all_res)
+            # save all_res as CompactSelectionMDA
             save_dump(options.save,
-                      {'all_res': all_res, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames},
+                      {'all_res': csmda, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames},
                       options=options._asdict())
 
     elif options.execute in ['skip']:
@@ -499,7 +503,8 @@ if __name__ == "__main__":
             res_ids_in_object_over_frames = {}
             all_res = None
             if 'all_res' in loaded_data._asdict().keys():
-                all_res = loaded_data.all_res
+                # load all_res as CompactSelectionMDA
+                all_res = loaded_data.all_res.toSelectionMDA(reader)
             if 'res_ids_in_object_over_frames' in loaded_data._asdict().keys():
                 res_ids_in_object_over_frames = loaded_data.res_ids_in_object_over_frames
             del loaded_data
@@ -571,7 +576,9 @@ if __name__ == "__main__":
         # S A V E #
         ###########
         if options.save not in ['None']:
-            save_dump(options.save, {'all_res': all_res, 'paths': paths}, options=options._asdict())
+            csmda = CompactSelectionMDA(all_res)
+            # save all_res as CompactSelectionMDA
+            save_dump(options.save, {'all_res': csmda, 'paths': paths}, options=options._asdict())
 
     elif options.execute in ['skip']:
 
@@ -583,7 +590,8 @@ if __name__ == "__main__":
             paths = []
             all_res = None
             if 'all_res' in loaded_data._asdict().keys():
-                all_res = loaded_data.all_res
+                # load all_res as CompactSelectionMDA
+                all_res = loaded_data.all_res.toSelectionMDA(reader)
             if 'paths' in loaded_data._asdict().keys():
                 paths = loaded_data.paths
             del loaded_data

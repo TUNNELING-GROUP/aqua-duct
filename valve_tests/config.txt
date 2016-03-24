@@ -1,6 +1,6 @@
 [global]
-top = ../../real_traj/1cqz/1cqz_B_HH_FS.prmtop
-nc = ../../real_traj/1cqz/prod_1cqz.nc
+top = ../real_traj/1cqz/1cqz_B_HH_FS.prmtop
+nc = ../real_traj/1cqz/prod_1cqz.nc
 pbar = simple
 
 [traceable_residues]
