@@ -20,7 +20,7 @@ def int2range(l):
 
         0:2 4:5 7 9
 
-    :param l list: input list of int
+    :param list l: input list of int
     :return: string of ranges
     :rtype: str
     '''
