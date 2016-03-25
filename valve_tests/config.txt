@@ -9,13 +9,16 @@ load = stage_I.dump
 save = stage_I.dump
 scope = backbone
 scope_convexhull = True
-object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
+object = (resname WAT) and (around 2 protein)
 
 [raw_paths]
 execute = run
 load = stage_II.dump
 save = stage_II.dump
-clear_in_object_info = False
+clear_in_object_info = True
+scope = backbone
+scope_convexhull = True
+object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
 
 [separate_paths]
 execute = run
