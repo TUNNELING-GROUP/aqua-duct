@@ -31,14 +31,16 @@ optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
 def version():
-    return 0, 2, 0
+    return 0, 2, 1
 
 
 def version_nice():
     return '.'.join(map(str, version()))
 
+
 def get_timestamp():
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
+
 
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 
@@ -116,7 +118,8 @@ class ValveConfig(object):
         stage_name = self.stage_names(stage)
         names = self.config.options(stage_name)
         options = {name: self.config.get(stage_name, name) for name in names}
-        options.update(self.get_common_traj_data(stage)._asdict())
+        if stage in [0, 1]:
+            options.update(self.get_common_traj_data(stage)._asdict())
         return self.__make_options_nt(options)
 
     def get_cluster_options(self):
@@ -219,6 +222,8 @@ class ValveConfig(object):
         common(section)
         config.remove_option(section, 'load')
 
+        config.set(section, 'dump_config', 'True')
+
         return config
 
     def load_config(self, filename):
@@ -231,10 +236,22 @@ class ValveConfig(object):
         with open(filename, 'w') as fs:
             self.save_config_stream(fs)
 
-    def dump_crucial_options(self):
-        output = ''
-        # global
-        
+    def dump_config(self):
+        output = []
+        options = [self.get_global_options()] + \
+                  [self.get_stage_options(stage) for stage in range(5)] + \
+                  [self.get_cluster_options(), self.get_smooth_options()]
+        names = [self.global_name()] + \
+                [self.stage_names(stage) for stage in range(5)] + \
+                [self.cluster_name(), self.smooth_name()]
+
+        for o, n in zip(options, names):
+            output.append('[%s]' % n)
+            for k in o._asdict().keys():
+                output.append('%s = %s' % (k, str(o._asdict()[k])))
+
+        return output
+
 
 ################################################################################
 # convex hull helpers
@@ -300,6 +317,13 @@ def sep():
 
 def asep():
     return '=' * 72
+
+
+def underline(line):
+    uline = line
+    uline += os.linesep
+    uline += tsep(line)
+    return uline
 
 
 def thead(line):
@@ -744,7 +768,7 @@ if __name__ == "__main__":
 
     # execute?
     if options.execute == 'run':
-        # file hSobrietyandle?
+        # file handle?
         if options.save not in ['None']:
             fh = open(options.save, 'w')
             log.message('Using user provided file (%s).' % options.save)
@@ -760,6 +784,13 @@ if __name__ == "__main__":
         print >> fh, asep()
         print >> fh, 'Aqueduct analysis'
         print >> fh, get_timestamp()
+
+        ############
+        if options.dump_config == 'True':
+            print >> fh, asep()
+            print >> fh, 'Configuration file name:', args.config_file
+            print >> fh, underline('Configuration file dump')
+            print >> fh, os.linesep.join(config.dump_config())
 
         ############
         print >> fh, asep()
@@ -853,7 +884,7 @@ if __name__ == "__main__":
                         inp = int(clusters[iid])
                     if inlet_type[iid] == InletTypeCodes.inlet_out_code:
                         out = int(clusters[iid])
-            line.extend(map(str,[inp, out]))
+            line.extend(map(str, [inp, out]))
             # type?
             if inp is None and out is None:
                 ctype = 'internal'
