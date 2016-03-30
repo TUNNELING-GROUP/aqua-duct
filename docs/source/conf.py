@@ -47,6 +47,20 @@ autoclass_content = 'class'
 autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance','undoc-members']
 autodoc_member_order = 'bysource'
 
+def skip(app, what, name, obj, skip, options):
+    if name in ["__weakref__","__module__","__dict__","__abstractmethods__","__metaclass__"]:
+        return True
+    if "_abc_" == name[:5]:
+        return True
+    return skip
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
+
+
+autoclass_content = 'class'
+
+
 todo_include_todos = True
 
 # Add any paths that contain templates here, relative to this directory.
