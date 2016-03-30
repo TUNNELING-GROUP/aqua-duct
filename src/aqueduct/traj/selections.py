@@ -31,7 +31,7 @@ class Selection(object):
         raise NotImplementedError()
 
     def unique_resids_number(self):
-        return len(self.unique_resids())
+        return len(self.unique_resids(ikwid=True))
 
     def atom_positions(self):
         # should return numpy (x,3) array
@@ -63,7 +63,9 @@ class SelectionMDA(mda.core.AtomGroup.AtomGroup,
     def iterate_over_residues(self):
         return (self.__class__(R) for R in self.residues)
 
-    def unique_resids(self):
+    def unique_resids(self,ikwid=False):
+        # TODO: do something with this method!
+        assert ikwid, "This causes bugs! Avoid this method or take special care in using its results. If you want to use it pass additional variable ikwid = True."
         return np.unique(self.resids)
 
     def atom_positions(self):

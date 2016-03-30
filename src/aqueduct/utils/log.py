@@ -75,7 +75,10 @@ class SimpleProgressBar(object):
 
     def update(self,step):
         if step > 0:
-            self.current += 1
+            if step == 1:
+                self.current += 1
+            else:
+                self.current = step
         self.tcurrent = time.time()
         self.show()
 

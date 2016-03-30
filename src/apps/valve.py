@@ -30,8 +30,10 @@ cpu_count = mp.cpu_count()
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
+__mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
+
 def version():
-    return 0, 2, 1
+    return 0, 3, 2
 
 
 def version_nice():
@@ -44,12 +46,24 @@ def get_timestamp():
 
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 
-class ValveConfig(object):
+class ConfigSpecialNames():
+
+    special_names_dict = {'none':None,
+                          'true':True,
+                          'false':False}
+
+    def special_name(self,name):
+        if isinstance(name,(str,unicode)):
+            if name.lower() in self.special_names_dict:
+                return self.special_names_dict[name.lower()]
+        return name
+
+class ValveConfig(object,ConfigSpecialNames):
     def __init__(self):
         self.config = self.get_default_config()
 
-    @staticmethod
-    def __make_options_nt(options):
+    def __make_options_nt(self,input_options):
+        options = {opt:self.special_name(input_options[opt]) for opt in input_options}
         options_nt = namedtuple('Options', options.keys())
         return options_nt(**options)
 
@@ -281,7 +295,7 @@ def CHullCheck_exec(chull, points, threads=optimal_threads):
 # in scope helper
 
 def check_res_in_scope(options, scope, res, res_coords):
-    if options.scope_convexhull == 'True':
+    if options.scope_convexhull:
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
         current_threads = len(res_coords)
@@ -291,9 +305,8 @@ def check_res_in_scope(options, scope, res, res_coords):
 
         is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=current_threads)
     else:
-        res_uids = res.unique_resids()
-        res_in_scope_uids = reader.parse_selection(options.scope).unique_resids()
-        is_res_in_scope = [ruid in res_in_scope_uids for ruid in res_uids]
+        res_in_scope_uids = reader.parse_selection(options.scope).unique_resids(ikwid=True)
+        is_res_in_scope = [r.unique_resids(ikwid=True) in res_in_scope_uids for r in res.iterate_over_residues()]
     return is_res_in_scope
 
 
@@ -456,6 +469,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
+    max_frame = 200
 
     # execute?
     if options.execute == 'run':
@@ -477,7 +491,7 @@ if __name__ == "__main__":
             res = reader.parse_selection(options.object)
 
             # check is res are in scope
-            if options.scope_convexhull == 'True':
+            if options.scope_convexhull:
                 res_coords = list(res.center_of_mass_of_residues())
                 is_res_in_scope = check_res_in_scope(options, scope, res, res_coords)
             else:
@@ -496,7 +510,7 @@ if __name__ == "__main__":
 
             # remeber ids of res in object in current frame
             if res_new is not None:
-                res_ids_in_object_over_frames.update({frame: res_new.unique_resids()})
+                res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
             else:
                 res_ids_in_object_over_frames.update({frame: []})
             pbar.update(frame)
@@ -508,7 +522,7 @@ if __name__ == "__main__":
         ###########
         # S A V E #
         ###########
-        if options.save not in ['None']:
+        if options.save:
             csmda = CompactSelectionMDA(all_res)
             # save all_res as CompactSelectionMDA
             save_dump(options.save,
@@ -520,7 +534,7 @@ if __name__ == "__main__":
         ###########
         # L O A D #
         ###########
-        if options.load not in ['None']:
+        if options.load:
             loaded_data = load_dump(options.load)
             res_ids_in_object_over_frames = {}
             all_res = None
@@ -543,14 +557,16 @@ if __name__ == "__main__":
     # execute?
     if options.execute == 'run':
 
-        if options.clear_in_object_info == 'True':
-            log.message('Clear data on residues in object over frames.This will be recalculated.')
+        if options.clear_in_object_info:
+            log.message('Clear data on residues in object over frames.')
             log.message('This will be recalculated on demand.')
             res_ids_in_object_over_frames = {}
 
         with log.fbm("Init paths container"):
             # type and frames, consecutive elements correspond to residues in all_H2O
-            paths = [GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids()]
+            #paths = [GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids()]
+            # this is a problem... one possible solution is to use dictionary
+            paths = {resid:GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids(ikwid=True)}
 
         log.message("Trajectory scan:")
         pbar = log.pbar(max_frame, kind=pbar_name)
@@ -561,16 +577,19 @@ if __name__ == "__main__":
             if frame > max_frame:
                 break
 
-            all_res_coords = list(all_res.center_of_mass_of_residues())
+            all_res_coords = list(all_res.center_of_mass_of_residues()) # this uses iterate over residues
 
-            # check is res are in scope
+            # check if is res are in scope
             is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
 
             all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
 
             for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
+                # the point is that nr is not pointing to correct element in paths
+                # now, nr is useless because paths is a dictionary, use resids instead
+                assert paths[resid].id == resid, "Internal error. Paths IDs not synced with resids. Please send a bug report to developer(s): %s" % __mail__
                 if isscope:
-                    paths[nr].add_coord(coord)
+                    paths[resid].add_coord(coord)
 
                     # do we have info on res_ids_in_object_over_frames?
                     if frame not in res_ids_in_object_over_frames:
@@ -585,10 +604,10 @@ if __name__ == "__main__":
 
                     # in scope
                     if resid not in res_ids_in_object_over_frames[frame]:
-                        paths[nr].add_scope(frame)
+                        paths[resid].add_scope(frame)
                     else:
                         # in object
-                        paths[nr].add_object(frame)
+                        paths[resid].add_object(frame)
 
             pbar.update(frame)
 
@@ -597,7 +616,7 @@ if __name__ == "__main__":
         ###########
         # S A V E #
         ###########
-        if options.save not in ['None']:
+        if options.save:
             csmda = CompactSelectionMDA(all_res)
             # save all_res as CompactSelectionMDA
             save_dump(options.save, {'all_res': csmda, 'paths': paths}, options=options._asdict())
@@ -607,9 +626,9 @@ if __name__ == "__main__":
         ###########
         # L O A D #
         ###########
-        if options.load not in ['None']:
+        if options.load:
             loaded_data = load_dump(options.load)
-            paths = []
+            paths = {}
             all_res = None
             if 'all_res' in loaded_data._asdict().keys():
                 # load all_res as CompactSelectionMDA
@@ -630,34 +649,32 @@ if __name__ == "__main__":
     # execute?
     if options.execute == 'run':
 
-        if options.discard_empty_paths == 'True':
+        if options.discard_empty_paths:
             with log.fbm("Discard residues with empty paths"):
                 # zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
-                all_res_, paths_ = zip(
-                    *[(r, path) for r, path in zip(all_res.iterate_over_residues(), paths) if len(path.frames) > 0])
-                all_res = all_res_
-                paths = paths_
-                del all_res_
-                del paths_
+                for key in paths.keys():
+                    if len(paths[key].frames) == 0:
+                        paths.pop(key)
 
         log.message("Create separate paths:")
 
         pbar = log.pbar(len(paths), kind=pbar_name)
-        spaths = [sp for sp, nr in yield_single_paths(paths, progress=True) if pbar.update(nr + 1) is None]
+        # yield_single_paths requires a list of paths not a dictionary
+        spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
 
         pbar.finish()
 
         ###########
         # S A V E #
         ###########
-        if options.save not in ['None']:
+        if options.save:
             save_dump(options.save, {'paths': paths, 'spaths': spaths}, options=options._asdict())
 
     elif options.execute in ['skip']:
         ###########
         # L O A D #
         ###########
-        if options.load not in ['None']:
+        if options.load:
             loaded_data = load_dump(options.load)
             spaths = []
             if 'spaths' in loaded_data._asdict().keys():
@@ -680,7 +697,7 @@ if __name__ == "__main__":
     # execute?
     if options.execute == 'run':
         # apply smoothing?
-        if options.apply_smoothing == 'True':
+        if options.apply_smoothing:
             with log.fbm('Applying smoothing'):
                 assert soptions.method == 'window', 'Unknown smoothing method %s.' % soptions.method
                 assert soptions.function in ['mean', 'median'], 'Unknown smoothing function %s.' % soptions.function
@@ -724,7 +741,7 @@ if __name__ == "__main__":
         ###########
         # S A V E #
         ###########
-        if options.save not in ['None']:
+        if options.save:
             save_dump(options.save, {'inlet_coords': inlet_coords,
                                      'inlet_type': inlet_type,
                                      'inlet_id': inlet_id,
@@ -738,7 +755,7 @@ if __name__ == "__main__":
         ###########
         # L O A D #
         ###########
-        if options.load not in ['None']:
+        if options.load:
             loaded_data = load_dump(options.load)
             inlet_coords = []
             inlet_type = []
@@ -769,7 +786,7 @@ if __name__ == "__main__":
     # execute?
     if options.execute == 'run':
         # file handle?
-        if options.save not in ['None']:
+        if options.save:
             fh = open(options.save, 'w')
             log.message('Using user provided file (%s).' % options.save)
             log.message(sep())
@@ -786,7 +803,7 @@ if __name__ == "__main__":
         print >> fh, get_timestamp()
 
         ############
-        if options.dump_config == 'True':
+        if options.dump_config:
             print >> fh, asep()
             print >> fh, 'Configuration file name:', args.config_file
             print >> fh, underline('Configuration file dump')
@@ -900,9 +917,11 @@ if __name__ == "__main__":
             line.append(ctype)
             print >> fh, line_template % tuple(line)
 
-        if options.save not in ['None']:
+        if options.save:
             fh.close()
     elif options.execute == 'skip':
         pass
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
+
+
