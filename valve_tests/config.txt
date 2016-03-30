@@ -9,7 +9,7 @@ load = stage_I.dump
 save = stage_I.dump
 scope = backbone
 scope_convexhull = True
-object = (resname WAT) and (around 2 protein)
+object = resname WAT
 
 [raw_paths]
 execute = run
@@ -35,6 +35,7 @@ apply_smoothing = True
 [analysis]
 execute = run
 save = None
+dump_config = True
 
 [smooth]
 method = window
