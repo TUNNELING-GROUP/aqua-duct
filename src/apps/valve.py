@@ -23,17 +23,17 @@ from aqueduct.geom.cluster import perform_clustering
 from aqueduct.geom.smooth import WindowSmooth
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
-from aqueduct.traj.selections import CompactSelectionMDA
+from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
 
 cpu_count = mp.cpu_count()
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
-
 __mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
 
+
 def version():
-    return 0, 3, 2
+    return 0, 3, 3
 
 
 def version_nice():
@@ -46,24 +46,24 @@ def get_timestamp():
 
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 
-class ConfigSpecialNames():
+class ConfigSpecialNames:
+    special_names_dict = {'none': None,
+                          'true': True,
+                          'false': False}
 
-    special_names_dict = {'none':None,
-                          'true':True,
-                          'false':False}
-
-    def special_name(self,name):
-        if isinstance(name,(str,unicode)):
+    def special_name(self, name):
+        if isinstance(name, (str, unicode)):
             if name.lower() in self.special_names_dict:
                 return self.special_names_dict[name.lower()]
         return name
 
-class ValveConfig(object,ConfigSpecialNames):
+
+class ValveConfig(object, ConfigSpecialNames):
     def __init__(self):
         self.config = self.get_default_config()
 
-    def __make_options_nt(self,input_options):
-        options = {opt:self.special_name(input_options[opt]) for opt in input_options}
+    def __make_options_nt(self, input_options):
+        options = {opt: self.special_name(input_options[opt]) for opt in input_options}
         options_nt = namedtuple('Options', options.keys())
         return options_nt(**options)
 
@@ -107,6 +107,8 @@ class ValveConfig(object,ConfigSpecialNames):
                 return 'inlets_clusterization'
             elif nr == 4:
                 return 'analysis'
+            elif nr == 5:
+                return 'visualize'
         raise NotImplementedError('Stage %r is not implemented.' % nr)
 
     def get_common_traj_data(self, stage):
@@ -200,6 +202,7 @@ class ValveConfig(object,ConfigSpecialNames):
         common(section)
 
         config.set(section, 'discard_empty_paths', 'True')
+        config.set(section, 'sort_by_id', 'True')
 
         ################
         # stage IV
@@ -209,7 +212,7 @@ class ValveConfig(object,ConfigSpecialNames):
 
         common(section)
 
-        config.set(section, 'apply_smoothing', 'True')
+        config.set(section, 'apply_smoothing', 'False')
 
         ################
         # smooth
@@ -237,6 +240,26 @@ class ValveConfig(object,ConfigSpecialNames):
         config.remove_option(section, 'load')
 
         config.set(section, 'dump_config', 'True')
+
+        ################
+        # stage VI
+        # visualize
+        section = self.stage_names(5)
+        config.add_section(section)
+        common(section)
+        config.remove_option(section, 'load')
+        config.remove_option(section, 'save')
+
+        # visualize spaths, all paths in one object
+        config.set(section, 'all_paths_raw', 'True')
+        config.set(section, 'all_paths_smooth', 'True')
+        config.set(section, 'all_paths_split', 'True') # split by in obj out
+        # visualize spaths, separate objects
+        config.set(section, 'paths_raw', 'True')
+        config.set(section, 'paths_smooth', 'True')
+
+        # visualize clusters
+        config.set(section, 'inlets_clusters', 'True')
 
         return config
 
@@ -292,7 +315,7 @@ def CHullCheck_exec(chull, points, threads=optimal_threads):
 
 
 ################################################################################
-# in scope helper
+# in scope helpers
 
 def check_res_in_scope(options, scope, res, res_coords):
     if options.scope_convexhull:
@@ -381,23 +404,28 @@ def load_dump(filename):
                 loaded_data.update({'other_data': other_data})
             except:
                 pass
-        loaded_data_nt = namedtuple('LoadedData', loaded_data.keys())
-        return loaded_data_nt(**loaded_data)
+        return loaded_data
+        # loaded_data_nt = namedtuple('LoadedData', loaded_data.keys())
+        # return loaded_data_nt(**loaded_data)
 
 
 def check_version_compilance(current, loaded, what):
     if current[0] > loaded[0]:
         log.error(
-            'Loaded data has %s major version lower then the application, possible problems with API compilance.' % what)
+            'Loaded data has %s major version lower then the application, \
+             possible problems with API compilance.' % what)
     if current[0] < loaded[0]:
         log.error(
-            'Loaded data has %s major version higher then the application, possible problems with API compilance.' % what)
+            'Loaded data has %s major version higher then the application, \
+             possible problems with API compilance.' % what)
     if current[1] > loaded[1]:
         log.warning(
-            'Loaded data has %s minor version lower then the application, possible problems with API compilance.' % what)
+            'Loaded data has %s minor version lower then the application, \
+            possible problems with API compilance.' % what)
     if current[1] < loaded[1]:
         log.warning(
-            'Loaded data has %s minor version higher then the application, possible problems with API compilance.' % what)
+            'Loaded data has %s minor version higher then the application, \
+            possible problems with API compilance.' % what)
 
 
 def check_versions(version_dict):
@@ -406,6 +434,37 @@ def check_versions(version_dict):
     assert 'aqueduct_version' in version_dict, "File is corrupted, cannot read version data."
     check_version_compilance(aqueduct_version(), version_dict['aqueduct_version'], 'Aqueduct')
     check_version_compilance(version(), version_dict['version'], 'Valve')
+
+
+################################################################################
+# save - load per stage
+
+def save_stage_dump(name, **kwargs):
+    # check if name is None
+    if name is not None:
+        # ok, check if some of kwargs have to be changed
+        data_to_save = {}
+        for key, value in kwargs.iteritems():
+            # SelectionMDA
+            if isinstance(value, SelectionMDA):
+                value = CompactSelectionMDA(value)
+            # options
+            if 'options' in key:
+                value = value._asdict()
+            data_to_save.update({key: value})
+            # now we are redy to save
+        save_dump(name, data_to_save)
+
+
+def load_stage_dump(name, reader=None):
+    if name is not None:
+        loaded_data = {}
+        for key, value in load_dump(name).iteritems():
+            # CompactSelectionMDA
+            if isinstance(value, CompactSelectionMDA):
+                value = value.toSelectionMDA(reader)
+            loaded_data.update({key: value})
+        return loaded_data
 
 
 ################################################################################
@@ -469,7 +528,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    max_frame = 200
+    #max_frame = 200
 
     # execute?
     if options.execute == 'run':
@@ -522,28 +581,23 @@ if __name__ == "__main__":
         ###########
         # S A V E #
         ###########
-        if options.save:
-            csmda = CompactSelectionMDA(all_res)
-            # save all_res as CompactSelectionMDA
-            save_dump(options.save,
-                      {'all_res': csmda, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames},
-                      options=options._asdict())
+        save_stage_dump(options.save,
+                        all_res=all_res,
+                        res_ids_in_object_over_frames=res_ids_in_object_over_frames,
+                        options=options)
 
     elif options.execute in ['skip']:
-
         ###########
         # L O A D #
         ###########
         if options.load:
-            loaded_data = load_dump(options.load)
             res_ids_in_object_over_frames = {}
             all_res = None
-            if 'all_res' in loaded_data._asdict().keys():
-                # load all_res as CompactSelectionMDA
-                all_res = loaded_data.all_res.toSelectionMDA(reader)
-            if 'res_ids_in_object_over_frames' in loaded_data._asdict().keys():
-                res_ids_in_object_over_frames = loaded_data.res_ids_in_object_over_frames
-            del loaded_data
+            for key, value in load_stage_dump(options.load, reader=reader).iteritems():
+                if key == 'all_res':
+                    all_res = value
+                if key == 'res_ids_in_object_over_frames':
+                    res_ids_in_object_over_frames = value
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
@@ -564,9 +618,10 @@ if __name__ == "__main__":
 
         with log.fbm("Init paths container"):
             # type and frames, consecutive elements correspond to residues in all_H2O
-            #paths = [GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids()]
+            # paths = [GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids()]
             # this is a problem... one possible solution is to use dictionary
-            paths = {resid:GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids(ikwid=True)}
+            paths = {resid: GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in
+                     all_res.unique_resids(ikwid=True)}
 
         log.message("Trajectory scan:")
         pbar = log.pbar(max_frame, kind=pbar_name)
@@ -577,7 +632,7 @@ if __name__ == "__main__":
             if frame > max_frame:
                 break
 
-            all_res_coords = list(all_res.center_of_mass_of_residues()) # this uses iterate over residues
+            all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
 
             # check if is res are in scope
             is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
@@ -587,7 +642,9 @@ if __name__ == "__main__":
             for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
                 # the point is that nr is not pointing to correct element in paths
                 # now, nr is useless because paths is a dictionary, use resids instead
-                assert paths[resid].id == resid, "Internal error. Paths IDs not synced with resids. Please send a bug report to developer(s): %s" % __mail__
+                assert paths[resid].id == resid, \
+                    "Internal error. Paths IDs not synced with resids. \
+                     Please send a bug report to developer(s): %s" % __mail__
                 if isscope:
                     paths[resid].add_coord(coord)
 
@@ -598,7 +655,7 @@ if __name__ == "__main__":
                         res_new = get_res_in_scope(is_res_in_scope, res)
                         # remeber ids of res in object in current frame
                         if res_new is not None:
-                            res_ids_in_object_over_frames.update({frame: res_new.unique_resids()})
+                            res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
                         else:
                             res_ids_in_object_over_frames.update({frame: []})
 
@@ -616,10 +673,10 @@ if __name__ == "__main__":
         ###########
         # S A V E #
         ###########
-        if options.save:
-            csmda = CompactSelectionMDA(all_res)
-            # save all_res as CompactSelectionMDA
-            save_dump(options.save, {'all_res': csmda, 'paths': paths}, options=options._asdict())
+        save_stage_dump(options.save,
+                        all_res=all_res,
+                        paths=paths,
+                        options=options)
 
     elif options.execute in ['skip']:
 
@@ -627,15 +684,13 @@ if __name__ == "__main__":
         # L O A D #
         ###########
         if options.load:
-            loaded_data = load_dump(options.load)
-            paths = {}
+            paths = []
             all_res = None
-            if 'all_res' in loaded_data._asdict().keys():
-                # load all_res as CompactSelectionMDA
-                all_res = loaded_data.all_res.toSelectionMDA(reader)
-            if 'paths' in loaded_data._asdict().keys():
-                paths = loaded_data.paths
-            del loaded_data
+            for key, value in load_stage_dump(options.load, reader=reader).iteritems():
+                if key == 'all_res':
+                    all_res = value
+                if key == 'paths':
+                    paths = value
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
@@ -651,7 +706,6 @@ if __name__ == "__main__":
 
         if options.discard_empty_paths:
             with log.fbm("Discard residues with empty paths"):
-                # zipped = [(wat,path) for wat,path in zip(all_H2O.iterate_over_residues(),paths) if len(path.frames) > 0]
                 for key in paths.keys():
                     if len(paths[key].frames) == 0:
                         paths.pop(key)
@@ -664,24 +718,29 @@ if __name__ == "__main__":
 
         pbar.finish()
 
+        if options.sort_by_id:
+            with log.fbm("Sort separate paths by resid"):
+                spaths = sorted(spaths,key=lambda sp: sp.id)
+
         ###########
         # S A V E #
         ###########
-        if options.save:
-            save_dump(options.save, {'paths': paths, 'spaths': spaths}, options=options._asdict())
+        save_stage_dump(options.save,
+                        paths=paths,
+                        spaths=spaths,
+                        options=options)
 
     elif options.execute in ['skip']:
         ###########
         # L O A D #
         ###########
         if options.load:
-            loaded_data = load_dump(options.load)
             spaths = []
-            if 'spaths' in loaded_data._asdict().keys():
-                spaths = loaded_data.spaths
-            if 'paths' in loaded_data._asdict().keys():
-                paths = loaded_data.paths
-            del loaded_data
+            for key, value in load_stage_dump(options.load).iteritems():
+                if key == 'paths':
+                    paths = value
+                if key == 'spaths':
+                    spaths = value
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
@@ -741,38 +800,37 @@ if __name__ == "__main__":
         ###########
         # S A V E #
         ###########
-        if options.save:
-            save_dump(options.save, {'inlet_coords': inlet_coords,
-                                     'inlet_type': inlet_type,
-                                     'inlet_id': inlet_id,
-                                     'inlet_spnr': inlet_spnr,
-                                     'clusters': clusters},
-                      options=options._asdict(),
-                      coptions=coptions._asdict(),
-                      ooptions=soptions._asdict())
+        save_stage_dump(options.save,
+                        inlet_coords=inlet_coords,
+                        inlet_type=inlet_type,
+                        inlet_id=inlet_id,
+                        inlet_spnr=inlet_spnr,
+                        clusters=clusters,
+                        options=options,
+                        coptions=coptions,
+                        soptions=soptions)
 
     elif options.execute in ['skip']:
         ###########
         # L O A D #
         ###########
         if options.load:
-            loaded_data = load_dump(options.load)
             inlet_coords = []
             inlet_type = []
             inlet_id = []
             inlet_spnr = []
             clusters = np.array([])
-            if 'inlet_coords' in loaded_data._asdict().keys():
-                inlet_coords = loaded_data.inlet_coords
-            if 'inlet_type' in loaded_data._asdict().keys():
-                inlet_type = loaded_data.inlet_type
-            if 'inlet_id' in loaded_data._asdict().keys():
-                inlet_id = loaded_data.inlet_id
-            if 'inlet_spnr' in loaded_data._asdict().keys():
-                inlet_spnr = loaded_data.inlet_spnr
-            if 'clusters' in loaded_data._asdict().keys():
-                clusters = loaded_data.clusters
-            del loaded_data
+            for key, value in load_stage_dump(options.load).iteritems():
+                if key == 'inlet_coords':
+                    inlet_coords = value
+                if key == 'inlet_type':
+                    inlet_type = value
+                if key == 'inlet_id':
+                    inlet_id = value
+                if key == 'inlet_spnr':
+                    inlet_spnr = value
+                if key == 'clusters':
+                    clusters = value
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
 
@@ -805,8 +863,7 @@ if __name__ == "__main__":
         ############
         if options.dump_config:
             print >> fh, asep()
-            print >> fh, 'Configuration file name:', args.config_file
-            print >> fh, underline('Configuration file dump')
+            print >> fh, underline('Configuration file name: %s' % args.config_file)
             print >> fh, os.linesep.join(config.dump_config())
 
         ############
@@ -923,5 +980,3 @@ if __name__ == "__main__":
         pass
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
-
-

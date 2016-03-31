@@ -51,6 +51,8 @@ def smart_time_string(s, rl=0,t=1.1):
             output =  ("%d d" % (int(s) / (3600 * 24))) + ' ' + smart_time_string(int(s) % (3600 * 24), rl).strip()
     return (output+" "*10)[:10]
 
+
+
 class SimpleProgressBar(object):
     '''
     Simple progress bar displaying progress in % and ETA.
@@ -63,7 +65,11 @@ class SimpleProgressBar(object):
     :ivar int begin: time in seconds at the initialiation of the :class:`SimpleProgressBar` class.
     :ivar int tcurrent: time in seconds of current iteration
     '''
-    
+
+    rotate = '\\|/-'
+
+    barlenght = 24
+
     def __init__(self,maxval=None):
         '''
         :param int maxval: maximal number of iterations stored to :ivar:`maxval`
@@ -82,6 +88,16 @@ class SimpleProgressBar(object):
         self.begin = time.time()
         self.tcurrent = self.begin
         self.show()
+
+    def bar(self):
+        barval = int(self.percent()/100*self.barlenght)
+        if barval > self.barlenght:
+            barval = self.barlenght
+        bar = '#'*barval
+        if self.current:
+            bar += self.rotate[self.current % len(self.rotate)]
+        bar += ' '*self.barlenght
+        return '[%s]' % bar[:self.barlenght]
 
     def ETA(self):
         '''
@@ -135,7 +151,7 @@ class SimpleProgressBar(object):
                 self.overrun = True
             stderr.write("\r%d iterations out of %d. Total time: %s" % (self.current,self.maxval,self.ttime()))
         elif not self.overrun:
-            stderr.write("\r%3d%% ETA: %s" % (self.percent(),self.ETA()))
+            stderr.write("\r%3d%% %s ETA: %s" % (self.percent(),self.bar(),self.ETA()))
 
     def update(self,step):
         '''
@@ -168,7 +184,10 @@ class SimpleProgressBar(object):
         Finishes progress bar. First, :meth:`update` is called with :obj:`step` = 0. Next message of total time
         is writen to standard error.
         '''
-        self.update(0)
+        if self.current < self.maxval:
+            self.update(self.maxval)
+        else:
+            self.update(0)
         stderr.write(linesep)
         stderr.write("Total time: %s" % self.ttime())
         stderr.write(linesep)
