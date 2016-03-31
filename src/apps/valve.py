@@ -998,6 +998,7 @@ if __name__ == "__main__":
     # execute?
     if options.execute == 'run':
         from aqueduct.visual.pymol_connector import ConnectToPymol,SinglePathPlotter
+        from aqueduct.visual.quickplot import ColorMapDistMap
 
         # start pymol
         ConnectToPymol.init_pymol()
@@ -1024,7 +1025,19 @@ if __name__ == "__main__":
             [spp.paths_trace([sp], name='smooth_%d' % sp.id, smooth=smooth) for sp in spaths]
 
         if options.inlets_clusters:
-            pass
+            # TODO: require stage V for that?
+            no_of_clusters = len(set([c for c in clusters if c != -1]))
+            cmap = ColorMapDistMap(name='Accent',size=no_of_clusters)
+            clusters_list = list(set(clusters.tolist()))
+            clusters_list.sort()
+            for c in clusters_list:
+                # coords for current cluster
+                ics = [inlet_coords[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
+                if c == -1:
+                    c_name='none'
+                else:
+                    c_name=str(int(c))
+                spp.scatter(ics,color=cmap(c),name="cluster_%s" % c_name)
 
     elif options.execute == 'skip':
         pass
