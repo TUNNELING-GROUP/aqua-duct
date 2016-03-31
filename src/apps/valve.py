@@ -466,6 +466,20 @@ def load_stage_dump(name, reader=None):
             loaded_data.update({key: value})
         return loaded_data
 
+################################################################################
+
+def get_smooth_method(soptions):
+    assert soptions.method == 'window', 'Unknown smoothing method %s.' % soptions.method
+    assert soptions.function in ['mean', 'median'], 'Unknown smoothing function %s.' % soptions.function
+    if soptions.function == 'mean':
+        smooth = WindowSmooth(window=int(soptions.window),
+                              recursive=int(soptions.recursive),
+                              function=np.mean)
+    elif soptions.function == 'median':
+        smooth = WindowSmooth(window=int(soptions.window),
+                              recursive=int(soptions.recursive),
+                              function=np.median)
+    return smooth
 
 ################################################################################
 
@@ -758,16 +772,7 @@ if __name__ == "__main__":
         # apply smoothing?
         if options.apply_smoothing:
             with log.fbm('Applying smoothing'):
-                assert soptions.method == 'window', 'Unknown smoothing method %s.' % soptions.method
-                assert soptions.function in ['mean', 'median'], 'Unknown smoothing function %s.' % soptions.function
-                if soptions.function == 'mean':
-                    smooth = WindowSmooth(window=int(soptions.window),
-                                          recursive=int(soptions.recursive),
-                                          function=np.mean)
-                elif soptions.function == 'median':
-                    smooth = WindowSmooth(window=int(soptions.window),
-                                          recursive=int(soptions.recursive),
-                                          function=np.median)
+                smooth = get_smooth_method(soptions)
                 for sp in spaths:
                     sp.apply_smoothing(smooth)
 
@@ -976,6 +981,51 @@ if __name__ == "__main__":
 
         if options.save:
             fh.close()
+    elif options.execute == 'skip':
+        pass
+    else:
+        raise NotImplementedError('exec mode %s not implemented' % options.execute)
+
+    ################################################################################
+    # STAGE VI
+    log.message(sep())
+    log.message('Starting Stage VI: %s' % config.stage_names(5))
+    options = config.get_stage_options(5)
+    soptions = config.get_smooth_options()
+    smooth = get_smooth_method(soptions)
+    log.message('Execute mode: %s' % options.execute)
+
+    # execute?
+    if options.execute == 'run':
+        from aqueduct.visual.pymol_connector import ConnectToPymol,SinglePathPlotter
+
+        # start pymol
+        ConnectToPymol.init_pymol()
+        spp = SinglePathPlotter()
+
+        if options.all_paths_raw:
+            if options.all_paths_split:
+                spp.paths_trace(spaths,name='all_raw_in',plot_object=False,plot_out=False)
+                spp.paths_trace(spaths, name='all_raw_obj', plot_in=False, plot_out=False)
+                spp.paths_trace(spaths, name='all_raw_out', plot_in=False, plot_object=False)
+            else:
+                spp.paths_trace(spaths, name='all_raw')
+        if options.all_paths_smooth:
+            if options.all_paths_split:
+                spp.paths_trace(spaths,name='all_smooth_in',plot_object=False,plot_out=False,smooth=smooth)
+                spp.paths_trace(spaths, name='all_smooth_obj', plot_in=False, plot_out=False,smooth=smooth)
+                spp.paths_trace(spaths, name='all_smooth_out', plot_in=False, plot_object=False,smooth=smooth)
+            else:
+                spp.paths_trace(spaths, name='all_smooth',smooth=smooth)
+
+        if options.paths_raw:
+            [spp.paths_trace([sp], name='raw_%d' % sp.id) for sp in spaths]
+        if options.paths_smooth:
+            [spp.paths_trace([sp], name='smooth_%d' % sp.id, smooth=smooth) for sp in spaths]
+
+        if options.inlets_clusters:
+            pass
+
     elif options.execute == 'skip':
         pass
     else:
