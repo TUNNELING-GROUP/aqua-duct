@@ -17,7 +17,7 @@ def get_cmap(name,size=None):
 
 class ColorMapDistMap(object):
 
-    dist = 10
+    dist = 1
 
     grey = (0.5, 0.5, 0.5, 1)
 
@@ -26,7 +26,7 @@ class ColorMapDistMap(object):
         # size is number of nodes to be maped to distinguistive colors
         self.size = size
         # lut should be appropriately bigger - 10 times
-        lut = size * self.dist
+        lut = size * self.dist + 1
         # get size
         self.cmap = get_cmap(name,lut)
 

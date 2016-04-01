@@ -2,11 +2,38 @@
 Collection of helpers - functions and decorators.
 '''
 
+import numpy as np
 from collections import Iterable
 from functools import wraps
+from os import close
+from tempfile import mkstemp
 
-import numpy as np
 
+def create_tmpfile(ext=None):
+    if ext is None:
+        suffix = ''
+    else:
+        suffix = ".%s" % str(ext).lower()
+    fd, name = mkstemp(suffix=suffix)
+    close(fd)
+    return name
+
+def range2int(r,uniq=True):
+    out = []
+    for rr in r.split():
+        if ':' in rr:
+            if rr.count(':') == 1:
+                r1,r2 = map(int,rr.split(':'))
+                r3 = 1
+            if rr.count(':') == 2:
+                r1,r3,r2 = map(int,rr.split(':'))
+            out.extend(range(r1,r2+1,r3))
+        else:
+            out.append(int(rr))
+    if uniq:
+        out = list(set(out))
+        out.sort()
+    return out
 
 def int2range(l):
     '''
@@ -49,9 +76,9 @@ def int2range(l):
                 out.append(None)
                 previous = e
                 continue
-    while out[-1] in [None,':']:
+    while out[-1] in [None, ':']:
         out.pop(-1)
-    out = ''.join(map(str,out))
+    out = ''.join(map(str, out))
     return out
 
 
@@ -92,6 +119,7 @@ def sortify(gen):
     :returns: output of decorated function converted to a sorted list 
     :rtype: :py:class:`list`
     '''
+
     @wraps(gen)
     def patched(*args, **kwargs):
         obj = gen(*args, **kwargs)
@@ -102,6 +130,7 @@ def sortify(gen):
         return [obj]
 
     return patched
+
 
 def listify(gen):
     '''
@@ -117,13 +146,16 @@ def listify(gen):
     :returns: output of decorated function converted to a list 
     :rtype: :py:class:`list`
     '''
+
     @wraps(gen)
     def patched(*args, **kwargs):
         obj = gen(*args, **kwargs)
-        if isinstance(obj,Iterable):
+        if isinstance(obj, Iterable):
             return list(obj)
         return [obj]
+
     return patched
+
 
 def tupleify(gen):
     '''
@@ -135,13 +167,16 @@ def tupleify(gen):
     :returns: output of decorated function converted to a tuple
     :rtype: :py:class:`tuple`
     '''
+
     @wraps(gen)
     def patched(*args, **kwargs):
         obj = gen(*args, **kwargs)
-        if isinstance(obj,Iterable):
+        if isinstance(obj, Iterable):
             return tuple(obj)
         return (obj,)
+
     return patched
+
 
 def arrayify(gen):
     '''
@@ -153,11 +188,12 @@ def arrayify(gen):
     :returns: output of decorated function converted to a 2D numpy array
     :rtype: :py:class:`numpy.ndarray`
     '''
+
     @wraps(gen)
     def patched(*args, **kwargs):
         obj = gen(*args, **kwargs)
-        if isinstance(obj,Iterable):
+        if isinstance(obj, Iterable):
             return np.matrix(list(obj)).A
         return np.matrix([obj]).A
+
     return patched
-    

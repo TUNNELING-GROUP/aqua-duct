@@ -25,6 +25,8 @@ from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
+from aqueduct.traj.dumps import TmpDumpWriterOfMDA
+from aqueduct.utils.helpers import range2int
 
 cpu_count = mp.cpu_count()
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
@@ -33,7 +35,7 @@ __mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
 
 
 def version():
-    return 0, 3, 3
+    return 0, 3, 4
 
 
 def version_nice():
@@ -253,13 +255,18 @@ class ValveConfig(object, ConfigSpecialNames):
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'True')
         config.set(section, 'all_paths_smooth', 'True')
-        config.set(section, 'all_paths_split', 'True') # split by in obj out
+        config.set(section, 'all_paths_split', 'True')  # split by in obj out
         # visualize spaths, separate objects
         config.set(section, 'paths_raw', 'True')
         config.set(section, 'paths_smooth', 'True')
+        config.set(section, 'paths_states', 'True')
 
         # visualize clusters
         config.set(section, 'inlets_clusters', 'True')
+
+        # show protein
+        config.set(section, 'show_molecule', 'None')
+        config.set(section, 'show_molecule_frames', '0')
 
         return config
 
@@ -466,6 +473,7 @@ def load_stage_dump(name, reader=None):
             loaded_data.update({key: value})
         return loaded_data
 
+
 ################################################################################
 
 def get_smooth_method(soptions):
@@ -480,6 +488,7 @@ def get_smooth_method(soptions):
                               recursive=int(soptions.recursive),
                               function=np.median)
     return smooth
+
 
 ################################################################################
 
@@ -542,7 +551,7 @@ if __name__ == "__main__":
     log.message('Execute mode: %s' % options.execute)
 
     max_frame = reader.number_of_frames - 1
-    #max_frame = 200
+    # max_frame = 200
 
     # execute?
     if options.execute == 'run':
@@ -734,7 +743,7 @@ if __name__ == "__main__":
 
         if options.sort_by_id:
             with log.fbm("Sort separate paths by resid"):
-                spaths = sorted(spaths,key=lambda sp: sp.id)
+                spaths = sorted(spaths, key=lambda sp: sp.id)
 
         ###########
         # S A V E #
@@ -997,49 +1006,77 @@ if __name__ == "__main__":
 
     # execute?
     if options.execute == 'run':
-        from aqueduct.visual.pymol_connector import ConnectToPymol,SinglePathPlotter
+        from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
         from aqueduct.visual.quickplot import ColorMapDistMap
 
         # start pymol
-        ConnectToPymol.init_pymol()
-        spp = SinglePathPlotter()
+        with log.fbm("Starting PyMOL"):
+            ConnectToPymol.init_pymol()
+            spp = SinglePathPlotter()
 
         if options.all_paths_raw:
-            if options.all_paths_split:
-                spp.paths_trace(spaths,name='all_raw_in',plot_object=False,plot_out=False)
-                spp.paths_trace(spaths, name='all_raw_obj', plot_in=False, plot_out=False)
-                spp.paths_trace(spaths, name='all_raw_out', plot_in=False, plot_object=False)
-            else:
-                spp.paths_trace(spaths, name='all_raw')
+            with log.fbm("All raw paths"):
+                if options.all_paths_split:
+                    spp.paths_trace(spaths, name='all_raw_in', plot_object=False, plot_out=False)
+                    spp.paths_trace(spaths, name='all_raw_obj', plot_in=False, plot_out=False)
+                    spp.paths_trace(spaths, name='all_raw_out', plot_in=False, plot_object=False)
+                else:
+                    spp.paths_trace(spaths, name='all_raw')
         if options.all_paths_smooth:
-            if options.all_paths_split:
-                spp.paths_trace(spaths,name='all_smooth_in',plot_object=False,plot_out=False,smooth=smooth)
-                spp.paths_trace(spaths, name='all_smooth_obj', plot_in=False, plot_out=False,smooth=smooth)
-                spp.paths_trace(spaths, name='all_smooth_out', plot_in=False, plot_object=False,smooth=smooth)
-            else:
-                spp.paths_trace(spaths, name='all_smooth',smooth=smooth)
+            with log.fbm("All smooth paths"):
+                if options.all_paths_split:
+                    spp.paths_trace(spaths, name='all_smooth_in', plot_object=False, plot_out=False, smooth=smooth)
+                    spp.paths_trace(spaths, name='all_smooth_obj', plot_in=False, plot_out=False, smooth=smooth)
+                    spp.paths_trace(spaths, name='all_smooth_out', plot_in=False, plot_object=False, smooth=smooth)
+                else:
+                    spp.paths_trace(spaths, name='all_smooth', smooth=smooth)
 
-        if options.paths_raw:
-            [spp.paths_trace([sp], name='raw_%d' % sp.id) for sp in spaths]
-        if options.paths_smooth:
-            [spp.paths_trace([sp], name='smooth_%d' % sp.id, smooth=smooth) for sp in spaths]
+        if options.paths_states:
+            with log.fbm("Paths as states"):
+                # as one object
+                state_function = lambda nr, sp: (nr, nr)
+                if options.paths_raw:
+                    [spp.paths_trace([sp], name='raw_paths', state_function=state_function) for sp in spaths]
+                if options.paths_smooth:
+                    [spp.paths_trace([sp], name='smooth_paths', smooth=smooth, state_function=state_function) for sp in
+                     spaths]
+        else:
+            with log.fbm("Paths as separate objects"):
+                if options.paths_raw:
+                    [spp.paths_trace([sp], name='raw_%d' % sp.id) for sp in spaths]
+                if options.paths_smooth:
+                    [spp.paths_trace([sp], name='smooth_%d' % sp.id, smooth=smooth) for sp in spaths]
 
         if options.inlets_clusters:
-            # TODO: require stage V for that?
-            no_of_clusters = len(set([c for c in clusters if c != -1]))
-            cmap = ColorMapDistMap(name='Accent',size=no_of_clusters)
-            clusters_list = list(set(clusters.tolist()))
-            clusters_list.sort()
-            for c in clusters_list:
-                # coords for current cluster
-                ics = [inlet_coords[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
-                if c == -1:
-                    c_name='none'
-                else:
-                    c_name=str(int(c))
-                spp.scatter(ics,color=cmap(c),name="cluster_%s" % c_name)
+            with log.fbm("Clusters"):
+                # TODO: require stage V for that?
+                no_of_clusters = len(set([c for c in clusters if c != -1]))
+                cmap = ColorMapDistMap(name='Dark2', size=no_of_clusters)
+                clusters_list = list(set(clusters.tolist()))
+                clusters_list.sort()
+                for c in clusters_list:
+                    # coords for current cluster
+                    ics = [inlet_coords[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
+                    if c == -1:
+                        c_name = 'none'
+                    else:
+                        c_name = str(int(c))
+                    spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
+
+        if options.show_molecule:
+            with log.fbm("Molecule"):
+                pdb = TmpDumpWriterOfMDA()
+                frames_to_show = range2int(options.show_molecule_frames)
+                pdb.dump_frames(reader,frames=frames_to_show)
+                ConnectToPymol.load_pdb('molecule',pdb.close())
+                del pdb
+
 
     elif options.execute == 'skip':
         pass
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
+
+    log.message(sep())
+    log.message('Let the Valve be always open!')
+    log.message('Goodby!')
