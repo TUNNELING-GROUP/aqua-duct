@@ -19,7 +19,7 @@ def midpoints(path):
     # path is a tuple of 2d np.arrays,
     assert isinstance(path,tuple), "Path should be of tuple type, %r submitted instead." % type(path)
     for nr,trace in enumerate(path):
-        assert isinstance(trace,np.ndarray), "Traces should be of np.ndarray type, %r submited instead (trace no. %d)" %(type(trace),nr)
+        assert isinstance(trace,np.ndarray), "Traces should be of numpy.ndarray type, %r submited instead (trace no. %d)" %(type(trace),nr)
         assert len(trace.shape) == 2, "Traces should be 2d, %dd submited instead (trace no. %d)" %(len(trace.shape),nr)
 
     n = len(path)

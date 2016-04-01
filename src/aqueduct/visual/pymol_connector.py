@@ -4,7 +4,8 @@ import numpy as np
 
 from aqueduct.geom import traces
 from aqueduct.visual.quickplot import cc
-from aqueduct.traj.paths import list_blocks_to_slices
+from aqueduct.traj.paths import PathTypesCodes, GenericPathTypeCodes
+from aqueduct.utils.helpers import list_blocks_to_slices
 
 import pymol
 
@@ -92,7 +93,7 @@ class ConnectToPymol(object):
     @staticmethod
     def init_pymol():
         pymol.finish_launching()
-        cmd.set('cgo_line_width',ConnectToPymol.cgo_line_width)
+        cmd.set('cgo_line_width', ConnectToPymol.cgo_line_width)
 
     @staticmethod
     def add_cgo_object(name, cgo_object, state=None):
@@ -104,15 +105,14 @@ class ConnectToPymol(object):
     def del_cgo_object(name, state=None):
         raise NotImplementedError("This feature is not implemented yet.")
 
-
     @staticmethod
     def load_pdb(name, filename, state=None):
         if state is None:
             state = 1
-        cmd.load(filename,state=state,object=name)
+        cmd.load(filename, state=state, object=name)
 
 
-class SinglePathPlotter(object):
+class SinglePathPlotter(object, PathTypesCodes):
     def __init__(self):
 
         self.cgo_lines = BasicPymolCGOLines()
@@ -138,7 +138,7 @@ class SinglePathPlotter(object):
                         sts = list(list_blocks_to_slices(spath.types_object))
                         for strace, gtype in zip(traces.midpoints(tuple([trace[s, :] for s in sts])),
                                                  [spath.types_object[s] for s in sts]):
-                            if gtype[0] == 'c':
+                            if gtype[0] == self.path_object_code:
                                 c = color[1]
                             else:
                                 c = color[3]

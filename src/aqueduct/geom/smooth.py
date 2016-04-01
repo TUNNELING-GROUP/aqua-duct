@@ -4,13 +4,14 @@ Created on Dec 15, 2015
 @author: tljm
 '''
 
+from aqueduct.geom import traces
 from aqueduct.utils.helpers import arrayify
 
 import numpy as np
 
 class Smooth(object):
 
-    def __init__(self,recursive=None):
+    def __init__(self,recursive=None,**kwargs):
 
         self.recursive = recursive
 
@@ -43,12 +44,56 @@ class WindowSmooth(Smooth):
         for pos in xrange(n):
             if pos < self.window:
                 lo = None
+                hi = pos + 1
             else:
                 lo = pos-self.window
-            if n - 1 - pos < self.window:
-                hi = None
-            else:
-                hi = pos+self.window
-            
+
+                if n - 1 - pos < self.window:
+                    lo = pos
+                    hi = None
+                else:
+                    hi = pos+self.window
+
             yield self.function(coords[slice(lo,hi,None)],0).tolist()
 
+class MaxStepSmooth(Smooth):
+
+    def __init__(self, sigma=2, **kwargs):
+        Smooth.__init__(self, **kwargs)
+        self.sigma = sigma
+
+    @arrayify
+    def smooth(self, coords):
+
+        n = len(coords)
+        cdiff = traces.diff(coords)
+
+        step = np.std(cdiff)*self.sigma
+
+        current_step = 0
+        for pos in xrange(n):
+            current_coord = coords[pos]
+            if pos == 0:
+                yield current_coord
+                last_coord = current_coord
+            elif pos == n - 1:
+                yield current_coord
+                last_coord = current_coord
+            else:
+                current_step = traces.diff(np.vstack((current_coord,last_coord)))
+                if current_step > step:
+                    yield current_coord
+                    last_coord = current_coord
+                else:
+                    yield last_coord
+
+class WindowOverMaxStepSmooth(Smooth):
+
+    def __init__(self,**kwargs):
+        Smooth.__init__(self, **kwargs)
+
+        self.window = WindowSmooth(**kwargs)
+        self.mss = MaxStepSmooth(**kwargs)
+
+    def smooth(self,coords):
+        return self.window(self.mss(coords))

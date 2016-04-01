@@ -5,10 +5,12 @@ Created on Dec 10, 2015
 '''
 
 from itertools import izip
-import numpy as np
 from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify
+import numpy as np
+from aqueduct.geom import traces
+from aqueduct.utils.helpers import list_blocks_to_slices
 
-   
+
 ########################################################################################################################
 # paths/list manipulations
 # following part of code comes directly from the very initial tcl/vmd implementation
@@ -43,14 +45,16 @@ class PathTypesCodes():
     path_in_code = 'i'
     path_object_code = 'c'
     path_out_code = 'o'
-    
 
-class GenericPaths(object):
-    # object to store paths... is it required?
-    # could be nice to have as it can be armed with methods for getting in and out paths
+class GenericPathTypeCodes():
     object_name = 'c'
     scope_name = 's'
     out_name = 'n'
+
+
+class GenericPaths(object,GenericPathTypeCodes):
+    # object to store paths... is it required?
+
 
     def __init__(self,id,min_pf=None,max_pf=None):
 
@@ -258,21 +262,6 @@ def yield_single_paths(gps, fullonly=False, progress=False):
             else:
                 yield SinglePath(id,paths,coords,types)
 
-def list_blocks_to_slices(l):
-    n = len(l)
-    if n in [0,1]:
-        yield slice(None,None,None)
-    if n > 1:
-        prev = l[0]
-        prev_nr = 0
-        for nr,e in enumerate(l[1:]):
-            if e == prev:
-                continue
-            yield slice(prev_nr,nr+1,1)
-            prev = e
-            prev_nr = nr+1
-        yield slice(prev_nr,nr+2,1)
-
 
 class InletTypeCodes:
     inlet_in_code = 'inin'
@@ -361,6 +350,13 @@ class SinglePath(object,PathTypesCodes,InletTypeCodes):
     def has_out(self):
         return len(self.path_out) > 0
 
+
+
+
+
+
+
+
     @tupleify
     def get_smooth_coords(self,smooth):
         # smooth should be callable and should return an object of length equal to submitted one
@@ -377,6 +373,10 @@ class SinglePath(object,PathTypesCodes,InletTypeCodes):
                 nr += len(path)
             else:
                 yield self.empty_coords
+
+    def get_smooth_coords_cont(self,smooth):
+        # returns coords as one array
+        return np.vstack([c for c in self.get_smooth_coords(smooth) if len(c) > 0])
     
     def apply_smoothing(self,smooth):
         # applies smoothing
@@ -384,48 +384,21 @@ class SinglePath(object,PathTypesCodes,InletTypeCodes):
         self.coords_in,self.coords_object,self.coords_out = self.get_smooth_coords(smooth)
         
 
+def yield_spath_len_and_smooth_diff_in_types_slices(sp,smooth=None):
 
-if __name__ == "__main__":
+    coords = sp.get_smooth_coords_cont(None)
+    scoords = sp.get_smooth_coords_cont(smooth)
+    dif = traces.diff(coords)
+    ldif = np.cumsum(dif)
+    sdif = traces.diff(scoords)
 
-    import numpy as np
+    etypes = [''.join(t) for t in zip(sp.types_cont,sp.gtypes_cont)]
 
+    for sl in list_blocks_to_slices(etypes):
+        etype = etypes[sl]
+        ld = ldif[sl]
+        sd = sdif[sl]
+        while len(etype) > len(ld):
+            etype.pop(-1)
+        yield ld,sd,etype
 
-    print "in starts at 0"
-    gp = GenericPaths(id=0,min_pf=0,max_pf=100)
-
-    frames = range(20)
-    types = gp.scope_name * 10 + gp.object_name * 10
-    coords = np.random.randn(20,3)
-    for f,t,c in zip(frames,types,coords):
-        gp.add_coord(c)
-        gp.add_type(f,t)
-
-    print list(gp.find_paths())
-    print list(gp.find_paths_types())
-
-
-    print "in starts at 1"
-    gp = GenericPaths(id=0,min_pf=0,max_pf=100)
-
-    frames = range(1,21)
-    types = gp.scope_name * 10 + gp.object_name * 10
-    coords = np.random.randn(20,3)
-    for f,t,c in zip(frames,types,coords):
-        gp.add_coord(c)
-        gp.add_type(f,t)
-
-    print list(gp.find_paths())
-    print list(gp.find_paths_types())
-
-    print "out ends at 29"
-    gp = GenericPaths(id=0,min_pf=0,max_pf=10)
-
-    frames = range(0,30)
-    types = gp.scope_name * 10 + gp.object_name * 10 + gp.scope_name * 10
-    coords = np.random.randn(30,3)
-    for f,t,c in zip(frames,types,coords):
-        gp.add_coord(c)
-        gp.add_type(f,t)
-
-    print list(gp.find_paths())
-    print list(gp.find_paths_types())

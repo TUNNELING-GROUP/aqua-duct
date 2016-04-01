@@ -3,6 +3,7 @@
 import MDAnalysis as mda
 from aqueduct.utils.helpers import create_tmpfile
 from os import unlink
+from aqueduct.utils import log
 
 class TmpDumpWriterOfMDA(object):
 
@@ -20,8 +21,11 @@ class TmpDumpWriterOfMDA(object):
         to_dump = reader.parse_selection(selection)
 
         for frame in frames:
-            reader.set_current_frame(frame)
-            self.mdawriter.write(to_dump)
+            if frame < reader.number_of_frames:
+                reader.set_current_frame(frame)
+                self.mdawriter.write(to_dump)
+            else:
+                log.error('Requested frame %d exceeded available number of frames %d.' % (frame,reader.number_of_frames-1))
 
     def close(self):
         self.mdawriter.close()

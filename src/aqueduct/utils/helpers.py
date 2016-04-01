@@ -197,3 +197,19 @@ def arrayify(gen):
         return np.matrix([obj]).A
 
     return patched
+
+
+def list_blocks_to_slices(l):
+    n = len(l)
+    if n in [0,1]:
+        yield slice(None,None,None)
+    if n > 1:
+        prev = l[0]
+        prev_nr = 0
+        for nr,e in enumerate(l[1:]):
+            if e == prev:
+                continue
+            yield slice(prev_nr,nr+1,1)
+            prev = e
+            prev_nr = nr+1
+        yield slice(prev_nr,nr+2,1)
