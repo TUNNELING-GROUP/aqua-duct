@@ -28,7 +28,7 @@ sort_by_id = True
 execute = skip
 load = stage_IV.dump
 save = stage_IV.dump
-apply_smoothing = True
+apply_smoothing = False
 
 [analysis]
 execute = run
@@ -36,10 +36,11 @@ save = None
 dump_config = True
 
 [smooth]
-method = window
-recursive = 0
-window = 5
+method = window_mss
+sigma = 5
+window = 10
 function = mean
+recursive = 2
 
 [clusterization]
 method = dbscan
@@ -55,6 +56,6 @@ paths_raw = True
 paths_smooth = True
 paths_states = True
 inlets_clusters = True
-show_molecule = protein
+show_molecule = backbone
 show_molecule_frames = 0
 

@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import datetime
+import MDAnalysis as mda
 from collections import namedtuple, OrderedDict
 
 import numpy as np
@@ -20,7 +21,7 @@ from aqueduct import version as aqueduct_version
 from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
 from aqueduct.geom.cluster import perform_clustering
-from aqueduct.geom.smooth import WindowSmooth
+from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
@@ -35,7 +36,7 @@ __mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
 
 
 def version():
-    return 0, 3, 4
+    return 0, 3, 5
 
 
 def version_nice():
@@ -221,9 +222,9 @@ class ValveConfig(object, ConfigSpecialNames):
         section = self.smooth_name()
         config.add_section(section)
         config.set(section, 'method', 'window')
-        config.set(section, 'recursive', '0')
-        config.set(section, 'window', '5')
-        config.set(section, 'function', 'mean')
+        #config.set(section, 'recursive', '0')
+        #config.set(section, 'window', '5')
+        #config.set(section, 'function', 'mean')
 
         ################
         # clusterization
@@ -477,16 +478,37 @@ def load_stage_dump(name, reader=None):
 ################################################################################
 
 def get_smooth_method(soptions):
-    assert soptions.method == 'window', 'Unknown smoothing method %s.' % soptions.method
-    assert soptions.function in ['mean', 'median'], 'Unknown smoothing function %s.' % soptions.function
-    if soptions.function == 'mean':
-        smooth = WindowSmooth(window=int(soptions.window),
-                              recursive=int(soptions.recursive),
-                              function=np.mean)
-    elif soptions.function == 'median':
-        smooth = WindowSmooth(window=int(soptions.window),
-                              recursive=int(soptions.recursive),
-                              function=np.median)
+    assert soptions.method in ['window','mss','window_mss'], 'Unknown smoothing method %s.' % soptions.method
+
+    opts = {}
+    if 'recursive' in soptions._asdict():
+        opts.update({'recursive':int(soptions.recursive)})
+
+    def window_opts():
+        if 'window' in soptions._asdict():
+            opts.update({'window':int(soptions.window)})
+        if 'function' in soptions._asdict():
+            assert soptions.function in ['mean', 'median'], 'Unknown smoothing function %s.' % soptions.function
+            if soptions.function == 'mean':
+                opts.update({'function': np.mean})
+            if soptions.function == 'median':
+                opts.update({'function': np.median})
+
+    def mss_opts():
+        if 'sigma' in soptions._asdict():
+            opts.update({'sigma':float(soptions.sigma)})
+
+    if soptions.method == 'window':
+        window_opts()
+        smooth = WindowSmooth(**opts)
+    elif soptions.method == 'mss':
+        mss_opts()
+        smooth = MaxStepSmooth(**opts)
+    elif soptions.method == 'window_mss':
+        window_opts()
+        mss_opts()
+        smooth = WindowOverMaxStepSmooth(**opts)
+
     return smooth
 
 
@@ -1065,11 +1087,14 @@ if __name__ == "__main__":
 
         if options.show_molecule:
             with log.fbm("Molecule"):
+                mda_ppr = mda.core.flags["permissive_pdb_reader"]
+                mda.core.flags["permissive_pdb_reader"] = False
                 pdb = TmpDumpWriterOfMDA()
                 frames_to_show = range2int(options.show_molecule_frames)
                 pdb.dump_frames(reader,frames=frames_to_show)
                 ConnectToPymol.load_pdb('molecule',pdb.close())
                 del pdb
+                mda.core.flags["permissive_pdb_reader"] = mda_ppr
 
 
     elif options.execute == 'skip':
