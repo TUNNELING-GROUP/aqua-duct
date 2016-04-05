@@ -77,9 +77,11 @@ class SimpleProgressBar(object):
         '''
         
         assert isinstance(maxval,(int,long))
-        assert maxval > 0
+        if maxval < 1:
+            self.maxval = 1
+        else:
+            self.maxval = maxval
 
-        self.maxval = maxval
         self.current = 0
 
         self.overrun_notice = True
