@@ -19,6 +19,9 @@ class Smooth(object):
         raise NotImplementedError("Missing implementation")
 
     def __call__(self,coords):
+        if len(coords) < 3:
+            # this make no sense if coords lenght is less then 3
+            return coords
         if self.recursive:
             coords_smooth = None
             for r in xrange(self.recursive):
@@ -66,8 +69,8 @@ class MaxStepSmooth(Smooth):
     def smooth(self, coords):
 
         n = len(coords)
-        cdiff = traces.diff(coords)
 
+        cdiff = traces.diff(coords)
         step = np.std(cdiff)*self.sigma
 
         current_step = 0
