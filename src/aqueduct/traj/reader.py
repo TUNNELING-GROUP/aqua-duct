@@ -67,13 +67,7 @@ class Reader(object):
         raise NotImplementedError()
 
 
-class ReadAmberNetCDFviaMDA(Reader):
-
-    def open_trajectory(self):
-        return mda.Universe(self.topology_file_name,
-                            self.trajectory_file_name,
-                            topology_format="prmtop",
-                            format="nc")
+class ReadViaMDA(Reader):
 
     @property
     def number_of_frames(self):
@@ -105,3 +99,19 @@ class ReadAmberNetCDFviaMDA(Reader):
             else:
                 selection += self.select_resnum(resnum)
         return SelectionMDA(selection)
+
+
+class ReadAmberNetCDFviaMDA(ReadViaMDA):
+
+    def open_trajectory(self):
+        return mda.Universe(self.topology_file_name,
+                            self.trajectory_file_name,
+                            topology_format="prmtop",format="nc")
+
+
+class ReadCDCviaMDA(ReadViaMDA):
+
+    def open_trajectory(self):
+        return mda.Universe(self.topology_file_name,
+                            self.trajectory_file_name,
+                            topology_format="psf",format="dcd")
