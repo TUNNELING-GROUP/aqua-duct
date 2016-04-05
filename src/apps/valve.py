@@ -23,7 +23,7 @@ from aqueduct.geom import traces
 from aqueduct.geom.cluster import perform_clustering
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
-from aqueduct.traj.reader import ReadAmberNetCDFviaMDA,ReadCDCviaMDA
+from aqueduct.traj.reader import ReadAmberNetCDFviaMDA,ReadDCDviaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
@@ -568,7 +568,7 @@ if __name__ == "__main__":
         topology = goptions.top
         trajectory = goptions.nc
         reader = ReadAmberNetCDFviaMDA(topology, trajectory)
-        #reader = ReadCDCviaMDA(topology, trajectory)
+        #reader = ReadDCDviaMDA(topology, trajectory)
 
     ################################################################################
     # STAGE I

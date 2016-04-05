@@ -109,7 +109,7 @@ class ReadAmberNetCDFviaMDA(ReadViaMDA):
                             topology_format="prmtop",format="nc")
 
 
-class ReadCDCviaMDA(ReadViaMDA):
+class ReadDCDviaMDA(ReadViaMDA):
 
     def open_trajectory(self):
         return mda.Universe(self.topology_file_name,
