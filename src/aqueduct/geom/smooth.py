@@ -74,18 +74,32 @@ class MaxStepSmooth(Smooth):
         for pos in xrange(n):
             current_coord = coords[pos]
             if pos == 0:
+                # yield first
                 yield current_coord
                 last_coord = current_coord
-            elif pos == n - 1:
-                yield current_coord
-                last_coord = current_coord
+                to_yield_count = 0
             else:
-                current_step = traces.diff(np.vstack((current_coord,last_coord)))
-                if current_step > step:
+                if pos == n - 1:
+                    # yield last
+                    if to_yield_count:
+                        for coord in traces.tracepoints(last_coord,current_coord,to_yield_count):
+                            yield coord
                     yield current_coord
                     last_coord = current_coord
+                    to_yield_count = 0
                 else:
-                    yield last_coord
+                    current_step = traces.diff(np.vstack((current_coord,last_coord)))
+                    if current_step > step:
+                        # yield next!
+                        if to_yield_count:
+                            for coord in traces.tracepoints(last_coord, current_coord, to_yield_count):
+                                yield coord
+                        yield current_coord
+                        last_coord = current_coord
+                        to_yield_count = 0
+                    else:
+                        # update to yield count
+                        to_yield_count += 1
 
 class WindowOverMaxStepSmooth(Smooth):
 

@@ -47,3 +47,5 @@ def midpoints(path):
         yield path[0]
 
 
+def tracepoints(start,stop,nr):
+    return np.array([np.linspace(cb,ce,nr+2)[1:-1] for cb,ce in zip(start,stop)]).T
