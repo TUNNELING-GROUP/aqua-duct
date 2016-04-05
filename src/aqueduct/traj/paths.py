@@ -8,7 +8,6 @@ from itertools import izip
 from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify
 import numpy as np
 from aqueduct.geom import traces
-from aqueduct.utils.helpers import list_blocks_to_slices
 
 
 ########################################################################################################################
@@ -383,22 +382,4 @@ class SinglePath(object,PathTypesCodes,InletTypeCodes):
         # this is permamant change
         self.coords_in,self.coords_object,self.coords_out = self.get_smooth_coords(smooth)
         
-
-def yield_spath_len_and_smooth_diff_in_types_slices(sp,smooth=None):
-
-    coords = sp.get_smooth_coords_cont(None)
-    scoords = sp.get_smooth_coords_cont(smooth)
-    dif = traces.diff(coords)
-    ldif = np.cumsum(dif)
-    sdif = traces.diff(scoords)
-
-    etypes = [''.join(t) for t in zip(sp.types_cont,sp.gtypes_cont)]
-
-    for sl in list_blocks_to_slices(etypes):
-        etype = etypes[sl]
-        ld = ldif[sl]
-        sd = sdif[sl]
-        while len(etype) > len(ld):
-            etype.pop(-1)
-        yield ld,sd,etype
 

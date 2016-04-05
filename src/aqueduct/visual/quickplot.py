@@ -1,9 +1,9 @@
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.colors import colorConverter
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import colorConverter
 
 from aqueduct.geom import traces
+from aqueduct.utils.helpers import list_blocks_to_slices
 
 # matplotlib specific
 # mpl color converter
@@ -11,31 +11,87 @@ from aqueduct.geom import traces
 cc = lambda c, alpha=1.0: colorConverter.to_rgb(c)
 
 
-def get_cmap(name,size=None):
-    return plt.get_cmap(name,lut=size)
+def get_cmap(name, size=None):
+    return plt.get_cmap(name, lut=size)
 
 
 class ColorMapDistMap(object):
-
     dist = 1
 
     grey = (0.5, 0.5, 0.5, 1)
 
-    def __init__(self,name='hsv',size=None):
-
+    def __init__(self, name='hsv', size=None):
         # size is number of nodes to be maped to distinguistive colors
         self.size = size
         # lut should be appropriately bigger - 10 times
         lut = size * self.dist + 1
         # get size
-        self.cmap = get_cmap(name,lut)
+        self.cmap = get_cmap(name, lut)
 
     def __call__(self, node):
-        if node >=0 and node < self.size:
+        if node >= 0 and node < self.size:
             # get color
-            return self.cmap(int(node)*self.dist)[:3]
+            return self.cmap(int(node) * self.dist)[:3]
         # return grey otherwise
         return self.grey[:3]
+
+
+def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None):
+    coords = sp.get_smooth_coords_cont(None)
+    scoords = sp.get_smooth_coords_cont(smooth)
+    dif = traces.diff(coords)
+    ldif = np.cumsum(dif)
+    sdif = traces.diff(scoords)
+
+    etypes = [''.join(t) for t in zip(sp.types_cont, sp.gtypes_cont)]
+
+    for sl in list_blocks_to_slices(etypes):
+        etype = etypes[sl]
+        ld = ldif[sl]
+        sd = sdif[sl]
+        while len(etype) > len(ld):
+            etype.pop(-1)
+        yield ld, sd, etype
+
+
+color_codes = {'is':'r',
+               'cc':'g',
+               'cs':'y',
+               'os':'b'}
+
+def plot_spath_spectrum(sp,smooth = None):
+
+    lsdt = list(yield_spath_len_and_smooth_diff_in_types_slices(sp,smooth=smooth))
+
+    n = len(lsdt)
+
+    last_l = None
+    last_sd = None
+    last_t = None
+    last_color = None
+    for nr,(l,sd,t) in enumerate(lsdt):
+        color = color_codes[t[-1]]
+        if nr == 0:
+            plt.plot(l,sd,color=color)
+            last_l = l[-1]
+            last_sd = sd[-1]
+            last_color = color
+        else:
+            mid_l = (last_l + l[0]) / 2
+            mid_sd = (last_sd + sd[0]) / 2
+            if nr == n - 1:
+                plt.plot([last_l,mid_l],[last_sd,mid_sd],color=last_color)
+                plt.plot([mid_l,l[0]],[mid_sd,sd[0]],color=color)
+                plt.plot(l, sd, color=color)
+            else:
+                plt.plot([last_l,mid_l],[last_sd,mid_sd],color=last_color)
+                plt.plot([mid_l,l[0]],[mid_sd,sd[0]],color=color)
+                plt.plot(l, sd, color=color)
+                last_l = l[-1]
+                last_sd = sd[-1]
+                last_color = color
+
+
 
 def showit(gen):
     def patched(*args, **kwargs):
