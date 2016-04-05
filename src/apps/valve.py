@@ -23,7 +23,7 @@ from aqueduct.geom import traces
 from aqueduct.geom.cluster import perform_clustering
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
-from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
+from aqueduct.traj.reader import ReadAmberNetCDFviaMDA,ReadCDCviaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
@@ -327,6 +327,8 @@ def CHullCheck_exec(chull, points, threads=optimal_threads):
 
 def check_res_in_scope(options, scope, res, res_coords):
     if options.scope_convexhull:
+        if len(res_coords) == 0:
+            return []
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
         current_threads = len(res_coords)
@@ -336,6 +338,8 @@ def check_res_in_scope(options, scope, res, res_coords):
 
         is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=current_threads)
     else:
+        if res.unique_resids_number() == 0:
+            return []
         res_in_scope_uids = reader.parse_selection(options.scope).unique_resids(ikwid=True)
         is_res_in_scope = [r.unique_resids(ikwid=True) in res_in_scope_uids for r in res.iterate_over_residues()]
     return is_res_in_scope
@@ -564,6 +568,7 @@ if __name__ == "__main__":
         topology = goptions.top
         trajectory = goptions.nc
         reader = ReadAmberNetCDFviaMDA(topology, trajectory)
+        #reader = ReadCDCviaMDA(topology, trajectory)
 
     ################################################################################
     # STAGE I
@@ -620,6 +625,9 @@ if __name__ == "__main__":
             pbar.update(frame)
 
         pbar.finish()
+
+        if all_res is None:
+            raise ValueError("No traceable residues was found.")
 
         log.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
