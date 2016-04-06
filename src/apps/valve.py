@@ -424,20 +424,16 @@ def load_dump(filename):
 def check_version_compilance(current, loaded, what):
     if current[0] > loaded[0]:
         log.error(
-            'Loaded data has %s major version lower then the application, \
-             possible problems with API compilance.' % what)
+            'Loaded data has %s major version lower then the application, possible problems with API compilance.' % what)
     if current[0] < loaded[0]:
         log.error(
-            'Loaded data has %s major version higher then the application, \
-             possible problems with API compilance.' % what)
+            'Loaded data has %s major version higher then the application, possible problems with API compilance.' % what)
     if current[1] > loaded[1]:
         log.warning(
-            'Loaded data has %s minor version lower then the application, \
-            possible problems with API compilance.' % what)
+            'Loaded data has %s minor version lower then the application, possible problems with API compilance.' % what)
     if current[1] < loaded[1]:
         log.warning(
-            'Loaded data has %s minor version higher then the application, \
-            possible problems with API compilance.' % what)
+            'Loaded data has %s minor version higher then the application, possible problems with API compilance.' % what)
 
 
 def check_versions(version_dict):

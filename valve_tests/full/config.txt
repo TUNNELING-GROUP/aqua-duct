@@ -4,7 +4,7 @@ nc = ../../real_traj/1cqz/prod_1cqz.nc
 pbar = simple
 
 [traceable_residues]
-execute = run
+execute = skip
 load = stage_I.dump
 save = stage_I.dump
 scope = backbone
@@ -12,13 +12,13 @@ scope_convexhull = True
 object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
 
 [raw_paths]
-execute = run
+execute = skip
 load = stage_II.dump
 save = stage_II.dump
 clear_in_object_info = False
 
 [separate_paths]
-execute = run
+execute = skip
 load = stage_III.dump
 save = stage_III.dump
 discard_empty_paths = True
@@ -36,7 +36,7 @@ save = None
 dump_config = True
 
 [smooth]
-method = window
+method = window_mss
 sigma = 5
 window = 10
 function = mean
