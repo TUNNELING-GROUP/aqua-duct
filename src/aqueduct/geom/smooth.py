@@ -59,11 +59,66 @@ class WindowSmooth(Smooth):
 
             yield self.function(coords[slice(lo,hi,None)],0).tolist()
 
+
+class ActiveWindowSmooth(Smooth):
+
+    def __init__(self,window=5,function=np.mean,**kwargs):
+        Smooth.__init__(self,**kwargs)
+        self.window = window
+        self.function = function
+
+    @arrayify
+    def smooth(self,coords):
+
+        n = len(coords)
+        d = traces.diff(coords)
+
+        for pos in xrange(n):
+
+            # lower boudary
+            lb = pos
+            ld = 0
+            while (lb>0) and (ld < self.window):
+                ld += d[lb-1]
+                lb -= 1
+            # upper boundary
+            ub = pos
+            ud = 0
+            while (ub<n-1) and (ud < self.window):
+                ud += d[ub]
+                ub += 1
+
+            lo = lb
+            hi = ub
+
+            if pos < ub:
+                lo = None
+                hi = pos*2
+                if hi == 0:
+                    hi = 1
+            else:
+                lo = lb
+
+                if n - 1 - pos < lb:
+                    lo = (n - 1 - pos)*2
+                    if lo == 0:
+                        lo = 1
+                    hi = None
+                else:
+                    hi = ub
+
+            yield self.function(coords[slice(lo,hi,None)],0).tolist()
+
+
+
+
+
+
 class MaxStepSmooth(Smooth):
 
-    def __init__(self, sigma=2, **kwargs):
+    def __init__(self, step=1., **kwargs):
         Smooth.__init__(self, **kwargs)
-        self.sigma = sigma
+        self.step = step
 
     @arrayify
     def smooth(self, coords):
@@ -71,7 +126,6 @@ class MaxStepSmooth(Smooth):
         n = len(coords)
 
         cdiff = traces.diff(coords)
-        step = np.std(cdiff)*self.sigma
 
         current_step = 0
         for pos in xrange(n):
@@ -92,7 +146,7 @@ class MaxStepSmooth(Smooth):
                     to_yield_count = 0
                 else:
                     current_step = traces.diff(np.vstack((current_coord,last_coord)))
-                    if current_step > step:
+                    if current_step > self.step:
                         # yield next!
                         if to_yield_count:
                             for coord in traces.tracepoints(last_coord, current_coord, to_yield_count):
@@ -113,4 +167,29 @@ class WindowOverMaxStepSmooth(Smooth):
         self.mss = MaxStepSmooth(**kwargs)
 
     def smooth(self,coords):
-        return self.window(self.mss(coords))
+        return self.window.smooth(self.mss.smooth(coords))
+
+if __name__ == "__main__":
+
+    import numpy as np
+
+    coords = np.random.randn(6, 3)
+
+    scoords = ActiveWindowSmooth(window=4.5)(coords)
+
+    print len(coords),len(scoords)
+
+    print coords[0]
+    print coords[1]
+    print '...'
+    print coords[-2]
+    print coords[-1]
+
+    print ''
+
+    print scoords[0]
+    print scoords[1]
+    print '...'
+    print scoords[-2]
+    print scoords[-1]
+

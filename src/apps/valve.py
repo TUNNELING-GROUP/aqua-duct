@@ -36,7 +36,7 @@ __mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
 
 
 def version():
-    return 0, 3, 5
+    return 0, 3, 6
 
 
 def version_nice():
@@ -495,8 +495,8 @@ def get_smooth_method(soptions):
                 opts.update({'function': np.median})
 
     def mss_opts():
-        if 'sigma' in soptions._asdict():
-            opts.update({'sigma': float(soptions.sigma)})
+        if 'step' in soptions._asdict():
+            opts.update({'step': float(soptions.step)})
 
     if soptions.method == 'window':
         window_opts()

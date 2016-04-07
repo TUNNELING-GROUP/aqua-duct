@@ -328,6 +328,15 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     def paths_cont(self):
         return self.path_in + self.path_object + self.path_out
 
+    ####################################################################################################################
+    # types
+
+    @property
+    def types(self):
+        return ([self.path_in_code] * len(self.path_in),
+                [self.path_object_code] * len(self.path_object),
+                [self.path_out_code] * len(self.path_out))
+
     @property
     def types_cont(self):
         return ([self.path_in_code] * len(self.path_in)) + ([self.path_object_code] * len(self.path_object)) + (
@@ -340,6 +349,19 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     @property
     def gtypes_cont(self):
         return self.types_in + self.types_object + self.types_out
+
+    @property
+    @tupleify
+    def etypes(self):
+        for t,g in zip(self.types,self.gtypes):
+            yield [''.join(t) for t in zip(t, g)]
+
+    @property
+    def etypes_cont(self):
+        return [''.join(t) for t in zip(self.types_cont, self.gtypes_cont)]
+
+    ####################################################################################################################
+
 
     @property
     def begins(self):
@@ -363,12 +385,13 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
 
     @tupleify
-    def get_smooth_coords(self, smooth=None):
+    def get_coords(self, smooth=None):
         # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
         # if smooth is not none applies smoothing
         if smooth is not None:
             if smooth != self.smooth_method:
                 self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = self._make_smooth_coords(self.coords_cont, smooth)
+                self.smooth_method = smooth
             for nr,coords in enumerate((self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out)):
                 if coords is None:
                     yield self.coords[nr]
@@ -378,9 +401,9 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
             for coords in self.coords:
                 yield coords
 
-    def get_smooth_coords_cont(self, smooth):
+    def get_coords_cont(self, smooth=None):
         # returns coords as one array
-        return np.vstack([c for c in self.get_smooth_coords(smooth) if len(c) > 0])
+        return np.vstack([c for c in self.get_coords(smooth) if len(c) > 0])
 
     @tupleify
     def _make_smooth_coords(self,coords,smooth=None):

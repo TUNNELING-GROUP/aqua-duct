@@ -3,7 +3,7 @@
 import numpy as np
 
 from aqueduct.geom import traces
-from aqueduct.visual.quickplot import cc
+from aqueduct.visual.quickplot import cc,color_codes
 from aqueduct.traj.paths import PathTypesCodes, GenericPathTypeCodes
 from aqueduct.utils.helpers import list_blocks_to_slices
 
@@ -129,26 +129,27 @@ class SinglePathPlotter(object, PathTypesCodes):
 
         self.cgo_lines.new()
 
-        for nr, trace in enumerate(traces.midpoints(spath.get_smooth_coords(smooth))):
-            # mid points!
+        # get coords
+        coords_cont = spath.get_coords_cont(smooth)
+        # create traces
+        traces_list = tuple([coords_cont[sl] for sl in list_blocks_to_slices(spath.etypes_cont)])
+
+        new_line = False
+        for trace,sl in zip(traces.midpoints(traces_list),list_blocks_to_slices(spath.etypes_cont)):
             if len(trace) > 0:
-                if (nr == 0 and plot_in) or (nr == 1 and plot_object) or (nr == 2 and plot_out):
-                    if nr == 1:
-                        # this is special case of object
-                        sts = list(list_blocks_to_slices(spath.types_object))
-                        for strace, gtype in zip(traces.midpoints(tuple([trace[s, :] for s in sts])),
-                                                 [spath.types_object[s] for s in sts]):
-                            if gtype[0] == self.path_object_code:
-                                c = color[1]
-                            else:
-                                c = color[3]
-                            self.cgo_lines.add(strace, cc(c))
-                    else:
-                        self.cgo_lines.add(trace, cc(color[nr]))
-                else:
-                    self.cgo_lines.new()
-            else:
+                # now trace has midpoints
+                # get type and etype
+                t = spath.types_cont[sl][0]
+                et = spath.etypes_cont[sl][0]
+                # plot, if allowed
+                if (plot_in and t == PathTypesCodes.path_in_code) or (plot_object and t == PathTypesCodes.path_object_code) or (plot_out and t == PathTypesCodes.path_out_code):
+                    # get color
+                    c = color_codes(et)
+                    self.cgo_lines.add(trace, cc(c))
+                    new_line = True
+            if new_line:
                 self.cgo_lines.new()
+                new_line = False
 
     def paths_trace(self,
                     spaths,

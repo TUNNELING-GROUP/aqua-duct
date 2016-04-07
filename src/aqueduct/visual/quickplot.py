@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import colorConverter
+from mpl_toolkits.mplot3d import Axes3D
 
 from aqueduct.geom import traces
 from aqueduct.utils.helpers import list_blocks_to_slices
@@ -37,13 +38,13 @@ class ColorMapDistMap(object):
 
 
 def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None):
-    coords = sp.get_smooth_coords_cont(None)
-    scoords = sp.get_smooth_coords_cont(smooth)
+    coords = sp.get_coords_cont(None)
+    scoords = sp.get_coords_cont(smooth)
     dif = traces.diff(coords)
     ldif = np.cumsum(dif)
     sdif = traces.diff(scoords)
 
-    etypes = [''.join(t) for t in zip(sp.types_cont, sp.gtypes_cont)]
+    etypes = sp.etypes_cont
 
     for sl in list_blocks_to_slices(etypes):
         etype = etypes[sl]
@@ -54,10 +55,17 @@ def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None):
         yield ld, sd, etype
 
 
-color_codes = {'is':'r',
-               'cc':'g',
-               'cs':'y',
-               'os':'b'}
+default_color_codes = {'is':'r',
+                       'cc':'g',
+                       'cs':'y',
+                       'os':'b'}
+
+def color_codes(code,custom_codes=None):
+    if custom_codes is None:
+        return default_color_codes[code]
+    else:
+        return custom_codes[code]
+
 
 def plot_spath_spectrum(sp,smooth = None):
 
@@ -70,7 +78,7 @@ def plot_spath_spectrum(sp,smooth = None):
     last_t = None
     last_color = None
     for nr,(l,sd,t) in enumerate(lsdt):
-        color = color_codes[t[-1]]
+        color = color_codes(t[-1])
         if nr == 0:
             plt.plot(l,sd,color=color)
             last_l = l[-1]
@@ -171,7 +179,7 @@ class SimpleProteinPlotter(SimpleTracePlotter):
 class SimplePathPlotter(SimpleTracePlotter):
     def single_path_traces(self, spaths, smooth=None, color=('r', 'g', 'b'), **kwargs):
         for spath in spaths:
-            self.path_trace(spath.get_smooth_coords(smooth), color=color, **kwargs)
+            self.path_trace(spath.get_coords(smooth), color=color, **kwargs)
 
 
 class MPLTracePlotter(SimplePathPlotter, SimpleProteinPlotter):
