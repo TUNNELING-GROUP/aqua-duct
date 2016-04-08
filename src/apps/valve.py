@@ -21,7 +21,7 @@ from aqueduct import version as aqueduct_version
 from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
 from aqueduct.geom.cluster import perform_clustering
-from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth
+from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, ActiveWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
@@ -478,7 +478,7 @@ def load_stage_dump(name, reader=None):
 ################################################################################
 
 def get_smooth_method(soptions):
-    assert soptions.method in ['window', 'mss', 'window_mss'], 'Unknown smoothing method %s.' % soptions.method
+    assert soptions.method in ['window', 'mss', 'window_mss', 'awin', 'awin_mss'], 'Unknown smoothing method %s.' % soptions.method
 
     opts = {}
     if 'recursive' in soptions._asdict():
@@ -486,7 +486,15 @@ def get_smooth_method(soptions):
 
     def window_opts():
         if 'window' in soptions._asdict():
-            opts.update({'window': int(soptions.window)})
+            opts.update({'window': int(float(soptions.window))})
+        function_opts()
+
+    def awin_opts():
+        if 'window' in soptions._asdict():
+            opts.update({'window': float(soptions.window)})
+        function_opts()
+
+    def function_opts():
         if 'function' in soptions._asdict():
             assert soptions.function in ['mean', 'median'], 'Unknown smoothing function %s.' % soptions.function
             if soptions.function == 'mean':
@@ -501,6 +509,9 @@ def get_smooth_method(soptions):
     if soptions.method == 'window':
         window_opts()
         smooth = WindowSmooth(**opts)
+    elif soptions.method == 'awin':
+        awin_opts()
+        smooth = ActiveWindowSmooth(**opts)
     elif soptions.method == 'mss':
         mss_opts()
         smooth = MaxStepSmooth(**opts)
@@ -508,6 +519,10 @@ def get_smooth_method(soptions):
         window_opts()
         mss_opts()
         smooth = WindowOverMaxStepSmooth(**opts)
+    elif soptions.method == 'awin_mss':
+        awin_opts()
+        mss_opts()
+        smooth = ActiveWindowOverMaxStepSmooth(**opts)
 
     return smooth
 

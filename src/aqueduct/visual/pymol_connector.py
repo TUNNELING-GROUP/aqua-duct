@@ -87,6 +87,40 @@ class BasicPymolCGOSpheres(BasicPymolCGO):
                 self.cgo_entity.append(float(r))
 
 
+
+#[cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2
+
+class BasicPymolCGOPointers(BasicPymolCGO):
+    cgo_entity_begin = []
+    cgo_entity_end = []
+
+    def add_cone(self, coords1=None, coords2=None, radius1=None, radius2=None, color1=None, color2=None):
+        # color to colors...
+
+        if coords1 is not None and coords2 is not None:
+            self.cgo_entity.append(cgo.CONE)
+            self.cgo_entity.extend(map(float, coords1))
+            self.cgo_entity.extend(map(float, coords2))
+            self.cgo_entity.append(float(radius1))
+            self.cgo_entity.append(float(radius2))
+            self.cgo_entity.extend(map(float, color1))
+            self.cgo_entity.extend(map(float, color2))
+
+            self.cgo_entity.extend([cgo.NULL, cgo.POINTS])
+
+    def add_pointer(self, point=None, direction=None, length=None, color=None):
+
+        vec = point - direction
+        vec_len = np.sqrt(np.sum((vec)**2))
+        vec = (vec/vec_len) * length
+        vec = point + vec
+
+        self.add_cone(coords1=vec,coords2=point,radius1=length/2, radius2=0, color1=color, color2=color)
+
+
+
+
+
 class ConnectToPymol(object):
     cgo_line_width = 2.
 
@@ -117,6 +151,7 @@ class SinglePathPlotter(object, PathTypesCodes):
 
         self.cgo_lines = BasicPymolCGOLines()
         self.cgo_spheres = BasicPymolCGOSpheres()
+        self.cgo_pointers = BasicPymolCGOPointers()
 
     def add_single_path_continous_trace(self,
                                         spath,
@@ -147,6 +182,8 @@ class SinglePathPlotter(object, PathTypesCodes):
                     c = color_codes(et)
                     self.cgo_lines.add(trace, cc(c))
                     new_line = True
+
+
             if new_line:
                 self.cgo_lines.new()
                 new_line = False
@@ -165,6 +202,44 @@ class SinglePathPlotter(object, PathTypesCodes):
             for nr, spath in enumerate(spaths):
                 self.add_single_path_continous_trace(spath, smooth=smooth, color=color, **kwargs)
             ConnectToPymol.add_cgo_object(name, self.cgo_lines.get(), state=1)
+        # else if state_function is not None
+        else:
+            # first lets find min and max state
+            min_state = []
+            max_state = []
+            for nr, spath in enumerate(spaths):
+                mins, maxs = state_function(nr, spath)
+                min_state.append(mins)
+                max_state.append(maxs)
+            min_state = min(min_state)
+            max_state = max(max_state)
+            # now, loop over possible states and find paths that fits into it
+            for state in range(min_state, max_state + 1):
+                self.cgo_lines.clean()
+                # now find paths that fits
+                for nr, spath in enumerate(spaths):
+                    mins, maxs = state_function(nr, spath)
+                    if state >= mins and state <= maxs:
+                        self.add_single_path_continous_trace(spath, smooth=smooth, color=color, **kwargs)
+                ConnectToPymol.add_cgo_object(name, self.cgo_lines.get(), state=state)
+
+    def paths_inlets(self,
+                    spaths,
+                    smooth=None,
+                    color=('r', 'g', 'b', 'y'),
+                    name='in-out-let',
+                    state_function=None,
+                    **kwargs):
+
+        # if state_function is None
+        if state_function is None:
+            self.cgo_pointers.clean()
+            for nr, spath in enumerate(spaths):
+                self.cgo_pointers.add_pointer(point=spath.get_coords_cont(smooth=smooth)[0],
+                                              direction=spath.get_coords_cont(smooth=smooth)[1],
+                                              length=1.,
+                                              color=cc('y'))
+            ConnectToPymol.add_cgo_object(name, self.cgo_pointers.get(), state=1)
         # else if state_function is not None
         else:
             # first lets find min and max state

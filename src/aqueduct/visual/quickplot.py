@@ -37,39 +37,45 @@ class ColorMapDistMap(object):
         return self.grey[:3]
 
 
-def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None):
-    coords = sp.get_coords_cont(None)
-    scoords = sp.get_coords_cont(smooth)
+def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=None, smooth_diff=None):
+    if smooth is not None:
+        smooth_len = smooth
+        smooth_diff = smooth
+    # len
+    coords = sp.get_coords_cont(smooth=smooth_len)
     dif = traces.diff(coords)
+    # diff
+    if smooth_diff != smooth_len:
+        coords = sp.get_coords_cont(smooth=smooth_diff)
+        dif = traces.diff(coords)
     ldif = np.cumsum(dif)
-    sdif = traces.diff(scoords)
 
     etypes = sp.etypes_cont
 
     for sl in list_blocks_to_slices(etypes):
         etype = etypes[sl]
         ld = ldif[sl]
-        sd = sdif[sl]
+        sd = dif[sl]
         while len(etype) > len(ld):
             etype.pop(-1)
         yield ld, sd, etype
 
 
-default_color_codes = {'is':'r',
-                       'cc':'g',
-                       'cs':'y',
-                       'os':'b'}
+default_color_codes = {'is': 'r',
+                       'cc': 'g',
+                       'cs': 'y',
+                       'os': 'b'}
 
-def color_codes(code,custom_codes=None):
+
+def color_codes(code, custom_codes=None):
     if custom_codes is None:
         return default_color_codes[code]
     else:
         return custom_codes[code]
 
 
-def plot_spath_spectrum(sp,smooth = None):
-
-    lsdt = list(yield_spath_len_and_smooth_diff_in_types_slices(sp,smooth=smooth))
+def plot_spath_spectrum(sp, smooth=None):
+    lsdt = list(yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=smooth))
 
     n = len(lsdt)
 
@@ -77,10 +83,10 @@ def plot_spath_spectrum(sp,smooth = None):
     last_sd = None
     last_t = None
     last_color = None
-    for nr,(l,sd,t) in enumerate(lsdt):
+    for nr, (l, sd, t) in enumerate(lsdt):
         color = color_codes(t[-1])
         if nr == 0:
-            plt.plot(l,sd,color=color)
+            plt.plot(l, sd, color=color)
             last_l = l[-1]
             last_sd = sd[-1]
             last_color = color
@@ -88,17 +94,16 @@ def plot_spath_spectrum(sp,smooth = None):
             mid_l = (last_l + l[0]) / 2
             mid_sd = (last_sd + sd[0]) / 2
             if nr == n - 1:
-                plt.plot([last_l,mid_l],[last_sd,mid_sd],color=last_color)
-                plt.plot([mid_l,l[0]],[mid_sd,sd[0]],color=color)
+                plt.plot([last_l, mid_l], [last_sd, mid_sd], color=last_color)
+                plt.plot([mid_l, l[0]], [mid_sd, sd[0]], color=color)
                 plt.plot(l, sd, color=color)
             else:
-                plt.plot([last_l,mid_l],[last_sd,mid_sd],color=last_color)
-                plt.plot([mid_l,l[0]],[mid_sd,sd[0]],color=color)
+                plt.plot([last_l, mid_l], [last_sd, mid_sd], color=last_color)
+                plt.plot([mid_l, l[0]], [mid_sd, sd[0]], color=color)
                 plt.plot(l, sd, color=color)
                 last_l = l[-1]
                 last_sd = sd[-1]
                 last_color = color
-
 
 
 def showit(gen):
