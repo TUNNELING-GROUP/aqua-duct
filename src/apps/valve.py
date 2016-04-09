@@ -21,7 +21,8 @@ from aqueduct import version as aqueduct_version
 from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
 from aqueduct.geom.cluster import perform_clustering
-from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, ActiveWindowOverMaxStepSmooth
+from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
+    ActiveWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
@@ -257,10 +258,15 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'all_paths_raw', 'True')
         config.set(section, 'all_paths_smooth', 'True')
         config.set(section, 'all_paths_split', 'True')  # split by in obj out
+        config.set(section, 'all_paths_raw_io','True')
+        config.set(section, 'all_paths_smooth_io','True')
+
         # visualize spaths, separate objects
         config.set(section, 'paths_raw', 'True')
         config.set(section, 'paths_smooth', 'True')
         config.set(section, 'paths_states', 'True')
+        config.set(section, 'paths_raw_io', 'True')
+        config.set(section, 'paths_smooth_io', 'True')
 
         # visualize clusters
         config.set(section, 'inlets_clusters', 'True')
@@ -478,7 +484,8 @@ def load_stage_dump(name, reader=None):
 ################################################################################
 
 def get_smooth_method(soptions):
-    assert soptions.method in ['window', 'mss', 'window_mss', 'awin', 'awin_mss'], 'Unknown smoothing method %s.' % soptions.method
+    assert soptions.method in ['window', 'mss', 'window_mss', 'awin',
+                               'awin_mss'], 'Unknown smoothing method %s.' % soptions.method
 
     opts = {}
     if 'recursive' in soptions._asdict():
@@ -1063,6 +1070,9 @@ if __name__ == "__main__":
                     spp.paths_trace(spaths, name='all_raw_out', plot_in=False, plot_object=False)
                 else:
                     spp.paths_trace(spaths, name='all_raw')
+        if options.all_paths_raw_io:
+            spp.paths_inlets(spaths, name='all_raw_paths_io')
+
         if options.all_paths_smooth:
             with log.fbm("All smooth paths"):
                 if options.all_paths_split:
@@ -1071,22 +1081,32 @@ if __name__ == "__main__":
                     spp.paths_trace(spaths, name='all_smooth_out', plot_in=False, plot_object=False, smooth=smooth)
                 else:
                     spp.paths_trace(spaths, name='all_smooth', smooth=smooth)
+        if options.all_paths_smooth_io:
+            spp.paths_inlets(spaths, name='all_smooth_paths_io',smooth=smooth)
 
         if options.paths_states:
             with log.fbm("Paths as states"):
                 # as one object
-                state_function = lambda nr, sp: (nr, nr)
                 if options.paths_raw:
-                    [spp.paths_trace([sp], name='raw_paths', state_function=state_function) for sp in spaths]
+                    [spp.paths_trace([sp], name='raw_paths', state=nr + 1) for nr, sp in enumerate(spaths)]
                 if options.paths_smooth:
-                    [spp.paths_trace([sp], name='smooth_paths', smooth=smooth, state_function=state_function) for sp in
-                     spaths]
+                    [spp.paths_trace([sp], name='smooth_paths', smooth=smooth, state=nr + 1) for nr, sp in
+                     enumerate(spaths)]
+                if options.paths_raw_io:
+                    [spp.paths_inlets([sp], name='raw_paths_io', state=nr + 1) for nr, sp in enumerate(spaths)]
+                if options.paths_smooth_io:
+                    [spp.paths_inlets([sp], name='smooth_paths_io', state=nr + 1, smooth=smooth) for nr, sp in
+                     enumerate(spaths)]
         else:
             with log.fbm("Paths as separate objects"):
                 if options.paths_raw:
                     [spp.paths_trace([sp], name='raw_%d' % sp.id) for sp in spaths]
                 if options.paths_smooth:
                     [spp.paths_trace([sp], name='smooth_%d' % sp.id, smooth=smooth) for sp in spaths]
+                if options.paths_raw_io:
+                    [spp.paths_inlets([sp], name='raw_paths_io_%d' % sp.id) for sp in spaths]
+                if options.paths_smooth_io:
+                    [spp.paths_inlets([sp], name='smooth_paths_io_%d' % sp.id, smooth=smooth) for sp in spaths]
 
         if options.inlets_clusters:
             with log.fbm("Clusters"):

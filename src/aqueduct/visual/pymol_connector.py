@@ -1,16 +1,15 @@
 # import it as pmc?
 
+import pymol
+from pymol import cgo
+from pymol import cmd
+
 import numpy as np
 
 from aqueduct.geom import traces
-from aqueduct.visual.quickplot import cc,color_codes
-from aqueduct.traj.paths import PathTypesCodes, GenericPathTypeCodes
+from aqueduct.traj.paths import PathTypesCodes
 from aqueduct.utils.helpers import list_blocks_to_slices
-
-import pymol
-
-from pymol import cgo
-from pymol import cmd
+from aqueduct.visual.quickplot import cc, color_codes
 
 
 class BasicPymolCGO(object):
@@ -87,16 +86,14 @@ class BasicPymolCGOSpheres(BasicPymolCGO):
                 self.cgo_entity.append(float(r))
 
 
-
-#[cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2
+# [cgo.CONE] + xyz3 + xyz2 + [hradius, 0.0] + color2 + color2
 
 class BasicPymolCGOPointers(BasicPymolCGO):
     cgo_entity_begin = []
     cgo_entity_end = []
 
     def add_cone(self, coords1=None, coords2=None, radius1=None, radius2=None, color1=None, color2=None):
-        # color to colors...
-
+        # color to colors... ???
         if coords1 is not None and coords2 is not None:
             self.cgo_entity.append(cgo.CONE)
             self.cgo_entity.extend(map(float, coords1))
@@ -108,17 +105,15 @@ class BasicPymolCGOPointers(BasicPymolCGO):
 
             self.cgo_entity.extend([cgo.NULL, cgo.POINTS])
 
-    def add_pointer(self, point=None, direction=None, length=None, color=None):
-
+    def add_pointer(self, point=None, direction=None, length=None, color=None, reverse=False):
         vec = point - direction
-        vec_len = np.sqrt(np.sum((vec)**2))
-        vec = (vec/vec_len) * length
+        vec_len = np.sqrt(np.sum((vec) ** 2))
+        vec = (vec / vec_len) * length
         vec = point + vec
-
-        self.add_cone(coords1=vec,coords2=point,radius1=length/2, radius2=0, color1=color, color2=color)
-
-
-
+        if reverse:
+            self.add_cone(coords1=point, coords2=vec, radius1=length / 3., radius2=0, color1=color, color2=color)
+        else:
+            self.add_cone(coords1=vec, coords2=point, radius1=length / 3., radius2=0, color1=color, color2=color)
 
 
 class ConnectToPymol(object):
@@ -146,7 +141,7 @@ class ConnectToPymol(object):
         cmd.load(filename, state=state, object=name)
 
 
-class SinglePathPlotter(object, PathTypesCodes):
+class SinglePathPlotter(object):
     def __init__(self):
 
         self.cgo_lines = BasicPymolCGOLines()
@@ -156,7 +151,6 @@ class SinglePathPlotter(object, PathTypesCodes):
     def add_single_path_continous_trace(self,
                                         spath,
                                         smooth=None,
-                                        color=('r', 'g', 'b', 'y'),
                                         plot_in=True,
                                         plot_object=True,
                                         plot_out=True,
@@ -170,98 +164,80 @@ class SinglePathPlotter(object, PathTypesCodes):
         traces_list = tuple([coords_cont[sl] for sl in list_blocks_to_slices(spath.etypes_cont)])
 
         new_line = False
-        for trace,sl in zip(traces.midpoints(traces_list),list_blocks_to_slices(spath.etypes_cont)):
+        for trace, sl in zip(traces.midpoints(traces_list), list_blocks_to_slices(spath.etypes_cont)):
             if len(trace) > 0:
                 # now trace has midpoints
                 # get type and etype
                 t = spath.types_cont[sl][0]
                 et = spath.etypes_cont[sl][0]
                 # plot, if allowed
-                if (plot_in and t == PathTypesCodes.path_in_code) or (plot_object and t == PathTypesCodes.path_object_code) or (plot_out and t == PathTypesCodes.path_out_code):
+                if (plot_in and t == PathTypesCodes.path_in_code) or (
+                    plot_object and t == PathTypesCodes.path_object_code) or (
+                    plot_out and t == PathTypesCodes.path_out_code):
                     # get color
                     c = color_codes(et)
                     self.cgo_lines.add(trace, cc(c))
-                    new_line = True
-
+                    # new_line = True
 
             if new_line:
                 self.cgo_lines.new()
                 new_line = False
 
-    def paths_trace(self,
-                    spaths,
+    def paths_trace(self, spaths,
                     smooth=None,
-                    color=('r', 'g', 'b', 'y'),
                     name='paths',
-                    state_function=None,
+                    state=None,
                     **kwargs):
 
         # if state_function is None
-        if state_function is None:
-            self.cgo_lines.clean()
-            for nr, spath in enumerate(spaths):
-                self.add_single_path_continous_trace(spath, smooth=smooth, color=color, **kwargs)
-            ConnectToPymol.add_cgo_object(name, self.cgo_lines.get(), state=1)
-        # else if state_function is not None
-        else:
-            # first lets find min and max state
-            min_state = []
-            max_state = []
-            for nr, spath in enumerate(spaths):
-                mins, maxs = state_function(nr, spath)
-                min_state.append(mins)
-                max_state.append(maxs)
-            min_state = min(min_state)
-            max_state = max(max_state)
-            # now, loop over possible states and find paths that fits into it
-            for state in range(min_state, max_state + 1):
-                self.cgo_lines.clean()
-                # now find paths that fits
-                for nr, spath in enumerate(spaths):
-                    mins, maxs = state_function(nr, spath)
-                    if state >= mins and state <= maxs:
-                        self.add_single_path_continous_trace(spath, smooth=smooth, color=color, **kwargs)
-                ConnectToPymol.add_cgo_object(name, self.cgo_lines.get(), state=state)
+        if state is None:
+            state = 1
+        self.cgo_lines.clean()
+        for nr, spath in enumerate(spaths):
+            self.add_single_path_continous_trace(spath, smooth=smooth, **kwargs)
+        ConnectToPymol.add_cgo_object(name, self.cgo_lines.get(), state=state)
 
-    def paths_inlets(self,
-                    spaths,
-                    smooth=None,
-                    color=('r', 'g', 'b', 'y'),
-                    name='in-out-let',
-                    state_function=None,
-                    **kwargs):
+    def paths_inlets(self, spaths,
+                     smooth=None,
+                     color=None,
+                     plot_in=True,
+                     plot_out=True,
+                     name='in-out-let',
+                     state=None,
+                     **kwargs):
 
-        # if state_function is None
-        if state_function is None:
-            self.cgo_pointers.clean()
-            for nr, spath in enumerate(spaths):
-                self.cgo_pointers.add_pointer(point=spath.get_coords_cont(smooth=smooth)[0],
-                                              direction=spath.get_coords_cont(smooth=smooth)[1],
+        if state is None:
+            state = 1
+        self.cgo_pointers.clean()
+        for nr, spath in enumerate(spaths):
+            coords = spath.get_coords_cont(smooth=smooth)
+            etypes = spath.etypes_cont
+            if plot_in:
+                if color is None:
+                    c = color_codes(etypes[0])
+                else:
+                    c = color
+                self.cgo_pointers.add_pointer(point=coords[0],
+                                              direction=coords[1],
                                               length=1.,
-                                              color=cc('y'))
-            ConnectToPymol.add_cgo_object(name, self.cgo_pointers.get(), state=1)
-        # else if state_function is not None
-        else:
-            # first lets find min and max state
-            min_state = []
-            max_state = []
-            for nr, spath in enumerate(spaths):
-                mins, maxs = state_function(nr, spath)
-                min_state.append(mins)
-                max_state.append(maxs)
-            min_state = min(min_state)
-            max_state = max(max_state)
-            # now, loop over possible states and find paths that fits into it
-            for state in range(min_state, max_state + 1):
-                self.cgo_lines.clean()
-                # now find paths that fits
-                for nr, spath in enumerate(spaths):
-                    mins, maxs = state_function(nr, spath)
-                    if state >= mins and state <= maxs:
-                        self.add_single_path_continous_trace(spath, smooth=smooth, color=color, **kwargs)
-                ConnectToPymol.add_cgo_object(name, self.cgo_lines.get(), state=state)
+                                              color=cc(c))
+            if plot_out:
+                if color is None:
+                    c = color_codes(etypes[-1])
+                else:
+                    c = color
+                self.cgo_pointers.add_pointer(point=coords[-1],
+                                              direction=coords[-2],
+                                              length=1.,
+                                              color=cc(c),
+                                              reverse=True)
+        ConnectToPymol.add_cgo_object(name, self.cgo_pointers.get(), state=state)
 
-    def scatter(self, coords, radius=0.4, color='r', name='scatter', state=None):
+    def scatter(self, coords,
+                radius=0.4,
+                color='r',
+                name='scatter',
+                state=None):
 
         if isinstance(color, str):
             color = cc(color)

@@ -63,7 +63,7 @@ class GeneralWindow():
 class WindowSmooth(Smooth, GeneralWindow):
     def __init__(self, window=5, function=np.mean, **kwargs):
         Smooth.__init__(self, **kwargs)
-        self.window = window
+        self.window = int(window)
         self.function = function
 
     @arrayify
@@ -82,7 +82,7 @@ class WindowSmooth(Smooth, GeneralWindow):
 class ActiveWindowSmooth(Smooth, GeneralWindow):
     def __init__(self, window=5, function=np.mean, **kwargs):
         Smooth.__init__(self, **kwargs)
-        self.window = window
+        self.window = float(window)
         self.function = function
 
     @arrayify

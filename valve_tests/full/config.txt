@@ -31,14 +31,14 @@ save = stage_IV.dump
 apply_smoothing = False
 
 [analysis]
-execute = run
+execute = skip
 save = None
 dump_config = True
 
 [smooth]
-method = window_mss
-sigma = 5
-window = 10
+method = mss
+step = 4.5
+window = 4.5
 function = mean
 recursive = 1
 
@@ -52,8 +52,12 @@ execute = run
 all_paths_raw = True
 all_paths_smooth = True
 all_paths_split = True
+all_paths_raw_io = True
+all_paths_smooth_io = True
 paths_raw = True
 paths_smooth = True
+paths_raw_io = True
+paths_smooth_io = True
 paths_states = True
 inlets_clusters = True
 show_molecule = backbone
