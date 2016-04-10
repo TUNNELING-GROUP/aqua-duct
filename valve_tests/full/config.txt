@@ -25,7 +25,7 @@ discard_empty_paths = True
 sort_by_id = True
 
 [inlets_clusterization]
-execute = run
+execute = skip
 load = stage_IV.dump
 save = stage_IV.dump
 apply_smoothing = False

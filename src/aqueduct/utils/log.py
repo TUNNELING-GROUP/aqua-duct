@@ -3,7 +3,7 @@ Module comprises convieniences functions and definitios for logging
 purposes including progress bar helpers.
 '''
 
-#__all__ = ['debug','info','warning','error','critical','pbar']
+# __all__ = ['debug','info','warning','error','critical','pbar']
 
 import logging
 import time
@@ -12,12 +12,12 @@ from os import linesep
 from sys import stderr
 
 
-def smart_time_string(s, rl=0,t=1.1):
+def smart_time_string(s, rl=0, t=1.1):
     '''
     Function transforms time in seconds to nicely formated string of
     lenght 10. Depending on number of seconds time is represented with
     one or two of the following units:
-    
+
     ========= =================
     Unit name Unit abbreviation
     ========= =================
@@ -26,14 +26,13 @@ def smart_time_string(s, rl=0,t=1.1):
     hours     h
     days      d
     ========= =================
-        
+
     :param int s: input time in seconds
     :param int rl: number of units already used for representing time
-    :param float t: exces above standard number of current time units 
-    
+    :param float t: exces above standard number of current time units
+
     :return: string of nicely formated time
     :rtype: str
-    
     '''
     output = ''
     rl += 1
@@ -57,6 +56,8 @@ class SimpleProgressBar(object):
     '''
     Simple progress bar displaying progress in % and ETA.
     Progress is measured by iterations.
+    
+    :cvar str rotate: string comprising characters with frames of a rotating toy
     
     :ivar int maxval: maximal number of iterations
     :ivar int current: current number of iterations
