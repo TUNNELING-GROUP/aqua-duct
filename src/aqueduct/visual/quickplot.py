@@ -44,11 +44,12 @@ def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=
     # len
     coords = sp.get_coords_cont(smooth=smooth_len)
     dif = traces.diff(coords)
+    ldif = np.cumsum(dif)
     # diff
     if smooth_diff != smooth_len:
         coords = sp.get_coords_cont(smooth=smooth_diff)
         dif = traces.diff(coords)
-    ldif = np.cumsum(dif)
+    #ldif = np.array(range(len(dif))) # same OX
 
     etypes = sp.etypes_cont
 
@@ -74,8 +75,8 @@ def color_codes(code, custom_codes=None):
         return custom_codes[code]
 
 
-def plot_spath_spectrum(sp, smooth=None):
-    lsdt = list(yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=smooth))
+def plot_spath_spectrum(sp, **kwargs):
+    lsdt = list(yield_spath_len_and_smooth_diff_in_types_slices(sp, **kwargs))
 
     n = len(lsdt)
 

@@ -22,7 +22,7 @@ from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
 from aqueduct.geom.cluster import perform_clustering
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
-    ActiveWindowOverMaxStepSmooth
+    ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
 from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
@@ -37,7 +37,7 @@ __mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
 
 
 def version():
-    return 0, 3, 6
+    return 0, 3, 7
 
 
 def version_nice():
@@ -207,6 +207,8 @@ class ValveConfig(object, ConfigSpecialNames):
 
         config.set(section, 'discard_empty_paths', 'True')
         config.set(section, 'sort_by_id', 'True')
+        config.set(section, 'apply_smoothing', 'False')
+        config.set(section, 'apply_soft_smoothing', 'True')
 
         ################
         # stage IV
@@ -215,8 +217,6 @@ class ValveConfig(object, ConfigSpecialNames):
         config.add_section(section)
 
         common(section)
-
-        config.set(section, 'apply_smoothing', 'False')
 
         ################
         # smooth
@@ -258,8 +258,8 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'all_paths_raw', 'True')
         config.set(section, 'all_paths_smooth', 'True')
         config.set(section, 'all_paths_split', 'True')  # split by in obj out
-        config.set(section, 'all_paths_raw_io','True')
-        config.set(section, 'all_paths_smooth_io','True')
+        config.set(section, 'all_paths_raw_io', 'True')
+        config.set(section, 'all_paths_smooth_io', 'True')
 
         # visualize spaths, separate objects
         config.set(section, 'paths_raw', 'True')
@@ -485,7 +485,7 @@ def load_stage_dump(name, reader=None):
 
 def get_smooth_method(soptions):
     assert soptions.method in ['window', 'mss', 'window_mss', 'awin',
-                               'awin_mss'], 'Unknown smoothing method %s.' % soptions.method
+                               'awin_mss', 'dwin', 'dwin_mss'], 'Unknown smoothing method %s.' % soptions.method
 
     opts = {}
     if 'recursive' in soptions._asdict():
@@ -519,6 +519,9 @@ def get_smooth_method(soptions):
     elif soptions.method == 'awin':
         awin_opts()
         smooth = ActiveWindowSmooth(**opts)
+    elif soptions.method == 'dwin':
+        awin_opts()
+        smooth = DistanceWindowSmooth(**opts)
     elif soptions.method == 'mss':
         mss_opts()
         smooth = MaxStepSmooth(**opts)
@@ -530,6 +533,10 @@ def get_smooth_method(soptions):
         awin_opts()
         mss_opts()
         smooth = ActiveWindowOverMaxStepSmooth(**opts)
+    elif soptions.method == 'dwin_mss':
+        awin_opts()
+        mss_opts()
+        smooth = DistanceWindowOverMaxStepSmooth(**opts)
 
     return smooth
 
@@ -771,6 +778,7 @@ if __name__ == "__main__":
     log.message('Starting Stage III: %s' % config.stage_names(2))
     options = config.get_stage_options(2)
     log.message('Execute mode: %s' % options.execute)
+    soptions = config.get_smooth_options()
 
     # execute?
     if options.execute == 'run':
@@ -792,6 +800,23 @@ if __name__ == "__main__":
         if options.sort_by_id:
             with log.fbm("Sort separate paths by resid"):
                 spaths = sorted(spaths, key=lambda sp: sp.id)
+        # apply smoothing?
+        if options.apply_smoothing:
+            log.message('Applying hard smoothing:')
+            smooth = get_smooth_method(soptions)
+            pbar = log.pbar(len(spaths), kind=pbar_name)
+            for nr, sp in enumerate(spaths):
+                sp.apply_smoothing(smooth)
+                pbar.update(nr + 1)
+            pbar.finish()
+        if options.apply_soft_smoothing:
+            log.message('Applying soft smoothing:')
+            smooth = get_smooth_method(soptions)
+            pbar = log.pbar(len(spaths), kind=pbar_name)
+            for nr, sp in enumerate(spaths):
+                sp.get_coords(smooth=smooth)
+                pbar.update(nr + 1)
+            pbar.finish()
 
         ###########
         # S A V E #
@@ -799,7 +824,8 @@ if __name__ == "__main__":
         save_stage_dump(options.save,
                         paths=paths,
                         spaths=spaths,
-                        options=options)
+                        options=options,
+                        soptions=soptions)
 
     elif options.execute in ['skip']:
         ###########
@@ -822,16 +848,9 @@ if __name__ == "__main__":
     options = config.get_stage_options(3)
     log.message('Execute mode: %s' % options.execute)
     coptions = config.get_cluster_options()
-    soptions = config.get_smooth_options()
 
     # execute?
     if options.execute == 'run':
-        # apply smoothing?
-        if options.apply_smoothing:
-            with log.fbm('Applying smoothing'):
-                smooth = get_smooth_method(soptions)
-                for sp in spaths:
-                    sp.apply_smoothing(smooth)
 
         # find coords of inlets, type and id
         inlet_coords = []
@@ -855,6 +874,7 @@ if __name__ == "__main__":
                 # perform clusterization
                 clusters = perform_clustering(np.array(inlet_coords), eps=float(coptions.eps),
                                               min_samples=int(coptions.min_samples))
+                clusters += 1  # -1 is 0 now and it means unclustered
         else:
             log.message("No inlets found. Clusterization skipped.")
             clusters = np.array([])
@@ -869,8 +889,7 @@ if __name__ == "__main__":
                         inlet_spnr=inlet_spnr,
                         clusters=clusters,
                         options=options,
-                        coptions=coptions,
-                        soptions=soptions)
+                        coptions=coptions)
 
     elif options.execute in ['skip']:
         ###########
@@ -982,9 +1001,9 @@ if __name__ == "__main__":
         ############
         print >> fh, asep()
         print >> fh, "Number of inlets:", len(inlet_id)
-        no_of_clusters = len(set([c for c in clusters if c != -1]))
+        no_of_clusters = len(set([c for c in clusters if c != 0]))
         print >> fh, "Number of clusters:", no_of_clusters
-        print >> fh, "Outliers:", {True: 'yes', False: 'no'}[-1 in clusters]
+        print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in clusters]
 
         ############
         print >> fh, asep()
@@ -1006,10 +1025,11 @@ if __name__ == "__main__":
         ############
         print >> fh, asep()
         print >> fh, "Separate paths inlets clusters"
-        header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2 + ['%8s'] * 1)
-        header = header_template % tuple("Nr ID INP OUT Type".split())
+        header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2)
+        header = header_template % tuple("Nr ID INP OUT".split())
         print >> fh, thead(header)
-        line_template = " ".join(['%7d'] * 2 + ['%7s'] * 2 + ['%8s'] * 1)
+        line_template = " ".join(['%7d'] * 2 + ['%7s'] * 2)
+        spaths_clust_type = []
         for nr, sp in enumerate(spaths):
             line = [nr, sp.id]
             ids = [nr for nr, iid in enumerate(inlet_id) if iid == sp.id]
@@ -1021,19 +1041,41 @@ if __name__ == "__main__":
                     if inlet_type[iid] == InletTypeCodes.inlet_out_code:
                         out = int(clusters[iid])
             line.extend(map(str, [inp, out]))
-            # type?
-            if inp is None and out is None:
-                ctype = 'internal'
-            if inp is not None and out is None:
-                ctype = 'incoming'
-            if inp is None and out is not None:
-                ctype = 'outgoing'
-            if inp is not None and out is not None:
-                if inp == out:
-                    ctype = 'in-out'
-                else:
-                    ctype = 'through'
-            line.append(ctype)
+            spaths_clust_type.append((inp,out))
+            print >> fh, line_template % tuple(line)
+
+        ############
+        print >> fh, asep()
+        print >> fh, "Clusters type summary"
+        clusters_type_list = list(set(spaths_clust_type))
+        clusters_type_list = sorted(sorted(clusters_type_list),key=lambda x: x[:1].count(None)+x.count(None))
+        header_template = " ".join(['%7s'] * 3)
+        header = header_template % tuple("Nr CType Size".split())
+        print >> fh, thead(header)
+        line_template = "%7d %7s %7d"
+
+        def clusters_type_name(inp_cluster,out_cluster):
+            name_of_cluster = ''
+            if inp_cluster is None:
+                name_of_cluster += 'N'
+            else:
+                name_of_cluster += str(inp_cluster)
+            name_of_cluster += ':'
+            if out_cluster is None:
+                name_of_cluster += 'N'
+            else:
+                name_of_cluster += str(out_cluster)
+            return name_of_cluster
+
+        for nr, ct in enumerate(clusters_type_list):
+            line = [nr]
+            cts = clusters_type_name(*ct)
+            line.append(cts)
+            # inlets types of current cluster
+            line.append(spaths_clust_type.count(ct))
+            # calculate some statistics
+
+
             print >> fh, line_template % tuple(line)
 
         if options.save:
@@ -1082,7 +1124,7 @@ if __name__ == "__main__":
                 else:
                     spp.paths_trace(spaths, name='all_smooth', smooth=smooth)
         if options.all_paths_smooth_io:
-            spp.paths_inlets(spaths, name='all_smooth_paths_io',smooth=smooth)
+            spp.paths_inlets(spaths, name='all_smooth_paths_io', smooth=smooth)
 
         if options.paths_states:
             with log.fbm("Paths as states"):

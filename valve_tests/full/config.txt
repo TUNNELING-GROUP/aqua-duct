@@ -23,32 +23,33 @@ load = stage_III.dump
 save = stage_III.dump
 discard_empty_paths = True
 sort_by_id = True
-
-[inlets_clusterization]
-execute = skip
-load = stage_IV.dump
-save = stage_IV.dump
 apply_smoothing = False
-
-[analysis]
-execute = skip
-save = None
-dump_config = True
+apply_soft_smoothing = True
 
 [smooth]
-method = mss
+method = dwin_mss
 step = 4.5
 window = 4.5
 function = mean
 recursive = 1
+
+[inlets_clusterization]
+execute = run
+load = stage_IV.dump
+save = stage_IV.dump
 
 [clusterization]
 method = dbscan
 eps = 5.0
 min_samples = 3
 
-[visualize]
+[analysis]
 execute = run
+save = None
+dump_config = True
+
+[visualize]
+execute = skip
 all_paths_raw = True
 all_paths_smooth = True
 all_paths_split = True

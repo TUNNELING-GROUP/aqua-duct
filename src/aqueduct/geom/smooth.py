@@ -79,6 +79,30 @@ class WindowSmooth(Smooth, GeneralWindow):
             yield self.function(coords[slice(lo, hi, None)], 0).tolist()
 
 
+class DistanceWindowSmooth(Smooth, GeneralWindow):
+    def __init__(self, window=5, function=np.mean, **kwargs):
+        Smooth.__init__(self, **kwargs)
+        self.window = float(window)
+        self.function = function
+
+    @arrayify
+    def smooth(self, coords):
+        n = len(coords)
+        cdiff = traces.diff(coords)
+        avgw = self.function(cdiff)
+        window = int(np.ceil(self.window / avgw))
+        if window < 1:
+            window = 1
+
+        for pos in xrange(n):
+            lo, hi = self.max_window_at_pos(pos, n)
+            lo = max(pos - window, lo)
+            hi = min(pos + window, hi)
+            lo, hi = self.check_bounds_at_max_window_at_pos(lo, hi, pos, n)
+
+            yield self.function(coords[slice(lo, hi, None)], 0).tolist()
+
+
 class ActiveWindowSmooth(Smooth, GeneralWindow):
     def __init__(self, window=5, function=np.mean, **kwargs):
         Smooth.__init__(self, **kwargs)
@@ -104,7 +128,7 @@ class ActiveWindowSmooth(Smooth, GeneralWindow):
             ub = pos
             ud = 0
             while (ub < n) and (ud < self.window):
-                if ub < n -1:
+                if ub < n - 1:
                     ud += d[ub]
                 ub += 1
 
@@ -167,11 +191,23 @@ class WindowOverMaxStepSmooth(Smooth):
     def smooth(self, coords):
         return self.window.smooth(self.mss.smooth(coords))
 
+
 class ActiveWindowOverMaxStepSmooth(Smooth):
     def __init__(self, **kwargs):
         Smooth.__init__(self, **kwargs)
 
         self.window = ActiveWindowSmooth(**kwargs)
+        self.mss = MaxStepSmooth(**kwargs)
+
+    def smooth(self, coords):
+        return self.window.smooth(self.mss.smooth(coords))
+
+
+class DistanceWindowOverMaxStepSmooth(Smooth):
+    def __init__(self, **kwargs):
+        Smooth.__init__(self, **kwargs)
+
+        self.window = DistanceWindowSmooth(**kwargs)
         self.mss = MaxStepSmooth(**kwargs)
 
     def smooth(self, coords):
