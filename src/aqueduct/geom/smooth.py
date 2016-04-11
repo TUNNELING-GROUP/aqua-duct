@@ -1,13 +1,13 @@
-'''
+"""
 Created on Dec 15, 2015
 
 @author: tljm
-'''
+"""
+
+import numpy as np
 
 from aqueduct.geom import traces
 from aqueduct.utils.helpers import arrayify
-
-import numpy as np
 
 
 class Smooth(object):
@@ -33,7 +33,7 @@ class Smooth(object):
         return self.smooth(coords)
 
 
-class GeneralWindow():
+class GeneralWindow:
     @staticmethod
     def max_window_at_pos(pos, size):
         # size is lenght
@@ -116,8 +116,6 @@ class ActiveWindowSmooth(Smooth, GeneralWindow):
         d = traces.diff(coords)
 
         for pos in xrange(n):
-            lo, hi = self.max_window_at_pos(pos, n)
-
             # lower boudary
             lb = pos
             ld = 0
@@ -147,9 +145,6 @@ class MaxStepSmooth(Smooth):
 
         n = len(coords)
 
-        cdiff = traces.diff(coords)
-
-        current_step = 0
         for pos in xrange(n):
             current_coord = coords[pos]
             if pos == 0:
@@ -214,40 +209,3 @@ class DistanceWindowOverMaxStepSmooth(Smooth):
         return self.window.smooth(self.mss.smooth(coords))
 
 
-if __name__ == "__main__":
-
-    n = 60
-
-    for pos in range(n):
-        lo, hi = GeneralWindow.max_window_at_pos(pos, n)
-        sl = slice(lo, hi)
-        print pos, (lo, hi)
-        print range(n)[sl]
-
-    # exit()
-
-
-    n = 6000
-
-    import numpy as np
-
-    coords = np.random.randn(n, 3)
-
-    # scoords = ActiveWindowSmooth(window=4.5)(coords)
-    scoords = ActiveWindowSmooth(window=10)(coords)
-
-    print len(coords), len(scoords)
-
-    print coords[0]
-    print coords[1]
-    print '...'
-    print coords[-2]
-    print coords[-1]
-
-    print ''
-
-    print scoords[0]
-    print scoords[1]
-    print '...'
-    print scoords[-2]
-    print scoords[-1]
