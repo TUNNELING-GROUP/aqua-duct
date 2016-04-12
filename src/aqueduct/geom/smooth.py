@@ -49,6 +49,7 @@ class GeneralWindow:
         return lo, hi
 
     def check_bounds_at_max_window_at_pos(self, lb, ub, pos, size):
+        assert ub > pos
         lo, hi = self.max_window_at_pos(pos, size)
         if (pos - 0) <= (size - pos - 1):
             # first half case
