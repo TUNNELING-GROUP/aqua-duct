@@ -6,10 +6,10 @@ purposes including progress bar helpers.
 # __all__ = ['debug','info','warning','error','critical','pbar']
 
 import logging
-import time
-
 from os import linesep
 from sys import stderr
+import time
+import datetime
 
 
 def smart_time_string(s, rl=0, t=1.1):
@@ -47,9 +47,39 @@ def smart_time_string(s, rl=0, t=1.1):
         elif s < t * 3600 * 24:
             output = ("%2.2d h" % (int(s) / 3600)) + ' ' + smart_time_string(int(s) % 3600, rl).strip()
         elif True:  # s < t*3600*24*365:
-            output =  ("%d d" % (int(s) / (3600 * 24))) + ' ' + smart_time_string(int(s) % (3600 * 24), rl).strip()
-    return (output+" "*10)[:10]
+            output = ("%d d" % (int(s) / (3600 * 24))) + ' ' + smart_time_string(int(s) % (3600 * 24), rl).strip()
+    return (output + " " * 10)[:10]
 
+
+###################################
+# vis separators
+
+def gsep(sep='-', times=72, length=None):
+    # generic separator
+    return (sep * times)[:length]
+
+
+def tsep(line):
+    # auto line sep
+    return gsep(sep='-', times=len(line))
+
+
+def underline(line):
+    uline = line
+    uline += linesep
+    uline += tsep(line)
+    return uline
+
+
+def thead(line):
+    header = tsep(line)
+    header += linesep
+    header += line
+    header += linesep
+    header += tsep(line)
+    return header
+
+###################################
 
 
 class SimpleProgressBar(object):
@@ -71,13 +101,13 @@ class SimpleProgressBar(object):
 
     barlenght = 24
 
-    def __init__(self,maxval=None):
+    def __init__(self, maxval=None):
         '''
         :param int maxval: maximal number of iterations stored to :ivar:`maxval`
         
         '''
-        
-        assert isinstance(maxval,(int,long))
+
+        assert isinstance(maxval, (int, long))
         if maxval < 1:
             self.maxval = 1
         else:
@@ -87,19 +117,19 @@ class SimpleProgressBar(object):
 
         self.overrun_notice = True
         self.overrun = False
-        
+
         self.begin = time.time()
         self.tcurrent = self.begin
         self.show()
 
     def bar(self):
-        barval = int(self.percent()/100*self.barlenght)
+        barval = int(self.percent() / 100 * self.barlenght)
         if barval > self.barlenght:
             barval = self.barlenght
-        bar = '#'*barval
+        bar = '#' * barval
         if self.current:
             bar += self.rotate[self.current % len(self.rotate)]
-        bar += ' '*self.barlenght
+        bar += ' ' * self.barlenght
         return '[%s]' % bar[:self.barlenght]
 
     def ETA(self):
@@ -115,9 +145,9 @@ class SimpleProgressBar(object):
         if self.current == 0:
             return '?'
         diff = self.tcurrent - self.begin
-        periteration = diff/self.current
-        expected = periteration*self.maxval
-        eta = periteration*(self.maxval-self.current)
+        periteration = diff / self.current
+        expected = periteration * self.maxval
+        eta = periteration * (self.maxval - self.current)
 
         return smart_time_string(eta)
 
@@ -130,9 +160,8 @@ class SimpleProgressBar(object):
         :returns: percent progress number
         :rtype: float
         '''
-        percent = float(self.current)/float(self.maxval)*100
+        percent = float(self.current) / float(self.maxval) * 100
         return percent
-
 
     def show(self):
         '''
@@ -152,11 +181,11 @@ class SimpleProgressBar(object):
                 stderr.write(linesep)
                 self.overrun_notice = False
                 self.overrun = True
-            stderr.write("\r%d iterations out of %d. Total time: %s" % (self.current,self.maxval,self.ttime()))
+            stderr.write("\r%d iterations out of %d. Total time: %s" % (self.current, self.maxval, self.ttime()))
         elif not self.overrun:
-            stderr.write("\r%3d%% %s ETA: %s" % (self.percent(),self.bar(),self.ETA()))
+            stderr.write("\r%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA()))
 
-    def update(self,step):
+    def update(self, step):
         '''
         Updates number of current iterations :obj:`current` by one if :obj:`step` is > 0.
         Otherwise number of current iterations is not updated.
@@ -180,7 +209,7 @@ class SimpleProgressBar(object):
         :return: string of total time
         :rtype: str
         '''
-        return smart_time_string(self.tcurrent-self.begin)
+        return smart_time_string(self.tcurrent - self.begin)
 
     def finish(self):
         '''
@@ -195,7 +224,8 @@ class SimpleProgressBar(object):
         stderr.write("Total time: %s" % self.ttime())
         stderr.write(linesep)
 
-#TODO: try to add tqdm as an alternative for progressbarr which does not work very well in ipython
+
+# TODO: try to add tqdm as an alternative for progressbarr which does not work very well in ipython
 
 
 class pbar(object):
@@ -218,7 +248,8 @@ class pbar(object):
         :class:`SimpleProgressBar` is the only one kind of progress bar recommended.
     
     '''
-    def __init__(self,maxval=100,kind='simple'):
+
+    def __init__(self, maxval=100, kind='simple'):
         '''
         :param int maxval: maximal number of iterations stored to :ivar:`__maxval` and passed child progress bar object
         :param str kind: type of progress bar, available types: simple, progressbar, tqdm, pyprind
@@ -235,18 +266,18 @@ class pbar(object):
         if self.__kind == "progressbar":
             import progressbar as pb
             widgets = [pb.Percentage(), ' ',
-               pb.Bar(), ' ',
-               pb.ETA()]
-            self.__pbar = pb.ProgressBar(widgets=widgets,maxval=maxval).start()
+                       pb.Bar(), ' ',
+                       pb.ETA()]
+            self.__pbar = pb.ProgressBar(widgets=widgets, maxval=maxval).start()
         elif self.__kind == "tqdm":
             # it does not work as expected
             from tqdm import tqdm
-            self.__pbar = tqdm(leave=True,ascii=True,total=maxval)
+            self.__pbar = tqdm(leave=True, ascii=True, total=maxval)
         elif self.__kind == "pyprind":
             import pyprind
             self.__pbar = pyprind.ProgBar(maxval)
 
-    def update(self,val):
+    def update(self, val):
         '''
         Updates progress bar with value of :obj:`val` parameter. Exact behavior depends
         on the type of progress bar.
@@ -266,16 +297,19 @@ class pbar(object):
         Finishes progress bar. It cals appropriate, if exist, method of child progress bar object.
         is writen to standard error.
         '''
-        if self.__kind in ["progressbar","simple"]:
+        if self.__kind in ["progressbar", "simple"]:
             self.__pbar.finish()
         if self.__kind == "tqdm":
             self.__pbar.close()
 
 
+def get_str_timestamp():
+    return str(datetime.datetime(*tuple(time.localtime())[:6]))
+
 
 level = logging.WARNING
-#format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
-format = linesep+'AQUARIUM:%(levelname)s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
+# format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
+format = linesep + 'AQUARIUM:%(levelname)s:[%(module)s|%(funcName)s@s%(lineno)d]:' + linesep + '%(message)s'
 
 logging.basicConfig(format=format, level=level)
 
@@ -285,16 +319,20 @@ warning = logging.warning
 error = logging.error
 critical = logging.critical
 
+
 class fbm(object):
     # feedback message
-    def __init__(self,info):
-        message(info+'...',cont=True)
+    def __init__(self, info):
+        message(info + '...', cont=True)
+
     def __enter__(self):
         pass
+
     def __exit__(self, type, value, traceback):
         message("OK.")
 
-def message(mess,cont=False):
+
+def message(mess, cont=False):
     '''
     Prints message to standard error.
     

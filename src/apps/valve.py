@@ -5,12 +5,10 @@ This is driver for aqueduct.
 import ConfigParser
 import cPickle as pickle
 import copy
-import datetime
 import gzip
 import multiprocessing as mp
 import os
 import sys
-import time
 from collections import namedtuple, OrderedDict
 
 import MDAnalysis as mda
@@ -30,25 +28,26 @@ from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
 from aqueduct.utils.helpers import range2int
 
+# TODO: Move it to separate module
 cpu_count = mp.cpu_count()
+# optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
-
-__mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
 
 
 def version():
-    return 0, 3, 7
+    return 0, 4, 0
 
 
 def version_nice():
     return '.'.join(map(str, version()))
 
 
-def get_timestamp():
-    return str(datetime.datetime(*tuple(time.localtime())[:6]))
+__mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
+__version__ = version_nice()
 
 
-# optimal_threads = int(2*cpu_count + 1) # is it really optimal?
+###############################################################################
+# configuration file helpers
 
 class ConfigSpecialNames:
     special_names_dict = {'none': None,
@@ -67,8 +66,9 @@ class ValveConfig(object, ConfigSpecialNames):
         self.config = self.get_default_config()
 
     def __make_options_nt(self, input_options):
-        #options = {opt: self.special_name(input_options[opt]) for opt in input_options}
-        options = dict(((opt, self.special_name(input_options[opt])) for opt in input_options)) # This is due to old pydev
+        # options = {opt: self.special_name(input_options[opt]) for opt in input_options}
+        options = dict(
+            ((opt, self.special_name(input_options[opt])) for opt in input_options))  # This is due to old pydev
         options_nt = namedtuple('Options', options.keys())
         return options_nt(**options)
 
@@ -118,7 +118,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
     def get_common_traj_data(self, stage):
         assert isinstance(stage, int)
-        #options = {name: None for name in self.common_traj_data_config_names()}
+        # options = {name: None for name in self.common_traj_data_config_names()}
         options = dict(((name, None) for name in self.common_traj_data_config_names()))
         for nr in range(stage + 1)[::-1]:
             section = self.stage_names(nr)
@@ -132,7 +132,7 @@ class ValveConfig(object, ConfigSpecialNames):
     def get_global_options(self):
         section = self.global_name()
         names = self.config.options(section)
-        #options = {name: self.config.get(section, name) for name in names}
+        # options = {name: self.config.get(section, name) for name in names}
         options = dict(((name, self.config.get(section, name)) for name in names))
         return self.__make_options_nt(options)
 
@@ -140,7 +140,7 @@ class ValveConfig(object, ConfigSpecialNames):
         assert isinstance(stage, int)
         stage_name = self.stage_names(stage)
         names = self.config.options(stage_name)
-        #options = {name: self.config.get(stage_name, name) for name in names}
+        # options = {name: self.config.get(stage_name, name) for name in names}
         options = dict(((name, self.config.get(stage_name, name)) for name in names))
         if stage in [0, 1]:
             options.update(self.get_common_traj_data(stage)._asdict())
@@ -149,14 +149,14 @@ class ValveConfig(object, ConfigSpecialNames):
     def get_cluster_options(self):
         section = self.cluster_name()
         names = self.config.options(section)
-        #options = {name: self.config.get(section, name) for name in names}
+        # options = {name: self.config.get(section, name) for name in names}
         options = dict(((name, self.config.get(section, name)) for name in names))
         return self.__make_options_nt(options)
 
     def get_smooth_options(self):
         section = self.smooth_name()
         names = self.config.options(section)
-        #options = {name: self.config.get(section, name) for name in names}
+        # options = {name: self.config.get(section, name) for name in names}
         options = dict(((name, self.config.get(section, name)) for name in names))
         return self.__make_options_nt(options)
 
@@ -312,6 +312,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
 ################################################################################
 # convex hull helpers
+# TODO: Move it to separate module
 
 def CHullCheck(point):
     return CHullCheck.chull.point_within(point)
@@ -369,34 +370,14 @@ def get_res_in_scope(is_res_in_scope, res):
 
 
 ################################################################################
-# separators
+# separators - logging
 
 def sep():
-    return '------------------------------------------------'
+    return log.gsep(sep='-', times=48)
 
 
 def asep():
-    return '=' * 72
-
-
-def underline(line):
-    uline = line
-    uline += os.linesep
-    uline += tsep(line)
-    return uline
-
-
-def thead(line):
-    header = tsep(line)
-    header += os.linesep
-    header += line
-    header += os.linesep
-    header += tsep(line)
-    return header
-
-
-def tsep(line):
-    return '-' * len(line)
+    return log.gsep(sep='=', times=72)
 
 
 ################################################################################
@@ -549,8 +530,546 @@ def get_smooth_method(soptions):
 
 ################################################################################
 
+def valve_begin():
+    log.message(greetings_aqueduct())  # nice greetings
+    log.message('Aqueduct version %s' % aqueduct_version_nice())
+    log.message('Valve driver version %s' % version_nice())
+    log.message(sep())
+
+
+def valve_end():
+    log.message(sep())
+    log.message('Let the Valve be always open!')
+    log.message('Goodby!')
+
+
+def valve_load_config(filename, config):
+    assert filename is not None, "No config file provided."
+    with log.fbm('Load configuration file'):
+        config.load_config(filename)
+
+
+def valve_read_trajectory(top, traj):
+    with log.fbm('Read trajectory'):
+        # read trajectory
+        return ReadAmberNetCDFviaMDA(top, traj)
+        # reader = ReadDCDviaMDA(topology, trajectory)
+
+
+roman_numbers = {0: '', 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII'}
+
+
+def valve_begin_stage(stage, config):
+    log.message(sep())
+    log.message('Starting Stage %s: %s' % (roman_numbers[stage + 1], config.stage_names(stage)))
+    options = config.get_stage_options(stage)
+    log.message('Execute mode: %s' % options.execute)
+    return options
+
+
+def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
+                     **kwargs):
+    options = valve_begin_stage(stage, config)
+
+    # execute?
+    if options.execute == 'run':
+        result = stage_run(config, options, reader=reader, **kwargs)
+        if not no_io:
+            ###########
+            # S A V E #
+            ###########
+            save_stage_dump(options.save, **result)
+    elif options.execute in ['skip']:
+        if not no_io:
+            ###########
+            # L O A D #
+            ###########
+            if options.load:
+                result = load_stage_dump(options.load, reader=reader)
+    else:
+        raise NotImplementedError('exec mode %s not implemented' % options.execute)
+    # remove options stuff
+    if result is not None:
+        return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
+
+
+################################################################################
+# stages run
+
+def stage_I_run(config, options,
+                reader=None,
+                max_frame=None,
+                **kwargs):
+    # this creates scope
+
+    log.message("Loop over frames - search of residues in object:")
+    pbar = log.pbar(max_frame, kind=pbar_name)
+
+    scope = reader.parse_selection(options.scope)
+
+    # create some containers
+    res_ids_in_object_over_frames = {}
+    all_res = None
+
+    for frame in reader.iterate_over_frames():
+        if frame > max_frame:
+            break
+        # current res selection
+        res = reader.parse_selection(options.object)
+
+        # check is res are in scope
+        if options.scope_convexhull:
+            res_coords = list(res.center_of_mass_of_residues())
+            is_res_in_scope = check_res_in_scope(options, scope, res, res_coords)
+        else:
+            is_res_in_scope = check_res_in_scope(options, scope, res, None)
+
+        # discard res out of scope
+        res_new = get_res_in_scope(is_res_in_scope, res)
+
+        # add it to all res in object
+        if res_new is not None:
+            if all_res:
+                all_res += res_new
+                all_res.uniquify()
+            else:
+                all_res = res_new
+
+        # remeber ids of res in object in current frame
+        if res_new is not None:
+            res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
+        else:
+            res_ids_in_object_over_frames.update({frame: []})
+        pbar.update(frame)
+
+    pbar.finish()
+
+    if all_res is None:
+        raise ValueError("No traceable residues was found.")
+
+    log.message("Number of residues to trace: %d" % all_res.unique_resids_number())
+
+    return {'all_res': all_res, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames, 'options': options}
+
+
+################################################################################
+
+def stage_II_run(config, options,
+                 reader=None,
+                 all_res=None,
+                 res_ids_in_object_over_frames=None,
+                 max_frame=None,
+                 **kwargs):
+    if options.clear_in_object_info:
+        log.message('Clear data on residues in object over frames.')
+        log.message('This will be recalculated on demand.')
+        res_ids_in_object_over_frames = {}
+
+    with log.fbm("Init paths container"):
+        paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=max_frame)) for resid in
+                      all_res.unique_resids(ikwid=True)))
+
+    log.message("Trajectory scan:")
+    pbar = log.pbar(max_frame, kind=pbar_name)
+
+    scope = reader.parse_selection(options.scope)
+
+    for frame in reader.iterate_over_frames():
+        if frame > max_frame:
+            break
+
+        all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
+
+        # check if is res are in scope
+        is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
+
+        all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
+
+        for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
+            # the point is that nr is not pointing to correct element in paths
+            # now, nr is useless because paths is a dictionary, use resids instead
+            assert paths[resid].id == resid, \
+                "Internal error. Paths IDs not synced with resids. \
+                 Please send a bug report to developer(s): %s" % __mail__
+            if isscope:
+                paths[resid].add_coord(coord)
+
+                # do we have info on res_ids_in_object_over_frames?
+                if frame not in res_ids_in_object_over_frames:
+                    res = reader.parse_selection(options.object)
+                    # discard res out of scope
+                    res_new = get_res_in_scope(is_res_in_scope, res)
+                    # remeber ids of res in object in current frame
+                    if res_new is not None:
+                        res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
+                    else:
+                        res_ids_in_object_over_frames.update({frame: []})
+
+                # in scope
+                if resid not in res_ids_in_object_over_frames[frame]:
+                    paths[resid].add_scope(frame)
+                else:
+                    # in object
+                    paths[resid].add_object(frame)
+
+        pbar.update(frame)
+
+    pbar.finish()
+
+    return {'all_res': all_res, 'paths': paths, 'options': options}
+
+
+################################################################################
+
+def stage_III_run(config, options,
+                  paths=None,
+                  **kwargs):
+    soptions = config.get_smooth_options()
+
+    if options.discard_empty_paths:
+        with log.fbm("Discard residues with empty paths"):
+            for key in paths.keys():
+                if len(paths[key].frames) == 0:
+                    paths.pop(key)
+
+    log.message("Create separate paths:")
+
+    pbar = log.pbar(len(paths), kind=pbar_name)
+    # yield_single_paths requires a list of paths not a dictionary
+    spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
+
+    pbar.finish()
+
+    if options.sort_by_id:
+        with log.fbm("Sort separate paths by resid"):
+            spaths = sorted(spaths, key=lambda sp: sp.id)
+    # apply smoothing?
+    if options.apply_smoothing:
+        log.message('Applying hard smoothing:')
+        smooth = get_smooth_method(soptions)
+        pbar = log.pbar(len(spaths), kind=pbar_name)
+        for nr, sp in enumerate(spaths):
+            sp.apply_smoothing(smooth)
+            pbar.update(nr + 1)
+        pbar.finish()
+    if options.apply_soft_smoothing:
+        log.message('Applying soft smoothing:')
+        smooth = get_smooth_method(soptions)
+        pbar = log.pbar(len(spaths), kind=pbar_name)
+        for nr, sp in enumerate(spaths):
+            sp.get_coords(smooth=smooth)
+            pbar.update(nr + 1)
+        pbar.finish()
+
+    return {'paths': paths, 'spaths': spaths, 'options': options, 'soptions': soptions}
+
+
+################################################################################
+
+def stage_IV_run(config, options,
+                 spaths=None,
+                 **kwargs):
+    coptions = config.get_cluster_options()
+    # find coords of inlets, type and id
+    inlet_coords = []
+    inlet_type = []
+    inlet_id = []
+    inlet_spnr = []
+    for nr, sp in enumerate(spaths):
+        for inlet, itype in sp.coords_filo:
+            inlet_coords.append(inlet.tolist())
+            inlet_type.append(itype)
+            inlet_id.append(sp.id)
+            inlet_spnr.append(nr)
+            # print nr,sp.id,inlet,itype
+
+    # find nr of inlets
+    nr_of_inlets = len(inlet_id)
+
+    if nr_of_inlets > 0:
+        with log.fbm("Performing clusterization"):
+            assert coptions.method == 'dbscan', 'Unknown clusterization method %s.' % coptions.method
+            # perform clusterization
+            clusters = perform_clustering(np.array(inlet_coords), eps=float(coptions.eps),
+                                          min_samples=int(coptions.min_samples))
+            clusters += 1  # -1 is 0 now and it means unclustered
+    else:
+        log.message("No inlets found. Clusterization skipped.")
+        clusters = np.array([])
+
+    return {'inlet_coords': inlet_coords,
+            'inlet_type': inlet_type,
+            'inlet_id': inlet_id,
+            'inlet_spnr': inlet_spnr,
+            'clusters': clusters,
+            'options': options,
+            'coptions': coptions}
+
+
+################################################################################
+
+def stage_V_run(config, options,
+                spaths=None,
+                paths=None,
+                inlet_id=None,
+                clusters=None,
+                inlet_type=None,
+                **kwargs):
+    # file handle?
+    if options.save:
+        fh = open(options.save, 'w')
+        log.message('Using user provided file (%s).' % options.save)
+        log.message(sep())
+        log.message('')
+    else:
+        log.message('Using standard output.')
+        log.message(sep())
+        log.message('')
+        fh = sys.stdout
+
+    ############
+    print >> fh, asep()
+    print >> fh, 'Aqueduct analysis'
+    print >> fh, log.get_str_timestamp()
+
+    ############
+    if options.dump_config:
+        print >> fh, asep()
+        print >> fh, log.underline('Configuration file name: %s' % args.config_file)
+        print >> fh, os.linesep.join(config.dump_config())
+
+    ############
+    print >> fh, asep()
+    print >> fh, "Number of traceable residues:", len(paths)
+    print >> fh, "Number of separate paths:", len(spaths)
+
+    ############
+    print >> fh, asep()
+    print >> fh, "List of separate paths"
+    header_template = " ".join(['%7s'] * 7)
+    header = header_template % tuple("Nr ID Begin INP OBJ OUT End".split())
+    print >> fh, log.thead(header)
+    for nr, sp in enumerate(spaths):
+        line = []
+        for e in (nr, sp.id, sp.begins, len(sp.path_in), len(sp.path_object), len(sp.path_out), sp.ends):
+            line += ["%7d" % e]
+        print >> fh, " ".join(line)
+
+    ############
+    print >> fh, asep()
+    print >> fh, "Separate paths lengths"
+    header_template = " ".join(['%7s'] * 2 + ['%9s'] * 3)
+    header = header_template % tuple("Nr ID INP OBJ OUT".split())
+    print >> fh, log.thead(header)
+    line_template = " ".join(['%7d'] * 2 + ['%9.1f'] * 3)
+    for nr, sp in enumerate(spaths):
+        line = [nr, sp.id]
+        for e in sp.coords_in, sp.coords_object, sp.coords_out:
+            if len(e) > 1:
+                line += [sum(traces.diff(e))]
+            else:
+                line += [float('nan')]
+        print >> fh, line_template % tuple(line)
+
+    ############
+    print >> fh, asep()
+    print >> fh, "Separate paths average step lengths"
+    header_template = " ".join(['%7s'] * 2 + ['%8s'] * 6)
+    header = header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
+    print >> fh, log.thead(header)
+    line_template = " ".join(['%7d'] * 2 + ['%8.2f', '%8.3f'] * 3)
+    for nr, sp in enumerate(spaths):
+        line = [nr, sp.id]
+        for e in sp.coords_in, sp.coords_object, sp.coords_out:
+            if len(e) > 1:
+                line += [np.mean(traces.diff(e))]
+                line += [np.std(traces.diff(e))]
+            else:
+                line += [float('nan')]
+                line += [float('nan')]
+        print >> fh, line_template % tuple(line)
+
+    ############
+    print >> fh, asep()
+    print >> fh, "Number of inlets:", len(inlet_id)
+    no_of_clusters = len(set([c for c in clusters if c != 0]))
+    print >> fh, "Number of clusters:", no_of_clusters
+    print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in clusters]
+
+    ############
+    print >> fh, asep()
+    print >> fh, "Clusters summary"
+    clusters_list = list(set(clusters.tolist()))
+    clusters_list.sort()
+    header_template = " ".join(['%7s'] * 5)
+    header = header_template % tuple("Nr Cluster Size INP OUT".split())
+    print >> fh, log.thead(header)
+    line_template = " ".join(['%7d'] * 5)
+    for nr, c in enumerate(clusters_list):
+        line = [nr, int(c), clusters.tolist().count(c)]
+        # inlets types of current cluster
+        its = [inlet_type[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
+        line.append(its.count(InletTypeCodes.inlet_in_code))
+        line.append(its.count(InletTypeCodes.inlet_out_code))
+        print >> fh, line_template % tuple(line)
+
+    ############
+    print >> fh, asep()
+    print >> fh, "Separate paths inlets clusters"
+    header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2)
+    header = header_template % tuple("Nr ID INP OUT".split())
+    print >> fh, log.thead(header)
+    line_template = " ".join(['%7d'] * 2 + ['%7s'] * 2)
+    spaths_clust_type = []
+    for nr, sp in enumerate(spaths):
+        line = [nr, sp.id]
+        ids = [nr for nr, iid in enumerate(inlet_id) if iid == sp.id]
+        inp, out = None, None
+        if len(ids) > 0:
+            for iid in ids:
+                if inlet_type[iid] == InletTypeCodes.inlet_in_code:
+                    inp = int(clusters[iid])
+                if inlet_type[iid] == InletTypeCodes.inlet_out_code:
+                    out = int(clusters[iid])
+        line.extend(map(str, [inp, out]))
+        spaths_clust_type.append((inp, out))
+        print >> fh, line_template % tuple(line)
+
+    ############
+    print >> fh, asep()
+    print >> fh, "Clusters type summary"
+    clusters_type_list = list(set(spaths_clust_type))
+    clusters_type_list = sorted(sorted(clusters_type_list), key=lambda x: x[:1].count(None) + x.count(None))
+    header_template = " ".join(['%7s'] * 3)
+    header = header_template % tuple("Nr CType Size".split())
+    print >> fh, log.thead(header)
+    line_template = "%7d %7s %7d"
+
+    def clusters_type_name(inp_cluster, out_cluster):
+        name_of_cluster = ''
+        if inp_cluster is None:
+            name_of_cluster += 'N'
+        else:
+            name_of_cluster += str(inp_cluster)
+        name_of_cluster += ':'
+        if out_cluster is None:
+            name_of_cluster += 'N'
+        else:
+            name_of_cluster += str(out_cluster)
+        return name_of_cluster
+
+    for nr, ct in enumerate(clusters_type_list):
+        line = [nr]
+        cts = clusters_type_name(*ct)
+        line.append(cts)
+        # inlets types of current cluster
+        line.append(spaths_clust_type.count(ct))
+        # calculate some statistics
+
+
+        print >> fh, line_template % tuple(line)
+
+    if options.save:
+        fh.close()
+
+
+################################################################################
+
+def stage_VI_run(config, options,
+                 spaths=None,
+                 clusters=None,
+                 inlet_coords=None,
+                 **kwargs):
+    from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
+    from aqueduct.visual.quickplot import ColorMapDistMap
+
+    soptions = config.get_smooth_options()
+    smooth = get_smooth_method(soptions)
+
+    # start pymol
+    with log.fbm("Starting PyMOL"):
+        ConnectToPymol.init_pymol()
+        spp = SinglePathPlotter()
+
+    if options.all_paths_raw:
+        with log.fbm("All raw paths"):
+            if options.all_paths_split:
+                spp.paths_trace(spaths, name='all_raw_in', plot_object=False, plot_out=False)
+                spp.paths_trace(spaths, name='all_raw_obj', plot_in=False, plot_out=False)
+                spp.paths_trace(spaths, name='all_raw_out', plot_in=False, plot_object=False)
+            else:
+                spp.paths_trace(spaths, name='all_raw')
+    if options.all_paths_raw_io:
+        spp.paths_inlets(spaths, name='all_raw_paths_io')
+
+    if options.all_paths_smooth:
+        with log.fbm("All smooth paths"):
+            if options.all_paths_split:
+                spp.paths_trace(spaths, name='all_smooth_in', plot_object=False, plot_out=False, smooth=smooth)
+                spp.paths_trace(spaths, name='all_smooth_obj', plot_in=False, plot_out=False, smooth=smooth)
+                spp.paths_trace(spaths, name='all_smooth_out', plot_in=False, plot_object=False, smooth=smooth)
+            else:
+                spp.paths_trace(spaths, name='all_smooth', smooth=smooth)
+    if options.all_paths_smooth_io:
+        spp.paths_inlets(spaths, name='all_smooth_paths_io', smooth=smooth)
+
+    if options.paths_states:
+        with log.fbm("Paths as states"):
+            # as one object
+            if options.paths_raw:
+                [spp.paths_trace([sp], name='raw_paths', state=nr + 1) for nr, sp in enumerate(spaths)]
+            if options.paths_smooth:
+                [spp.paths_trace([sp], name='smooth_paths', smooth=smooth, state=nr + 1) for nr, sp in
+                 enumerate(spaths)]
+            if options.paths_raw_io:
+                [spp.paths_inlets([sp], name='raw_paths_io', state=nr + 1) for nr, sp in enumerate(spaths)]
+            if options.paths_smooth_io:
+                [spp.paths_inlets([sp], name='smooth_paths_io', state=nr + 1, smooth=smooth) for nr, sp in
+                 enumerate(spaths)]
+    else:
+        with log.fbm("Paths as separate objects"):
+            if options.paths_raw:
+                [spp.paths_trace([sp], name='raw_%d' % sp.id) for sp in spaths]
+            if options.paths_smooth:
+                [spp.paths_trace([sp], name='smooth_%d' % sp.id, smooth=smooth) for sp in spaths]
+            if options.paths_raw_io:
+                [spp.paths_inlets([sp], name='raw_paths_io_%d' % sp.id) for sp in spaths]
+            if options.paths_smooth_io:
+                [spp.paths_inlets([sp], name='smooth_paths_io_%d' % sp.id, smooth=smooth) for sp in spaths]
+
+    if options.inlets_clusters:
+        with log.fbm("Clusters"):
+            # TODO: require stage V for that?
+            no_of_clusters = len(set([c for c in clusters if c != -1]))
+            cmap = ColorMapDistMap(name='Dark2', size=no_of_clusters)
+            clusters_list = list(set(clusters.tolist()))
+            clusters_list.sort()
+            for c in clusters_list:
+                # coords for current cluster
+                ics = [inlet_coords[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
+                if c == -1:
+                    c_name = 'none'
+                else:
+                    c_name = str(int(c))
+                spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
+
+    if options.show_molecule:
+        with log.fbm("Molecule"):
+            mda_ppr = mda.core.flags["permissive_pdb_reader"]
+            mda.core.flags["permissive_pdb_reader"] = False
+            pdb = TmpDumpWriterOfMDA()
+            frames_to_show = range2int(options.show_molecule_frames)
+            pdb.dump_frames(reader, frames=frames_to_show)
+            ConnectToPymol.load_pdb('molecule', pdb.close())
+            del pdb
+            mda.core.flags["permissive_pdb_reader"] = mda_ppr
+
+
+################################################################################
+
+
 if __name__ == "__main__":
-    ################################################################################
+    ############################################################################
     # argument parsing
     import argparse
 
@@ -562,7 +1081,7 @@ if __name__ == "__main__":
 
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
     args = parser.parse_args()
-    ################################################################################
+    ############################################################################
     # special option for dumping template config
     config = ValveConfig()  # config template
     if args.dump_template_conf:
@@ -572,624 +1091,67 @@ if __name__ == "__main__":
         config.save_config_stream(config_dump)
         print config_dump.getvalue()
         exit()
-    ################################################################################
+
+    ############################################################################
     # begin!
-    log.message(greetings_aqueduct())  # nice greetings
-    log.message('Aqueduct version %s' % aqueduct_version_nice())
-    log.message('Valve driver version %s' % version_nice())
-    log.message(sep())
 
-    assert args.config_file is not None, "No config file provided."
-
-    # load config file
-    with log.fbm('Load configuration file'):
-        config.load_config(args.config_file)
+    valve_begin()
+    valve_load_config(args.config_file, config)
 
     log.message("Optimal threads count: %d" % optimal_threads)
-
     # get global options
     goptions = config.get_global_options()
     pbar_name = goptions.pbar
 
-    ################################################################################
+    ############################################################################
     # STAGE 0
 
-    with log.fbm('Read trajectory'):
-        # read trajectory
-        topology = goptions.top
-        trajectory = goptions.nc
-        reader = ReadAmberNetCDFviaMDA(topology, trajectory)
-        # reader = ReadDCDviaMDA(topology, trajectory)
+    reader = valve_read_trajectory(goptions.top, goptions.nc)
 
-    ################################################################################
+    ############################################################################
     # STAGE I
-    log.message(sep())
-    log.message('Starting Stage I: %s' % config.stage_names(0))
-    options = config.get_stage_options(0)
-    log.message('Execute mode: %s' % options.execute)
-
     max_frame = reader.number_of_frames - 1
-    # max_frame = 200
+    max_frame = 100
+    result1 = valve_exec_stage(0, config, stage_I_run,
+                               reader=reader,
+                               max_frame=max_frame)
 
-    # execute?
-    if options.execute == 'run':
-        # this creates scope
-
-        log.message("Loop over frames - search of residues in object:")
-        pbar = log.pbar(max_frame, kind=pbar_name)
-
-        scope = reader.parse_selection(options.scope)
-
-        # create some containers
-        res_ids_in_object_over_frames = {}
-        all_res = None
-
-        for frame in reader.iterate_over_frames():
-            if frame > max_frame:
-                break
-            # current res selection
-            res = reader.parse_selection(options.object)
-
-            # check is res are in scope
-            if options.scope_convexhull:
-                res_coords = list(res.center_of_mass_of_residues())
-                is_res_in_scope = check_res_in_scope(options, scope, res, res_coords)
-            else:
-                is_res_in_scope = check_res_in_scope(options, scope, res, None)
-
-            # discard res out of scope
-            res_new = get_res_in_scope(is_res_in_scope, res)
-
-            # add it to all res in object
-            if res_new is not None:
-                if all_res:
-                    all_res += res_new
-                    all_res.uniquify()
-                else:
-                    all_res = res_new
-
-            # remeber ids of res in object in current frame
-            if res_new is not None:
-                res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
-            else:
-                res_ids_in_object_over_frames.update({frame: []})
-            pbar.update(frame)
-
-        pbar.finish()
-
-        if all_res is None:
-            raise ValueError("No traceable residues was found.")
-
-        log.message("Number of residues to trace: %d" % all_res.unique_resids_number())
-
-        ###########
-        # S A V E #
-        ###########
-        save_stage_dump(options.save,
-                        all_res=all_res,
-                        res_ids_in_object_over_frames=res_ids_in_object_over_frames,
-                        options=options)
-
-    elif options.execute in ['skip']:
-        ###########
-        # L O A D #
-        ###########
-        if options.load:
-            res_ids_in_object_over_frames = {}
-            all_res = None
-            for key, value in load_stage_dump(options.load, reader=reader).iteritems():
-                if key == 'all_res':
-                    all_res = value
-                if key == 'res_ids_in_object_over_frames':
-                    res_ids_in_object_over_frames = value
-    else:
-        raise NotImplementedError('exec mode %s not implemented' % options.execute)
-
-    ################################################################################
+    ############################################################################
     # STAGE II
-    log.message(sep())
-    log.message('Starting Stage II: %s' % config.stage_names(1))
-    options = config.get_stage_options(1)
-    log.message('Execute mode: %s' % options.execute)
+    result2 = valve_exec_stage(1, config, stage_II_run,
+                               reader=reader,
+                               max_frame=max_frame,
+                               **result1)
 
-    # execute?
-    if options.execute == 'run':
-
-        if options.clear_in_object_info:
-            log.message('Clear data on residues in object over frames.')
-            log.message('This will be recalculated on demand.')
-            res_ids_in_object_over_frames = {}
-
-        with log.fbm("Init paths container"):
-            # type and frames, consecutive elements correspond to residues in all_H2O
-            # paths = [GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids()]
-            # this is a problem... one possible solution is to use dictionary
-            #paths = {resid: GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in
-            #         all_res.unique_resids(ikwid=True)}
-            paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=max_frame)) for resid in all_res.unique_resids(ikwid=True)))
-
-        log.message("Trajectory scan:")
-        pbar = log.pbar(max_frame, kind=pbar_name)
-
-        scope = reader.parse_selection(options.scope)
-
-        for frame in reader.iterate_over_frames():
-            if frame > max_frame:
-                break
-
-            all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
-
-            # check if is res are in scope
-            is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
-
-            all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
-
-            for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
-                # the point is that nr is not pointing to correct element in paths
-                # now, nr is useless because paths is a dictionary, use resids instead
-                assert paths[resid].id == resid, \
-                    "Internal error. Paths IDs not synced with resids. \
-                     Please send a bug report to developer(s): %s" % __mail__
-                if isscope:
-                    paths[resid].add_coord(coord)
-
-                    # do we have info on res_ids_in_object_over_frames?
-                    if frame not in res_ids_in_object_over_frames:
-                        res = reader.parse_selection(options.object)
-                        # discard res out of scope
-                        res_new = get_res_in_scope(is_res_in_scope, res)
-                        # remeber ids of res in object in current frame
-                        if res_new is not None:
-                            res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
-                        else:
-                            res_ids_in_object_over_frames.update({frame: []})
-
-                    # in scope
-                    if resid not in res_ids_in_object_over_frames[frame]:
-                        paths[resid].add_scope(frame)
-                    else:
-                        # in object
-                        paths[resid].add_object(frame)
-
-            pbar.update(frame)
-
-        pbar.finish()
-
-        ###########
-        # S A V E #
-        ###########
-        save_stage_dump(options.save,
-                        all_res=all_res,
-                        paths=paths,
-                        options=options)
-
-    elif options.execute in ['skip']:
-
-        ###########
-        # L O A D #
-        ###########
-        if options.load:
-            paths = []
-            all_res = None
-            for key, value in load_stage_dump(options.load, reader=reader).iteritems():
-                if key == 'all_res':
-                    all_res = value
-                if key == 'paths':
-                    paths = value
-    else:
-        raise NotImplementedError('exec mode %s not implemented' % options.execute)
-
-    ################################################################################
+    ############################################################################
     # STAGE III
-    log.message(sep())
-    log.message('Starting Stage III: %s' % config.stage_names(2))
-    options = config.get_stage_options(2)
-    log.message('Execute mode: %s' % options.execute)
-    soptions = config.get_smooth_options()
+    result3 = valve_exec_stage(2, config, stage_III_run,
+                               **result2)
 
-    # execute?
-    if options.execute == 'run':
-
-        if options.discard_empty_paths:
-            with log.fbm("Discard residues with empty paths"):
-                for key in paths.keys():
-                    if len(paths[key].frames) == 0:
-                        paths.pop(key)
-
-        log.message("Create separate paths:")
-
-        pbar = log.pbar(len(paths), kind=pbar_name)
-        # yield_single_paths requires a list of paths not a dictionary
-        spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
-
-        pbar.finish()
-
-        if options.sort_by_id:
-            with log.fbm("Sort separate paths by resid"):
-                spaths = sorted(spaths, key=lambda sp: sp.id)
-        # apply smoothing?
-        if options.apply_smoothing:
-            log.message('Applying hard smoothing:')
-            smooth = get_smooth_method(soptions)
-            pbar = log.pbar(len(spaths), kind=pbar_name)
-            for nr, sp in enumerate(spaths):
-                sp.apply_smoothing(smooth)
-                pbar.update(nr + 1)
-            pbar.finish()
-        if options.apply_soft_smoothing:
-            log.message('Applying soft smoothing:')
-            smooth = get_smooth_method(soptions)
-            pbar = log.pbar(len(spaths), kind=pbar_name)
-            for nr, sp in enumerate(spaths):
-                sp.get_coords(smooth=smooth)
-                pbar.update(nr + 1)
-            pbar.finish()
-
-        ###########
-        # S A V E #
-        ###########
-        save_stage_dump(options.save,
-                        paths=paths,
-                        spaths=spaths,
-                        options=options,
-                        soptions=soptions)
-
-    elif options.execute in ['skip']:
-        ###########
-        # L O A D #
-        ###########
-        if options.load:
-            spaths = []
-            for key, value in load_stage_dump(options.load).iteritems():
-                if key == 'paths':
-                    paths = value
-                if key == 'spaths':
-                    spaths = value
-    else:
-        raise NotImplementedError('exec mode %s not implemented' % options.execute)
-
-    ################################################################################
+    ############################################################################
     # STAGE IV
-    log.message(sep())
-    log.message('Starting Stage IV: %s' % config.stage_names(3))
-    options = config.get_stage_options(3)
-    log.message('Execute mode: %s' % options.execute)
-    coptions = config.get_cluster_options()
+    result4 = valve_exec_stage(3, config, stage_IV_run,
+                               **result3)
 
-    # execute?
-    if options.execute == 'run':
-
-        # find coords of inlets, type and id
-        inlet_coords = []
-        inlet_type = []
-        inlet_id = []
-        inlet_spnr = []
-        for nr, sp in enumerate(spaths):
-            for inlet, itype in sp.coords_filo:
-                inlet_coords.append(inlet.tolist())
-                inlet_type.append(itype)
-                inlet_id.append(sp.id)
-                inlet_spnr.append(nr)
-                # print nr,sp.id,inlet,itype
-
-        # find nr of inlets
-        nr_of_inlets = len(inlet_id)
-
-        if nr_of_inlets > 0:
-            with log.fbm("Performing clusterization"):
-                assert coptions.method == 'dbscan', 'Unknown clusterization method %s.' % coptions.method
-                # perform clusterization
-                clusters = perform_clustering(np.array(inlet_coords), eps=float(coptions.eps),
-                                              min_samples=int(coptions.min_samples))
-                clusters += 1  # -1 is 0 now and it means unclustered
-        else:
-            log.message("No inlets found. Clusterization skipped.")
-            clusters = np.array([])
-
-        ###########
-        # S A V E #
-        ###########
-        save_stage_dump(options.save,
-                        inlet_coords=inlet_coords,
-                        inlet_type=inlet_type,
-                        inlet_id=inlet_id,
-                        inlet_spnr=inlet_spnr,
-                        clusters=clusters,
-                        options=options,
-                        coptions=coptions)
-
-    elif options.execute in ['skip']:
-        ###########
-        # L O A D #
-        ###########
-        if options.load:
-            inlet_coords = []
-            inlet_type = []
-            inlet_id = []
-            inlet_spnr = []
-            clusters = np.array([])
-            for key, value in load_stage_dump(options.load).iteritems():
-                if key == 'inlet_coords':
-                    inlet_coords = value
-                if key == 'inlet_type':
-                    inlet_type = value
-                if key == 'inlet_id':
-                    inlet_id = value
-                if key == 'inlet_spnr':
-                    inlet_spnr = value
-                if key == 'clusters':
-                    clusters = value
-    else:
-        raise NotImplementedError('exec mode %s not implemented' % options.execute)
-
-    ################################################################################
+    ############################################################################
     # STAGE V
-    log.message(sep())
-    log.message('Starting Stage V: %s' % config.stage_names(4))
-    options = config.get_stage_options(4)
-    log.message('Execute mode: %s' % options.execute)
+    results = {}
+    for result in (result2, result3, result4):
+        results.update(result)
 
-    # execute?
-    if options.execute == 'run':
-        # file handle?
-        if options.save:
-            fh = open(options.save, 'w')
-            log.message('Using user provided file (%s).' % options.save)
-            log.message(sep())
-            log.message('')
-        else:
-            log.message('Using standard output.')
-            log.message(sep())
-            log.message('')
-            fh = sys.stdout
+    result5 = valve_exec_stage(4, config, stage_V_run, no_io=True,
+                               **results)
 
-        ############
-        print >> fh, asep()
-        print >> fh, 'Aqueduct analysis'
-        print >> fh, get_timestamp()
-
-        ############
-        if options.dump_config:
-            print >> fh, asep()
-            print >> fh, underline('Configuration file name: %s' % args.config_file)
-            print >> fh, os.linesep.join(config.dump_config())
-
-        ############
-        print >> fh, asep()
-        print >> fh, "Number of traceable residues:", len(paths)
-        print >> fh, "Number of separate paths:", len(spaths)
-
-        ############
-        print >> fh, asep()
-        print >> fh, "List of separate paths"
-        header_template = " ".join(['%7s'] * 7)
-        header = header_template % tuple("Nr ID Begin INP OBJ OUT End".split())
-        print >> fh, thead(header)
-        for nr, sp in enumerate(spaths):
-            line = []
-            for e in (nr, sp.id, sp.begins, len(sp.path_in), len(sp.path_object), len(sp.path_out), sp.ends):
-                line += ["%7d" % e]
-            print >> fh, " ".join(line)
-
-        ############
-        print >> fh, asep()
-        print >> fh, "Separate paths lengths"
-        header_template = " ".join(['%7s'] * 2 + ['%9s'] * 3)
-        header = header_template % tuple("Nr ID INP OBJ OUT".split())
-        print >> fh, thead(header)
-        line_template = " ".join(['%7d'] * 2 + ['%9.1f'] * 3)
-        for nr, sp in enumerate(spaths):
-            line = [nr, sp.id]
-            for e in sp.coords_in, sp.coords_object, sp.coords_out:
-                if len(e) > 1:
-                    line += [sum(traces.diff(e))]
-                else:
-                    line += [float('nan')]
-            print >> fh, line_template % tuple(line)
-
-        ############
-        print >> fh, asep()
-        print >> fh, "Separate paths average step lengths"
-        header_template = " ".join(['%7s'] * 2 + ['%8s'] * 6)
-        header = header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
-        print >> fh, thead(header)
-        line_template = " ".join(['%7d'] * 2 + ['%8.2f', '%8.3f'] * 3)
-        for nr, sp in enumerate(spaths):
-            line = [nr, sp.id]
-            for e in sp.coords_in, sp.coords_object, sp.coords_out:
-                if len(e) > 1:
-                    line += [np.mean(traces.diff(e))]
-                    line += [np.std(traces.diff(e))]
-                else:
-                    line += [float('nan')]
-                    line += [float('nan')]
-            print >> fh, line_template % tuple(line)
-
-        ############
-        print >> fh, asep()
-        print >> fh, "Number of inlets:", len(inlet_id)
-        no_of_clusters = len(set([c for c in clusters if c != 0]))
-        print >> fh, "Number of clusters:", no_of_clusters
-        print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in clusters]
-
-        ############
-        print >> fh, asep()
-        print >> fh, "Clusters summary"
-        clusters_list = list(set(clusters.tolist()))
-        clusters_list.sort()
-        header_template = " ".join(['%7s'] * 5)
-        header = header_template % tuple("Nr Cluster Size INP OUT".split())
-        print >> fh, thead(header)
-        line_template = " ".join(['%7d'] * 5)
-        for nr, c in enumerate(clusters_list):
-            line = [nr, int(c), clusters.tolist().count(c)]
-            # inlets types of current cluster
-            its = [inlet_type[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
-            line.append(its.count(InletTypeCodes.inlet_in_code))
-            line.append(its.count(InletTypeCodes.inlet_out_code))
-            print >> fh, line_template % tuple(line)
-
-        ############
-        print >> fh, asep()
-        print >> fh, "Separate paths inlets clusters"
-        header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2)
-        header = header_template % tuple("Nr ID INP OUT".split())
-        print >> fh, thead(header)
-        line_template = " ".join(['%7d'] * 2 + ['%7s'] * 2)
-        spaths_clust_type = []
-        for nr, sp in enumerate(spaths):
-            line = [nr, sp.id]
-            ids = [nr for nr, iid in enumerate(inlet_id) if iid == sp.id]
-            inp, out = None, None
-            if len(ids) > 0:
-                for iid in ids:
-                    if inlet_type[iid] == InletTypeCodes.inlet_in_code:
-                        inp = int(clusters[iid])
-                    if inlet_type[iid] == InletTypeCodes.inlet_out_code:
-                        out = int(clusters[iid])
-            line.extend(map(str, [inp, out]))
-            spaths_clust_type.append((inp,out))
-            print >> fh, line_template % tuple(line)
-
-        ############
-        print >> fh, asep()
-        print >> fh, "Clusters type summary"
-        clusters_type_list = list(set(spaths_clust_type))
-        clusters_type_list = sorted(sorted(clusters_type_list),key=lambda x: x[:1].count(None)+x.count(None))
-        header_template = " ".join(['%7s'] * 3)
-        header = header_template % tuple("Nr CType Size".split())
-        print >> fh, thead(header)
-        line_template = "%7d %7s %7d"
-
-        def clusters_type_name(inp_cluster,out_cluster):
-            name_of_cluster = ''
-            if inp_cluster is None:
-                name_of_cluster += 'N'
-            else:
-                name_of_cluster += str(inp_cluster)
-            name_of_cluster += ':'
-            if out_cluster is None:
-                name_of_cluster += 'N'
-            else:
-                name_of_cluster += str(out_cluster)
-            return name_of_cluster
-
-        for nr, ct in enumerate(clusters_type_list):
-            line = [nr]
-            cts = clusters_type_name(*ct)
-            line.append(cts)
-            # inlets types of current cluster
-            line.append(spaths_clust_type.count(ct))
-            # calculate some statistics
-
-
-            print >> fh, line_template % tuple(line)
-
-        if options.save:
-            fh.close()
-    elif options.execute == 'skip':
-        pass
-    else:
-        raise NotImplementedError('exec mode %s not implemented' % options.execute)
-
-    ################################################################################
+    ############################################################################
     # STAGE VI
-    log.message(sep())
-    log.message('Starting Stage VI: %s' % config.stage_names(5))
-    options = config.get_stage_options(5)
-    soptions = config.get_smooth_options()
-    smooth = get_smooth_method(soptions)
-    log.message('Execute mode: %s' % options.execute)
+    results = {}
+    for result in (result3, result4):
+        results.update(result)
 
-    # execute?
-    if options.execute == 'run':
-        from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
-        from aqueduct.visual.quickplot import ColorMapDistMap
+    result6 = valve_exec_stage(5, config, stage_VI_run, no_io=True,
+                               **results)
 
-        # start pymol
-        with log.fbm("Starting PyMOL"):
-            ConnectToPymol.init_pymol()
-            spp = SinglePathPlotter()
+    ############################################################################
+    # end!
 
-        if options.all_paths_raw:
-            with log.fbm("All raw paths"):
-                if options.all_paths_split:
-                    spp.paths_trace(spaths, name='all_raw_in', plot_object=False, plot_out=False)
-                    spp.paths_trace(spaths, name='all_raw_obj', plot_in=False, plot_out=False)
-                    spp.paths_trace(spaths, name='all_raw_out', plot_in=False, plot_object=False)
-                else:
-                    spp.paths_trace(spaths, name='all_raw')
-        if options.all_paths_raw_io:
-            spp.paths_inlets(spaths, name='all_raw_paths_io')
-
-        if options.all_paths_smooth:
-            with log.fbm("All smooth paths"):
-                if options.all_paths_split:
-                    spp.paths_trace(spaths, name='all_smooth_in', plot_object=False, plot_out=False, smooth=smooth)
-                    spp.paths_trace(spaths, name='all_smooth_obj', plot_in=False, plot_out=False, smooth=smooth)
-                    spp.paths_trace(spaths, name='all_smooth_out', plot_in=False, plot_object=False, smooth=smooth)
-                else:
-                    spp.paths_trace(spaths, name='all_smooth', smooth=smooth)
-        if options.all_paths_smooth_io:
-            spp.paths_inlets(spaths, name='all_smooth_paths_io', smooth=smooth)
-
-        if options.paths_states:
-            with log.fbm("Paths as states"):
-                # as one object
-                if options.paths_raw:
-                    [spp.paths_trace([sp], name='raw_paths', state=nr + 1) for nr, sp in enumerate(spaths)]
-                if options.paths_smooth:
-                    [spp.paths_trace([sp], name='smooth_paths', smooth=smooth, state=nr + 1) for nr, sp in
-                     enumerate(spaths)]
-                if options.paths_raw_io:
-                    [spp.paths_inlets([sp], name='raw_paths_io', state=nr + 1) for nr, sp in enumerate(spaths)]
-                if options.paths_smooth_io:
-                    [spp.paths_inlets([sp], name='smooth_paths_io', state=nr + 1, smooth=smooth) for nr, sp in
-                     enumerate(spaths)]
-        else:
-            with log.fbm("Paths as separate objects"):
-                if options.paths_raw:
-                    [spp.paths_trace([sp], name='raw_%d' % sp.id) for sp in spaths]
-                if options.paths_smooth:
-                    [spp.paths_trace([sp], name='smooth_%d' % sp.id, smooth=smooth) for sp in spaths]
-                if options.paths_raw_io:
-                    [spp.paths_inlets([sp], name='raw_paths_io_%d' % sp.id) for sp in spaths]
-                if options.paths_smooth_io:
-                    [spp.paths_inlets([sp], name='smooth_paths_io_%d' % sp.id, smooth=smooth) for sp in spaths]
-
-        if options.inlets_clusters:
-            with log.fbm("Clusters"):
-                # TODO: require stage V for that?
-                no_of_clusters = len(set([c for c in clusters if c != -1]))
-                cmap = ColorMapDistMap(name='Dark2', size=no_of_clusters)
-                clusters_list = list(set(clusters.tolist()))
-                clusters_list.sort()
-                for c in clusters_list:
-                    # coords for current cluster
-                    ics = [inlet_coords[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
-                    if c == -1:
-                        c_name = 'none'
-                    else:
-                        c_name = str(int(c))
-                    spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
-
-        if options.show_molecule:
-            with log.fbm("Molecule"):
-                mda_ppr = mda.core.flags["permissive_pdb_reader"]
-                mda.core.flags["permissive_pdb_reader"] = False
-                pdb = TmpDumpWriterOfMDA()
-                frames_to_show = range2int(options.show_molecule_frames)
-                pdb.dump_frames(reader, frames=frames_to_show)
-                ConnectToPymol.load_pdb('molecule', pdb.close())
-                del pdb
-                mda.core.flags["permissive_pdb_reader"] = mda_ppr
-
-
-    elif options.execute == 'skip':
-        pass
-    else:
-        raise NotImplementedError('exec mode %s not implemented' % options.execute)
-
-    log.message(sep())
-    log.message('Let the Valve be always open!')
-    log.message('Goodby!')
+    valve_end()
