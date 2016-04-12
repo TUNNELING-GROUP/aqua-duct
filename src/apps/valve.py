@@ -649,7 +649,9 @@ def stage_I_run(config, options,
 
     log.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
-    return {'all_res': all_res, 'res_ids_in_object_over_frames': res_ids_in_object_over_frames, 'options': options}
+    return {'all_res': all_res,
+            'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
+            'options': options}
 
 
 ################################################################################
