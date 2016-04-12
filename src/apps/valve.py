@@ -67,7 +67,8 @@ class ValveConfig(object, ConfigSpecialNames):
         self.config = self.get_default_config()
 
     def __make_options_nt(self, input_options):
-        options = {opt: self.special_name(input_options[opt]) for opt in input_options}
+        #options = {opt: self.special_name(input_options[opt]) for opt in input_options}
+        options = dict(((opt, self.special_name(input_options[opt])) for opt in input_options)) # This is due to old pydev
         options_nt = namedtuple('Options', options.keys())
         return options_nt(**options)
 
@@ -117,7 +118,8 @@ class ValveConfig(object, ConfigSpecialNames):
 
     def get_common_traj_data(self, stage):
         assert isinstance(stage, int)
-        options = {name: None for name in self.common_traj_data_config_names()}
+        #options = {name: None for name in self.common_traj_data_config_names()}
+        options = dict(((name, None) for name in self.common_traj_data_config_names()))
         for nr in range(stage + 1)[::-1]:
             section = self.stage_names(nr)
             for name in self.common_traj_data_config_names():
@@ -130,14 +132,16 @@ class ValveConfig(object, ConfigSpecialNames):
     def get_global_options(self):
         section = self.global_name()
         names = self.config.options(section)
-        options = {name: self.config.get(section, name) for name in names}
+        #options = {name: self.config.get(section, name) for name in names}
+        options = dict(((name, self.config.get(section, name)) for name in names))
         return self.__make_options_nt(options)
 
     def get_stage_options(self, stage):
         assert isinstance(stage, int)
         stage_name = self.stage_names(stage)
         names = self.config.options(stage_name)
-        options = {name: self.config.get(stage_name, name) for name in names}
+        #options = {name: self.config.get(stage_name, name) for name in names}
+        options = dict(((name, self.config.get(stage_name, name)) for name in names))
         if stage in [0, 1]:
             options.update(self.get_common_traj_data(stage)._asdict())
         return self.__make_options_nt(options)
@@ -145,13 +149,15 @@ class ValveConfig(object, ConfigSpecialNames):
     def get_cluster_options(self):
         section = self.cluster_name()
         names = self.config.options(section)
-        options = {name: self.config.get(section, name) for name in names}
+        #options = {name: self.config.get(section, name) for name in names}
+        options = dict(((name, self.config.get(section, name)) for name in names))
         return self.__make_options_nt(options)
 
     def get_smooth_options(self):
         section = self.smooth_name()
         names = self.config.options(section)
-        options = {name: self.config.get(section, name) for name in names}
+        #options = {name: self.config.get(section, name) for name in names}
+        options = dict(((name, self.config.get(section, name)) for name in names))
         return self.__make_options_nt(options)
 
     def get_default_config(self):
@@ -496,7 +502,7 @@ def get_smooth_method(soptions):
             opts.update({'window': int(float(soptions.window))})
         function_opts()
 
-    def awin_opts():
+    def awin_dwin_opts():
         if 'window' in soptions._asdict():
             opts.update({'window': float(soptions.window)})
         function_opts()
@@ -517,10 +523,10 @@ def get_smooth_method(soptions):
         window_opts()
         smooth = WindowSmooth(**opts)
     elif soptions.method == 'awin':
-        awin_opts()
+        awin_dwin_opts()
         smooth = ActiveWindowSmooth(**opts)
     elif soptions.method == 'dwin':
-        awin_opts()
+        awin_dwin_opts()
         smooth = DistanceWindowSmooth(**opts)
     elif soptions.method == 'mss':
         mss_opts()
@@ -530,11 +536,11 @@ def get_smooth_method(soptions):
         mss_opts()
         smooth = WindowOverMaxStepSmooth(**opts)
     elif soptions.method == 'awin_mss':
-        awin_opts()
+        awin_dwin_opts()
         mss_opts()
         smooth = ActiveWindowOverMaxStepSmooth(**opts)
     elif soptions.method == 'dwin_mss':
-        awin_opts()
+        awin_dwin_opts()
         mss_opts()
         smooth = DistanceWindowOverMaxStepSmooth(**opts)
 
@@ -698,8 +704,9 @@ if __name__ == "__main__":
             # type and frames, consecutive elements correspond to residues in all_H2O
             # paths = [GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in all_res.unique_resids()]
             # this is a problem... one possible solution is to use dictionary
-            paths = {resid: GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in
-                     all_res.unique_resids(ikwid=True)}
+            #paths = {resid: GenericPaths(resid, min_pf=0, max_pf=max_frame) for resid in
+            #         all_res.unique_resids(ikwid=True)}
+            paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=max_frame)) for resid in all_res.unique_resids(ikwid=True)))
 
         log.message("Trajectory scan:")
         pbar = log.pbar(max_frame, kind=pbar_name)
