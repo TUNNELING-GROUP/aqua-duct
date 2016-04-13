@@ -13,6 +13,7 @@ import os
 import sys
 from collections import namedtuple, OrderedDict
 import shlex
+import roman
 
 import MDAnalysis as mda
 import numpy as np
@@ -54,8 +55,11 @@ __version__ = version_nice()
 
 class ConfigSpecialNames:
     special_names_dict = {'none': None,
+                          'null': None,
                           'true': True,
-                          'false': False}
+                          'false': False,
+                          'yes': True,
+                          'no': False}
 
     def special_name(self, name):
         if isinstance(name, (str, unicode)):
@@ -560,12 +564,9 @@ def valve_read_trajectory(top, traj):
         # reader = ReadDCDviaMDA(topology, trajectory)
 
 
-roman_numbers = {0: '', 1: 'I', 2: 'II', 3: 'III', 4: 'IV', 5: 'V', 6: 'VI', 7: 'VII'}
-
-
 def valve_begin_stage(stage, config):
     log.message(sep())
-    log.message('Starting Stage %s: %s' % (roman_numbers[stage + 1], config.stage_names(stage)))
+    log.message('Starting Stage %s: %s' % (roman.toRoman(stage + 1), config.stage_names(stage)))
     options = config.get_stage_options(stage)
     log.message('Execute mode: %s' % options.execute)
     return options
@@ -576,7 +577,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
     options = valve_begin_stage(stage, config)
 
     # execute?
-    if options.execute == 'run':
+    if options.execute in ['run']:
         result = stage_run(config, options, reader=reader, **kwargs)
         if not no_io:
             ###########
@@ -1117,7 +1118,7 @@ if __name__ == "__main__":
     ############################################################################
     # STAGE I
     max_frame = reader.number_of_frames - 1
-    #max_frame = 1000
+    max_frame = 100
     result1 = valve_exec_stage(0, config, stage_I_run,
                                reader=reader,
                                max_frame=max_frame)
