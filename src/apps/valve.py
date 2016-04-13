@@ -1,3 +1,5 @@
+#!/bin/env python2
+
 """
 This is driver for aqueduct.
 """
@@ -10,6 +12,7 @@ import multiprocessing as mp
 import os
 import sys
 from collections import namedtuple, OrderedDict
+import shlex
 
 import MDAnalysis as mda
 import numpy as np
@@ -35,7 +38,7 @@ optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
 def version():
-    return 0, 4, 0
+    return 0, 4, 1
 
 
 def version_nice():
@@ -552,7 +555,8 @@ def valve_load_config(filename, config):
 def valve_read_trajectory(top, traj):
     with log.fbm('Read trajectory'):
         # read trajectory
-        return ReadAmberNetCDFviaMDA(top, traj)
+        traj_list = shlex.split(traj)
+        return ReadAmberNetCDFviaMDA(top, traj_list)
         # reader = ReadDCDviaMDA(topology, trajectory)
 
 
@@ -1113,7 +1117,7 @@ if __name__ == "__main__":
     ############################################################################
     # STAGE I
     max_frame = reader.number_of_frames - 1
-    max_frame = 100
+    #max_frame = 1000
     result1 = valve_exec_stage(0, config, stage_I_run,
                                reader=reader,
                                max_frame=max_frame)

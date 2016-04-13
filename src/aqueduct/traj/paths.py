@@ -262,7 +262,6 @@ def yield_single_paths(gps, fullonly=False, progress=False):
                                         gp.find_paths_types(fullonly=fullonly)):
             if progress:
                 yield SinglePath(id, paths, coords, types), nr
-
             else:
                 yield SinglePath(id, paths, coords, types)
 
@@ -286,7 +285,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         self.coords_in, self.coords_object, self.coords_out = map(np.array, coords)
         self.types_in, self.types_object, self.types_out = types
 
-        self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = None,None,None
+        self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = None, None, None
         self.smooth_method = None
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
@@ -340,7 +339,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     @property
     def types_cont(self):
         return ([self.path_in_code] * len(self.path_in)) + ([self.path_object_code] * len(self.path_object)) + (
-        [self.path_out_code] * len(self.path_out))
+            [self.path_out_code] * len(self.path_out))
 
     @property
     def gtypes(self):
@@ -353,7 +352,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     @property
     @tupleify
     def etypes(self):
-        for t,g in zip(self.types,self.gtypes):
+        for t, g in zip(self.types, self.gtypes):
             yield [''.join(t) for t in zip(t, g)]
 
     @property
@@ -383,16 +382,16 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     def has_out(self):
         return len(self.path_out) > 0
 
-
     @tupleify
     def get_coords(self, smooth=None):
         # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
         # if smooth is not none applies smoothing
         if smooth is not None:
             if smooth != self.smooth_method:
-                self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = self._make_smooth_coords(self.coords_cont, smooth)
+                self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = self._make_smooth_coords(
+                    self.coords_cont, smooth)
                 self.smooth_method = smooth
-            for nr,coords in enumerate((self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out)):
+            for nr, coords in enumerate((self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out)):
                 if coords is None:
                     yield self.coords[nr]
                 else:
@@ -406,7 +405,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         return np.vstack([c for c in self.get_coords(smooth) if len(c) > 0])
 
     @tupleify
-    def _make_smooth_coords(self,coords,smooth=None):
+    def _make_smooth_coords(self, coords, smooth=None):
         # if smooth is not none applies smoothing
         # smooth should be callable and should return an object of length equal to submitted one
         # get continuous coords
@@ -425,4 +424,4 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
     def apply_smoothing(self, smooth):
         # permament change!
-        self.coords_in, self.coords_object, self.coords_out = self._make_smooth_coords(self.coords_cont,smooth)
+        self.coords_in, self.coords_object, self.coords_out = self._make_smooth_coords(self.coords_cont, smooth)
