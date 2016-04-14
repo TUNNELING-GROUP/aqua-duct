@@ -328,8 +328,11 @@ class fbm(object):
     def __enter__(self):
         pass
 
-    def __exit__(self, type, value, traceback):
-        message("OK.")
+    def __exit__(self, typ, value, traceback):
+        if typ is None:
+            message("OK.")
+        else:
+            raise typ(value)
 
 
 def message(mess, cont=False):

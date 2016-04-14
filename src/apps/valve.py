@@ -314,6 +314,30 @@ class ValveConfig(object, ConfigSpecialNames):
 
 
 ################################################################################
+# reader helper class
+
+class TrajectoryReader(object):
+
+    def __init__(self,top,trj):
+
+        self.top = top
+        self.trj = shlex.split(trj)
+
+
+    def get(self):
+        # assume it is a Amber NetCDF
+        # TODO: check if it is DCD and do something?
+        # TODO: move it to another class, ReaderHelper for instance.
+        return ReadAmberNetCDFviaMDA(self.top,self.trj)
+
+    @property
+    def max_frame(self):
+        with self.get() as tmp_reader:
+            return tmp_reader.number_of_frames - 1
+
+
+
+################################################################################
 # convex hull helpers
 # TODO: Move it to separate module
 
@@ -356,7 +380,8 @@ def check_res_in_scope(options, scope, res, res_coords):
     else:
         if res.unique_resids_number() == 0:
             return []
-        res_in_scope_uids = reader.parse_selection(options.scope).unique_resids(ikwid=True)
+        res_in_scope_uids = scope.unique_resids(ikwid=True)
+        #res_in_scope_uids = traj_reader.parse_selection(options.scope).unique_resids(ikwid=True)
         is_res_in_scope = [r.unique_resids(ikwid=True) in res_in_scope_uids for r in res.iterate_over_residues()]
     return is_res_in_scope
 
@@ -466,7 +491,7 @@ def load_stage_dump(name, reader=None):
         for key, value in load_dump(name).iteritems():
             # CompactSelectionMDA
             if isinstance(value, CompactSelectionMDA):
-                value = value.toSelectionMDA(reader)
+                value = value.toSelectionMDA(reader.get_reader())
             loaded_data.update({key: value})
         return loaded_data
 
@@ -554,9 +579,10 @@ def valve_load_config(filename, config):
 
 def valve_read_trajectory(top, traj):
     with log.fbm('Read trajectory'):
+        return TrajectoryReader(top,traj)
         # read trajectory
-        traj_list = shlex.split(traj)
-        return ReadAmberNetCDFviaMDA(top, traj_list)
+        #traj_list = shlex.split(traj)
+        #return ReadAmberNetCDFviaMDA(top, traj_list)
         # reader = ReadDCDviaMDA(topology, trajectory)
 
 
@@ -609,42 +635,44 @@ def stage_I_run(config, options,
     log.message("Loop over frames - search of residues in object:")
     pbar = log.pbar(max_frame, kind=pbar_name)
 
-    scope = reader.parse_selection(options.scope)
+    with reader.get() as traj_reader:
 
-    # create some containers
-    res_ids_in_object_over_frames = {}
-    all_res = None
+        scope = traj_reader.parse_selection(options.scope)
 
-    for frame in reader.iterate_over_frames():
-        if frame > max_frame:
-            break
-        # current res selection
-        res = reader.parse_selection(options.object)
+        # create some containers
+        res_ids_in_object_over_frames = {}
+        all_res = None
 
-        # check is res are in scope
-        if options.scope_convexhull:
-            res_coords = list(res.center_of_mass_of_residues())
-            is_res_in_scope = check_res_in_scope(options, scope, res, res_coords)
-        else:
-            is_res_in_scope = check_res_in_scope(options, scope, res, None)
+        for frame in traj_reader.iterate_over_frames():
+            if frame > max_frame:
+                break
+            # current res selection
+            res = traj_reader.parse_selection(options.object)
 
-        # discard res out of scope
-        res_new = get_res_in_scope(is_res_in_scope, res)
-
-        # add it to all res in object
-        if res_new is not None:
-            if all_res:
-                all_res += res_new
-                all_res.uniquify()
+            # check is res are in scope
+            if options.scope_convexhull:
+                res_coords = list(res.center_of_mass_of_residues())
+                is_res_in_scope = check_res_in_scope(options, scope, res, res_coords)
             else:
-                all_res = res_new
+                is_res_in_scope = check_res_in_scope(options, scope, res, None)
 
-        # remeber ids of res in object in current frame
-        if res_new is not None:
-            res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
-        else:
-            res_ids_in_object_over_frames.update({frame: []})
-        pbar.update(frame)
+            # discard res out of scope
+            res_new = get_res_in_scope(is_res_in_scope, res)
+
+            # add it to all res in object
+            if res_new is not None:
+                if all_res:
+                    all_res += res_new
+                    all_res.uniquify()
+                else:
+                    all_res = res_new
+
+            # remeber ids of res in object in current frame
+            if res_new is not None:
+                res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
+            else:
+                res_ids_in_object_over_frames.update({frame: []})
+            pbar.update(frame)
 
     pbar.finish()
 
@@ -678,47 +706,49 @@ def stage_II_run(config, options,
     log.message("Trajectory scan:")
     pbar = log.pbar(max_frame, kind=pbar_name)
 
-    scope = reader.parse_selection(options.scope)
+    with reader.get() as traj_reader:
 
-    for frame in reader.iterate_over_frames():
-        if frame > max_frame:
-            break
+        scope = traj_reader.parse_selection(options.scope)
 
-        all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
+        for frame in traj_reader.iterate_over_frames():
+            if frame > max_frame:
+                break
 
-        # check if is res are in scope
-        is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
+            all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
 
-        all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
+            # check if is res are in scope
+            is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
 
-        for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
-            # the point is that nr is not pointing to correct element in paths
-            # now, nr is useless because paths is a dictionary, use resids instead
-            assert paths[resid].id == resid, \
-                "Internal error. Paths IDs not synced with resids. \
-                 Please send a bug report to developer(s): %s" % __mail__
-            if isscope:
-                paths[resid].add_coord(coord)
+            all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
 
-                # do we have info on res_ids_in_object_over_frames?
-                if frame not in res_ids_in_object_over_frames:
-                    res = reader.parse_selection(options.object)
-                    # discard res out of scope
-                    res_new = get_res_in_scope(is_res_in_scope, res)
-                    # remeber ids of res in object in current frame
-                    if res_new is not None:
-                        res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
+            for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
+                # the point is that nr is not pointing to correct element in paths
+                # now, nr is useless because paths is a dictionary, use resids instead
+                assert paths[resid].id == resid, \
+                    "Internal error. Paths IDs not synced with resids. \
+                     Please send a bug report to developer(s): %s" % __mail__
+                if isscope:
+                    paths[resid].add_coord(coord)
+
+                    # do we have info on res_ids_in_object_over_frames?
+                    if frame not in res_ids_in_object_over_frames:
+                        res = traj_reader.parse_selection(options.object)
+                        # discard res out of scope
+                        res_new = get_res_in_scope(is_res_in_scope, res)
+                        # remeber ids of res in object in current frame
+                        if res_new is not None:
+                            res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
+                        else:
+                            res_ids_in_object_over_frames.update({frame: []})
+
+                    # in scope
+                    if resid not in res_ids_in_object_over_frames[frame]:
+                        paths[resid].add_scope(frame)
                     else:
-                        res_ids_in_object_over_frames.update({frame: []})
+                        # in object
+                        paths[resid].add_object(frame)
 
-                # in scope
-                if resid not in res_ids_in_object_over_frames[frame]:
-                    paths[resid].add_scope(frame)
-                else:
-                    # in object
-                    paths[resid].add_object(frame)
-
-        pbar.update(frame)
+            pbar.update(frame)
 
     pbar.finish()
 
@@ -1116,12 +1146,11 @@ if __name__ == "__main__":
 
     ############################################################################
     # STAGE I
-    max_frame = reader.number_of_frames - 1
-    #max_frame = 1000
+    max_frame = reader.max_frame
+    max_frame = 100
     result1 = valve_exec_stage(0, config, stage_I_run,
                                reader=reader,
                                max_frame=max_frame)
-
     ############################################################################
     # STAGE II
     result2 = valve_exec_stage(1, config, stage_II_run,

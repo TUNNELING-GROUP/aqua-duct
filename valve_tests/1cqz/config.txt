@@ -7,8 +7,9 @@ pbar = simple
 execute = run
 load = stage_I.dump
 save = stage_I.dump
-scope = backbone
-scope_convexhull = True
+#scope = backbone
+scope = (resname WAT) and (around 4.0 protein)
+scope_convexhull = False
 object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
 
 [raw_paths]

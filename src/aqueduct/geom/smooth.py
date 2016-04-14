@@ -91,7 +91,10 @@ class DistanceWindowSmooth(Smooth, GeneralWindow):
         n = len(coords)
         cdiff = traces.diff(coords)
         avgw = self.function(cdiff)
-        window = int(np.ceil(self.window / avgw))
+        if avgw != 0:
+            window = int(np.ceil(self.window / avgw))
+        else:
+            window = len(coords)/10 # FIXME: Magic number!
         if window < 1:
             window = 1
 

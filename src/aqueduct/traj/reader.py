@@ -100,6 +100,15 @@ class ReadViaMDA(Reader):
                 selection += self.select_resnum(resnum)
         return SelectionMDA(selection)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, typ, value, traceback):
+        if typ is None:
+            self.trajectory_object.trajectory.close()
+        else:
+            raise typ(value)
+
 
 class ReadAmberNetCDFviaMDA(ReadViaMDA):
 
