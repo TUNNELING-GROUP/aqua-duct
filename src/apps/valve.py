@@ -39,7 +39,7 @@ optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
 def version():
-    return 0, 4, 1
+    return 0, 4, 2
 
 
 def version_nice():
@@ -340,6 +340,8 @@ class TrajectoryReader(object):
             return tmp_reader.number_of_frames - 1
 
 
+def rebuild_selection(selection,reader):
+    return CompactSelectionMDA(selection).toSelectionMDA(reader)
 
 ################################################################################
 # convex hull helpers
@@ -495,8 +497,8 @@ def load_stage_dump(name, reader=None):
         for key, value in load_dump(name).iteritems():
             # CompactSelectionMDA
             if isinstance(value, CompactSelectionMDA):
-                # FIXME: use with!!!!!!!!
-                value = value.toSelectionMDA(reader.get_reader())
+                with reader.get() as traj_reader:
+                    value = value.toSelectionMDA(traj_reader)
             loaded_data.update({key: value})
         return loaded_data
 
@@ -603,6 +605,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
                      **kwargs):
     options = valve_begin_stage(stage, config)
 
+    # TODO: consder to create traj_reader object here instead of doing it in stage_run or in load...
     # execute?
     if options.execute in ['run']:
         result = stage_run(config, options, reader=reader, **kwargs)
@@ -621,8 +624,9 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
     # remove options stuff
-    if result is not None:
-        return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
+    if not no_io:
+        if result is not None:
+            return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
 
 
 ################################################################################
@@ -705,12 +709,15 @@ def stage_II_run(config, options,
         paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=max_frame)) for resid in
                       all_res.unique_resids(ikwid=True)))
 
-    log.message("Trajectory scan:")
-    pbar = log.pbar(max_frame, kind=pbar_name)
-
     with reader.get() as traj_reader:
 
         scope = traj_reader.parse_selection(options.scope)
+
+        with log.fbm("Rebuild treceable residues with current trajectory"):
+            all_res = rebuild_selection(all_res, traj_reader)
+
+        log.message("Trajectory scan:")
+        pbar = log.pbar(max_frame, kind=pbar_name)
 
         for frame in traj_reader.iterate_over_frames():
             if frame > max_frame:
@@ -947,8 +954,8 @@ def stage_V_run(config, options,
         line = [nr, int(c), clusters.tolist().count(c)]
         # inlets types of current cluster
         its = [inlet_type[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
-        line.append(its.count(InletTypeCodes.inlet_in_code))
-        line.append(its.count(InletTypeCodes.inlet_out_code))
+        line.append(its.count(InletTypeCodes.incoming))
+        line.append(its.count(InletTypeCodes.outgoing))
         print >> fh, line_template % tuple(line)
 
     ############
@@ -965,9 +972,9 @@ def stage_V_run(config, options,
         inp, out = None, None
         if len(ids) > 0:
             for iid in ids:
-                if inlet_type[iid] == InletTypeCodes.inlet_in_code:
+                if inlet_type[iid] == InletTypeCodes.incoming:
                     inp = int(clusters[iid])
-                if inlet_type[iid] == InletTypeCodes.inlet_out_code:
+                if inlet_type[iid] == InletTypeCodes.outgoing:
                     out = int(clusters[iid])
         line.extend(map(str, [inp, out]))
         spaths_clust_type.append((inp, out))
@@ -1014,6 +1021,7 @@ def stage_V_run(config, options,
 ################################################################################
 
 def stage_VI_run(config, options,
+                 reader = None,
                  spaths=None,
                  clusters=None,
                  inlet_coords=None,
@@ -1093,14 +1101,15 @@ def stage_VI_run(config, options,
 
     if options.show_molecule:
         with log.fbm("Molecule"):
-            mda_ppr = mda.core.flags["permissive_pdb_reader"]
-            mda.core.flags["permissive_pdb_reader"] = False
-            pdb = TmpDumpWriterOfMDA()
-            frames_to_show = range2int(options.show_molecule_frames)
-            pdb.dump_frames(reader, frames=frames_to_show)
-            ConnectToPymol.load_pdb('molecule', pdb.close())
-            del pdb
-            mda.core.flags["permissive_pdb_reader"] = mda_ppr
+            with reader.get() as traj_reader:
+                mda_ppr = mda.core.flags["permissive_pdb_reader"]
+                mda.core.flags["permissive_pdb_reader"] = False
+                pdb = TmpDumpWriterOfMDA()
+                frames_to_show = range2int(options.show_molecule_frames)
+                pdb.dump_frames(traj_reader, frames=frames_to_show)
+                ConnectToPymol.load_pdb('molecule', pdb.close())
+                del pdb
+                mda.core.flags["permissive_pdb_reader"] = mda_ppr
 
 
 ################################################################################
@@ -1149,7 +1158,7 @@ if __name__ == "__main__":
     ############################################################################
     # STAGE I
     max_frame = reader.max_frame
-    max_frame = 100
+    max_frame = 200
     result1 = valve_exec_stage(0, config, stage_I_run,
                                reader=reader,
                                max_frame=max_frame)
@@ -1187,6 +1196,7 @@ if __name__ == "__main__":
         results.update(result)
 
     result6 = valve_exec_stage(5, config, stage_VI_run, no_io=True,
+                               reader=reader,
                                **results)
 
     ############################################################################

@@ -4,16 +4,16 @@ nc = ../../real_traj/1cqz/prod_1cqz.nc
 pbar = simple
 
 [traceable_residues]
-execute = run
+execute = skip
 load = stage_I.dump
 save = stage_I.dump
-#scope = backbone
-scope = (resname WAT) and (around 4.0 protein)
-scope_convexhull = False
+scope = backbone
+#scope = (resname WAT) and (around 4.0 protein)
+scope_convexhull = True
 object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
 
 [raw_paths]
-execute = run
+execute = skip
 load = stage_II.dump
 save = stage_II.dump
 clear_in_object_info = False
@@ -28,7 +28,7 @@ apply_smoothing = False
 apply_soft_smoothing = True
 
 [smooth]
-method = dwin_mss
+method = awin
 step = 4.5
 window = 4.5
 function = mean
@@ -50,7 +50,7 @@ save = None
 dump_config = True
 
 [visualize]
-execute = run
+execute = skip
 all_paths_raw = True
 all_paths_smooth = True
 all_paths_split = True

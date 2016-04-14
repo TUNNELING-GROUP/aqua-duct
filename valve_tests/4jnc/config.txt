@@ -4,7 +4,7 @@ nc = '../../real_traj/4jnc/prod1.nc' '../../real_traj/4jnc/prod2.nc' '../../real
 pbar = simple
 
 [traceable_residues]
-execute = skip
+execute = run
 load = stage_I.dump
 save = stage_I.dump
 scope = backbone
@@ -49,7 +49,7 @@ save = None
 dump_config = True
 
 [visualize]
-execute = run
+execute = skip
 all_paths_raw = True
 all_paths_smooth = True
 all_paths_split = True

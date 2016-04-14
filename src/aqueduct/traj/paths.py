@@ -8,7 +8,7 @@ from itertools import izip
 from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify
 import numpy as np
 from aqueduct.geom import traces
-
+from aqueduct.traj.inlets import Inlet,InletTypeCodes
 
 ########################################################################################################################
 # paths/list manipulations
@@ -266,15 +266,11 @@ def yield_single_paths(gps, fullonly=False, progress=False):
                 yield SinglePath(id, paths, coords, types)
 
 
-class InletTypeCodes:
-    inlet_in_code = 'inin'
-    inlet_out_code = 'inout'
 
 
 class SinglePath(object, PathTypesCodes, InletTypeCodes):
     # special class
     # represents one path
-
 
     empty_coords = np.zeros((0, 3))
 
@@ -290,19 +286,8 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
-    @property
-    def size(self):
-        return sum(map(len, self.paths))
-
-    @property
-    def coords(self):
-        return self.coords_in, self.coords_object, self.coords_out
-
-    @property
-    def coords_cont(self):
-        # returns coords as one array
-        return np.vstack([c for c in self.coords if len(c) > 0])
-
+    # ---------------------------------------------------------------------------------------------------------------- #
+    # DEPRECATED
     @property
     def coords_first_in(self):
         if len(self.path_in) > 0:
@@ -316,8 +301,40 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     @property
     def coords_filo(self):
         # first in and last out plus type!
-        return [(inlet, {0: self.inlet_in_code, 1: self.inlet_out_code}[nr]) for nr, inlet in
+        return [(inlet, {0: self.incoming, 1: self.outgoing}[nr]) for nr, inlet in
                 enumerate((self.coords_first_in, self.coords_last_out)) if inlet is not None]
+    # ---------------------------------------------------------------------------------------------------------------- #
+
+    def get_inlets(self):
+        if self.has_in:
+            yield Inlet(coords=self.coords_in[0],
+                        type=(InletTypeCodes.surface,InletTypeCodes.incoming),
+                        reference=self.id)
+            yield Inlet(coords=self.coords_in[-1],
+                        type=(InletTypeCodes.internal,InletTypeCodes.incoming),
+                        reference=self.id)
+        if self.has_out:
+            yield Inlet(coords=self.coords_out[0],
+                        type=(InletTypeCodes.internal,InletTypeCodes.outgoing),
+                        reference=self.id)
+            yield Inlet(coords=self.coords_out[-1],
+                        type=(InletTypeCodes.surface,InletTypeCodes.outgoing),
+                        reference=self.id)
+
+    ####################################################################################################################
+    # coords
+
+    @property
+    def coords(self):
+        return self.coords_in, self.coords_object, self.coords_out
+
+    @property
+    def coords_cont(self):
+        # returns coords as one array
+        return np.vstack([c for c in self.coords if len(c) > 0])
+
+    ####################################################################################################################
+    # paths
 
     @property
     def paths(self):
@@ -332,6 +349,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
     @property
     def types(self):
+        # spath types
         return ([self.path_in_code] * len(self.path_in),
                 [self.path_object_code] * len(self.path_object),
                 [self.path_out_code] * len(self.path_out))
@@ -343,6 +361,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
     @property
     def gtypes(self):
+        # generic types
         return self.types_in, self.types_object, self.types_out
 
     @property
@@ -352,6 +371,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     @property
     @tupleify
     def etypes(self):
+        # extended types
         for t, g in zip(self.types, self.gtypes):
             yield [''.join(t) for t in zip(t, g)]
 
@@ -361,6 +381,9 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
     ####################################################################################################################
 
+    @property
+    def size(self):
+        return sum(map(len, self.paths))
 
     @property
     def begins(self):
@@ -381,6 +404,8 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     @property
     def has_out(self):
         return len(self.path_out) > 0
+
+    ####################################################################################################################
 
     @tupleify
     def get_coords(self, smooth=None):
@@ -425,3 +450,5 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     def apply_smoothing(self, smooth):
         # permament change!
         self.coords_in, self.coords_object, self.coords_out = self._make_smooth_coords(self.coords_cont, smooth)
+
+    ####################################################################################################################
