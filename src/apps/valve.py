@@ -26,11 +26,12 @@ from aqueduct.geom.cluster import perform_clustering
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
-from aqueduct.traj.paths import GenericPaths, yield_single_paths, InletTypeCodes
+from aqueduct.traj.paths import GenericPaths, yield_single_paths
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
 from aqueduct.utils.helpers import range2int
+from aqueduct.traj.inlets import Inlets, InletTypeCodes
 
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
@@ -222,6 +223,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'sort_by_id', 'True')
         config.set(section, 'apply_smoothing', 'False')
         config.set(section, 'apply_soft_smoothing', 'True')
+        config.set(section, 'discard_short_paths', '1')
 
         ################
         # stage IV
@@ -778,20 +780,24 @@ def stage_III_run(config, options,
                     paths.pop(key)
 
     log.message("Create separate paths:")
-
     pbar = log.pbar(len(paths), kind=pbar_name)
     # yield_single_paths requires a list of paths not a dictionary
     spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
-
     pbar.finish()
+
+    if options.discard_short_paths > 0:
+        shorter_then = int(options.discard_short_paths)
+        with log.fbm("Discard paths shorter then %d" % shorter_then):
+            spaths = [sp for sp in spaths if sp.size > shorter_then]
 
     if options.sort_by_id:
         with log.fbm("Sort separate paths by resid"):
-            spaths = sorted(spaths, key=lambda sp: sp.id)
+            spaths = sorted(spaths, key=lambda sp: (sp.id.id,sp.id.nr))
     # apply smoothing?
+    if options.apply_smoothing or options.apply_soft_smoothing:
+        smooth = get_smooth_method(soptions)
     if options.apply_smoothing:
         log.message('Applying hard smoothing:')
-        smooth = get_smooth_method(soptions)
         pbar = log.pbar(len(spaths), kind=pbar_name)
         for nr, sp in enumerate(spaths):
             sp.apply_smoothing(smooth)
@@ -799,12 +805,12 @@ def stage_III_run(config, options,
         pbar.finish()
     if options.apply_soft_smoothing:
         log.message('Applying soft smoothing:')
-        smooth = get_smooth_method(soptions)
         pbar = log.pbar(len(spaths), kind=pbar_name)
         for nr, sp in enumerate(spaths):
             sp.get_coords(smooth=smooth)
             pbar.update(nr + 1)
         pbar.finish()
+
 
     return {'paths': paths, 'spaths': spaths, 'options': options, 'soptions': soptions}
 
@@ -815,6 +821,23 @@ def stage_IV_run(config, options,
                  spaths=None,
                  **kwargs):
     coptions = config.get_cluster_options()
+
+    # new style clustering
+    with log.fbm("Create inlets"):
+        inls = Inlets(spaths)
+
+    if inls.size > 0:
+        with log.fbm("Performing clusterization"):
+            assert coptions.method == 'dbscan', 'Unknown clusterization method %s.' % coptions.method
+            # perform clusterization
+            inls.perform_clustering(lambda X: perform_clustering(X, eps=float(coptions.eps), min_samples=int(coptions.min_samples)))
+    else:
+        log.message("No inlets found. Clusterization skipped.")
+
+
+    return {'inls':inls}
+
+    '''
     # find coords of inlets, type and id
     inlet_coords = []
     inlet_type = []
@@ -837,7 +860,7 @@ def stage_IV_run(config, options,
             # perform clusterization
             clusters = perform_clustering(np.array(inlet_coords), eps=float(coptions.eps),
                                           min_samples=int(coptions.min_samples))
-            clusters += 1  # -1 is 0 now and it means unclustered
+            #clusters += 1  # -1 is 0 now and it means unclustered
     else:
         log.message("No inlets found. Clusterization skipped.")
         clusters = np.array([])
@@ -849,16 +872,14 @@ def stage_IV_run(config, options,
             'clusters': clusters,
             'options': options,
             'coptions': coptions}
-
+    '''
 
 ################################################################################
 
 def stage_V_run(config, options,
                 spaths=None,
                 paths=None,
-                inlet_id=None,
-                clusters=None,
-                inlet_type=None,
+                inls=None,
                 **kwargs):
     # file handle?
     if options.save:
@@ -893,11 +914,12 @@ def stage_V_run(config, options,
     print >> fh, "List of separate paths"
     header_template = " ".join(['%7s'] * 7)
     header = header_template % tuple("Nr ID Begin INP OBJ OUT End".split())
+    line_template = " ".join(['%7d','%7s'] + ['%7d'] * 5)
     print >> fh, log.thead(header)
     for nr, sp in enumerate(spaths):
         line = []
         for e in (nr, sp.id, sp.begins, len(sp.path_in), len(sp.path_object), len(sp.path_out), sp.ends):
-            line += ["%7d" % e]
+            line += ["%7s" % e]
         print >> fh, " ".join(line)
 
     ############
@@ -906,7 +928,7 @@ def stage_V_run(config, options,
     header_template = " ".join(['%7s'] * 2 + ['%9s'] * 3)
     header = header_template % tuple("Nr ID INP OBJ OUT".split())
     print >> fh, log.thead(header)
-    line_template = " ".join(['%7d'] * 2 + ['%9.1f'] * 3)
+    line_template = " ".join(['%7d','%7s']+ ['%9.1f'] * 3)
     for nr, sp in enumerate(spaths):
         line = [nr, sp.id]
         for e in sp.coords_in, sp.coords_object, sp.coords_out:
@@ -922,7 +944,7 @@ def stage_V_run(config, options,
     header_template = " ".join(['%7s'] * 2 + ['%8s'] * 6)
     header = header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
     print >> fh, log.thead(header)
-    line_template = " ".join(['%7d'] * 2 + ['%8.2f', '%8.3f'] * 3)
+    line_template = " ".join(['%7d','%7s'] + ['%8.2f', '%8.3f'] * 3)
     for nr, sp in enumerate(spaths):
         line = [nr, sp.id]
         for e in sp.coords_in, sp.coords_object, sp.coords_out:
@@ -936,26 +958,23 @@ def stage_V_run(config, options,
 
     ############
     print >> fh, asep()
-    print >> fh, "Number of inlets:", len(inlet_id)
-    no_of_clusters = len(set([c for c in clusters if c != 0]))
+    print >> fh, "Number of inlets:", inls.size
+    no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]
     print >> fh, "Number of clusters:", no_of_clusters
-    print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in clusters]
+    print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in inls.clusters_list]
 
     ############
     print >> fh, asep()
     print >> fh, "Clusters summary"
-    clusters_list = list(set(clusters.tolist()))
-    clusters_list.sort()
     header_template = " ".join(['%7s'] * 5)
     header = header_template % tuple("Nr Cluster Size INP OUT".split())
     print >> fh, log.thead(header)
     line_template = " ".join(['%7d'] * 5)
-    for nr, c in enumerate(clusters_list):
-        line = [nr, int(c), clusters.tolist().count(c)]
+    for nr, c in enumerate(inls.clusters_list):
+        line = [nr, c, inls.clusters.count(c)]
         # inlets types of current cluster
-        its = [inlet_type[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
-        line.append(its.count(InletTypeCodes.incoming))
-        line.append(its.count(InletTypeCodes.outgoing))
+        line.append(inls.lim2clusters(c).lim2types(InletTypeCodes.all_incoming).size)
+        line.append(inls.lim2clusters(c).lim2types(InletTypeCodes.all_outgoing).size)
         print >> fh, line_template % tuple(line)
 
     ############
@@ -964,18 +983,20 @@ def stage_V_run(config, options,
     header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2)
     header = header_template % tuple("Nr ID INP OUT".split())
     print >> fh, log.thead(header)
-    line_template = " ".join(['%7d'] * 2 + ['%7s'] * 2)
+    line_template = " ".join(['%7d','%7s'] + ['%7s'] * 2)
     spaths_clust_type = []
     for nr, sp in enumerate(spaths):
         line = [nr, sp.id]
-        ids = [nr for nr, iid in enumerate(inlet_id) if iid == sp.id]
-        inp, out = None, None
-        if len(ids) > 0:
-            for iid in ids:
-                if inlet_type[iid] == InletTypeCodes.incoming:
-                    inp = int(clusters[iid])
-                if inlet_type[iid] == InletTypeCodes.outgoing:
-                    out = int(clusters[iid])
+        inp = inls.lim2spaths(sp).lim2types(InletTypeCodes.all_incoming).clusters
+        out = inls.lim2spaths(sp).lim2types(InletTypeCodes.all_incoming).clusters
+        if len(inp) == 0:
+            inp = None
+        else:
+            inp = inp[0]
+        if len(out) == 0:
+            out = None
+        else:
+            out = out[0]
         line.extend(map(str, [inp, out]))
         spaths_clust_type.append((inp, out))
         print >> fh, line_template % tuple(line)
@@ -1158,7 +1179,7 @@ if __name__ == "__main__":
     ############################################################################
     # STAGE I
     max_frame = reader.max_frame
-    max_frame = 200
+    max_frame = 1000
     result1 = valve_exec_stage(0, config, stage_I_run,
                                reader=reader,
                                max_frame=max_frame)

@@ -26,9 +26,10 @@ discard_empty_paths = True
 sort_by_id = True
 apply_smoothing = False
 apply_soft_smoothing = True
+discard_short_paths = 3
 
 [smooth]
-method = awin
+method = dwin_mss
 step = 4.5
 window = 4.5
 function = mean

@@ -23,6 +23,6 @@ def perform_clustering(coords,**kwargs):
 
     clust = get_default_culstering_method(**kwargs).fit(coords)
 
-    return clust.labels_  # TODO: add one to it?
+    return map(int,clust.labels_ + 1) # TODO: add one to it? Is it OK?
 
 

@@ -101,7 +101,7 @@ class SimpleProgressBar(object):
 
     barlenght = 24
 
-    def __init__(self, maxval=None):
+    def __init__(self,mess=None, maxval=None):
         '''
         :param int maxval: maximal number of iterations stored to :ivar:`maxval`
         
@@ -120,6 +120,8 @@ class SimpleProgressBar(object):
 
         self.begin = time.time()
         self.tcurrent = self.begin
+        if mess is not None:
+            message(mess)
         self.show()
 
     def bar(self):

@@ -9,6 +9,7 @@ from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify
 import numpy as np
 from aqueduct.geom import traces
 from aqueduct.traj.inlets import Inlet,InletTypeCodes
+from collections import namedtuple
 
 ########################################################################################################################
 # paths/list manipulations
@@ -188,6 +189,10 @@ class GenericPaths(object, GenericPathTypeCodes):
         for path in self.find_paths(fullonly=fullonly):
             yield self.get_single_path_types(path)
 
+    def find_paths_coords_types(self,fullonly=False):
+        for path in self.find_paths(fullonly=fullonly):
+            yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
+
     def get_single_path_coords(self, spath):
         # returns coordinates for single path
         # single path comprises of in,scope,out parts
@@ -253,10 +258,35 @@ class GenericPaths(object, GenericPathTypeCodes):
         return in_, object_, out_
 
 
+SinglePathID = namedtuple('SinglePathID', 'id nr')
+class SinglePathID(object):
+
+    def __init__(self,id=None,nr=None):
+
+        self.id = id
+        self.nr = nr
+
+    def __str__(self):
+
+        return '%d:%d' % (self.id, self.nr)
+
 def yield_single_paths(gps, fullonly=False, progress=False):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
+    nr_dict = {}
     for nr, gp in enumerate(gps):
         id = gp.id
+        if id in nr_dict:
+            nr_dict.update({id:nr_dict[id]+1})
+        else:
+            nr_dict.update({id:0})
+
+        for paths, coords, types in gp.find_paths_coords_types(fullonly=fullonly):
+            if progress:
+                yield SinglePath(SinglePathID(id=id,nr=nr_dict[id]), paths, coords, types), nr
+            else:
+                yield SinglePath(SinglePathID(id=id,nr=nr_dict[id]), paths, coords, types)
+
+        '''
         for paths, coords, types in zip(gp.find_paths(fullonly=fullonly),
                                         gp.find_paths_coords(fullonly=fullonly),
                                         gp.find_paths_types(fullonly=fullonly)):
@@ -264,8 +294,7 @@ def yield_single_paths(gps, fullonly=False, progress=False):
                 yield SinglePath(id, paths, coords, types), nr
             else:
                 yield SinglePath(id, paths, coords, types)
-
-
+        '''
 
 
 class SinglePath(object, PathTypesCodes, InletTypeCodes):
