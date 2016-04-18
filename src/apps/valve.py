@@ -40,7 +40,7 @@ optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
 def version():
-    return 0, 4, 2
+    return 0, 4, 3
 
 
 def version_nice():
