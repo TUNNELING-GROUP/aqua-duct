@@ -8,8 +8,9 @@ from itertools import izip
 from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify
 import numpy as np
 from aqueduct.geom import traces
-from aqueduct.traj.inlets import Inlet,InletTypeCodes
+from aqueduct.traj.inlets import Inlet, InletTypeCodes
 from collections import namedtuple
+
 
 ########################################################################################################################
 # paths/list manipulations
@@ -189,7 +190,7 @@ class GenericPaths(object, GenericPathTypeCodes):
         for path in self.find_paths(fullonly=fullonly):
             yield self.get_single_path_types(path)
 
-    def find_paths_coords_types(self,fullonly=False):
+    def find_paths_coords_types(self, fullonly=False):
         for path in self.find_paths(fullonly=fullonly):
             yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
 
@@ -258,17 +259,16 @@ class GenericPaths(object, GenericPathTypeCodes):
         return in_, object_, out_
 
 
-SinglePathID = namedtuple('SinglePathID', 'id nr')
+# SinglePathID = namedtuple('SinglePathID', 'id nr')
 class SinglePathID(object):
-
-    def __init__(self,id=None,nr=None):
-
+    def __init__(self, id=None, nr=None):
         self.id = id
         self.nr = nr
 
     def __str__(self):
-
         return '%d:%d' % (self.id, self.nr)
+
+
 
 def yield_single_paths(gps, fullonly=False, progress=False):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
@@ -276,15 +276,15 @@ def yield_single_paths(gps, fullonly=False, progress=False):
     for nr, gp in enumerate(gps):
         id = gp.id
         if id in nr_dict:
-            nr_dict.update({id:nr_dict[id]+1})
+            nr_dict.update({id: (nr_dict[id] + 1)})
         else:
-            nr_dict.update({id:0})
+            nr_dict.update({id: 0})
 
         for paths, coords, types in gp.find_paths_coords_types(fullonly=fullonly):
             if progress:
-                yield SinglePath(SinglePathID(id=id,nr=nr_dict[id]), paths, coords, types), nr
+                yield SinglePath(SinglePathID(id=id, nr=nr_dict[id]), paths, coords, types), nr
             else:
-                yield SinglePath(SinglePathID(id=id,nr=nr_dict[id]), paths, coords, types)
+                yield SinglePath(SinglePathID(id=id, nr=nr_dict[id]), paths, coords, types)
 
         '''
         for paths, coords, types in zip(gp.find_paths(fullonly=fullonly),
@@ -332,22 +332,23 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         # first in and last out plus type!
         return [(inlet, {0: self.incoming, 1: self.outgoing}[nr]) for nr, inlet in
                 enumerate((self.coords_first_in, self.coords_last_out)) if inlet is not None]
+
     # ---------------------------------------------------------------------------------------------------------------- #
 
     def get_inlets(self):
         if self.has_in:
             yield Inlet(coords=self.coords_in[0],
-                        type=(InletTypeCodes.surface,InletTypeCodes.incoming),
+                        type=(InletTypeCodes.surface, InletTypeCodes.incoming),
                         reference=self.id)
             yield Inlet(coords=self.coords_in[-1],
-                        type=(InletTypeCodes.internal,InletTypeCodes.incoming),
+                        type=(InletTypeCodes.internal, InletTypeCodes.incoming),
                         reference=self.id)
         if self.has_out:
             yield Inlet(coords=self.coords_out[0],
-                        type=(InletTypeCodes.internal,InletTypeCodes.outgoing),
+                        type=(InletTypeCodes.internal, InletTypeCodes.outgoing),
                         reference=self.id)
             yield Inlet(coords=self.coords_out[-1],
-                        type=(InletTypeCodes.surface,InletTypeCodes.outgoing),
+                        type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
                         reference=self.id)
 
     ####################################################################################################################
@@ -480,4 +481,4 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         # permament change!
         self.coords_in, self.coords_object, self.coords_out = self._make_smooth_coords(self.coords_cont, smooth)
 
-    ####################################################################################################################
+        ####################################################################################################################

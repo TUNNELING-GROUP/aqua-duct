@@ -22,7 +22,7 @@ from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
 from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
-from aqueduct.geom.cluster import perform_clustering
+from aqueduct.geom.cluster import perform_clustering, DBSCAN, AffinityPropagation, MeanShift, KMeans
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
@@ -30,7 +30,7 @@ from aqueduct.traj.paths import GenericPaths, yield_single_paths
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
-from aqueduct.utils.helpers import range2int
+from aqueduct.utils.helpers import range2int, Auto
 from aqueduct.traj.inlets import Inlets, InletTypeCodes
 
 # TODO: Move it to separate module
@@ -60,7 +60,8 @@ class ConfigSpecialNames:
                           'true': True,
                           'false': False,
                           'yes': True,
-                          'no': False}
+                          'no': False,
+                          'auto': Auto}
 
     def special_name(self, name):
         if isinstance(name, (str, unicode)):
@@ -247,8 +248,8 @@ class ValveConfig(object, ConfigSpecialNames):
         section = self.cluster_name()
         config.add_section(section)
         config.set(section, 'method', 'dbscan')
-        config.set(section, 'eps', '5.0')
-        config.set(section, 'min_samples', '3')
+        # config.set(section, 'eps', '5.0')
+        # config.set(section, 'min_samples', '3')
 
         ################
         # stage V
@@ -323,18 +324,15 @@ class ValveConfig(object, ConfigSpecialNames):
 # reader helper class
 
 class TrajectoryReader(object):
-
-    def __init__(self,top,trj):
-
+    def __init__(self, top, trj):
         self.top = top
         self.trj = shlex.split(trj)
-
 
     def get(self):
         # assume it is a Amber NetCDF
         # TODO: check if it is DCD and do something?
         # TODO: move it to another class, ReaderHelper for instance.
-        return ReadAmberNetCDFviaMDA(self.top,self.trj)
+        return ReadAmberNetCDFviaMDA(self.top, self.trj)
 
     @property
     def max_frame(self):
@@ -342,8 +340,9 @@ class TrajectoryReader(object):
             return tmp_reader.number_of_frames - 1
 
 
-def rebuild_selection(selection,reader):
+def rebuild_selection(selection, reader):
     return CompactSelectionMDA(selection).toSelectionMDA(reader)
+
 
 ################################################################################
 # convex hull helpers
@@ -389,7 +388,7 @@ def check_res_in_scope(options, scope, res, res_coords):
         if res.unique_resids_number() == 0:
             return []
         res_in_scope_uids = scope.unique_resids(ikwid=True)
-        #res_in_scope_uids = traj_reader.parse_selection(options.scope).unique_resids(ikwid=True)
+        # res_in_scope_uids = traj_reader.parse_selection(options.scope).unique_resids(ikwid=True)
         is_res_in_scope = [r.unique_resids(ikwid=True) in res_in_scope_uids for r in res.iterate_over_residues()]
     return is_res_in_scope
 
@@ -565,6 +564,50 @@ def get_smooth_method(soptions):
     return smooth
 
 
+def get_clustering_method(coptions):
+    assert coptions.method in ['dbscan', 'affprop', 'meanshift',
+                               'kmeans'], 'Unknown clusterization method %s.' % coptions.method
+
+    opts = {}
+
+    def dbscan_opts():
+        if 'eps' in coptions._asdict():
+            opts.update({'eps': float(coptions.eps)})
+        if 'min_samples' in coptions._asdict():
+            opts.update({'min_samples': int(coptions.min_samples)})
+
+    def affprop_opts():
+        pass
+
+    def kmeans_opts():
+        if 'n_clusters' in coptions._asdict():
+            opts.update({'n_clusters': int(coptions.n_clusters)})
+
+    def meanshift_opts():
+        if 'cluster_all' in coptions._asdict():
+            opts.update({'cluster_all': bool(coptions.cluster_all)})
+        if 'bandwidth' in coptions._asdict():
+            if coptions.bandwidth is Auto:
+                opts.update({'bandwidth': coptions.bandwidth})
+            else:
+                opts.update({'bandwidth': float(coptions.bandwidth)})
+
+    if coptions.method == 'dbscan':
+        dbscan_opts()
+        method = DBSCAN
+    elif coptions.method == 'affprop':
+        affprop_opts()
+        method = AffinityPropagation
+    elif coptions.method == 'kmeans':
+        kmeans_opts()
+        method = KMeans
+    elif coptions.method == 'meanshift':
+        meanshift_opts()
+        method = MeanShift
+
+    return lambda X: perform_clustering(X, method, **opts)
+
+
 ################################################################################
 
 def valve_begin():
@@ -588,10 +631,10 @@ def valve_load_config(filename, config):
 
 def valve_read_trajectory(top, traj):
     with log.fbm('Read trajectory'):
-        return TrajectoryReader(top,traj)
+        return TrajectoryReader(top, traj)
         # read trajectory
-        #traj_list = shlex.split(traj)
-        #return ReadAmberNetCDFviaMDA(top, traj_list)
+        # traj_list = shlex.split(traj)
+        # return ReadAmberNetCDFviaMDA(top, traj_list)
         # reader = ReadDCDviaMDA(topology, trajectory)
 
 
@@ -792,7 +835,7 @@ def stage_III_run(config, options,
 
     if options.sort_by_id:
         with log.fbm("Sort separate paths by resid"):
-            spaths = sorted(spaths, key=lambda sp: (sp.id.id,sp.id.nr))
+            spaths = sorted(spaths, key=lambda sp: (sp.id.id, sp.id.nr))
     # apply smoothing?
     if options.apply_smoothing or options.apply_soft_smoothing:
         smooth = get_smooth_method(soptions)
@@ -811,7 +854,6 @@ def stage_III_run(config, options,
             pbar.update(nr + 1)
         pbar.finish()
 
-
     return {'paths': paths, 'spaths': spaths, 'options': options, 'soptions': soptions}
 
 
@@ -828,14 +870,13 @@ def stage_IV_run(config, options,
 
     if inls.size > 0:
         with log.fbm("Performing clusterization"):
-            assert coptions.method == 'dbscan', 'Unknown clusterization method %s.' % coptions.method
+            clustering_function = get_clustering_method(coptions)
             # perform clusterization
-            inls.perform_clustering(lambda X: perform_clustering(X, eps=float(coptions.eps), min_samples=int(coptions.min_samples)))
+            inls.perform_clustering(clustering_function)
     else:
         log.message("No inlets found. Clusterization skipped.")
 
-
-    return {'inls':inls}
+    return {'inls': inls}
 
     '''
     # find coords of inlets, type and id
@@ -873,6 +914,7 @@ def stage_IV_run(config, options,
             'options': options,
             'coptions': coptions}
     '''
+
 
 ################################################################################
 
@@ -914,7 +956,7 @@ def stage_V_run(config, options,
     print >> fh, "List of separate paths"
     header_template = " ".join(['%7s'] * 7)
     header = header_template % tuple("Nr ID Begin INP OBJ OUT End".split())
-    line_template = " ".join(['%7d','%7s'] + ['%7d'] * 5)
+    line_template = " ".join(['%7d', '%7s'] + ['%7d'] * 5)
     print >> fh, log.thead(header)
     for nr, sp in enumerate(spaths):
         line = []
@@ -928,7 +970,7 @@ def stage_V_run(config, options,
     header_template = " ".join(['%7s'] * 2 + ['%9s'] * 3)
     header = header_template % tuple("Nr ID INP OBJ OUT".split())
     print >> fh, log.thead(header)
-    line_template = " ".join(['%7d','%7s']+ ['%9.1f'] * 3)
+    line_template = " ".join(['%7d', '%7s'] + ['%9.1f'] * 3)
     for nr, sp in enumerate(spaths):
         line = [nr, sp.id]
         for e in sp.coords_in, sp.coords_object, sp.coords_out:
@@ -944,7 +986,7 @@ def stage_V_run(config, options,
     header_template = " ".join(['%7s'] * 2 + ['%8s'] * 6)
     header = header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
     print >> fh, log.thead(header)
-    line_template = " ".join(['%7d','%7s'] + ['%8.2f', '%8.3f'] * 3)
+    line_template = " ".join(['%7d', '%7s'] + ['%8.2f', '%8.3f'] * 3)
     for nr, sp in enumerate(spaths):
         line = [nr, sp.id]
         for e in sp.coords_in, sp.coords_object, sp.coords_out:
@@ -959,7 +1001,7 @@ def stage_V_run(config, options,
     ############
     print >> fh, asep()
     print >> fh, "Number of inlets:", inls.size
-    no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]
+    no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]  # minus outliers, if any
     print >> fh, "Number of clusters:", no_of_clusters
     print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in inls.clusters_list]
 
@@ -983,12 +1025,12 @@ def stage_V_run(config, options,
     header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2)
     header = header_template % tuple("Nr ID INP OUT".split())
     print >> fh, log.thead(header)
-    line_template = " ".join(['%7d','%7s'] + ['%7s'] * 2)
+    line_template = " ".join(['%7d', '%7s'] + ['%7s'] * 2)
     spaths_clust_type = []
     for nr, sp in enumerate(spaths):
         line = [nr, sp.id]
         inp = inls.lim2spaths(sp).lim2types(InletTypeCodes.all_incoming).clusters
-        out = inls.lim2spaths(sp).lim2types(InletTypeCodes.all_incoming).clusters
+        out = inls.lim2spaths(sp).lim2types(InletTypeCodes.all_outgoing).clusters
         if len(inp) == 0:
             inp = None
         else:
@@ -1042,10 +1084,9 @@ def stage_V_run(config, options,
 ################################################################################
 
 def stage_VI_run(config, options,
-                 reader = None,
+                 reader=None,
                  spaths=None,
-                 clusters=None,
-                 inlet_coords=None,
+                 inls=None,
                  **kwargs):
     from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
     from aqueduct.visual.quickplot import ColorMapDistMap
@@ -1107,15 +1148,13 @@ def stage_VI_run(config, options,
     if options.inlets_clusters:
         with log.fbm("Clusters"):
             # TODO: require stage V for that?
-            no_of_clusters = len(set([c for c in clusters if c != -1]))
+            no_of_clusters = len(inls.clusters_list)  # total, including outliers
             cmap = ColorMapDistMap(name='Dark2', size=no_of_clusters)
-            clusters_list = list(set(clusters.tolist()))
-            clusters_list.sort()
-            for c in clusters_list:
+            for c in inls.clusters_list:
                 # coords for current cluster
-                ics = [inlet_coords[nr] for nr, cc in enumerate(clusters.tolist()) if cc == c]
-                if c == -1:
-                    c_name = 'none'
+                ics = inls.lim2clusters(c).coords
+                if c == 0:
+                    c_name = 'out'
                 else:
                     c_name = str(int(c))
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)

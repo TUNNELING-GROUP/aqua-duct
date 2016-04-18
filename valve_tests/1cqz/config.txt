@@ -19,7 +19,7 @@ save = stage_II.dump
 clear_in_object_info = False
 
 [separate_paths]
-execute = run
+execute = skip
 load = stage_III.dump
 save = stage_III.dump
 discard_empty_paths = True
@@ -41,8 +41,11 @@ load = stage_IV.dump
 save = stage_IV.dump
 
 [clusterization]
-method = dbscan
-eps = 5.0
+method = meanshift
+cluster_all = False
+bandwidth = Auto
+
+eps = 3.0
 min_samples = 3
 
 [analysis]
@@ -63,6 +66,6 @@ paths_raw_io = True
 paths_smooth_io = True
 paths_states = True
 inlets_clusters = True
-show_molecule = backbone
+show_molecule = protein
 show_molecule_frames = 0
 

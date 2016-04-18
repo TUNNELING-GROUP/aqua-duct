@@ -1,10 +1,10 @@
 [global]
 top = ../../real_traj/4jnc/4JNC_FS.prmtop
-nc = '../../real_traj/4jnc/prod1.nc' '../../real_traj/4jnc/prod2.nc' '../../real_traj/4jnc/prod3.nc' '../../real_traj/4jnc/prod4.nc' '../../real_traj/4jnc/prod5.nc'
+nc = ../../real_traj/4jnc/4JNC.nc
 pbar = simple
 
 [traceable_residues]
-execute = run
+execute = skip
 load = stage_I.dump
 save = stage_I.dump
 scope = backbone
@@ -12,7 +12,7 @@ scope_convexhull = True
 object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 146 or resnum 230 or resnum 260 or resnum 288))
 
 [raw_paths]
-execute = run
+execute = skip
 load = stage_II.dump
 save = stage_II.dump
 clear_in_object_info = False
@@ -25,6 +25,7 @@ discard_empty_paths = True
 sort_by_id = True
 apply_smoothing = False
 apply_soft_smoothing = True
+discard_short_paths = 3
 
 [smooth]
 method = dwin_mss
@@ -39,28 +40,31 @@ load = stage_IV.dump
 save = stage_IV.dump
 
 [clusterization]
-method = dbscan
-eps = 5.0
+method = meanshift
+cluster_all = False
+bandwidth = Auto
+
+eps = 3.0
 min_samples = 3
 
 [analysis]
 execute = run
-save = None
+save = results.txt
 dump_config = True
 
 [visualize]
-execute = skip
-all_paths_raw = True
-all_paths_smooth = True
+execute = run
+all_paths_raw = False
+all_paths_smooth = False
 all_paths_split = True
-all_paths_raw_io = True
-all_paths_smooth_io = True
-paths_raw = True
-paths_smooth = True
-paths_raw_io = True
-paths_smooth_io = True
+all_paths_raw_io = False
+all_paths_smooth_io = False
+paths_raw = False
+paths_smooth = False
+paths_raw_io = False
+paths_smooth_io = False
 paths_states = True
 inlets_clusters = True
-show_molecule = backbone
+show_molecule = protein
 show_molecule_frames = 0
 

@@ -25,12 +25,12 @@ class ColorMapDistMap(object):
         # size is number of nodes to be maped to distinguistive colors
         self.size = size
         # lut should be appropriately bigger - 10 times
-        lut = size * self.dist + 1
+        lut = size * self.dist + 2
         # get size
         self.cmap = get_cmap(name, lut)
 
     def __call__(self, node):
-        if node >= 0 and node < self.size:
+        if node > 0 and node <= self.size:
             # get color
             return self.cmap(int(node) * self.dist)[:3]
         # return grey otherwise
@@ -206,3 +206,11 @@ class MPLTracePlotter(SimplePathPlotter, SimpleProteinPlotter):
                        coords[:, 1],
                        coords[:, 2],
                        c=color, **kwargs)
+
+
+    @showit
+    def scatter(self, coords, **kwargs):
+        self.ax.scatter3D(coords[:, 0],
+                          coords[:, 1],
+                          coords[:, 2],
+                          **kwargs)

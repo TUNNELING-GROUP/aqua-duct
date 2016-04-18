@@ -9,6 +9,9 @@ from os import close
 from tempfile import mkstemp
 
 
+class Auto:
+    pass
+
 def create_tmpfile(ext=None):
     if ext is None:
         suffix = ''
