@@ -40,7 +40,7 @@ optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
 def version():
-    return 0, 4, 3
+    return 0, 5, 0
 
 
 def version_nice():
@@ -104,6 +104,10 @@ class ValveConfig(object, ConfigSpecialNames):
         return 'clusterization'
 
     @staticmethod
+    def recluster_name():
+        return 'reclusterization'
+
+    @staticmethod
     def smooth_name():
         return 'smooth'
 
@@ -157,6 +161,13 @@ class ValveConfig(object, ConfigSpecialNames):
 
     def get_cluster_options(self):
         section = self.cluster_name()
+        names = self.config.options(section)
+        # options = {name: self.config.get(section, name) for name in names}
+        options = dict(((name, self.config.get(section, name)) for name in names))
+        return self.__make_options_nt(options)
+
+    def get_recluster_options(self):
+        section = self.recluster_name()
         names = self.config.options(section)
         # options = {name: self.config.get(section, name) for name in names}
         options = dict(((name, self.config.get(section, name)) for name in names))
@@ -234,22 +245,29 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+        config.set(section, 'recluster_outliers', 'False')
+
         ################
         # smooth
         section = self.smooth_name()
         config.add_section(section)
         config.set(section, 'method', 'window')
-        # config.set(section, 'recursive', '0')
-        # config.set(section, 'window', '5')
-        # config.set(section, 'function', 'mean')
 
         ################
         # clusterization
         section = self.cluster_name()
         config.add_section(section)
+        config.set(section, 'method', 'meanshift')
+        config.set(section, 'cluster_all', 'False')
+        config.set(section, 'bandwidth', 'Auto')
+
+        ################
+        # reclusterization
+        section = self.recluster_name()
+        config.add_section(section)
         config.set(section, 'method', 'dbscan')
-        # config.set(section, 'eps', '5.0')
-        # config.set(section, 'min_samples', '3')
+        config.set(section, 'eps', '5.0')
+        config.set(section, 'min_samples', '3')
 
         ################
         # stage V
@@ -587,7 +605,7 @@ def get_clustering_method(coptions):
         if 'cluster_all' in coptions._asdict():
             opts.update({'cluster_all': bool(coptions.cluster_all)})
         if 'bandwidth' in coptions._asdict():
-            if coptions.bandwidth is Auto:
+            if coptions.bandwidth in (Auto,None):
                 opts.update({'bandwidth': coptions.bandwidth})
             else:
                 opts.update({'bandwidth': float(coptions.bandwidth)})
@@ -863,6 +881,7 @@ def stage_IV_run(config, options,
                  spaths=None,
                  **kwargs):
     coptions = config.get_cluster_options()
+    rcoptions = config.get_recluster_options()
 
     # new style clustering
     with log.fbm("Create inlets"):
@@ -873,10 +892,19 @@ def stage_IV_run(config, options,
             clustering_function = get_clustering_method(coptions)
             # perform clusterization
             inls.perform_clustering(clustering_function)
+        if options.recluster_outliers:
+            with log.fbm("Performing reclusterization of outliers"):
+                clustering_function = get_clustering_method(rcoptions)
+                # perform reclusterization
+                inls.recluster_outliers(clustering_function)
+        with log.fbm("Calculating cluster types"):
+            ctypes = inls.spaths2ctypes(spaths)
+
     else:
         log.message("No inlets found. Clusterization skipped.")
 
-    return {'inls': inls}
+    return {'inls': inls,
+            'ctypes': ctypes}
 
 ################################################################################
 
@@ -884,6 +912,7 @@ def stage_V_run(config, options,
                 spaths=None,
                 paths=None,
                 inls=None,
+                ctypes=None,
                 **kwargs):
     # file handle?
     if options.save:
@@ -1004,28 +1033,16 @@ def stage_V_run(config, options,
     header = header_template % tuple("Nr ID CType".split())
     print >> fh, log.thead(header)
     line_template = " ".join(['%7d', '%7s'] + ['%7s'])
-    spaths_clust_type = []
-    for nr, sp in enumerate(spaths):
+    for nr, (sp, ct) in enumerate(zip(spaths,ctypes)):
         line = [nr, sp.id]
-        inp = inls.lim2spaths(sp).lim2types(InletTypeCodes.all_incoming).clusters
-        out = inls.lim2spaths(sp).lim2types(InletTypeCodes.all_outgoing).clusters
-        if len(inp) == 0:
-            inp = None
-        else:
-            inp = inp[0]
-        if len(out) == 0:
-            out = None
-        else:
-            out = out[0]
-        line.append(clusters_type_name(inp,out))
-        spaths_clust_type.append((inp, out))
+        line.append(str(ct.generic))
         print >> fh, line_template % tuple(line)
 
     ############
     print >> fh, asep()
     print >> fh, "Clusters type summary"
-    clusters_type_list = list(set(spaths_clust_type))
-    clusters_type_list = sorted(sorted(clusters_type_list), key=lambda x: x[:1].count(None) + x.count(None))
+    clusters_type_list = list(set(ctypes))
+    clusters_type_list = sorted(sorted(clusters_type_list))
     header_template = " ".join(['%7s'] * 3)
     header = header_template % tuple("Nr CType Size".split())
     print >> fh, log.thead(header)
@@ -1033,12 +1050,10 @@ def stage_V_run(config, options,
 
     for nr, ct in enumerate(clusters_type_list):
         line = [nr]
-        cts = clusters_type_name(*ct)
-        line.append(cts)
+        line.append(ct.generic)
         # inlets types of current cluster
-        line.append(spaths_clust_type.count(ct))
+        line.append(ctypes.count(ct))
         # calculate some statistics
-
 
         print >> fh, line_template % tuple(line)
 
@@ -1114,7 +1129,7 @@ def stage_VI_run(config, options,
         with log.fbm("Clusters"):
             # TODO: require stage V for that?
             no_of_clusters = len(inls.clusters_list)  # total, including outliers
-            cmap = ColorMapDistMap(name='Dark2', size=no_of_clusters)
+            cmap = ColorMapDistMap(name='Set1', size=no_of_clusters)
             for c in inls.clusters_list:
                 # coords for current cluster
                 ics = inls.lim2clusters(c).coords

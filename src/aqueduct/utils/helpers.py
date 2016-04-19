@@ -8,6 +8,36 @@ from functools import wraps
 from os import close
 from tempfile import mkstemp
 
+########################################################################
+#  aliens
+
+def combine(seqin):
+    '''returns a list of all combinations of argument sequences.
+for example: combine((1,2),(3,4)) returns
+[[1, 3], [1, 4], [2, 3], [2, 4]]'''
+#http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt
+    def rloop(seqin,listout,comb):
+        '''recursive looping function'''
+        if seqin:                       # any more sequences to process?
+            for item in seqin[0]:
+                newcomb=comb+[item]     # add next item to current comb
+                # call rloop w/ rem seqs, newcomb
+                rloop(seqin[1:],listout,newcomb)
+        else:                           # processing last sequence
+            listout.append(comb)        # comb finished, add to list
+    listout=[]                      # listout initialization
+    rloop(seqin,listout,[])         # start recursive process
+    return listout
+
+########################################################################
+
+def lind (l,ind):
+    """Indexes lists using lists of integers."""
+    ll = []
+    for i in ind:
+        ll.append(l[i])
+    return ll
+
 
 class Auto:
     pass
@@ -216,3 +246,19 @@ def list_blocks_to_slices(l):
             prev = e
             prev_nr = nr+1
         yield slice(prev_nr,nr+2,1)
+
+
+
+@tupleify
+def what2what(what,towhat):
+    towhat = make_iterable(towhat)
+    for nr,w in enumerate(make_iterable(what)):
+        if w in towhat:
+            yield nr
+
+
+def make_iterable(something):
+    if not is_iterable(something):
+        return [something]
+    return something
+

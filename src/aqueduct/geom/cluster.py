@@ -22,6 +22,9 @@ def MeanShiftBandwidth(X,**kwargs):
     return kwargs
 
 def perform_clustering(coords,method,**kwargs):
+    # if length of coords is less then 2 then there is no sense in clustering?
+    if len(coords) < 2:
+        return [1 for dummy in coords]
     # special cases
     if method is MeanShift:
         kwargs = MeanShiftBandwidth(coords,**kwargs)

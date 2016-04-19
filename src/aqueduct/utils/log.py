@@ -328,13 +328,16 @@ class fbm(object):
         message(info + '...', cont=True)
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, typ, value, traceback):
         if typ is None:
             message("OK.")
         else:
             raise typ(value)
+
+    def __call__(self,info):
+        message(linesep + '\t' + info + '...', cont=True)
 
 
 def message(mess, cont=False):

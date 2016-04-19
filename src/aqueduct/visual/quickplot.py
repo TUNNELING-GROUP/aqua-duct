@@ -25,7 +25,7 @@ class ColorMapDistMap(object):
         # size is number of nodes to be maped to distinguistive colors
         self.size = size
         # lut should be appropriately bigger - 10 times
-        lut = size * self.dist + 2
+        lut = size * self.dist + 1
         # get size
         self.cmap = get_cmap(name, lut)
 
