@@ -878,44 +878,6 @@ def stage_IV_run(config, options,
 
     return {'inls': inls}
 
-    '''
-    # find coords of inlets, type and id
-    inlet_coords = []
-    inlet_type = []
-    inlet_id = []
-    inlet_spnr = []
-    for nr, sp in enumerate(spaths):
-        for inlet, itype in sp.coords_filo:
-            inlet_coords.append(inlet.tolist())
-            inlet_type.append(itype)
-            inlet_id.append(sp.id)
-            inlet_spnr.append(nr)
-            # print nr,sp.id,inlet,itype
-
-    # find nr of inlets
-    nr_of_inlets = len(inlet_id)
-
-    if nr_of_inlets > 0:
-        with log.fbm("Performing clusterization"):
-            assert coptions.method == 'dbscan', 'Unknown clusterization method %s.' % coptions.method
-            # perform clusterization
-            clusters = perform_clustering(np.array(inlet_coords), eps=float(coptions.eps),
-                                          min_samples=int(coptions.min_samples))
-            #clusters += 1  # -1 is 0 now and it means unclustered
-    else:
-        log.message("No inlets found. Clusterization skipped.")
-        clusters = np.array([])
-
-    return {'inlet_coords': inlet_coords,
-            'inlet_type': inlet_type,
-            'inlet_id': inlet_id,
-            'inlet_spnr': inlet_spnr,
-            'clusters': clusters,
-            'options': options,
-            'coptions': coptions}
-    '''
-
-
 ################################################################################
 
 def stage_V_run(config, options,
@@ -1005,6 +967,21 @@ def stage_V_run(config, options,
     print >> fh, "Number of clusters:", no_of_clusters
     print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in inls.clusters_list]
 
+
+    def clusters_type_name(inp_cluster, out_cluster):
+        name_of_cluster = ''
+        if inp_cluster is None:
+            name_of_cluster += 'N'
+        else:
+            name_of_cluster += str(inp_cluster)
+        name_of_cluster += ':'
+        if out_cluster is None:
+            name_of_cluster += 'N'
+        else:
+            name_of_cluster += str(out_cluster)
+        return name_of_cluster
+
+
     ############
     print >> fh, asep()
     print >> fh, "Clusters summary"
@@ -1019,13 +996,14 @@ def stage_V_run(config, options,
         line.append(inls.lim2clusters(c).lim2types(InletTypeCodes.all_outgoing).size)
         print >> fh, line_template % tuple(line)
 
+
     ############
     print >> fh, asep()
     print >> fh, "Separate paths inlets clusters"
-    header_template = " ".join(['%7s'] * 2 + ['%7s'] * 2)
-    header = header_template % tuple("Nr ID INP OUT".split())
+    header_template = " ".join(['%7s'] * 2 + ['%7s'])
+    header = header_template % tuple("Nr ID CType".split())
     print >> fh, log.thead(header)
-    line_template = " ".join(['%7d', '%7s'] + ['%7s'] * 2)
+    line_template = " ".join(['%7d', '%7s'] + ['%7s'])
     spaths_clust_type = []
     for nr, sp in enumerate(spaths):
         line = [nr, sp.id]
@@ -1039,7 +1017,7 @@ def stage_V_run(config, options,
             out = None
         else:
             out = out[0]
-        line.extend(map(str, [inp, out]))
+        line.append(clusters_type_name(inp,out))
         spaths_clust_type.append((inp, out))
         print >> fh, line_template % tuple(line)
 
@@ -1052,19 +1030,6 @@ def stage_V_run(config, options,
     header = header_template % tuple("Nr CType Size".split())
     print >> fh, log.thead(header)
     line_template = "%7d %7s %7d"
-
-    def clusters_type_name(inp_cluster, out_cluster):
-        name_of_cluster = ''
-        if inp_cluster is None:
-            name_of_cluster += 'N'
-        else:
-            name_of_cluster += str(inp_cluster)
-        name_of_cluster += ':'
-        if out_cluster is None:
-            name_of_cluster += 'N'
-        else:
-            name_of_cluster += str(out_cluster)
-        return name_of_cluster
 
     for nr, ct in enumerate(clusters_type_list):
         line = [nr]
