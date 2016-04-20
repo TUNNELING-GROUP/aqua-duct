@@ -57,6 +57,6 @@ def midpoints(paths):
         yield paths[0]
 
 
-def lenght_step_std(trace):
+def length_step_std(trace):
     d = diff(trace)
     return np.sum(d),np.mean(d),np.std(d)

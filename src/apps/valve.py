@@ -952,13 +952,46 @@ def spath_id_header():
 
 def add_path_id_head(gen):
     sph, splt = spath_id_header()
-
     @wraps(gen)
     def patched(*args, **kwargs):
         h, lt = gen(*args, **kwargs)
         return sph + h, splt + lt
-
     return patched
+
+
+def add_path_id(gen):
+    @wraps(gen)
+    def patched(spath, add_id=True, *args, **kwargs):
+        line = gen(spath, *args, **kwargs)
+        if add_id:
+            line = [spath.id] + line
+        return line
+    return patched
+
+
+def cluster_nr_header():
+    return ['Cluster'], ['%7d']
+
+
+def add_cluster_nr_head(gen):
+    sph, splt = spath_id_header()
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        h, lt = gen(*args, **kwargs)
+        return sph + h, splt + lt
+    return patched
+
+
+def add_cluster_nr(gen):
+    @wraps(gen)
+    def patched(spath, add_id=True, *args, **kwargs):
+        line = gen(spath, *args, **kwargs)
+        if add_id:
+            line = [spath.id] + line
+        return line
+    return patched
+
+
 
 
 class PrintAnalysis(object):
@@ -998,33 +1031,77 @@ def spath_basic_info_header():
     return header, line_template
 
 
+@add_path_id
 def spath_basic_info(spath):
-    line = [spath.id]
+    line = []
     line.append(spath.begins)
     line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
     line.append(spath.ends)
     return line
 
 
+@add_path_id_head
 def spath_lenght_total_info_header():
-    pass
+    header = 'Inp Obj Out'.split()
+    line_template = ['%9.1f'] * len(header)
+    return header, line_template
 
 
+@add_path_id
 def spath_lenght_total_info(spath):
-    pass
+    line = []
+    for t in spath.coords:
+        if len(t) > 0:
+            line.append(traces.length_step_std(t)[0])
+        else:
+            line.append(float('nan'))
+    return line
 
 
-def statistics4spath(spath):
-    # begin end
-    begin = spath.begin
-    end = spath.end
-    # inp obj out length in frames, A and avg setps
+@add_path_id_head
+def spath_steps_info_header():
+    header = 'Inp InpStd Obj ObjStd Out OutStd'.split()
+    line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
+    return header, line_template
 
-    # for a single spath
-    # Begin INP OBJ OUT End # frames
-    # INP OBJ OUT # length
-    # INP INPstd OBJ OBJstd OUT OUTstd # steps
-    pass
+
+@add_path_id
+def spath_steps_info(spath):
+    line = []
+    for t in spath.coords:
+        if len(t) > 0:
+            line.extend(traces.length_step_std(t)[1:])
+        else:
+            line.extend([float('nan'), float('nan')])
+    return line
+
+def spaths_basic_stats_header():
+    header = 'Size Inp InpStd Obj ObjStd Out OutStd'.split()
+    line_template = ['%7d'] + ['%8.2f', '%8.3f'] * ((len(header)-1) / 2)
+    return header, line_template
+
+def spaths_basic_stats(spaths):
+    line = [len(spaths)]
+    d4s = []
+    for sp in spaths:
+        d4s.append(spath_lenght_total_info(sp,add_id=False))
+    d4s = np.array(d4s)
+    line.extend(np.mean(d4s,0))
+    line.extend(np.std(d4s, 0))
+    return [line[0],line[1],line[4],line[2],line[5],line[3],line[6]]
+
+
+################################################################################
+
+
+def clusters_basic_info_header():
+    header = 'Inp InpStd Obj ObjStd Out OutStd'.split()
+    line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
+    return header, line_template
+
+
+
+################################################################################
 
 
 # analysis
@@ -1072,63 +1149,31 @@ def stage_V_run(config, options,
     ############
     pa.sep()
     pa("Separate paths lengths")
-    header_line, line_template = get_header_line_and_line_template(spath_basic_info_header(), head_nr=True)
+    header_line, line_template = get_header_line_and_line_template(spath_lenght_total_info_header(), head_nr=True)
+    pa.thead(header_line)
+    for nr, sp in enumerate(spaths):
+        pa(make_line(line_template, spath_lenght_total_info(sp)), nr=nr)
+
+    ############
+    pa.sep()
+    pa("Separate paths average step lengths")
+    header_line, line_template = get_header_line_and_line_template(spath_steps_info_header(), head_nr=True)
     pa.thead(header_line)
 
-    header_template = " ".join(['%7s'] * 2 + ['%9s'] * 3)
-    header = header_template % tuple("Nr ID INP OBJ OUT".split())
-    print >> fh, log.thead(header)
-    line_template = " ".join(['%7d', '%7s'] + ['%9.1f'] * 3)
     for nr, sp in enumerate(spaths):
-        line = [nr, sp.id]
-        for e in sp.coords_in, sp.coords_object, sp.coords_out:
-            if len(e) > 1:
-                line += [sum(traces.diff(e))]
-            else:
-                line += [float('nan')]
-        print >> fh, line_template % tuple(line)
+        pa(make_line(line_template, spath_steps_info(sp)), nr=nr)
 
     ############
-    print >> fh, asep()
-    print >> fh, "Separate paths average step lengths"
-    header_template = " ".join(['%7s'] * 2 + ['%8s'] * 6)
-    header = header_template % tuple("Nr ID INP INPstd OBJ OBJstd OUT OUTstd".split())
-    print >> fh, log.thead(header)
-    line_template = " ".join(['%7d', '%7s'] + ['%8.2f', '%8.3f'] * 3)
-    for nr, sp in enumerate(spaths):
-        line = [nr, sp.id]
-        for e in sp.coords_in, sp.coords_object, sp.coords_out:
-            if len(e) > 1:
-                line += [np.mean(traces.diff(e))]
-                line += [np.std(traces.diff(e))]
-            else:
-                line += [float('nan')]
-                line += [float('nan')]
-        print >> fh, line_template % tuple(line)
-
-    ############
-    print >> fh, asep()
-    print >> fh, "Number of inlets:", inls.size
+    pa.sep()
+    pa("Number of inlets: %d" % inls.size)
     no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]  # minus outliers, if any
-    print >> fh, "Number of clusters:", no_of_clusters
-    print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in inls.clusters_list]
-
-    def clusters_type_name(inp_cluster, out_cluster):
-        name_of_cluster = ''
-        if inp_cluster is None:
-            name_of_cluster += 'N'
-        else:
-            name_of_cluster += str(inp_cluster)
-        name_of_cluster += ':'
-        if out_cluster is None:
-            name_of_cluster += 'N'
-        else:
-            name_of_cluster += str(out_cluster)
-        return name_of_cluster
+    pa("Number of clusters: %d" % no_of_clusters)
+    pa("Outliers: %s" % ({True: 'yes', False: 'no'}[0 in inls.clusters_list]))
 
     ############
-    print >> fh, asep()
-    print >> fh, "Clusters summary"
+    pa.sep()
+    pa("Clusters summary")
+
     header_template = " ".join(['%7s'] * 5)
     header = header_template % tuple("Nr Cluster Size INP OUT".split())
     print >> fh, log.thead(header)
