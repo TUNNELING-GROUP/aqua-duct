@@ -695,6 +695,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
 ################################################################################
 # stages run
 
+# traceable_residues
 def stage_I_run(config, options,
                 reader=None,
                 max_frame=None,
@@ -757,6 +758,7 @@ def stage_I_run(config, options,
 
 ################################################################################
 
+# raw_paths
 def stage_II_run(config, options,
                  reader=None,
                  all_res=None,
@@ -829,6 +831,7 @@ def stage_II_run(config, options,
 
 ################################################################################
 
+# separate_paths
 def stage_III_run(config, options,
                   paths=None,
                   **kwargs):
@@ -877,6 +880,7 @@ def stage_III_run(config, options,
 
 ################################################################################
 
+# inlets_clusterization
 def stage_IV_run(config, options,
                  spaths=None,
                  **kwargs):
@@ -908,6 +912,11 @@ def stage_IV_run(config, options,
 
 ################################################################################
 
+def statistics4spaths(spaths):
+    pass
+
+
+# analysis
 def stage_V_run(config, options,
                 spaths=None,
                 paths=None,
@@ -1063,6 +1072,7 @@ def stage_V_run(config, options,
 
 ################################################################################
 
+# visualize
 def stage_VI_run(config, options,
                  reader=None,
                  spaths=None,
