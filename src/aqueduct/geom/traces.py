@@ -57,13 +57,6 @@ def midpoints(paths):
         yield paths[0]
 
 
-if __name__ == "__main__":
-
-    import numpy as np
-
-    P = (np.random.randn(4, 3), np.random.randn(2, 3), np.random.randn(4, 3))
-
-    for nr, (p, m) in enumerate(zip(P, midpoints(P))):
-        print nr
-        print len(p), p
-        print len(m), m
+def lenght_step_std(trace):
+    d = diff(trace)
+    return np.sum(d),np.mean(d),np.std(d)

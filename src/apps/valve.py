@@ -14,6 +14,9 @@ import sys
 from collections import namedtuple, OrderedDict
 import shlex
 import roman
+import re
+from functools import wraps
+from collections import Iterable
 
 import MDAnalysis as mda
 import numpy as np
@@ -30,7 +33,7 @@ from aqueduct.traj.paths import GenericPaths, yield_single_paths
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
-from aqueduct.utils.helpers import range2int, Auto
+from aqueduct.utils.helpers import range2int, Auto, is_iterable
 from aqueduct.traj.inlets import Inlets, InletTypeCodes
 
 # TODO: Move it to separate module
@@ -605,7 +608,7 @@ def get_clustering_method(coptions):
         if 'cluster_all' in coptions._asdict():
             opts.update({'cluster_all': bool(coptions.cluster_all)})
         if 'bandwidth' in coptions._asdict():
-            if coptions.bandwidth in (Auto,None):
+            if coptions.bandwidth in (Auto, None):
                 opts.update({'bandwidth': coptions.bandwidth})
             else:
                 opts.update({'bandwidth': float(coptions.bandwidth)})
@@ -910,9 +913,117 @@ def stage_IV_run(config, options,
     return {'inls': inls,
             'ctypes': ctypes}
 
+
 ################################################################################
 
-def statistics4spaths(spaths):
+def make_line(template, line):
+    return (' '.join(template)) % tuple(line)
+
+
+def make_header_template(line_template):
+    header_template = []
+    col_re = re.compile('[0-9]+')
+    for l in line_template:
+        header_template.append('%{0}s'.format(col_re.findall(l)[0]))
+    return header_template
+
+
+def nr_header():
+    return ['Nr'], ['%7d']
+
+
+def get_header_line_and_line_template(header_line_and_line_template, head_nr=False):
+    header, line_template = header_line_and_line_template
+
+    header_template = make_header_template(line_template)
+    # head_nr? only to header
+    if head_nr:
+        nrh, nrlt = nr_header()
+        header_template = make_header_template(nrlt + line_template)
+        header = nrh + header
+    header_line = make_line(header_template, header)
+
+    return header_line, line_template
+
+
+def spath_id_header():
+    return ['ID'], ['%9s']
+
+
+def add_path_id_head(gen):
+    sph, splt = spath_id_header()
+
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        h, lt = gen(*args, **kwargs)
+        return sph + h, splt + lt
+
+    return patched
+
+
+class PrintAnalysis(object):
+    nr_template = '%7d '
+
+    def __init__(self, fileoption):
+        self.output2stderr = False
+        if fileoption:
+            self.filehandle = open(fileoption, 'w')
+            self.output2stderr = True
+        else:
+            self.filehandle = sys.stdout
+
+    def __call__(self, info2print, nr=None):
+        if nr is not None:
+            info2print = (self.nr_template % nr) + info2print
+        if self.output2stderr:
+            print >> sys.stderr, info2print
+        print >> self.filehandle, info2print
+
+    def sep(self):
+        self(asep())
+
+    def thead(self, info2print):
+        self(log.thead(info2print))
+
+    def under(self, info2print):
+        self(log.underline(info2print))
+
+
+################################################################################
+
+@add_path_id_head
+def spath_basic_info_header():
+    header = 'Begin Inp Obj Out End'.split()
+    line_template = ['%7d'] * len(header)
+    return header, line_template
+
+
+def spath_basic_info(spath):
+    line = [spath.id]
+    line.append(spath.begins)
+    line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
+    line.append(spath.ends)
+    return line
+
+
+def spath_lenght_total_info_header():
+    pass
+
+
+def spath_lenght_total_info(spath):
+    pass
+
+
+def statistics4spath(spath):
+    # begin end
+    begin = spath.begin
+    end = spath.end
+    # inp obj out length in frames, A and avg setps
+
+    # for a single spath
+    # Begin INP OBJ OUT End # frames
+    # INP OBJ OUT # length
+    # INP INPstd OBJ OBJstd OUT OUTstd # steps
     pass
 
 
@@ -924,8 +1035,8 @@ def stage_V_run(config, options,
                 ctypes=None,
                 **kwargs):
     # file handle?
+    pa = PrintAnalysis(options.save)
     if options.save:
-        fh = open(options.save, 'w')
         log.message('Using user provided file (%s).' % options.save)
         log.message(sep())
         log.message('')
@@ -933,40 +1044,37 @@ def stage_V_run(config, options,
         log.message('Using standard output.')
         log.message(sep())
         log.message('')
-        fh = sys.stdout
 
     ############
-    print >> fh, asep()
-    print >> fh, 'Aqueduct analysis'
-    print >> fh, log.get_str_timestamp()
+    pa.sep()
+    pa('Aqueduct analysis')
+    pa(log.get_str_timestamp())
 
     ############
     if options.dump_config:
-        print >> fh, asep()
-        print >> fh, log.underline('Configuration file name: %s' % args.config_file)
-        print >> fh, os.linesep.join(config.dump_config())
+        pa.sep()
+        pa.under('Configuration file name: %s' % args.config_file)
+        pa(os.linesep.join(config.dump_config()))
 
     ############
-    print >> fh, asep()
-    print >> fh, "Number of traceable residues:", len(paths)
-    print >> fh, "Number of separate paths:", len(spaths)
+    pa.sep()
+    pa("Number of traceable residues: %d" % len(paths))
+    pa("Number of separate paths: %d" % len(spaths))
 
     ############
-    print >> fh, asep()
-    print >> fh, "List of separate paths"
-    header_template = " ".join(['%7s'] * 7)
-    header = header_template % tuple("Nr ID Begin INP OBJ OUT End".split())
-    line_template = " ".join(['%7d', '%7s'] + ['%7d'] * 5)
-    print >> fh, log.thead(header)
+    pa.sep()
+    pa("List of separate paths")
+    header_line, line_template = get_header_line_and_line_template(spath_basic_info_header(), head_nr=True)
+    pa.thead(header_line)
     for nr, sp in enumerate(spaths):
-        line = []
-        for e in (nr, sp.id, sp.begins, len(sp.path_in), len(sp.path_object), len(sp.path_out), sp.ends):
-            line += ["%7s" % e]
-        print >> fh, " ".join(line)
+        pa(make_line(line_template, spath_basic_info(sp)), nr=nr)
 
     ############
-    print >> fh, asep()
-    print >> fh, "Separate paths lengths"
+    pa.sep()
+    pa("Separate paths lengths")
+    header_line, line_template = get_header_line_and_line_template(spath_basic_info_header(), head_nr=True)
+    pa.thead(header_line)
+
     header_template = " ".join(['%7s'] * 2 + ['%9s'] * 3)
     header = header_template % tuple("Nr ID INP OBJ OUT".split())
     print >> fh, log.thead(header)
@@ -1005,7 +1113,6 @@ def stage_V_run(config, options,
     print >> fh, "Number of clusters:", no_of_clusters
     print >> fh, "Outliers:", {True: 'yes', False: 'no'}[0 in inls.clusters_list]
 
-
     def clusters_type_name(inp_cluster, out_cluster):
         name_of_cluster = ''
         if inp_cluster is None:
@@ -1018,7 +1125,6 @@ def stage_V_run(config, options,
         else:
             name_of_cluster += str(out_cluster)
         return name_of_cluster
-
 
     ############
     print >> fh, asep()
@@ -1034,7 +1140,6 @@ def stage_V_run(config, options,
         line.append(inls.lim2clusters(c).lim2types(InletTypeCodes.all_outgoing).size)
         print >> fh, line_template % tuple(line)
 
-
     ############
     print >> fh, asep()
     print >> fh, "Separate paths inlets clusters"
@@ -1042,7 +1147,7 @@ def stage_V_run(config, options,
     header = header_template % tuple("Nr ID CType".split())
     print >> fh, log.thead(header)
     line_template = " ".join(['%7d', '%7s'] + ['%7s'])
-    for nr, (sp, ct) in enumerate(zip(spaths,ctypes)):
+    for nr, (sp, ct) in enumerate(zip(spaths, ctypes)):
         line = [nr, sp.id]
         line.append(str(ct.generic))
         print >> fh, line_template % tuple(line)
