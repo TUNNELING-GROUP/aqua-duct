@@ -23,6 +23,11 @@ class InletTypeCodes(ProtoInletTypeCodes):
     all_outgoing = [(itype, ProtoInletTypeCodes.outgoing) for itype in
                     (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal)]
 
+    surface_incoming = (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.incoming)
+    internal_incoming = (ProtoInletTypeCodes.internal, ProtoInletTypeCodes.incoming)
+    internal_outgoing = (ProtoInletTypeCodes.internal, ProtoInletTypeCodes.outgoing)
+    surface_outgoing = (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.outgoing)
+
 
 # clusers can be:
 # None  - no such cluster
@@ -51,6 +56,11 @@ class InletClusterGenericType(object):
         return "%s(%s)" % (self.__class__.__name__, str(self))
 
     def __cmp__(self, other):
+        if other is None:
+            return 1
+        if not isinstance(other,self.__class__):
+            return 1
+
         result = 0
         base = max(max(self), max(other), len(self), len(other)) + 2
 
@@ -64,6 +74,7 @@ class InletClusterGenericType(object):
             return val
 
         return make_val(self) - make_val(other)
+
 
     def __hash__(self):
         return hash(str(self))
@@ -88,6 +99,7 @@ class Inlets(object):
 
         self.onlytype = onlytype
         self.inlets_list = []
+        self.inlets_ids = []
         self.clusters = []
         self.number_of_clustered_inlets = None
 
@@ -99,11 +111,14 @@ class Inlets(object):
         if onlytype is None:
             onlytype = self.onlytype
 
+        nr = len(self.inlets_list)
         for inlet in spath.get_inlets():
             if onlytype is not None:
                 if inlet.type not in onlytype:
                     continue
             self.inlets_list.append(inlet)
+            self.inlets_ids.append(nr)
+            nr += 1
 
     def add_cluster_annotations(self, clusters):
         assert len(clusters) == len(self.inlets_list)
@@ -151,6 +166,13 @@ class Inlets(object):
     def clusters_list(self):
         return sorted(list(set(self.clusters)))
 
+    @property
+    @listify
+    def clusters_centers(self):
+        for c in self.clusters_list:
+            yield np.mean(self.lim2clusters(c).coords,0)
+
+
     @listify
     def spaths2ctypes(self, spaths):
         # surfin interin interout surfout
@@ -175,9 +197,10 @@ class Inlets(object):
         new_inlets = self.__class__([], onlytype=self.onlytype)
         new_inlets.number_of_clustered_inlets = self.number_of_clustered_inlets
 
-        for inlet, cluster, w in zip(self.inlets_list, self.clusters, what):
+        for inlet, ids, cluster, w in zip(self.inlets_list, self.inlets_ids, self.clusters, what):
             if w in towhat:
                 new_inlets.inlets_list.append(inlet)
+                new_inlets.inlets_ids.append(ids)
                 new_inlets.clusters.append(cluster)
 
         return new_inlets
@@ -192,3 +215,12 @@ class Inlets(object):
 
     def lim2clusters(self, clusters):
         return self.lim_to(self.clusters, clusters)
+
+    @listify
+    def limspaths2(self,spaths):
+        if not is_iterable(spaths):
+            spaths = [spaths]
+        refs = set(self.refs)
+        for sp in spaths:
+            if sp.id in refs:
+                yield sp

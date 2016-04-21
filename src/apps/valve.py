@@ -18,6 +18,8 @@ import re
 from functools import wraps
 from collections import Iterable
 
+from scipy.spatial.distance import cdist, pdist, squareform
+
 import MDAnalysis as mda
 import numpy as np
 
@@ -33,7 +35,7 @@ from aqueduct.traj.paths import GenericPaths, yield_single_paths
 from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
-from aqueduct.utils.helpers import range2int, Auto, is_iterable
+from aqueduct.utils.helpers import range2int, Auto, is_iterable, what2what, lind
 from aqueduct.traj.inlets import Inlets, InletTypeCodes
 
 # TODO: Move it to separate module
@@ -43,7 +45,7 @@ optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
 def version():
-    return 0, 5, 0
+    return 0, 5, 1
 
 
 def version_nice():
@@ -249,6 +251,7 @@ class ValveConfig(object, ConfigSpecialNames):
         common(section)
 
         config.set(section, 'recluster_outliers', 'False')
+        config.set(section, 'detect_outliers', 'False')
 
         ################
         # smooth
@@ -899,11 +902,46 @@ def stage_IV_run(config, options,
             clustering_function = get_clustering_method(coptions)
             # perform clusterization
             inls.perform_clustering(clustering_function)
+        log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+        if options.detect_outliers:
+            noo = 0
+            if 0 in inls.clusters_list:
+                noo = inls.clusters.count(0)
+            log.message('Number of outliers so far: %d' % noo)
+            with log.fbm("Detecting outliers"):
+                if options.detect_outliers is not Auto:
+                    threshold = float(options.detect_outliers)
+                clusters = inls.clusters
+                for cluster,center in zip(inls.clusters_list, inls.clusters_centers):
+                    if cluster == 0:
+                        continue
+                    inls_lim = inls.lim2clusters(cluster)
+                    # Auto procedure
+                    if options.detect_outliers is Auto:
+                        dmat = cdist(np.matrix(center),inls_lim.coords,metric='euclidean').flatten()
+                        threshold = np.mean(dmat) + np.std(dmat)*4 # FIXME: magic constant!
+                        for nr,(d,ids) in enumerate(zip(dmat,inls_lim.inlets_ids)):
+                            #print d, threshold
+                            if d > threshold:
+                                clusters[ids] = 0
+                    # defined threshold procedure
+                    else:
+                        dmat = squareform(pdist(inls_lim.coords, metric='euclidean')).tolist()
+                        for nr, (d, ids) in enumerate(zip(dmat, inls_lim.inlets_ids)):
+                            d.pop(nr)
+                            #print np.min(d), threshold
+                            if np.min(d) > threshold:
+                                clusters[ids] = 0
+                inls.add_cluster_annotations(clusters)
+            noo = inls.clusters.count(0)
+        log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+        log.message('Number of outliers: %d' % noo)
         if options.recluster_outliers:
             with log.fbm("Performing reclusterization of outliers"):
                 clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
                 inls.recluster_outliers(clustering_function)
+            log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
         with log.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)
 
@@ -969,12 +1007,12 @@ def add_path_id(gen):
     return patched
 
 
-def cluster_nr_header():
-    return ['Cluster'], ['%7d']
+def size_header():
+    return ['Size'], ['%7d']
 
 
-def add_cluster_nr_head(gen):
-    sph, splt = spath_id_header()
+def add_size_head(gen):
+    sph, splt = size_header()
     @wraps(gen)
     def patched(*args, **kwargs):
         h, lt = gen(*args, **kwargs)
@@ -982,15 +1020,58 @@ def add_cluster_nr_head(gen):
     return patched
 
 
-def add_cluster_nr(gen):
+def add_size(gen):
     @wraps(gen)
-    def patched(spath, add_id=True, *args, **kwargs):
-        line = gen(spath, *args, **kwargs)
-        if add_id:
-            line = [spath.id] + line
+    def patched(spaths, add_size=True, *args, **kwargs):
+        line = gen(spaths, *args, **kwargs)
+        if add_size:
+            line = [len(spaths)] + line
         return line
     return patched
 
+
+def cluster_id_header():
+    return ['Cluster'], ['%7d']
+
+def add_cluster_id_head(gen):
+    sph, splt = cluster_id_header()
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        h, lt = gen(*args, **kwargs)
+        return sph + h, splt + lt
+    return patched
+
+
+def add_cluster_id(gen):
+    @wraps(gen)
+    def patched(cluster, something, add_id=True, *args, **kwargs):
+        line = gen(cluster, something, *args, **kwargs)
+        if add_id:
+            line = [int(cluster)] + line
+        return line
+    return patched
+
+
+def ctype_id_header():
+    return ['CType'], ['%7s']
+
+def add_ctype_id_head(gen):
+    sph, splt = ctype_id_header()
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        h, lt = gen(*args, **kwargs)
+        return sph + h, splt + lt
+    return patched
+
+
+def add_ctype_id(gen):
+    @wraps(gen)
+    def patched(ctype, something, add_id=True, *args, **kwargs):
+        line = gen(ctype, something, *args, **kwargs)
+        if add_id:
+            line = [str(ctype)] + line
+        return line
+    return patched
 
 
 
@@ -1009,7 +1090,7 @@ class PrintAnalysis(object):
         if nr is not None:
             info2print = (self.nr_template % nr) + info2print
         if self.output2stderr:
-            print >> sys.stderr, info2print
+            log.message(info2print)
         print >> self.filehandle, info2print
 
     def sep(self):
@@ -1039,6 +1120,7 @@ def spath_basic_info(spath):
     line.append(spath.ends)
     return line
 
+################
 
 @add_path_id_head
 def spath_lenght_total_info_header():
@@ -1050,13 +1132,14 @@ def spath_lenght_total_info_header():
 @add_path_id
 def spath_lenght_total_info(spath):
     line = []
-    for t in spath.coords:
+    for t in traces.midpoints(spath.coords):
         if len(t) > 0:
             line.append(traces.length_step_std(t)[0])
         else:
             line.append(float('nan'))
     return line
 
+################
 
 @add_path_id_head
 def spath_steps_info_header():
@@ -1068,38 +1151,78 @@ def spath_steps_info_header():
 @add_path_id
 def spath_steps_info(spath):
     line = []
-    for t in spath.coords:
+    for t in traces.midpoints(spath.coords):
         if len(t) > 0:
             line.extend(traces.length_step_std(t)[1:])
         else:
             line.extend([float('nan'), float('nan')])
     return line
 
-def spaths_basic_stats_header():
-    header = 'Size Inp InpStd Obj ObjStd Out OutStd'.split()
-    line_template = ['%7d'] + ['%8.2f', '%8.3f'] * ((len(header)-1) / 2)
+################
+
+@add_path_id_head
+def spath_ctype_header():
+    header,line_template = ctype_id_header()
     return header, line_template
 
-def spaths_basic_stats(spaths):
-    line = [len(spaths)]
+
+@add_path_id
+def spath_ctype(spath,ctype=None):
+    line = [str(ctype)]
+    return line
+
+################################################################################
+
+@add_size_head
+def spaths_lenght_total_header():
+    header = 'Inp InpStd Obj ObjStd Out OutStd'.split()
+    line_template = ['%8.1f', '%8.2f'] * (len(header) / 2)
+    return header, line_template
+
+
+@add_size
+def spaths_length_total(spaths):
+    line = []
     d4s = []
     for sp in spaths:
-        d4s.append(spath_lenght_total_info(sp,add_id=False))
+        d4s.append(spath_lenght_total_info(sp, add_id=False))
     d4s = np.array(d4s)
-    line.extend(np.mean(d4s,0))
+    line.extend(np.mean(d4s, 0))
     line.extend(np.std(d4s, 0))
-    return [line[0],line[1],line[4],line[2],line[5],line[3],line[6]]
+    return [line[0], line[3], line[1], line[4], line[2], line[5]]
 
 
 ################################################################################
 
 
-def clusters_basic_info_header():
-    header = 'Inp InpStd Obj ObjStd Out OutStd'.split()
-    line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
+@add_cluster_id_head
+def clusters_inlets_header():
+    header = 'Size SInp IInp IOut SOut'.split()
+    header = 'Size INCOMING OUTGOING'.split()
+    line_template = ['%7d'] + ['%8d'] * (len(header)-1)
     return header, line_template
 
 
+@add_cluster_id
+def clusters_inlets(cluster, inlets):
+    line = [inlets.size]
+    line.append(inlets.lim2types([InletTypeCodes.surface_incoming]).size)
+    #line.append(inlets.lim2types([InletTypeCodes.internal_incoming]).size)
+    #line.append(inlets.lim2types([InletTypeCodes.internal_outgoing]).size)
+    line.append(inlets.lim2types([InletTypeCodes.surface_outgoing]).size)
+    return line
+
+@add_ctype_id_head
+def ctypes_spaths_info_header():
+    header,line_template = spaths_lenght_total_header()
+    return header, line_template
+
+
+@add_ctype_id
+def ctypes_spaths_info(ctype, spaths):
+    line = []
+    line += spaths_length_total(spaths)
+    return line
 
 ################################################################################
 
@@ -1172,52 +1295,33 @@ def stage_V_run(config, options,
 
     ############
     pa.sep()
-    pa("Clusters summary")
+    pa("Clusters summary - inlets")
+    header_line, line_template = get_header_line_and_line_template(clusters_inlets_header(), head_nr=True)
+    pa.thead(header_line)
 
-    header_template = " ".join(['%7s'] * 5)
-    header = header_template % tuple("Nr Cluster Size INP OUT".split())
-    print >> fh, log.thead(header)
-    line_template = " ".join(['%7d'] * 5)
-    for nr, c in enumerate(inls.clusters_list):
-        line = [nr, c, inls.clusters.count(c)]
-        # inlets types of current cluster
-        line.append(inls.lim2clusters(c).lim2types(InletTypeCodes.all_incoming).size)
-        line.append(inls.lim2clusters(c).lim2types(InletTypeCodes.all_outgoing).size)
-        print >> fh, line_template % tuple(line)
+    for nr, cl in enumerate(inls.clusters_list):
+        inls_lim = inls.lim2clusters(cl)
+        pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
 
     ############
-    print >> fh, asep()
-    print >> fh, "Separate paths inlets clusters"
-    header_template = " ".join(['%7s'] * 2 + ['%7s'])
-    header = header_template % tuple("Nr ID CType".split())
-    print >> fh, log.thead(header)
-    line_template = " ".join(['%7d', '%7s'] + ['%7s'])
+    pa.sep()
+    pa("Separate paths inlets clusters types")
+    header_line, line_template = get_header_line_and_line_template(spath_ctype_header(), head_nr=True)
+    pa.thead(header_line)
     for nr, (sp, ct) in enumerate(zip(spaths, ctypes)):
-        line = [nr, sp.id]
-        line.append(str(ct.generic))
-        print >> fh, line_template % tuple(line)
+        pa(make_line(line_template, spath_ctype(sp,ctype=ct.generic)), nr=nr)
 
     ############
-    print >> fh, asep()
-    print >> fh, "Clusters type summary"
-    clusters_type_list = list(set(ctypes))
-    clusters_type_list = sorted(sorted(clusters_type_list))
-    header_template = " ".join(['%7s'] * 3)
-    header = header_template % tuple("Nr CType Size".split())
-    print >> fh, log.thead(header)
-    line_template = "%7d %7s %7d"
+    pa.sep()
+    pa("Clusters types summary - mean lengths of paths")
+    header_line, line_template = get_header_line_and_line_template(ctypes_spaths_info_header(), head_nr=True)
+    pa.thead(header_line)
 
-    for nr, ct in enumerate(clusters_type_list):
-        line = [nr]
-        line.append(ct.generic)
-        # inlets types of current cluster
-        line.append(ctypes.count(ct))
-        # calculate some statistics
-
-        print >> fh, line_template % tuple(line)
-
-    if options.save:
-        fh.close()
+    ctypes_generic = [ct.generic for ct in ctypes]
+    ctypes_generic_list = sorted(list(set(ctypes_generic)))
+    for nr, ct in enumerate(ctypes_generic_list):
+        sps = lind(spaths,what2what(ctypes_generic,[ct]))
+        pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
 
 
 ################################################################################
@@ -1358,7 +1462,7 @@ if __name__ == "__main__":
     ############################################################################
     # STAGE I
     max_frame = reader.max_frame
-    max_frame = 1000
+    #max_frame = 1000
     result1 = valve_exec_stage(0, config, stage_I_run,
                                reader=reader,
                                max_frame=max_frame)

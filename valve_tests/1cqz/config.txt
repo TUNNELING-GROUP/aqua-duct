@@ -39,31 +39,36 @@ recursive = 1
 execute = run
 load = stage_IV.dump
 save = stage_IV.dump
+recluster_outliers = True
+detect_outliers = Auto
+#detect_outliers = 2.5
 
 [clusterization]
 method = meanshift
-cluster_all = False
+cluster_all = True
 bandwidth = Auto
 
-eps = 3.0
+[reclusterization]
+method = dbscan
+eps = 5.0
 min_samples = 3
 
 [analysis]
-execute = run
-save = None
+execute = skip
+save = results.txt
 dump_config = True
 
 [visualize]
-execute = skip
-all_paths_raw = True
-all_paths_smooth = True
+execute = run
+all_paths_raw = False
+all_paths_smooth = False
 all_paths_split = True
-all_paths_raw_io = True
-all_paths_smooth_io = True
-paths_raw = True
-paths_smooth = True
-paths_raw_io = True
-paths_smooth_io = True
+all_paths_raw_io = False
+all_paths_smooth_io = False
+paths_raw = False
+paths_smooth = False
+paths_raw_io = False
+paths_smooth_io = False
 paths_states = True
 inlets_clusters = True
 show_molecule = protein
