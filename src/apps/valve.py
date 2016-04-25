@@ -942,6 +942,7 @@ def stage_IV_run(config, options,
                 # perform reclusterization
                 inls.recluster_outliers(clustering_function)
             log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+            log.message('Number of outliers: %d' % noo)
         with log.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)
 
@@ -990,16 +991,26 @@ def spath_id_header():
 
 def add_path_id_head(gen):
     sph, splt = spath_id_header()
+
     @wraps(gen)
     def patched(*args, **kwargs):
+        add_id = True
+        if 'add_id' in kwargs:
+            add_id = kwargs.pop('add_id')
         h, lt = gen(*args, **kwargs)
-        return sph + h, splt + lt
+        if add_id:
+            return sph + h, splt + lt
+        return h, lt
     return patched
 
 
 def add_path_id(gen):
+
     @wraps(gen)
-    def patched(spath, add_id=True, *args, **kwargs):
+    def patched(spath, *args, **kwargs):
+        add_id = True
+        if 'add_id' in kwargs:
+            add_id = kwargs.pop('add_id')
         line = gen(spath, *args, **kwargs)
         if add_id:
             line = [spath.id] + line
@@ -1082,7 +1093,7 @@ class PrintAnalysis(object):
         self.output2stderr = False
         if fileoption:
             self.filehandle = open(fileoption, 'w')
-            self.output2stderr = True
+            #self.output2stderr = True
         else:
             self.filehandle = sys.stdout
 
@@ -1107,7 +1118,7 @@ class PrintAnalysis(object):
 
 @add_path_id_head
 def spath_basic_info_header():
-    header = 'Begin Inp Obj Out End'.split()
+    header = 'BeginF InpF ObjF OutF EndF'.split()
     line_template = ['%7d'] * len(header)
     return header, line_template
 
@@ -1124,7 +1135,7 @@ def spath_basic_info(spath):
 
 @add_path_id_head
 def spath_lenght_total_info_header():
-    header = 'Inp Obj Out'.split()
+    header = 'InpL ObjL OutL'.split()
     line_template = ['%9.1f'] * len(header)
     return header, line_template
 
@@ -1143,7 +1154,7 @@ def spath_lenght_total_info(spath):
 
 @add_path_id_head
 def spath_steps_info_header():
-    header = 'Inp InpStd Obj ObjStd Out OutStd'.split()
+    header = 'InpS InpStdS ObjS ObjStdS OutS OutStdS'.split()
     line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
     return header, line_template
 
@@ -1170,6 +1181,32 @@ def spath_ctype_header():
 def spath_ctype(spath,ctype=None):
     line = [str(ctype)]
     return line
+
+################
+
+@add_path_id_head
+def spath_full_info_header():
+    header = []
+    line_template = []
+    for h,lt in (spath_basic_info_header(add_id=False),
+                 spath_lenght_total_info_header(add_id=False),
+                 spath_steps_info_header(add_id=False),
+                 spath_ctype_header(add_id=False)):
+        header += h
+        line_template += lt
+    return header, line_template
+
+
+@add_path_id
+def spath_full_info(spath,ctype=None):
+    line = []
+    for l in (spath_basic_info(spath,add_id=False),
+              spath_lenght_total_info(spath,add_id=False),
+              spath_steps_info(spath,add_id=False),
+              spath_ctype(spath,ctype=ctype,add_id=False)):
+        line += l
+    return line
+
 
 ################################################################################
 
@@ -1263,31 +1300,6 @@ def stage_V_run(config, options,
 
     ############
     pa.sep()
-    pa("List of separate paths")
-    header_line, line_template = get_header_line_and_line_template(spath_basic_info_header(), head_nr=True)
-    pa.thead(header_line)
-    for nr, sp in enumerate(spaths):
-        pa(make_line(line_template, spath_basic_info(sp)), nr=nr)
-
-    ############
-    pa.sep()
-    pa("Separate paths lengths")
-    header_line, line_template = get_header_line_and_line_template(spath_lenght_total_info_header(), head_nr=True)
-    pa.thead(header_line)
-    for nr, sp in enumerate(spaths):
-        pa(make_line(line_template, spath_lenght_total_info(sp)), nr=nr)
-
-    ############
-    pa.sep()
-    pa("Separate paths average step lengths")
-    header_line, line_template = get_header_line_and_line_template(spath_steps_info_header(), head_nr=True)
-    pa.thead(header_line)
-
-    for nr, sp in enumerate(spaths):
-        pa(make_line(line_template, spath_steps_info(sp)), nr=nr)
-
-    ############
-    pa.sep()
     pa("Number of inlets: %d" % inls.size)
     no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]  # minus outliers, if any
     pa("Number of clusters: %d" % no_of_clusters)
@@ -1305,23 +1317,25 @@ def stage_V_run(config, options,
 
     ############
     pa.sep()
-    pa("Separate paths inlets clusters types")
-    header_line, line_template = get_header_line_and_line_template(spath_ctype_header(), head_nr=True)
-    pa.thead(header_line)
-    for nr, (sp, ct) in enumerate(zip(spaths, ctypes)):
-        pa(make_line(line_template, spath_ctype(sp,ctype=ct.generic)), nr=nr)
-
-    ############
-    pa.sep()
-    pa("Clusters types summary - mean lengths of paths")
+    pa("Separate paths clusters types summary - mean lengths of paths")
     header_line, line_template = get_header_line_and_line_template(ctypes_spaths_info_header(), head_nr=True)
     pa.thead(header_line)
 
     ctypes_generic = [ct.generic for ct in ctypes]
     ctypes_generic_list = sorted(list(set(ctypes_generic)))
     for nr, ct in enumerate(ctypes_generic_list):
-        sps = lind(spaths,what2what(ctypes_generic,[ct]))
+        sps = lind(spaths, what2what(ctypes_generic, [ct]))
         pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+
+
+    ############
+    pa.sep()
+    pa("List of separate paths and properties")
+    header_line, line_template = get_header_line_and_line_template(spath_full_info_header(), head_nr=True)
+    pa.thead(header_line)
+    for nr, (sp,ctype) in enumerate(zip(spaths,ctypes)):
+        pa(make_line(line_template, spath_full_info(sp,ctype=ctype.generic)), nr=nr)
+
 
 
 ################################################################################

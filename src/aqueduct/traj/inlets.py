@@ -68,7 +68,7 @@ class InletClusterGenericType(object):
             val = 0
             for nr, e in enumerate(tuple(what)[::-1]):
                 if e is None:
-                    val += (base ** nr) * base
+                    val += (base ** base) * (nr+1)
                 else:
                     val += (base ** nr) * e
             return val

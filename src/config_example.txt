@@ -8,7 +8,6 @@ execute = skip
 load = stage_I.dump
 save = stage_I.dump
 scope = backbone
-#scope = (resname WAT) and (around 4.0 protein)
 scope_convexhull = True
 object = (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147 or resnum 231 or resnum 261 or resnum 289))
 
@@ -24,51 +23,36 @@ load = stage_III.dump
 save = stage_III.dump
 discard_empty_paths = True
 sort_by_id = True
-apply_smoothing = False
-apply_soft_smoothing = True
-discard_short_paths = 3
-
-[smooth]
-method = dwin_mss
-step = 4.5
-window = 4.5
-function = mean
-recursive = 1
 
 [inlets_clusterization]
-execute = run
+execute = skip
 load = stage_IV.dump
 save = stage_IV.dump
-recluster_outliers = True
-detect_outliers = Auto
-#detect_outliers = 2.5
+apply_smoothing = True
+
+[analysis]
+execute = run
+save = None
+dump_config = True
+
+[smooth]
+method = window
+recursive = 0
+window = 5
+function = mean
 
 [clusterization]
-method = meanshift
-cluster_all = True
-bandwidth = Auto
-
-[reclusterization]
 method = dbscan
 eps = 5.0
 min_samples = 3
 
-[analysis]
-execute = skip
-save = results.txt
-dump_config = True
-
 [visualize]
 execute = run
-all_paths_raw = False
-all_paths_smooth = False
+all_paths_raw = True
+all_paths_smooth = True
 all_paths_split = True
-all_paths_raw_io = False
-all_paths_smooth_io = False
-paths_raw = False
-paths_smooth = False
-paths_raw_io = False
-paths_smooth_io = False
+paths_raw = True
+paths_smooth = True
 paths_states = True
 inlets_clusters = True
 show_molecule = protein

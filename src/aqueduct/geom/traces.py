@@ -2,6 +2,74 @@ import numpy as np
 from scipy.spatial.distance import cdist, pdist
 
 
+def triangle_angles(A,B,C):
+    # http://stackoverflow.com/questions/5122372/angle-between-points
+    # ABC are point in the space
+    A,B,C = map(np.array,(A,B,C))
+    a = C - A
+    b = B - A
+    c = C - B
+    angles = []
+    for e1, e2 in ((a, b), (a, c), (b, -c)):
+        num = np.dot(e1, e2)
+        denom = np.linalg.norm(e1) * np.linalg.norm(e2)
+        angles.append(np.arccos(num / denom))
+    return angles
+
+
+def triangle_height(A,B,C):
+    # a is head
+    angles = triangle_angles(A,B,C)
+    A,B,C = map(np.array,(A,B,C))
+    c= np.linalg.norm(B-A)
+    h = np.sin(angles[-1])*c
+    return h
+
+
+
+def one_way_linearize(trace,treshold=None):
+    if len(trace) < 3:
+        for p in range(len(trace)):
+            yield p
+    else:
+        yield_me = False
+        for sp,sp_point in enumerate(trace):
+            if yield_me:
+                if sp < ep:
+                    continue
+                else:
+                    yield_me = False
+            if sp == 0:
+                yield sp
+            for ep in range(sp+2,len(trace)):
+                # intermediate points
+                sum_of_h = 0
+                for ip in range(sp+1,ep):
+                    sum_of_h += triangle_height(trace[ip],sp_point,trace[ep])
+                if sum_of_h > treshold:
+                    yield ep
+                    yield_me = True
+                    break
+
+
+def two_way_linearize(trace,treshold=None):
+
+    here = list(one_way_linearize(trace,treshold=treshold))
+    and_back_again = one_way_linearize(trace[::-1],treshold=treshold)
+    and_back_again = [len(trace)-e-1 for e in and_back_again]
+
+    final = sorted(list(set(here+and_back_again)))
+
+    return final
+
+
+def linearize(trace,treshold=None):
+
+    for p in two_way_linearize(trace,treshold=treshold):
+        yield trace[p]
+
+
+
 def diff(trace):
     assert isinstance(trace, np.ndarray), "Trace should be of np.ndarray type, %r submited instead." % type(trace)
     assert len(trace.shape) == 2, "Traces should be 2d, %dd submited instead (trace no. %d)" % len(trace.shape)

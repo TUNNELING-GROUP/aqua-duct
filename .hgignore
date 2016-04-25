@@ -6,11 +6,17 @@ syntax: glob
 *.nc*
 *.pdb*
 
+*.dump*
+
 *.pyc
+*.orig
 
 .project
 .pydevproject
 .idea
 .settings
+
 docs/build
+valve_tests
+real_traj
 
