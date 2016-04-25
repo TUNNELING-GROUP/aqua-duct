@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
 
+from aqueduct.utils.helpers import arrayify
 
 def triangle_angles(A,B,C):
     # http://stackoverflow.com/questions/5122372/angle-between-points
@@ -16,15 +17,37 @@ def triangle_angles(A,B,C):
         angles.append(np.arccos(num / denom))
     return angles
 
+def triangle_angles_last(A,B,C):
+    # http://stackoverflow.com/questions/5122372/angle-between-points
+    # ABC are point in the space
+    A,B,C = map(np.array,(A,B,C))
+    a = C - A
+    b = B - A
+    c = C - B
+    angles = []
+    for e1, e2 in ((b, -c),):
+        num = np.dot(e1, e2)
+        denom = np.linalg.norm(e1) * np.linalg.norm(e2)
+        if denom == 0:
+            return
+        angles.append(np.arccos(num / denom))
+    return angles
+
 
 def triangle_height(A,B,C):
     # a is head
-    angles = triangle_angles(A,B,C)
+    angles = triangle_angles_last(A,B,C)
     A,B,C = map(np.array,(A,B,C))
     c= np.linalg.norm(B-A)
     h = np.sin(angles[-1])*c
     return h
 
+def triangle_height_vector(A,B,C):
+    # a is head
+    W = C - B
+    U = W/np.linalg.norm(W)
+    Ap = np.dot(A,U)*U
+    return np.abs(np.linalg.norm(Ap-A))
 
 
 def one_way_linearize(trace,treshold=None):
@@ -43,10 +66,11 @@ def one_way_linearize(trace,treshold=None):
                 yield sp
             for ep in range(sp+2,len(trace)):
                 # intermediate points
-                sum_of_h = 0
-                for ip in range(sp+1,ep):
-                    sum_of_h += triangle_height(trace[ip],sp_point,trace[ep])
-                if sum_of_h > treshold:
+                W = trace[ep] - sp_point
+                U = W/np.linalg.norm(W)
+                sum_of_h = [np.abs(np.linalg.norm(np.dot(trace[ip]-sp_point,U)*U)) for ip in range(sp+1,ep)]
+                #sum_of_h = np.mean(sum_of_h)
+                if np.max(sum_of_h) > treshold:
                     yield ep
                     yield_me = True
                     break
@@ -63,6 +87,7 @@ def two_way_linearize(trace,treshold=None):
     return final
 
 
+@arrayify
 def linearize(trace,treshold=None):
 
     for p in two_way_linearize(trace,treshold=treshold):

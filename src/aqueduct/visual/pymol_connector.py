@@ -140,7 +140,6 @@ class ConnectToPymol(object):
             state = 1
         cmd.load(filename, state=state, object=name)
 
-
 class SinglePathPlotter(object):
     def __init__(self):
 
@@ -176,6 +175,12 @@ class SinglePathPlotter(object):
                     plot_out and t == PathTypesCodes.path_out_code):
                     # get color
                     c = color_codes(et)
+                    # now, it is possible to linearize!
+                    if smooth:
+                        # do experimental linearization
+                        print trace
+                        trace = traces.linearize(trace,1.)
+                        print 'lin done!'
                     self.cgo_lines.add(trace, cc(c))
                     # new_line = True
 
