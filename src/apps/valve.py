@@ -1347,6 +1347,7 @@ def stage_VI_run(config, options,
                  inls=None,
                  **kwargs):
     from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
+    from aqueduct.visual.pymol_connector import cmd as pymol_cmd
     from aqueduct.visual.quickplot import ColorMapDistMap
 
     soptions = config.get_smooth_options()
@@ -1356,6 +1357,8 @@ def stage_VI_run(config, options,
     with log.fbm("Starting PyMOL"):
         ConnectToPymol.init_pymol()
         spp = SinglePathPlotter()
+
+    max_state = list()
 
     if options.all_paths_raw:
         with log.fbm("All raw paths"):
@@ -1384,14 +1387,18 @@ def stage_VI_run(config, options,
             # as one object
             if options.paths_raw:
                 [spp.paths_trace([sp], name='raw_paths', state=nr + 1) for nr, sp in enumerate(spaths)]
+                max_state.append(nr+1)
             if options.paths_smooth:
                 [spp.paths_trace([sp], name='smooth_paths', smooth=smooth, state=nr + 1) for nr, sp in
                  enumerate(spaths)]
+                max_state.append(nr + 1)
             if options.paths_raw_io:
                 [spp.paths_inlets([sp], name='raw_paths_io', state=nr + 1) for nr, sp in enumerate(spaths)]
+                max_state.append(nr + 1)
             if options.paths_smooth_io:
                 [spp.paths_inlets([sp], name='smooth_paths_io', state=nr + 1, smooth=smooth) for nr, sp in
                  enumerate(spaths)]
+                max_state.append(nr + 1)
     else:
         with log.fbm("Paths as separate objects"):
             if options.paths_raw:
@@ -1428,6 +1435,14 @@ def stage_VI_run(config, options,
                 ConnectToPymol.load_pdb('molecule', pdb.close())
                 del pdb
                 mda.core.flags["permissive_pdb_reader"] = mda_ppr
+
+    import time
+
+    for state in range(max(max_state)):
+        pymol_cmd.set_frame(state+1)
+        time.sleep(0.1)
+    pymol_cmd.set_frame(10)
+
 
 
 ################################################################################

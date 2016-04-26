@@ -1,97 +1,204 @@
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
+import copy
 
-from aqueduct.utils.helpers import arrayify
+from aqueduct.utils.helpers import arrayify,lind
 
-def triangle_angles(A,B,C):
+
+def vector_norm(V):
+    # return np.sqrt(np.dot(V, V.conj()))
+    return np.sqrt(np.dot(V, V))
+    # return np.linalg.norm(V)
+
+
+def triangle_angles(A, B, C):
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # ABC are point in the space
-    A,B,C = map(np.array,(A,B,C))
+    A, B, C = map(np.array, (A, B, C))
     a = C - A
     b = B - A
     c = C - B
     angles = []
     for e1, e2 in ((a, b), (a, c), (b, -c)):
         num = np.dot(e1, e2)
-        denom = np.linalg.norm(e1) * np.linalg.norm(e2)
+        denom = vector_norm(e1) * vector_norm(e2)
         angles.append(np.arccos(num / denom))
+        if np.isnan(angles[-1]):
+            angles[-1] = 0.
     return angles
 
-def triangle_angles_last(A,B,C):
+
+def triangle_angles_last(A, B, C):
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # ABC are point in the space
-    A,B,C = map(np.array,(A,B,C))
+    A, B, C = map(np.array, (A, B, C))
     a = C - A
     b = B - A
     c = C - B
     angles = []
     for e1, e2 in ((b, -c),):
         num = np.dot(e1, e2)
-        denom = np.linalg.norm(e1) * np.linalg.norm(e2)
-        if denom == 0:
-            return
+        denom = vector_norm(e1) * vector_norm(e2)
         angles.append(np.arccos(num / denom))
     return angles
 
 
-def triangle_height(A,B,C):
+def triangle_height(A, B, C):
     # a is head
-    angles = triangle_angles_last(A,B,C)
-    A,B,C = map(np.array,(A,B,C))
-    c= np.linalg.norm(B-A)
-    h = np.sin(angles[-1])*c
+    angles = triangle_angles_last(A, B, C)
+    A, B, C = map(np.array, (A, B, C))
+    c = vector_norm(B - A)
+    h = np.sin(angles[-1]) * c
+    if np.isnan(h):
+        h = 0.
     return h
 
-def triangle_height_vector(A,B,C):
-    # a is head
-    W = C - B
-    U = W/np.linalg.norm(W)
-    Ap = np.dot(A,U)*U
-    return np.abs(np.linalg.norm(Ap-A))
+
+def vectors_angle(A, B):
+    angle = np.arccos(np.dot(A, B) / (vector_norm(A) * vector_norm(B)))
+    if np.isnan(angle):
+        return 0.0
+    return angle
 
 
-def one_way_linearize(trace,treshold=None):
-    if len(trace) < 3:
-        for p in range(len(trace)):
-            yield p
-    else:
-        yield_me = False
-        for sp,sp_point in enumerate(trace):
-            if yield_me:
-                if sp < ep:
+def vectors_angle_alt(A, B):
+    return np.arccos(np.clip(np.dot(A / vector_norm(A), B / vector_norm(B)), -1.0, 1.0))
+
+
+def vectors_angle_alt_anorm(A, B, A_norm):
+    return np.arccos(np.clip(np.dot(A / A_norm, B / vector_norm(B)), -1.0, 1.0))
+
+
+def vectors_angle_anorm(A, B, A_norm):
+    angle = np.arccos(np.dot(A, B) / (A_norm * vector_norm(B)))
+    if np.isnan(angle):
+        return 0.0
+    return angle
+
+
+
+class LinearizeHobbit(object):
+
+    def is_linear(self, coords):
+        raise NotImplementedError
+
+    def here(self, coords):
+        raise NotImplementedError
+
+    def and_back_again(self, coords):
+        size = len(coords)
+        return (size - e - 1 for e in self.here(coords[::-1]))
+
+
+class Linearize(LinearizeHobbit):
+
+
+    def here(self, coords):
+        size = len(coords)
+        yield 0
+        ep = 0
+        for sp in range(size):
+            if sp < ep:
+                continue
+            for ep in range(sp + 2, size):
+                if self.is_linear(coords[sp:ep]):
                     continue
-                else:
-                    yield_me = False
-            if sp == 0:
-                yield sp
-            for ep in range(sp+2,len(trace)):
-                # intermediate points
-                W = trace[ep] - sp_point
-                U = W/np.linalg.norm(W)
-                sum_of_h = [np.abs(np.linalg.norm(np.dot(trace[ip]-sp_point,U)*U)) for ip in range(sp+1,ep)]
-                #sum_of_h = np.mean(sum_of_h)
-                if np.max(sum_of_h) > treshold:
-                    yield ep
-                    yield_me = True
-                    break
+                yield ep
+                break
+
+    def __call__(self, coords):
+        here = self.here(coords)
+        and_back_again = self.and_back_again(coords)
+        linearize = sorted(list(set(list(here) + list(and_back_again))))
+        return coords[linearize]
 
 
-def two_way_linearize(trace,treshold=None):
+class TrianlgeLinearize(Linearize):
+    def __init__(self, treshold):
 
-    here = list(one_way_linearize(trace,treshold=treshold))
-    and_back_again = one_way_linearize(trace[::-1],treshold=treshold)
-    and_back_again = [len(trace)-e-1 for e in and_back_again]
+        self.treshold = treshold
 
-    final = sorted(list(set(here+and_back_again)))
+    def is_linear(self, coords):
+        list_of_h = list()
+        for head in coords[1:-1]:
+            list_of_h.append(triangle_height(head, coords[0], coords[-1]))
+            # print list_of_h, sum(list_of_h)
+            if sum(list_of_h) > self.treshold:
+                return False
+        return True
 
-    return final
+
+class VectorLinearize(Linearize):
+    def __init__(self, treshold):
+
+        self.treshold = treshold
+
+    def is_linear(self, coords):
+
+        V = coords[-1] - coords[0]
+        V_norm = vector_norm(V)
+        # V_sum = coords[0] - coords[0]
+        for nr, cp in enumerate(coords[:-1]):
+            # V_sum += coords[nr+1] - cp
+            V_sum = cp - coords[0]
+            if vectors_angle_anorm(V, V_sum, V_norm) > self.treshold:
+                return False
+        return True
 
 
-@arrayify
-def linearize(trace,treshold=None):
+class LinearizeRecursive(Linearize):
 
-    for p in two_way_linearize(trace,treshold=treshold):
-        yield trace[p]
+    def here(self,coords,depth=0):
+
+        depth += 1
+        #print 'depth',depth
+
+        #print coords
+
+        lengths = np.hstack(([0],np.cumsum(diff(coords))))
+        size = len(lengths)
+        #print 'size',size
+        if size <= 3:
+            return range(size)
+        #print lengths
+        sp = 0
+        ep = size - 1
+        mp = int(np.argwhere(lengths>max(lengths)/2)[0])
+
+        if mp == sp:
+            mp += 1
+        if mp == ep:
+            mp -= 1
+
+        #print 'sp mp ep', [sp,mp,ep]
+
+        if self.is_linear(coords[[sp,mp,ep]]):
+            return [sp,mp,ep]
+        return sorted(list(set(self.here(coords[sp:mp+1],depth=depth) + [e+mp for e in self.here(coords[mp:ep],depth=depth)])))
+
+
+    def __call__(self, coords):
+        here = self.here(coords)
+        return coords[here]
+
+
+class VectorLinearizeRecursive(LinearizeRecursive):
+    def __init__(self, treshold):
+
+        self.treshold = treshold
+
+    def is_linear(self, coords):
+
+        V = coords[-1] - coords[0]
+        V_norm = vector_norm(V)
+        # V_sum = coords[0] - coords[0]
+        for nr, cp in enumerate(coords[:-1]):
+            # V_sum += coords[nr+1] - cp
+            V_sum = cp - coords[0]
+            if vectors_angle_anorm(V, V_sum, V_norm) > self.treshold:
+                return False
+        return True
+
 
 
 
@@ -152,4 +259,4 @@ def midpoints(paths):
 
 def length_step_std(trace):
     d = diff(trace)
-    return np.sum(d),np.mean(d),np.std(d)
+    return np.sum(d), np.mean(d), np.std(d)

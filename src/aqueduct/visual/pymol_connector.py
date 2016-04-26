@@ -178,9 +178,11 @@ class SinglePathPlotter(object):
                     # now, it is possible to linearize!
                     if smooth:
                         # do experimental linearization
-                        print trace
-                        trace = traces.linearize(trace,1.)
-                        print 'lin done!'
+                        #print "old",len(trace)
+                        lt = len(trace)
+                        trace = traces.VectorLinearizeRecursive(0.05)(trace)
+                        #print "new",len(trace)
+                        pass
                     self.cgo_lines.add(trace, cc(c))
                     # new_line = True
 

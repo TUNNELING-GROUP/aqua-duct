@@ -62,6 +62,8 @@ def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=
         yield ld, sd, etype
 
 
+
+
 default_color_codes = {'is': 'r',
                        'cc': 'g',
                        'cs': 'y',
