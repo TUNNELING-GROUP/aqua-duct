@@ -154,18 +154,21 @@ class VectorLinearize(object):
 
         self.treshold = treshold
 
-    def is_linear(self, coords):
-
+    def is_linear_core(self,coords):
         V = coords[-1] - coords[0]
         V_norm = vector_norm(V)
-        # V_sum = coords[0] - coords[0]
-        for nr, cp in enumerate(coords[:-1]):
-            # V_sum += coords[nr+1] - cp
+        for cp in coords[:-1]:
             V_sum = cp - coords[0]
             if vectors_angle_anorm(V, V_sum, V_norm) > self.treshold:
                 return False
         return True
 
+    def is_linear(self, coords):
+        if not self.is_linear_core(coords):
+            return False
+        elif not self.is_linear_core(coords[::-1]):
+            return False
+        return True
 
 
 class LinearizeRecursiveVector(LinearizeRecursive,VectorLinearize):
