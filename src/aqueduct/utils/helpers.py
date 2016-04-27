@@ -8,6 +8,7 @@ from functools import wraps
 from os import close
 from tempfile import mkstemp
 
+
 ########################################################################
 #  aliens
 
@@ -15,23 +16,26 @@ def combine(seqin):
     '''returns a list of all combinations of argument sequences.
 for example: combine((1,2),(3,4)) returns
 [[1, 3], [1, 4], [2, 3], [2, 4]]'''
-#http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt
-    def rloop(seqin,listout,comb):
+
+    # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt
+    def rloop(seqin, listout, comb):
         '''recursive looping function'''
-        if seqin:                       # any more sequences to process?
+        if seqin:  # any more sequences to process?
             for item in seqin[0]:
-                newcomb=comb+[item]     # add next item to current comb
+                newcomb = comb + [item]  # add next item to current comb
                 # call rloop w/ rem seqs, newcomb
-                rloop(seqin[1:],listout,newcomb)
-        else:                           # processing last sequence
-            listout.append(comb)        # comb finished, add to list
-    listout=[]                      # listout initialization
-    rloop(seqin,listout,[])         # start recursive process
+                rloop(seqin[1:], listout, newcomb)
+        else:  # processing last sequence
+            listout.append(comb)  # comb finished, add to list
+
+    listout = []  # listout initialization
+    rloop(seqin, listout, [])  # start recursive process
     return listout
+
 
 ########################################################################
 
-def lind (l,ind):
+def lind(l, ind):
     """Indexes lists using lists of integers."""
     ll = []
     for i in ind:
@@ -40,7 +44,12 @@ def lind (l,ind):
 
 
 class Auto:
-    pass
+    def __repr__(self):
+        return "Auto"
+
+    def __str__(self):
+        return self.__repr__()
+
 
 def create_tmpfile(ext=None):
     if ext is None:
@@ -51,22 +60,24 @@ def create_tmpfile(ext=None):
     close(fd)
     return name
 
-def range2int(r,uniq=True):
+
+def range2int(r, uniq=True):
     out = []
     for rr in r.split():
         if ':' in rr:
             if rr.count(':') == 1:
-                r1,r2 = map(int,rr.split(':'))
+                r1, r2 = map(int, rr.split(':'))
                 r3 = 1
             if rr.count(':') == 2:
-                r1,r3,r2 = map(int,rr.split(':'))
-            out.extend(range(r1,r2+1,r3))
+                r1, r3, r2 = map(int, rr.split(':'))
+            out.extend(range(r1, r2 + 1, r3))
         else:
             out.append(int(rr))
     if uniq:
         out = list(set(out))
         out.sort()
     return out
+
 
 def int2range(l):
     '''
@@ -234,32 +245,29 @@ def arrayify(gen):
 
 def list_blocks_to_slices(l):
     n = len(l)
-    if n in [0,1]:
-        yield slice(None,None,None)
+    if n in [0, 1]:
+        yield slice(None, None, None)
     if n > 1:
         prev = l[0]
         prev_nr = 0
-        for nr,e in enumerate(l[1:]):
+        for nr, e in enumerate(l[1:]):
             if e == prev:
                 continue
-            yield slice(prev_nr,nr+1,1)
+            yield slice(prev_nr, nr + 1, 1)
             prev = e
-            prev_nr = nr+1
-        yield slice(prev_nr,nr+2,1)
-
+            prev_nr = nr + 1
+        yield slice(prev_nr, nr + 2, 1)
 
 
 @tupleify
-def what2what(what,towhat):
+def what2what(what, towhat):
     towhat = make_iterable(towhat)
-    for nr,w in enumerate(make_iterable(what)):
+    for nr, w in enumerate(make_iterable(what)):
         if w in towhat:
             yield nr
-
 
 
 def make_iterable(something):
     if not is_iterable(something):
         return [something]
     return something
-

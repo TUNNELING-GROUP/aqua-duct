@@ -70,10 +70,13 @@ def vectors_angle_alt_anorm(A, B, A_norm):
 
 
 def vectors_angle_anorm(A, B, A_norm):
-    angle = np.arccos(np.dot(A, B) / (A_norm * vector_norm(B)))
+    norm2 = A_norm * vector_norm(B)
+    if norm2 == 0.:
+        return 0.
+    angle = np.clip(np.dot(A, B) / norm2,-1.,1.)
     if np.isnan(angle):
-        return 0.0
-    return angle
+        return 0.
+    return np.arccos(angle)
 
 
 
@@ -124,9 +127,9 @@ class LinearizeRecursive(object):
         if mp == ep:
             mp -= 1
 
-        if self.is_linear(coords[[sp,mp,ep]]):
+        if self.is_linear(coords[[sp,mp,ep]],depth=depth):
             return [sp,mp,ep]
-        return sorted(list(set(self.here(coords[sp:mp+1],depth=depth) + [e+mp for e in self.here(coords[mp:ep],depth=depth)])))
+        return sorted(list(set(self.here(coords[:mp+1],depth=depth) + [e+mp for e in self.here(coords[mp:],depth=depth)])))
 
 
     def __call__(self, coords):
@@ -139,7 +142,7 @@ class TrianlgeLinearize(object):
 
         self.treshold = treshold
 
-    def is_linear(self, coords):
+    def is_linear(self, coords,**kwargs):
         list_of_h = list()
         for head in coords[1:-1]:
             list_of_h.append(triangle_height(head, coords[0], coords[-1]))
@@ -154,19 +157,21 @@ class VectorLinearize(object):
 
         self.treshold = treshold
 
-    def is_linear_core(self,coords):
+    def is_linear_core(self,coords,depth=None):
+        if depth is None:
+            depth = 1
         V = coords[-1] - coords[0]
         V_norm = vector_norm(V)
         for cp in coords[:-1]:
             V_sum = cp - coords[0]
-            if vectors_angle_anorm(V, V_sum, V_norm) > self.treshold:
+            if vectors_angle_anorm(V, V_sum, V_norm) > self.treshold + self.treshold*(1-0.9**depth): # FIXME: magic constant!
                 return False
         return True
 
-    def is_linear(self, coords):
-        if not self.is_linear_core(coords):
+    def is_linear(self, coords,depth=None,**kwargs):
+        if not self.is_linear_core(coords,depth=depth):
             return False
-        elif not self.is_linear_core(coords[::-1]):
+        elif not self.is_linear_core(coords[::-1],depth=depth):
             return False
         return True
 

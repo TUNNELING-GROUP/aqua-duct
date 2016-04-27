@@ -45,7 +45,7 @@ optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 
 def version():
-    return 0, 5, 1
+    return 0, 5, 2
 
 
 def version_nice():
@@ -294,6 +294,10 @@ class ValveConfig(object, ConfigSpecialNames):
         config.remove_option(section, 'load')
         config.remove_option(section, 'save')
 
+
+        config.set(section, 'simply_smooths',  0.05236)
+
+
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'True')
         config.set(section, 'all_paths_smooth', 'True')
@@ -330,16 +334,23 @@ class ValveConfig(object, ConfigSpecialNames):
     def dump_config(self):
         output = []
         options = [self.get_global_options()] + \
-                  [self.get_stage_options(stage) for stage in range(5)] + \
-                  [self.get_cluster_options(), self.get_smooth_options()]
+                  [self.get_stage_options(stage) for stage in range(6)] + \
+                  [self.get_cluster_options(), self.get_recluster_options(),
+                   self.get_smooth_options()]
         names = [self.global_name()] + \
-                [self.stage_names(stage) for stage in range(5)] + \
-                [self.cluster_name(), self.smooth_name()]
+                [self.stage_names(stage) for stage in range(6)] + \
+                [self.cluster_name(), self.recluster_name(),
+                 self.smooth_name()]
 
         for o, n in zip(options, names):
             output.append('[%s]' % n)
             for k in o._asdict().keys():
-                output.append('%s = %s' % (k, str(o._asdict()[k])))
+                v = o._asdict()[k]
+                if v is Auto: # FIXME: do something with Auto class!
+                    v = str(Auto())
+                else:
+                    v = str(v)
+                output.append('%s = %s' % (k, v))
 
         return output
 
@@ -1356,7 +1367,7 @@ def stage_VI_run(config, options,
     # start pymol
     with log.fbm("Starting PyMOL"):
         ConnectToPymol.init_pymol()
-        spp = SinglePathPlotter()
+        spp = SinglePathPlotter(linearize=float(options.simply_smooths))
 
     max_state = list()
 
@@ -1436,13 +1447,12 @@ def stage_VI_run(config, options,
                 del pdb
                 mda.core.flags["permissive_pdb_reader"] = mda_ppr
 
+    '''
     import time
-
     for state in range(max(max_state)):
         pymol_cmd.set_frame(state+1)
         time.sleep(0.1)
-    pymol_cmd.set_frame(10)
-
+    '''
 
 
 ################################################################################

@@ -141,11 +141,15 @@ class ConnectToPymol(object):
         cmd.load(filename, state=state, object=name)
 
 class SinglePathPlotter(object):
-    def __init__(self):
+    def __init__(self,linearize=None):
 
         self.cgo_lines = BasicPymolCGOLines()
         self.cgo_spheres = BasicPymolCGOSpheres()
         self.cgo_pointers = BasicPymolCGOPointers()
+
+        self.linearize = linearize
+
+    # TODO: take care of proper colors handling for smoothed and not smoothed traces!
 
     def add_single_path_continous_trace(self,
                                         spath,
@@ -159,16 +163,24 @@ class SinglePathPlotter(object):
 
         # get coords
         coords_cont = spath.get_coords_cont(smooth)
-        # create traces
-        traces_list = tuple([coords_cont[sl] for sl in list_blocks_to_slices(spath.etypes_cont)])
 
+        # create slices
+        if smooth:
+            sls = tuple(list_blocks_to_slices(spath.types_cont))
+        else:
+            sls = tuple(list_blocks_to_slices(spath.etypes_cont))
+
+        # create traces
+        traces_list = tuple([coords_cont[sl] for sl in sls])
         new_line = False
-        for trace, sl in zip(traces.midpoints(traces_list), list_blocks_to_slices(spath.etypes_cont)):
+        for trace, sl in zip(traces.midpoints(traces_list), sls):
             if len(trace) > 0:
                 # now trace has midpoints
                 # get type and etype
                 t = spath.types_cont[sl][0]
                 et = spath.etypes_cont[sl][0]
+                if smooth:
+                    et = et[0]
                 # plot, if allowed
                 if (plot_in and t == PathTypesCodes.path_in_code) or (
                     plot_object and t == PathTypesCodes.path_object_code) or (
@@ -176,13 +188,8 @@ class SinglePathPlotter(object):
                     # get color
                     c = color_codes(et)
                     # now, it is possible to linearize!
-                    if smooth:
-                        # do experimental linearization
-                        #print "old",len(trace)
-                        lt = len(trace)
-                        trace = traces.VectorLinearizeRecursive(0.05)(trace)
-                        #print "new",len(trace)
-                        pass
+                    if smooth and self.linearize:
+                        trace = traces.LinearizeRecursiveVector(self.linearize)(trace)
                     self.cgo_lines.add(trace, cc(c))
                     # new_line = True
 

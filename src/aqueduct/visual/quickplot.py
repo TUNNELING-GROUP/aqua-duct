@@ -6,6 +6,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from aqueduct.geom import traces
 from aqueduct.utils.helpers import list_blocks_to_slices
 
+from aqueduct.traj.paths import GenericPathTypeCodes as gptc
+from aqueduct.traj.paths import PathTypesCodes as ptc
+
+
 # matplotlib specific
 # mpl color converter
 # cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)
@@ -62,12 +66,25 @@ def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=
         yield ld, sd, etype
 
 
+_dcc_is = ptc.path_in_code + gptc.scope_name
+_dcc_cc = ptc.path_object_code + gptc.object_name
+_dcc_cs = ptc.path_object_code + gptc.scope_name
+_dcc_os = ptc.path_out_code + gptc.scope_name
+
+_dcc_i = ptc.path_in_code
+_dcc_c = ptc.path_object_code
+_dcc_o = ptc.path_out_code
+
+_default_color_codes = {_dcc_is: 'r',
+                        _dcc_cc: 'g',
+                        _dcc_cs: 'y',
+                        _dcc_os: 'b',
+                        _dcc_i: 'r',
+                        _dcc_c: 'g',
+                        _dcc_o: 'b'}
 
 
-default_color_codes = {'is': 'r',
-                       'cc': 'g',
-                       'cs': 'y',
-                       'os': 'b'}
+default_color_codes = _default_color_codes
 
 
 def color_codes(code, custom_codes=None):
