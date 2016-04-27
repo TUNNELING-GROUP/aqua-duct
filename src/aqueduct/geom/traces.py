@@ -77,21 +77,7 @@ def vectors_angle_anorm(A, B, A_norm):
 
 
 
-class LinearizeHobbit(object):
-
-    def is_linear(self, coords):
-        raise NotImplementedError
-
-    def here(self, coords):
-        raise NotImplementedError
-
-    def and_back_again(self, coords):
-        size = len(coords)
-        return (size - e - 1 for e in self.here(coords[::-1]))
-
-
-class Linearize(LinearizeHobbit):
-
+class LinearizeOneWay(object):
 
     def here(self, coords):
         size = len(coords)
@@ -106,14 +92,49 @@ class Linearize(LinearizeHobbit):
                 yield ep
                 break
 
+
+class LinearizeHobbit(LinearizeOneWay):
+
+
+    def and_back_again(self, coords):
+        size = len(coords)
+        return (size - e - 1 for e in self.here(coords[::-1]))
+
     def __call__(self, coords):
         here = self.here(coords)
         and_back_again = self.and_back_again(coords)
         linearize = sorted(list(set(list(here) + list(and_back_again))))
         return coords[linearize]
 
+class LinearizeRecursive(object):
 
-class TrianlgeLinearize(Linearize):
+    def here(self,coords,depth=0):
+        depth += 1
+
+        lengths = np.hstack(([0],np.cumsum(diff(coords))))
+        size = len(lengths)
+        if size <= 3:
+            return range(size)
+        sp = 0
+        ep = size - 1
+        mp = int(np.argwhere(lengths>max(lengths)/2)[0])
+
+        if mp == sp:
+            mp += 1
+        if mp == ep:
+            mp -= 1
+
+        if self.is_linear(coords[[sp,mp,ep]]):
+            return [sp,mp,ep]
+        return sorted(list(set(self.here(coords[sp:mp+1],depth=depth) + [e+mp for e in self.here(coords[mp:ep],depth=depth)])))
+
+
+    def __call__(self, coords):
+        here = self.here(coords)
+        return coords[here]
+
+
+class TrianlgeLinearize(object):
     def __init__(self, treshold):
 
         self.treshold = treshold
@@ -128,7 +149,7 @@ class TrianlgeLinearize(Linearize):
         return True
 
 
-class VectorLinearize(Linearize):
+class VectorLinearize(object):
     def __init__(self, treshold):
 
         self.treshold = treshold
@@ -146,58 +167,9 @@ class VectorLinearize(Linearize):
         return True
 
 
-class LinearizeRecursive(Linearize):
 
-    def here(self,coords,depth=0):
-
-        depth += 1
-        #print 'depth',depth
-
-        #print coords
-
-        lengths = np.hstack(([0],np.cumsum(diff(coords))))
-        size = len(lengths)
-        #print 'size',size
-        if size <= 3:
-            return range(size)
-        #print lengths
-        sp = 0
-        ep = size - 1
-        mp = int(np.argwhere(lengths>max(lengths)/2)[0])
-
-        if mp == sp:
-            mp += 1
-        if mp == ep:
-            mp -= 1
-
-        #print 'sp mp ep', [sp,mp,ep]
-
-        if self.is_linear(coords[[sp,mp,ep]]):
-            return [sp,mp,ep]
-        return sorted(list(set(self.here(coords[sp:mp+1],depth=depth) + [e+mp for e in self.here(coords[mp:ep],depth=depth)])))
-
-
-    def __call__(self, coords):
-        here = self.here(coords)
-        return coords[here]
-
-
-class VectorLinearizeRecursive(LinearizeRecursive):
-    def __init__(self, treshold):
-
-        self.treshold = treshold
-
-    def is_linear(self, coords):
-
-        V = coords[-1] - coords[0]
-        V_norm = vector_norm(V)
-        # V_sum = coords[0] - coords[0]
-        for nr, cp in enumerate(coords[:-1]):
-            # V_sum += coords[nr+1] - cp
-            V_sum = cp - coords[0]
-            if vectors_angle_anorm(V, V_sum, V_norm) > self.treshold:
-                return False
-        return True
+class LinearizeRecursiveVector(LinearizeRecursive,VectorLinearize):
+    pass
 
 
 
