@@ -411,18 +411,21 @@ def CHullCheck_exec(chull, points, threads=optimal_threads):
 ################################################################################
 # in scope helpers
 
-def check_res_in_scope(options, scope, res, res_coords):
+def check_res_in_scope(options, scope, res, res_coords, pool=None):
     if options.scope_convexhull:
         if len(res_coords) == 0:
             return []
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
+        is_res_in_scope = pool.map(chull.point_within,res_coords)
+        '''
         current_threads = len(res_coords)
         # current_threads = 1
         if current_threads > optimal_threads:
             current_threads = optimal_threads
 
         is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=current_threads)
+        '''
     else:
         if res.unique_resids_number() == 0:
             return []
@@ -721,10 +724,11 @@ def stage_I_run(config, options,
                 reader=None,
                 max_frame=None,
                 **kwargs):
-    # this creates scope
-
     log.message("Loop over frames - search of residues in object:")
     pbar = log.pbar(max_frame, kind=pbar_name)
+
+    # create pool of workers
+    pool = mp.Pool(optimal_threads)
 
     with reader.get() as traj_reader:
 
@@ -764,6 +768,10 @@ def stage_I_run(config, options,
             else:
                 res_ids_in_object_over_frames.update({frame: []})
             pbar.update(frame)
+    # destroy pool of workers
+    pool.close()
+    pool.join()
+    del pool
 
     pbar.finish()
 
