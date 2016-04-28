@@ -17,11 +17,18 @@ import roman
 import re
 from functools import wraps
 from collections import Iterable
+from itertools import izip_longest
+
+
 
 from scipy.spatial.distance import cdist, pdist, squareform
 
 import MDAnalysis as mda
 import numpy as np
+
+from numpy.ma.core import _check_fill_value
+
+from aqueduct.geom.convexhull import is_point_within_convexhull
 
 from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
@@ -40,8 +47,10 @@ from aqueduct.traj.inlets import Inlets, InletTypeCodes
 
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
+global optimal_threads
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 #optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
+
 optimal_threads = None
 
 def version():
@@ -411,21 +420,13 @@ def CHullCheck_exec(chull, points, threads=optimal_threads):
 ################################################################################
 # in scope helpers
 
-def check_res_in_scope(options, scope, res, res_coords, pool=None):
+def check_res_in_scope(options, scope, res, res_coords):
     if options.scope_convexhull:
         if len(res_coords) == 0:
             return []
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
-        is_res_in_scope = pool.map(chull.point_within,res_coords)
-        '''
-        current_threads = len(res_coords)
-        # current_threads = 1
-        if current_threads > optimal_threads:
-            current_threads = optimal_threads
-
-        is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=current_threads)
-        '''
+        is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=optimal_threads)
     else:
         if res.unique_resids_number() == 0:
             return []
@@ -728,7 +729,8 @@ def stage_I_run(config, options,
     pbar = log.pbar(max_frame, kind=pbar_name)
 
     # create pool of workers
-    pool = mp.Pool(optimal_threads)
+    if optimal_threads > 1:
+        pool = mp.Pool(optimal_threads)
 
     with reader.get() as traj_reader:
 
@@ -747,7 +749,14 @@ def stage_I_run(config, options,
             # check is res are in scope
             if options.scope_convexhull:
                 res_coords = list(res.center_of_mass_of_residues())
-                is_res_in_scope = check_res_in_scope(options, scope, res, res_coords)
+                chull = scope.get_convexhull_of_atom_positions()
+                if optimal_threads > 1:
+                    is_res_in_scope = pool.map(is_point_within_convexhull,izip_longest(res_coords,[],fillvalue=chull))
+                else:
+                    is_res_in_scope = map(is_point_within_convexhull,izip_longest(res_coords,[],fillvalue=chull))
+
+                #is_res_in_scope = check_res_in_scope(options, scope, res, res_coords)
+
             else:
                 is_res_in_scope = check_res_in_scope(options, scope, res, None)
 
@@ -769,9 +778,10 @@ def stage_I_run(config, options,
                 res_ids_in_object_over_frames.update({frame: []})
             pbar.update(frame)
     # destroy pool of workers
-    pool.close()
-    pool.join()
-    del pool
+    if optimal_threads > 1:
+        pool.close()
+        pool.join()
+        del pool
 
     pbar.finish()
 
@@ -813,6 +823,10 @@ def stage_II_run(config, options,
         log.message("Trajectory scan:")
         pbar = log.pbar(max_frame, kind=pbar_name)
 
+        # create pool of workers
+        if optimal_threads > 1:
+            pool = mp.Pool(optimal_threads)
+
         for frame in traj_reader.iterate_over_frames():
             if frame > max_frame:
                 break
@@ -820,7 +834,21 @@ def stage_II_run(config, options,
             all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
 
             # check if is res are in scope
-            is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
+            #is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
+            # check is res are in scope
+            if options.scope_convexhull:
+                chull = scope.get_convexhull_of_atom_positions()
+                if optimal_threads > 1:
+                    is_res_in_scope = pool.map(is_point_within_convexhull,izip_longest(all_res_coords,[],fillvalue=chull))
+                else:
+                    is_res_in_scope = map(is_point_within_convexhull,izip_longest(all_res_coords, [], fillvalue=chull))
+                    #is_res_in_scope = check_res_in_scope(options, scope, res, res_coords,pool=pool)
+            else:
+                is_res_in_scope = check_res_in_scope(options, scope, res, None)
+
+
+
+
 
             all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
 
@@ -852,6 +880,12 @@ def stage_II_run(config, options,
                         paths[resid].add_object(frame)
 
             pbar.update(frame)
+
+    # destroy pool of workers
+    if optimal_threads > 1:
+        pool.close()
+        pool.join()
+        del pool
 
     pbar.finish()
 
@@ -1513,7 +1547,7 @@ if __name__ == "__main__":
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                         help="Dumps template config file. Supress all other output or actions.")
 
-    parser.add_argument("-t", action="store", dest="threads", required=False, default=1, help="Limit Aqueduct calculations to given number of threads.")
+    parser.add_argument("-t", action="store", dest="threads", required=False, default=None, help="Limit Aqueduct calculations to given number of threads.")
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
     args = parser.parse_args()
     ############################################################################
@@ -1536,7 +1570,15 @@ if __name__ == "__main__":
     # get global options
     goptions = config.get_global_options()
     pbar_name = goptions.pbar
-    log.message("Number of threads Valve is allowed to use: %d" % goptions.threads)
+
+    if args.threads is None:
+        optimal_threads = cpu_count
+    else:
+        optimal_threads = int(args.threads)
+    log.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
+    # because it is used by mp.Pool it should be -1???
+    if optimal_threads > 1:
+        optimal_threads -= 1
 
 
     ############################################################################
