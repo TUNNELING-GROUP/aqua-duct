@@ -41,8 +41,8 @@ from aqueduct.traj.inlets import Inlets, InletTypeCodes
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
-optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
-
+#optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
+optimal_threads = None
 
 def version():
     return 0, 5, 2
@@ -1469,6 +1469,7 @@ if __name__ == "__main__":
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                         help="Dumps template config file. Supress all other output or actions.")
 
+    parser.add_argument("-t", action="store", dest="threads", required=False, default=1, help="Limit Aqueduct calculations to given number of threads.")
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
     args = parser.parse_args()
     ############################################################################
@@ -1480,7 +1481,7 @@ if __name__ == "__main__":
         config_dump = StringIO.StringIO()
         config.save_config_stream(config_dump)
         print config_dump.getvalue()
-        exit()
+        exit(0)
 
     ############################################################################
     # begin!
@@ -1488,10 +1489,11 @@ if __name__ == "__main__":
     valve_begin()
     valve_load_config(args.config_file, config)
 
-    log.message("Optimal threads count: %d" % optimal_threads)
     # get global options
     goptions = config.get_global_options()
     pbar_name = goptions.pbar
+    log.message("Number of threads Valve is allowed to use: %d" % goptions.threads)
+
 
     ############################################################################
     # STAGE 0
