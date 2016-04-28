@@ -45,7 +45,7 @@ cpu_count = mp.cpu_count()
 optimal_threads = None
 
 def version():
-    return 0, 5, 2
+    return 0, 5, 3
 
 
 def version_nice():
@@ -311,6 +311,10 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'paths_states', 'True')
         config.set(section, 'paths_raw_io', 'True')
         config.set(section, 'paths_smooth_io', 'True')
+
+        config.set(section, 'ctypes_raw', 'True')
+        config.set(section, 'ctypes_smooth', 'True')
+
 
         # visualize clusters
         config.set(section, 'inlets_clusters', 'True')
@@ -1352,10 +1356,50 @@ def stage_V_run(config, options,
 ################################################################################
 
 # visualize
+
+
+def plot_spaths_traces(spaths,spp=None,name=None,split=False,states=False,separate=False,smooth=None):
+    if states or separate:
+        spaths_iter = spaths
+    else:
+        spaths_iter = [spaths]
+    state = None
+    name_separate = ''
+    for nr,sp in enumerate(spaths_iter):
+        if states:
+            state = nr + 1
+        if separate:
+            name_separate = '_%d' % (nr+1)
+        if states or separate:
+            sp = [sp]
+        if split:
+            spp.paths_trace(sp, name=name+'_in'+name_separate, plot_object=False, plot_out=False,state=state,smooth=smooth)
+            spp.paths_trace(sp, name=name+'_obj'+name_separate, plot_in=False, plot_out=False,state=state,smooth=smooth)
+            spp.paths_trace(sp, name=name+'_out'+name_separate, plot_in=False, plot_object=False,state=state,smooth=smooth)
+        else:
+            spp.paths_trace(sp, name=name+name_separate, state=state,smooth=smooth)
+
+def plot_spaths_inlets(spaths,spp=None,name=None,states=False,separate=False,smooth=None):
+    if states or separate:
+        spaths_iter = spaths
+    else:
+        spaths_iter = [spaths]
+    state = None
+    name_separate = ''
+    for nr,sp in enumerate(spaths_iter):
+        if states:
+            state = nr + 1
+        if separate:
+            name_separate = '_%d' % (nr+1)
+        if states or separate:
+            sp = [sp]
+        spp.paths_inlets(sp, name=name+name_separate, state=state,smooth=smooth)
+
 def stage_VI_run(config, options,
                  reader=None,
                  spaths=None,
                  inls=None,
+                 ctypes=None,
                  **kwargs):
     from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
     from aqueduct.visual.pymol_connector import cmd as pymol_cmd
@@ -1369,57 +1413,20 @@ def stage_VI_run(config, options,
         ConnectToPymol.init_pymol()
         spp = SinglePathPlotter(linearize=float(options.simply_smooths))
 
-    max_state = list()
+    ctypes_generic = [ct.generic for ct in ctypes]
+    ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
-    if options.all_paths_raw:
-        with log.fbm("All raw paths"):
-            if options.all_paths_split:
-                spp.paths_trace(spaths, name='all_raw_in', plot_object=False, plot_out=False)
-                spp.paths_trace(spaths, name='all_raw_obj', plot_in=False, plot_out=False)
-                spp.paths_trace(spaths, name='all_raw_out', plot_in=False, plot_object=False)
-            else:
-                spp.paths_trace(spaths, name='all_raw')
-    if options.all_paths_raw_io:
-        spp.paths_inlets(spaths, name='all_raw_paths_io')
-
-    if options.all_paths_smooth:
-        with log.fbm("All smooth paths"):
-            if options.all_paths_split:
-                spp.paths_trace(spaths, name='all_smooth_in', plot_object=False, plot_out=False, smooth=smooth)
-                spp.paths_trace(spaths, name='all_smooth_obj', plot_in=False, plot_out=False, smooth=smooth)
-                spp.paths_trace(spaths, name='all_smooth_out', plot_in=False, plot_object=False, smooth=smooth)
-            else:
-                spp.paths_trace(spaths, name='all_smooth', smooth=smooth)
-    if options.all_paths_smooth_io:
-        spp.paths_inlets(spaths, name='all_smooth_paths_io', smooth=smooth)
-
-    if options.paths_states:
-        with log.fbm("Paths as states"):
-            # as one object
-            if options.paths_raw:
-                [spp.paths_trace([sp], name='raw_paths', state=nr + 1) for nr, sp in enumerate(spaths)]
-                max_state.append(nr+1)
-            if options.paths_smooth:
-                [spp.paths_trace([sp], name='smooth_paths', smooth=smooth, state=nr + 1) for nr, sp in
-                 enumerate(spaths)]
-                max_state.append(nr + 1)
-            if options.paths_raw_io:
-                [spp.paths_inlets([sp], name='raw_paths_io', state=nr + 1) for nr, sp in enumerate(spaths)]
-                max_state.append(nr + 1)
-            if options.paths_smooth_io:
-                [spp.paths_inlets([sp], name='smooth_paths_io', state=nr + 1, smooth=smooth) for nr, sp in
-                 enumerate(spaths)]
-                max_state.append(nr + 1)
-    else:
-        with log.fbm("Paths as separate objects"):
-            if options.paths_raw:
-                [spp.paths_trace([sp], name='raw_%d' % sp.id) for sp in spaths]
-            if options.paths_smooth:
-                [spp.paths_trace([sp], name='smooth_%d' % sp.id, smooth=smooth) for sp in spaths]
-            if options.paths_raw_io:
-                [spp.paths_inlets([sp], name='raw_paths_io_%d' % sp.id) for sp in spaths]
-            if options.paths_smooth_io:
-                [spp.paths_inlets([sp], name='smooth_paths_io_%d' % sp.id, smooth=smooth) for sp in spaths]
+    if options.show_molecule:
+        with log.fbm("Molecule"):
+            with reader.get() as traj_reader:
+                mda_ppr = mda.core.flags["permissive_pdb_reader"]
+                mda.core.flags["permissive_pdb_reader"] = False
+                pdb = TmpDumpWriterOfMDA()
+                frames_to_show = range2int(options.show_molecule_frames)
+                pdb.dump_frames(traj_reader, frames=frames_to_show)
+                ConnectToPymol.load_pdb('molecule', pdb.close())
+                del pdb
+                mda.core.flags["permissive_pdb_reader"] = mda_ppr
 
     if options.inlets_clusters:
         with log.fbm("Clusters"):
@@ -1435,17 +1442,46 @@ def stage_VI_run(config, options,
                     c_name = str(int(c))
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
 
-    if options.show_molecule:
-        with log.fbm("Molecule"):
-            with reader.get() as traj_reader:
-                mda_ppr = mda.core.flags["permissive_pdb_reader"]
-                mda.core.flags["permissive_pdb_reader"] = False
-                pdb = TmpDumpWriterOfMDA()
-                frames_to_show = range2int(options.show_molecule_frames)
-                pdb.dump_frames(traj_reader, frames=frames_to_show)
-                ConnectToPymol.load_pdb('molecule', pdb.close())
-                del pdb
-                mda.core.flags["permissive_pdb_reader"] = mda_ppr
+
+
+    if options.ctypes_raw:
+        for nr, ct in enumerate(ctypes_generic_list):
+            sps = lind(spaths, what2what(ctypes_generic, [ct]))
+            plot_spaths_traces(sps, name=str(ct)+'_raw', split=False, spp=spp)
+
+    if options.ctypes_smooth:
+        for nr, ct in enumerate(ctypes_generic_list):
+            sps = lind(spaths, what2what(ctypes_generic, [ct]))
+            plot_spaths_traces(sps, name=str(ct)+'_smooth', split=False, spp=spp, smooth=smooth)
+
+
+
+    if options.all_paths_raw:
+        with log.fbm("All raw paths"):
+            plot_spaths_traces(spaths,name='all_raw',split=options.all_paths_split,spp=spp)
+    if options.all_paths_raw_io:
+        plot_spaths_inlets(spaths, name='all_raw_paths_io',spp=spp)
+
+    if options.all_paths_smooth:
+        with log.fbm("All smooth paths"):
+            plot_spaths_traces(spaths,name='all_smooth',split=options.all_paths_split,spp=spp,smooth=smooth)
+    if options.all_paths_smooth_io:
+        plot_spaths_inlets(spaths, name='all_smooth_paths_io',spp=spp)
+
+    with log.fbm("Paths as states"):
+        if options.paths_raw:
+            plot_spaths_traces(spaths, name='raw_paths', states=options.paths_states, separate=not options.paths_states, spp=spp)
+        if options.paths_smooth:
+            plot_spaths_traces(spaths, name='smooth_paths', states=options.paths_states, separate=not options.paths_states, smooth=smooth, spp=spp)
+        if options.paths_raw_io:
+            plot_spaths_inlets(spaths, name='raw_paths_io', states=options.paths_states, separate=not options.paths_states, spp=spp)
+        if options.paths_smooth_io:
+            plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states, separate=not options.paths_states, smooth=smooth, spp=spp)
+
+
+
+
+
 
     '''
     import time
