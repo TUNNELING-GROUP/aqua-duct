@@ -13,10 +13,24 @@ from tempfile import mkstemp
 #  aliens
 
 def combine(seqin):
-    '''returns a list of all combinations of argument sequences.
-for example: combine((1,2),(3,4)) returns
-[[1, 3], [1, 4], [2, 3], [2, 4]]'''
+    '''
+    This is an alien function. It is not extensively used.
 
+    Directly taken form http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt
+
+    Returns a list of all combinations of argument sequences.
+    For example, following call::
+
+        combine(((1,2),(3,4)))
+
+    gives following list of combinations::
+
+        [[1, 3], [1, 4], [2, 3], [2, 4]]
+
+    :param tuple sequin: Tuple of sequences to combine.
+    :returns: All possible combinations of all input sequences.
+    :rtype: list of lists
+    '''
     # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt
     def rloop(seqin, listout, comb):
         '''recursive looping function'''
@@ -27,7 +41,6 @@ for example: combine((1,2),(3,4)) returns
                 rloop(seqin[1:], listout, newcomb)
         else:  # processing last sequence
             listout.append(comb)  # comb finished, add to list
-
     listout = []  # listout initialization
     rloop(seqin, listout, [])  # start recursive process
     return listout
@@ -36,7 +49,22 @@ for example: combine((1,2),(3,4)) returns
 ########################################################################
 
 def lind(l, ind):
-    """Indexes lists using lists of integers."""
+    """
+    Indexes lists using lists of integers as identificators.
+    For example::
+
+        lind(['a','b','c','d','e'],[1,4,2])
+
+    returns::
+
+        ['b', 'e', 'c']
+
+    :param list l: List to be indexed.
+    :param list ind: Intiger indexes.
+    :return: Reindexed list.
+    :rtype: list
+
+    """
     ll = []
     for i in ind:
         ll.append(l[i])
@@ -44,14 +72,37 @@ def lind(l, ind):
 
 
 class Auto:
+    '''
+    Auto type definition.
+    The class is used as an alternative value for options (if particular option supports it).
+    If options (or variables/parameters etc.) have value of :class:`Auto` it means that an automatic
+    process for parametrization shoud be performed.
+
+    For example, if the input parameter is set to :class:`Auto` it is supposed that its value is calculated
+    on the basis of input data or other parapmeters.
+    '''
     def __repr__(self):
+        '''
+        :return: string `Auto`
+        :rtype: str
+        '''
         return "Auto"
 
     def __str__(self):
+        '''
+        Calls :meth:`__repr__`.
+        '''
         return self.__repr__()
 
 
 def create_tmpfile(ext=None):
+    '''
+    Creates temporary file.
+
+    :param str ext: Optional extension of the file.
+    :return: File name of created temporary file.
+    :rtype: str
+    '''
     if ext is None:
         suffix = ''
     else:
@@ -62,6 +113,22 @@ def create_tmpfile(ext=None):
 
 
 def range2int(r, uniq=True):
+    '''
+    Transforms a string range in to a list of integers.
+
+    For example, a following string::
+
+        '0:2 4:5 7 9'
+
+    is transformed into::
+
+        [0,1,2,4,5,7,9]
+
+    :param str r: String of input range.
+    :param bool uniq: Optional parameter, if set to `True` only unique and sorted integers are returned.
+    :return: List of integers.
+    :rtype: list of int
+    '''
     out = []
     for rr in r.split():
         if ':' in rr:
@@ -81,7 +148,7 @@ def range2int(r, uniq=True):
 
 def int2range(l):
     '''
-    Transforms list of integers in to a string of ranges.
+    Transforms a list of integers in to a string of ranges.
 
     For example, a following list::
 
@@ -130,9 +197,9 @@ def is_iterable(l):
     '''
     Checks if provided obejct is iterable.
     Returns True is it is iterable, otherwise returns False.
-    
+
     :param list l: input object
-    
+
     :return: True if submited object is iterable otherwise returns False.
     :rtype: boolean
 
@@ -141,7 +208,7 @@ def is_iterable(l):
         Current implementation cannot be used with generators!
 
     .. todo::
-    
+
         Current implementation is primitive and HAVE TO be replaced.
 
     '''
@@ -155,12 +222,12 @@ def is_iterable(l):
 
 def sortify(gen):
     '''
-    Decorator to convert functions' outputs into a sorted list. If the output is iterable it is converted in to a list 
+    Decorator to convert functions' outputs into a sorted list. If the output is iterable it is converted in to a list
     of apropriate lenght. If the output is not iterable it is converted in to a list of lenght 1.
-    
+
     Written on the basis of :func:`listify`.
-    
-    :returns: output of decorated function converted to a sorted list 
+
+    :returns: output of decorated function converted to a sorted list
     :rtype: :py:class:`list`
     '''
 
@@ -178,16 +245,16 @@ def sortify(gen):
 
 def listify(gen):
     '''
-    Decorator to convert functions' outputs into a list. If the output is iterable it is converted in to a list 
+    Decorator to convert functions' outputs into a list. If the output is iterable it is converted in to a list
     of apropriate lenght. If the output is not iterable it is converted in to a list of lenght 1.
-    
+
     This function was copied from:
-    
+
     http://argandgahandapandpa.wordpress.com/2009/03/29/python-generator-to-list-decorator/
-    
+
     and further improved by tljm@wp.pl.
-    
-    :returns: output of decorated function converted to a list 
+
+    :returns: output of decorated function converted to a list
     :rtype: :py:class:`list`
     '''
 
@@ -203,11 +270,11 @@ def listify(gen):
 
 def tupleify(gen):
     '''
-    Decorator to convert functions' outputs into a tuple. If the output is iterable it is converted in to a tuple 
+    Decorator to convert functions' outputs into a tuple. If the output is iterable it is converted in to a tuple
     of apropriate lenght. If the output is not iterable it is converted in to a tuple of lenght 1.
-    
+
     Written on the basis of :func:`listify`.
-    
+
     :returns: output of decorated function converted to a tuple
     :rtype: :py:class:`tuple`
     '''
@@ -226,9 +293,9 @@ def arrayify(gen):
     '''
     Decorator to convert functions' outputs into a 2D numpy array. If the output is iterable it is converted in to a a 2D numpy array
     of apropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.
-    
+
     Written on the basis of :func:`listify`.
-    
+
     :returns: output of decorated function converted to a 2D numpy array
     :rtype: :py:class:`numpy.ndarray`
     '''
