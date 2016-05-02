@@ -54,7 +54,7 @@ global optimal_threads
 optimal_threads = None
 
 def version():
-    return 0, 5, 3
+    return 0, 5, 4
 
 
 def version_nice():
@@ -331,6 +331,8 @@ class ValveConfig(object, ConfigSpecialNames):
         # show protein
         config.set(section, 'show_molecule', 'None')
         config.set(section, 'show_molecule_frames', '0')
+
+        config.set(section, 'save_session', 'None')
 
         return config
 
@@ -1520,18 +1522,17 @@ def stage_VI_run(config, options,
         if options.paths_smooth_io:
             plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states, separate=not options.paths_states, smooth=smooth, spp=spp)
 
+    pymol_cmd.orient('molecule')
 
-
-
-
-
-    '''
-    import time
-    for state in range(max(max_state)):
-        pymol_cmd.set_frame(state+1)
-        time.sleep(0.1)
-    '''
-
+    if options.save_session:
+        with log.fbm("Saving session (%s)" % options.save_session):
+            import time
+            for state in range(len(spaths)):
+                pymol_cmd.set_frame(state+1)
+                time.sleep(0.1)
+            pymol_cmd.set_frame(1)
+            pymol_cmd.save(options.save_session,state=0)
+            pymol_cmd.quit()
 
 ################################################################################
 
