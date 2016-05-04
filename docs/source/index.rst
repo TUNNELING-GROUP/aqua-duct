@@ -10,9 +10,11 @@ Contents:
 
 .. toctree::
    :maxdepth: 1
-   
-	Aqueduct API documentation <modules>
-	Tutorials <tutorials>
+   :titlesonly:
+
+   Aqueduct installation <aqueduct_install>
+   Valve manual <valve_manual>
+   Aqueduct API documentation <modules>
 
 
 Indices and tables

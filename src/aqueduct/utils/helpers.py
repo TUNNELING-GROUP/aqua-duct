@@ -311,6 +311,14 @@ def arrayify(gen):
 
 
 def list_blocks_to_slices(l):
+    '''
+    Slices list in to block according to its elements identity. Resulting slices correspond to blocks of
+    identical elements.
+
+    :param list l: List of any objects.
+    :return: Generator of slices.
+    :rtype: generator
+    '''
     n = len(l)
     if n in [0, 1]:
         yield slice(None, None, None)
@@ -328,6 +336,12 @@ def list_blocks_to_slices(l):
 
 @tupleify
 def what2what(what, towhat):
+    '''
+    :param list what: Input list for which indeices of elements present in :attr:`towhat` are returned.
+    :param list towaht: List of elements which input list is indexed to.
+    :return: Indices of :attr:`what` list that are present in :attr:`towath` list.
+    :rtype: list
+    '''
     towhat = make_iterable(towhat)
     for nr, w in enumerate(make_iterable(what)):
         if w in towhat:
@@ -335,6 +349,13 @@ def what2what(what, towhat):
 
 
 def make_iterable(something):
+    '''
+    If input object is not interable returns it as one element list. Otherwise returns the object.
+
+    :param object something: Input object.
+    :return: Iterable object.
+    :rtype: iterable
+    '''
     if not is_iterable(something):
         return [something]
     return something
