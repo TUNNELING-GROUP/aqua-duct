@@ -19,8 +19,6 @@ from functools import wraps
 from collections import Iterable
 from itertools import izip_longest
 
-
-
 from scipy.spatial.distance import cdist, pdist, squareform
 
 import MDAnalysis as mda
@@ -49,9 +47,10 @@ from aqueduct.traj.inlets import Inlets, InletTypeCodes
 cpu_count = mp.cpu_count()
 global optimal_threads
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
-#optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
+# optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 
 optimal_threads = None
+
 
 def version():
     return 0, 5, 4
@@ -303,9 +302,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.remove_option(section, 'load')
         config.remove_option(section, 'save')
 
-
-        config.set(section, 'simply_smooths',  0.05236)
-
+        config.set(section, 'simply_smooths', 0.05236)
 
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'True')
@@ -323,7 +320,6 @@ class ValveConfig(object, ConfigSpecialNames):
 
         config.set(section, 'ctypes_raw', 'True')
         config.set(section, 'ctypes_smooth', 'True')
-
 
         # visualize clusters
         config.set(section, 'inlets_clusters', 'True')
@@ -361,7 +357,7 @@ class ValveConfig(object, ConfigSpecialNames):
             output.append('[%s]' % n)
             for k in o._asdict().keys():
                 v = o._asdict()[k]
-                if v is Auto: # FIXME: do something with Auto class!
+                if v is Auto:  # FIXME: do something with Auto class!
                     v = str(Auto())
                 else:
                     v = str(v)
@@ -496,17 +492,17 @@ def load_dump(filename):
 
 def check_version_compilance(current, loaded, what):
     if current[0] > loaded[0]:
-        log.error(
-            'Loaded data has %s major version lower then the application, possible problems with API compilance.' % what)
+        log.error('Loaded data has %s major version lower then the application.' % what)
     if current[0] < loaded[0]:
-        log.error(
-            'Loaded data has %s major version higher then the application, possible problems with API compilance.' % what)
+        log.error('Loaded data has %s major version higher then the application.' % what)
+    if current[0] != loaded[0]:
+        log.error('Possible problems with API compilance.')
     if current[1] > loaded[1]:
-        log.warning(
-            'Loaded data has %s minor version lower then the application, possible problems with API compilance.' % what)
+        log.warning('Loaded data has %s minor version lower then the application.' % what)
     if current[1] < loaded[1]:
-        log.warning(
-            'Loaded data has %s minor version higher then the application, possible problems with API compilance.' % what)
+        log.warning('Loaded data has %s minor version higher then the application.' % what)
+    if current[1] != loaded[1]:
+        log.warning('Possible problems with API compilance.')
 
 
 def check_versions(version_dict):
@@ -730,9 +726,11 @@ def stage_I_run(config, options,
     log.message("Loop over frames - search of residues in object:")
     pbar = log.pbar(max_frame, kind=pbar_name)
 
-    # create pool of workers
+    # create pool of workers - mapping function
+    map_fun = map
     if optimal_threads > 1:
         pool = mp.Pool(optimal_threads)
+        map_fun = pool.map
 
     with reader.get() as traj_reader:
 
@@ -752,12 +750,7 @@ def stage_I_run(config, options,
             if options.scope_convexhull:
                 res_coords = list(res.center_of_mass_of_residues())
                 chull = scope.get_convexhull_of_atom_positions()
-                if optimal_threads > 1:
-                    is_res_in_scope = pool.map(is_point_within_convexhull,izip_longest(res_coords,[],fillvalue=chull))
-                else:
-                    is_res_in_scope = map(is_point_within_convexhull,izip_longest(res_coords,[],fillvalue=chull))
-
-                #is_res_in_scope = check_res_in_scope(options, scope, res, res_coords)
+                is_res_in_scope = map_fun(is_point_within_convexhull, izip_longest(res_coords, [], fillvalue=chull))
 
             else:
                 is_res_in_scope = check_res_in_scope(options, scope, res, None)
@@ -825,9 +818,11 @@ def stage_II_run(config, options,
         log.message("Trajectory scan:")
         pbar = log.pbar(max_frame, kind=pbar_name)
 
-        # create pool of workers
+        # create pool of workers - mapping function
+        map_fun = map
         if optimal_threads > 1:
             pool = mp.Pool(optimal_threads)
+            map_fun = pool.map
 
         for frame in traj_reader.iterate_over_frames():
             if frame > max_frame:
@@ -836,21 +831,13 @@ def stage_II_run(config, options,
             all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
 
             # check if is res are in scope
-            #is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
+            # is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
             # check is res are in scope
             if options.scope_convexhull:
                 chull = scope.get_convexhull_of_atom_positions()
-                if optimal_threads > 1:
-                    is_res_in_scope = pool.map(is_point_within_convexhull,izip_longest(all_res_coords,[],fillvalue=chull))
-                else:
-                    is_res_in_scope = map(is_point_within_convexhull,izip_longest(all_res_coords, [], fillvalue=chull))
-                    #is_res_in_scope = check_res_in_scope(options, scope, res, res_coords,pool=pool)
+                is_res_in_scope = map_fun(is_point_within_convexhull, izip_longest(all_res_coords, [], fillvalue=chull))
             else:
                 is_res_in_scope = check_res_in_scope(options, scope, res, None)
-
-
-
-
 
             all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
 
@@ -971,16 +958,16 @@ def stage_IV_run(config, options,
                 if options.detect_outliers is not Auto:
                     threshold = float(options.detect_outliers)
                 clusters = inls.clusters
-                for cluster,center in zip(inls.clusters_list, inls.clusters_centers):
+                for cluster, center in zip(inls.clusters_list, inls.clusters_centers):
                     if cluster == 0:
                         continue
                     inls_lim = inls.lim2clusters(cluster)
                     # Auto procedure
                     if options.detect_outliers is Auto:
-                        dmat = cdist(np.matrix(center),inls_lim.coords,metric='euclidean').flatten()
-                        threshold = np.mean(dmat) + np.std(dmat)*4 # FIXME: magic constant!
-                        for nr,(d,ids) in enumerate(zip(dmat,inls_lim.inlets_ids)):
-                            #print d, threshold
+                        dmat = cdist(np.matrix(center), inls_lim.coords, metric='euclidean').flatten()
+                        threshold = np.mean(dmat) + np.std(dmat) * 4  # FIXME: magic constant!
+                        for nr, (d, ids) in enumerate(zip(dmat, inls_lim.inlets_ids)):
+                            # print d, threshold
                             if d > threshold:
                                 clusters[ids] = 0
                     # defined threshold procedure
@@ -988,7 +975,7 @@ def stage_IV_run(config, options,
                         dmat = squareform(pdist(inls_lim.coords, metric='euclidean')).tolist()
                         for nr, (d, ids) in enumerate(zip(dmat, inls_lim.inlets_ids)):
                             d.pop(nr)
-                            #print np.min(d), threshold
+                            # print np.min(d), threshold
                             if np.min(d) > threshold:
                                 clusters[ids] = 0
                 inls.add_cluster_annotations(clusters)
@@ -1060,11 +1047,11 @@ def add_path_id_head(gen):
         if add_id:
             return sph + h, splt + lt
         return h, lt
+
     return patched
 
 
 def add_path_id(gen):
-
     @wraps(gen)
     def patched(spath, *args, **kwargs):
         add_id = True
@@ -1074,6 +1061,7 @@ def add_path_id(gen):
         if add_id:
             line = [spath.id] + line
         return line
+
     return patched
 
 
@@ -1083,10 +1071,12 @@ def size_header():
 
 def add_size_head(gen):
     sph, splt = size_header()
+
     @wraps(gen)
     def patched(*args, **kwargs):
         h, lt = gen(*args, **kwargs)
         return sph + h, splt + lt
+
     return patched
 
 
@@ -1097,18 +1087,22 @@ def add_size(gen):
         if add_size:
             line = [len(spaths)] + line
         return line
+
     return patched
 
 
 def cluster_id_header():
     return ['Cluster'], ['%7d']
 
+
 def add_cluster_id_head(gen):
     sph, splt = cluster_id_header()
+
     @wraps(gen)
     def patched(*args, **kwargs):
         h, lt = gen(*args, **kwargs)
         return sph + h, splt + lt
+
     return patched
 
 
@@ -1119,18 +1113,22 @@ def add_cluster_id(gen):
         if add_id:
             line = [int(cluster)] + line
         return line
+
     return patched
 
 
 def ctype_id_header():
     return ['CType'], ['%7s']
 
+
 def add_ctype_id_head(gen):
     sph, splt = ctype_id_header()
+
     @wraps(gen)
     def patched(*args, **kwargs):
         h, lt = gen(*args, **kwargs)
         return sph + h, splt + lt
+
     return patched
 
 
@@ -1141,8 +1139,8 @@ def add_ctype_id(gen):
         if add_id:
             line = [str(ctype)] + line
         return line
-    return patched
 
+    return patched
 
 
 class PrintAnalysis(object):
@@ -1152,7 +1150,7 @@ class PrintAnalysis(object):
         self.output2stderr = False
         if fileoption:
             self.filehandle = open(fileoption, 'w')
-            #self.output2stderr = True
+            # self.output2stderr = True
         else:
             self.filehandle = sys.stdout
 
@@ -1190,6 +1188,7 @@ def spath_basic_info(spath):
     line.append(spath.ends)
     return line
 
+
 ################
 
 @add_path_id_head
@@ -1208,6 +1207,7 @@ def spath_lenght_total_info(spath):
         else:
             line.append(float('nan'))
     return line
+
 
 ################
 
@@ -1228,18 +1228,20 @@ def spath_steps_info(spath):
             line.extend([float('nan'), float('nan')])
     return line
 
+
 ################
 
 @add_path_id_head
 def spath_ctype_header():
-    header,line_template = ctype_id_header()
+    header, line_template = ctype_id_header()
     return header, line_template
 
 
 @add_path_id
-def spath_ctype(spath,ctype=None):
+def spath_ctype(spath, ctype=None):
     line = [str(ctype)]
     return line
+
 
 ################
 
@@ -1247,22 +1249,22 @@ def spath_ctype(spath,ctype=None):
 def spath_full_info_header():
     header = []
     line_template = []
-    for h,lt in (spath_basic_info_header(add_id=False),
-                 spath_lenght_total_info_header(add_id=False),
-                 spath_steps_info_header(add_id=False),
-                 spath_ctype_header(add_id=False)):
+    for h, lt in (spath_basic_info_header(add_id=False),
+                  spath_lenght_total_info_header(add_id=False),
+                  spath_steps_info_header(add_id=False),
+                  spath_ctype_header(add_id=False)):
         header += h
         line_template += lt
     return header, line_template
 
 
 @add_path_id
-def spath_full_info(spath,ctype=None):
+def spath_full_info(spath, ctype=None):
     line = []
-    for l in (spath_basic_info(spath,add_id=False),
-              spath_lenght_total_info(spath,add_id=False),
-              spath_steps_info(spath,add_id=False),
-              spath_ctype(spath,ctype=ctype,add_id=False)):
+    for l in (spath_basic_info(spath, add_id=False),
+              spath_lenght_total_info(spath, add_id=False),
+              spath_steps_info(spath, add_id=False),
+              spath_ctype(spath, ctype=ctype, add_id=False)):
         line += l
     return line
 
@@ -1295,7 +1297,7 @@ def spaths_length_total(spaths):
 def clusters_inlets_header():
     header = 'Size SInp IInp IOut SOut'.split()
     header = 'Size INCOMING OUTGOING'.split()
-    line_template = ['%7d'] + ['%8d'] * (len(header)-1)
+    line_template = ['%7d'] + ['%8d'] * (len(header) - 1)
     return header, line_template
 
 
@@ -1303,14 +1305,15 @@ def clusters_inlets_header():
 def clusters_inlets(cluster, inlets):
     line = [inlets.size]
     line.append(inlets.lim2types([InletTypeCodes.surface_incoming]).size)
-    #line.append(inlets.lim2types([InletTypeCodes.internal_incoming]).size)
-    #line.append(inlets.lim2types([InletTypeCodes.internal_outgoing]).size)
+    # line.append(inlets.lim2types([InletTypeCodes.internal_incoming]).size)
+    # line.append(inlets.lim2types([InletTypeCodes.internal_outgoing]).size)
     line.append(inlets.lim2types([InletTypeCodes.surface_outgoing]).size)
     return line
 
+
 @add_ctype_id_head
 def ctypes_spaths_info_header():
-    header,line_template = spaths_lenght_total_header()
+    header, line_template = spaths_lenght_total_header()
     return header, line_template
 
 
@@ -1319,6 +1322,7 @@ def ctypes_spaths_info(ctype, spaths):
     line = []
     line += spaths_length_total(spaths)
     return line
+
 
 ################################################################################
 
@@ -1382,19 +1386,29 @@ def stage_V_run(config, options,
 
     ctypes_generic = [ct.generic for ct in ctypes]
     ctypes_generic_list = sorted(list(set(ctypes_generic)))
+
+    # sorted by ctype
+    ctypes_size = []
     for nr, ct in enumerate(ctypes_generic_list):
         sps = lind(spaths, what2what(ctypes_generic, [ct]))
-        pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+        ctypes_size.append(len(sps))
+        # pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
 
+    # sorted by sizes:
+    ctypes_generic_list = sorted(ctypes_generic_list, key=lambda ctyp: ctypes_size[ctypes_generic_list.index(ctyp)],
+                                 reverse=True)
+    for nr, ct in enumerate(ctypes_generic_list):
+        sps = lind(spaths, what2what(ctypes_generic, [ct]))
+        ctypes_size.append(len(sps))
+        pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
 
     ############
     pa.sep()
     pa("List of separate paths and properties")
     header_line, line_template = get_header_line_and_line_template(spath_full_info_header(), head_nr=True)
     pa.thead(header_line)
-    for nr, (sp,ctype) in enumerate(zip(spaths,ctypes)):
-        pa(make_line(line_template, spath_full_info(sp,ctype=ctype.generic)), nr=nr)
-
+    for nr, (sp, ctype) in enumerate(zip(spaths, ctypes)):
+        pa(make_line(line_template, spath_full_info(sp, ctype=ctype.generic)), nr=nr)
 
 
 ################################################################################
@@ -1402,42 +1416,47 @@ def stage_V_run(config, options,
 # visualize
 
 
-def plot_spaths_traces(spaths,spp=None,name=None,split=False,states=False,separate=False,smooth=None):
+def plot_spaths_traces(spaths, spp=None, name=None, split=False, states=False, separate=False, smooth=None):
     if states or separate:
         spaths_iter = spaths
     else:
         spaths_iter = [spaths]
     state = None
     name_separate = ''
-    for nr,sp in enumerate(spaths_iter):
+    for nr, sp in enumerate(spaths_iter):
         if states:
             state = nr + 1
         if separate:
-            name_separate = '_%d' % (nr+1)
+            name_separate = '_%d' % (nr + 1)
         if states or separate:
             sp = [sp]
         if split:
-            spp.paths_trace(sp, name=name+'_in'+name_separate, plot_object=False, plot_out=False,state=state,smooth=smooth)
-            spp.paths_trace(sp, name=name+'_obj'+name_separate, plot_in=False, plot_out=False,state=state,smooth=smooth)
-            spp.paths_trace(sp, name=name+'_out'+name_separate, plot_in=False, plot_object=False,state=state,smooth=smooth)
+            spp.paths_trace(sp, name=name + '_in' + name_separate, plot_object=False, plot_out=False, state=state,
+                            smooth=smooth)
+            spp.paths_trace(sp, name=name + '_obj' + name_separate, plot_in=False, plot_out=False, state=state,
+                            smooth=smooth)
+            spp.paths_trace(sp, name=name + '_out' + name_separate, plot_in=False, plot_object=False, state=state,
+                            smooth=smooth)
         else:
-            spp.paths_trace(sp, name=name+name_separate, state=state,smooth=smooth)
+            spp.paths_trace(sp, name=name + name_separate, state=state, smooth=smooth)
 
-def plot_spaths_inlets(spaths,spp=None,name=None,states=False,separate=False,smooth=None):
+
+def plot_spaths_inlets(spaths, spp=None, name=None, states=False, separate=False, smooth=None):
     if states or separate:
         spaths_iter = spaths
     else:
         spaths_iter = [spaths]
     state = None
     name_separate = ''
-    for nr,sp in enumerate(spaths_iter):
+    for nr, sp in enumerate(spaths_iter):
         if states:
             state = nr + 1
         if separate:
-            name_separate = '_%d' % (nr+1)
+            name_separate = '_%d' % (nr + 1)
         if states or separate:
             sp = [sp]
-        spp.paths_inlets(sp, name=name+name_separate, state=state,smooth=smooth)
+        spp.paths_inlets(sp, name=name + name_separate, state=state, smooth=smooth)
+
 
 def stage_VI_run(config, options,
                  reader=None,
@@ -1455,7 +1474,10 @@ def stage_VI_run(config, options,
     # start pymol
     with log.fbm("Starting PyMOL"):
         ConnectToPymol.init_pymol()
-        spp = SinglePathPlotter(linearize=float(options.simply_smooths))
+        if options.simply_smooths:
+            spp = SinglePathPlotter(linearize=float(options.simply_smooths))
+        else:
+            spp = SinglePathPlotter(linearize=None)
 
     ctypes_generic = [ct.generic for ct in ctypes]
     ctypes_generic_list = sorted(list(set(ctypes_generic)))
@@ -1486,41 +1508,41 @@ def stage_VI_run(config, options,
                     c_name = str(int(c))
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
 
-
-
     if options.ctypes_raw:
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            plot_spaths_traces(sps, name=str(ct)+'_raw', split=False, spp=spp)
+            plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
 
     if options.ctypes_smooth:
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            plot_spaths_traces(sps, name=str(ct)+'_smooth', split=False, spp=spp, smooth=smooth)
-
-
+            plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
 
     if options.all_paths_raw:
         with log.fbm("All raw paths"):
-            plot_spaths_traces(spaths,name='all_raw',split=options.all_paths_split,spp=spp)
+            plot_spaths_traces(spaths, name='all_raw', split=options.all_paths_split, spp=spp)
     if options.all_paths_raw_io:
-        plot_spaths_inlets(spaths, name='all_raw_paths_io',spp=spp)
+        plot_spaths_inlets(spaths, name='all_raw_paths_io', spp=spp)
 
     if options.all_paths_smooth:
         with log.fbm("All smooth paths"):
-            plot_spaths_traces(spaths,name='all_smooth',split=options.all_paths_split,spp=spp,smooth=smooth)
+            plot_spaths_traces(spaths, name='all_smooth', split=options.all_paths_split, spp=spp, smooth=smooth)
     if options.all_paths_smooth_io:
-        plot_spaths_inlets(spaths, name='all_smooth_paths_io',spp=spp)
+        plot_spaths_inlets(spaths, name='all_smooth_paths_io', spp=spp)
 
     with log.fbm("Paths as states"):
         if options.paths_raw:
-            plot_spaths_traces(spaths, name='raw_paths', states=options.paths_states, separate=not options.paths_states, spp=spp)
+            plot_spaths_traces(spaths, name='raw_paths', states=options.paths_states, separate=not options.paths_states,
+                               spp=spp)
         if options.paths_smooth:
-            plot_spaths_traces(spaths, name='smooth_paths', states=options.paths_states, separate=not options.paths_states, smooth=smooth, spp=spp)
+            plot_spaths_traces(spaths, name='smooth_paths', states=options.paths_states,
+                               separate=not options.paths_states, smooth=smooth, spp=spp)
         if options.paths_raw_io:
-            plot_spaths_inlets(spaths, name='raw_paths_io', states=options.paths_states, separate=not options.paths_states, spp=spp)
+            plot_spaths_inlets(spaths, name='raw_paths_io', states=options.paths_states,
+                               separate=not options.paths_states, spp=spp)
         if options.paths_smooth_io:
-            plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states, separate=not options.paths_states, smooth=smooth, spp=spp)
+            plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states,
+                               separate=not options.paths_states, smooth=smooth, spp=spp)
 
     pymol_cmd.orient('molecule')
 
@@ -1528,11 +1550,12 @@ def stage_VI_run(config, options,
         with log.fbm("Saving session (%s)" % options.save_session):
             import time
             for state in range(len(spaths)):
-                pymol_cmd.set_frame(state+1)
+                pymol_cmd.set_frame(state + 1)
                 time.sleep(0.1)
             pymol_cmd.set_frame(1)
-            pymol_cmd.save(options.save_session,state=0)
+            pymol_cmd.save(options.save_session, state=0)
             pymol_cmd.quit()
+
 
 ################################################################################
 
@@ -1548,7 +1571,8 @@ if __name__ == "__main__":
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                         help="Dumps template config file. Supress all other output or actions.")
 
-    parser.add_argument("-t", action="store", dest="threads", required=False, default=None, help="Limit Aqueduct calculations to given number of threads.")
+    parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
+                        help="Limit Aqueduct calculations to given number of threads.")
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
     args = parser.parse_args()
     ############################################################################
@@ -1581,38 +1605,32 @@ if __name__ == "__main__":
     if optimal_threads > 1:
         optimal_threads -= 1
 
-
     ############################################################################
     # STAGE 0
 
     reader = valve_read_trajectory(goptions.top, goptions.nc)
 
-    ############################################################################
     # STAGE I
     max_frame = reader.max_frame
-    #max_frame = 1000
+    # max_frame = 1000
     result1 = valve_exec_stage(0, config, stage_I_run,
                                reader=reader,
                                max_frame=max_frame)
 
-    ############################################################################
     # STAGE II
     result2 = valve_exec_stage(1, config, stage_II_run,
                                reader=reader,
                                max_frame=max_frame,
                                **result1)
 
-    ############################################################################
     # STAGE III
     result3 = valve_exec_stage(2, config, stage_III_run,
                                **result2)
 
-    ############################################################################
     # STAGE IV
     result4 = valve_exec_stage(3, config, stage_IV_run,
                                **result3)
 
-    ############################################################################
     # STAGE V
     results = {}
     for result in (result2, result3, result4):
@@ -1621,7 +1639,6 @@ if __name__ == "__main__":
     result5 = valve_exec_stage(4, config, stage_V_run, no_io=True,
                                **results)
 
-    ############################################################################
     # STAGE VI
     results = {}
     for result in (result3, result4):
