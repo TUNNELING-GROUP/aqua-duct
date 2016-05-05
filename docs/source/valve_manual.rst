@@ -58,9 +58,32 @@ Valve can run some of calulations in parallel. By default it will use all availa
 
     Specyfing number of threads greater then available CPU cores is not optimal.
 
+How does Valve work
+-------------------
+
+Application starts with parsing input options. If ``--help`` or ``--dump-template-config`` options are provided appropriate messages are printed on the screen and Valve quits with signal 0.
+
+If config file is provided Valve parse it quickly and regular calculations starts according to its content. Calculations performed by Valve are done in several stages described in the next sections.
+
+Traceable residues
+^^^^^^^^^^^^^^^^^^
+
+The first stage finds all residues that should be traced and appends them to the list of tracable resiudes. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not alredy present on the list.
+
+
+The search of the residues is done according to he definitions provided by the user. Two requirements have to be met to append residue to the list:
+
+#. The residue have to be foud according to the *Object* definition.
+#. The residues have to be withint the *Scope* of interest.
+
+The Object definition encompasses usually the active site of the protein. The scope of interest defines, on the other hand,
+
 Configuration file options
 --------------------------
 
+Valve Configuration file is a simple and plain text file. It is similar to INI files comonly used in one of the popular operating systems and is compilant with Python module :mod:`ConfigParser`.
+
+Configuration file comprises of several sections
 
 
 
