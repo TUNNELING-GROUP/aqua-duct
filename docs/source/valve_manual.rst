@@ -185,7 +185,14 @@ Fith stage of Valve calculations analyses results calculated in stages 1 to 4. R
     #. EndF - Number of frame in which the path ends.
     #. InpL - Lenght of Incoming part. If no incoming part nan is given.
     #. ObjL - Lenght of Object part.
-    #. OutL - Lenght of Outgoing part. If no incoming part nan is given.
+    #. OutL - Lenght of Outgoing part. If no outgoing part nan is given.
+    #. InpS - Average step of Incoming part. If no incoming part nan is given.
+    #. InpStdS - Standard deviation of InpS.
+    #. ObjS - Average step of Object part.
+    #. ObjStdS - Standard deviation of ObjS.
+    #. OutS - Average step of Outgoing part. If no outgoing part nan is given.
+    #. OutStdS - Standard deviation of OutS.
+    #. CType - Cluster type of separate path.
 
 
 
