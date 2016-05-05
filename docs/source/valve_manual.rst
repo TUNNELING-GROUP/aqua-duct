@@ -194,6 +194,10 @@ Fith stage of Valve calculations analyses results calculated in stages 1 to 4. R
     #. OutStdS - Standard deviation of OutS.
     #. CType - Cluster type of separate path.
 
+Visualisation
+^^^^^^^^^^^^^
+
+Sixth stage of Valve calculations analyses results calculated in stages 1 to 4. Result of analyssi is displayed on the screen (or can be save to test file) and compirises of following parts:
 
 
 
