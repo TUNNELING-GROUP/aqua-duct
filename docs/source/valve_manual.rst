@@ -124,12 +124,71 @@ Separate paths
 
 The third stage uses collection of Path objects to create Separate Path objects. Each Path comprise data for one resiude. It may happen that the resiudue enters and leaves the Scope and the Object many times over the entire MD. Each such an event is considered by Valve as a separate path.
 
+Each separate path comprises of three parts:
+
+#. Incoming - Defined as a path that leads from the point in which residue enters the scope and enters the object for the firs time.
+#. Object - Defined as a path thet leads from the point in which residue enters the Object for the first time and leaves it for the last time.
+#. Outgoing - Defined as a path that leads from the point in which residue leaves the obejct for the last lime and leaves the sope.
+
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each of the separate paths has begining and end. If either of them are at the boundaries onf the Scope they are considered as *Inlets*, i.e. points that mark where the traceable resiudues can enter or leave the Scope.
+Each of the separate paths has begining and end. If either of them are at the boundaries onf the Scope they are considered as *Inlets*, i.e. points that mark where the traceable resiudues can enter or leave the Scope. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
 
-Clusters of inlets, on the other hand
+Clusterization of inlets is performed in following steps:
+
+#. Initial clusterization. Depending on the method, some of the inlets might to be arranged to any cluster and are considerd as outliers.
+#. [Optional] Outliers detecion. Arragemnt of inlets to clusters is sometimes far from optimal. In this step, ilets that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
+
+    #. Automatic mode. Inlet is considered to be an outlier if its distance from the centroid is greater then mean distance + 4 * standard deviation of all distances within the cluster.
+    #. Defined threshold. Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the treshold.
+
+#. [Optional] Reclusterization of outliers. It may happen that the outliers form acctually clusters but it ws not recognized in initial clusteriation. In this step clusterization is executed for outliers only and found clusters are added to the clusters identified in the first step. Rest of the inlets are marked as outliers.
+
+Analysis
+^^^^^^^^
+
+Fith stage of Valve calculations analyses results calculated in stages 1 to 4. Result of analyssi is displayed on the screen (or can be save to test file) and compirises of following parts:
+
+* Tile and data stamp.
+* [Optional] Dump of configuraion options.
+* Basic information on traceable residues and separate paths.
+    * Number of traceable residues.
+    * Number of separate paths.
+* Basic information on inlets.
+    * Number of inlets.
+    * Number of clusters.
+    * Are outliers detected.
+* Summary of inlets clusters - 5 column table.
+    #. Nr - Row number, starting from 0.
+    #. Cluster - ID of the cluster. Outliers have 0.
+    #. Size - Size of the cluster.
+    #. INCOMING - Number of inlets corresponding to separate paths that enter the scope.
+    #. OUTGOING - Number of inlets corresponding to separate paths that leave the scope.
+* Summary of separate paths clusters types - 9 column table. Begining and ends of separate paths belong to one of the clusters (or are among outliers) or are inside the Scope. Cluster type is composed of IDs of sperate paths beggining and end separated by colon. Numeric ID correspond to Cluster ID, and if the end is inside the Scope N character is used.
+    #. Nr - Row number, starting from 0.
+    #. CType - Separate path Cluster Type.
+    #. Size - Number of separate paths belonging to Cluster type.
+    #. Inp - Average lenght of incoming part of the path. If no incoming part is available it is nan.
+    #. InpStd - Standard deviation of lenght Inp.
+    #. Obj - Average lenght of object part of the path. If no incoming part is available it is nan.
+    #. ObjStd - Standard deviation of lenght Inp.
+    #. Out - Average lenght of outgoing part of the path. If no incoming part is available it is nan.
+    #. OutStd - Standard deviation of lenght Inp.
+* List of separate paths and their properties - 17 column table.
+    #. Nr - Row number, starting from 0.
+    #. ID - Separate path ID. First number correspond to residue number and the second separated by colon is a consecutive number of separate path identified for this residue (starting from 0).
+    #. BeginF - Number of frame in which the path begins.
+    #. InpF - Number of frame in which path begins Incoming part.
+    #. ObjF - Number of frame in which path begins Object part.
+    #. OutF - Number of frame in which path begins Outgoing part.
+    #. EndF - Number of frame in which the path ends.
+    #. InpL - Lenght of Incoming part. If no incoming part nan is given.
+    #. ObjL - Lenght of Object part.
+    #. OutL - Lenght of Outgoing part. If no incoming part nan is given.
+
+
+
 
 Configuration file options
 --------------------------
