@@ -56,7 +56,10 @@ Valve can run some of calulations in parallel. By default it will use all availa
 
 .. note::
 
-    Specyfing number of threads greater then available CPU cores is not optimal.
+    Specyfing number of threads greater then available CPU cores is generally not optimal.
+
+    However, in order to maximize usage of available CPU power it is reccomended to define it as number of cores + 1. The reason is that Valve uses one thread for the main process and the excess over one for processes for parallel calculations.
+
 
 How does Valve work
 -------------------
@@ -70,13 +73,63 @@ Traceable residues
 
 The first stage finds all residues that should be traced and appends them to the list of tracable resiudes. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not alredy present on the list.
 
-
 The search of the residues is done according to he definitions provided by the user. Two requirements have to be met to append residue to the list:
 
 #. The residue have to be foud according to the *Object* definition.
 #. The residues have to be withint the *Scope* of interest.
 
-The Object definition encompasses usually the active site of the protein. The scope of interest defines, on the other hand,
+The Object definition encompasses usually the active site of the protein. The scope of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
+
+Since :mod:`aqueduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data definitions of Object and Scope have to be given as its *Selection Commands*.
+
+Object definition
+"""""""""""""""""
+
+Object definition have to comprise of two elements:
+
+#. It have to define residues to trace.
+#. It have to define spatial boundaries of the *Object* site.
+
+For example, proper Object definition could be following::
+
+    (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147))
+
+It defines ``WAT`` as residues that should be traced and defines spatial constrains of the Object site as spherical zone within 6 Angstroms of the center of masses of residue with number 99 and 147.
+
+Scope definition
+""""""""""""""""
+
+Scope can be defined in two ways: as Object but with broader boundaries or with the convex hull of selected  molecular object.
+
+In the first case definition is very similar to Object and it have to follow the same limitation. For example, proper Scope definition could be following::
+
+    resname WAT around 2.0 protein
+
+It consequently have to define ``WAT`` as residues of interest and defines spatial constrains as all ``WAT`` residues that are within 2 Angstroms of the protein.
+
+If the scope is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only. For example ``protein``. In that case the scope is iterpreted as the interior of the convex hull of atoms from the defeinition. Therefore, tracable residues would be in the scope only if they are within the convex hull of atoms of ``protein``.
+
+Raw paths
+^^^^^^^^^
+
+The second stage of calculations uses the list of all traceable residues from the first stage and finds coordinates of center of masses for each residue in each frame. As in the first stage it is done in a loop over all frames. For each resiudue in each frame Valve calculates or cheks two things:
+
+#. Is the resiude in the Scope (this is always calculated according to the Scope definition).
+#. Is the residue in the Object. This information is calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new Object definition.
+
+For each of the tracable resiudues a special Path object is created. If the residue is in the Scope its center of mass is added to the appropriate Path object together with the information if it is in the object or not.
+
+Separate paths
+^^^^^^^^^^^^^^
+
+The third stage uses collection of Path objects to create Separate Path objects. Each Path comprise data for one resiude. It may happen that the resiudue enters and leaves the Scope and the Object many times over the entire MD. Each such an event is considered by Valve as a separate path.
+
+Clusterization of inlets
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Each of the separate paths has begining and end. If either of them are at the boundaries onf the Scope they are considered as *Inlets*, i.e. points that mark where the traceable resiudues can enter or leave the Scope.
+
+Clusters of inlets, on the other hand
 
 Configuration file options
 --------------------------
