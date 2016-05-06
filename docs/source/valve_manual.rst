@@ -148,7 +148,7 @@ Clusterization of inlets is performed in following steps:
 Analysis
 ^^^^^^^^
 
-Fith stage of Valve calculations analyses results calculated in stages 1 to 4. Result of analyssi is displayed on the screen (or can be save to test file) and compirises of following parts:
+Fifth stage of Valve calculations analyses results calculated in stages 1 to 4. Results of the analysis is displayed on the screen or can be save to text file and comprise of following parts:
 
 * Tile and data stamp.
 * [Optional] Dump of configuraion options.
@@ -159,54 +159,154 @@ Fith stage of Valve calculations analyses results calculated in stages 1 to 4. R
     * Number of inlets.
     * Number of clusters.
     * Are outliers detected.
-* Summary of inlets clusters - 5 column table.
-    #. Nr - Row number, starting from 0.
-    #. Cluster - ID of the cluster. Outliers have 0.
-    #. Size - Size of the cluster.
-    #. INCOMING - Number of inlets corresponding to separate paths that enter the scope.
-    #. OUTGOING - Number of inlets corresponding to separate paths that leave the scope.
-* Summary of separate paths clusters types - 9 column table. Begining and ends of separate paths belong to one of the clusters (or are among outliers) or are inside the Scope. Cluster type is composed of IDs of sperate paths beggining and end separated by colon. Numeric ID correspond to Cluster ID, and if the end is inside the Scope N character is used.
-    #. Nr - Row number, starting from 0.
-    #. CType - Separate path Cluster Type.
-    #. Size - Number of separate paths belonging to Cluster type.
-    #. Inp - Average lenght of incoming part of the path. If no incoming part is available it is nan.
-    #. InpStd - Standard deviation of lenght Inp.
-    #. Obj - Average lenght of object part of the path. If no incoming part is available it is nan.
-    #. ObjStd - Standard deviation of lenght Inp.
-    #. Out - Average lenght of outgoing part of the path. If no incoming part is available it is nan.
-    #. OutStd - Standard deviation of lenght Inp.
-* List of separate paths and their properties - 17 column table.
-    #. Nr - Row number, starting from 0.
-    #. ID - Separate path ID. First number correspond to residue number and the second separated by colon is a consecutive number of separate path identified for this residue (starting from 0).
-    #. BeginF - Number of frame in which the path begins.
-    #. InpF - Number of frame in which path begins Incoming part.
-    #. ObjF - Number of frame in which path begins Object part.
-    #. OutF - Number of frame in which path begins Outgoing part.
-    #. EndF - Number of frame in which the path ends.
-    #. InpL - Lenght of Incoming part. If no incoming part nan is given.
-    #. ObjL - Lenght of Object part.
-    #. OutL - Lenght of Outgoing part. If no outgoing part nan is given.
-    #. InpS - Average step of Incoming part. If no incoming part nan is given.
-    #. InpStdS - Standard deviation of InpS.
-    #. ObjS - Average step of Object part.
-    #. ObjStdS - Standard deviation of ObjS.
-    #. OutS - Average step of Outgoing part. If no outgoing part nan is given.
-    #. OutStdS - Standard deviation of OutS.
-    #. CType - Cluster type of separate path.
+* Summary of inlets clusters. Table with 5 columns:
+    #. **Nr**: Row number, starting from 0.
+    #. **Cluster**: ID of the cluster. Outliers have 0.
+    #. **Size**: Size of the cluster.
+    #. **INCOMING**: Number of inlets corresponding to separate paths that enter the scope.
+    #. **OUTGOING**: Number of inlets corresponding to separate paths that leave the scope.
+* Summary of separate paths clusters types. Table with 9 columns.
+    #. **Nr**: Row number, starting from 0.
+    #. **CType**: Separate path Cluster Type.
+    #. **Size**: Number of separate paths belonging to Cluster type.
+    #. **Inp**: Average lenght of incoming part of the path. If no incoming part is available it is nan.
+    #. **InpStd**: Standard deviation of lenght Inp.
+    #. **Obj**: Average lenght of object part of the path. If no incoming part is available it is nan.
+    #. **ObjStd**: Standard deviation of lenght Inp.
+    #. **Out**: Average lenght of outgoing part of the path. If no incoming part is available it is nan.
+    #. **OutStd**: Standard deviation of lenght Inp.
+* List of separate paths and their properties. Table with 17 columns.
+    #. **Nr**: - Row number, starting from 0.
+    #. **ID**: - Separate path ID.
+    #. **BeginF**: Number of frame in which the path begins.
+    #. **InpF**: Number of frame in which path begins Incoming part.
+    #. **ObjF**: Number of frame in which path begins Object part.
+    #. **OutF**: Number of frame in which path begins Outgoing part.
+    #. **EndF**: Number of frame in which the path ends.
+    #. **InpL**: Lenght of Incoming part. If no incoming part nan is given.
+    #. **ObjL**: Lenght of Object part.
+    #. **OutL**: Lenght of Outgoing part. If no outgoing part nan is given.
+    #. **InpS**: Average step of Incoming part. If no incoming part nan is given.
+    #. **InpStdS**: Standard deviation of InpS.
+    #. **ObjS**: Average step of Object part.
+    #. **ObjStdS**: Standard deviation of ObjS.
+    #. **OutS**: Average step of Outgoing part. If no outgoing part nan is given.
+    #. **OutStdS**: Standard deviation of OutS.
+    #. **CType**: Cluster type of separate path.
+
+Separate path ID
+""""""""""""""""
+
+Separate Paths IDs are composed of two numbers separated by colon. First number is the residue number. Second number is consecutive number of the separate path made by the resiude. Numeration starts with 0.
+
+Cluster Type of separate path
+"""""""""""""""""""""""""""""
+
+Each separate paths has two ends: begining and end. Both of them either belong to one of the inlets clusters, or are among ouliers, or are inside the scope. If an end belongs to one of the clusters (including outliers) it has ID of the cluster. If it is inside the scope it has special ID of ``N``. Cluster type is an ID composed of IDs of both ends of separate path separted by colon charcter.
 
 Visualisation
 ^^^^^^^^^^^^^
 
-Sixth stage of Valve calculations analyses results calculated in stages 1 to 4. Result of analyssi is displayed on the screen (or can be save to test file) and compirises of following parts:
+Sixth stage of Valve calculations visualizes results calculated in stages 1 to 4. Visualization is done with PyMOL. Valve ustomaticaly starts PyMOL and loads visualisations in to it.
+Molecule is loaded as PDB file. Other objects like Inlets clusters or paths are loaded as CGO objects.
 
+Following is a list of objects created in PyMOL (all of them are optional). PyMOL object names given in **bold** text or short explanation is given.
 
+* Selected frame of the simulated system. Object name: *molecule*.
+* Inlets clusters, each cluster is a separate object. Object name: **cluster_** followed by cluster annotation: otliers are annotated as Out; regular clusters by ID.
+* List of cluster types, raw paths. Each cluster type is a separate object. Object name composed of cluster type (colon replaced by underline) plus **_raw**.
+* List of cluster types, smooth paths. Each cluster type is a separate object. Object name composed of cluster type (colon replaced by underline) plus **_smooth**.
+* All raw paths. They can be displayed as one object or separated in to Incoming, Object and Outgoing part. Object name: **all_raw**, or **all_raw_in**, **all_raw_obj**, and **all_raw_out**.
+* All raw paths inlets arrows. Object name: **all_raw_paths_io**.
+* All smooth paths. They can be displayed as one object or separated in to Incoming, Object and Outgoing part. Object name: **all_smooth**, or **all_smooth_in**, **all_smooth_obj**, and **all_smooth_out**.
+* All raw paths inlets arrows. Object name: **all_raw_paths_io**.
+* Raw paths displayed as separate objects or as one object with several states. Object name: **raw_paths_** plus number of path or **raw_paths** if displayed as one object.
+* Smooth paths displayed as separate objects or as one object with several states. Object name: **smooth_paths_** plus number of path or **smooth_paths** if displayed as one object.
+* Raw paths arrows displayed as separate objects or as one object with several states. Object name: **raw_paths_io_** plus number of path or **raw_paths_io** if displayed as one object.
+* Smooth paths arrows displayed as separate objects or as one object with several states. Object name: **smooth_paths_io_** plus number of path or **smooth_paths_io** if displayed as one object.
+
+Color schemes
+"""""""""""""
+
+Inlets clusters are collored automaticaly. Outlaiers are grey.
+
+Incoming parts of paths are red, Outgoing parts are blue. Object parts in case of smooth paths are green and in case of raw paths are green if residue is precisely in the object area or yellow if is leaved object area but it is not in the Outgoing part yet.
+
+Arrows are colored in accordance to paths colors.
 
 Configuration file options
 --------------------------
 
 Valve Configuration file is a simple and plain text file. It is similar to INI files comonly used in one of the popular operating systems and is compilant with Python module :mod:`ConfigParser`.
 
-Configuration file comprises of several sections
+Configuration file comprises of several sections. They can be grupped in to three categories. Names of sections given in **bold** text.
+
+#. Global settings:
+    * **global**
+#. Stages options:
+    * **traceable_residues**
+    * **raw_paths**
+    * **separate_paths**
+    * **inlets_clusterization**
+    * **analysis**
+    * **visualize**
+#. Methods options:
+    * **smooth**
+    * **clusterization**
+    * **reclusteriation**
+
+Section **global**
+^^^^^^^^^^^^^^^^^^
+
+This section allows settings of trajectory data and progress bar type.
+
+Available options
+"""""""""""""""""
+
+* ``top`` - Path to Amber topology file.
+* ``nc`` - Path to Amber NetCDF file.
+* ``pbar`` - Progres bar type. Posible values:
+    * ``simple`` - [Default, Recomended] Build in progres bar.
+
+Example
+"""""""
+
+::
+
+    [global]
+    top = path/to/topology/file.prmtop
+    nc = path/to/trajectory/file.nc
+    pbar = simple
+
+Common settings for stage sections
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Option **execute**
+""""""""""""""""""
+
+All stage sections have ``execute`` option. There are two possible values:
+
+* ``run``
+* ``skip``
+
+If ``execute`` is set to ``run`` particular stage is executed, otherwise, it is skipped.
+
+Option **save**
+"""""""""""""""
+
+This options allows so save a dump of calculated data on the disk. If ``execute`` is set to ``run`` and ``save`` if a path to the file data calculated in the stage is dumped to the file. If ``save`` is set to ``None`` no data is saved.
+
+Option **load**
+"""""""""""""""
+
+If ``execute`` is set to ``skip`` and ``load`` points to the file with saved calculations, saved data is loaded.
+
+
+
+
+
+
+
 
 
 
