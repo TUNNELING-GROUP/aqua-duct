@@ -281,6 +281,7 @@ Example
 Common settings for stage sections
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+
 Option **execute**
 """"""""""""""""""
 

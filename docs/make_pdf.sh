@@ -1,10 +1,9 @@
 #!/bin/sh
 
+./make_html.sh
+
 PYTHONPATH_CACHE=$PYTHONPATH
 export PYTHONPATH=../src
-
-sphinx-apidoc -f -e -o source/ ../src/aqueduct/
-sed -i '/undoc/d' source/*.*.rst
 
 if [ -n "`which gmake`" ]
 then
@@ -13,7 +12,7 @@ else
     MAKE=make
 fi
 
-$MAKE html
+$MAKE latexpdf
 
 export PYTHONPATH=$PYTHONPATH_CACHE
 
