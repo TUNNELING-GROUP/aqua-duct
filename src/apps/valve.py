@@ -301,7 +301,6 @@ class ValveConfig(object, ConfigSpecialNames):
         config.add_section(section)
         common(section)
         config.remove_option(section, 'load')
-        config.remove_option(section, 'save')
 
         config.set(section, 'simply_smooths', 0.05236)
 
@@ -329,7 +328,6 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'show_molecule', 'None')
         config.set(section, 'show_molecule_frames', '0')
 
-        config.set(section, 'save_session', 'None')
 
         return config
 
@@ -1547,7 +1545,7 @@ def stage_VI_run(config, options,
 
     pymol_cmd.orient('molecule')
 
-    if options.save_session:
+    if options.save:
         with log.fbm("Saving session (%s)" % options.save_session):
             import time
             for state in range(len(spaths)):

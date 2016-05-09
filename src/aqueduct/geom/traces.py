@@ -110,8 +110,28 @@ class LinearizeHobbit(LinearizeOneWay):
         return coords[linearize]
 
 class LinearizeRecursive(object):
+    """
+    Base class for linearization methods classes.
+
+    It implements recursive algorithm.
+    """
 
     def here(self,coords,depth=0):
+        """
+        Core of recursive linearization argorithm.
+
+        It checks if the first, the last and the middle point are linear acoording to the criterion. The middle point is selected a point that is in the middle of lenght of the paths made by input coordinates.
+
+        If these points are linear their indices are returned. Otherwise, coordinates are split into two parts. First part spans points from the first point to the middle point (inclusive) and the second parth spans points from the middle (inclusive) to the last point. Next, these two parts are submitted recursively to :meth:`here`.
+
+         Results of these recursive calls are joined, redundant indecies are removed and sorted reslult is returned.
+
+        :param numpy.ndarray coords: Input coordinates.
+        :param int depth: Depth of recurence.
+        :return: Indices of :arg:`coords` points that can be used instead of all points in visulatization.
+        :rtype: list of int
+        """
+
         depth += 1
 
         lengths = np.hstack(([0],np.cumsum(diff(coords))))
@@ -153,22 +173,57 @@ class TrianlgeLinearize(object):
 
 
 class VectorLinearize(object):
+    """
+    Base class for linearization methods classes.
+
+    It implements vectro linearization criterion.
+    """
+
+
     def __init__(self, treshold):
 
         self.treshold = treshold
 
     def is_linear_core(self,coords,depth=None):
+        '''
+        Method checks if input coordinates are linear acoording to the threshold and depth.
+
+        It begins with calculation of the threshold. If `depth` is None it is set to 1. Current treshold is calculated with following simple equation:
+
+        .. math::
+
+            treshold_{current} = treshold_{initial} * (2 - 0.9^{depth})
+
+        Next, in a loop over all points but the first and the last the angle is calculated between two vectors. The first one made by the point and the firs point, and the second vector made by the last and the first point. If any of the calculated angles is bigger the the treshold methods returns False; otherwise method returns True.
+
+        :param numpy.ndarray coords: Coodrdinates for which linearizetion criterion is checked.
+        :param int depth: Depth of recurence.
+        :return: True if input coordinates are linear and False otherwise.
+        :rtype: bool
+        '''
         if depth is None:
             depth = 1
+
+        treshold = self.treshold + self.treshold*(1-0.9**depth) # FIXME: magic constant!
+
         V = coords[-1] - coords[0]
         V_norm = vector_norm(V)
         for cp in coords[:-1]:
             V_sum = cp - coords[0]
-            if vectors_angle_anorm(V, V_sum, V_norm) > self.treshold + self.treshold*(1-0.9**depth): # FIXME: magic constant!
+            if vectors_angle_anorm(V, V_sum, V_norm) > treshold:
                 return False
         return True
 
-    def is_linear(self, coords,depth=None,**kwargs):
+
+    def is_linear(self, coords, depth=None,**kwargs):
+        '''
+        For more detail see :meth:`is_linear_core` which is used as the criterion of linearity in this method.
+
+        :param numpy.ndarray coords: Coodrdinates for which linearizetion criterion is checked.
+        :param int depth: Depth of recurence.
+        :return: True if input coordinates are linear and False otherwise. Criterion is checked for coordinates in normal and reverse order.
+        :rtype: bool
+        '''
         if not self.is_linear_core(coords,depth=depth):
             return False
         elif not self.is_linear_core(coords[::-1],depth=depth):
@@ -177,6 +232,11 @@ class VectorLinearize(object):
 
 
 class LinearizeRecursiveVector(LinearizeRecursive,VectorLinearize):
+    """
+    ..  _simply_smooths_details:
+
+    Class provides recursive linearization of coordinates with :class:`LinearizeRecursive` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.
+    """
     pass
 
 
