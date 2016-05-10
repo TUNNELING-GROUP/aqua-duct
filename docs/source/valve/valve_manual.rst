@@ -1,45 +1,43 @@
-Valve manual
-============
+*Valve* manual
+==============
 
-Valve application is a kind of driver tha uses :mod:`aqueduct` module to perform analysis of trajectories of selected residues in MD simulation.
+*Valve* application is a driver that uses :mod:`aqueduct` module to perform analysis of trajectories of selected residues in MD simulation.
 
 
-Valve invocation
-----------------
+*Valve* invocation
+------------------
 
-Once :mod:`aqueduct` module is installed (see :doc:`aqueduct_install`) properly on the machine Valve is available as valve.py command line tool.
+Once :mod:`aqueduct` module is installed (see :doc:`../aqueduct_install`) properly on the machine *Valve* is available as ``valve.py`` command line tool.
 
 Usage
 ^^^^^
 
-Basic help of Valve usege can be displayed by following command::
+Basic help of *Valve* usage can be displayed by following command::
 
     valve.py --help
 
 It should display following information::
 
-    Valve, Aqueduct driver
+	Valve, Aqueduct driver
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      --dump-template-config
-			    Dumps template config file. Supress all other output
-			    or actions. (default: False)
-      -t THREADS            Limit Aqueduct calculations to given number of
-			    threads. (default: None)
-      -c CONFIG_FILE        Config file filename. (default: None)
+	optional arguments:
+	  -h, --help            show this help message and exit
+	  --dump-template-config
+				Dumps template config file. Suppress all other output
+				or actions. (default: False)
+	  -t THREADS            Limit Aqueduct calculations to given number of
+				threads. (default: None)
+	  -c CONFIG_FILE        Config file filename. (default: None)
 
 
 Configuration file template
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Configuration file used by Valeve is of moderate lenght. It can be easily prepared with a template file that cn be printed by Valve.
-
-In order to print configuration file template on the screen type following comand::
+Configuration file used by *Valve* is of moderate length and complexity. It can be easily prepared with a template file that can be printed by *Valve*. Use following command to print configuration file template on the screen::
 
     valve.py --dump-template-config
 
-Configuration file template can also be easily saved in to a file with following command::
+Configuration file template can also be easily saved in to a file with::
 
     valve.py --dump-template-config > config.txt
 
@@ -48,49 +46,56 @@ Where config.txt is a configuration file template.
 For detailed description of configuration file and available options see :doc:`valve_config`
 
 
-Valve calculation run
-^^^^^^^^^^^^^^^^^^^^^
+*Valve* calculation run
+^^^^^^^^^^^^^^^^^^^^^^^
 
-Once configuration file is ready Valve calculations can be run with a following simple command::
+Once configuration file is ready *Valve* calculations can be run with a following simple command::
 
     valve.py -c config.txt
 
-Valve can run some of calulations in parallel. By default it will use all available CPU cores. This is not always desired - limitation of used CPU cores can be done with -t option which limits number of concurent threads used by Valve. If it equals 1 no paralleism is used.
+Some of *Valve* calculations can be run in parallel. By default all available CPU cores are used. This is not always desired - limitation of used CPU cores can be done with ``-t`` option which limits number of concurrent threads used by *Valve*. If it equals 1 no parallelism is used.
 
 .. note::
 
-    Specyfing number of threads greater then available CPU cores is generally not optimal.
+    Specifying number of threads greater then available CPU cores is generally not optimal.
 
-    However, in order to maximize usage of available CPU power it is reccomended to define it as number of cores + 1. The reason is that Valve uses one thread for the main process and the excess over one for processes for parallel calculations.
+    However, in order to maximize usage of available CPU power it is recommended to set it as number of cores + 1. The reason is that *Valve* uses one thread for the main process and the excess over one for processes for parallel calculations. When parallel calculations are executed the main threads waits for results.
+    
+.. note::    
+    
+    This behavior is likely to be changed in the future.
 
+How does *Valve* work
+---------------------
 
-How does Valve work
--------------------
+Application starts with parsing input options. If ``--help`` or ``--dump-template-config`` options are provided appropriate messages are printed on the screen and *Valve* quits with signal ``0``.
 
-Application starts with parsing input options. If ``--help`` or ``--dump-template-config`` options are provided appropriate messages are printed on the screen and Valve quits with signal 0.
+.. note::
 
-If config file is provided Valve parse it quickly and regular calculations starts according to its content. Calculations performed by Valve are done in several stages described in the next sections.
+	In current version *Valve* does not check the validity of the config file.
+
+If config file is provided *Valve* parse it quickly and regular calculations starts according to its content. Calculations performed by *Valve* are done in several stages described in the next sections.
 
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-The first stage finds all residues that should be traced and appends them to the list of tracable resiudes. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not alredy present on the list.
+The first stage finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list.
 
-The search of the residues is done according to he definitions provided by the user. Two requirements have to be met to append residue to the list:
+The search of the residues is done according to user provided definitions.. Two requirements have to be met to append residue to the list:
 
-#. The residue have to be foud according to the *Object* definition.
-#. The residues have to be withint the *Scope* of interest.
+#. The residue have to be found according to the *Object* definition.
+#. The residues have to be within the *Scope* of interest.
 
-The Object definition encompasses usually the active site of the protein. The scope of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
+The *Object* definition encompasses usually the active site of the protein. The *Scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
 
-Since :mod:`aqueduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data definitions of Object and Scope have to be given as its *Selection Commands*.
+Since :mod:`aqueduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *Object* and *Scope* have to be given as its *Selection Commands*.
 
 .. _object_definition:
 
 Object definition
 """""""""""""""""
 
-Object definition have to comprise of two elements:
+*Object* definition have to comprise of two elements:
 
 #. It have to define residues to trace.
 #. It have to define spatial boundaries of the *Object* site.
@@ -99,68 +104,68 @@ For example, proper Object definition could be following::
 
     (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147))
 
-It defines ``WAT`` as residues that should be traced and defines spatial constrains of the Object site as spherical zone within 6 Angstroms of the center of masses of residue with number 99 and 147.
+It defines ``WAT`` as residues that should be traced and defines spatial constrains of the *Object* site as spherical zone within 6 Angstroms of the center of masses of residues with number 99 and 147.
 
 .. _scope_definition:
 
 Scope definition
 """"""""""""""""
 
-Scope can be defined in two ways: as Object but with broader boundaries or with the convex hull of selected  molecular object.
+*Scope* can be defined in two ways: as *Object* but with broader boundaries or as the convex hull of selected molecular object.
 
-In the first case definition is very similar to Object and it have to follow the same limitation. For example, proper Scope definition could be following::
+In the first case definition is very similar to *Object* and it have to follow the same limitations. For example, proper *Scope* definition could be following::
 
     resname WAT around 2.0 protein
 
 It consequently have to define ``WAT`` as residues of interest and defines spatial constrains as all ``WAT`` residues that are within 2 Angstroms of the protein.
 
-If the scope is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only. For example ``protein``. In that case the scope is iterpreted as the interior of the convex hull of atoms from the defeinition. Therefore, tracable residues would be in the scope only if they are within the convex hull of atoms of ``protein``.
+If the *Scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
 
 Raw paths
 ^^^^^^^^^
 
-The second stage of calculations uses the list of all traceable residues from the first stage and finds coordinates of center of masses for each residue in each frame. As in the first stage it is done in a loop over all frames. For each resiudue in each frame Valve calculates or cheks two things:
+The second stage of calculations uses the list of all traceable residues from the first stage and finds coordinates of center of masses for each residue in each frame. As in the first stage, it is done in a loop over all frames. For each residue in each frame *Valve* calculates or checks two things:
 
-#. Is the resiude in the Scope (this is always calculated according to the Scope definition).
-#. Is the residue in the Object. This information is calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new Object definition.
+#. Is the residue in the *Scope* (this is always calculated according to the Scope definition).
+#. Is the residue in the *Object*. This information is calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *Object* definition.
 
-For each of the tracable resiudues a special Path object is created. If the residue is in the Scope its center of mass is added to the appropriate Path object together with the information if it is in the object or not.
+For each of the *traceable residues* a special *Path* object is created. If the residue is in the *Scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *Object* or not.
 
 Separate paths
 ^^^^^^^^^^^^^^
 
-The third stage uses collection of Path objects to create Separate Path objects. Each Path comprise data for one resiude. It may happen that the resiudue enters and leaves the Scope and the Object many times over the entire MD. Each such an event is considered by Valve as a separate path.
+The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *Scope* and the *Object* many times over the entire MD. Each such an event is considered by *Valve* as a separate path.
 
-Each separate path comprises of three parts:
+Each *separate path* comprises of three parts:
 
-#. Incoming - Defined as a path that leads from the point in which residue enters the scope and enters the object for the firs time.
-#. Object - Defined as a path thet leads from the point in which residue enters the Object for the first time and leaves it for the last time.
-#. Outgoing - Defined as a path that leads from the point in which residue leaves the obejct for the last lime and leaves the sope.
+#. *Incoming* - Defined as a path that leads from the point in which residue enters the *Scope* and enters the object for the firs time.
+#. *Object* - Defined as a path that leads from the point in which residue enters the *Object* for the first time and leaves it for the last time.
+#. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *Object* for the last lime and leaves the *Scope*.
 
 .. _clusterization_of_inlets:
 
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each of the separate paths has begining and end. If either of them are at the boundaries onf the Scope they are considered as *Inlets*, i.e. points that mark where the traceable resiudues can enter or leave the Scope. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
+Each of the separate paths has beginning and end. If either of them are at the boundaries of the *Scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *Scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
 
 Clusterization of inlets is performed in following steps:
 
-#. Initial clusterization. Depending on the method, some of the inlets might to be arranged to any cluster and are considerd as outliers.
-#. [Optional] Outliers detecion. Arragemnt of inlets to clusters is sometimes far from optimal. In this step, ilets that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
+#. Initial clusterization. Depending on the method, some of the inlets might not be arranged to any cluster and are considered as outliers.
+#. [Optional] Outliers detection. Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
 
     #. Automatic mode. Inlet is considered to be an outlier if its distance from the centroid is greater then mean distance + 4 * standard deviation of all distances within the cluster.
-    #. Defined threshold. Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the treshold.
+    #. Defined threshold. Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the threshold.
 
-#. [Optional] Reclusterization of outliers. It may happen that the outliers form acctually clusters but it ws not recognized in initial clusteriation. In this step clusterization is executed for outliers only and found clusters are added to the clusters identified in the first step. Rest of the inlets are marked as outliers.
+#. [Optional] Reclusterization of outliers. It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
 
 Analysis
 ^^^^^^^^
 
-Fifth stage of Valve calculations analyses results calculated in stages 1 to 4. Results of the analysis is displayed on the screen or can be save to text file and comprise of following parts:
+Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4. Results of the analysis is displayed on the screen or can be save to text file and comprise of following parts:
 
 * Tile and data stamp.
-* [Optional] Dump of configuraion options.
+* [Optional] Dump of configuration options.
 * Basic information on traceable residues and separate paths.
     * Number of traceable residues.
     * Number of separate paths.
@@ -178,12 +183,12 @@ Fifth stage of Valve calculations analyses results calculated in stages 1 to 4. 
     #. **Nr**: Row number, starting from 0.
     #. **CType**: Separate path Cluster Type.
     #. **Size**: Number of separate paths belonging to Cluster type.
-    #. **Inp**: Average lenght of incoming part of the path. If no incoming part is available it is nan.
-    #. **InpStd**: Standard deviation of lenght Inp.
-    #. **Obj**: Average lenght of object part of the path. If no incoming part is available it is nan.
-    #. **ObjStd**: Standard deviation of lenght Inp.
-    #. **Out**: Average lenght of outgoing part of the path. If no incoming part is available it is nan.
-    #. **OutStd**: Standard deviation of lenght Inp.
+    #. **Inp**: Average length of incoming part of the path. If no incoming part is available it is nan.
+    #. **InpStd**: Standard deviation of length Inp.
+    #. **Obj**: Average length of object part of the path. If no incoming part is available it is nan.
+    #. **ObjStd**: Standard deviation of length Inp.
+    #. **Out**: Average length of outgoing part of the path. If no incoming part is available it is nan.
+    #. **OutStd**: Standard deviation of length Inp.
 * List of separate paths and their properties. Table with 17 columns.
     #. **Nr**: - Row number, starting from 0.
     #. **ID**: - Separate path ID.
@@ -192,9 +197,9 @@ Fifth stage of Valve calculations analyses results calculated in stages 1 to 4. 
     #. **ObjF**: Number of frame in which path begins Object part.
     #. **OutF**: Number of frame in which path begins Outgoing part.
     #. **EndF**: Number of frame in which the path ends.
-    #. **InpL**: Lenght of Incoming part. If no incoming part nan is given.
-    #. **ObjL**: Lenght of Object part.
-    #. **OutL**: Lenght of Outgoing part. If no outgoing part nan is given.
+    #. **InpL**: Length of Incoming part. If no incoming part nan is given.
+    #. **ObjL**: Length of Object part.
+    #. **OutL**: Length of Outgoing part. If no outgoing part nan is given.
     #. **InpS**: Average step of Incoming part. If no incoming part nan is given.
     #. **InpStdS**: Standard deviation of InpS.
     #. **ObjS**: Average step of Object part.
@@ -211,12 +216,12 @@ Separate Paths IDs are composed of two numbers separated by colon. First number 
 Cluster Type of separate path
 """""""""""""""""""""""""""""
 
-Each separate paths has two ends: begining and end. Both of them either belong to one of the inlets clusters, or are among ouliers, or are inside the scope. If an end belongs to one of the clusters (including outliers) it has ID of the cluster. If it is inside the scope it has special ID of ``N``. Cluster type is an ID composed of IDs of both ends of separate path separted by colon charcter.
+Each separate paths has two ends: beginning and end. Both of them either belong to one of the inlets clusters, or are among outliers, or are inside the scope. If an end belongs to one of the clusters (including outliers) it has ID of the cluster. If it is inside the scope it has special ID of ``N``. Cluster type is an ID composed of IDs of both ends of separate path separated by colon charter.
 
-Visualisation
+Visualization
 ^^^^^^^^^^^^^
 
-Sixth stage of Valve calculations visualizes results calculated in stages 1 to 4. Visualization is done with PyMOL. Valve ustomaticaly starts PyMOL and loads visualisations in to it.
+Sixth stage of *Valve* calculations visualizes results calculated in stages 1 to 4. Visualization is done with PyMOL. *Valve* automatically starts PyMOL and loads visualizations in to it.
 Molecule is loaded as PDB file. Other objects like Inlets clusters or paths are loaded as CGO objects.
 
 Following is a list of objects created in PyMOL (all of them are optional). PyMOL object names given in **bold** text or short explanation is given.
@@ -237,7 +242,7 @@ Following is a list of objects created in PyMOL (all of them are optional). PyMO
 Color schemes
 """""""""""""
 
-Inlets clusters are collored automaticaly. Outlaiers are grey.
+Inlets clusters are colored automatically. Outliers are gray.
 
 Incoming parts of paths are red, Outgoing parts are blue. Object parts in case of smooth paths are green and in case of raw paths are green if residue is precisely in the object area or yellow if is leaved object area but it is not in the Outgoing part yet.
 

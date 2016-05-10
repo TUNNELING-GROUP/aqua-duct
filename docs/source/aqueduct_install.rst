@@ -10,10 +10,7 @@ This package comprises of two elements:
 #. aqueduct,
 #. valve.
 
-Aqueduct is a Python module. It is a collection of tools to trace
-residues in MD simulation.
-Valve is a driver Python script. It uses aqueduct to perform such
-a tracing.
+Aqueduct is a Python module. It is a collection of tools to trace residues in MD simulation. Valve is a driver Python script. It uses aqueduct to perform such a tracing.
 
 Install
 -------
@@ -31,11 +28,7 @@ In some specific cases installation is very simple:
 
     python setup.py install
 
-Aqueduct requires several Python modules to work and in
-particular it requires MDAnalysis with AMBER support. This, on
-the other hand, requires netCDF4.
-Installation of this combination is sometimes cumbersome.
-General procedure is following:
+Aqueduct requires several Python modules to work and in particular it requires MDAnalysis with AMBER support. This, on the other hand, requires netCDF4. Installation of this combination is sometimes cumbersome. General procedure is following:
 
 #. Install libnetcdf4 and libhdf5 development libraries.
 #. Install netCDF4::
@@ -44,14 +37,12 @@ General procedure is following:
 
 #. Try to install aqueduct.
 
-If, by chance, you are on Ubuntu 14.04 you can try helper script
-ubuntu_mdanalysis_install_helper.sh.
+If, by chance, you are on Ubuntu 14.04 you can try helper script :download:`ubuntu_mdanalysis_install_helper.sh`.
 
 Valve
 ^^^^^
 
-Valve does not need installation per se. Once aqueduct is
-installed, valve can be run by a following command::
+Valve does not need installation *per se*. Once aqueduct is installed, valve can be run by a following command::
 
     python valve.py --help
 
@@ -60,8 +51,7 @@ Valve script, ie valve.py, is located in apps directory.
 Extras
 ^^^^^^
 
-Access to some visualisation capabilities of Aqueduct requires
-additional Python modules:
+Access to some visualization capabilities of Aqueduct requires additional Python modules:
 
 #. matplotlib,
 #. pymol.

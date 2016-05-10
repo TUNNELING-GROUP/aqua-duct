@@ -1568,7 +1568,7 @@ if __name__ == "__main__":
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
-                        help="Dumps template config file. Supress all other output or actions.")
+                        help="Dumps template config file. Suppress all other output or actions.")
 
     parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
                         help="Limit Aqueduct calculations to given number of threads.")

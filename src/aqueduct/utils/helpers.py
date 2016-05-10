@@ -83,7 +83,7 @@ class Auto:
     '''
     def __repr__(self):
         '''
-        :return: string `Auto`
+        :return: String ``Auto``.
         :rtype: str
         '''
         return "Auto"
@@ -97,7 +97,11 @@ class Auto:
 
 def create_tmpfile(ext=None):
     '''
-    Creates temporary file.
+    Creates temporary file. File is created, closed and its file name is returned.
+
+    .. note::
+
+        It is responsability of the caller to delete the file.
 
     :param str ext: Optional extension of the file.
     :return: File name of created temporary file.
@@ -159,7 +163,7 @@ def int2range(l):
         0:2 4:5 7 9
 
     :param list l: input list of int
-    :return: string of ranges
+    :return: String of ranges.
     :rtype: str
     '''
     out = []
@@ -195,13 +199,13 @@ def int2range(l):
 
 def is_iterable(l):
     '''
-    Checks if provided obejct is iterable.
+    Checks if provided object is iterable.
     Returns True is it is iterable, otherwise returns False.
 
     :param list l: input object
 
     :return: True if submited object is iterable otherwise returns False.
-    :rtype: boolean
+    :rtype: bool
 
     .. warning::
 
@@ -227,8 +231,8 @@ def sortify(gen):
 
     Written on the basis of :func:`listify`.
 
-    :returns: output of decorated function converted to a sorted list
-    :rtype: :py:class:`list`
+    :returns: Output of decorated function converted to a sorted list.
+    :rtype: list
     '''
 
     @wraps(gen)
@@ -254,8 +258,8 @@ def listify(gen):
 
     and further improved by tljm@wp.pl.
 
-    :returns: output of decorated function converted to a list
-    :rtype: :py:class:`list`
+    :returns: Output of decorated function converted to a list.
+    :rtype: list
     '''
 
     @wraps(gen)
@@ -275,8 +279,8 @@ def tupleify(gen):
 
     Written on the basis of :func:`listify`.
 
-    :returns: output of decorated function converted to a tuple
-    :rtype: :py:class:`tuple`
+    :returns: Output of decorated function converted to a tuple.
+    :rtype: tuple
     '''
 
     @wraps(gen)
@@ -296,8 +300,8 @@ def arrayify(gen):
 
     Written on the basis of :func:`listify`.
 
-    :returns: output of decorated function converted to a 2D numpy array
-    :rtype: :py:class:`numpy.ndarray`
+    :returns: Output of decorated function converted to a 2D numpy array.
+    :rtype: numpy.ndarray
     '''
 
     @wraps(gen)
@@ -337,10 +341,11 @@ def list_blocks_to_slices(l):
 @tupleify
 def what2what(what, towhat):
     '''
-    :param list what: Input list for which indeices of elements present in :attr:`towhat` are returned.
-    :param list towaht: List of elements which input list is indexed to.
-    :return: Indices of :attr:`what` list that are present in :attr:`towath` list.
-    :rtype: list
+    what2what(what, towhat)
+    :param list what: Input list for which indices of elements present in :attr:`towhat` are returned.
+    :param list towhat: List of elements which input list is indexed to.
+    :return: Indices of :attr:`what` list that are present in :attr:`towhat` list.
+    :rtype: tuple
     '''
     towhat = make_iterable(towhat)
     for nr, w in enumerate(make_iterable(what)):
@@ -354,7 +359,7 @@ def make_iterable(something):
 
     :param object something: Input object.
     :return: Iterable object.
-    :rtype: iterable
+    :rtype: iterable or list
     '''
     if not is_iterable(something):
         return [something]

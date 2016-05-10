@@ -13,6 +13,8 @@ else
     MAKE=make
 fi
 
+cp ../src/ubuntu_mdanalysis_install_helper.sh source/
+
 $MAKE html
 
 export PYTHONPATH=$PYTHONPATH_CACHE

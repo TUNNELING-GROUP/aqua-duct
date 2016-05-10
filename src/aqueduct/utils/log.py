@@ -11,12 +11,15 @@ from sys import stderr
 import time
 import datetime
 
+gregorian_year_in_days = 365.2425
+'''Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year'''
 
-def smart_time_string(s, rl=0, t=1.1):
+
+def smart_time_string(s, rl=0, t=1.1, maximal_length=10, maximal_units=2):
     '''
-    Function transforms time in seconds to nicely formated string of
-    lenght 10. Depending on number of seconds time is represented with
-    one or two of the following units:
+    Function transforms time in seconds to nicely formatted string of
+    length defined by :attr:`maximal_length`. Depending on number of seconds time is represented with
+    one or more of the following units:
 
     ========= =================
     Unit name Unit abbreviation
@@ -25,18 +28,29 @@ def smart_time_string(s, rl=0, t=1.1):
     minutes   m
     hours     h
     days      d
+    years     y
     ========= =================
 
-    :param int s: input time in seconds
-    :param int rl: number of units already used for representing time
-    :param float t: exces above standard number of current time units
+    Maximal number of units used in time string can be set with :attr:`maximal_units`.
+
+    :param int s: Input time in seconds.
+    :param int rl: Number of units already used for representing time.
+    :param float t: Exces above standard number of current time units.
+    :param int maximal_length: Maximal length of the output string. Must be greater then 0.
+    :param int maximal_units: Maximal number of units used in the output string. Must be greater then 0 and lower then 6.
 
     :return: string of nicely formated time
     :rtype: str
     '''
+    assert isinstance(maximal_length, (int, long))
+    assert maximal_length > 0
+    assert isinstance(maximal_units, (int, long))
+    assert maximal_units > 0
+    assert maximal_units < 6
+
     output = ''
     rl += 1
-    if rl > 2:
+    if rl > maximal_units:
         output = ''
     else:
         # seconds
@@ -46,25 +60,44 @@ def smart_time_string(s, rl=0, t=1.1):
             output = ("%2.2d m" % (int(s) / 60)) + ' ' + smart_time_string(int(s) % 60, rl).strip()
         elif s < t * 3600 * 24:
             output = ("%2.2d h" % (int(s) / 3600)) + ' ' + smart_time_string(int(s) % 3600, rl).strip()
-        elif True:  # s < t*3600*24*365:
+        elif s < t * 3600 * 24 * gregorian_year_in_days:
             output = ("%d d" % (int(s) / (3600 * 24))) + ' ' + smart_time_string(int(s) % (3600 * 24), rl).strip()
-    return (output + " " * 10)[:10]
+        elif True:
+            output = ("%d y" % (int(s) / (3600 * 24 * gregorian_year_in_days))) + ' ' + smart_time_string(
+                int(s) % (3600 * 24 * gregorian_year_in_days), rl).strip()
+    return (output + " " * maximal_length)[:maximal_length]
 
 
 ###################################
 # vis separators
 
 def gsep(sep='-', times=72, length=None):
-    # generic separator
+    """
+    Generic separator.
+
+    :param str sep: Element(s) of separator.
+    :param int times: Number of times :attr:`sep` is printed.
+    :param int length: Optional maximal length of output.
+    :return: String separator.
+    :rtype: str
+    """
     return (sep * times)[:length]
 
 
 def tsep(line):
-    # auto line sep
+    """
+    :param str line: Input line.
+    :return: Returns default :func:`gsep` of length of :attr:`line`.
+    """
     return gsep(sep='-', times=len(line))
 
 
 def underline(line):
+    """
+    :param str line: Input line.
+    :return: String made by concatenation of :attr:`line`, :mod:`os.linesep`, and output of :func:`tsep` called with :attr:`line`.
+    :rtype: str
+    """
     uline = line
     uline += linesep
     uline += tsep(line)
@@ -72,12 +105,18 @@ def underline(line):
 
 
 def thead(line):
+    """
+    :param str line: Input line.
+    :return: String made by concatenation of output of :func:`tsep` called with :attr:`line`, :attr:`line`, :mod:`os.linesep`, and again output of :func:`tsep` called with :attr:`line`.
+    :rtype: str
+    """
     header = tsep(line)
     header += linesep
     header += line
     header += linesep
     header += tsep(line)
     return header
+
 
 ###################################
 
@@ -101,7 +140,7 @@ class SimpleProgressBar(object):
 
     barlenght = 24
 
-    def __init__(self,mess=None, maxval=None):
+    def __init__(self, mess=None, maxval=None):
         '''
         :param int maxval: maximal number of iterations stored to :ivar:`maxval`
         
@@ -336,7 +375,7 @@ class fbm(object):
         else:
             raise typ(value)
 
-    def __call__(self,info):
+    def __call__(self, info):
         message(linesep + '\t' + info + '...', cont=True)
 
 
