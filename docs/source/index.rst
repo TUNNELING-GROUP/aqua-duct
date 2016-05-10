@@ -9,12 +9,13 @@ Welcome to Aqueduct's documentation!
 Contents:
 
 .. toctree::
-   :maxdepth: 1
-   :titlesonly:
+    :maxdepth: 1
+    :titlesonly:
 
-   Aqueduct installation <aqueduct_install>
-   Valve manual <valve_manual>
-   Aqueduct API documentation <modules>
+    Aqueduct installation <aqueduct_install>
+    Valve manual <valve/valve_manual>
+    Valve configuration <valve/valve_config>
+    Aqueduct API documentation <modules>
 
 
 Indices and tables
