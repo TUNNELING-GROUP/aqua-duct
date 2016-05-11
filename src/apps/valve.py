@@ -46,8 +46,8 @@ from aqueduct.traj.inlets import Inlets, InletTypeCodes
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
 
-optimal_threads = None
 global optimal_threads
+optimal_threads = None
 # optimal_threads = int(2*cpu_count + 1) # is it really optimal?
 # optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
 

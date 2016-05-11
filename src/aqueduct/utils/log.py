@@ -15,7 +15,7 @@ gregorian_year_in_days = 365.2425
 '''Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year'''
 
 
-def smart_time_string(s, rl=0, t=1.1, maximal_length=10, maximal_units=2):
+def smart_time_string(s, rl=0, t=1.1, maximal_length=None, maximal_units=5):
     '''
     Function transforms time in seconds to nicely formatted string of
     length defined by :attr:`maximal_length`. Depending on number of seconds time is represented with
@@ -42,8 +42,8 @@ def smart_time_string(s, rl=0, t=1.1, maximal_length=10, maximal_units=2):
     :return: string of nicely formated time
     :rtype: str
     '''
-    assert isinstance(maximal_length, (int, long))
-    assert maximal_length > 0
+    #assert isinstance(maximal_length, (int, long))
+    #assert maximal_length > 0
     assert isinstance(maximal_units, (int, long))
     assert maximal_units > 0
     assert maximal_units < 6
@@ -65,7 +65,9 @@ def smart_time_string(s, rl=0, t=1.1, maximal_length=10, maximal_units=2):
         elif True:
             output = ("%d y" % (int(s) / (3600 * 24 * gregorian_year_in_days))) + ' ' + smart_time_string(
                 int(s) % (3600 * 24 * gregorian_year_in_days), rl).strip()
-    return (output + " " * maximal_length)[:maximal_length]
+    if maximal_length:
+        return (output + " " * maximal_length)[:maximal_length]
+    return output
 
 
 ###################################
@@ -123,10 +125,10 @@ def thead(line):
 
 class SimpleProgressBar(object):
     '''
-    Simple progress bar displaying progress in % and ETA.
+    Simple progress bar displaying progress with percent idicator, brogress bar and ETA.
     Progress is measured by iterations.
     
-    :cvar str rotate: string comprising characters with frames of a rotating toy
+    :cvar str rotate: String comprising characters with frames of a rotating toy.
     
     :ivar int maxval: maximal number of iterations
     :ivar int current: current number of iterations
@@ -137,6 +139,9 @@ class SimpleProgressBar(object):
     '''
 
     rotate = '\\|/-'
+    #rotate = '<^>v'
+    #rotate = '.:|:.'
+    #rotate = 'x+'
 
     barlenght = 24
 
@@ -159,6 +164,10 @@ class SimpleProgressBar(object):
 
         self.begin = time.time()
         self.tcurrent = self.begin
+
+        self.last_rotate_time = self.begin
+        self.last_rotate_idx = 0
+
         if mess is not None:
             message(mess)
         self.show()
@@ -169,7 +178,12 @@ class SimpleProgressBar(object):
             barval = self.barlenght
         bar = '#' * barval
         if self.current:
-            bar += self.rotate[self.current % len(self.rotate)]
+            if self.tcurrent - self.last_rotate_time > 1./4: # FIXME: magic constant, remove it!
+                self.last_rotate_idx += 1
+                self.last_rotate_time = self.tcurrent
+            if self.last_rotate_idx > len(self.rotate) - 1:
+                self.last_rotate_idx = 0
+            bar += self.rotate[self.last_rotate_idx]
         bar += ' ' * self.barlenght
         return '[%s]' % bar[:self.barlenght]
 
@@ -224,7 +238,7 @@ class SimpleProgressBar(object):
                 self.overrun = True
             stderr.write("\r%d iterations out of %d. Total time: %s" % (self.current, self.maxval, self.ttime()))
         elif not self.overrun:
-            stderr.write("\r%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA()))
+            stderr.write("\r%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA()) + "\033[K") # FIXME: magic constant!
 
     def update(self, step):
         '''
