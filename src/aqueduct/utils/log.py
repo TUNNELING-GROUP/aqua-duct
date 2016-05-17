@@ -1,7 +1,7 @@
-'''
+"""
 Module comprises convieniences functions and definitios for logging
 purposes including progress bar helpers.
-'''
+"""
 
 # __all__ = ['debug','info','warning','error','critical','pbar']
 
@@ -16,7 +16,7 @@ gregorian_year_in_days = 365.2425
 
 
 def smart_time_string(s, rl=0, t=1.1, maximal_length=None, maximal_units=5):
-    '''
+    """
     Function transforms time in seconds to nicely formatted string of
     length defined by :attr:`maximal_length`. Depending on number of seconds time is represented with
     one or more of the following units:
@@ -41,9 +41,9 @@ def smart_time_string(s, rl=0, t=1.1, maximal_length=None, maximal_units=5):
 
     :return: string of nicely formated time
     :rtype: str
-    '''
-    #assert isinstance(maximal_length, (int, long))
-    #assert maximal_length > 0
+    """
+    # assert isinstance(maximal_length, (int, long))
+    # assert maximal_length > 0
     assert isinstance(maximal_units, (int, long))
     assert maximal_units > 0
     assert maximal_units < 6
@@ -124,7 +124,7 @@ def thead(line):
 
 
 class SimpleProgressBar(object):
-    '''
+    """
     Simple progress bar displaying progress with percent indicator, progress bar and ETA.
     Progress is measured by iterations.
 
@@ -137,20 +137,20 @@ class SimpleProgressBar(object):
     :ivar bool overrun: flag of overrun
     :ivar int begin: time in seconds at the initialization of the :class:`SimpleProgressBar` class.
     :ivar int tcurrent: time in seconds of current iteration
-    '''
+    """
 
     rotate = '\\|/-'
-    #rotate = '<^>v'
-    #rotate = '.:|:.'
-    #rotate = 'x+'
+    # rotate = '<^>v'
+    # rotate = '.:|:.'
+    # rotate = 'x+'
 
     barlenght = 24
 
     def __init__(self, mess=None, maxval=None):
-        '''
+        """
         :param int maxval: Maximal number of iterations stored to :attr:`maxval`.
         :param str mess: Optional message displayed at progress bar initialization.
-        '''
+        """
 
         assert isinstance(maxval, (int, long))
         if maxval < 1:
@@ -179,7 +179,7 @@ class SimpleProgressBar(object):
             barval = self.barlenght
         bar = '#' * barval
         if self.current:
-            if self.tcurrent - self.last_rotate_time > 1./4: # FIXME: magic constant, remove it!
+            if self.tcurrent - self.last_rotate_time > 1. / 4:  # FIXME: magic constant, remove it!
                 self.last_rotate_idx += 1
                 self.last_rotate_time = self.tcurrent
             if self.last_rotate_idx > len(self.rotate) - 1:
@@ -189,7 +189,7 @@ class SimpleProgressBar(object):
         return '[%s]' % bar[:self.barlenght]
 
     def ETA(self):
-        '''
+        """
         Returns ETA calculated on the basis of current number of iterations
         :attr:`current` and current time :attr:`tcurrent`. If number of
         iterations is 0 returns ``?``.
@@ -197,7 +197,7 @@ class SimpleProgressBar(object):
 
         :return: ETA as string.
         :rtype: str
-        '''
+        """
         if self.current == 0:
             return '?'
         diff = self.tcurrent - self.begin
@@ -208,19 +208,19 @@ class SimpleProgressBar(object):
         return smart_time_string(eta)
 
     def percent(self):
-        '''
+        """
         Returns float number of precent progress calculated in the basis
         of current number of iterations :attr:`current`. Should return
         number between 0 and 100.
 
         :returns: percent progress number
         :rtype: float
-        '''
+        """
         percent = float(self.current) / float(self.maxval) * 100
         return percent
 
     def show(self):
-        '''
+        """
         Shows current progress.
 
         If value returned by :meth:`percent` is =< 100 then progres is printed as
@@ -230,7 +230,7 @@ class SimpleProgressBar(object):
         number of iterations and total time.
 
         Progress bar is writen to standard error.
-        '''
+        """
         percent = self.percent()
         if percent > 100:
             if self.overrun_notice:
@@ -239,17 +239,18 @@ class SimpleProgressBar(object):
                 self.overrun = True
             stderr.write("\r%d iterations out of %d. Total time: %s" % (self.current, self.maxval, self.ttime()))
         elif not self.overrun:
-            stderr.write("\r%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA()) + "\033[K") # FIXME: magic constant!
+            stderr.write(
+                "\r%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA()) + "\033[K")  # FIXME: magic constant!
 
     def update(self, step):
-        '''
+        """
         Updates number of current iterations :obj:`current` by one if :obj:`step` is > 0.
         Otherwise number of current iterations is not updated.
         In boths cases time of current iteration :obj:`tcurrent` is updated and
         :meth:`show` is called.
 
         :param int step: update step
-        '''
+        """
         if step > 0:
             if step == 1:
                 self.current += 1
@@ -259,19 +260,19 @@ class SimpleProgressBar(object):
         self.show()
 
     def ttime(self):
-        '''
+        """
         Calculates and returns total time string formated with :func:`smart_time_string`.
 
         :return: string of total time
         :rtype: str
-        '''
+        """
         return smart_time_string(self.tcurrent - self.begin)
 
     def finish(self):
-        '''
+        """
         Finishes progress bar. First, :meth:`update` is called with :obj:`step` = 0. Next message of total time
         is writen to standard error.
-        '''
+        """
         if self.current < self.maxval:
             self.update(self.maxval)
         else:
@@ -285,7 +286,7 @@ class SimpleProgressBar(object):
 
 
 class pbar(object):
-    '''
+    """
     Progress bar wrapper class.
     It can use several types of progress bars, including :class:`SimpleProgressBar`. Additionaly, it can
     handle progress bars with following packages (must be installed separately):
@@ -303,13 +304,13 @@ class pbar(object):
 
         :class:`SimpleProgressBar` is the only one kind of progress bar recommended.
 
-    '''
+    """
 
     def __init__(self, maxval=100, kind='simple'):
-        '''
+        """
         :param int maxval: maximal number of iterations stored to :ivar:`__maxval` and passed child progress bar object
         :param str kind: type of progress bar, available types: simple, progressbar, tqdm, pyprind
-        '''
+        """
 
         assert kind in ['simple', 'progressbar', 'tqdm', 'pyprind']
 
@@ -334,12 +335,12 @@ class pbar(object):
             self.__pbar = pyprind.ProgBar(maxval)
 
     def update(self, val):
-        '''
+        """
         Updates progress bar with value of :obj:`val` parameter. Exact behavior depends
         on the type of progress bar.
 
         :param int val: value used to update progress bar
-        '''
+        """
         if self.__kind in ["tqdm", "pyprind"]:
             if val < 1:
                 return
@@ -349,10 +350,10 @@ class pbar(object):
             self.__pbar.update(val)
 
     def finish(self):
-        '''
+        """
         Finishes progress bar. It cals appropriate, if exist, method of child progress bar object.
         is writen to standard error.
-        '''
+        """
         if self.__kind in ["progressbar", "simple"]:
             self.__pbar.finish()
         if self.__kind == "tqdm":
@@ -365,9 +366,9 @@ def get_str_timestamp():
 
 level = logging.WARNING
 # format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
-format = linesep + 'AQUARIUM:%(levelname)s:[%(module)s|%(funcName)s@s%(lineno)d]:' + linesep + '%(message)s'
+log_format = linesep + 'AQUARIUM:%(levelname)s:[%(module)s|%(funcName)s@s%(lineno)d]:' + linesep + '%(message)s'
 
-logging.basicConfig(format=format, level=level)
+logging.basicConfig(format=log_format, level=level)
 
 debug = logging.debug
 info = logging.info
@@ -395,12 +396,12 @@ class fbm(object):
 
 
 def message(mess, cont=False):
-    '''
+    """
     Prints message to standard error.
 
     :param str mess: message to print
     :param bool cont: if set True no new line is printed
-    '''
+    """
     if cont:
         print >> stderr, mess,
     else:
