@@ -125,16 +125,17 @@ def thead(line):
 
 class SimpleProgressBar(object):
     '''
-    Simple progress bar displaying progress with percent idicator, brogress bar and ETA.
+    Simple progress bar displaying progress with percent indicator, progress bar and ETA.
     Progress is measured by iterations.
-    
+
     :cvar str rotate: String comprising characters with frames of a rotating toy.
-    
+    :cvar int barlenght: Length of progress bar.
+
     :ivar int maxval: maximal number of iterations
     :ivar int current: current number of iterations
     :ivar bool overrun_notice: if True, overrun above :ivar:`maxval` iterations causes insert of newline
     :ivar bool overrun: flag of overrun
-    :ivar int begin: time in seconds at the initialiation of the :class:`SimpleProgressBar` class.
+    :ivar int begin: time in seconds at the initialization of the :class:`SimpleProgressBar` class.
     :ivar int tcurrent: time in seconds of current iteration
     '''
 
@@ -147,8 +148,8 @@ class SimpleProgressBar(object):
 
     def __init__(self, mess=None, maxval=None):
         '''
-        :param int maxval: maximal number of iterations stored to :ivar:`maxval`
-        
+        :param int maxval: Maximal number of iterations stored to :attr:`maxval`.
+        :param str mess: Optional message displayed at progress bar initialization.
         '''
 
         assert isinstance(maxval, (int, long))
@@ -190,11 +191,11 @@ class SimpleProgressBar(object):
     def ETA(self):
         '''
         Returns ETA calculated on the basis of current number of iterations
-        :obj:`current` and current time :obj:`tcurrent`. If number of
+        :attr:`current` and current time :attr:`tcurrent`. If number of
         iterations is 0 returns ``?``.
         Time is formated wiht :func:`smart_time_string`.
-        
-        :return: ETA time
+
+        :return: ETA as string.
         :rtype: str
         '''
         if self.current == 0:
@@ -209,9 +210,9 @@ class SimpleProgressBar(object):
     def percent(self):
         '''
         Returns float number of precent progress calculated in the basis
-        of current number of iterations :obj:`current`. Should return 
+        of current number of iterations :attr:`current`. Should return
         number between 0 and 100.
-        
+
         :returns: percent progress number
         :rtype: float
         '''
@@ -221,10 +222,10 @@ class SimpleProgressBar(object):
     def show(self):
         '''
         Shows current progress.
-        
+
         If value returned by :meth:`percent` is =< 100 then progres is printed as
         percent indicator leaded by ETA calculated by :meth:`ETA`.
-        
+
         If value returned by :meth:`percent` is > 100 then progress is printed as
         number of iterations and total time.
 
@@ -246,7 +247,7 @@ class SimpleProgressBar(object):
         Otherwise number of current iterations is not updated.
         In boths cases time of current iteration :obj:`tcurrent` is updated and
         :meth:`show` is called.
-        
+
         :param int step: update step
         '''
         if step > 0:
@@ -260,7 +261,7 @@ class SimpleProgressBar(object):
     def ttime(self):
         '''
         Calculates and returns total time string formated with :func:`smart_time_string`.
-        
+
         :return: string of total time
         :rtype: str
         '''
@@ -288,20 +289,20 @@ class pbar(object):
     Progress bar wrapper class.
     It can use several types of progress bars, including :class:`SimpleProgressBar`. Additionaly, it can
     handle progress bars with following packages (must be installed separately):
-    
+
     * progressbar
     * tqdm
     * pyprind
-    
+
     :ivar int __maxval: maximal number of iterations
     :ivar str __kind: type of progress bar
     :ivar int __curval: current number of iterations
     :ivar __pbar: progress bar child object
-    
+
     .. warning::
-    
+
         :class:`SimpleProgressBar` is the only one kind of progress bar recommended.
-    
+
     '''
 
     def __init__(self, maxval=100, kind='simple'):
@@ -336,7 +337,7 @@ class pbar(object):
         '''
         Updates progress bar with value of :obj:`val` parameter. Exact behavior depends
         on the type of progress bar.
-        
+
         :param int val: value used to update progress bar
         '''
         if self.__kind in ["tqdm", "pyprind"]:
@@ -396,7 +397,7 @@ class fbm(object):
 def message(mess, cont=False):
     '''
     Prints message to standard error.
-    
+
     :param str mess: message to print
     :param bool cont: if set True no new line is printed
     '''
