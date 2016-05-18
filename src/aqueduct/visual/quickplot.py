@@ -41,7 +41,7 @@ class ColorMapDistMap(object):
         return self.grey[:3]
 
 
-def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=None, smooth_diff=None):
+def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=None, smooth_diff=None, types='etypes'):
     if smooth is not None:
         smooth_len = smooth
         smooth_diff = smooth
@@ -55,7 +55,11 @@ def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=
         dif = traces.diff(coords)
     #ldif = np.array(range(len(dif))) # same OX
 
-    etypes = sp.etypes_cont
+    if types == 'etypes':
+        etypes = sp.etypes_cont
+    elif types == 'types':
+        etypes = sp.types_cont
+
 
     for sl in list_blocks_to_slices(etypes):
         etype = etypes[sl]
@@ -93,8 +97,68 @@ def color_codes(code, custom_codes=None):
     else:
         return custom_codes[code]
 
+def plot_colorful_lines(x,y,c):
+
+    sls = list(list_blocks_to_slices(c))
+    n = len(sls)
+
+    for nr, sl in enumerate(sls):
+        a = x[sl]
+        b = y[sl]
+        color = c[sl][-1]
+        if nr == 0:
+            plt.plot(a, b, color=color)
+            last_a = a[-1]
+            last_b = b[-1]
+            last_color = color
+        else:
+            mid_a = (last_a + a[0]) / 2
+            mid_b = (last_b + b[0]) / 2
+            if nr == n - 1:
+                plt.plot([last_a, mid_a], [last_b, mid_b], color=last_color)
+                plt.plot([mid_a, a[0]], [mid_b, b[0]], color=color)
+                plt.plot(a, b, color=color)
+            else:
+                plt.plot([last_a, mid_a], [last_b, mid_b], color=last_color)
+                plt.plot([mid_a, a[0]], [mid_b, b[0]], color=color)
+                plt.plot(a, b, color=color)
+                last_a = a[-1]
+                last_b = b[-1]
+                last_color = color
+
+
+def spaths_spectra(spaths, **kwargs):
+
+    spectra = []
+
+    minx = None
+    maxx = None
+    for sp in spaths:
+        xyc = list(spath_spectrum(sp, **kwargs))
+        xy = np.array([(x,y) for x,y,c in xyc])
+        c = list([c for x,y,c in xyc])
+        x = xy[:,0]
+        y = xy[:,1]
+        spectra.append((y,c))
+        if maxx is None:
+            maxx = max(x)
+        else:
+            maxx = max(maxx,max(x))
+        if minx is None:
+            minx = min(x)
+        else:
+            minx = min(minx, min(x))
+    for (y,c) in spectra:
+        plot_colorful_lines(np.linspace(minx,maxx,len(c)),y,c)
+
 
 def plot_spath_spectrum(sp, **kwargs):
+    xyc = list(spath_spectrum(sp, **kwargs))
+    xy = np.array([(x,y) for x,y,c in xyc])
+    c = list([c for x,y,c in xyc])
+    plot_colorful_lines(xy[:,0],xy[:,1],c)
+
+def spath_spectrum(sp, **kwargs):
     lsdt = list(yield_spath_len_and_smooth_diff_in_types_slices(sp, **kwargs))
 
     n = len(lsdt)
@@ -106,7 +170,9 @@ def plot_spath_spectrum(sp, **kwargs):
     for nr, (l, sd, t) in enumerate(lsdt):
         color = color_codes(t[-1])
         if nr == 0:
-            plt.plot(l, sd, color=color)
+            for ll,ssdd in zip(l,sd):
+                yield ll,ssdd,color
+            #plt.plot(l, sd, color=color)
             last_l = l[-1]
             last_sd = sd[-1]
             last_color = color
@@ -114,13 +180,25 @@ def plot_spath_spectrum(sp, **kwargs):
             mid_l = (last_l + l[0]) / 2
             mid_sd = (last_sd + sd[0]) / 2
             if nr == n - 1:
-                plt.plot([last_l, mid_l], [last_sd, mid_sd], color=last_color)
-                plt.plot([mid_l, l[0]], [mid_sd, sd[0]], color=color)
-                plt.plot(l, sd, color=color)
+                #for ll, ssdd in zip([last_l, mid_l], [last_sd, mid_sd]):
+                #    yield ll, ssdd, last_color
+                #plt.plot([last_l, mid_l], [last_sd, mid_sd], color=last_color)
+                #for ll, ssdd in zip([mid_l, l[0]], [mid_sd, sd[0]]):
+                #    yield ll, ssdd, color
+                #plt.plot([mid_l, l[0]], [mid_sd, sd[0]], color=color)
+                for ll, ssdd in zip(l, sd):
+                    yield ll, ssdd, color
+                #plt.plot(l, sd, color=color)
             else:
-                plt.plot([last_l, mid_l], [last_sd, mid_sd], color=last_color)
-                plt.plot([mid_l, l[0]], [mid_sd, sd[0]], color=color)
-                plt.plot(l, sd, color=color)
+                #for ll, ssdd in zip([last_l, mid_l], [last_sd, mid_sd]):
+                #    yield ll, ssdd, last_color
+                #plt.plot([last_l, mid_l], [last_sd, mid_sd], color=last_color)
+                #for ll, ssdd in zip([mid_l, l[0]], [mid_sd, sd[0]]):
+                #    yield ll, ssdd, color
+                #plt.plot([mid_l, l[0]], [mid_sd, sd[0]], color=color)
+                for ll, ssdd in zip(l, sd):
+                    yield ll, ssdd, color
+                #plt.plot(l, sd, color=color)
                 last_l = l[-1]
                 last_sd = sd[-1]
                 last_color = color
