@@ -32,7 +32,7 @@ from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
 from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
-from aqueduct.geom.cluster import perform_clustering, DBSCAN, AffinityPropagation, MeanShift, KMeans
+from aqueduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
@@ -54,7 +54,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 5, 4
+    return 0, 5, 5
 
 
 def version_nice():
@@ -645,7 +645,8 @@ def get_clustering_method(coptions):
         meanshift_opts()
         method = MeanShift
 
-    return lambda X: perform_clustering(X, method, **opts)
+    return PerformClustering(method, **opts)
+    #return lambda X: perform_clustering(X, method, **opts)
 
 
 ################################################################################

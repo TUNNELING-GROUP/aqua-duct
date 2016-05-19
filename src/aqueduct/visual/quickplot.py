@@ -97,7 +97,7 @@ def color_codes(code, custom_codes=None):
     else:
         return custom_codes[code]
 
-def plot_colorful_lines(x,y,c):
+def plot_colorful_lines(x,y,c,**kwargs):
 
     sls = list(list_blocks_to_slices(c))
     n = len(sls)
@@ -107,7 +107,7 @@ def plot_colorful_lines(x,y,c):
         b = y[sl]
         color = c[sl][-1]
         if nr == 0:
-            plt.plot(a, b, color=color)
+            plt.plot(a, b, color=color,**kwargs)
             last_a = a[-1]
             last_b = b[-1]
             last_color = color
@@ -115,13 +115,13 @@ def plot_colorful_lines(x,y,c):
             mid_a = (last_a + a[0]) / 2
             mid_b = (last_b + b[0]) / 2
             if nr == n - 1:
-                plt.plot([last_a, mid_a], [last_b, mid_b], color=last_color)
-                plt.plot([mid_a, a[0]], [mid_b, b[0]], color=color)
-                plt.plot(a, b, color=color)
+                plt.plot([last_a, mid_a], [last_b, mid_b], color=last_color,**kwargs)
+                plt.plot([mid_a, a[0]], [mid_b, b[0]], color=color,**kwargs)
+                plt.plot(a, b, color=color,**kwargs)
             else:
-                plt.plot([last_a, mid_a], [last_b, mid_b], color=last_color)
-                plt.plot([mid_a, a[0]], [mid_b, b[0]], color=color)
-                plt.plot(a, b, color=color)
+                plt.plot([last_a, mid_a], [last_b, mid_b], color=last_color,**kwargs)
+                plt.plot([mid_a, a[0]], [mid_b, b[0]], color=color,**kwargs)
+                plt.plot(a, b, color=color,**kwargs)
                 last_a = a[-1]
                 last_b = b[-1]
                 last_color = color

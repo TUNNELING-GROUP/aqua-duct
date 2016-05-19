@@ -313,6 +313,25 @@ def arrayify(gen):
 
     return patched
 
+def arrayify1(gen):
+    '''
+    Decorator to convert functions' outputs into a 1D numpy array. If the output is iterable it is converted in to a a 2D numpy array
+    of apropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.
+
+    Written on the basis of :func:`listify`.
+
+    :returns: Output of decorated function converted to a 1D numpy array.
+    :rtype: numpy.ndarray
+    '''
+
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        obj = gen(*args, **kwargs)
+        if isinstance(obj, Iterable):
+            return np.matrix(list(obj)).A1
+        return np.matrix([obj]).A1
+
+    return patched
 
 def list_blocks_to_slices(l):
     '''

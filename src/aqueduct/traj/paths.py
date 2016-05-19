@@ -1,11 +1,11 @@
-'''
+"""
 Created on Dec 10, 2015
 
 @author: tljm
-'''
+"""
 
 from itertools import izip
-from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify
+from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify, arrayify1
 import numpy as np
 from aqueduct.geom import traces
 from aqueduct.traj.inlets import Inlet, InletTypeCodes
@@ -470,3 +470,34 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         self.coords_in, self.coords_object, self.coords_out = self._make_smooth_coords(self.coords_cont, smooth)
 
         ####################################################################################################################
+
+class MasterPath(SinglePath):
+
+    def __init__(self,sp):
+        SinglePath.__init__(self,  sp.id, sp.paths, sp.coords, sp.gtypes)
+        self.width = None
+
+    def add_width(self,width):
+        assert len(width) == self.size
+        self.width_cont = width
+
+    def get_lenght_cont(self,smooth=None):
+        return np.hstack((np.array([0]),np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth)))))
+
+
+    @arrayify1
+    def get_speed(self,smooth=None):
+        diff = traces.diff(self.get_coords_cont(smooth=smooth))
+        for nr in range(self.size):
+            if nr == 0:
+                yield diff[nr]
+            elif nr == self.size - 1:
+                yield diff[nr-1]
+            else:
+                yield (diff[nr-1] + diff[nr])/2.
+
+
+
+
+
+

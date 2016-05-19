@@ -38,6 +38,13 @@ class InletClusterGenericType(object):
     def __init__(self, inp, out):
         self.clusters = [inp, out]
 
+    @property
+    def input(self):
+        return self.clusters[0]
+    @property
+    def output(self):
+        return self.clusters[-1]
+
     def cluster2str(self, cl):
         if cl is None:
             return 'N'
