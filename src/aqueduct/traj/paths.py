@@ -471,30 +471,34 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
         ####################################################################################################################
 
+
+    def get_lenght_cont(self, smooth=None):
+        return np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth)))))
+
+
+    @arrayify1
+    def get_speed_cont(self, smooth=None):
+        diff = traces.diff(self.get_coords_cont(smooth=smooth))
+        # diff = traces.diff(self.get_lenght_cont(smooth=smooth))
+        for nr in range(self.size):
+            if nr == 0:
+                yield diff[nr]
+            elif nr == self.size - 1:
+                yield diff[nr - 1]
+            else:
+                yield (diff[nr - 1] + diff[nr]) / 2.
+
+
 class MasterPath(SinglePath):
 
     def __init__(self,sp):
         SinglePath.__init__(self,  sp.id, sp.paths, sp.coords, sp.gtypes)
-        self.width = None
+        self.width_cont = None
 
     def add_width(self,width):
         assert len(width) == self.size
         self.width_cont = width
 
-    def get_lenght_cont(self,smooth=None):
-        return np.hstack((np.array([0]),np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth)))))
-
-
-    @arrayify1
-    def get_speed(self,smooth=None):
-        diff = traces.diff(self.get_coords_cont(smooth=smooth))
-        for nr in range(self.size):
-            if nr == 0:
-                yield diff[nr]
-            elif nr == self.size - 1:
-                yield diff[nr-1]
-            else:
-                yield (diff[nr-1] + diff[nr])/2.
 
 
 

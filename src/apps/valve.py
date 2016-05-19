@@ -42,7 +42,7 @@ from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
 from aqueduct.utils.helpers import range2int, Auto, is_iterable, what2what, lind
 from aqueduct.traj.inlets import Inlets, InletTypeCodes
-
+from aqueduct.geom.master import create_master_spath
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
 
@@ -991,6 +991,17 @@ def stage_IV_run(config, options,
             log.message('Number of outliers: %d' % noo)
         with log.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)
+
+        # now, there is something to do with ctypes!
+        # we can create master paths!
+
+        master_paths = {}
+        ctypes_generic = [ct.generic for ct in ctypes]
+        ctypes_generic_list = sorted(list(set(ctypes_generic)))
+        for nr, ct in enumerate(ctypes_generic_list):
+            sps = lind(spaths, what2what(ctypes_generic, [ct]))
+            master_paths.update({ct:create_master_spath(sps)})
+
 
     else:
         log.message("No inlets found. Clusterization skipped.")
