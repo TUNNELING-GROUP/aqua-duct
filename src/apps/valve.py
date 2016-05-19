@@ -938,6 +938,7 @@ def stage_IV_run(config, options,
                  **kwargs):
     coptions = config.get_cluster_options()
     rcoptions = config.get_recluster_options()
+    soptions = config.get_smooth_options()
 
     # new style clustering
     with log.fbm("Create inlets"):
@@ -995,13 +996,24 @@ def stage_IV_run(config, options,
         # now, there is something to do with ctypes!
         # we can create master paths!
 
+        log.message("Creating master paths for cluster types:")
+
+        smooth = get_smooth_method(soptions)
         master_paths = {}
+        master_paths_smooth = {}
         ctypes_generic = [ct.generic for ct in ctypes]
         ctypes_generic_list = sorted(list(set(ctypes_generic)))
+
+        #pbar = log.pbar(len(ctypes_generic_list)*2, kind=pbar_name)
+
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            master_paths.update({ct:create_master_spath(sps)})
-
+            print len(sps)
+            master_paths.update({ct:create_master_spath(sps,resid=nr,ctype=ct)})
+            #pbar.update(nr*2)
+            master_paths_smooth.update({ct: create_master_spath(sps,resid=nr,ctype=ct,smooth=smooth)})
+            #pbar.update(nr*2+1)
+        #pbar.finish()
 
     else:
         log.message("No inlets found. Clusterization skipped.")
