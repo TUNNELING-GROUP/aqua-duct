@@ -148,6 +148,11 @@ Option **detect_outliers**
 
 If set detection of outliers is executed. See :ref:`clusterization_of_inlets` for more details.
 
+Option **singletons_outliers**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Maximal size of cluster to be considered as outliers. If set to number > 0 clusters of that size are removed and their objects are moved to outliers. See :ref:`clusterization_of_inlets` for more details.
+
 
 Stage **analysis**
 ------------------

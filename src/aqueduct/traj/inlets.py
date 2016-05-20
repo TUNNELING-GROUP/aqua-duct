@@ -41,6 +41,7 @@ class InletClusterGenericType(object):
     @property
     def input(self):
         return self.clusters[0]
+
     @property
     def output(self):
         return self.clusters[-1]
@@ -65,7 +66,7 @@ class InletClusterGenericType(object):
     def __cmp__(self, other):
         if other is None:
             return 1
-        if not isinstance(other,self.__class__):
+        if not isinstance(other, self.__class__):
             return 1
 
         result = 0
@@ -75,13 +76,12 @@ class InletClusterGenericType(object):
             val = 0
             for nr, e in enumerate(tuple(what)[::-1]):
                 if e is None:
-                    val += (base ** base) * (nr+1)
+                    val += (base ** base) * (nr + 1)
                 else:
                     val += (base ** nr) * e
             return val
 
         return make_val(self) - make_val(other)
-
 
     def __hash__(self):
         return hash(str(self))
@@ -169,6 +169,28 @@ class Inlets(object):
             # number of cluster
             self.number_of_clustered_inlets = len(self.clusters)
 
+    def small_clusters_to_outliers(self, maxsize):
+        for c in self.clusters_list:
+            if c == 0:
+                continue
+            if self.clusters.count(c) <= maxsize:
+                for nr, cc in enumerate(self.clusters):
+                    if cc == c:
+                        self.clusters[nr] = 0
+        # renumber clusters
+        self.renumber_clusters()
+
+    def renumber_clusters(self):
+        if 0 in self.clusters_list:
+            new_numbers = range(len(self.clusters_list))
+        else:
+            new_numbers = range(1, len(self.clusters_list) + 1)
+        old_numbers = self.clusters_list
+        if old_numbers == new_numbers:
+            return
+        for nr, c in self.clusters:
+            self.clusters[nr] = new_numbers[old_numbers.index(c)]
+
     @property
     def clusters_list(self):
         return sorted(list(set(self.clusters)))
@@ -177,8 +199,7 @@ class Inlets(object):
     @listify
     def clusters_centers(self):
         for c in self.clusters_list:
-            yield np.mean(self.lim2clusters(c).coords,0)
-
+            yield np.mean(self.lim2clusters(c).coords, 0)
 
     @listify
     def spaths2ctypes(self, spaths):
@@ -224,7 +245,7 @@ class Inlets(object):
         return self.lim_to(self.clusters, clusters)
 
     @listify
-    def limspaths2(self,spaths):
+    def limspaths2(self, spaths):
         if not is_iterable(spaths):
             spaths = [spaths]
         refs = set(self.refs)

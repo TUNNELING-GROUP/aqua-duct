@@ -54,7 +54,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 5, 5
+    return 0, 6, 0
 
 
 def version_nice():
@@ -261,6 +261,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         config.set(section, 'recluster_outliers', 'False')
         config.set(section, 'detect_outliers', 'False')
+        config.set(section, 'singletons_outliers', 'False')
 
         ################
         # smooth
@@ -990,6 +991,14 @@ def stage_IV_run(config, options,
                 inls.recluster_outliers(clustering_function)
             log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             log.message('Number of outliers: %d' % noo)
+
+        if options.singletons_outliers:
+            with log.fbm("Removing clusters of size %d" % int(options.singletons_outliers)):
+                inls.small_clusters_to_outliers(int(options.singletons_outliers))
+            noo = inls.clusters.count(0)
+            log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+            log.message('Number of outliers: %d' % noo)
+
         with log.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)
 
@@ -1546,6 +1555,7 @@ def stage_VI_run(config, options,
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
             plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp)
+            plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp, smooth=smooth)
 
     if options.all_paths_raw:
         with log.fbm("All raw paths"):
