@@ -1004,22 +1004,24 @@ def stage_IV_run(config, options,
         ctypes_generic = [ct.generic for ct in ctypes]
         ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
-        #pbar = log.pbar(len(ctypes_generic_list)*2, kind=pbar_name)
+        pbar = log.pbar(len(ctypes_generic_list)*2, kind=pbar_name)
 
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            print len(sps)
+            #print len(sps),ct
             master_paths.update({ct:create_master_spath(sps,resid=nr,ctype=ct)})
-            #pbar.update(nr*2)
+            pbar.update(nr*2)
             master_paths_smooth.update({ct: create_master_spath(sps,resid=nr,ctype=ct,smooth=smooth)})
-            #pbar.update(nr*2+1)
-        #pbar.finish()
+            pbar.update(nr*2+1)
+        pbar.finish()
 
     else:
         log.message("No inlets found. Clusterization skipped.")
 
     return {'inls': inls,
-            'ctypes': ctypes}
+            'ctypes': ctypes,
+            'master_paths':master_paths,
+            'master_paths_smooth':master_paths_smooth}
 
 
 ################################################################################
@@ -1486,6 +1488,8 @@ def stage_VI_run(config, options,
                  spaths=None,
                  inls=None,
                  ctypes=None,
+                 master_paths=None,
+                 master_paths_smooth=None,
                  **kwargs):
     from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
     from aqueduct.visual.pymol_connector import cmd as pymol_cmd
@@ -1535,11 +1539,13 @@ def stage_VI_run(config, options,
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
+            plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
 
     if options.ctypes_smooth:
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
+            plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp)
 
     if options.all_paths_raw:
         with log.fbm("All raw paths"):
