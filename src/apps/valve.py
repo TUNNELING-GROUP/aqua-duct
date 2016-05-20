@@ -54,7 +54,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 6, 0
+    return 0, 6, 1
 
 
 def version_nice():
