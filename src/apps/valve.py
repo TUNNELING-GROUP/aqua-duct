@@ -1586,13 +1586,13 @@ def stage_VI_run(config, options,
     pymol_cmd.orient('molecule')
 
     if options.save:
-        with log.fbm("Saving session (%s)" % options.save_session):
+        with log.fbm("Saving session (%s)" % options.save):
             import time
             for state in range(len(spaths)):
                 pymol_cmd.set_frame(state + 1)
                 time.sleep(0.1)
             pymol_cmd.set_frame(1)
-            pymol_cmd.save(options.save_session, state=0)
+            pymol_cmd.save(options.save, state=0)
             pymol_cmd.quit()
 
 
@@ -1613,6 +1613,8 @@ if __name__ == "__main__":
     parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
                         help="Limit Aqueduct calculations to given number of threads.")
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
+    parser.add_argument("--max-frame", action="store", dest="max_frame", required=False, help="Limit number of frames.")
+
     args = parser.parse_args()
     ############################################################################
     # special option for dumping template config
@@ -1636,22 +1638,29 @@ if __name__ == "__main__":
     pbar_name = goptions.pbar
 
     if args.threads is None:
-        optimal_threads = cpu_count
+        optimal_threads = cpu_count + 1
     else:
         optimal_threads = int(args.threads)
     log.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
+    if (optimal_threads > 1 and optimal_threads < 3) or (optimal_threads -1 > cpu_count):
+        log.message("Number of threads is not optimal; CPU count reported by system: %d" % cpu_count)
     # because it is used by mp.Pool it should be -1???
     if optimal_threads > 1:
         optimal_threads -= 1
+        log.message("Main process would use 1 thread, concurent calculations would use %d threads." % optimal_threads)
 
     ############################################################################
     # STAGE 0
 
     reader = valve_read_trajectory(goptions.top, goptions.nc)
 
+    if args.max_frame:
+        max_frame = int(args.max_frame)
+    else:
+        max_frame = reader.max_frame
+    log.message("Using %d of %d available frames." % (max_frame,reader.max_frame))
+
     # STAGE I
-    max_frame = reader.max_frame
-    # max_frame = 1000
     result1 = valve_exec_stage(0, config, stage_I_run,
                                reader=reader,
                                max_frame=max_frame)

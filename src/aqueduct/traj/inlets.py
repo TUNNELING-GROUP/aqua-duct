@@ -188,7 +188,7 @@ class Inlets(object):
         old_numbers = self.clusters_list
         if old_numbers == new_numbers:
             return
-        for nr, c in self.clusters:
+        for nr, c in enumerate(self.clusters):
             self.clusters[nr] = new_numbers[old_numbers.index(c)]
 
     @property
