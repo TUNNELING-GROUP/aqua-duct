@@ -18,17 +18,22 @@ Basic help of *Valve* usage can be displayed by following command::
 
 It should display following information::
 
-	Valve, Aqueduct driver
+    usage: valve.py [-h] [--dump-template-config] [-t THREADS] [-c CONFIG_FILE]
+                    [--max-frame MAX_FRAME]
 
-	optional arguments:
-	  -h, --help            show this help message and exit
-	  --dump-template-config
-				Dumps template config file. Suppress all other output
-				or actions. (default: False)
-	  -t THREADS            Limit Aqueduct calculations to given number of
-				threads. (default: None)
-	  -c CONFIG_FILE        Config file filename. (default: None)
+    Valve, Aqueduct driver
 
+    optional arguments:
+      -h, --help            show this help message and exit
+      --dump-template-config
+                            Dumps template config file. Suppress all other output
+                            or actions. (default: False)
+      -t THREADS            Limit Aqueduct calculations to given number of
+                            threads. (default: None)
+      -c CONFIG_FILE        Config file filename. (default: None)
+      --max-frame MAX_FRAME
+                            Limit number of frames. (default: None)
+      --version             Prints versions and exits.. (default: False)
 
 Configuration file template
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -63,7 +68,9 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
     
 .. note::    
     
-    This behavior is likely to be changed in the future.
+    Option ``--max-frame`` can be used for testing or debugging purposes. It allwos to limit number of frames processed by *Valve*.
+    If it set, for example, to ``1000`` only first 1000 frames will be processed making all calculations very fast.
+
 
 How does *Valve* work
 ---------------------

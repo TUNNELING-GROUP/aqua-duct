@@ -1604,16 +1604,20 @@ if __name__ == "__main__":
     # argument parsing
     import argparse
 
-    parser = argparse.ArgumentParser(description="Valve, Aqueduct driver",
+    description_version='''Aqueduct library version %s
+Valve driver version %s'''  % (aqueduct_version_nice(),version_nice())
+    description = '''Valve, Aqueduct driver'''
+
+    parser = argparse.ArgumentParser(description=description,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                         help="Dumps template config file. Suppress all other output or actions.")
-
     parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
                         help="Limit Aqueduct calculations to given number of threads.")
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
     parser.add_argument("--max-frame", action="store", dest="max_frame", required=False, help="Limit number of frames.")
+    parser.add_argument("--version", action="store_true", dest="print_version", required=False, help="Prints versions and exits..")
 
     args = parser.parse_args()
     ############################################################################
@@ -1625,6 +1629,11 @@ if __name__ == "__main__":
         config_dump = StringIO.StringIO()
         config.save_config_stream(config_dump)
         print config_dump.getvalue()
+        exit(0)
+    # special case of version
+    if args.print_version:
+        print description
+        print description_version
         exit(0)
 
     ############################################################################

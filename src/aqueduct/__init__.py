@@ -24,6 +24,7 @@ def version_nice():
     '''
     return '.'.join(map(str,version()))
 
+__version__ = version_nice()
 
 def greetings():
     '''
