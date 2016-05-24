@@ -65,7 +65,50 @@ Create *Scope deninition*
 :ref:`scope_definition` is easy to create. We will use *Convex hull* version so the scope definition could be simply ``backbone``.
 
 
+Prepare config file
+-------------------
 
+*Valve* performs calculations according to the configuration (aka *config*) file.
+
+Lets start from dumping config file template to ``config.txt`` file. Open it in your favorite editor and fill all options.
+If you have troubles look at :doc:`valve_config` (and :doc:`valve_manual`).
+
+Things to remember:
+
+#. Provide correct paths to topology and trajectory data.
+#. Enter correct :ref:`Object <object_definition>` and :ref:`Scope <scope_definition>` definitions.
+#. Provide file name of result in analysis section, for example ``results.txt`` (for future reference).
+#. Make sure visualization is switched on and ``save`` option points to session file name (``.pse``)
+
+Run *Valve*
+-----------
+
+Make sure all necessary data is in place. Open terminal, go to your working directory and type in::
+
+    valve_run --max-frame 1000 -c config.txt
+
+Depending on your machine and current load it may take a while (matter of minutes) to complete all calculations.
+
+Visual inspection
+^^^^^^^^^^^^^^^^^
+
+In the last stage *PyMOL* should pop up and *Valve* should start to feed it with visualization data. This would take a moment and if you set up ``save`` option a *PyMOL* session would be saved. Once it is done *Valve* quits and switches off *PyMOL*. Now, you can restart it and read saved session.
+
+Analysis tables
+^^^^^^^^^^^^^^^
+
+Open ``results.txt`` file and look at summaries and tables. See also :doc:`valve_manual`.
+
+Feedback
+--------
+
+Give us your opinion. Send your questions, inquieres, anything to developer(s): `Tomasz Magdziarz <t.magdziarz@tunnelinggroup.pl>`_.
+This are couple of questions that might be useful to form your opinion.
+
+#. What do you like in *Valve* and *Aqueduct*?
+#. What do you do not like in *Valve* or *Aqueduct*?
+#. What is missing?
+#. Do you find it usefull?
 
 
 

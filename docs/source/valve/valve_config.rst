@@ -95,7 +95,7 @@ Definition of *Object* of interest. See also :ref:`object_definition`.
 
 
 Stage **raw_paths**
-------------------^
+-------------------
 
 This stage also requires definition of the *Scope* and *Object*. If appropriate settings are not given, settings from the previous stage are used.
 
