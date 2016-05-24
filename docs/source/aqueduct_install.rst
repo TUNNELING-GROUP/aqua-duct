@@ -22,6 +22,7 @@ Installation was tested on limited number of POSIX-like systems.
 
 In some specific cases installation is very simple:
 
+#. Download :download:`aqueduct.tar.gz` boundle file..
 #. Unpack aqueduct boundle file.
 #. Go to src directory.
 #. Type::
