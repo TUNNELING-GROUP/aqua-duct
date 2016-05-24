@@ -371,6 +371,8 @@ class ValveConfig(object, ConfigSpecialNames):
 
 class TrajectoryReader(object):
     def __init__(self, top, trj):
+        assert isinstance(top,(str,unicode)), "Topology file name missing, %s given instead" % str(top)
+        assert isinstance(trj,(str,unicode)), "Trajectory file(s) name(s) missing, %s given instead" % str(trj)
         self.top = top
         self.trj = shlex.split(trj)
 

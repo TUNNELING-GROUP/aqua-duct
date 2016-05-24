@@ -15,6 +15,7 @@ Contents:
     Aqueduct installation <aqueduct_install>
     Valve manual <valve/valve_manual>
     Valve configuration <valve/valve_config>
+    Valve tutorial <valve/valve_tutorial>
     Aqueduct API documentation <modules>
 
 
