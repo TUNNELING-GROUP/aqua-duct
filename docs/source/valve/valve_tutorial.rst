@@ -17,11 +17,11 @@ Due to specific setup in our laboratory *Valve* has to be run through simple wra
 
     valve_run
 
-Additionaly, to speed up all calculations it is assumed that *Valve* is run with ``--max-frame 1000`` option::
+Additionally, to speed up all calculations it is assumed that *Valve* is run with ``--max-frame 1000`` option::
 
     valve_run --max-frame 1000
 
-To check is *Valve* is isntalled and works properly try to issue following commands::
+To check is *Valve* is installed and works properly try to issue following commands::
 
     valve_run --help
     valve_run --version
@@ -29,7 +29,7 @@ To check is *Valve* is isntalled and works properly try to issue following comma
 Test data
 ---------
 
-**Mause!**
+**Mouse!**
 
 We will use 10ns Amber MD simulation data of sEH protein (PDBID **1cqz**). Necessary files can be downloaded `here <http://localhost:8001>`_:
 
@@ -46,10 +46,10 @@ To setup *Valve* calculations we need to know active site of the protein. More p
 
 But wait. Is it really the correct structure? How many chains there are? What is the numeration of residues?
 
-Create *Object deninition*
+Create *Object definition*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Lets load another structure. Open file ``first_frame_1cqz.pdb`` downloaded from test data `repository <http://localhost:8001>`_. It is a first frame of the MD simulation and it is en example of how the frame of MD looks like. In order to create :ref:`object_definition` you have to discover folowin things:
+Lets load another structure. Open file ``first_frame_1cqz.pdb`` downloaded from test data `repository <http://localhost:8001>`_. It is a first frame of the MD simulation and it is en example of how the frame of MD looks like. In order to create :ref:`object_definition` you have to discover following things:
 
 #. What is the name of water residue?
 #. What are numbers of residues in the active site?
@@ -59,7 +59,7 @@ Lets load another structure. Open file ``first_frame_1cqz.pdb`` downloaded from 
 
     It is also good idea to open ``.pdb`` file in your favorite text editor and look at residue numbers and names.
 
-Create *Scope deninition*
+Create *Scope definition*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 :ref:`scope_definition` is easy to create. We will use *Convex hull* version so the scope definition could be simply ``backbone``.
@@ -102,13 +102,11 @@ Open ``results.txt`` file and look at summaries and tables. See also :doc:`valve
 Feedback
 --------
 
-Give us your opinion. Send your questions, inquieres, anything to developer(s): `Tomasz Magdziarz <t.magdziarz@tunnelinggroup.pl>`_.
+Give us your opinion. Send your questions, inquires, anything to developer(s): `Tomasz Magdziarz <t.magdziarz@tunnelinggroup.pl>`_.
 This are couple of questions that might be useful to form your opinion.
 
 #. What do you like in *Valve* and *Aqueduct*?
 #. What do you do not like in *Valve* or *Aqueduct*?
 #. What is missing?
-#. Do you find it usefull?
-
-
+#. Do you find it useful?
 

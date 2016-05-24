@@ -65,10 +65,10 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
     Specifying number of threads greater then available CPU cores is generally not optimal.
 
     However, in order to maximize usage of available CPU power it is recommended to set it as number of cores + 1. The reason is that *Valve* uses one thread for the main process and the excess over one for processes for parallel calculations. When parallel calculations are executed the main threads waits for results.
-    
-.. note::    
-    
-    Option ``--max-frame`` can be used for testing or debugging purposes. It allwos to limit number of frames processed by *Valve*.
+
+.. note::
+
+    Option ``--max-frame`` can be used for testing or debugging purposes. It allows to limit number of frames processed by *Valve*.
     If it set, for example, to ``1000`` only first 1000 frames will be processed making all calculations very fast.
 
 
@@ -218,7 +218,7 @@ Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4
 Separate path ID
 """"""""""""""""
 
-Separate Paths IDs are composed of two numbers separated by colon. First number is the residue number. Second number is consecutive number of the separate path made by the resiude. Numeration starts with 0.
+Separate Paths IDs are composed of two numbers separated by colon. First number is the residue number. Second number is consecutive number of the separate path made by the residue. Numeration starts with 0.
 
 Cluster Type of separate path
 """""""""""""""""""""""""""""
