@@ -27,5 +27,7 @@ cp ../src/ubuntu_mdanalysis_install_helper.sh source/
 
 $MAKE SPHINXBUILD=$SPHINXBUILD html
 
+find build/html/ -iname '*.html' -exec sed -i 's/localhost/'$( hostname )'/g' {} +
+
 export PYTHONPATH=$PYTHONPATH_CACHE
 
