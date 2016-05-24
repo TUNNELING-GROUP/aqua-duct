@@ -3,7 +3,7 @@
 
 This is a tentative *Valve* manual. Created for the sake of Aqueduct training we have today. Eventually, it will be rewritten to the official version.
 
-This tutorial assumes :mod:`aqueduct` and *Valve* is already installed - see :doc:`../aqueduct_install`. It is also assumed that user is acquientained with :doc:`valve_manual` and *Valve* :doc:`valve_config`.
+This tutorial assumes :mod:`aqueduct` and *Valve* is already installed - see :doc:`../aqueduct_install`. It is also assumed that user is acquainted with :doc:`valve_manual` and *Valve* :doc:`valve_config`.
 
 
 *Valve* invocation
