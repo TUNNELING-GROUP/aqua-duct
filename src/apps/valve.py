@@ -947,6 +947,12 @@ def stage_IV_run(config, options,
     with log.fbm("Create inlets"):
         inls = Inlets(spaths)
 
+    def noo():
+        # returns number of outliers
+        if 0 in inls.clusters_list:
+            return inls.clusters.count(0)
+        return 0
+
     if inls.size > 0:
         with log.fbm("Performing clusterization"):
             clustering_function = get_clustering_method(coptions)
@@ -954,10 +960,7 @@ def stage_IV_run(config, options,
             inls.perform_clustering(clustering_function)
         log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
         if options.detect_outliers:
-            noo = 0
-            if 0 in inls.clusters_list:
-                noo = inls.clusters.count(0)
-            log.message('Number of outliers so far: %d' % noo)
+            log.message('Number of outliers so far: %d' % noo())
             with log.fbm("Detecting outliers"):
                 if options.detect_outliers is not Auto:
                     threshold = float(options.detect_outliers)
@@ -983,23 +986,21 @@ def stage_IV_run(config, options,
                             if np.min(d) > threshold:
                                 clusters[ids] = 0
                 inls.add_cluster_annotations(clusters)
-            noo = inls.clusters.count(0)
         log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
-        log.message('Number of outliers: %d' % noo)
+        log.message('Number of outliers: %d' % noo())
         if options.recluster_outliers:
             with log.fbm("Performing reclusterization of outliers"):
                 clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
                 inls.recluster_outliers(clustering_function)
             log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
-            log.message('Number of outliers: %d' % noo)
+            log.message('Number of outliers: %d' % noo())
 
         if options.singletons_outliers:
             with log.fbm("Removing clusters of size %d" % int(options.singletons_outliers)):
                 inls.small_clusters_to_outliers(int(options.singletons_outliers))
-            noo = inls.clusters.count(0)
             log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
-            log.message('Number of outliers: %d' % noo)
+            log.message('Number of outliers: %d' % noo())
 
         with log.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)
