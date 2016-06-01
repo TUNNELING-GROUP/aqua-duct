@@ -48,6 +48,24 @@ def combine(seqin):
 
 ########################################################################
 
+def is_number(s):
+    #http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/
+    if isinstance(s,bool):
+        return False
+    try:
+        float(s)
+        return True
+    except:
+        pass
+    try:
+        import unicodedata
+        unicodedata.numeric(s)
+        return True
+    except:
+        pass
+    return False
+
+
 def lind(l, ind):
     """
     Indexes lists using lists of integers as identificators.

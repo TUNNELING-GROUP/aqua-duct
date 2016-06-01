@@ -10,7 +10,7 @@ import numpy as np
 from aqueduct.geom import traces
 from aqueduct.traj.inlets import Inlet, InletTypeCodes
 from collections import namedtuple
-
+from aqueduct.utils.helpers import is_number
 
 ########################################################################################################################
 # paths/list manipulations
@@ -471,15 +471,29 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
         ####################################################################################################################
 
+    def get_length_cont(self, smooth=None, normalize=False):
+        length = np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth)))))
+        if normalize:
+            if is_number(normalize):
+                norm_factor = float(normalize)
+            else:
+                norm_factor = max(length)
+            length = length / norm_factor
+        return length
 
-    def get_lenght_cont(self, smooth=None):
-        return np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth)))))
+    def get_length_rev_cont(self, *args, **kwargs):
+        length = self.get_length_cont(*args, **kwargs)
+        return length[-1]-length
 
+    @arrayify1
+    def get_length_both_cont(self, *args, **kwargs):
+        length = self.get_length_cont(*args, **kwargs)
+        return (min(n,r) for n,r in zip(length,length[-1]-length))
 
     @arrayify1
     def get_speed_cont(self, smooth=None):
         diff = traces.diff(self.get_coords_cont(smooth=smooth))
-        # diff = traces.diff(self.get_lenght_cont(smooth=smooth))
+        # diff = traces.diff(self.get_length_cont(smooth=smooth))
         for nr in range(self.size):
             if nr == 0:
                 yield diff[nr]
