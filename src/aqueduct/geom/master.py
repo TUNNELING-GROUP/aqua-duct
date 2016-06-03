@@ -169,9 +169,13 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5):
         coords.append(coords_)
         types.append([(part2type_dict[part])] * len(coords[-1]))
         widths_ = []
-        for cz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part]):
-            if len(cz) > 1:
-                widths_.append(np.median(pdist(list(concatenate(*cz)))))
+        for coords_zz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part]):
+            if len(coords_zz) > 1:
+                lens_zz = [[float(l)/len(coord_z)] * len(coord_z) for l,coord_z in zip(lens,coords_zz)]
+                coords_zz = list(concatenate(*coords_zz))
+                lens_zz = list(concatenate(*lens_zz))
+                widths_.append(np.max(pdist(coords_zz,'minkowski',p=2,w=lens_zz)))
+                #widths_.append(np.median(pdist(list(concatenate(*cz)))))
             else:
                 widths_.append(0.)
         #widths.append([np.median(pdist(list(concatenate(*cz)))) for cz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part])])
