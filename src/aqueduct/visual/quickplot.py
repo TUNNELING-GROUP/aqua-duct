@@ -25,18 +25,22 @@ class ColorMapDistMap(object):
 
     grey = (0.5, 0.5, 0.5, 1)
 
-    def __init__(self, name='hsv', size=None):
+    def __init__(self, name='jet', size=None):
         # size is number of nodes to be maped to distinguistive colors
         self.size = size
-        # lut should be appropriately bigger - 10 times
-        lut = size * self.dist + 1
+        # size of color map is the next power of 2
+        self.cm_size = int(2**np.ceil(np.log(size)/np.log(2)))
         # get size
-        self.cmap = get_cmap(name, lut)
+        self.cmap = get_cmap(name, self.cm_size)
 
     def __call__(self, node):
         if node > 0 and node <= self.size:
+            cn = np.floor(np.log(node)/np.log(2))
+            div = 1./(2**(cn+1))
+            val = (div + (node - 2**cn)*div*2 ) * self.cm_size
+            val = np.ceil(val)
             # get color
-            return self.cmap(int(node) * self.dist)[:3]
+            return self.cmap(int(val))[:3]
         # return grey otherwise
         return self.grey[:3]
 

@@ -70,18 +70,23 @@ class InletClusterGenericType(object):
             return 1
 
         result = 0
-        base = max(max(self), max(other), len(self), len(other)) + 2
+        base = max(max(self), max(other), len(self), len(other)) + 2.
 
         def make_val(what):
             val = 0
             for nr, e in enumerate(tuple(what)[::-1]):
                 if e is None:
-                    val += (base ** base) * (nr + 1)
-                else:
-                    val += (base ** nr) * e
+                    e = base
+                for dummy_iter in range(nr+1):
+                    e /= base
+                val += e
             return val
 
-        return make_val(self) - make_val(other)
+        if make_val(self) - make_val(other) > 0:
+            return 1
+        elif make_val(self) - make_val(other) < 0:
+            return -1
+        return 0
 
     def __hash__(self):
         return hash(str(self))
