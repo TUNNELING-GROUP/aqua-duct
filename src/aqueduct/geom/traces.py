@@ -301,3 +301,22 @@ def length_step_std(trace):
     d = diff(trace)
     return np.sum(d), np.mean(d), np.std(d)
 
+def derrivative(values):
+    diff = np.diff(values)
+    size = len(diff)
+    correction = 1./(size+1) # this correct values so after integration they are closer to expected value
+    # This was calculated by following experiment:
+    # w = []
+    # for q in range(10000):
+    #     r = np.cumsum(np.random.rand(10000))
+    #     w.append(r[-1]/sum(list(traces.derrivative(r))))
+    # np.mean(w) # w is of narmal distribution
+
+    for nr in range(size + 1):
+        if nr == 0:
+            yield diff[0] - correction# begin
+        elif nr == size:
+            yield diff[-1] - correction # end
+        else:
+            yield (diff[nr - 1] + diff[nr]) / 2.  - correction
+

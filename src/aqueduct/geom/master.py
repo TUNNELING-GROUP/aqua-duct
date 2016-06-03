@@ -38,6 +38,29 @@ def compress_zip(*args):
         yield tuple(this_yield)
         position = next_position
 
+def zip_zip(*args,**kwargs):
+    ns = map(float,map(len,args))
+    if 'N' in kwargs.keys():
+        N = kwargs['N']
+    else:
+        N = int(min(ns))
+    position = [0.]*len(args)
+    for n in range(N):
+        this_yield = []
+        next_position = [float(len(a))/N + p for a,p in zip(args,position)]
+        for a,p,np in zip(args,position,next_position):
+            ip = int(p)
+            inp = int(np)
+            if n + 1 == N:
+                this_yield.append(a[ip:])
+            else:
+                if ip == inp:
+                    inp += 1
+                this_yield.append(a[ip:inp])
+        yield tuple(this_yield)
+        position = next_position
+
+
 
 def decide_on_type(cont, s2o_treshold=0.5):
     # possible types are:
@@ -82,13 +105,13 @@ def simple_types_distribution(types):
 
 def get_weights_(spaths,smooth=None):
     # max len
-    max_len = [sp.get_length_cont(smooth=smooth)[-1] for sp in spaths]
+    max_len = [sp.get_distance_cont(smooth=smooth)[-1] for sp in spaths]
     arg_max_len = np.argmax(max_len)
     max_len = max(max_len)
     # get weights as both lengths
-    weights = np.array([sz for sz in strech_zip(*[sp.get_length_both_cont(smooth=smooth,normalize=max_len) for sp in spaths])])
+    weights = np.array([sz for sz in strech_zip(*[sp.get_distance_both_cont(smooth=smooth, normalize=max_len) for sp in spaths])])
     # add 0.5 - len_both of the lognest path
-    length_both_of_max_len = 0.5 - spaths[arg_max_len].get_length_both_cont(smooth=smooth,normalize=max_len)
+    length_both_of_max_len = 0.5 - spaths[arg_max_len].get_distance_both_cont(smooth=smooth, normalize=max_len)
 
     weights  = np.array([lboml+w for w,lboml in strech_zip(weights,length_both_of_max_len)])
     return weights**10
@@ -106,93 +129,57 @@ def concatenate(*args):
         for e in a:
             yield e
 
-def create_master_spath(spaths,smooth=None,resid=0,ctype=None):
+def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5):
 
-    N = len(spaths)
-
-    # coords:
-    coords = []
-    types = []
-    for part in (0,1,2):
-        #coords += [np.mean(list(concatenate(*cz)), 0) for cz in compress_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths])]
-        lens = np.array([float(len(sp.get_coords()[part])) for sp in spaths])
+    part2type_dict = {0: GenericPathTypeCodes.scope_name,
+                      1: GenericPathTypeCodes.object_name,
+                      2: GenericPathTypeCodes.scope_name}
+    parts = (0, 1, 2)
+    # first check what is the size of paths in all parts
+    sizes = []
+    for part in parts:
+        lens = np.array([float(len(sp.types[part])) for sp in spaths])
         if np.max(lens) > 0:
             lens /= np.max(lens)
-            lens = lens**5
-        coords_ = np.array([np.average(sz, 0,lens) for sz in strech_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths])])
-        #coords_ = traces.LinearizeRecursiveVector(0.05236)(coords_).tolist()
-        coords.extend(coords_)
-        types.extend(({0: 's', 1: 'c', 2: 's'}[part])*len(coords_)) # FIXME: magic constants!
-
-    coords = np.array(coords)
-
-
-
-
-
-
-    #weights = get_weights_(spaths,smooth=smooth)
-
-    #coords = np.array([np.median(sz,0) for sz in strech_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths])])
-    #coords = np.array([np.average(sz,0,weights=w) for sz,w in zip(strech_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths]),weights)])
-    #max_len = [sp.get_length_cont(smooth=smooth)[-1] for sp in spaths]
-    #lengths = np.array([np.max(sz) for sz in strech_zip(*[sp.get_length_both_cont(smooth=smooth,normalize=max_len) for sp in spaths])])
-
-
-
-    #coords = np.array([get_mean_coord_(sz,l*2) for sz,l in zip(strech_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths]),lengths)])
-
-
-    # firs let's create types
-    '''
-    # types distribution
-    td = [simple_types_distribution(sp.gtypes_cont) for sp in spaths]
-    td = np.median(td,0)
-    td.shape = (1,3)
-    # get types as they are
-
+            lens = lens ** bias_long
+        if sum(lens) == 0:
+            sizes.append(0)
+        else:
+            sizes.append(int(np.average([len(sp.types[part]) for sp in spaths],0,lens)))
+    #print ctype, sizes
+    # now let's create coords, types and widths
+    coords = []
     types = []
-    for part in (0,1,2):
-        #types += [Counter(concatenate(*cz)) for cz in compress_zip(*[sp.gtypes_cont[part] for sp in spaths])]
-        types += [Counter(sz) for sz in strech_zip(*[sp.gtypes_cont[part] for sp in spaths])]
+    widths = []
+    for part in parts:
+        #coords.append([np.mean(list(concatenate(*cz)), 0) for cz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part])])
 
-    def evaluate_types_counter(list_types_counter,s2o_treshold=0.5):
-        resulted_types = map(lambda t: decide_on_type(t,s2o_treshold=s2o_treshold),list_types_counter)
-        return np.array(simple_types_distribution(resulted_types))
-
-    types_evaluation = np.array([evaluate_types_counter(types,s2o_treshold=s2o_t) for s2o_t in np.linspace(0,1,N+1)])
-
-    s2o_treshold = np.linspace(0,1,N+1)[np.argmin(cdist(types_evaluation,td))]
-    '''
-
-    '''
-    types = []
-    for part in (0,1,2):
-        types += [decide_on_type(Counter(concatenate(*cz)),s2o_treshold=s2o_treshold) for cz in compress_zip(*[sp.gtypes_cont for sp in spaths])]
-    '''
-
-    '''
-    types = []
-    for part in (0,1,2):
-        types += [{0:'s',1:'c',2:'s'}[part] for sz in strech_zip(*[sp.gtypes[part] for sp in spaths])]
-    '''
-
-
-    #coords = np.array([np.mean(list(concatenate(*cz)), 0) for cz in compress_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths])])
-
-
-
-    if N == 1:
-        width = np.zeros(len(coords))
-    else:
-        width = []
-        for part in (0,1,2):
-            #width += [np.median(pdist(list(concatenate(*cz)))) for cz in compress_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths])]
-            width += [np.median(pdist(sz)) for sz in strech_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths])]
-        width = np.array(width)
-
-
-    #print coords
+        lens = np.array([float(len(sp.types[part])) for sp in spaths])
+        if np.max(lens) > 0:
+            lens /= np.max(lens)
+            lens = lens ** bias_long
+        coords_ = []
+        if sum(lens) != 0:
+            for coords_zz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths], N=sizes[part]):
+                lens_zz = [[float(l)/len(coord_z)] * len(coord_z) for l,coord_z in zip(lens,coords_zz)]
+                coords_zz = list(concatenate(*coords_zz))
+                lens_zz = list(concatenate(*lens_zz))
+                #coords_.append(np.mean(coords_zz, 0))
+                coords_.append(np.average(coords_zz, 0, lens_zz))
+        coords.append(coords_)
+        types.append([(part2type_dict[part])] * len(coords[-1]))
+        widths_ = []
+        for cz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part]):
+            if len(cz) > 1:
+                widths_.append(np.median(pdist(list(concatenate(*cz)))))
+            else:
+                widths_.append(0.)
+        #widths.append([np.median(pdist(list(concatenate(*cz)))) for cz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part])])
+        widths.append(widths_)
+    # concatenate
+    coords = list(concatenate(*coords))
+    types = list(concatenate(*types))
+    widths = list(concatenate(*widths))
 
     frames = range(len(coords))
 
@@ -215,7 +202,7 @@ def create_master_spath(spaths,smooth=None,resid=0,ctype=None):
     #return gp
     sp = list(yield_single_paths([gp]))[0]
     mp = MasterPath(sp)
-    mp.add_width(width)
+    mp.add_width(widths)
     return mp
 
 

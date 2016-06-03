@@ -1659,7 +1659,8 @@ Valve driver version %s'''  % (aqueduct_version_nice(),version_nice())
     # because it is used by mp.Pool it should be -1???
     if optimal_threads > 1:
         optimal_threads -= 1
-        log.message("Main process would use 1 thread, concurent calculations would use %d threads." % optimal_threads)
+        log.message("Main process would use 1 thread.")
+        log.message("Concurent calculations would use %d threads." % optimal_threads)
 
     ############################################################################
     # STAGE 0

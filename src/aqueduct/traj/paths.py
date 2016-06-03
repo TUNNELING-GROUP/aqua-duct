@@ -471,7 +471,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
         ####################################################################################################################
 
-    def get_length_cont(self, smooth=None, normalize=False):
+    def get_distance_cont(self, smooth=None, normalize=False):
         length = np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth)))))
         if normalize:
             if is_number(normalize):
@@ -481,26 +481,25 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
             length = length / norm_factor
         return length
 
-    def get_length_rev_cont(self, *args, **kwargs):
-        length = self.get_length_cont(*args, **kwargs)
+    def get_distance_rev_cont(self, *args, **kwargs):
+        length = self.get_distance_cont(*args, **kwargs)
         return length[-1]-length
 
     @arrayify1
-    def get_length_both_cont(self, *args, **kwargs):
-        length = self.get_length_cont(*args, **kwargs)
+    def get_distance_both_cont(self, *args, **kwargs):
+        length = self.get_distance_cont(*args, **kwargs)
         return (min(n,r) for n,r in zip(length,length[-1]-length))
 
     @arrayify1
-    def get_speed_cont(self, smooth=None):
-        diff = traces.diff(self.get_coords_cont(smooth=smooth))
-        # diff = traces.diff(self.get_length_cont(smooth=smooth))
-        for nr in range(self.size):
-            if nr == 0:
-                yield diff[nr]
-            elif nr == self.size - 1:
-                yield diff[nr - 1]
-            else:
-                yield (diff[nr - 1] + diff[nr]) / 2.
+    def get_velocity_cont(self, smooth=None,normalize=False):
+        distance = self.get_distance_cont(smooth=smooth,normalize=normalize)
+        return traces.derrivative(distance)
+
+
+    @arrayify1
+    def get_acceleration_cont(self, smooth=None, normalize=False):
+        velocity = self.get_velocity_cont(smooth=smooth, normalize=normalize)
+        return traces.derrivative(velocity)
 
 
 class MasterPath(SinglePath):
