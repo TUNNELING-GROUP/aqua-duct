@@ -21,28 +21,35 @@ def get_cmap(name, size=None):
 
 
 class ColorMapDistMap(object):
-    dist = 1
+
+    default_cm_size = 256
 
     grey = (0.5, 0.5, 0.5, 1)
 
     def __init__(self, name='jet', size=None):
         # size is number of nodes to be maped to distinguistive colors
         self.size = size
-        # size of color map is the next power of 2
-        self.cm_size = int(2**np.ceil(np.log(size)/np.log(2)))
+        self.cm_size = self.default_cm_size
+        while (self.cm_size < self.size):
+            self.cm_size *= 1.1
+            self.cm_size = int(np.ceil(self.cm_size))
         # get size
         self.cmap = get_cmap(name, self.cm_size)
 
     def __call__(self, node):
         if node > 0 and node <= self.size:
-            cn = np.floor(np.log(node)/np.log(2))
-            div = 1./(2**(cn+1))
-            val = (div + (node - 2**cn)*div*2 ) * self.cm_size
-            val = np.ceil(val)
-            # get color
-            return self.cmap(int(val))[:3]
+            return self.cmap(int(np.round(self.cm_size*f_like(node))))[:3]
         # return grey otherwise
         return self.grey[:3]
+
+def f_like(n):
+    if n == 1:
+        return 0.5
+    if n > 1:
+        order = np.floor(np.log(n) / np.log(2))
+        parts = 2 ** order
+        current = n - parts
+        return 0.5/parts + 1./parts * current
 
 
 def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=None, smooth_diff=None, types='etypes'):
