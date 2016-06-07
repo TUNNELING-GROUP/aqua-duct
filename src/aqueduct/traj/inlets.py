@@ -63,6 +63,18 @@ class InletClusterGenericType(object):
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, str(self))
 
+    def make_val(self,base):
+        val = 0.
+        for nr, e in enumerate(tuple(self)[::-1]):
+            if e is None:
+                e = float(base)**(nr+1)
+            else:
+                e += 1
+            for dummy_iter in range(nr + 1):
+                e /= float(base)
+            val += e
+        return val
+
     def __cmp__(self, other):
         if other is None:
             return 1
@@ -72,19 +84,9 @@ class InletClusterGenericType(object):
         result = 0
         base = max(max(self), max(other), len(self), len(other)) + 2.
 
-        def make_val(what):
-            val = 0
-            for nr, e in enumerate(tuple(what)[::-1]):
-                if e is None:
-                    e = base
-                for dummy_iter in range(nr+1):
-                    e /= base
-                val += e
-            return val
-
-        if make_val(self) - make_val(other) > 0:
+        if self.make_val(base) - other.make_val(base) > 0:
             return 1
-        elif make_val(self) - make_val(other) < 0:
+        elif self.make_val(base) - other.make_val(base) < 0:
             return -1
         return 0
 

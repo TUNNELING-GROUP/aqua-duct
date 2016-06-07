@@ -159,27 +159,30 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5):
             lens /= np.max(lens)
             lens = lens ** bias_long
         coords_ = []
+        widths_ = []
         if sum(lens) != 0:
             for coords_zz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths], N=sizes[part]):
-                lens_zz = [[float(l)/len(coord_z)] * len(coord_z) for l,coord_z in zip(lens,coords_zz)]
-                coords_zz = list(concatenate(*coords_zz))
+                # make lens_zz which are lens corrected to the lenght of coord_z
+                lens_zz = []
+                for l,coord_z in zip(lens,coords_zz):
+                    if len(coord_z) > 0:
+                        lens_zz.append([float(l)/len(coord_z)] * len(coord_z))
+                    else:
+                        lens_zz.append([float(l)] * len(coord_z))
+                #lens_zz = [[float(l)/len(coord_z)] * len(coord_z) for l,coord_z in zip(lens,coords_zz)]
+                coords_zz_cat = list(concatenate(*coords_zz))
                 lens_zz = list(concatenate(*lens_zz))
-                #coords_.append(np.mean(coords_zz, 0))
-                coords_.append(np.average(coords_zz, 0, lens_zz))
+                coords_.append(np.average(coords_zz_cat, 0, lens_zz))
+                if len(coords_zz) > 1:
+                    widths_.append(np.max(pdist(coords_zz_cat, 'minkowski', p=2, w=lens_zz)))
+                else:
+                    widths_.append(0.)
+
         coords.append(coords_)
-        types.append([(part2type_dict[part])] * len(coords[-1]))
-        widths_ = []
-        for coords_zz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part]):
-            if len(coords_zz) > 1:
-                lens_zz = [[float(l)/len(coord_z)] * len(coord_z) for l,coord_z in zip(lens,coords_zz)]
-                coords_zz = list(concatenate(*coords_zz))
-                lens_zz = list(concatenate(*lens_zz))
-                widths_.append(np.max(pdist(coords_zz,'minkowski',p=2,w=lens_zz)))
-                #widths_.append(np.median(pdist(list(concatenate(*cz)))))
-            else:
-                widths_.append(0.)
-        #widths.append([np.median(pdist(list(concatenate(*cz)))) for cz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part])])
         widths.append(widths_)
+
+        types.append([(part2type_dict[part])] * len(coords[-1]))
+
     # concatenate
     coords = list(concatenate(*coords))
     types = list(concatenate(*types))

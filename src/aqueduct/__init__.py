@@ -12,7 +12,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     '''
-    return 0,2,8
+    return 0,2,9
+    # master paths etc.
 
 
 def version_nice():
