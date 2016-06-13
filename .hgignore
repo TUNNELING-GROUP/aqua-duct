@@ -19,4 +19,7 @@ syntax: glob
 docs/build
 valve_tests
 real_traj
+src/build
+src/aqueduct.egg-info
+src/dist
 
