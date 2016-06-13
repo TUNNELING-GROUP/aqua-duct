@@ -26,7 +26,7 @@ class ColorMapDistMap(object):
 
     grey = (0.5, 0.5, 0.5, 1)
 
-    def __init__(self, name='jet', size=None):
+    def __init__(self, name='hsv', size=None):
         # size is number of nodes to be maped to distinguistive colors
         self.size = size
         self.cm_size = self.default_cm_size
@@ -44,12 +44,14 @@ class ColorMapDistMap(object):
 
 def f_like(n):
     if n == 1:
+        return 0.0
+    if n == 2:
         return 0.5
-    if n > 1:
-        order = np.floor(np.log(n) / np.log(2))
-        parts = 2 ** order
-        current = n - parts
-        return 0.5/parts + 1./parts * current
+    n -= 1
+    order = np.floor(np.log(n) / np.log(2))
+    parts = 2 ** order
+    current = n - parts
+    return 0.5/parts + 1./parts * current
 
 
 def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=None, smooth_diff=None, types='etypes'):

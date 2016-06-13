@@ -129,7 +129,7 @@ def concatenate(*args):
         for e in a:
             yield e
 
-def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5):
+def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, heartbeat=None):
 
     part2type_dict = {0: GenericPathTypeCodes.scope_name,
                       1: GenericPathTypeCodes.object_name,
@@ -177,6 +177,8 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5):
                     widths_.append(np.max(pdist(coords_zz_cat, 'minkowski', p=2, w=lens_zz)))
                 else:
                     widths_.append(0.)
+        if heartbeat is not None:
+            heartbeat()
 
         coords.append(coords_)
         widths.append(widths_)

@@ -1,6 +1,7 @@
 from collections import namedtuple
 import numpy as np
-from aqueduct.utils.helpers import is_iterable, listify
+from aqueduct.utils.helpers import is_iterable, listify, lind
+from scipy.spatial.distance import cdist, pdist, squareform
 
 
 class ProtoInletTypeCodes:
@@ -160,6 +161,8 @@ class Inlets(object):
         # 0 means outliers
         self.add_cluster_annotations(method(np.array(self.coords)))
         self.number_of_clustered_inlets = len(self.clusters)
+        # renumber clusters
+        self.renumber_clusters()
 
     def recluster_outliers(self, method):
         if 0 in self.clusters_list:
@@ -175,6 +178,8 @@ class Inlets(object):
                     self.clusters[nr] = rc
             # number of cluster
             self.number_of_clustered_inlets = len(self.clusters)
+            # renumber clusters
+            self.renumber_clusters()
 
     def small_clusters_to_outliers(self, maxsize):
         for c in self.clusters_list:
@@ -197,6 +202,22 @@ class Inlets(object):
             return
         for nr, c in enumerate(self.clusters):
             self.clusters[nr] = new_numbers[old_numbers.index(c)]
+        self.sort_clusters()
+
+    def sort_clusters(self):
+        renum_numbers = self.clusters_list
+        sizes = self.clusters_size
+        if 0 in self.clusters_list:
+            sizes.pop(renum_numbers.index(0))
+            renum_numbers.pop(renum_numbers.index(0))
+            new_numbers = [0] + lind(renum_numbers,np.argsort(sizes).tolist()[::-1])
+        else:
+            new_numbers = lind(renum_numbers,np.argsort(sizes).tolist()[::-1])
+        old_numbers = self.clusters_list
+        if old_numbers == new_numbers:
+            return
+        for nr, c in enumerate(self.clusters):
+            self.clusters[nr] = new_numbers[old_numbers.index(c)]
 
     @property
     def clusters_list(self):
@@ -207,6 +228,22 @@ class Inlets(object):
     def clusters_centers(self):
         for c in self.clusters_list:
             yield np.mean(self.lim2clusters(c).coords, 0)
+
+    @property
+    def clusters_size(self):
+        return map(self.clusters.count,self.clusters_list)
+
+    @property
+    @listify
+    def clusters_std(self):
+        for c,s in zip(self.clusters_list,self.clusters_size):
+            if s == 1:
+                yield 0.
+            elif s == 2:
+                yield pdist(self.lim2clusters(c).coords, 'euclidean')
+            elif s > 2:
+                yield np.std(pdist(self.lim2clusters(c).coords, 'euclidean'))
+
 
     @listify
     def spaths2ctypes(self, spaths):

@@ -954,40 +954,37 @@ def stage_IV_run(config, options,
         return 0
 
     if inls.size > 0:
+        # ***** CLUSTERIZATION *****
         with log.fbm("Performing clusterization"):
             clustering_function = get_clustering_method(coptions)
-            # perform clusterization
             inls.perform_clustering(clustering_function)
         log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+        # ***** OUTLIERS DETECTION *****
         if options.detect_outliers:
             log.message('Number of outliers so far: %d' % noo())
             with log.fbm("Detecting outliers"):
                 if options.detect_outliers is not Auto:
                     threshold = float(options.detect_outliers)
                 clusters = inls.clusters
-                for cluster, center in zip(inls.clusters_list, inls.clusters_centers):
+                for cluster, center, std in zip(inls.clusters_list,
+                                           inls.clusters_centers,
+                                           inls.clusters_std):
                     if cluster == 0:
                         continue
                     inls_lim = inls.lim2clusters(cluster)
+                    dmat = cdist(np.matrix(center), inls_lim.coords, metric='euclidean').flatten()
                     # Auto procedure
                     if options.detect_outliers is Auto:
-                        dmat = cdist(np.matrix(center), inls_lim.coords, metric='euclidean').flatten()
-                        threshold = np.mean(dmat) + np.std(dmat) * 4  # FIXME: magic constant!
-                        for nr, (d, ids) in enumerate(zip(dmat, inls_lim.inlets_ids)):
-                            # print d, threshold
-                            if d > threshold:
-                                clusters[ids] = 0
+                        threshold = std * 4  # FIXME: magic constant!
                     # defined threshold procedure
-                    else:
-                        dmat = squareform(pdist(inls_lim.coords, metric='euclidean')).tolist()
-                        for nr, (d, ids) in enumerate(zip(dmat, inls_lim.inlets_ids)):
-                            d.pop(nr)
-                            # print np.min(d), threshold
-                            if np.min(d) > threshold:
-                                clusters[ids] = 0
+                    for nr, (d, ids) in enumerate(zip(dmat, inls_lim.inlets_ids)):
+                        # print d, threshold
+                        if d > threshold:
+                            clusters[ids] = 0
                 inls.add_cluster_annotations(clusters)
         log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
         log.message('Number of outliers: %d' % noo())
+        # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
             with log.fbm("Performing reclusterization of outliers"):
                 clustering_function = get_clustering_method(rcoptions)
@@ -995,7 +992,7 @@ def stage_IV_run(config, options,
                 inls.recluster_outliers(clustering_function)
             log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             log.message('Number of outliers: %d' % noo())
-
+        # ***** SINGLETONS REMOVAL *****
         if options.singletons_outliers:
             with log.fbm("Removing clusters of size %d" % int(options.singletons_outliers)):
                 inls.small_clusters_to_outliers(int(options.singletons_outliers))
@@ -1021,9 +1018,9 @@ def stage_IV_run(config, options,
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             #print len(sps),ct
-            master_paths.update({ct:create_master_spath(sps,resid=nr,ctype=ct)})
+            master_paths.update({ct:create_master_spath(sps,resid=nr,ctype=ct,heartbeat=lambda : pbar.update(0))})
             pbar.update(nr*2)
-            master_paths_smooth.update({ct: create_master_spath(sps,resid=nr,ctype=ct,smooth=smooth)})
+            master_paths_smooth.update({ct: create_master_spath(sps,resid=nr,ctype=ct,smooth=smooth,heartbeat=lambda : pbar.update(0))})
             pbar.update(nr*2+1)
         pbar.finish()
 
@@ -1537,7 +1534,7 @@ def stage_VI_run(config, options,
         with log.fbm("Clusters"):
             # TODO: require stage V for that?
             no_of_clusters = len(inls.clusters_list)  # total, including outliers
-            cmap = ColorMapDistMap(name='nipy_spectral',size=no_of_clusters)
+            cmap = ColorMapDistMap(size=no_of_clusters)
             for c in inls.clusters_list:
                 # coords for current cluster
                 ics = inls.lim2clusters(c).coords

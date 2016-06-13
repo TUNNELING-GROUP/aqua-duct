@@ -242,6 +242,9 @@ class SimpleProgressBar(object):
             stderr.write(
                 "\r%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA()) + "\033[K")  # FIXME: magic constant!
 
+    def heartbeat(self):
+        self.update(0)
+
     def update(self, step):
         """
         Updates number of current iterations :obj:`current` by one if :obj:`step` is > 0.
