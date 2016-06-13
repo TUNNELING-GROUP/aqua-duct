@@ -54,7 +54,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 7, 0 # master paths
+    return 0, 7, 1
 
 
 def version_nice():

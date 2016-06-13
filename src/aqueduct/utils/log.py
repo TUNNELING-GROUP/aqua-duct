@@ -243,7 +243,9 @@ class SimpleProgressBar(object):
                 "\r%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA()) + "\033[K")  # FIXME: magic constant!
 
     def heartbeat(self):
-        self.update(0)
+        if time.time() - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!
+            self.tcurrent = time.time()
+            self.show()
 
     def update(self, step):
         """

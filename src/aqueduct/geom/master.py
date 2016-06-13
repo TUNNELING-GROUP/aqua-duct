@@ -129,6 +129,8 @@ def concatenate(*args):
         for e in a:
             yield e
 
+
+
 def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, heartbeat=None):
 
     part2type_dict = {0: GenericPathTypeCodes.scope_name,
@@ -146,49 +148,67 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, h
             sizes.append(0)
         else:
             sizes.append(int(np.average([len(sp.types[part]) for sp in spaths],0,lens)))
-    #print ctype, sizes
-    # now let's create coords, types and widths
+    full_size = sum(sizes)
+
+    if heartbeat is not None:
+        heartbeat()
+
+
+    lens = np.array([float(sp.size) for sp in spaths])
+    if ctype is not None:
+        if ctype.input is not None:
+            if ctype.input > 0:
+                if ctype.input == ctype.output:
+                    lens = np.array([float(len(sp.types_object)) for sp in spaths])
+
+    if np.max(lens) > 0:
+        lens /= np.max(lens)
+        lens = lens ** bias_long
+
+
     coords = []
     types = []
     widths = []
-    for part in parts:
-        #coords.append([np.mean(list(concatenate(*cz)), 0) for cz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths],N=sizes[part])])
+    for coords_zz, types_zz in zip(zip_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths], N=full_size),
+                                   zip_zip(*[sp.gtypes_cont for sp in spaths], N=full_size)):
+        # make lens_zz which are lens corrected to the lenght of coord_z
+        lens_zz = []
+        for l, coord_z in zip(lens, coords_zz):
+            if len(coord_z) > 0:
+                lens_zz.append([float(l) / len(coord_z)] * len(coord_z))
+            else:
+                lens_zz.append([float(l)] * len(coord_z))
+        coords_zz_cat = list(concatenate(*coords_zz))
+        lens_zz = list(concatenate(*lens_zz))
+        coords.append(np.average(coords_zz_cat, 0, lens_zz))
+        if len(coords_zz) > 1:
+            widths.append(np.max(pdist(coords_zz_cat, 'minkowski', p=2, w=lens_zz)))
+        else:
+            widths.append(0.)
 
-        lens = np.array([float(len(sp.types[part])) for sp in spaths])
-        if np.max(lens) > 0:
-            lens /= np.max(lens)
-            lens = lens ** bias_long
-        coords_ = []
-        widths_ = []
-        if sum(lens) != 0:
-            for coords_zz in zip_zip(*[sp.get_coords(smooth=smooth)[part] for sp in spaths], N=sizes[part]):
-                # make lens_zz which are lens corrected to the lenght of coord_z
-                lens_zz = []
-                for l,coord_z in zip(lens,coords_zz):
-                    if len(coord_z) > 0:
-                        lens_zz.append([float(l)/len(coord_z)] * len(coord_z))
-                    else:
-                        lens_zz.append([float(l)] * len(coord_z))
-                #lens_zz = [[float(l)/len(coord_z)] * len(coord_z) for l,coord_z in zip(lens,coords_zz)]
-                coords_zz_cat = list(concatenate(*coords_zz))
-                lens_zz = list(concatenate(*lens_zz))
-                coords_.append(np.average(coords_zz_cat, 0, lens_zz))
-                if len(coords_zz) > 1:
-                    widths_.append(np.max(pdist(coords_zz_cat, 'minkowski', p=2, w=lens_zz)))
-                else:
-                    widths_.append(0.)
+        types_zz_cat = list(concatenate(*types_zz))
+        # pick correct type..., check distance of coords[-1] to coords_zz_cat
+        types_cdist = cdist(np.matrix(coords[-1]),coords_zz_cat,metric='euclidean')
+        types.append(types_zz_cat[np.argmin(types_cdist)])
+
+
+        #types.append(decide_on_type(Counter(types_zz_cat)))
+
         if heartbeat is not None:
             heartbeat()
 
-        coords.append(coords_)
-        widths.append(widths_)
-
-        types.append([(part2type_dict[part])] * len(coords[-1]))
-
-    # concatenate
-    coords = list(concatenate(*coords))
-    types = list(concatenate(*types))
-    widths = list(concatenate(*widths))
+    '''
+    if ctype is not None:
+        if ctype.input is not None:
+            if ctype.input > 0:
+                if ctype.input == ctype.output:
+                    types_dist = np.mean([simple_types_distribution(sp.gtypes_cont) for sp in spaths],0)
+                    types_dist *= len(coords)
+                    types_proto = []
+                    for part in parts:
+                        types_proto.extend(part2type_dict[part] * int(np.ceil(types_dist[part])))
+                    types = [decide_on_type(Counter(t[0])) for t in zip_zip(types_proto,range(full_size), N=full_size)]
+    '''
 
     frames = range(len(coords))
 
@@ -209,7 +229,11 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, h
         gp.add_type(f,t)
         gp.add_coord(c)
     #return gp
+    if heartbeat is not None:
+        heartbeat()
     sp = list(yield_single_paths([gp]))[0]
+    if heartbeat is not None:
+        heartbeat()
     mp = MasterPath(sp)
     mp.add_width(widths)
     return mp
