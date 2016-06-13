@@ -18,7 +18,7 @@ else
 fi
 
 PYTHONPATH_CACHE=$PYTHONPATH
-export PYTHONPATH=../src
+export PYTHONPATH=`pwd`/../src
 
 $SPHINX_APIDOC -f -e -o source/ ../src/aqueduct/
 sed -i '/undoc/d' source/*.*.rst
@@ -34,4 +34,3 @@ $MAKE SPHINXBUILD=$SPHINXBUILD html
 find build/html/ -iname '*.html' -exec sed -i 's/localhost/'$( hostname )'/g' {} +
 
 export PYTHONPATH=$PYTHONPATH_CACHE
-
