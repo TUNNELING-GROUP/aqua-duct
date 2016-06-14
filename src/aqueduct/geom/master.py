@@ -133,45 +133,53 @@ def concatenate(*args):
 
 def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, heartbeat=None):
 
+    def beat():
+        if heartbeat is not None:
+            heartbeat()
+
+
     part2type_dict = {0: GenericPathTypeCodes.scope_name,
                       1: GenericPathTypeCodes.object_name,
                       2: GenericPathTypeCodes.scope_name}
     parts = (0, 1, 2)
-    # first check what is the size of paths in all parts
+    # first check what is the size of paths in all parts and normalize and then scale them
     sizes = []
     for part in parts:
+        # lengths of all paths of part
         lens = np.array([float(len(sp.types[part])) for sp in spaths])
         if np.max(lens) > 0:
-            lens /= np.max(lens)
-            lens = lens ** bias_long
+            lens /= np.max(lens) # normalization
+            lens = lens ** bias_long # scale them by increasing weights of long paths
         if sum(lens) == 0:
             sizes.append(0)
         else:
+            # weighted average
             sizes.append(int(np.average([len(sp.types[part]) for sp in spaths],0,lens)))
-    full_size = sum(sizes)
+    full_size = sum(sizes) # total size (desired)
 
-    if heartbeat is not None:
-        heartbeat()
+    beat() # touch progress bar
 
-
+    # get total lenghts of all paths
     lens = np.array([float(sp.size) for sp in spaths])
     if ctype is not None:
         if ctype.input is not None:
             if ctype.input > 0:
                 if ctype.input == ctype.output:
+                    # if ctype in #:# and not 0 and not None thaen take object only length
                     lens = np.array([float(len(sp.types_object)) for sp in spaths])
-
+    # normalize and incearse weight fo long paths
     if np.max(lens) > 0:
         lens /= np.max(lens)
         lens = lens ** bias_long
 
-
+    # containers for coords, types and widths of master path
     coords = []
     types = []
     widths = []
+    # loop over zip zipped [smooth] coords of all paths and gtypes with size full_size
     for coords_zz, types_zz in zip(zip_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths], N=full_size),
                                    zip_zip(*[sp.gtypes_cont for sp in spaths], N=full_size)):
-        # make lens_zz which are lens corrected to the lenght of coord_z
+        # make lens_zz which are lens corrected to the lenghts of coords_zz
         lens_zz = []
         for l, coord_z in zip(lens, coords_zz):
             if len(coord_z) > 0:
@@ -245,4 +253,3 @@ class MasterTrace(object):
 
     def __init__(self):
         pass
-
