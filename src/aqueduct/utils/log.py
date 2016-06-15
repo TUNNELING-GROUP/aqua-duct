@@ -354,6 +354,10 @@ class pbar(object):
         else:
             self.__pbar.update(val)
 
+    def heartbeat(self):
+        if self.__kind in ["simple"]:
+            self.__pbar.heartbeat()
+
     def finish(self):
         """
         Finishes progress bar. It cals appropriate, if exist, method of child progress bar object.

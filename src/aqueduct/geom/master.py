@@ -196,7 +196,9 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, h
         # calculate widths
         if len(coords_zz) > 1:
             # try tu use weighted distance - wminkowski with p=2 is equivalent to weighted euclidean
-            widths.append(np.max(pdist(coords_zz_cat, 'wminkowski', p=2, w=lens_zz_cat)))
+            #id_of_max = np.argmax(pdist(coords_zz_cat, 'wminkowski', p=2, w=lens_zz_cat))
+            #widths.append(pdist(coords_zz_cat, 'euclidean')[id_of_max])
+            widths.append(np.mean(pdist(coords_zz_cat, 'euclidean')))
         else:
             widths.append(0.)
         # concatenate zip_zip gtypes

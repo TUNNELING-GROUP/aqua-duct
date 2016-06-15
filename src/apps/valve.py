@@ -37,7 +37,7 @@ from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepS
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
 from aqueduct.traj.paths import GenericPaths, yield_single_paths
-from aqueduct.traj.reader import ReadAmberNetCDFviaMDA
+from aqueduct.traj.reader import ReadAmberNetCDFviaMDA,ReadViaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
 from aqueduct.utils.helpers import range2int, Auto, is_iterable, what2what, lind
@@ -380,7 +380,9 @@ class TrajectoryReader(object):
         # assume it is a Amber NetCDF
         # TODO: check if it is DCD and do something?
         # TODO: move it to another class, ReaderHelper for instance.
-        return ReadAmberNetCDFviaMDA(self.top, self.trj)
+
+        return ReadViaMDA(self.top, self.trj)
+        #return ReadAmberNetCDFviaMDA(self.top, self.trj)
 
     @property
     def max_frame(self):
@@ -1018,9 +1020,9 @@ def stage_IV_run(config, options,
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             #print len(sps),ct
-            master_paths.update({ct:create_master_spath(sps,resid=nr,ctype=ct,heartbeat=lambda : pbar.update(0))})
+            master_paths.update({ct:create_master_spath(sps,resid=nr,ctype=ct,heartbeat=pbar.heartbeat)})
             pbar.update(nr*2)
-            master_paths_smooth.update({ct: create_master_spath(sps,resid=nr,ctype=ct,smooth=smooth,heartbeat=lambda : pbar.update(0))})
+            master_paths_smooth.update({ct: create_master_spath(sps,resid=nr,ctype=ct,smooth=smooth,heartbeat=pbar.heartbeat)})
             pbar.update(nr*2+1)
         pbar.finish()
 
@@ -1554,7 +1556,7 @@ def stage_VI_run(config, options,
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
-            plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp)
+            plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp, smooth=lambda anything: anything)
             plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp, smooth=smooth)
 
     if options.all_paths_raw:
