@@ -1,0 +1,38 @@
+proc get_in_paths {frames types} {
+    # containers
+    set paths {}
+    set current_path {}
+    # loop over frames, increment
+    for {set f [frames_total]} {$f >= 0} {incr f [expr {[frame_step] * -1}]} {
+		# get type
+		if {$f in $frames} {
+			set t [lindex $types [lsearch $frames $f]]
+		} else {
+			set t out
+		}
+		#puts "$f $t"
+		# is out of scope?
+		if {$t == "out"} {
+            if {[llength $current_path] > 0} {
+                lappend paths [lreverse $current_path]
+                set current_path ""
+            }
+		} else {
+            # chres in scope
+            # is already tracked?
+            if {[llength $current_path] > 0} {
+                lappend current_path $f
+            } else {
+                # is in object zone?
+                if {$t == "object"} {
+                    lappend current_path $f
+                }
+            }
+        }
+    }
+    # is anything to add?
+    if {[llength $current_path] > 0} {
+        lappend paths [lreverse $current_path]
+    }
+    return [lsort $paths]
+}
