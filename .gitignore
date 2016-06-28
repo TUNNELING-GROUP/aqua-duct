@@ -3,6 +3,7 @@
 *.binpos*
 *.traj*
 *.nc*
+*.dcd*
 *.pdb*
 
 *.dump*

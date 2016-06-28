@@ -387,7 +387,7 @@ class TrajectoryReader(object):
     @property
     def max_frame(self):
         with self.get() as tmp_reader:
-            return tmp_reader.number_of_frames - 1
+            return tmp_reader.number_of_frames - 1 # returns 0-based value
 
 
 def rebuild_selection(selection, reader):
