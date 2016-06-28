@@ -1027,6 +1027,10 @@ def stage_IV_run(config, options,
 
     else:
         log.message("No inlets found. Clusterization skipped.")
+        # make empty results
+        ctypes = inls.spaths2ctypes(spaths)
+        master_paths = {}
+        master_paths_smooth = {}
 
     return {'inls': inls,
             'ctypes': ctypes,
@@ -1442,8 +1446,10 @@ def stage_V_run(config, options,
     pa("List of separate paths and properties")
     header_line, line_template = get_header_line_and_line_template(spath_full_info_header(), head_nr=True)
     pa.thead(header_line)
-    for nr, (sp, ctype) in enumerate(zip(spaths, ctypes)):
-        pa(make_line(line_template, spath_full_info(sp, ctype=ctype.generic)), nr=nr)
+    for nr, (sp, ctype) in enumerate(izip_longest(spaths, ctypes,fillvalue=None)):
+        if ctype is not None:
+            ctype =ctype.generic
+        pa(make_line(line_template, spath_full_info(sp, ctype=ctype)), nr=nr)
 
 
 ################################################################################
@@ -1549,14 +1555,17 @@ def stage_VI_run(config, options,
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
-            plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
+            if ct in master_paths:
+                plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
 
     if options.ctypes_smooth:
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
-            plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp, smooth=lambda anything: anything)
-            plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp, smooth=smooth)
+            if ct in master_paths_smooth:
+                plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp, smooth=lambda anything: anything)
+            if ct in master_paths:
+                plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp, smooth=smooth)
 
     if options.all_paths_raw:
         with log.fbm("All raw paths"):
