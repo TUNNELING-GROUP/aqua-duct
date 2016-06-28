@@ -5,7 +5,7 @@ Created on Nov 19, 2015
 '''
 
 import MDAnalysis as mda
-import mdtraj as mdt
+#import mdtraj as mdt
 
 from aqueduct.traj.selections import SelectionMDA
 

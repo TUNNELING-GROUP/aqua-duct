@@ -168,10 +168,10 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, h
             if ctype.input > 0:
                 if ctype.input == ctype.output:
                     lens = np.array([float(len(sp.types_object)) for sp in spaths])
-    # normalize and incearse weight of long paths
+    # normalize and incearse weight of long paths (depends ob ctype)
     if np.max(lens) > 0:
-        lens /= np.max(lens)
-        lens = lens ** bias_long
+        lens /= np.max(lens) # normalize
+        lens = lens ** bias_long # bias to long paths
 
     # containers for coords, types and widths of master path
     coords = []
