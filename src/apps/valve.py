@@ -698,14 +698,18 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
 
     # TODO: consder to create traj_reader object here instead of doing it in stage_run or in load...
     # execute?
-    if options.execute in ['run']:
+    can_be_loaded = False
+    if (not no_io) and options.load:
+        if os.path.isfile(options.load) or os.path.islink(options.load):
+            can_be_loaded = True
+    if options.execute in ['run'] or (options.execute in ['runonce'] and not can_be_loaded):
         result = stage_run(config, options, reader=reader, **kwargs)
         if not no_io:
             ###########
             # S A V E #
             ###########
             save_stage_dump(options.save, **result)
-    elif options.execute in ['skip']:
+    elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
         if not no_io:
             ###########
             # L O A D #
