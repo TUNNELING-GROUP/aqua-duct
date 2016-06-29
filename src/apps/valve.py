@@ -54,7 +54,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 7, 1
+    return 0, 7, 2
 
 
 def version_nice():
@@ -1536,7 +1536,7 @@ def stage_VI_run(config, options,
                 mda.core.flags["permissive_pdb_reader"] = False
                 pdb = TmpDumpWriterOfMDA()
                 frames_to_show = range2int(options.show_molecule_frames)
-                pdb.dump_frames(traj_reader, frames=frames_to_show)
+                pdb.dump_frames(traj_reader, frames=frames_to_show, selection=options.show_molecule)
                 ConnectToPymol.load_pdb('molecule', pdb.close())
                 del pdb
                 mda.core.flags["permissive_pdb_reader"] = mda_ppr
