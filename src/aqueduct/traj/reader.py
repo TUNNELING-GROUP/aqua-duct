@@ -12,11 +12,11 @@ from aqueduct.traj.selections import SelectionMDA
 from os.path import splitext
 import re
 
-available_formats = {re.compile('(nc|NC)'): 'nc',
-                     re.compile('(parmtop|top|PARMTOP|TOP)'): 'parmtop',
-                     re.compile('(dcd|DCD)'): 'dcd',
-                     re.compile('(psf|PSF)'): 'psf',
-                     re.compile('(pdb|PDB)'): 'pdb'}
+mda_available_formats = {re.compile('(nc|NC)'): 'nc',
+                         re.compile('(parmtop|top|PARMTOP|TOP)'): 'parmtop',
+                         re.compile('(dcd|DCD)'): 'dcd',
+                         re.compile('(psf|PSF)'): 'psf',
+                         re.compile('(pdb|PDB)'): 'pdb'}
 
 
 class Reader(object):
@@ -119,14 +119,14 @@ class ReadViaMDA(Reader):
 
     def open_trajectory(self):
         topology = splitext(self.topology_file_name)[1][1:]
-        for afk in available_formats.keys():
+        for afk in mda_available_formats.keys():
             if afk.match(topology):
-                topology = available_formats[afk]
+                topology = mda_available_formats[afk]
                 break
         trajectory = splitext(self.trajectory_file_name[0])[1][1:]
-        for afk in available_formats.keys():
+        for afk in mda_available_formats.keys():
             if afk.match(trajectory):
-                trajectory = available_formats[afk]
+                trajectory = mda_available_formats[afk]
                 break
         return mda.Universe(self.topology_file_name,
                             self.trajectory_file_name,

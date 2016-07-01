@@ -1520,6 +1520,10 @@ def stage_VI_run(config, options,
 
     # start pymol
     with log.fbm("Starting PyMOL"):
+        #TODO: ConnectToPymol is used to initialize PyMol and to load molecule
+        #TODO: SinglaPathPlotter is used to put paths to PyMol
+        #TODO: Both can be bassically changed in such a way that appropriate pdb files
+        #TODO: would be generated and a companion script that would load them to PyMol
         ConnectToPymol.init_pymol()
         if options.simply_smooths:
             spp = SinglePathPlotter(linearize=float(options.simply_smooths))

@@ -1,3 +1,7 @@
+
+# this modlue is a prototype and have to be revritten
+
+
 import numpy as np
 from scipy.spatial.distance import cdist, pdist ,squareform
 from collections import Counter
