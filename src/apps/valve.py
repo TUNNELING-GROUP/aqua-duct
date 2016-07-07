@@ -755,7 +755,7 @@ def stage_I_run(config, options,
             # current res selection
             res = traj_reader.parse_selection(options.object)
 
-            # check is res are in scope
+            # check if res are in scope
             if options.scope_convexhull:
                 res_coords = list(res.center_of_mass_of_residues())
                 chull = scope.get_convexhull_of_atom_positions()
