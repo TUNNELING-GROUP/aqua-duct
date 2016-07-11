@@ -1,0 +1,498 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aqueduct.utils.helpers &mdash; Aqueduct 0.2.9 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Aqueduct 0.2.9 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Aqueduct 0.2.9 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for aqueduct.utils.helpers</h1><div class="highlight"><pre>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Collection of helpers - functions and decorators.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">close</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkstemp</span>
+
+
+<span class="c">########################################################################</span>
+<span class="c">#  aliens</span>
+
+<div class="viewcode-block" id="combine"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.combine">[docs]</a><span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="n">seqin</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    This is an alien function. It is not extensively used.</span>
+
+<span class="sd">    Directly taken form http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt</span>
+
+<span class="sd">    Returns a list of all combinations of argument sequences.</span>
+<span class="sd">    For example, following call::</span>
+
+<span class="sd">        combine(((1,2),(3,4)))</span>
+
+<span class="sd">    gives following list of combinations::</span>
+
+<span class="sd">        [[1, 3], [1, 4], [2, 3], [2, 4]]</span>
+
+<span class="sd">    :param tuple sequin: Tuple of sequences to combine.</span>
+<span class="sd">    :returns: All possible combinations of all input sequences.</span>
+<span class="sd">    :rtype: list of lists</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c"># http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt</span>
+    <span class="k">def</span> <span class="nf">rloop</span><span class="p">(</span><span class="n">seqin</span><span class="p">,</span> <span class="n">listout</span><span class="p">,</span> <span class="n">comb</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;recursive looping function&#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">seqin</span><span class="p">:</span>  <span class="c"># any more sequences to process?</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">seqin</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">newcomb</span> <span class="o">=</span> <span class="n">comb</span> <span class="o">+</span> <span class="p">[</span><span class="n">item</span><span class="p">]</span>  <span class="c"># add next item to current comb</span>
+                <span class="c"># call rloop w/ rem seqs, newcomb</span>
+                <span class="n">rloop</span><span class="p">(</span><span class="n">seqin</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">listout</span><span class="p">,</span> <span class="n">newcomb</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c"># processing last sequence</span>
+            <span class="n">listout</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">comb</span><span class="p">)</span>  <span class="c"># comb finished, add to list</span>
+    <span class="n">listout</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c"># listout initialization</span>
+    <span class="n">rloop</span><span class="p">(</span><span class="n">seqin</span><span class="p">,</span> <span class="n">listout</span><span class="p">,</span> <span class="p">[])</span>  <span class="c"># start recursive process</span>
+    <span class="k">return</span> <span class="n">listout</span>
+
+
+<span class="c">########################################################################</span>
+</div>
+<div class="viewcode-block" id="is_number"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.is_number">[docs]</a><span class="k">def</span> <span class="nf">is_number</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="c">#http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="nb">bool</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">unicodedata</span>
+        <span class="n">unicodedata</span><span class="o">.</span><span class="n">numeric</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="lind"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.lind">[docs]</a><span class="k">def</span> <span class="nf">lind</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">ind</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Indexes lists using lists of integers as identificators.</span>
+<span class="sd">    For example::</span>
+
+<span class="sd">        lind([&#39;a&#39;,&#39;b&#39;,&#39;c&#39;,&#39;d&#39;,&#39;e&#39;],[1,4,2])</span>
+
+<span class="sd">    returns::</span>
+
+<span class="sd">        [&#39;b&#39;, &#39;e&#39;, &#39;c&#39;]</span>
+
+<span class="sd">    :param list l: List to be indexed.</span>
+<span class="sd">    :param list ind: Intiger indexes.</span>
+<span class="sd">    :return: Reindexed list.</span>
+<span class="sd">    :rtype: list</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ll</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ind</span><span class="p">:</span>
+        <span class="n">ll</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ll</span>
+
+</div>
+<div class="viewcode-block" id="Auto"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.Auto">[docs]</a><span class="k">class</span> <span class="nc">Auto</span><span class="p">:</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Auto type definition.</span>
+<span class="sd">    The class is used as an alternative value for options (if particular option supports it).</span>
+<span class="sd">    If options (or variables/parameters etc.) have value of :class:`Auto` it means that an automatic</span>
+<span class="sd">    process for parametrization shoud be performed.</span>
+
+<span class="sd">    For example, if the input parameter is set to :class:`Auto` it is supposed that its value is calculated</span>
+<span class="sd">    on the basis of input data or other parapmeters.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="Auto.__repr__"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.Auto.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :return: String ``Auto``.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="s">&quot;Auto&quot;</span>
+</div>
+<div class="viewcode-block" id="Auto.__str__"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.Auto.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Calls :meth:`__repr__`.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span>
+
+</div></div>
+<div class="viewcode-block" id="create_tmpfile"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.create_tmpfile">[docs]</a><span class="k">def</span> <span class="nf">create_tmpfile</span><span class="p">(</span><span class="n">ext</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Creates temporary file. File is created, closed and its file name is returned.</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        It is responsability of the caller to delete the file.</span>
+
+<span class="sd">    :param str ext: Optional extension of the file.</span>
+<span class="sd">    :return: File name of created temporary file.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">suffix</span> <span class="o">=</span> <span class="s">&quot;.</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">fd</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="n">mkstemp</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">)</span>
+    <span class="n">close</span><span class="p">(</span><span class="n">fd</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">name</span>
+
+</div>
+<div class="viewcode-block" id="range2int"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.range2int">[docs]</a><span class="k">def</span> <span class="nf">range2int</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">uniq</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Transforms a string range in to a list of integers.</span>
+
+<span class="sd">    For example, a following string::</span>
+
+<span class="sd">        &#39;0:2 4:5 7 9&#39;</span>
+
+<span class="sd">    is transformed into::</span>
+
+<span class="sd">        [0,1,2,4,5,7,9]</span>
+
+<span class="sd">    :param str r: String of input range.</span>
+<span class="sd">    :param bool uniq: Optional parameter, if set to `True` only unique and sorted integers are returned.</span>
+<span class="sd">    :return: List of integers.</span>
+<span class="sd">    :rtype: list of int</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">rr</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
+        <span class="k">if</span> <span class="s">&#39;:&#39;</span> <span class="ow">in</span> <span class="n">rr</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">rr</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">rr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">))</span>
+                <span class="n">r3</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">rr</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">r1</span><span class="p">,</span> <span class="n">r3</span><span class="p">,</span> <span class="n">r2</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">rr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">))</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">r3</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">rr</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">uniq</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+</div>
+<div class="viewcode-block" id="int2range"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.int2range">[docs]</a><span class="k">def</span> <span class="nf">int2range</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Transforms a list of integers in to a string of ranges.</span>
+
+<span class="sd">    For example, a following list::</span>
+
+<span class="sd">        [0,1,2,4,5,7,9]</span>
+
+<span class="sd">    is transformed into::</span>
+
+<span class="sd">        0:2 4:5 7 9</span>
+
+<span class="sd">    :param list l: input list of int</span>
+<span class="sd">    :return: String of ranges.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">l</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
+    <span class="n">l</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+    <span class="n">previous</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">previous</span> <span class="o">=</span> <span class="n">e</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">previous</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span>
+                <span class="n">previous</span> <span class="o">=</span> <span class="n">e</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">while</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">]:</span>
+                    <span class="n">out</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;:&#39;</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+                <span class="n">previous</span> <span class="o">=</span> <span class="n">e</span>
+                <span class="k">continue</span>
+    <span class="k">while</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">]:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">out</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span>
+
+</div>
+<div class="viewcode-block" id="is_iterable"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.is_iterable">[docs]</a><span class="k">def</span> <span class="nf">is_iterable</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Checks if provided object is iterable.</span>
+<span class="sd">    Returns True is it is iterable, otherwise returns False.</span>
+
+<span class="sd">    :param list l: input object</span>
+
+<span class="sd">    :return: True if submited object is iterable otherwise returns False.</span>
+<span class="sd">    :rtype: bool</span>
+
+<span class="sd">    .. warning::</span>
+
+<span class="sd">        Current implementation cannot be used with generators!</span>
+
+<span class="sd">    .. todo::</span>
+
+<span class="sd">        Current implementation is primitive and HAVE TO be replaced.</span>
+
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="sortify"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.sortify">[docs]</a><span class="k">def</span> <span class="nf">sortify</span><span class="p">(</span><span class="n">gen</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decorator to convert functions&#39; outputs into a sorted list. If the output is iterable it is converted in to a list</span>
+<span class="sd">    of apropriate lenght. If the output is not iterable it is converted in to a list of lenght 1.</span>
+
+<span class="sd">    Written on the basis of :func:`listify`.</span>
+
+<span class="sd">    :returns: Output of decorated function converted to a sorted list.</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">patched</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">gen</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">obj</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">patched</span>
+
+</div>
+<div class="viewcode-block" id="listify"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.listify">[docs]</a><span class="k">def</span> <span class="nf">listify</span><span class="p">(</span><span class="n">gen</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decorator to convert functions&#39; outputs into a list. If the output is iterable it is converted in to a list</span>
+<span class="sd">    of apropriate lenght. If the output is not iterable it is converted in to a list of lenght 1.</span>
+
+<span class="sd">    This function was copied from:</span>
+
+<span class="sd">    http://argandgahandapandpa.wordpress.com/2009/03/29/python-generator-to-list-decorator/</span>
+
+<span class="sd">    and further improved by tljm@wp.pl.</span>
+
+<span class="sd">    :returns: Output of decorated function converted to a list.</span>
+<span class="sd">    :rtype: list</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">patched</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">gen</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">obj</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">patched</span>
+
+</div>
+<div class="viewcode-block" id="tupleify"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.tupleify">[docs]</a><span class="k">def</span> <span class="nf">tupleify</span><span class="p">(</span><span class="n">gen</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decorator to convert functions&#39; outputs into a tuple. If the output is iterable it is converted in to a tuple</span>
+<span class="sd">    of apropriate lenght. If the output is not iterable it is converted in to a tuple of lenght 1.</span>
+
+<span class="sd">    Written on the basis of :func:`listify`.</span>
+
+<span class="sd">    :returns: Output of decorated function converted to a tuple.</span>
+<span class="sd">    :rtype: tuple</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">patched</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">gen</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,)</span>
+
+    <span class="k">return</span> <span class="n">patched</span>
+
+</div>
+<div class="viewcode-block" id="arrayify"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.arrayify">[docs]</a><span class="k">def</span> <span class="nf">arrayify</span><span class="p">(</span><span class="n">gen</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decorator to convert functions&#39; outputs into a 2D numpy array. If the output is iterable it is converted in to a a 2D numpy array</span>
+<span class="sd">    of apropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.</span>
+
+<span class="sd">    Written on the basis of :func:`listify`.</span>
+
+<span class="sd">    :returns: Output of decorated function converted to a 2D numpy array.</span>
+<span class="sd">    :rtype: numpy.ndarray</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">patched</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">gen</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span><span class="o">.</span><span class="n">A</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([</span><span class="n">obj</span><span class="p">])</span><span class="o">.</span><span class="n">A</span>
+
+    <span class="k">return</span> <span class="n">patched</span>
+</div>
+<div class="viewcode-block" id="arrayify1"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.arrayify1">[docs]</a><span class="k">def</span> <span class="nf">arrayify1</span><span class="p">(</span><span class="n">gen</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Decorator to convert functions&#39; outputs into a 1D numpy array. If the output is iterable it is converted in to a a 2D numpy array</span>
+<span class="sd">    of apropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.</span>
+
+<span class="sd">    Written on the basis of :func:`listify`.</span>
+
+<span class="sd">    :returns: Output of decorated function converted to a 1D numpy array.</span>
+<span class="sd">    :rtype: numpy.ndarray</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">gen</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">patched</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">gen</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">obj</span><span class="p">))</span><span class="o">.</span><span class="n">A1</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">([</span><span class="n">obj</span><span class="p">])</span><span class="o">.</span><span class="n">A1</span>
+
+    <span class="k">return</span> <span class="n">patched</span>
+</div>
+<div class="viewcode-block" id="list_blocks_to_slices"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.list_blocks_to_slices">[docs]</a><span class="k">def</span> <span class="nf">list_blocks_to_slices</span><span class="p">(</span><span class="n">l</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Slices list in to block according to its elements identity. Resulting slices correspond to blocks of</span>
+<span class="sd">    identical elements.</span>
+
+<span class="sd">    :param list l: List of any objects.</span>
+<span class="sd">    :return: Generator of slices.</span>
+<span class="sd">    :rtype: generator</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+        <span class="k">yield</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">prev</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">prev_nr</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="o">==</span> <span class="n">prev</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">yield</span> <span class="nb">slice</span><span class="p">(</span><span class="n">prev_nr</span><span class="p">,</span> <span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="n">e</span>
+            <span class="n">prev_nr</span> <span class="o">=</span> <span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">yield</span> <span class="nb">slice</span><span class="p">(</span><span class="n">prev_nr</span><span class="p">,</span> <span class="n">nr</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+</div>
+<span class="nd">@tupleify</span>
+<div class="viewcode-block" id="what2what"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.what2what">[docs]</a><span class="k">def</span> <span class="nf">what2what</span><span class="p">(</span><span class="n">what</span><span class="p">,</span> <span class="n">towhat</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    what2what(what, towhat)</span>
+<span class="sd">    :param list what: Input list for which indices of elements present in :attr:`towhat` are returned.</span>
+<span class="sd">    :param list towhat: List of elements which input list is indexed to.</span>
+<span class="sd">    :return: Indices of :attr:`what` list that are present in :attr:`towhat` list.</span>
+<span class="sd">    :rtype: tuple</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">towhat</span> <span class="o">=</span> <span class="n">make_iterable</span><span class="p">(</span><span class="n">towhat</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">make_iterable</span><span class="p">(</span><span class="n">what</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">towhat</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">nr</span>
+
+</div>
+<div class="viewcode-block" id="make_iterable"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.make_iterable">[docs]</a><span class="k">def</span> <span class="nf">make_iterable</span><span class="p">(</span><span class="n">something</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    If input object is not interable returns it as one element list. Otherwise returns the object.</span>
+
+<span class="sd">    :param object something: Input object.</span>
+<span class="sd">    :return: Iterable object.</span>
+<span class="sd">    :rtype: iterable or list</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">something</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">something</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">something</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Aqueduct 0.2.9 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

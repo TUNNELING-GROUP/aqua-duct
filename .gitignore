@@ -16,7 +16,6 @@
 .idea
 .settings
 
-docs/build
 valve_tests
 real_traj
 src/build

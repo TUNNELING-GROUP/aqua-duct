@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aqueduct.traj.dumps &mdash; Aqueduct 0.2.9 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Aqueduct 0.2.9 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Aqueduct 0.2.9 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for aqueduct.traj.dumps</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="kn">as</span> <span class="nn">mda</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">create_tmpfile</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">unlink</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils</span> <span class="kn">import</span> <span class="n">log</span>
+
+<span class="k">class</span> <span class="nc">TmpDumpWriterOfMDA</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TmpDumpWriterOfMDA"><a class="viewcode-back" href="../../../aqueduct.traj.dumps.html#aqueduct.traj.dumps.TmpDumpWriterOfMDA">[docs]</a>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TmpDumpWriterOfMDA.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.dumps.html#aqueduct.traj.dumps.TmpDumpWriterOfMDA.__init__">[docs]</a>        <span class="c"># creates tmp file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pdbfile</span> <span class="o">=</span> <span class="n">create_tmpfile</span><span class="p">(</span><span class="n">ext</span><span class="o">=</span><span class="s">&#39;pdb&#39;</span><span class="p">)</span>
+
+        <span class="c"># create mda writer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mdawriter</span> <span class="o">=</span> <span class="n">mda</span><span class="o">.</span><span class="n">Writer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbfile</span><span class="p">,</span> <span class="n">multiframe</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">dump_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">reader</span><span class="p">,</span><span class="n">frames</span><span class="p">,</span><span class="n">selection</span><span class="o">=</span><span class="s">&#39;protein&#39;</span><span class="p">):</span>
+</div>
+<div class="viewcode-block" id="TmpDumpWriterOfMDA.dump_frames"><a class="viewcode-back" href="../../../aqueduct.traj.dumps.html#aqueduct.traj.dumps.TmpDumpWriterOfMDA.dump_frames">[docs]</a>        <span class="n">to_dump</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">frame</span> <span class="ow">in</span> <span class="n">frames</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">frame</span> <span class="o">&lt;</span> <span class="n">reader</span><span class="o">.</span><span class="n">number_of_frames</span><span class="p">:</span>
+                <span class="n">reader</span><span class="o">.</span><span class="n">set_current_frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mdawriter</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">to_dump</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Requested frame </span><span class="si">%d</span><span class="s"> exceeded available number of frames </span><span class="si">%d</span><span class="s">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">frame</span><span class="p">,</span><span class="n">reader</span><span class="o">.</span><span class="n">number_of_frames</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mdawriter</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+<div class="viewcode-block" id="TmpDumpWriterOfMDA.close"><a class="viewcode-back" href="../../../aqueduct.traj.dumps.html#aqueduct.traj.dumps.TmpDumpWriterOfMDA.close">[docs]</a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbfile</span>
+
+    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbfile</span><span class="p">)</span></div>
+<div class="viewcode-block" id="TmpDumpWriterOfMDA.__del__"><a class="viewcode-back" href="../../../aqueduct.traj.dumps.html#aqueduct.traj.dumps.TmpDumpWriterOfMDA.__del__">[docs]</a></pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">Aqueduct 0.2.9 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
