@@ -4,7 +4,7 @@
 apt-get -y install libnetcdf-dev libhdf5-dev
 
 # install required python packages
-apt-get -y  python-pip python-numpy python-scipy python-matplotlib python-scikit-learn pymol
+apt-get -y install python-dev python-pip python-numpy python-scipy python-matplotlib python-scikits-learn pymol
 
 PIP=`which pip`
 
