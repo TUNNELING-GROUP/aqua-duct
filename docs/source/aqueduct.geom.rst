@@ -8,8 +8,6 @@ Submodules
 
    aqueduct.geom.cluster
    aqueduct.geom.convexhull
-   aqueduct.geom.convexhull_pyhull
-   aqueduct.geom.convexhull_scipy
    aqueduct.geom.master
    aqueduct.geom.pca
    aqueduct.geom.smooth

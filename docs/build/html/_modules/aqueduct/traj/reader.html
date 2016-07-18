@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.traj.reader &mdash; Aqueduct 0.2.9 documentation</title>
+    <title>aqueduct.traj.reader &mdash; Aqueduct 0.2.10 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.9',
+        VERSION:     '0.2.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.9 documentation" href="../../../index.html" />
+    <link rel="top" title="Aqueduct 0.2.10 documentation" href="../../../index.html" />
     <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
   </head>
   <body>
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../../index.html">Aqueduct 0.2.9 documentation</a> &raquo;</li>
+        <li><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
           <li><a href="../../index.html" >Module code</a> &raquo;</li>
           <li><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
@@ -56,18 +56,18 @@
 <span class="sd">&#39;&#39;&#39;</span>
 
 <span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="kn">as</span> <span class="nn">mda</span>
-<span class="kn">import</span> <span class="nn">mdtraj</span> <span class="kn">as</span> <span class="nn">mdt</span>
+<span class="c">#import mdtraj as mdt</span>
 
 <span class="kn">from</span> <span class="nn">aqueduct.traj.selections</span> <span class="kn">import</span> <span class="n">SelectionMDA</span>
 
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
 <span class="kn">import</span> <span class="nn">re</span>
 
-<span class="n">available_formats</span> <span class="o">=</span> <span class="p">{</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(nc|NC)&#39;</span><span class="p">):</span> <span class="s">&#39;nc&#39;</span><span class="p">,</span>
-                     <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(parmtop|top|PARMTOP|TOP)&#39;</span><span class="p">):</span> <span class="s">&#39;parmtop&#39;</span><span class="p">,</span>
-                     <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(dcd|DCD)&#39;</span><span class="p">):</span> <span class="s">&#39;dcd&#39;</span><span class="p">,</span>
-                     <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(psf|PSF)&#39;</span><span class="p">):</span> <span class="s">&#39;psf&#39;</span><span class="p">,</span>
-                     <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(pdb|PDB)&#39;</span><span class="p">):</span> <span class="s">&#39;pdb&#39;</span><span class="p">}</span>
+<span class="n">mda_available_formats</span> <span class="o">=</span> <span class="p">{</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(nc|NC)&#39;</span><span class="p">):</span> <span class="s">&#39;nc&#39;</span><span class="p">,</span>
+                         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(parmtop|top|PARMTOP|TOP)&#39;</span><span class="p">):</span> <span class="s">&#39;parmtop&#39;</span><span class="p">,</span>
+                         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(dcd|DCD)&#39;</span><span class="p">):</span> <span class="s">&#39;dcd&#39;</span><span class="p">,</span>
+                         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(psf|PSF)&#39;</span><span class="p">):</span> <span class="s">&#39;psf&#39;</span><span class="p">,</span>
+                         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;(pdb|PDB)&#39;</span><span class="p">):</span> <span class="s">&#39;pdb&#39;</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="Reader"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader">[docs]</a><span class="k">class</span> <span class="nc">Reader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -170,14 +170,14 @@
 </div>
 <div class="viewcode-block" id="ReadViaMDA.open_trajectory"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.open_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">open_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">topology</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology_file_name</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
-        <span class="k">for</span> <span class="n">afk</span> <span class="ow">in</span> <span class="n">available_formats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">afk</span> <span class="ow">in</span> <span class="n">mda_available_formats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">afk</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">topology</span><span class="p">):</span>
-                <span class="n">topology</span> <span class="o">=</span> <span class="n">available_formats</span><span class="p">[</span><span class="n">afk</span><span class="p">]</span>
+                <span class="n">topology</span> <span class="o">=</span> <span class="n">mda_available_formats</span><span class="p">[</span><span class="n">afk</span><span class="p">]</span>
                 <span class="k">break</span>
         <span class="n">trajectory</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_file_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
-        <span class="k">for</span> <span class="n">afk</span> <span class="ow">in</span> <span class="n">available_formats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">afk</span> <span class="ow">in</span> <span class="n">mda_available_formats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">afk</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">trajectory</span><span class="p">):</span>
-                <span class="n">trajectory</span> <span class="o">=</span> <span class="n">available_formats</span><span class="p">[</span><span class="n">afk</span><span class="p">]</span>
+                <span class="n">trajectory</span> <span class="o">=</span> <span class="n">mda_available_formats</span><span class="p">[</span><span class="n">afk</span><span class="p">]</span>
                 <span class="k">break</span>
         <span class="k">return</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology_file_name</span><span class="p">,</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_file_name</span><span class="p">,</span>
@@ -230,7 +230,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../../index.html">Aqueduct 0.2.9 documentation</a> &raquo;</li>
+        <li><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
           <li><a href="../../index.html" >Module code</a> &raquo;</li>
           <li><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>

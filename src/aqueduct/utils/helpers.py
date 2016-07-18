@@ -94,10 +94,10 @@ class Auto:
     Auto type definition.
     The class is used as an alternative value for options (if particular option supports it).
     If options (or variables/parameters etc.) have value of :class:`Auto` it means that an automatic
-    process for parametrization shoud be performed.
+    process for parametrization should be performed.
 
     For example, if the input parameter is set to :class:`Auto` it is supposed that its value is calculated
-    on the basis of input data or other parapmeters.
+    on the basis of input data or other parameters.
     '''
     def __repr__(self):
         '''

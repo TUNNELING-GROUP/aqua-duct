@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.geom.convexhull &mdash; Aqueduct 0.2.9 documentation</title>
+    <title>aqueduct.geom.convexhull &mdash; Aqueduct 0.2.10 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.9',
+        VERSION:     '0.2.10',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.9 documentation" href="../../../index.html" />
+    <link rel="top" title="Aqueduct 0.2.10 documentation" href="../../../index.html" />
     <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
   </head>
   <body>
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../../index.html">Aqueduct 0.2.9 documentation</a> &raquo;</li>
+        <li><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
           <li><a href="../../index.html" >Module code</a> &raquo;</li>
           <li><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
@@ -49,17 +49,38 @@
           <div class="body">
             
   <h1>Source code for aqueduct.geom.convexhull</h1><div class="highlight"><pre>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">Created on Dec 4, 2015</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-<span class="sd">@author: tljm</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">ConvexHull</span>
 
-<span class="kn">from</span> <span class="nn">aqueduct.geom.convexhull_scipy</span> <span class="kn">import</span> <span class="n">ConvexHull</span>
+<span class="k">def</span> <span class="nf">_vertices_ids</span><span class="p">(</span><span class="n">convexhull</span><span class="p">):</span>
+<div class="viewcode-block" id="_vertices_ids"><a class="viewcode-back" href="../../../aqueduct.geom.convexhull.html#aqueduct.geom.convexhull._vertices_ids">[docs]</a>    <span class="k">return</span> <span class="n">convexhull</span><span class="o">.</span><span class="n">vertices</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 
-<div class="viewcode-block" id="is_point_within_convexhull"><a class="viewcode-back" href="../../../aqueduct.geom.convexhull.html#aqueduct.geom.convexhull.is_point_within_convexhull">[docs]</a><span class="k">def</span> <span class="nf">is_point_within_convexhull</span><span class="p">(</span><span class="n">point_chull</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">point_chull</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">point_within</span><span class="p">(</span><span class="n">point_chull</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
-</pre></div>
+<span class="k">def</span> <span class="nf">_vertices_points</span><span class="p">(</span><span class="n">convexhull</span><span class="p">):</span></div>
+<div class="viewcode-block" id="_vertices_points"><a class="viewcode-back" href="../../../aqueduct.geom.convexhull.html#aqueduct.geom.convexhull._vertices_points">[docs]</a>    <span class="c"># returns points of all vertices</span>
+    <span class="k">return</span> <span class="n">convexhull</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">convexhull</span><span class="o">.</span><span class="n">vertices</span><span class="p">]</span>
+
+<span class="n">ConvexHull</span><span class="o">.</span><span class="n">vertices_ids</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_vertices_ids</span><span class="p">)</span></div>
+<span class="n">ConvexHull</span><span class="o">.</span><span class="n">vertices_points</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_vertices_points</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_point_within_convexhull</span><span class="p">(</span><span class="n">convexhull</span><span class="p">,</span><span class="n">point</span><span class="p">):</span>
+<div class="viewcode-block" id="_point_within_convexhull"><a class="viewcode-back" href="../../../aqueduct.geom.convexhull.html#aqueduct.geom.convexhull._point_within_convexhull">[docs]</a>    <span class="c"># checks if point is within convexhull</span>
+    <span class="c"># build new convex hull with this point and vertices</span>
+    <span class="n">new_hull</span> <span class="o">=</span> <span class="n">ConvexHull</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">point</span><span class="p">,</span><span class="n">convexhull</span><span class="o">.</span><span class="n">vertices_points</span><span class="p">)))</span>
+    <span class="c">#return 0 not in _unfold_vertices_list(new_hull.vertices)</span>
+    <span class="k">return</span> <span class="mi">0</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_hull</span><span class="o">.</span><span class="n">vertices_ids</span>
+
+<span class="n">ConvexHull</span><span class="o">.</span><span class="n">point_within</span> <span class="o">=</span> <span class="n">_point_within_convexhull</span></div>
+
+<span class="k">def</span> <span class="nf">_facets</span><span class="p">(</span><span class="n">convexhull</span><span class="p">):</span>
+<div class="viewcode-block" id="_facets"><a class="viewcode-back" href="../../../aqueduct.geom.convexhull.html#aqueduct.geom.convexhull._facets">[docs]</a>    <span class="k">for</span> <span class="n">simp</span> <span class="ow">in</span> <span class="n">convexhull</span><span class="o">.</span><span class="n">simplices</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">convexhull</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">simp</span><span class="p">],</span><span class="n">convexhull</span><span class="o">.</span><span class="n">points</span><span class="p">[</span><span class="n">simp</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+
+<span class="n">ConvexHull</span><span class="o">.</span><span class="n">facets</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="n">_facets</span><span class="p">)</span></div>
+
+<span class="k">def</span> <span class="nf">is_point_within_convexhull</span><span class="p">(</span><span class="n">point_chull</span><span class="p">):</span>
+<div class="viewcode-block" id="is_point_within_convexhull"><a class="viewcode-back" href="../../../aqueduct.geom.convexhull.html#aqueduct.geom.convexhull.is_point_within_convexhull">[docs]</a>    <span class="k">return</span> <span class="n">point_chull</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">point_within</span><span class="p">(</span><span class="n">point_chull</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</pre></div></div>
 
           </div>
         </div>
@@ -92,7 +113,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../../../index.html">Aqueduct 0.2.9 documentation</a> &raquo;</li>
+        <li><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
           <li><a href="../../index.html" >Module code</a> &raquo;</li>
           <li><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>
