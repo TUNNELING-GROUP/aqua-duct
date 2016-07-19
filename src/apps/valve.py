@@ -9,48 +9,41 @@ import cPickle as pickle
 import copy
 import gzip
 import multiprocessing as mp
+import numpy as np
 import os
+import re
+import shlex
 import sys
 from collections import namedtuple, OrderedDict
-import shlex
-import roman
-import re
 from functools import wraps
-from collections import Iterable
 from itertools import izip_longest
-
-from scipy.spatial.distance import cdist, pdist, squareform
+from scipy.spatial.distance import cdist
 
 import MDAnalysis as mda
-import numpy as np
-
-from numpy.ma.core import _check_fill_value
-
-from aqueduct.geom.convexhull import is_point_within_convexhull
+import roman
 
 from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
 from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
 from aqueduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans
+from aqueduct.geom.convexhull import is_point_within_convexhull
+from aqueduct.geom.master import create_master_spath
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
+from aqueduct.traj.inlets import Inlets, InletTypeCodes
 from aqueduct.traj.paths import GenericPaths, yield_single_paths
-from aqueduct.traj.reader import ReadAmberNetCDFviaMDA,ReadViaMDA
+from aqueduct.traj.reader import ReadViaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import log
-from aqueduct.utils.helpers import range2int, Auto, is_iterable, what2what, lind
-from aqueduct.traj.inlets import Inlets, InletTypeCodes
-from aqueduct.geom.master import create_master_spath
+from aqueduct.utils.helpers import range2int, Auto, what2what, lind
+
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
 
-#global optimal_threads
+# global optimal_threads
 optimal_threads = None
-# optimal_threads = int(2*cpu_count + 1) # is it really optimal?
-# optimal_threads = int(1.5 * cpu_count + 1)  # is it really optimal?
-
 
 
 def version():
@@ -61,7 +54,7 @@ def version_nice():
     return '.'.join(map(str, version()))
 
 
-__mail__ = 'Tomasz Magdziarz <tomasz.magdziarz@polsl.pl>'
+__mail__ = 'info@aquaduct.pl'
 __version__ = version_nice()
 
 
@@ -212,10 +205,10 @@ class ValveConfig(object, ConfigSpecialNames):
 
         # top - top file name
         # nc - netcdf file name
-        config.set(section, 'top')
-        config.set(section, 'nc')
+        config.set(section, 'top') # topology
+        config.set(section, 'trj') # trajectory
 
-        config.set(section, 'pbar', 'simple')
+        #config.set(section, 'pbar', 'simple')
 
         ################
         # stage I
@@ -329,7 +322,6 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'show_molecule', 'None')
         config.set(section, 'show_molecule_frames', '0')
 
-
         return config
 
     def load_config(self, filename):
@@ -371,8 +363,8 @@ class ValveConfig(object, ConfigSpecialNames):
 
 class TrajectoryReader(object):
     def __init__(self, top, trj):
-        assert isinstance(top,(str,unicode)), "Topology file name missing, %s given instead" % str(top)
-        assert isinstance(trj,(str,unicode)), "Trajectory file(s) name(s) missing, %s given instead" % str(trj)
+        assert isinstance(top, (str, unicode)), "Topology file name missing, %s given instead" % str(top)
+        assert isinstance(trj, (str, unicode)), "Trajectory file(s) name(s) missing, %s given instead" % str(trj)
         self.top = top
         self.trj = shlex.split(trj)
 
@@ -382,12 +374,12 @@ class TrajectoryReader(object):
         # TODO: move it to another class, ReaderHelper for instance.
 
         return ReadViaMDA(self.top, self.trj)
-        #return ReadAmberNetCDFviaMDA(self.top, self.trj)
+        # return ReadAmberNetCDFviaMDA(self.top, self.trj)
 
     @property
     def max_frame(self):
         with self.get() as tmp_reader:
-            return tmp_reader.number_of_frames - 1 # returns 0-based value
+            return tmp_reader.number_of_frames - 1  # returns 0-based value
 
 
 def rebuild_selection(selection, reader):
@@ -651,7 +643,7 @@ def get_clustering_method(coptions):
         method = MeanShift
 
     return PerformClustering(method, **opts)
-    #return lambda X: perform_clustering(X, method, **opts)
+    # return lambda X: perform_clustering(X, method, **opts)
 
 
 ################################################################################
@@ -733,7 +725,7 @@ def stage_I_run(config, options,
                 max_frame=None,
                 **kwargs):
     log.message("Loop over frames - search of residues in object:")
-    pbar = log.pbar(max_frame, kind=pbar_name)
+    pbar = log.pbar(max_frame)
 
     # create pool of workers - mapping function
     map_fun = map
@@ -824,7 +816,7 @@ def stage_II_run(config, options,
             all_res = rebuild_selection(all_res, traj_reader)
 
         log.message("Trajectory scan:")
-        pbar = log.pbar(max_frame, kind=pbar_name)
+        pbar = log.pbar(max_frame)
 
         # create pool of workers - mapping function
         map_fun = map
@@ -904,7 +896,7 @@ def stage_III_run(config, options,
                     paths.pop(key)
 
     log.message("Create separate paths:")
-    pbar = log.pbar(len(paths), kind=pbar_name)
+    pbar = log.pbar(len(paths))
     # yield_single_paths requires a list of paths not a dictionary
     spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
     pbar.finish()
@@ -922,14 +914,14 @@ def stage_III_run(config, options,
         smooth = get_smooth_method(soptions)
     if options.apply_smoothing:
         log.message('Applying hard smoothing:')
-        pbar = log.pbar(len(spaths), kind=pbar_name)
+        pbar = log.pbar(len(spaths))
         for nr, sp in enumerate(spaths):
             sp.apply_smoothing(smooth)
             pbar.update(nr + 1)
         pbar.finish()
     if options.apply_soft_smoothing:
         log.message('Applying soft smoothing:')
-        pbar = log.pbar(len(spaths), kind=pbar_name)
+        pbar = log.pbar(len(spaths))
         for nr, sp in enumerate(spaths):
             sp.get_coords(smooth=smooth)
             pbar.update(nr + 1)
@@ -972,8 +964,8 @@ def stage_IV_run(config, options,
                     threshold = float(options.detect_outliers)
                 clusters = inls.clusters
                 for cluster, center, std in zip(inls.clusters_list,
-                                           inls.clusters_centers,
-                                           inls.clusters_std):
+                                                inls.clusters_centers,
+                                                inls.clusters_std):
                     if cluster == 0:
                         continue
                     inls_lim = inls.lim2clusters(cluster)
@@ -1018,15 +1010,16 @@ def stage_IV_run(config, options,
         ctypes_generic = [ct.generic for ct in ctypes]
         ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
-        pbar = log.pbar(len(ctypes_generic_list)*2, kind=pbar_name)
+        pbar = log.pbar(len(ctypes_generic_list) * 2)
 
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            #print len(sps),ct
-            master_paths.update({ct:create_master_spath(sps,resid=nr,ctype=ct,heartbeat=pbar.heartbeat)})
-            pbar.update(nr*2)
-            master_paths_smooth.update({ct: create_master_spath(sps,resid=nr,ctype=ct,smooth=smooth,heartbeat=pbar.heartbeat)})
-            pbar.update(nr*2+1)
+            # print len(sps),ct
+            master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, heartbeat=pbar.heartbeat)})
+            pbar.update(nr * 2)
+            master_paths_smooth.update(
+                {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, heartbeat=pbar.heartbeat)})
+            pbar.update(nr * 2 + 1)
         pbar.finish()
 
     else:
@@ -1038,8 +1031,8 @@ def stage_IV_run(config, options,
 
     return {'inls': inls,
             'ctypes': ctypes,
-            'master_paths':master_paths,
-            'master_paths_smooth':master_paths_smooth}
+            'master_paths': master_paths,
+            'master_paths_smooth': master_paths_smooth}
 
 
 ################################################################################
@@ -1450,9 +1443,9 @@ def stage_V_run(config, options,
     pa("List of separate paths and properties")
     header_line, line_template = get_header_line_and_line_template(spath_full_info_header(), head_nr=True)
     pa.thead(header_line)
-    for nr, (sp, ctype) in enumerate(izip_longest(spaths, ctypes,fillvalue=None)):
+    for nr, (sp, ctype) in enumerate(izip_longest(spaths, ctypes, fillvalue=None)):
         if ctype is not None:
-            ctype =ctype.generic
+            ctype = ctype.generic
         pa(make_line(line_template, spath_full_info(sp, ctype=ctype)), nr=nr)
 
 
@@ -1520,10 +1513,10 @@ def stage_VI_run(config, options,
 
     # start pymol
     with log.fbm("Starting PyMOL"):
-        #TODO: ConnectToPymol is used to initialize PyMol and to load molecule
-        #TODO: SinglaPathPlotter is used to put paths to PyMol
-        #TODO: Both can be bassically changed in such a way that appropriate pdb files
-        #TODO: would be generated and a companion script that would load them to PyMol
+        # TODO: ConnectToPymol is used to initialize PyMol and to load molecule
+        # TODO: SinglaPathPlotter is used to put paths to PyMol
+        # TODO: Both can be bassically changed in such a way that appropriate pdb files
+        # TODO: would be generated and a companion script that would load them to PyMol
         ConnectToPymol.init_pymol()
         if options.simply_smooths:
             spp = SinglePathPlotter(linearize=float(options.simply_smooths))
@@ -1571,9 +1564,11 @@ def stage_VI_run(config, options,
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
             if ct in master_paths_smooth:
-                plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp, smooth=lambda anything: anything)
+                plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
+                                   smooth=lambda anything: anything)
             if ct in master_paths:
-                plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp, smooth=smooth)
+                plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
+                                   smooth=smooth)
 
     if options.all_paths_raw:
         with log.fbm("All raw paths"):
@@ -1622,8 +1617,8 @@ if __name__ == "__main__":
     # argument parsing
     import argparse
 
-    description_version='''Aqueduct library version %s
-Valve driver version %s'''  % (aqueduct_version_nice(),version_nice())
+    description_version = '''Aqueduct library version %s
+Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     description = '''Valve, Aqueduct driver'''
 
     parser = argparse.ArgumentParser(description=description,
@@ -1635,7 +1630,8 @@ Valve driver version %s'''  % (aqueduct_version_nice(),version_nice())
                         help="Limit Aqueduct calculations to given number of threads.")
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
     parser.add_argument("--max-frame", action="store", dest="max_frame", required=False, help="Limit number of frames.")
-    parser.add_argument("--version", action="store_true", dest="print_version", required=False, help="Prints versions and exits..")
+    parser.add_argument("--version", action="store_true", dest="print_version", required=False,
+                        help="Prints versions and exits..")
 
     args = parser.parse_args()
     ############################################################################
@@ -1662,14 +1658,14 @@ Valve driver version %s'''  % (aqueduct_version_nice(),version_nice())
 
     # get global options
     goptions = config.get_global_options()
-    pbar_name = goptions.pbar
+    #pbar_name = goptions.pbar
 
     if args.threads is None:
         optimal_threads = cpu_count + 1
     else:
         optimal_threads = int(args.threads)
     log.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
-    if (optimal_threads > 1 and optimal_threads < 3) or (optimal_threads -1 > cpu_count):
+    if (optimal_threads > 1 and optimal_threads < 3) or (optimal_threads - 1 > cpu_count):
         log.message("Number of threads is not optimal; CPU count reported by system: %d" % cpu_count)
     # because it is used by mp.Pool it should be -1???
     if optimal_threads > 1:
@@ -1684,9 +1680,11 @@ Valve driver version %s'''  % (aqueduct_version_nice(),version_nice())
 
     if args.max_frame:
         max_frame = int(args.max_frame)
+        if max_frame > reader.max_frame:
+            log.warning("Desired --max-frame %d setting exceeds number of available frames (%d)." % (max_frame+1, reader.max_frame+1))
     else:
         max_frame = reader.max_frame
-    log.message("Using %d of %d available frames." % (max_frame,reader.max_frame))
+    log.message("Using %d of %d available frames." % (max_frame+1, reader.max_frame+1))
 
     # STAGE I
     result1 = valve_exec_stage(0, config, stage_I_run,

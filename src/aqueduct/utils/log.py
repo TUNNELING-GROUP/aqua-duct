@@ -311,7 +311,7 @@ class pbar(object):
 
     """
 
-    def __init__(self, maxval=100, kind='simple'):
+    def __init__(self, maxval=100, kind='simple'): # keep kind of pbar simple
         """
         :param int maxval: maximal number of iterations stored to :ivar:`__maxval` and passed child progress bar object
         :param str kind: type of progress bar, available types: simple, progressbar, tqdm, pyprind
