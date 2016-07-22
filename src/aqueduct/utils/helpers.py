@@ -136,7 +136,7 @@ def create_tmpfile(ext=None):
 
 def range2int(r, uniq=True):
     '''
-    Transforms a string range in to a list of integers.
+    Transforms a string range in to a list of integers (with added missing elements from given ranges).
 
     For example, a following string::
 
@@ -169,6 +169,7 @@ def range2int(r, uniq=True):
 
 
 def int2range(l):
+    # the function can order case with letter, letters are at the end of string
     '''
     Transforms a list of integers in to a string of ranges.
 
