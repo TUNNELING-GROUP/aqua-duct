@@ -663,6 +663,7 @@ def valve_end():
 
 def valve_load_config(filename, config):
     assert filename is not None, "No config file provided."
+    assert os.path.isfile(filename), "Config file %s does not exist." % filename
     with log.fbm('Load configuration file'):
         config.load_config(filename)
 
@@ -1676,7 +1677,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     ############################################################################
     # STAGE 0
 
-    reader = valve_read_trajectory(goptions.top, goptions.nc)
+    reader = valve_read_trajectory(goptions.top, goptions.trj)
 
     if args.max_frame:
         max_frame = int(args.max_frame)
