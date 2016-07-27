@@ -1534,7 +1534,7 @@ def stage_VI_run(config, options,
     # start pymol
     with log.fbm("Starting PyMOL"):
         # TODO: ConnectToPymol is used to initialize PyMol and to load molecule
-        # TODO: SinglaPathPlotter is used to put paths to PyMol
+        # TODO: SinglePathPlotter is used to put paths to PyMol
         # TODO: Both can be bassically changed in such a way that appropriate pdb files
         # TODO: would be generated and a companion script that would load them to PyMol
         ConnectToPymol.init_pymol()
@@ -1573,34 +1573,38 @@ def stage_VI_run(config, options,
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
 
     if options.ctypes_raw:
-        for nr, ct in enumerate(ctypes_generic_list):
-            sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
-            if ct in master_paths:
-                plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
+        with log.fmb("CTypes raw"):
+            for nr, ct in enumerate(ctypes_generic_list):
+                sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
+                if ct in master_paths:
+                    plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
 
     if options.ctypes_smooth:
-        for nr, ct in enumerate(ctypes_generic_list):
-            sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
-            if ct in master_paths_smooth:
-                plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
-                                   smooth=lambda anything: anything)
-            if ct in master_paths:
-                plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
-                                   smooth=smooth)
+        with log.fmb("CTypes smooth"):
+            for nr, ct in enumerate(ctypes_generic_list):
+                sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
+                if ct in master_paths_smooth:
+                    plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
+                                       smooth=lambda anything: anything)
+                if ct in master_paths:
+                    plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
+                                       smooth=smooth)
 
     if options.all_paths_raw:
         with log.fbm("All raw paths"):
             plot_spaths_traces(spaths, name='all_raw', split=options.all_paths_split, spp=spp)
     if options.all_paths_raw_io:
-        plot_spaths_inlets(spaths, name='all_raw_paths_io', spp=spp)
+        with log.fbm("All raw paths io"):
+            plot_spaths_inlets(spaths, name='all_raw_paths_io', spp=spp)
 
     if options.all_paths_smooth:
         with log.fbm("All smooth paths"):
             plot_spaths_traces(spaths, name='all_smooth', split=options.all_paths_split, spp=spp, smooth=smooth)
     if options.all_paths_smooth_io:
-        plot_spaths_inlets(spaths, name='all_smooth_paths_io', spp=spp)
+        with log.fbm("All smooth paths io"):
+            plot_spaths_inlets(spaths, name='all_smooth_paths_io', spp=spp)
 
     with log.fbm("Paths as states"):
         if options.paths_raw:
