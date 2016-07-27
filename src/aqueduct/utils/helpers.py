@@ -78,7 +78,7 @@ def lind(l, ind):
         ['b', 'e', 'c']
 
     :param list l: List to be indexed.
-    :param list ind: Intiger indexes.
+    :param list ind: Integer indexes.
     :return: Reindexed list.
     :rtype: list
 
@@ -119,7 +119,7 @@ def create_tmpfile(ext=None):
 
     .. note::
 
-        It is responsability of the caller to delete the file.
+        It is responsibility of the caller to delete the file.
 
     :param str ext: Optional extension of the file.
     :return: File name of created temporary file.
@@ -223,7 +223,7 @@ def is_iterable(l):
 
     :param list l: input object
 
-    :return: True if submited object is iterable otherwise returns False.
+    :return: True if submitted object is iterable otherwise returns False.
     :rtype: bool
 
     .. warning::
@@ -246,7 +246,7 @@ def is_iterable(l):
 def sortify(gen):
     '''
     Decorator to convert functions' outputs into a sorted list. If the output is iterable it is converted in to a list
-    of apropriate lenght. If the output is not iterable it is converted in to a list of lenght 1.
+    of appropriate length. If the output is not iterable it is converted in to a list of length 1.
 
     Written on the basis of :func:`listify`.
 
@@ -269,7 +269,7 @@ def sortify(gen):
 def listify(gen):
     '''
     Decorator to convert functions' outputs into a list. If the output is iterable it is converted in to a list
-    of apropriate lenght. If the output is not iterable it is converted in to a list of lenght 1.
+    of appropriate length. If the output is not iterable it is converted in to a list of length 1.
 
     This function was copied from:
 
@@ -294,7 +294,7 @@ def listify(gen):
 def tupleify(gen):
     '''
     Decorator to convert functions' outputs into a tuple. If the output is iterable it is converted in to a tuple
-    of apropriate lenght. If the output is not iterable it is converted in to a tuple of lenght 1.
+    of apropriate length. If the output is not iterable it is converted in to a tuple of length 1.
 
     Written on the basis of :func:`listify`.
 
@@ -315,7 +315,7 @@ def tupleify(gen):
 def arrayify(gen):
     '''
     Decorator to convert functions' outputs into a 2D numpy array. If the output is iterable it is converted in to a a 2D numpy array
-    of apropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.
+    of appropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.
 
     Written on the basis of :func:`listify`.
 
@@ -335,7 +335,7 @@ def arrayify(gen):
 def arrayify1(gen):
     '''
     Decorator to convert functions' outputs into a 1D numpy array. If the output is iterable it is converted in to a a 2D numpy array
-    of apropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.
+    of appropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.
 
     Written on the basis of :func:`listify`.
 
@@ -393,7 +393,7 @@ def what2what(what, towhat):
 
 def make_iterable(something):
     '''
-    If input object is not interable returns it as one element list. Otherwise returns the object.
+    If input object is not iterable returns it as one element list. Otherwise returns the object.
 
     :param object something: Input object.
     :return: Iterable object.
