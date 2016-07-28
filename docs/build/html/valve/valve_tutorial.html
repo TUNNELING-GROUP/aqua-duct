@@ -1,0 +1,232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Valve tutorial &mdash; Aqueduct 0.2.10 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.2.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Aqueduct 0.2.10 documentation" href="../index.html" />
+    <link rel="next" title="aqueduct" href="../modules.html" />
+    <link rel="prev" title="Configuration file options" href="valve_config.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../modules.html" title="aqueduct"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="valve_config.html" title="Configuration file options"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="valve-tutorial">
+<h1><em>Valve</em> tutorial<a class="headerlink" href="#valve-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This is a tentative <em>Valve</em> manual. Created for the sake of Aqueduct training we have today. Eventually, it will be rewritten to the official version.</p>
+<p>This tutorial assumes <a class="reference internal" href="../aqueduct.html#module-aqueduct" title="aqueduct"><code class="xref py py-mod docutils literal"><span class="pre">aqueduct</span></code></a> and <em>Valve</em> is already installed - see <a class="reference internal" href="../aqueduct_install.html"><span class="doc">Aqueduct installation guide</span></a>. It is also assumed that user is acquainted with <a class="reference internal" href="valve_manual.html"><span class="doc">Valve manual</span></a> and <em>Valve</em> <a class="reference internal" href="valve_config.html"><span class="doc">Configuration file options</span></a>.</p>
+<div class="section" id="valve-invocation">
+<h2><em>Valve</em> invocation<a class="headerlink" href="#valve-invocation" title="Permalink to this headline">¶</a></h2>
+<p>Usually <em>Valve</em> is run by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Due to specific setup in our laboratory <em>Valve</em> has to be run through simple wrapper script:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve_run</span>
+</pre></div>
+</div>
+<p>Additionally, to speed up all calculations it is assumed that <em>Valve</em> is run with <code class="docutils literal"><span class="pre">--max-frame</span> <span class="pre">1000</span></code> option:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve_run</span> <span class="o">--</span><span class="nb">max</span><span class="o">-</span><span class="n">frame</span> <span class="mi">1000</span>
+</pre></div>
+</div>
+<p>To check is <em>Valve</em> is installed and works properly try to issue following commands:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve_run</span> <span class="o">--</span><span class="n">help</span>
+<span class="n">valve_run</span> <span class="o">--</span><span class="n">version</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-data">
+<h2>Test data<a class="headerlink" href="#test-data" title="Permalink to this headline">¶</a></h2>
+<p><strong>Mouse!</strong></p>
+<p>We will use 10ns Amber MD simulation data of sEH protein (PDBID <strong>1cqz</strong>). Necessary files can be downloaded <a class="reference external" href="http://tom.my.domain:8001">here</a>:</p>
+<ul class="simple">
+<li>Go to download server.</li>
+<li>Go to <code class="docutils literal"><span class="pre">1cqz</span></code> directory.</li>
+<li>Download all files and save them in sane location on your machine. Please note, that <code class="docutils literal"><span class="pre">.nc</span></code> file is ca. 3.5 GB so it may take a while to download it.</li>
+</ul>
+</div>
+<div class="section" id="inspect-your-system">
+<h2>Inspect your system<a class="headerlink" href="#inspect-your-system" title="Permalink to this headline">¶</a></h2>
+<p>Before we start any calculations lets have a look at the protein of interest. Start <em>PyMOL</em> and get <code class="docutils literal"><span class="pre">1cqz</span></code> PDB structure (for example by typing in <em>PyMOL</em> command prompt <code class="docutils literal"><span class="pre">fetch</span> <span class="pre">1cqa</span></code>).</p>
+<p>To setup <em>Valve</em> calculations we need to know active site of the protein. More precisely we need to know IDs or residues that are in the active site. This would allow us to create <a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object definition</span></a>.</p>
+<p>But wait. Is it really the correct structure? How many chains there are? What is the numeration of residues?</p>
+<div class="section" id="create-object-definition">
+<h3>Create <em>Object definition</em><a class="headerlink" href="#create-object-definition" title="Permalink to this headline">¶</a></h3>
+<p>Lets load another structure. Open file <code class="docutils literal"><span class="pre">first_frame_1cqz.pdb</span></code> downloaded from test data <a class="reference external" href="http://tom.my.domain:8001">repository</a>. It is a first frame of the MD simulation and it is en example of how the frame of MD looks like. In order to create <a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object definition</span></a> you have to discover following things:</p>
+<ol class="arabic simple">
+<li>What is the name of water residue?</li>
+<li>What are numbers of residues in the active site?</li>
+<li>What size the active site is?</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">It is also good idea to open <code class="docutils literal"><span class="pre">.pdb</span></code> file in your favorite text editor and look at residue numbers and names.</p>
+</div>
+</div>
+<div class="section" id="create-scope-definition">
+<h3>Create <em>Scope definition</em><a class="headerlink" href="#create-scope-definition" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference internal" href="valve_manual.html#scope-definition"><span class="std std-ref">Scope definition</span></a> is easy to create. We will use <em>Convex hull</em> version so the scope definition could be simply <code class="docutils literal"><span class="pre">backbone</span></code>.</p>
+</div>
+</div>
+<div class="section" id="prepare-config-file">
+<h2>Prepare config file<a class="headerlink" href="#prepare-config-file" title="Permalink to this headline">¶</a></h2>
+<p><em>Valve</em> performs calculations according to the configuration (aka <em>config</em>) file.</p>
+<p>Lets start from dumping config file template to <code class="docutils literal"><span class="pre">config.txt</span></code> file. Open it in your favorite editor and fill all options.
+If you have troubles look at <a class="reference internal" href="valve_config.html"><span class="doc">Configuration file options</span></a> (and <a class="reference internal" href="valve_manual.html"><span class="doc">Valve manual</span></a>).</p>
+<p>Things to remember:</p>
+<ol class="arabic simple">
+<li>Provide correct paths to topology and trajectory data.</li>
+<li>Enter correct <a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object</span></a> and <a class="reference internal" href="valve_manual.html#scope-definition"><span class="std std-ref">Scope</span></a> definitions.</li>
+<li>Provide file name of result in analysis section, for example <code class="docutils literal"><span class="pre">results.txt</span></code> (for future reference).</li>
+<li>Make sure visualization is switched on and <code class="docutils literal"><span class="pre">save</span></code> option points to session file name (<code class="docutils literal"><span class="pre">.pse</span></code>)</li>
+</ol>
+</div>
+<div class="section" id="run-valve">
+<h2>Run <em>Valve</em><a class="headerlink" href="#run-valve" title="Permalink to this headline">¶</a></h2>
+<p>Make sure all necessary data is in place. Open terminal, go to your working directory and type in:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve_run</span> <span class="o">--</span><span class="nb">max</span><span class="o">-</span><span class="n">frame</span> <span class="mi">1000</span> <span class="o">-</span><span class="n">c</span> <span class="n">config</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>Depending on your machine and current load it may take a while (matter of minutes) to complete all calculations.</p>
+<div class="section" id="visual-inspection">
+<h3>Visual inspection<a class="headerlink" href="#visual-inspection" title="Permalink to this headline">¶</a></h3>
+<p>In the last stage <em>PyMOL</em> should pop up and <em>Valve</em> should start to feed it with visualization data. This would take a moment and if you set up <code class="docutils literal"><span class="pre">save</span></code> option a <em>PyMOL</em> session would be saved. Once it is done <em>Valve</em> quits and switches off <em>PyMOL</em>. Now, you can restart it and read saved session.</p>
+</div>
+<div class="section" id="analysis-tables">
+<h3>Analysis tables<a class="headerlink" href="#analysis-tables" title="Permalink to this headline">¶</a></h3>
+<p>Open <code class="docutils literal"><span class="pre">results.txt</span></code> file and look at summaries and tables. See also <a class="reference internal" href="valve_manual.html"><span class="doc">Valve manual</span></a>.</p>
+</div>
+</div>
+<div class="section" id="feedback">
+<h2>Feedback<a class="headerlink" href="#feedback" title="Permalink to this headline">¶</a></h2>
+<p>Give us your opinion. Send your questions, inquires, anything to developer(s): <a class="reference external" href="mailto:t&#46;magdziarz&#37;&#52;&#48;tunnelinggroup&#46;pl">Tomasz Magdziarz</a>.
+This are couple of questions that might be useful to form your opinion.</p>
+<ol class="arabic simple">
+<li>What do you like in <em>Valve</em> and <em>Aqueduct</em>?</li>
+<li>What do you do not like in <em>Valve</em> or <em>Aqueduct</em>?</li>
+<li>What is missing?</li>
+<li>Do you find it useful?</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><em>Valve</em> tutorial</a><ul>
+<li><a class="reference internal" href="#valve-invocation"><em>Valve</em> invocation</a></li>
+<li><a class="reference internal" href="#test-data">Test data</a></li>
+<li><a class="reference internal" href="#inspect-your-system">Inspect your system</a><ul>
+<li><a class="reference internal" href="#create-object-definition">Create <em>Object definition</em></a></li>
+<li><a class="reference internal" href="#create-scope-definition">Create <em>Scope definition</em></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#prepare-config-file">Prepare config file</a></li>
+<li><a class="reference internal" href="#run-valve">Run <em>Valve</em></a><ul>
+<li><a class="reference internal" href="#visual-inspection">Visual inspection</a></li>
+<li><a class="reference internal" href="#analysis-tables">Analysis tables</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#feedback">Feedback</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="valve_config.html"
+                        title="previous chapter">Configuration file options</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../modules.html"
+                        title="next chapter">aqueduct</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/valve/valve_tutorial.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../modules.html" title="aqueduct"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="valve_config.html" title="Configuration file options"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

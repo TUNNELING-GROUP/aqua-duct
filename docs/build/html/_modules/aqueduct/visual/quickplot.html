@@ -1,0 +1,418 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aqueduct.visual.quickplot &mdash; Aqueduct 0.2.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Aqueduct 0.2.10 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for aqueduct.visual.quickplot</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">colorConverter</span>
+<span class="kn">from</span> <span class="nn">mpl_toolkits.mplot3d</span> <span class="kn">import</span> <span class="n">Axes3D</span>
+
+<span class="kn">from</span> <span class="nn">aqueduct.geom</span> <span class="kn">import</span> <span class="n">traces</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">list_blocks_to_slices</span>
+
+<span class="kn">from</span> <span class="nn">aqueduct.traj.paths</span> <span class="kn">import</span> <span class="n">GenericPathTypeCodes</span> <span class="k">as</span> <span class="n">gptc</span>
+<span class="kn">from</span> <span class="nn">aqueduct.traj.paths</span> <span class="kn">import</span> <span class="n">PathTypesCodes</span> <span class="k">as</span> <span class="n">ptc</span>
+
+
+<span class="c1"># matplotlib specific</span>
+<span class="c1"># mpl color converter</span>
+<span class="c1"># cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)</span>
+<span class="n">cc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">:</span> <span class="n">colorConverter</span><span class="o">.</span><span class="n">to_rgb</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="get_cmap"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.get_cmap">[docs]</a><span class="k">def</span> <span class="nf">get_cmap</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">lut</span><span class="o">=</span><span class="n">size</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ColorMapDistMap"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.ColorMapDistMap">[docs]</a><span class="k">class</span> <span class="nc">ColorMapDistMap</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="n">default_cm_size</span> <span class="o">=</span> <span class="mi">256</span>
+
+    <span class="n">grey</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ColorMapDistMap.__init__"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.ColorMapDistMap.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;hsv&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c1"># size is number of nodes to be maped to distinguistive colors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cm_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_cm_size</span>
+        <span class="k">while</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cm_size</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cm_size</span> <span class="o">*=</span> <span class="mf">1.1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cm_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cm_size</span><span class="p">))</span>
+        <span class="c1"># get size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span> <span class="o">=</span> <span class="n">get_cmap</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cm_size</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ColorMapDistMap.__call__"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.ColorMapDistMap.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">node</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">node</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cmap</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cm_size</span><span class="o">*</span><span class="n">f_like</span><span class="p">(</span><span class="n">node</span><span class="p">))))[:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="c1"># return grey otherwise</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">grey</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span></div></div>
+
+<div class="viewcode-block" id="f_like"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.f_like">[docs]</a><span class="k">def</span> <span class="nf">f_like</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.5</span>
+    <span class="n">n</span> <span class="o">-=</span> <span class="mi">1</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">order</span>
+    <span class="n">current</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="n">parts</span>
+    <span class="k">return</span> <span class="mf">0.5</span><span class="o">/</span><span class="n">parts</span> <span class="o">+</span> <span class="mf">1.</span><span class="o">/</span><span class="n">parts</span> <span class="o">*</span> <span class="n">current</span></div>
+
+
+<div class="viewcode-block" id="yield_spath_len_and_smooth_diff_in_types_slices"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.yield_spath_len_and_smooth_diff_in_types_slices">[docs]</a><span class="k">def</span> <span class="nf">yield_spath_len_and_smooth_diff_in_types_slices</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">smooth_len</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">smooth_diff</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="s1">&#39;etypes&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">smooth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">smooth_len</span> <span class="o">=</span> <span class="n">smooth</span>
+        <span class="n">smooth_diff</span> <span class="o">=</span> <span class="n">smooth</span>
+    <span class="c1"># len</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">get_coords_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth_len</span><span class="p">)</span>
+    <span class="n">dif</span> <span class="o">=</span> <span class="n">traces</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">ldif</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dif</span><span class="p">)</span>
+    <span class="c1"># diff</span>
+    <span class="k">if</span> <span class="n">smooth_diff</span> <span class="o">!=</span> <span class="n">smooth_len</span><span class="p">:</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">get_coords_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth_diff</span><span class="p">)</span>
+        <span class="n">dif</span> <span class="o">=</span> <span class="n">traces</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+    <span class="c1">#ldif = np.array(range(len(dif))) # same OX</span>
+
+    <span class="k">if</span> <span class="n">types</span> <span class="o">==</span> <span class="s1">&#39;etypes&#39;</span><span class="p">:</span>
+        <span class="n">etypes</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">etypes_cont</span>
+    <span class="k">elif</span> <span class="n">types</span> <span class="o">==</span> <span class="s1">&#39;types&#39;</span><span class="p">:</span>
+        <span class="n">etypes</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">types_cont</span>
+
+
+    <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">list_blocks_to_slices</span><span class="p">(</span><span class="n">etypes</span><span class="p">):</span>
+        <span class="n">etype</span> <span class="o">=</span> <span class="n">etypes</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span>
+        <span class="n">ld</span> <span class="o">=</span> <span class="n">ldif</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span>
+        <span class="n">sd</span> <span class="o">=</span> <span class="n">dif</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">etype</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">ld</span><span class="p">):</span>
+            <span class="n">etype</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="n">ld</span><span class="p">,</span> <span class="n">sd</span><span class="p">,</span> <span class="n">etype</span></div>
+
+
+<span class="n">_dcc_is</span> <span class="o">=</span> <span class="n">ptc</span><span class="o">.</span><span class="n">path_in_code</span> <span class="o">+</span> <span class="n">gptc</span><span class="o">.</span><span class="n">scope_name</span>
+<span class="n">_dcc_cc</span> <span class="o">=</span> <span class="n">ptc</span><span class="o">.</span><span class="n">path_object_code</span> <span class="o">+</span> <span class="n">gptc</span><span class="o">.</span><span class="n">object_name</span>
+<span class="n">_dcc_cs</span> <span class="o">=</span> <span class="n">ptc</span><span class="o">.</span><span class="n">path_object_code</span> <span class="o">+</span> <span class="n">gptc</span><span class="o">.</span><span class="n">scope_name</span>
+<span class="n">_dcc_os</span> <span class="o">=</span> <span class="n">ptc</span><span class="o">.</span><span class="n">path_out_code</span> <span class="o">+</span> <span class="n">gptc</span><span class="o">.</span><span class="n">scope_name</span>
+
+<span class="n">_dcc_i</span> <span class="o">=</span> <span class="n">ptc</span><span class="o">.</span><span class="n">path_in_code</span>
+<span class="n">_dcc_c</span> <span class="o">=</span> <span class="n">ptc</span><span class="o">.</span><span class="n">path_object_code</span>
+<span class="n">_dcc_o</span> <span class="o">=</span> <span class="n">ptc</span><span class="o">.</span><span class="n">path_out_code</span>
+
+<span class="n">_default_color_codes</span> <span class="o">=</span> <span class="p">{</span><span class="n">_dcc_is</span><span class="p">:</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+                        <span class="n">_dcc_cc</span><span class="p">:</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span>
+                        <span class="n">_dcc_cs</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span>
+                        <span class="n">_dcc_os</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+                        <span class="n">_dcc_i</span><span class="p">:</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span>
+                        <span class="n">_dcc_c</span><span class="p">:</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span>
+                        <span class="n">_dcc_o</span><span class="p">:</span> <span class="s1">&#39;b&#39;</span><span class="p">}</span>
+
+
+<span class="n">default_color_codes</span> <span class="o">=</span> <span class="n">_default_color_codes</span>
+
+
+<div class="viewcode-block" id="color_codes"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.color_codes">[docs]</a><span class="k">def</span> <span class="nf">color_codes</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">custom_codes</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">custom_codes</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">default_color_codes</span><span class="p">[</span><span class="n">code</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">custom_codes</span><span class="p">[</span><span class="n">code</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="plot_colorful_lines"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.plot_colorful_lines">[docs]</a><span class="k">def</span> <span class="nf">plot_colorful_lines</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">c</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">sls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">list_blocks_to_slices</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">sls</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sls</span><span class="p">):</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">c</span><span class="p">[</span><span class="n">sl</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">nr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="n">last_a</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">last_b</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">last_color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mid_a</span> <span class="o">=</span> <span class="p">(</span><span class="n">last_a</span> <span class="o">+</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">mid_b</span> <span class="o">=</span> <span class="p">(</span><span class="n">last_b</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">nr</span> <span class="o">==</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">last_a</span><span class="p">,</span> <span class="n">mid_a</span><span class="p">],</span> <span class="p">[</span><span class="n">last_b</span><span class="p">,</span> <span class="n">mid_b</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">last_color</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">mid_a</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">mid_b</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">last_a</span><span class="p">,</span> <span class="n">mid_a</span><span class="p">],</span> <span class="p">[</span><span class="n">last_b</span><span class="p">,</span> <span class="n">mid_b</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="n">last_color</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">mid_a</span><span class="p">,</span> <span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">mid_b</span><span class="p">,</span> <span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                <span class="n">last_a</span> <span class="o">=</span> <span class="n">a</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">last_b</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">last_color</span> <span class="o">=</span> <span class="n">color</span></div>
+
+
+<div class="viewcode-block" id="spaths_spectra"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.spaths_spectra">[docs]</a><span class="k">def</span> <span class="nf">spaths_spectra</span><span class="p">(</span><span class="n">spaths</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+    <span class="n">spectra</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">minx</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">maxx</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">:</span>
+        <span class="n">xyc</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">spath_spectrum</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="n">xyc</span><span class="p">])</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="n">xyc</span><span class="p">])</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">xy</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">spectra</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">y</span><span class="p">,</span><span class="n">c</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">maxx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">maxx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxx</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxx</span><span class="p">,</span><span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">minx</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">minx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">minx</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">minx</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="n">spectra</span><span class="p">:</span>
+        <span class="n">plot_colorful_lines</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">minx</span><span class="p">,</span><span class="n">maxx</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)),</span><span class="n">y</span><span class="p">,</span><span class="n">c</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="plot_spath_spectrum"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.plot_spath_spectrum">[docs]</a><span class="k">def</span> <span class="nf">plot_spath_spectrum</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">xyc</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">spath_spectrum</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="n">xyc</span><span class="p">])</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">c</span> <span class="ow">in</span> <span class="n">xyc</span><span class="p">])</span>
+    <span class="n">plot_colorful_lines</span><span class="p">(</span><span class="n">xy</span><span class="p">[:,</span><span class="mi">0</span><span class="p">],</span><span class="n">xy</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span><span class="n">c</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="spath_spectrum"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.spath_spectrum">[docs]</a><span class="k">def</span> <span class="nf">spath_spectrum</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">lsdt</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">yield_spath_len_and_smooth_diff_in_types_slices</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lsdt</span><span class="p">)</span>
+
+    <span class="n">last_l</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">last_sd</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">last_t</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="n">last_color</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">sd</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lsdt</span><span class="p">):</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">color_codes</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">nr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ll</span><span class="p">,</span><span class="n">ssdd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">l</span><span class="p">,</span><span class="n">sd</span><span class="p">):</span>
+                <span class="k">yield</span> <span class="n">ll</span><span class="p">,</span><span class="n">ssdd</span><span class="p">,</span><span class="n">color</span>
+            <span class="c1">#plt.plot(l, sd, color=color)</span>
+            <span class="n">last_l</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">last_sd</span> <span class="o">=</span> <span class="n">sd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">last_color</span> <span class="o">=</span> <span class="n">color</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mid_l</span> <span class="o">=</span> <span class="p">(</span><span class="n">last_l</span> <span class="o">+</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="n">mid_sd</span> <span class="o">=</span> <span class="p">(</span><span class="n">last_sd</span> <span class="o">+</span> <span class="n">sd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">if</span> <span class="n">nr</span> <span class="o">==</span> <span class="n">n</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1">#for ll, ssdd in zip([last_l, mid_l], [last_sd, mid_sd]):</span>
+                <span class="c1">#    yield ll, ssdd, last_color</span>
+                <span class="c1">#plt.plot([last_l, mid_l], [last_sd, mid_sd], color=last_color)</span>
+                <span class="c1">#for ll, ssdd in zip([mid_l, l[0]], [mid_sd, sd[0]]):</span>
+                <span class="c1">#    yield ll, ssdd, color</span>
+                <span class="c1">#plt.plot([mid_l, l[0]], [mid_sd, sd[0]], color=color)</span>
+                <span class="k">for</span> <span class="n">ll</span><span class="p">,</span> <span class="n">ssdd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">sd</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">ll</span><span class="p">,</span> <span class="n">ssdd</span><span class="p">,</span> <span class="n">color</span>
+                <span class="c1">#plt.plot(l, sd, color=color)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1">#for ll, ssdd in zip([last_l, mid_l], [last_sd, mid_sd]):</span>
+                <span class="c1">#    yield ll, ssdd, last_color</span>
+                <span class="c1">#plt.plot([last_l, mid_l], [last_sd, mid_sd], color=last_color)</span>
+                <span class="c1">#for ll, ssdd in zip([mid_l, l[0]], [mid_sd, sd[0]]):</span>
+                <span class="c1">#    yield ll, ssdd, color</span>
+                <span class="c1">#plt.plot([mid_l, l[0]], [mid_sd, sd[0]], color=color)</span>
+                <span class="k">for</span> <span class="n">ll</span><span class="p">,</span> <span class="n">ssdd</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">sd</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">ll</span><span class="p">,</span> <span class="n">ssdd</span><span class="p">,</span> <span class="n">color</span>
+                <span class="c1">#plt.plot(l, sd, color=color)</span>
+                <span class="n">last_l</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">last_sd</span> <span class="o">=</span> <span class="n">sd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">last_color</span> <span class="o">=</span> <span class="n">color</span></div>
+
+
+<div class="viewcode-block" id="showit"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.showit">[docs]</a><span class="k">def</span> <span class="nf">showit</span><span class="p">(</span><span class="n">gen</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">patched</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">gen</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">return</span> <span class="n">patched</span></div>
+
+
+<div class="viewcode-block" id="get_ax3d"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.get_ax3d">[docs]</a><span class="k">def</span> <span class="nf">get_ax3d</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">sub</span><span class="o">=</span><span class="mi">111</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SimpleTracePlotter"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.SimpleTracePlotter">[docs]</a><span class="k">class</span> <span class="nc">SimpleTracePlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleTracePlotter.plot_line"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.SimpleTracePlotter.plot_line">[docs]</a>    <span class="k">def</span> <span class="nf">plot_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;This is base class.&#39;</span><span class="p">)</span></div>
+
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    def path_trace(self,path,color=(&#39;r&#39;,&#39;g&#39;,&#39;b&#39;),</span>
+<span class="sd">                   plot_in=True,</span>
+<span class="sd">                   plot_object=True,</span>
+<span class="sd">                   plot_out=True,</span>
+<span class="sd">                   **kwargs):</span>
+<span class="sd">        raise NotImplementedError(&#39;This is base class.&#39;)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="SimpleTracePlotter.single_trace"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.SimpleTracePlotter.single_trace">[docs]</a>    <span class="k">def</span> <span class="nf">single_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># coords is a trace</span>
+        <span class="c1"># color is a single color</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="n">cc</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="c1"># call plot_line</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">plot_line</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimpleTracePlotter.path_trace"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.SimpleTracePlotter.path_trace">[docs]</a>    <span class="k">def</span> <span class="nf">path_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">),</span>
+                   <span class="n">plot_in</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                   <span class="n">plot_object</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                   <span class="n">plot_out</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                   <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># path is a tuple of length 3, its elements represent in,object, out parts of path</span>
+        <span class="c1"># color is a tuple of length 3, its elements correspond to colors of consecutive path parts</span>
+        <span class="n">color</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">cc</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">midpoints</span><span class="p">(</span><span class="n">path</span><span class="p">)):</span>
+            <span class="c1"># mid points!</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">nr</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">plot_in</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">nr</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">plot_object</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">nr</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">plot_out</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">single_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">[</span><span class="n">nr</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SimpleProteinPlotter"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.SimpleProteinPlotter">[docs]</a><span class="k">class</span> <span class="nc">SimpleProteinPlotter</span><span class="p">(</span><span class="n">SimpleTracePlotter</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleProteinPlotter.protein_trace"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.SimpleProteinPlotter.protein_trace">[docs]</a>    <span class="k">def</span> <span class="nf">protein_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protein</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># assumes protein is reader object</span>
+        <span class="c1"># TODO: iterate over chains?</span>
+        <span class="n">bb</span> <span class="o">=</span> <span class="n">protein</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="s2">&quot;protein and backbone&quot;</span><span class="p">)</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="n">bb</span><span class="o">.</span><span class="n">get_positions</span><span class="p">()</span>
+        <span class="n">cdiff</span> <span class="o">=</span> <span class="n">traces</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">cdiff</span> <span class="o">&gt;</span> <span class="mf">2.5</span><span class="p">)</span>  <span class="c1"># TODO: magic constant</span>
+        <span class="n">ns</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">split</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ns</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">single_trace</span><span class="p">(</span><span class="n">smooth</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># TODO: color conversion is buggy</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">split</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">ns</span><span class="p">,)</span>
+            <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">csplit</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">split</span><span class="o">.</span><span class="n">tolist</span><span class="p">()):</span>
+                <span class="n">cc</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="n">nr</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="n">nr</span> <span class="o">==</span> <span class="n">ns</span><span class="p">:</span>
+                    <span class="n">scoords</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">csplit</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+                <span class="k">elif</span> <span class="n">nr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">scoords</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">csplit</span><span class="p">:</span><span class="n">split</span><span class="p">[</span><span class="n">nr</span><span class="p">]]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">scoords</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">csplit</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span><span class="n">split</span><span class="p">[</span><span class="n">nr</span><span class="p">]]</span>
+                <span class="k">if</span> <span class="n">smooth</span><span class="p">:</span>
+                    <span class="n">scoords</span> <span class="o">=</span> <span class="n">smooth</span><span class="p">(</span><span class="n">scoords</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">single_trace</span><span class="p">(</span><span class="n">scoords</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SimplePathPlotter"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.SimplePathPlotter">[docs]</a><span class="k">class</span> <span class="nc">SimplePathPlotter</span><span class="p">(</span><span class="n">SimpleTracePlotter</span><span class="p">):</span>
+<div class="viewcode-block" id="SimplePathPlotter.single_path_traces"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.SimplePathPlotter.single_path_traces">[docs]</a>    <span class="k">def</span> <span class="nf">single_path_traces</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spaths</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">spath</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">path_trace</span><span class="p">(</span><span class="n">spath</span><span class="o">.</span><span class="n">get_coords</span><span class="p">(</span><span class="n">smooth</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="MPLTracePlotter"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.MPLTracePlotter">[docs]</a><span class="k">class</span> <span class="nc">MPLTracePlotter</span><span class="p">(</span><span class="n">SimplePathPlotter</span><span class="p">,</span> <span class="n">SimpleProteinPlotter</span><span class="p">):</span>
+    <span class="nd">@showit</span>
+<div class="viewcode-block" id="MPLTracePlotter.init_ax"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.MPLTracePlotter.init_ax">[docs]</a>    <span class="k">def</span> <span class="nf">init_ax</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">left</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">right</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fig</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">set_axis_bgcolor</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span></div>
+
+    <span class="nd">@showit</span>
+<div class="viewcode-block" id="MPLTracePlotter.plot_line"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.MPLTracePlotter.plot_line">[docs]</a>    <span class="k">def</span> <span class="nf">plot_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">plot3D</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                       <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+                       <span class="n">coords</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span>
+                       <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+    <span class="nd">@showit</span>
+<div class="viewcode-block" id="MPLTracePlotter.scatter"><a class="viewcode-back" href="../../../aqueduct.visual.quickplot.html#aqueduct.visual.quickplot.MPLTracePlotter.scatter">[docs]</a>    <span class="k">def</span> <span class="nf">scatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">scatter3D</span><span class="p">(</span><span class="n">coords</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                          <span class="n">coords</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+                          <span class="n">coords</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span>
+                          <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

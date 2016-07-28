@@ -1,0 +1,341 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aqueduct.geom.master &mdash; Aqueduct 0.2.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Aqueduct 0.2.10 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for aqueduct.geom.master</h1><div class="highlight"><pre>
+<span></span>
+<span class="c1"># this modlue is a prototype and have to be revritten</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span><span class="p">,</span> <span class="n">pdist</span> <span class="p">,</span><span class="n">squareform</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">aqueduct.traj.paths</span> <span class="kn">import</span> <span class="n">GenericPathTypeCodes</span><span class="p">,</span> <span class="n">GenericPaths</span><span class="p">,</span> <span class="n">yield_single_paths</span><span class="p">,</span> <span class="n">MasterPath</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">list_blocks_to_slices</span>
+<span class="kn">from</span> <span class="nn">aqueduct.geom</span> <span class="kn">import</span> <span class="n">traces</span>
+
+
+<div class="viewcode-block" id="fit_trace_to_points"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.fit_trace_to_points">[docs]</a><span class="k">def</span> <span class="nf">fit_trace_to_points</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span><span class="n">points</span><span class="p">):</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">points_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+    <span class="n">points_used</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="n">points_min</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">pm</span> <span class="ow">in</span> <span class="n">points_used</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">points_used</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pm</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">points_used</span></div>
+
+
+<div class="viewcode-block" id="strech_zip"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.strech_zip">[docs]</a><span class="k">def</span> <span class="nf">strech_zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span><span class="n">args</span><span class="p">))</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">ns</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">args</span><span class="p">[</span><span class="n">nr</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">cN</span><span class="o">/</span><span class="n">N</span><span class="o">*</span><span class="n">n</span><span class="p">)]</span> <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">cN</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ns</span><span class="p">)])</span></div>
+
+<div class="viewcode-block" id="compress_zip"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.compress_zip">[docs]</a><span class="k">def</span> <span class="nf">compress_zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span><span class="n">args</span><span class="p">))</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">ns</span><span class="p">))</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">this_yield</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">next_position</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">))</span><span class="o">/</span><span class="n">N</span> <span class="o">+</span> <span class="n">p</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">,</span><span class="n">position</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">np</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">,</span><span class="n">position</span><span class="p">,</span><span class="n">next_position</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">N</span><span class="p">:</span>
+                <span class="n">this_yield</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">):])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">this_yield</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">):</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="p">)])</span>
+        <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">this_yield</span><span class="p">)</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">next_position</span></div>
+
+<div class="viewcode-block" id="zip_zip"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.zip_zip">[docs]</a><span class="k">def</span> <span class="nf">zip_zip</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="n">ns</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span><span class="nb">map</span><span class="p">(</span><span class="nb">len</span><span class="p">,</span><span class="n">args</span><span class="p">))</span>
+    <span class="k">if</span> <span class="s1">&#39;N&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">ns</span><span class="p">))</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="n">this_yield</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">next_position</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">))</span><span class="o">/</span><span class="n">N</span> <span class="o">+</span> <span class="n">p</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">p</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">,</span><span class="n">position</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">a</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">np</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">args</span><span class="p">,</span><span class="n">position</span><span class="p">,</span><span class="n">next_position</span><span class="p">):</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="n">inp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">N</span><span class="p">:</span>
+                <span class="n">this_yield</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">ip</span><span class="p">:])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ip</span> <span class="o">==</span> <span class="n">inp</span><span class="p">:</span>
+                    <span class="n">inp</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">this_yield</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="n">ip</span><span class="p">:</span><span class="n">inp</span><span class="p">])</span>
+        <span class="k">yield</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">this_yield</span><span class="p">)</span>
+        <span class="n">position</span> <span class="o">=</span> <span class="n">next_position</span></div>
+
+
+
+<div class="viewcode-block" id="decide_on_type"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.decide_on_type">[docs]</a><span class="k">def</span> <span class="nf">decide_on_type</span><span class="p">(</span><span class="n">cont</span><span class="p">,</span> <span class="n">s2o_treshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">):</span>
+    <span class="c1"># possible types are:</span>
+    <span class="c1">#GenericPathTypeCodes.object_name</span>
+    <span class="c1">#GenericPathTypeCodes.scope_name</span>
+    <span class="n">o</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">cont</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">object_name</span><span class="p">):</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">cont</span><span class="p">[</span><span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">object_name</span><span class="p">]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">cont</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">scope_name</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">cont</span><span class="p">[</span><span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">scope_name</span><span class="p">]</span>
+    <span class="c1"># get s to o value</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="n">o</span><span class="p">:</span>
+        <span class="n">s2o</span> <span class="o">=</span> <span class="mf">0.5</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">o</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">s2o</span> <span class="o">=</span> <span class="mf">1.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s2o</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">o</span><span class="o">+</span><span class="n">s</span><span class="p">)</span>
+    <span class="c1"># decide on type</span>
+    <span class="c1">#print s,o</span>
+    <span class="c1">#print s2o, {True:&#39;sco&#39;,False:&#39;obj&#39;}[s2o &gt;= s2o_treshold],cont</span>
+    <span class="k">if</span> <span class="n">s2o</span> <span class="o">&gt;=</span> <span class="n">s2o_treshold</span> <span class="ow">and</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">scope_name</span>
+    <span class="k">return</span> <span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">object_name</span></div>
+
+<div class="viewcode-block" id="simple_types_distribution"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.simple_types_distribution">[docs]</a><span class="k">def</span> <span class="nf">simple_types_distribution</span><span class="p">(</span><span class="n">types</span><span class="p">):</span>
+    <span class="c1"># possible types are:</span>
+    <span class="c1">#GenericPathTypeCodes.object_name</span>
+    <span class="c1">#GenericPathTypeCodes.scope_name</span>
+    <span class="n">td_in</span><span class="p">,</span> <span class="n">td_obj</span><span class="p">,</span> <span class="n">td_out</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span>
+    <span class="n">sls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">list_blocks_to_slices</span><span class="p">(</span><span class="n">types</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">scope_name</span> <span class="ow">in</span> <span class="n">types</span><span class="p">[</span><span class="n">sls</span><span class="p">[</span><span class="mi">0</span><span class="p">]]:</span>
+        <span class="c1"># this is input part</span>
+        <span class="n">td_in</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">[</span><span class="n">sls</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+    <span class="k">if</span> <span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">scope_name</span> <span class="ow">in</span> <span class="n">types</span><span class="p">[</span><span class="n">sls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]:</span>
+        <span class="c1"># this is output part</span>
+        <span class="n">td_out</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">[</span><span class="n">sls</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="c1"># the rest is object</span>
+    <span class="n">td_obj</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">)</span> <span class="o">-</span> <span class="n">td_in</span> <span class="o">-</span> <span class="n">td_out</span>
+    <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">types</span><span class="p">),(</span><span class="n">td_in</span><span class="p">,</span><span class="n">td_obj</span><span class="p">,</span><span class="n">td_out</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="get_weights_"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.get_weights_">[docs]</a><span class="k">def</span> <span class="nf">get_weights_</span><span class="p">(</span><span class="n">spaths</span><span class="p">,</span><span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="c1"># max len</span>
+    <span class="n">max_len</span> <span class="o">=</span> <span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">get_distance_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">]</span>
+    <span class="n">arg_max_len</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">max_len</span><span class="p">)</span>
+    <span class="n">max_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_len</span><span class="p">)</span>
+    <span class="c1"># get weights as both lengths</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">sz</span> <span class="k">for</span> <span class="n">sz</span> <span class="ow">in</span> <span class="n">strech_zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">get_distance_both_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">max_len</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">])])</span>
+    <span class="c1"># add 0.5 - len_both of the lognest path</span>
+    <span class="n">length_both_of_max_len</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">-</span> <span class="n">spaths</span><span class="p">[</span><span class="n">arg_max_len</span><span class="p">]</span><span class="o">.</span><span class="n">get_distance_both_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">max_len</span><span class="p">)</span>
+
+    <span class="n">weights</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">lboml</span><span class="o">+</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span><span class="n">lboml</span> <span class="ow">in</span> <span class="n">strech_zip</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span><span class="n">length_both_of_max_len</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">weights</span><span class="o">**</span><span class="mi">10</span></div>
+
+<div class="viewcode-block" id="get_mean_coord_"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.get_mean_coord_">[docs]</a><span class="k">def</span> <span class="nf">get_mean_coord_</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span><span class="n">l</span><span class="p">):</span>
+    <span class="c1"># l &gt;&gt; 0</span>
+    <span class="n">coord0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># l &gt;&gt; 1</span>
+    <span class="n">coord5</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">cdist</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">coord0</span><span class="p">)))]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">([</span><span class="n">coord0</span><span class="p">,</span><span class="n">coord5</span><span class="p">],</span><span class="mi">0</span><span class="p">,[</span><span class="mi">1</span><span class="o">-</span><span class="n">l</span><span class="p">,</span><span class="n">l</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="concatenate"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.concatenate">[docs]</a><span class="k">def</span> <span class="nf">concatenate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">a</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">e</span></div>
+
+
+<span class="n">part2type_dict</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">scope_name</span><span class="p">,</span>
+                  <span class="mi">1</span><span class="p">:</span> <span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">object_name</span><span class="p">,</span>
+                  <span class="mi">2</span><span class="p">:</span> <span class="n">GenericPathTypeCodes</span><span class="o">.</span><span class="n">scope_name</span><span class="p">}</span>
+
+<span class="n">parts</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="create_master_spath"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.create_master_spath">[docs]</a><span class="k">def</span> <span class="nf">create_master_spath</span><span class="p">(</span><span class="n">spaths</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">resid</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">ctype</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">bias_long</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">heartbeat</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">beat</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">heartbeat</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">heartbeat</span><span class="p">()</span>
+
+    <span class="c1"># first check what is the size of paths in all parts and normalize and then scale them</span>
+    <span class="n">sizes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+        <span class="c1"># lengths of all paths of part part</span>
+        <span class="n">lens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">part</span><span class="p">]))</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lens</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lens</span><span class="p">)</span> <span class="c1"># normalization</span>
+            <span class="n">lens</span> <span class="o">=</span> <span class="n">lens</span> <span class="o">**</span> <span class="n">bias_long</span> <span class="c1"># scale them by increasing weights of long paths</span>
+        <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">lens</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># weighted average by paths lengths</span>
+            <span class="n">sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">part</span><span class="p">])</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">],</span><span class="mi">0</span><span class="p">,</span><span class="n">lens</span><span class="p">)))</span>
+    <span class="n">full_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span> <span class="c1"># total size (desired)</span>
+
+    <span class="n">beat</span><span class="p">()</span> <span class="c1"># touch progress bar</span>
+
+    <span class="c1"># get total lenghts of all paths - needed as weights in averaging</span>
+    <span class="n">lens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">])</span>
+    <span class="c1"># if ctype in #:# and not 0 and not None then take object part only length</span>
+    <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ctype</span><span class="o">.</span><span class="n">input</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ctype</span><span class="o">.</span><span class="n">input</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ctype</span><span class="o">.</span><span class="n">input</span> <span class="o">==</span> <span class="n">ctype</span><span class="o">.</span><span class="n">output</span><span class="p">:</span>
+                    <span class="n">lens</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">types_object</span><span class="p">))</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">])</span>
+    <span class="c1"># normalize and incearse weight of long paths (depends ob ctype)</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lens</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">lens</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lens</span><span class="p">)</span> <span class="c1"># normalize</span>
+        <span class="n">lens</span> <span class="o">=</span> <span class="n">lens</span> <span class="o">**</span> <span class="n">bias_long</span> <span class="c1"># bias to long paths</span>
+
+    <span class="c1"># containers for coords, types and widths of master path</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">types</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">widths</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># loop over zip zipped [smooth] coords of all paths and gtypes with size set to full_size</span>
+    <span class="k">for</span> <span class="n">coords_zz</span><span class="p">,</span> <span class="n">types_zz</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">zip_zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">get_coords_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">],</span> <span class="n">N</span><span class="o">=</span><span class="n">full_size</span><span class="p">),</span>
+                                   <span class="n">zip_zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">gtypes_cont</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">],</span> <span class="n">N</span><span class="o">=</span><span class="n">full_size</span><span class="p">)):</span>
+        <span class="c1"># make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts</span>
+        <span class="n">lens_zz</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">l</span><span class="p">,</span> <span class="n">coord_z</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lens</span><span class="p">,</span> <span class="n">coords_zz</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coord_z</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">lens_zz</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">coord_z</span><span class="p">)]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">coord_z</span><span class="p">))</span> <span class="c1"># normalize and correct lengths</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># lens_zz.append([float(l)] * len(coord_z))</span>
+                <span class="n">lens_zz</span><span class="o">.</span><span class="n">append</span><span class="p">([])</span>
+        <span class="c1"># concatenate zip_zip coords and lens</span>
+        <span class="n">coords_zz_cat</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">concatenate</span><span class="p">(</span><span class="o">*</span><span class="n">coords_zz</span><span class="p">))</span>
+        <span class="n">lens_zz_cat</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">concatenate</span><span class="p">(</span><span class="o">*</span><span class="n">lens_zz</span><span class="p">))</span>
+        <span class="c1"># average coords_zz_cat using weights of lens_zz_cat</span>
+        <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">coords_zz_cat</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lens_zz_cat</span><span class="p">))</span>
+        <span class="c1"># calculate widths</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords_zz</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># try tu use weighted distance - wminkowski with p=2 is equivalent to weighted euclidean</span>
+            <span class="c1">#id_of_max = np.argmax(pdist(coords_zz_cat, &#39;wminkowski&#39;, p=2, w=lens_zz_cat))</span>
+            <span class="c1">#widths.append(pdist(coords_zz_cat, &#39;euclidean&#39;)[id_of_max])</span>
+            <span class="n">widths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="n">coords_zz_cat</span><span class="p">,</span> <span class="s1">&#39;euclidean&#39;</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">widths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+        <span class="c1"># concatenate zip_zip gtypes</span>
+        <span class="n">types_zz_cat</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">concatenate</span><span class="p">(</span><span class="o">*</span><span class="n">types_zz</span><span class="p">))</span>
+        <span class="c1"># pick correct type..., check distance of coords[-1] to coords_zz_cat</span>
+        <span class="n">types_cdist</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span><span class="n">coords_zz_cat</span><span class="p">,</span><span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
+        <span class="n">types</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">types_zz_cat</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">types_cdist</span><span class="p">)])</span>
+        <span class="c1">#types.append(decide_on_type(Counter(types_zz_cat)))</span>
+
+        <span class="n">beat</span><span class="p">()</span>  <span class="c1"># touch progress bar</span>
+
+    <span class="n">frames</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
+
+    <span class="n">min_pf</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">max_pf</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">ctype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">min_pf</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="n">max_pf</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">ctype</span><span class="o">.</span><span class="n">input</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">min_pf</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">ctype</span><span class="o">.</span><span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">max_pf</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="n">gp</span> <span class="o">=</span> <span class="n">GenericPaths</span><span class="p">(</span><span class="n">resid</span><span class="p">,</span> <span class="n">min_pf</span><span class="o">=</span><span class="n">min_pf</span><span class="p">,</span> <span class="n">max_pf</span><span class="o">=</span><span class="n">max_pf</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">c</span><span class="p">,</span><span class="n">t</span><span class="p">,</span><span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span><span class="n">types</span><span class="p">,</span><span class="n">frames</span><span class="p">):</span> <span class="c1"># TODO: remove loop</span>
+        <span class="n">gp</span><span class="o">.</span><span class="n">add_type</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">gp</span><span class="o">.</span><span class="n">add_coord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="c1">#return gp</span>
+    <span class="n">beat</span><span class="p">()</span>  <span class="c1"># touch progress bar</span>
+    <span class="n">sp</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">yield_single_paths</span><span class="p">([</span><span class="n">gp</span><span class="p">]))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">beat</span><span class="p">()</span>  <span class="c1"># touch progress bar</span>
+    <span class="n">mp</span> <span class="o">=</span> <span class="n">MasterPath</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
+    <span class="n">mp</span><span class="o">.</span><span class="n">add_width</span><span class="p">(</span><span class="n">widths</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mp</span></div>
+
+
+
+
+<div class="viewcode-block" id="MasterTrace"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.MasterTrace">[docs]</a><span class="k">class</span> <span class="nc">MasterTrace</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MasterTrace.__init__"><a class="viewcode-back" href="../../../aqueduct.geom.master.html#aqueduct.geom.master.MasterTrace.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

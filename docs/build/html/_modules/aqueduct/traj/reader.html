@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aqueduct.traj.reader &mdash; Aqueduct 0.2.10 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.10',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Aqueduct 0.2.10 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for aqueduct.traj.reader</h1><div class="highlight"><pre>
+<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on Nov 19, 2015</span>
+
+<span class="sd">@author: tljm</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="kn">as</span> <span class="nn">mda</span>
+<span class="c1">#import mdtraj as mdt</span>
+
+<span class="kn">from</span> <span class="nn">aqueduct.traj.selections</span> <span class="kn">import</span> <span class="n">SelectionMDA</span>
+
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="n">mda_available_formats</span> <span class="o">=</span> <span class="p">{</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(nc|NC)&#39;</span><span class="p">):</span> <span class="s1">&#39;nc&#39;</span><span class="p">,</span>
+                         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(parmtop|top|PARMTOP|TOP)&#39;</span><span class="p">):</span> <span class="s1">&#39;parmtop&#39;</span><span class="p">,</span>
+                         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(dcd|DCD)&#39;</span><span class="p">):</span> <span class="s1">&#39;dcd&#39;</span><span class="p">,</span>
+                         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(psf|PSF)&#39;</span><span class="p">):</span> <span class="s1">&#39;psf&#39;</span><span class="p">,</span>
+                         <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(pdb|PDB)&#39;</span><span class="p">):</span> <span class="s1">&#39;pdb&#39;</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="Reader"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader">[docs]</a><span class="k">class</span> <span class="nc">Reader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Reader.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topology</span><span class="p">,</span> <span class="n">trajectory</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">topology</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trajectory</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">trj</span> <span class="ow">in</span> <span class="n">trajectory</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trj</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">topology_file_name</span> <span class="o">=</span> <span class="n">topology</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_file_name</span> <span class="o">=</span> <span class="n">trajectory</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_object</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_trajectory</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_current_frame</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># ensure that by default it starts from frame 0</span></div>
+
+<div class="viewcode-block" id="Reader.open_trajectory"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader.open_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">open_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># should return any object that can be further used to parse trajectory</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">number_of_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># should return number of frames</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Reader.set_current_frame"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader.set_current_frame">[docs]</a>    <span class="k">def</span> <span class="nf">set_current_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="c1"># should set current frame</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Reader.next_frame"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader.next_frame">[docs]</a>    <span class="k">def</span> <span class="nf">next_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># should set next frame or raise StopIteration</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Reader.iterate_over_frames"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader.iterate_over_frames">[docs]</a>    <span class="k">def</span> <span class="nf">iterate_over_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># should return list of frames ids or generator returning such a list, and should set appropriate frame</span>
+        <span class="n">current_frame</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_current_frame</span><span class="p">(</span><span class="n">current_frame</span><span class="p">)</span>
+            <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">current_frame</span>
+                <span class="n">current_frame</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">next_frame</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Reader.parse_selection"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader.parse_selection">[docs]</a>    <span class="k">def</span> <span class="nf">parse_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selection</span><span class="p">):</span>
+        <span class="c1"># should parse and return selection object</span>
+        <span class="c1"># is this object updated automatically depends on the particular implementation of Reader class</span>
+        <span class="c1"># in particular MDA updates postions of atoms accoriding to current frame, to renew selection one has to parse it again</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Reader.select_resnum"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader.select_resnum">[docs]</a>    <span class="k">def</span> <span class="nf">select_resnum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resnum</span><span class="p">):</span>
+        <span class="c1"># should return selection object</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Reader.select_multiple_resnum"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.Reader.select_multiple_resnum">[docs]</a>    <span class="k">def</span> <span class="nf">select_multiple_resnum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resnum_list</span><span class="p">):</span>
+        <span class="c1"># should return selection object</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="ReadViaMDA"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA">[docs]</a><span class="k">class</span> <span class="nc">ReadViaMDA</span><span class="p">(</span><span class="n">Reader</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">number_of_frames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># should return number of frames</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_object</span><span class="o">.</span><span class="n">trajectory</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ReadViaMDA.set_current_frame"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.set_current_frame">[docs]</a>    <span class="k">def</span> <span class="nf">set_current_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_object</span><span class="o">.</span><span class="n">trajectory</span><span class="p">[</span><span class="n">frame</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="ReadViaMDA.next_frame"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.next_frame">[docs]</a>    <span class="k">def</span> <span class="nf">next_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_object</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">StopIteration</span></div>
+
+<div class="viewcode-block" id="ReadViaMDA.parse_selection"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.parse_selection">[docs]</a>    <span class="k">def</span> <span class="nf">parse_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">selection</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">SelectionMDA</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_object</span><span class="o">.</span><span class="n">select_atoms</span><span class="p">(</span><span class="n">selection</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="ReadViaMDA.select_resnum"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.select_resnum">[docs]</a>    <span class="k">def</span> <span class="nf">select_resnum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resnum</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resnum</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="s2">&quot;resnum </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">resnum</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReadViaMDA.select_multiple_resnum"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.select_multiple_resnum">[docs]</a>    <span class="k">def</span> <span class="nf">select_multiple_resnum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resnum_list</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">resnum_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="n">selection</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">resnum</span> <span class="ow">in</span> <span class="n">resnum_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">selection</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">selection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_resnum</span><span class="p">(</span><span class="n">resnum</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">selection</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">select_resnum</span><span class="p">(</span><span class="n">resnum</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">SelectionMDA</span><span class="p">(</span><span class="n">selection</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReadViaMDA.__enter__"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.__enter__">[docs]</a>    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="ReadViaMDA.__exit__"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">typ</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_object</span><span class="o">.</span><span class="n">trajectory</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">typ</span><span class="p">(</span><span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ReadViaMDA.open_trajectory"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadViaMDA.open_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">open_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">topology</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology_file_name</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">for</span> <span class="n">afk</span> <span class="ow">in</span> <span class="n">mda_available_formats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">afk</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">topology</span><span class="p">):</span>
+                <span class="n">topology</span> <span class="o">=</span> <span class="n">mda_available_formats</span><span class="p">[</span><span class="n">afk</span><span class="p">]</span>
+                <span class="k">break</span>
+        <span class="n">trajectory</span> <span class="o">=</span> <span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trajectory_file_name</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">for</span> <span class="n">afk</span> <span class="ow">in</span> <span class="n">mda_available_formats</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">afk</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">trajectory</span><span class="p">):</span>
+                <span class="n">trajectory</span> <span class="o">=</span> <span class="n">mda_available_formats</span><span class="p">[</span><span class="n">afk</span><span class="p">]</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology_file_name</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_file_name</span><span class="p">,</span>
+                            <span class="n">topology_format</span><span class="o">=</span><span class="n">topology</span><span class="p">,</span>
+                            <span class="n">format</span><span class="o">=</span><span class="n">trajectory</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ReadAmberNetCDFviaMDA"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadAmberNetCDFviaMDA">[docs]</a><span class="k">class</span> <span class="nc">ReadAmberNetCDFviaMDA</span><span class="p">(</span><span class="n">ReadViaMDA</span><span class="p">):</span>
+<div class="viewcode-block" id="ReadAmberNetCDFviaMDA.open_trajectory"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadAmberNetCDFviaMDA.open_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">open_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology_file_name</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_file_name</span><span class="p">,</span>
+                            <span class="n">topology_format</span><span class="o">=</span><span class="s2">&quot;prmtop&quot;</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s2">&quot;nc&quot;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ReadDCDviaMDA"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadDCDviaMDA">[docs]</a><span class="k">class</span> <span class="nc">ReadDCDviaMDA</span><span class="p">(</span><span class="n">ReadViaMDA</span><span class="p">):</span>
+<div class="viewcode-block" id="ReadDCDviaMDA.open_trajectory"><a class="viewcode-back" href="../../../aqueduct.traj.reader.html#aqueduct.traj.reader.ReadDCDviaMDA.open_trajectory">[docs]</a>    <span class="k">def</span> <span class="nf">open_trajectory</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">mda</span><span class="o">.</span><span class="n">Universe</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topology_file_name</span><span class="p">,</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">trajectory_file_name</span><span class="p">,</span>
+                            <span class="n">topology_format</span><span class="o">=</span><span class="s2">&quot;psf&quot;</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s2">&quot;dcd&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

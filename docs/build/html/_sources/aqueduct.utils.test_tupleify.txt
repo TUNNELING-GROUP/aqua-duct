@@ -1,0 +1,6 @@
+aqueduct.utils.test_tupleify module
+===================================
+
+.. automodule:: aqueduct.utils.test_tupleify
+    :members:
+    :show-inheritance:
