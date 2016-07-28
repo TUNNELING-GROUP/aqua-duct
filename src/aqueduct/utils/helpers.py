@@ -314,8 +314,8 @@ def tupleify(gen):
 
 def arrayify(gen):
     '''
-    Decorator to convert functions' outputs into a 2D numpy array. If the output is iterable it is converted in to a a 2D numpy array
-    of appropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.
+    Decorator to convert functions' outputs into a 2D numpy array. If the output is iterable it is converted in to a 2D numpy array
+    of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.
 
     Written on the basis of :func:`listify`.
 
@@ -334,8 +334,8 @@ def arrayify(gen):
 
 def arrayify1(gen):
     '''
-    Decorator to convert functions' outputs into a 1D numpy array. If the output is iterable it is converted in to a a 2D numpy array
-    of appropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.
+    Decorator to convert functions' outputs into a 1D numpy array. If the output is iterable it is converted in to a 2D numpy array
+    of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.
 
     Written on the basis of :func:`listify`.
 
@@ -361,6 +361,7 @@ def list_blocks_to_slices(l):
     :return: Generator of slices.
     :rtype: generator
     '''
+    #TODO: poprawic opis
     n = len(l)
     if n in [0, 1]:
         yield slice(None, None, None)
