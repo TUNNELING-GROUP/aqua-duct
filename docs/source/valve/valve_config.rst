@@ -27,10 +27,8 @@ This section allows settings of trajectory data and progress bar type.
 Available options
 ^^^^^^^^^^^^^^^^^
 
-* ``top`` - Path to Amber topology file.
-* ``nc`` - Path to Amber NetCDF file.
-* ``pbar`` - Progres bar type. Possible values:
-    * ``simple`` - [Default, Recommended] Build in progress bar.
+* ``top`` - Path to topology file.
+* ``trj`` - Path to trajectory file.
 
 Example
 ^^^^^^^
@@ -39,8 +37,7 @@ Example
 
     [global]
     top = path/to/topology/file.prmtop
-    nc = path/to/trajectory/file.nc
-    pbar = simple
+    trj = path/to/trajectory/file.nc
 
 Common settings of stage sections
 ---------------------------------

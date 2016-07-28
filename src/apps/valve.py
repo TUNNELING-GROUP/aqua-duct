@@ -47,7 +47,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 7, 2
+    return 0, 8, 0
 
 
 def version_nice():
@@ -93,7 +93,7 @@ class ValveConfig(object, ConfigSpecialNames):
         # execute - what to do: skip, run
         # load - load previous results form file name
         # save - save results to file name
-        return 'execute load save'.split()
+        return 'execute dump'.split()
 
     @staticmethod
     def common_traj_data_config_names():
@@ -188,11 +188,21 @@ class ValveConfig(object, ConfigSpecialNames):
         return self.__make_options_nt(options)
 
     def get_default_config(self):
+        #snr = 0 # stage number
+
         config = ConfigParser.RawConfigParser()
 
         def common(section):
             for setting in self.common_config_names():
-                config.set(section, setting)
+                value = None
+                if setting == 'execute':
+                    value = 'runonce'
+                elif setting == 'dump':
+                    value = '%d_%s_data.dump' % (snr+1,section)
+                if value is None:
+                    config.set(section, setting)
+                else:
+                    config.set(section, setting, value=value)
 
         def common_traj_data(section):
             for setting in self.common_traj_data_config_names():
@@ -210,19 +220,22 @@ class ValveConfig(object, ConfigSpecialNames):
 
         #config.set(section, 'pbar', 'simple')
 
+
         ################
+        snr = 0 # stage number
         # stage I
         # find traceable residues
-        section = self.stage_names(0)
+        section = self.stage_names(snr)
         config.add_section(section)
 
         common(section)
         common_traj_data(section)
 
         ################
+        snr+=1
         # stage II
         # find raw paths
-        section = self.stage_names(1)
+        section = self.stage_names(snr)
         config.add_section(section)
 
         common(section)
@@ -231,9 +244,10 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'clear_in_object_info', 'False')
 
         ################
+        snr+=1
         # stage III
         # create separate frames
-        section = self.stage_names(2)
+        section = self.stage_names(snr)
         config.add_section(section)
 
         common(section)
@@ -245,9 +259,10 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'discard_short_paths', '1')
 
         ################
+        snr+=1
         # stage IV
         # inlets clusterisation
-        section = self.stage_names(3)
+        section = self.stage_names(snr)
         config.add_section(section)
 
         common(section)
@@ -279,22 +294,26 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'min_samples', '3')
 
         ################
+        snr+=1
         # stage V
         # analysis
-        section = self.stage_names(4)
+        section = self.stage_names(snr)
         config.add_section(section)
         common(section)
-        config.remove_option(section, 'load')
+        config.remove_option(section, 'dump')
+        config.set(section, 'save', '%d_%s_results.txt' % (snr + 1, section))
 
         config.set(section, 'dump_config', 'True')
 
         ################
+        snr+=1
         # stage VI
         # visualize
-        section = self.stage_names(5)
+        section = self.stage_names(snr)
         config.add_section(section)
         common(section)
-        config.remove_option(section, 'load')
+        config.remove_option(section, 'dump')
+        config.set(section, 'save', '%d_%s_results.pse' % (snr+1,section))
 
         config.set(section, 'simply_smooths', 0.05236)
 
@@ -692,8 +711,8 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
     # TODO: consder to create traj_reader object here instead of doing it in stage_run or in load...
     # execute?
     can_be_loaded = False
-    if (not no_io) and options.load:
-        if os.path.isfile(options.load) or os.path.islink(options.load):
+    if (not no_io) and options.dump:
+        if os.path.isfile(options.dump) or os.path.islink(options.dump):
             can_be_loaded = True
     if options.execute in ['run'] or (options.execute in ['runonce'] and not can_be_loaded):
         result = stage_run(config, options, reader=reader, **kwargs)
@@ -701,14 +720,14 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
             ###########
             # S A V E #
             ###########
-            save_stage_dump(options.save, **result)
+            save_stage_dump(options.dump, **result)
     elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
         if not no_io:
             ###########
             # L O A D #
             ###########
-            if options.load:
-                result = load_stage_dump(options.load, reader=reader)
+            if options.dump:
+                result = load_stage_dump(options.dump, reader=reader)
     else:
         raise NotImplementedError('exec mode %s not implemented' % options.execute)
     # remove options stuff
@@ -1515,7 +1534,7 @@ def stage_VI_run(config, options,
     # start pymol
     with log.fbm("Starting PyMOL"):
         # TODO: ConnectToPymol is used to initialize PyMol and to load molecule
-        # TODO: SinglaPathPlotter is used to put paths to PyMol
+        # TODO: SinglePathPlotter is used to put paths to PyMol
         # TODO: Both can be bassically changed in such a way that appropriate pdb files
         # TODO: would be generated and a companion script that would load them to PyMol
         ConnectToPymol.init_pymol()
@@ -1554,34 +1573,38 @@ def stage_VI_run(config, options,
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
 
     if options.ctypes_raw:
-        for nr, ct in enumerate(ctypes_generic_list):
-            sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
-            if ct in master_paths:
-                plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
+        with log.fmb("CTypes raw"):
+            for nr, ct in enumerate(ctypes_generic_list):
+                sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
+                if ct in master_paths:
+                    plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
 
     if options.ctypes_smooth:
-        for nr, ct in enumerate(ctypes_generic_list):
-            sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
-            if ct in master_paths_smooth:
-                plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
-                                   smooth=lambda anything: anything)
-            if ct in master_paths:
-                plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
-                                   smooth=smooth)
+        with log.fmb("CTypes smooth"):
+            for nr, ct in enumerate(ctypes_generic_list):
+                sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
+                if ct in master_paths_smooth:
+                    plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
+                                       smooth=lambda anything: anything)
+                if ct in master_paths:
+                    plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
+                                       smooth=smooth)
 
     if options.all_paths_raw:
         with log.fbm("All raw paths"):
             plot_spaths_traces(spaths, name='all_raw', split=options.all_paths_split, spp=spp)
     if options.all_paths_raw_io:
-        plot_spaths_inlets(spaths, name='all_raw_paths_io', spp=spp)
+        with log.fbm("All raw paths io"):
+            plot_spaths_inlets(spaths, name='all_raw_paths_io', spp=spp)
 
     if options.all_paths_smooth:
         with log.fbm("All smooth paths"):
             plot_spaths_traces(spaths, name='all_smooth', split=options.all_paths_split, spp=spp, smooth=smooth)
     if options.all_paths_smooth_io:
-        plot_spaths_inlets(spaths, name='all_smooth_paths_io', spp=spp)
+        with log.fbm("All smooth paths io"):
+            plot_spaths_inlets(spaths, name='all_smooth_paths_io', spp=spp)
 
     with log.fbm("Paths as states"):
         if options.paths_raw:
@@ -1597,7 +1620,8 @@ def stage_VI_run(config, options,
             plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states,
                                separate=not options.paths_states, smooth=smooth, spp=spp)
 
-    pymol_cmd.orient('molecule')
+    if options.show_molecule:
+        pymol_cmd.orient('molecule')
 
     if options.save:
         with log.fbm("Saving session (%s)" % options.save):

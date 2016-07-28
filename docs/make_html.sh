@@ -25,7 +25,7 @@ sed -i '/undoc/d' source/*.*.rst
 
 # ubuntu 14.04 helper
 cp ../src/ubuntu_mdanalysis_install_helper.sh source/
-$( cd .. ; ./make_pkg.sh)
+$( cd .. ; ./make_pkg.sh )
 mv ../aqueduct.tar.gz source/
 
 $MAKE SPHINXBUILD=$SPHINXBUILD html
