@@ -1,0 +1,6 @@
+aqueduct.utils.test_sortify module
+==================================
+
+.. automodule:: aqueduct.utils.test_sortify
+    :members:
+    :show-inheritance:
