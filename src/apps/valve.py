@@ -1573,16 +1573,18 @@ def stage_VI_run(config, options,
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
 
     if options.ctypes_raw:
-        with log.fmb("CTypes raw"):
+        with log.fbm("CTypes    raw"):
             for nr, ct in enumerate(ctypes_generic_list):
+                log.message(str(ct),cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
                 plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
                 if ct in master_paths:
                     plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
 
     if options.ctypes_smooth:
-        with log.fmb("CTypes smooth"):
+        with log.fbm("CTypes smooth"):
             for nr, ct in enumerate(ctypes_generic_list):
+                log.message(str(ct),cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
                 plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
                 if ct in master_paths_smooth:
@@ -1608,15 +1610,19 @@ def stage_VI_run(config, options,
 
     with log.fbm("Paths as states"):
         if options.paths_raw:
+            log.message("raw", cont=True)
             plot_spaths_traces(spaths, name='raw_paths', states=options.paths_states, separate=not options.paths_states,
                                spp=spp)
         if options.paths_smooth:
+            log.message("smooth", cont=True)
             plot_spaths_traces(spaths, name='smooth_paths', states=options.paths_states,
                                separate=not options.paths_states, smooth=smooth, spp=spp)
         if options.paths_raw_io:
+            log.message("raw_io", cont=True)
             plot_spaths_inlets(spaths, name='raw_paths_io', states=options.paths_states,
                                separate=not options.paths_states, spp=spp)
         if options.paths_smooth_io:
+            log.message("smooth_io", cont=True)
             plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states,
                                separate=not options.paths_states, smooth=smooth, spp=spp)
 
@@ -1625,10 +1631,15 @@ def stage_VI_run(config, options,
 
     if options.save:
         with log.fbm("Saving session (%s)" % options.save):
+            log.message("") # new line
+            pbar = log.pbar(len(spaths))
             import time
             for state in range(len(spaths)):
                 pymol_cmd.set_frame(state + 1)
+                pbar.update(state)
                 time.sleep(0.1)
+            pbar.finish()
+            log.message("Finalizing session saving...",cont=True)  # new line
             pymol_cmd.set_frame(1)
             pymol_cmd.save(options.save, state=0)
             pymol_cmd.quit()
