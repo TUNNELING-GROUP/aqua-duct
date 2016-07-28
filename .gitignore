@@ -20,11 +20,8 @@
 
 valve_tests
 real_traj
-src/build/**
-src/aqueduct.egg-info/**
-src/dist/**
-docs/build/**
 
 docs_spell.geany
 pull_traj.sh
 
+docs/build/
