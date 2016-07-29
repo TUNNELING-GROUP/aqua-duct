@@ -1,8 +1,8 @@
 # coding: UTF-8
 from unittest import TestCase
-from helpers import list_blocks_to_slices
+from aqueduct.utils.helpers import list_blocks_to_slices
 import types
-from helpers import listify
+from aqueduct.utils.helpers import listify
 class TestList_blocks_to_slices(TestCase):
 
     def test_how_to_slice(self):

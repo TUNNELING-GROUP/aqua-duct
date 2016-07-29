@@ -1,7 +1,7 @@
 # coding: UTF-8
 
 from unittest import TestCase
-from helpers import arrayify
+from aqueduct.utils.helpers import arrayify
 import numpy
 
 class TestArrayify(TestCase):

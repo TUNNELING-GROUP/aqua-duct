@@ -1,5 +1,5 @@
 from unittest import TestCase
-from helpers import arrayify1
+from aqueduct.utils.helpers import arrayify1
 import numpy
 
 

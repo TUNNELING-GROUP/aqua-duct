@@ -1,5 +1,5 @@
 from unittest import TestCase
-from helpers import what2what
+from aqueduct.utils.helpers import what2what
 
 class TestWhat2what(TestCase):
     def test_what2what_output_type(self):

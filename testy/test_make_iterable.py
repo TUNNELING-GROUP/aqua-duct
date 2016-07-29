@@ -1,5 +1,5 @@
 from unittest import TestCase
-from helpers import make_iterable
+from aqueduct.utils.helpers import make_iterable
 
 
 class TestMake_iterable(TestCase):
