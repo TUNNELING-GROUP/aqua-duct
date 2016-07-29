@@ -381,11 +381,14 @@ def list_blocks_to_slices(l):
 def what2what(what, towhat):
     '''
     what2what(what, towhat)
+    This function search if elements of the one list (:attr: 'what') are present in the other list (:attr: 'towhat') and returns indices of elements form :attr:'what' list as a tuple.
+    If elements from the first list are not present in the second list the tuple is empty.
     :param list what: Input list for which indices of elements present in :attr:`towhat` are returned.
     :param list towhat: List of elements which input list is indexed to.
     :return: Indices of :attr:`what` list that are present in :attr:`towhat` list.
     :rtype: tuple
     '''
+    #todo poprawic opis
     towhat = make_iterable(towhat)
     for nr, w in enumerate(make_iterable(what)):
         if w in towhat:

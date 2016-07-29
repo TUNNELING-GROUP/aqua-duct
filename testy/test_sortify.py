@@ -1,5 +1,5 @@
 from unittest import TestCase
-from helpers import sortify
+from aqueduct.utils.helpers import sortify
 
 
 def corvus_generator():
