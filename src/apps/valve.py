@@ -47,7 +47,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 8, 0
+    return 0, 8, 1
 
 
 def version_nice():
@@ -340,6 +340,8 @@ class ValveConfig(object, ConfigSpecialNames):
         # show protein
         config.set(section, 'show_molecule', 'None')
         config.set(section, 'show_molecule_frames', '0')
+        config.set(section, 'show_chull', 'None')
+        config.set(section, 'show_chull_frames', '0')
 
         return config
 
@@ -1537,11 +1539,14 @@ def stage_VI_run(config, options,
         # TODO: SinglePathPlotter is used to put paths to PyMol
         # TODO: Both can be bassically changed in such a way that appropriate pdb files
         # TODO: would be generated and a companion script that would load them to PyMol
-        ConnectToPymol.init_pymol()
+        pymol_connector = ConnectToPymol()
+        #pymol_connector.init_pymol()
+        pymol_connector.init_script('test_.py')
+
         if options.simply_smooths:
-            spp = SinglePathPlotter(linearize=float(options.simply_smooths))
+            spp = SinglePathPlotter(pymol_connector,linearize=float(options.simply_smooths))
         else:
-            spp = SinglePathPlotter(linearize=None)
+            spp = SinglePathPlotter(pymol_connector,linearize=None)
 
     ctypes_generic = [ct.generic for ct in ctypes]
     ctypes_generic_list = sorted(list(set(ctypes_generic)))
@@ -1554,9 +1559,22 @@ def stage_VI_run(config, options,
                 pdb = TmpDumpWriterOfMDA()
                 frames_to_show = range2int(options.show_molecule_frames)
                 pdb.dump_frames(traj_reader, frames=frames_to_show, selection=options.show_molecule)
-                ConnectToPymol.load_pdb('molecule', pdb.close())
+                pymol_connector.load_pdb('molecule', pdb.close())
                 del pdb
                 mda.core.flags["permissive_pdb_reader"] = mda_ppr
+                # it would be nice to plot convexhull
+    if options.show_chull:
+        with log.fbm("Convexhull"):
+            with reader.get() as traj_reader:
+                options_stageII = config.get_stage_options(1)
+                if options_stageII.scope_convexhull:
+                    scope = traj_reader.parse_selection(options_stageII.scope)
+                    frames_to_show = range2int(options.show_chull_frames)
+                    for frame in frames_to_show:
+                        traj_reader.set_current_frame(frame)
+                        chull = scope.get_convexhull_of_atom_positions()
+                        spp.convexhull(chull,state=frame+1)
+
 
     if options.inlets_clusters:
         with log.fbm("Clusters"):
@@ -1573,7 +1591,7 @@ def stage_VI_run(config, options,
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
 
     if options.ctypes_raw:
-        with log.fbm("CTypes    raw"):
+        with log.fbm("CTypes raw"):
             for nr, ct in enumerate(ctypes_generic_list):
                 log.message(str(ct),cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
@@ -1627,7 +1645,7 @@ def stage_VI_run(config, options,
                                separate=not options.paths_states, smooth=smooth, spp=spp)
 
     if options.show_molecule:
-        pymol_cmd.orient('molecule')
+        pymol_connector.orient_on('molecule')
 
     if options.save:
         with log.fbm("Saving session (%s)" % options.save):
