@@ -6,6 +6,9 @@ from aqueduct.utils.helpers import arrayify,lind
 
 
 def vector_norm(V):
+    #calculate length of physicl vector based on it's coordynates
+    #input: tuple or a list
+    #output: float
     # return np.sqrt(np.dot(V, V.conj()))
     return np.sqrt(np.dot(V, V))
     # return np.linalg.norm(V)
@@ -14,6 +17,8 @@ def vector_norm(V):
 def triangle_angles(A, B, C):
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # ABC are point in the space
+    # input: 3 space coords of points (as tuple or list)
+    #returns list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]
     A, B, C = map(np.array, (A, B, C))
     a = C - A
     b = B - A
@@ -31,6 +36,8 @@ def triangle_angles(A, B, C):
 def triangle_angles_last(A, B, C):
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # ABC are point in the space
+    # input: 3 space coords of points (as tuple or list)
+    # returns list with one value of ABC angle in radians
     A, B, C = map(np.array, (A, B, C))
     a = C - A
     b = B - A

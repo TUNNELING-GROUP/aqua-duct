@@ -20,7 +20,7 @@ class Smooth(object):
 
     def __call__(self, coords):
         if len(coords) < 3:
-            # this make no sense if coords lenght is less then 3
+            # this make no sense if coords length is less than 3
             return coords
         if self.recursive:
             coords_smooth = None
@@ -36,7 +36,7 @@ class Smooth(object):
 class GeneralWindow:
     @staticmethod
     def max_window_at_pos(pos, size):
-        # size is lenght
+        # size is length
         # pos is zero based
         min_dist_to_edge = min((pos - 0, size - pos - 1))
         if (pos - 0) <= (size - pos - 1):
