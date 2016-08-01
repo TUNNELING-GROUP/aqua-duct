@@ -1,10 +1,10 @@
 # import it as pmc?
 
+import numpy as np
 import pymol
 from pymol import cgo
 from pymol import cmd
-
-import numpy as np
+import os
 
 from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
@@ -118,36 +118,101 @@ class BasicPymolCGOPointers(BasicPymolCGO):
 
 class ConnectToPymol(object):
     cgo_line_width = 2.
+    ct_pymol = 'pymol'
+    ct_file = 'file'
 
-    @staticmethod
-    def init_pymol():
+    def __init__(self):
+        connection_type = None # possible types are pymol and file
+
+        filehandle = None
+
+    def init_pymol(self):
         pymol.finish_launching()
         cmd.set('cgo_line_width', ConnectToPymol.cgo_line_width)
+        self.connection_type = self.ct_pymol
 
-    @staticmethod
-    def add_cgo_object(name, cgo_object, state=None):
+    def init_script(self, filename):
+        self.filehandle = open(filename,'w')
+        self.connection_type = self.ct_file
+        init_lines = '''
+from pymol import cgo
+from pymol import cmd
+from tempfile import mkstemp
+from os import close, unlink
+'''
+        self.filehandle.write(init_lines)
+
+    def add_cgo_object(self, name, cgo_object, state=None):
         if state is None:
             state = 1
-        cmd.load_cgo(cgo_object, str(name), state)
+        if self.connection_type == self.ct_pymol:
+            cmd.load_cgo(cgo_object, str(name), state)
+        elif self.connection_type == self.ct_file:
+            self.filehandle.write('''cgo_object = [''')
+            nr = 0
+            for cgo_element in cgo_object:
+                if nr > 0:
+                    self.filehandle.write(', ')
+                if nr == 5:
+                    self.filehandle.write('''\\''')
+                    self.filehandle.write(os.linesep)
+                    self.filehandle.write('              ')
+                    nr = 0
+                self.filehandle.write('%0.4e' % cgo_element)
+                nr += 1
+            self.filehandle.write(']')
+            self.filehandle.write(os.linesep)
+            self.filehandle.write('''cmd.load_cgo(cgo_object, "%s", %d)''' % (str(name),state))
+            self.filehandle.write(os.linesep)
 
-    @staticmethod
-    def del_cgo_object(name, state=None):
+    def del_cgo_object(self, name, state=None):
         raise NotImplementedError("This feature is not implemented yet.")
 
-    @staticmethod
-    def load_pdb(name, filename, state=None):
+    def load_pdb(self, name, filename, state=None):
         if state is None:
             state = 1
-        cmd.load(filename, state=state, object=name)
+        if self.connection_type == self.ct_pymol:
+            cmd.load(filename, state=state, object=name)
+        elif self.connection_type == self.ct_file:
+            #save pdblile as string
+            self.filehandle.write("pdb_string = '''")
+            self.filehandle.write(os.linesep)
+            with open(filename) as pdb_fh:
+                for line in pdb_fh:
+                    self.filehandle.write(line)
+            self.filehandle.write("'''")
+            self.filehandle.write(os.linesep)
+            self.filehandle.write('''fd, filename = mkstemp(suffix="pdb")
+close(fd)
+with open(filename,'w') as fn:
+    fn.write(pdb_string)
+cmd.load(filename, state=%d, object="%s")
+unlink(filename)
+''' % (state,name))
+            self.filehandle.write(os.linesep)
+
+
+    def orient_on(self,name):
+        if self.connection_type == self.ct_pymol:
+            cmd.orient(name)
+        elif self.connection_type == self.ct_file:
+            self.filehandle.write('''cmd.orient("%s")''' % name)
+            self.filehandle.write(os.linesep)
+
+    def __del__(self):
+        if self.connection_type == self.ct_file:
+            self.filehandle.close()
 
 class SinglePathPlotter(object):
-    def __init__(self,linearize=None):
+    def __init__(self,pymol_connector, linearize=None):
 
         self.cgo_lines = BasicPymolCGOLines()
         self.cgo_spheres = BasicPymolCGOSpheres()
         self.cgo_pointers = BasicPymolCGOPointers()
 
         self.linearize = linearize
+
+        self.pymol_connector = pymol_connector
 
     # TODO: take care of proper colors handling for smoothed and not smoothed traces!
 
@@ -183,8 +248,8 @@ class SinglePathPlotter(object):
                     et = et[0]
                 # plot, if allowed
                 if (plot_in and t == PathTypesCodes.path_in_code) or (
-                    plot_object and t == PathTypesCodes.path_object_code) or (
-                    plot_out and t == PathTypesCodes.path_out_code):
+                            plot_object and t == PathTypesCodes.path_object_code) or (
+                            plot_out and t == PathTypesCodes.path_out_code):
                     # get color
                     c = color_codes(et)
                     # now, it is possible to linearize!
@@ -209,7 +274,7 @@ class SinglePathPlotter(object):
         self.cgo_lines.clean()
         for nr, spath in enumerate(spaths):
             self.add_single_path_continous_trace(spath, smooth=smooth, **kwargs)
-        ConnectToPymol.add_cgo_object(name, self.cgo_lines.get(), state=state)
+        self.pymol_connector.add_cgo_object(name, self.cgo_lines.get(), state=state)
 
     def paths_inlets(self, spaths,
                      smooth=None,
@@ -245,7 +310,7 @@ class SinglePathPlotter(object):
                                               length=1.,
                                               color=cc(c),
                                               reverse=True)
-        ConnectToPymol.add_cgo_object(name, self.cgo_pointers.get(), state=state)
+        self.pymol_connector.add_cgo_object(name, self.cgo_pointers.get(), state=state)
 
     def scatter(self, coords,
                 radius=0.4,
@@ -255,7 +320,6 @@ class SinglePathPlotter(object):
 
         if isinstance(color, str):
             color = cc(color)
-
         if state is None:
             state = 1
 
@@ -263,4 +327,22 @@ class SinglePathPlotter(object):
 
         self.cgo_spheres.add(coords=coords, radius=radius, color=color)
 
-        ConnectToPymol.add_cgo_object(name, self.cgo_spheres.get(), state=state)
+        self.pymol_connector.add_cgo_object(name, self.cgo_spheres.get(), state=state)
+
+    def convexhull(self, chull,
+                   color='m',
+                   name='convexhull',
+                   state=None):
+
+        if isinstance(color, str):
+            color = cc(color)
+        if state is None:
+            state = 1
+
+        self.cgo_lines.clean()
+        for nr, facet in enumerate(chull.facets):
+            if nr > 0:
+                self.cgo_lines.new()
+            self.cgo_lines.add(facet, color=color)
+
+        self.pymol_connector.add_cgo_object(name, self.cgo_lines.get(), state=state)
