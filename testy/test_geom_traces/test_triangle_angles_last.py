@@ -1,5 +1,5 @@
 from unittest import TestCase
-from traces import triangle_angles_last
+from aqueduct.geom.traces import triangle_angles_last
 import math
 class TestTriangle_angles_last(TestCase):
     def test_type(self):

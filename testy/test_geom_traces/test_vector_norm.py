@@ -1,5 +1,5 @@
 from unittest import TestCase
-from traces import vector_norm
+from aqueduct.geom.traces import vector_norm
 import numpy as np
 
 

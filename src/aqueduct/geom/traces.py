@@ -51,8 +51,11 @@ def triangle_angles_last(A, B, C):
 
 
 def triangle_height(A, B, C):
+    #todo : chceck why value in test incorrect
     # a is head
-    angles = triangle_angles_last(A, B, C)
+    # input: 3 space coords of points (as tuple or list)
+    #output float, value of triangle height
+    angles = triangle_angles_last(A, B, C) #ta funkcja zwraca tylko 1 element
     A, B, C = map(np.array, (A, B, C))
     c = vector_norm(B - A)
     h = np.sin(angles[-1]) * c
@@ -77,6 +80,9 @@ def vectors_angle_alt_anorm(A, B, A_norm):
 
 
 def vectors_angle_anorm(A, B, A_norm):
+    #A_norm is normalized vector A
+    # http: // docs.scipy.org / doc / numpy / reference / generated / numpy.arccos.html
+    #http: // docs.scipy.org / doc / numpy / reference / generated / numpy.clip.html
     norm2 = A_norm * vector_norm(B)
     if norm2 == 0.:
         return 0.
