@@ -3,6 +3,7 @@ import numpy as np
 from scipy.spatial.distance import cdist, pdist
 import copy
 # todo : aby zaoszczedzic na obliczeniach mozna pomijac takie(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-> np kat 0.005 rad to 0,29stopnia miary łukowej
+# wektory: promień atomu wodoru to 0.529A
 from aqueduct.utils.helpers import arrayify,lind
 
 

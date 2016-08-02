@@ -73,4 +73,23 @@ class TestVectors_angle_anorm(TestCase):
         res = np.arccos(np.clip(420 / (1.4177 * 346.41), -1, 1))
         roundo=round(outp,3)
         roundr=round(res,3)
-        self.assertAlmostEqual(roundo, roundr)
+        self.assertEqual(roundo, roundr)
+
+    def test_negative_vector(self):
+        A=-2,-2,-2
+        B=2,2,2
+        Anorm = vector_norm(A)
+        outp = vectors_angle_anorm(A, B, Anorm)
+        res = np.arccos(np.clip(-8/ (2.82842* 2.82842), -1, 1))
+        self.assertAlmostEqual(outp,res)
+
+    def test_one_negative_value(self):
+        # todo: values are quite different-why
+        A = -10, 2, 2
+        B = 2, 2, 2
+        Anorm = vector_norm(A)
+        outp = vectors_angle_anorm(A, B, Anorm)
+        res = np.arccos(np.clip(np.dot(A,B)/ (10.4 * 2.82), -1, 1))
+        roundo = round(outp, 3)
+        roundr = round(res, 3)
+        self.assertAlmostEqual(outp, res)
