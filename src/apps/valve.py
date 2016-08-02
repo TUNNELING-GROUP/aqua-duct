@@ -188,7 +188,7 @@ class ValveConfig(object, ConfigSpecialNames):
         return self.__make_options_nt(options)
 
     def get_default_config(self):
-        #snr = 0 # stage number
+        # snr = 0 # stage number
 
         config = ConfigParser.RawConfigParser()
 
@@ -198,7 +198,7 @@ class ValveConfig(object, ConfigSpecialNames):
                 if setting == 'execute':
                     value = 'runonce'
                 elif setting == 'dump':
-                    value = '%d_%s_data.dump' % (snr+1,section)
+                    value = '%d_%s_data.dump' % (snr + 1, section)
                 if value is None:
                     config.set(section, setting)
                 else:
@@ -215,14 +215,14 @@ class ValveConfig(object, ConfigSpecialNames):
 
         # top - top file name
         # nc - netcdf file name
-        config.set(section, 'top') # topology
-        config.set(section, 'trj') # trajectory
+        config.set(section, 'top')  # topology
+        config.set(section, 'trj')  # trajectory
 
-        #config.set(section, 'pbar', 'simple')
+        # config.set(section, 'pbar', 'simple')
 
 
         ################
-        snr = 0 # stage number
+        snr = 0  # stage number
         # stage I
         # find traceable residues
         section = self.stage_names(snr)
@@ -232,7 +232,7 @@ class ValveConfig(object, ConfigSpecialNames):
         common_traj_data(section)
 
         ################
-        snr+=1
+        snr += 1
         # stage II
         # find raw paths
         section = self.stage_names(snr)
@@ -244,7 +244,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'clear_in_object_info', 'False')
 
         ################
-        snr+=1
+        snr += 1
         # stage III
         # create separate frames
         section = self.stage_names(snr)
@@ -259,7 +259,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'discard_short_paths', '1')
 
         ################
-        snr+=1
+        snr += 1
         # stage IV
         # inlets clusterisation
         section = self.stage_names(snr)
@@ -294,7 +294,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'min_samples', '3')
 
         ################
-        snr+=1
+        snr += 1
         # stage V
         # analysis
         section = self.stage_names(snr)
@@ -306,14 +306,14 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'dump_config', 'True')
 
         ################
-        snr+=1
+        snr += 1
         # stage VI
         # visualize
         section = self.stage_names(snr)
         config.add_section(section)
         common(section)
         config.remove_option(section, 'dump')
-        config.set(section, 'save', '%d_%s_results.pse' % (snr+1,section))
+        config.set(section, 'save', '%d_%s_results.py' % (snr + 1, section))
 
         config.set(section, 'simply_smooths', 0.05236)
 
@@ -1518,6 +1518,23 @@ def plot_spaths_inlets(spaths, spp=None, name=None, states=False, separate=False
         spp.paths_inlets(sp, name=name + name_separate, state=state, smooth=smooth)
 
 
+def is_pymol_connector_session(filename):
+    session_ext = re.compile('[.][pP][sS][eE]')
+    if filename:
+        ext = os.path.splitext(filename)[-1]
+        if session_ext.match(ext):
+            return True
+    return False
+
+
+def is_pymol_connector_script(filename):
+    script = re.compile('.*[.]([pP][yY]|[.pP][yY][.][gG][zZ])$')
+    if filename:
+        if script.match(filename):
+            return True
+    return False
+
+
 def stage_VI_run(config, options,
                  reader=None,
                  spaths=None,
@@ -1540,13 +1557,15 @@ def stage_VI_run(config, options,
         # TODO: Both can be bassically changed in such a way that appropriate pdb files
         # TODO: would be generated and a companion script that would load them to PyMol
         pymol_connector = ConnectToPymol()
-        #pymol_connector.init_pymol()
-        pymol_connector.init_script('test_.py')
+        if is_pymol_connector_script(options.save):
+            pymol_connector.init_script(options.save)
+        else:
+            pymol_connector.init_pymol()
 
         if options.simply_smooths:
-            spp = SinglePathPlotter(pymol_connector,linearize=float(options.simply_smooths))
+            spp = SinglePathPlotter(pymol_connector, linearize=float(options.simply_smooths))
         else:
-            spp = SinglePathPlotter(pymol_connector,linearize=None)
+            spp = SinglePathPlotter(pymol_connector, linearize=None)
 
     ctypes_generic = [ct.generic for ct in ctypes]
     ctypes_generic_list = sorted(list(set(ctypes_generic)))
@@ -1573,8 +1592,7 @@ def stage_VI_run(config, options,
                     for frame in frames_to_show:
                         traj_reader.set_current_frame(frame)
                         chull = scope.get_convexhull_of_atom_positions()
-                        spp.convexhull(chull,state=frame+1)
-
+                        spp.convexhull(chull, state=frame + 1)
 
     if options.inlets_clusters:
         with log.fbm("Clusters"):
@@ -1593,7 +1611,7 @@ def stage_VI_run(config, options,
     if options.ctypes_raw:
         with log.fbm("CTypes raw"):
             for nr, ct in enumerate(ctypes_generic_list):
-                log.message(str(ct),cont=True)
+                log.message(str(ct), cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
                 plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
                 if ct in master_paths:
@@ -1602,7 +1620,7 @@ def stage_VI_run(config, options,
     if options.ctypes_smooth:
         with log.fbm("CTypes smooth"):
             for nr, ct in enumerate(ctypes_generic_list):
-                log.message(str(ct),cont=True)
+                log.message(str(ct), cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
                 plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
                 if ct in master_paths_smooth:
@@ -1647,9 +1665,9 @@ def stage_VI_run(config, options,
     if options.show_molecule:
         pymol_connector.orient_on('molecule')
 
-    if options.save:
+    if is_pymol_connector_session(options.save):
         with log.fbm("Saving session (%s)" % options.save):
-            log.message("") # new line
+            log.message("")  # new line
             pbar = log.pbar(len(spaths))
             import time
             for state in range(len(spaths)):
@@ -1657,7 +1675,7 @@ def stage_VI_run(config, options,
                 pbar.update(state)
                 time.sleep(0.1)
             pbar.finish()
-            log.message("Finalizing session saving...",cont=True)  # new line
+            log.message("Finalizing session saving...", cont=True)  # new line
             pymol_cmd.set_frame(1)
             pymol_cmd.save(options.save, state=0)
             pymol_cmd.quit()
@@ -1712,7 +1730,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
 
     # get global options
     goptions = config.get_global_options()
-    #pbar_name = goptions.pbar
+    # pbar_name = goptions.pbar
 
     if args.threads is None:
         optimal_threads = cpu_count + 1
@@ -1735,10 +1753,11 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     if args.max_frame:
         max_frame = int(args.max_frame)
         if max_frame > reader.max_frame:
-            log.warning("Desired --max-frame %d setting exceeds number of available frames (%d)." % (max_frame+1, reader.max_frame+1))
+            log.warning("Desired --max-frame %d setting exceeds number of available frames (%d)." % (
+            max_frame + 1, reader.max_frame + 1))
     else:
         max_frame = reader.max_frame
-    log.message("Using %d of %d available frames." % (max_frame+1, reader.max_frame+1))
+    log.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
 
     # STAGE I
     result1 = valve_exec_stage(0, config, stage_I_run,

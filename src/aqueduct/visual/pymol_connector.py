@@ -1,10 +1,15 @@
 # import it as pmc?
 
+import cPickle as pickle
+import gzip
 import numpy as np
+import os
 import pymol
+import re
 from pymol import cgo
 from pymol import cmd
-import os
+from shutil import copyfile
+import tarfile
 
 from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
@@ -116,15 +121,42 @@ class BasicPymolCGOPointers(BasicPymolCGO):
             self.add_cone(coords1=vec, coords2=point, radius1=length / 3., radius2=0, color1=color, color2=color)
 
 
+from aqueduct.utils.helpers import create_tmpfile
+
+class SimpleTarWriteHelper(object):
+
+    def __init__(self):
+
+        self.tar_fh = None
+        self.tmp_file = create_tmpfile()
+
+    def open(self,filename):
+        self.tar_fh = tarfile.open(filename,'w:gz')
+
+    def save_object2tar(self,obj,name):
+        with open(self.tmp_file,'w') as f:
+            pickle.dump(obj,f)
+        self.save_file2tar(self.tmp_file,name)
+
+    def save_file2tar(self,filename,name):
+        self.tar_fh.add(filename,arcname=name)
+
+    def __del__(self):
+        if self.tar_fh is not None:
+            self.tar_fh.close()
+        os.unlink(self.tmp_file)
+
+
 class ConnectToPymol(object):
     cgo_line_width = 2.
     ct_pymol = 'pymol'
     ct_file = 'file'
 
     def __init__(self):
-        connection_type = None # possible types are pymol and file
+        self.connection_type = None  # possible types are pymol and file
 
-        filehandle = None
+        self.script_fh = None
+        self.data_fh = SimpleTarWriteHelper()
 
     def init_pymol(self):
         pymol.finish_launching()
@@ -132,15 +164,29 @@ class ConnectToPymol(object):
         self.connection_type = self.ct_pymol
 
     def init_script(self, filename):
-        self.filehandle = open(filename,'w')
+        self.script_fh = open(filename, 'w')
+        data_filename = os.path.splitext(os.path.basename(filename))[0]+'.tar.gz'
+        self.data_fh.open(data_filename)
         self.connection_type = self.ct_file
-        init_lines = '''
-from pymol import cgo
-from pymol import cmd
-from tempfile import mkstemp
+
+        # init lines, imports etc.
+        self.script_fh.write('''print "Loading Aqua-Duct visualization..."
+from pymol import cgo, cmd
+cmd.set('cgo_line_width', %d)
 from os import close, unlink
-'''
-        self.filehandle.write(init_lines)
+import tarfile
+import cPickle as pickle
+from tempfile import mkstemp
+fd, pdb_filename = mkstemp(suffix='pdb')
+close(fd)
+data_fh = tarfile.open("%s","r:gz")
+def load_object(name):
+
+    return pickle.load(data_fh.extractfile(name))
+def load_pdb(name):
+    with open(pdb_filename,'w') as fpdb:
+        fpdb.write(data_fh.extractfile(name).read())
+''' % (self.cgo_line_width,data_filename))
 
     def add_cgo_object(self, name, cgo_object, state=None):
         if state is None:
@@ -148,22 +194,13 @@ from os import close, unlink
         if self.connection_type == self.ct_pymol:
             cmd.load_cgo(cgo_object, str(name), state)
         elif self.connection_type == self.ct_file:
-            self.filehandle.write('''cgo_object = [''')
-            nr = 0
-            for cgo_element in cgo_object:
-                if nr > 0:
-                    self.filehandle.write(', ')
-                if nr == 5:
-                    self.filehandle.write('''\\''')
-                    self.filehandle.write(os.linesep)
-                    self.filehandle.write('              ')
-                    nr = 0
-                self.filehandle.write('%0.4e' % cgo_element)
-                nr += 1
-            self.filehandle.write(']')
-            self.filehandle.write(os.linesep)
-            self.filehandle.write('''cmd.load_cgo(cgo_object, "%s", %d)''' % (str(name),state))
-            self.filehandle.write(os.linesep)
+            obj_name = '%s_%d.dump' % (name, state)
+            self.data_fh.save_object2tar(cgo_object,obj_name)
+
+            self.script_fh.write('''cmd.load_cgo(load_object('%s'), "%s", %d)''' % (obj_name,str(name), state))
+            self.script_fh.write(os.linesep)
+            #self.script_fh.write('''cmd.refresh()''')
+            #self.script_fh.write(os.linesep)
 
     def del_cgo_object(self, name, state=None):
         raise NotImplementedError("This feature is not implemented yet.")
@@ -174,37 +211,31 @@ from os import close, unlink
         if self.connection_type == self.ct_pymol:
             cmd.load(filename, state=state, object=name)
         elif self.connection_type == self.ct_file:
-            #save pdblile as string
-            self.filehandle.write("pdb_string = '''")
-            self.filehandle.write(os.linesep)
-            with open(filename) as pdb_fh:
-                for line in pdb_fh:
-                    self.filehandle.write(line)
-            self.filehandle.write("'''")
-            self.filehandle.write(os.linesep)
-            self.filehandle.write('''fd, filename = mkstemp(suffix="pdb")
-close(fd)
-with open(filename,'w') as fn:
-    fn.write(pdb_string)
-cmd.load(filename, state=%d, object="%s")
-unlink(filename)
-''' % (state,name))
-            self.filehandle.write(os.linesep)
+            # save pdblile as string
+            filename_new = '%s_%d.pdb' % (name, state)
+            self.data_fh.save_file2tar(filename,filename_new)
+            self.script_fh.write('''load_pdb("%s")''' % filename_new)
+            self.script_fh.write(os.linesep)
+            self.script_fh.write('''cmd.load(pdb_filename, state=%d, object="%s")''' % (state, name))
+            self.script_fh.write(os.linesep)
 
-
-    def orient_on(self,name):
+    def orient_on(self, name):
         if self.connection_type == self.ct_pymol:
             cmd.orient(name)
         elif self.connection_type == self.ct_file:
-            self.filehandle.write('''cmd.orient("%s")''' % name)
-            self.filehandle.write(os.linesep)
+            self.script_fh.write('''cmd.orient("%s")''' % name)
+            self.script_fh.write(os.linesep)
 
     def __del__(self):
         if self.connection_type == self.ct_file:
-            self.filehandle.close()
+            self.script_fh.write('''unlink(pdb_filename)
+print "Aqua-Duct visualization loaded."''')
+            self.script_fh.write(os.linesep)
+            self.script_fh.close()
+
 
 class SinglePathPlotter(object):
-    def __init__(self,pymol_connector, linearize=None):
+    def __init__(self, pymol_connector, linearize=None):
 
         self.cgo_lines = BasicPymolCGOLines()
         self.cgo_spheres = BasicPymolCGOSpheres()
