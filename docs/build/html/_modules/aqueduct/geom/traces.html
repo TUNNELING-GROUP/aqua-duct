@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.geom.traces &mdash; Aqueduct 0.2.10 documentation</title>
+    <title>aqueduct.geom.traces &mdash; Aqueduct 0.2.11 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.10',
+        VERSION:     '0.2.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.10 documentation" href="../../../index.html" />
+    <link rel="top" title="Aqueduct 0.2.11 documentation" href="../../../index.html" />
     <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
   </head>
   <body role="document">
@@ -37,7 +37,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
           <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
@@ -49,14 +49,19 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.geom.traces</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span></span><span class="c1"># coding: UTF-8</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span><span class="p">,</span> <span class="n">pdist</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-
+<span class="c1"># todo : aby zaoszczedzic na obliczeniach mozna pomijac takie(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-&gt; np kat 0.005 rad to 0,29stopnia miary łukowej</span>
+<span class="c1"># wektory: promień atomu wodoru to 0.529A</span>
 <span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">arrayify</span><span class="p">,</span><span class="n">lind</span>
 
 
 <div class="viewcode-block" id="vector_norm"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.vector_norm">[docs]</a><span class="k">def</span> <span class="nf">vector_norm</span><span class="p">(</span><span class="n">V</span><span class="p">):</span>
+    <span class="c1">#calculate length of physicl vector based on it&#39;s coordynates</span>
+    <span class="c1">#input: tuple or a list</span>
+    <span class="c1">#output: float</span>
     <span class="c1"># return np.sqrt(np.dot(V, V.conj()))</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">V</span><span class="p">))</span></div>
     <span class="c1"># return np.linalg.norm(V)</span>
@@ -64,7 +69,9 @@
 
 <div class="viewcode-block" id="triangle_angles"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.triangle_angles">[docs]</a><span class="k">def</span> <span class="nf">triangle_angles</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">):</span>
     <span class="c1"># http://stackoverflow.com/questions/5122372/angle-between-points</span>
-    <span class="c1"># ABC are point in the space</span>
+    <span class="c1"># A,B,C are point in the space</span>
+    <span class="c1"># input: 3 space coords of points (as tuple or list)</span>
+    <span class="c1">#returns list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]</span>
     <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">C</span> <span class="o">-</span> <span class="n">A</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">B</span> <span class="o">-</span> <span class="n">A</span>
@@ -81,7 +88,9 @@
 
 <div class="viewcode-block" id="triangle_angles_last"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.triangle_angles_last">[docs]</a><span class="k">def</span> <span class="nf">triangle_angles_last</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">):</span>
     <span class="c1"># http://stackoverflow.com/questions/5122372/angle-between-points</span>
-    <span class="c1"># ABC are point in the space</span>
+    <span class="c1"># A,B,C are point in the space</span>
+    <span class="c1"># input: 3 space coords of points (as tuple or list)</span>
+    <span class="c1"># returns list with one value of ABC angle in radians</span>
     <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">C</span> <span class="o">-</span> <span class="n">A</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">B</span> <span class="o">-</span> <span class="n">A</span>
@@ -95,8 +104,11 @@
 
 
 <div class="viewcode-block" id="triangle_height"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.triangle_height">[docs]</a><span class="k">def</span> <span class="nf">triangle_height</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">):</span>
+    <span class="c1">#todo : chceck why value in test incorrect</span>
     <span class="c1"># a is head</span>
-    <span class="n">angles</span> <span class="o">=</span> <span class="n">triangle_angles_last</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
+    <span class="c1"># input: 3 space coords of points (as tuple or list)</span>
+    <span class="c1">#output float, value of triangle height</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">triangle_angles_last</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span> <span class="c1">#ta funkcja zwraca tylko 1 element</span>
     <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">B</span> <span class="o">-</span> <span class="n">A</span><span class="p">)</span>
     <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">c</span>
@@ -121,6 +133,9 @@
 
 
 <div class="viewcode-block" id="vectors_angle_anorm"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.vectors_angle_anorm">[docs]</a><span class="k">def</span> <span class="nf">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">A_norm</span><span class="p">):</span>
+    <span class="c1"># A_norm is normalized vector A, A and B are points in the space</span>
+    <span class="c1"># function calculates angle between A and B relative to the origin of coordinate system</span>
+    <span class="c1"># function can take negative values!</span>
     <span class="n">norm2</span> <span class="o">=</span> <span class="n">A_norm</span> <span class="o">*</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">norm2</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
         <span class="k">return</span> <span class="mf">0.</span>
@@ -401,7 +416,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
           <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>

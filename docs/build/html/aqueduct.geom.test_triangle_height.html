@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.geom.convexhull module &mdash; Aqueduct 0.2.11 documentation</title>
+    <title>aqueduct.geom.test_triangle_height module &mdash; Aqueduct 0.2.11 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -26,8 +26,8 @@
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="top" title="Aqueduct 0.2.11 documentation" href="index.html" />
     <link rel="up" title="aqueduct.geom package" href="aqueduct.geom.html" />
-    <link rel="next" title="aqueduct.geom.master module" href="aqueduct.geom.master.html" />
-    <link rel="prev" title="aqueduct.geom.cluster module" href="aqueduct.geom.cluster.html" /> 
+    <link rel="next" title="aqueduct.geom.test_vectors_angle_anorm module" href="aqueduct.geom.test_vectors_angle_anorm.html" />
+    <link rel="prev" title="aqueduct.geom.smooth module" href="aqueduct.geom.smooth.html" /> 
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -40,10 +40,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="aqueduct.geom.master.html" title="aqueduct.geom.master module"
+          <a href="aqueduct.geom.test_vectors_angle_anorm.html" title="aqueduct.geom.test_vectors_angle_anorm module"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="aqueduct.geom.cluster.html" title="aqueduct.geom.cluster module"
+          <a href="aqueduct.geom.smooth.html" title="aqueduct.geom.smooth module"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &raquo;</li>
@@ -57,32 +57,28 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-aqueduct.geom.convexhull">
-<span id="aqueduct-geom-convexhull-module"></span><h1>aqueduct.geom.convexhull module<a class="headerlink" href="#module-aqueduct.geom.convexhull" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
-<dt id="aqueduct.geom.convexhull._vertices_ids">
-<code class="descname">_vertices_ids</code><span class="sig-paren">(</span><em>convexhull</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/convexhull.html#_vertices_ids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.convexhull._vertices_ids" title="Permalink to this definition">¶</a></dt>
+  <div class="section" id="module-aqueduct.geom.test_triangle_height">
+<span id="aqueduct-geom-test-triangle-height-module"></span><h1>aqueduct.geom.test_triangle_height module<a class="headerlink" href="#module-aqueduct.geom.test_triangle_height" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="aqueduct.geom.test_triangle_height.TestTriangle_height">
+<em class="property">class </em><code class="descname">TestTriangle_height</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/test_triangle_height.html#TestTriangle_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.test_triangle_height.TestTriangle_height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="method">
+<dt id="aqueduct.geom.test_triangle_height.TestTriangle_height.test_OutType">
+<code class="descname">test_OutType</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/test_triangle_height.html#TestTriangle_height.test_OutType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.test_triangle_height.TestTriangle_height.test_OutType" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="aqueduct.geom.convexhull._vertices_points">
-<code class="descname">_vertices_points</code><span class="sig-paren">(</span><em>convexhull</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/convexhull.html#_vertices_points"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.convexhull._vertices_points" title="Permalink to this definition">¶</a></dt>
+<dl class="method">
+<dt id="aqueduct.geom.test_triangle_height.TestTriangle_height.test_2dim">
+<code class="descname">test_2dim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/test_triangle_height.html#TestTriangle_height.test_2dim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.test_triangle_height.TestTriangle_height.test_2dim" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="aqueduct.geom.convexhull._point_within_convexhull">
-<code class="descname">_point_within_convexhull</code><span class="sig-paren">(</span><em>convexhull</em>, <em>point</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/convexhull.html#_point_within_convexhull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.convexhull._point_within_convexhull" title="Permalink to this definition">¶</a></dt>
+<dl class="method">
+<dt id="aqueduct.geom.test_triangle_height.TestTriangle_height.test_3dim">
+<code class="descname">test_3dim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/test_triangle_height.html#TestTriangle_height.test_3dim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.test_triangle_height.TestTriangle_height.test_3dim" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="function">
-<dt id="aqueduct.geom.convexhull._facets">
-<code class="descname">_facets</code><span class="sig-paren">(</span><em>convexhull</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/convexhull.html#_facets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.convexhull._facets" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="aqueduct.geom.convexhull.is_point_within_convexhull">
-<code class="descname">is_point_within_convexhull</code><span class="sig-paren">(</span><em>point_chull</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/convexhull.html#is_point_within_convexhull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.convexhull.is_point_within_convexhull" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+</dd></dl>
 
 </div>
 
@@ -93,15 +89,15 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="aqueduct.geom.cluster.html"
-                        title="previous chapter">aqueduct.geom.cluster module</a></p>
+  <p class="topless"><a href="aqueduct.geom.smooth.html"
+                        title="previous chapter">aqueduct.geom.smooth module</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="aqueduct.geom.master.html"
-                        title="next chapter">aqueduct.geom.master module</a></p>
+  <p class="topless"><a href="aqueduct.geom.test_vectors_angle_anorm.html"
+                        title="next chapter">aqueduct.geom.test_vectors_angle_anorm module</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/aqueduct.geom.convexhull.txt"
+      <li><a href="_sources/aqueduct.geom.test_triangle_height.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -129,10 +125,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="aqueduct.geom.master.html" title="aqueduct.geom.master module"
+          <a href="aqueduct.geom.test_vectors_angle_anorm.html" title="aqueduct.geom.test_vectors_angle_anorm module"
              >next</a> |</li>
         <li class="right" >
-          <a href="aqueduct.geom.cluster.html" title="aqueduct.geom.cluster module"
+          <a href="aqueduct.geom.smooth.html" title="aqueduct.geom.smooth module"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &raquo;</li>

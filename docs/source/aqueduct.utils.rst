@@ -9,9 +9,6 @@ Submodules
    aqueduct.utils.helpers
    aqueduct.utils.log
    aqueduct.utils.multip
-   aqueduct.utils.test_listify
-   aqueduct.utils.test_sortify
-   aqueduct.utils.test_tupleify
 
 Module contents
 ---------------
