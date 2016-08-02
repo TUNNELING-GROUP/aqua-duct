@@ -1,7 +1,9 @@
+# coding: UTF-8
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
 import copy
-
+# todo : aby zaoszczedzic na obliczeniach mozna pomijac takie(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-> np kat 0.005 rad to 0,29stopnia miary łukowej
+# wektory: promień atomu wodoru to 0.529A
 from aqueduct.utils.helpers import arrayify,lind
 
 
@@ -16,7 +18,7 @@ def vector_norm(V):
 
 def triangle_angles(A, B, C):
     # http://stackoverflow.com/questions/5122372/angle-between-points
-    # ABC are point in the space
+    # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
     #returns list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]
     A, B, C = map(np.array, (A, B, C))
@@ -35,7 +37,7 @@ def triangle_angles(A, B, C):
 
 def triangle_angles_last(A, B, C):
     # http://stackoverflow.com/questions/5122372/angle-between-points
-    # ABC are point in the space
+    # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
     # returns list with one value of ABC angle in radians
     A, B, C = map(np.array, (A, B, C))
@@ -80,9 +82,9 @@ def vectors_angle_alt_anorm(A, B, A_norm):
 
 
 def vectors_angle_anorm(A, B, A_norm):
-    #A_norm is normalized vector A
-    # http: // docs.scipy.org / doc / numpy / reference / generated / numpy.arccos.html
-    #http: // docs.scipy.org / doc / numpy / reference / generated / numpy.clip.html
+    # A_norm is normalized vector A, A and B are points in the space
+    # function calculates angle between A and B relative to the origin of coordinate system
+    # function can take negative values!
     norm2 = A_norm * vector_norm(B)
     if norm2 == 0.:
         return 0.
