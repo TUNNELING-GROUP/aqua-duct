@@ -47,7 +47,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 8, 1
+    return 0, 8, 2
 
 
 def version_nice():
@@ -1544,7 +1544,8 @@ def stage_VI_run(config, options,
                  master_paths_smooth=None,
                  **kwargs):
     from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
-    from aqueduct.visual.pymol_connector import cmd as pymol_cmd
+    # from aqueduct.visual.pymol_connector import cmd as pymol_cmd
+    from pymol import cmd as pymol_cmd
     from aqueduct.visual.quickplot import ColorMapDistMap
 
     soptions = config.get_smooth_options()
@@ -1754,7 +1755,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
         max_frame = int(args.max_frame)
         if max_frame > reader.max_frame:
             log.warning("Desired --max-frame %d setting exceeds number of available frames (%d)." % (
-            max_frame + 1, reader.max_frame + 1))
+                max_frame + 1, reader.max_frame + 1))
     else:
         max_frame = reader.max_frame
     log.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))

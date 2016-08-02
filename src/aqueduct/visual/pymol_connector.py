@@ -1,21 +1,21 @@
 # import it as pmc?
 
 import cPickle as pickle
-import gzip
 import numpy as np
 import os
 import pymol
-import re
+import tarfile
 from pymol import cgo
 from pymol import cmd
-from shutil import copyfile
-import tarfile
 
 from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
 from aqueduct.utils.helpers import list_blocks_to_slices
 from aqueduct.visual.quickplot import cc, color_codes
 
+
+# TODO: remove pymol form required dependencies - move it to pymol_real
+# TODO: remove matplotlib from required dependencies
 
 class BasicPymolCGO(object):
     cgo_entity_begin = []
@@ -123,23 +123,22 @@ class BasicPymolCGOPointers(BasicPymolCGO):
 
 from aqueduct.utils.helpers import create_tmpfile
 
+
 class SimpleTarWriteHelper(object):
-
     def __init__(self):
-
         self.tar_fh = None
         self.tmp_file = create_tmpfile()
 
-    def open(self,filename):
-        self.tar_fh = tarfile.open(filename,'w:gz')
+    def open(self, filename):
+        self.tar_fh = tarfile.open(filename, 'w:gz')
 
-    def save_object2tar(self,obj,name):
-        with open(self.tmp_file,'w') as f:
-            pickle.dump(obj,f)
-        self.save_file2tar(self.tmp_file,name)
+    def save_object2tar(self, obj, name):
+        with open(self.tmp_file, 'w') as f:
+            pickle.dump(obj, f)
+        self.save_file2tar(self.tmp_file, name)
 
-    def save_file2tar(self,filename,name):
-        self.tar_fh.add(filename,arcname=name)
+    def save_file2tar(self, filename, name):
+        self.tar_fh.add(filename, arcname=name)
 
     def __del__(self):
         if self.tar_fh is not None:
@@ -165,7 +164,7 @@ class ConnectToPymol(object):
 
     def init_script(self, filename):
         self.script_fh = open(filename, 'w')
-        data_filename = os.path.splitext(os.path.basename(filename))[0]+'.tar.gz'
+        data_filename = os.path.splitext(os.path.basename(filename))[0] + '.tar.gz'
         self.data_fh.open(data_filename)
         self.connection_type = self.ct_file
 
@@ -174,19 +173,23 @@ class ConnectToPymol(object):
 from pymol import cgo, cmd
 cmd.set('cgo_line_width', %d)
 from os import close, unlink
+from os.path import splitext
 import tarfile
 import cPickle as pickle
 from tempfile import mkstemp
 fd, pdb_filename = mkstemp(suffix='pdb')
 close(fd)
 data_fh = tarfile.open("%s","r:gz")
-def load_object(name):
-
-    return pickle.load(data_fh.extractfile(name))
-def load_pdb(name):
+def load_object(filename,name,state):
+    print "Loading %s" % splitext(filename)[0]
+    cmd.load_cgo(pickle.load(data_fh.extractfile(filename)), name, state)
+    if state<2:
+        cmd.refresh()
+def load_pdb(filename,name,state):
     with open(pdb_filename,'w') as fpdb:
-        fpdb.write(data_fh.extractfile(name).read())
-''' % (self.cgo_line_width,data_filename))
+        fpdb.write(data_fh.extractfile(filename).read())
+    cmd.load(pdb_filename, state=state, object=name)
+''' % (self.cgo_line_width, data_filename,"%s","% s"))
 
     def add_cgo_object(self, name, cgo_object, state=None):
         if state is None:
@@ -195,12 +198,12 @@ def load_pdb(name):
             cmd.load_cgo(cgo_object, str(name), state)
         elif self.connection_type == self.ct_file:
             obj_name = '%s_%d.dump' % (name, state)
-            self.data_fh.save_object2tar(cgo_object,obj_name)
+            self.data_fh.save_object2tar(cgo_object, obj_name)
 
-            self.script_fh.write('''cmd.load_cgo(load_object('%s'), "%s", %d)''' % (obj_name,str(name), state))
+            self.script_fh.write('''load_object('%s', "%s", %d)''' % (obj_name, str(name), state))
             self.script_fh.write(os.linesep)
-            #self.script_fh.write('''cmd.refresh()''')
-            #self.script_fh.write(os.linesep)
+            # self.script_fh.write('''cmd.refresh()''')
+            # self.script_fh.write(os.linesep)
 
     def del_cgo_object(self, name, state=None):
         raise NotImplementedError("This feature is not implemented yet.")
@@ -213,10 +216,8 @@ def load_pdb(name):
         elif self.connection_type == self.ct_file:
             # save pdblile as string
             filename_new = '%s_%d.pdb' % (name, state)
-            self.data_fh.save_file2tar(filename,filename_new)
-            self.script_fh.write('''load_pdb("%s")''' % filename_new)
-            self.script_fh.write(os.linesep)
-            self.script_fh.write('''cmd.load(pdb_filename, state=%d, object="%s")''' % (state, name))
+            self.data_fh.save_file2tar(filename, filename_new)
+            self.script_fh.write('''load_pdb("%s","%s",%d)''' % (filename_new,name,state))
             self.script_fh.write(os.linesep)
 
     def orient_on(self, name):
