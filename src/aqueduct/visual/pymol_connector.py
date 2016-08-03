@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # import it as pmc?
 
 import cPickle as pickle
@@ -170,16 +171,16 @@ class ConnectToPymol(object):
 
         # init lines, imports etc.
         self.script_fh.write('''print "Loading Aqua-Duct visualization..."
-from pymol import cgo, cmd
-cmd.set('cgo_line_width', %d)
-from os import close, unlink
+from pymol import cmd
+cmd.set("cgo_line_width", %d)
+from os import close,unlink
 from os.path import splitext
 import tarfile
 import cPickle as pickle
 from tempfile import mkstemp
-fd, pdb_filename = mkstemp(suffix='pdb')
+fd, pdb_filename = mkstemp(suffix="pdb")
 close(fd)
-data_fh = tarfile.open("%s","r:gz")
+data_fh=tarfile.open("%s","r:gz")
 def load_object(filename,name,state):
     print "Loading %s" % splitext(filename)[0]
     cmd.load_cgo(pickle.load(data_fh.extractfile(filename)), name, state)
@@ -188,7 +189,7 @@ def load_object(filename,name,state):
 def load_pdb(filename,name,state):
     with open(pdb_filename,'w') as fpdb:
         fpdb.write(data_fh.extractfile(filename).read())
-    cmd.load(pdb_filename, state=state, object=name)
+    cmd.load(pdb_filename,state=state,object=name)
 ''' % (self.cgo_line_width, data_filename,"%s","% s"))
 
     def add_cgo_object(self, name, cgo_object, state=None):
@@ -200,7 +201,7 @@ def load_pdb(filename,name,state):
             obj_name = '%s_%d.dump' % (name, state)
             self.data_fh.save_object2tar(cgo_object, obj_name)
 
-            self.script_fh.write('''load_object('%s', "%s", %d)''' % (obj_name, str(name), state))
+            self.script_fh.write('''load_object("%s","%s",%d)''' % (obj_name, str(name), state))
             self.script_fh.write(os.linesep)
             # self.script_fh.write('''cmd.refresh()''')
             # self.script_fh.write(os.linesep)
@@ -229,7 +230,8 @@ def load_pdb(filename,name,state):
 
     def __del__(self):
         if self.connection_type == self.ct_file:
-            self.script_fh.write('''unlink(pdb_filename)
+            self.script_fh.write('''data_fh.close()
+unlink(pdb_filename)
 print "Aqua-Duct visualization loaded."''')
             self.script_fh.write(os.linesep)
             self.script_fh.close()

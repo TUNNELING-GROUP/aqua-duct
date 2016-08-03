@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Module comprises convieniences functions and definitios for logging
 purposes including progress bar helpers.

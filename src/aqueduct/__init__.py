@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 """
 Aqueduct - a collection of tools to trace residues in MD simulation.

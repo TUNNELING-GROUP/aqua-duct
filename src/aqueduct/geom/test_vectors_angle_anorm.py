@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from unittest import TestCase
 from traces import vectors_angle_anorm,vector_norm
 import numpy as np

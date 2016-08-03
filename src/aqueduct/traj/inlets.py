@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from collections import namedtuple
 import numpy as np
 from aqueduct.utils.helpers import is_iterable, listify, lind

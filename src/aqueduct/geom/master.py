@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 
 # this modlue is a prototype and have to be revritten
 

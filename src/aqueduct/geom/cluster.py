@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
 This module provides functions for clusterization.
 Clusterization is done by :mod:`scikit-learn` module.
