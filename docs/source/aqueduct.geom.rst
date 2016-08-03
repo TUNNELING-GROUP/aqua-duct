@@ -11,6 +11,8 @@ Submodules
    aqueduct.geom.master
    aqueduct.geom.pca
    aqueduct.geom.smooth
+   aqueduct.geom.test_triangle_height
+   aqueduct.geom.test_vectors_angle_anorm
    aqueduct.geom.traces
 
 Module contents

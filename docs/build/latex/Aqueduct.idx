@@ -6,28 +6,21 @@
 \indexentry{fit() (PerformClustering method)|hyperpage}{21}
 \indexentry{centers() (PerformClustering method)|hyperpage}{21}
 \indexentry{aqueduct.geom.convexhull (module)|hyperpage}{21}
+\indexentry{\_vertices\_ids() (in module aqueduct.geom.convexhull)|hyperpage}{21}
+\indexentry{\_vertices\_points() (in module aqueduct.geom.convexhull)|hyperpage}{21}
+\indexentry{\_point\_within\_convexhull() (in module aqueduct.geom.convexhull)|hyperpage}{21}
+\indexentry{\_facets() (in module aqueduct.geom.convexhull)|hyperpage}{21}
 \indexentry{is\_point\_within\_convexhull() (in module aqueduct.geom.convexhull)|hyperpage}{21}
-\indexentry{aqueduct.geom.convexhull\_pyhull (module)|hyperpage}{21}
-\indexentry{\_unfold\_vertices\_list() (in module aqueduct.geom.convexhull\_pyhull)|hyperpage}{21}
-\indexentry{\_vertices\_ids() (in module aqueduct.geom.convexhull\_pyhull)|hyperpage}{21}
-\indexentry{\_vertices\_points() (in module aqueduct.geom.convexhull\_pyhull)|hyperpage}{21}
-\indexentry{\_point\_within\_convexhull() (in module aqueduct.geom.convexhull\_pyhull)|hyperpage}{21}
-\indexentry{\_facets() (in module aqueduct.geom.convexhull\_pyhull)|hyperpage}{21}
-\indexentry{aqueduct.geom.convexhull\_scipy (module)|hyperpage}{21}
-\indexentry{\_vertices\_ids() (in module aqueduct.geom.convexhull\_scipy)|hyperpage}{21}
-\indexentry{\_vertices\_points() (in module aqueduct.geom.convexhull\_scipy)|hyperpage}{21}
-\indexentry{\_point\_within\_convexhull() (in module aqueduct.geom.convexhull\_scipy)|hyperpage}{21}
-\indexentry{\_facets() (in module aqueduct.geom.convexhull\_scipy)|hyperpage}{21}
-\indexentry{aqueduct.geom.master (module)|hyperpage}{22}
-\indexentry{fit\_trace\_to\_points() (in module aqueduct.geom.master)|hyperpage}{22}
-\indexentry{strech\_zip() (in module aqueduct.geom.master)|hyperpage}{22}
-\indexentry{compress\_zip() (in module aqueduct.geom.master)|hyperpage}{22}
-\indexentry{zip\_zip() (in module aqueduct.geom.master)|hyperpage}{22}
-\indexentry{decide\_on\_type() (in module aqueduct.geom.master)|hyperpage}{22}
-\indexentry{simple\_types\_distribution() (in module aqueduct.geom.master)|hyperpage}{22}
-\indexentry{get\_weights\_() (in module aqueduct.geom.master)|hyperpage}{22}
-\indexentry{get\_mean\_coord\_() (in module aqueduct.geom.master)|hyperpage}{22}
-\indexentry{concatenate() (in module aqueduct.geom.master)|hyperpage}{22}
+\indexentry{aqueduct.geom.master (module)|hyperpage}{21}
+\indexentry{fit\_trace\_to\_points() (in module aqueduct.geom.master)|hyperpage}{21}
+\indexentry{strech\_zip() (in module aqueduct.geom.master)|hyperpage}{21}
+\indexentry{compress\_zip() (in module aqueduct.geom.master)|hyperpage}{21}
+\indexentry{zip\_zip() (in module aqueduct.geom.master)|hyperpage}{21}
+\indexentry{decide\_on\_type() (in module aqueduct.geom.master)|hyperpage}{21}
+\indexentry{simple\_types\_distribution() (in module aqueduct.geom.master)|hyperpage}{21}
+\indexentry{get\_weights\_() (in module aqueduct.geom.master)|hyperpage}{21}
+\indexentry{get\_mean\_coord\_() (in module aqueduct.geom.master)|hyperpage}{21}
+\indexentry{concatenate() (in module aqueduct.geom.master)|hyperpage}{21}
 \indexentry{create\_master\_spath() (in module aqueduct.geom.master)|hyperpage}{22}
 \indexentry{MasterTrace (class in aqueduct.geom.master)|hyperpage}{22}
 \indexentry{\_\_init\_\_() (MasterTrace method)|hyperpage}{22}
@@ -51,15 +44,15 @@
 \indexentry{preprocess\_undo() (PCA method)|hyperpage}{22}
 \indexentry{\_\_call\_\_() (PCA method)|hyperpage}{22}
 \indexentry{undo() (PCA method)|hyperpage}{22}
-\indexentry{aqueduct.geom.smooth (module)|hyperpage}{23}
-\indexentry{Smooth (class in aqueduct.geom.smooth)|hyperpage}{23}
-\indexentry{\_\_init\_\_() (Smooth method)|hyperpage}{23}
-\indexentry{smooth() (Smooth method)|hyperpage}{23}
-\indexentry{\_\_call\_\_() (Smooth method)|hyperpage}{23}
-\indexentry{GeneralWindow (class in aqueduct.geom.smooth)|hyperpage}{23}
-\indexentry{max\_window\_at\_pos() (GeneralWindow static method)|hyperpage}{23}
-\indexentry{check\_bounds\_at\_max\_window\_at\_pos() (GeneralWindow method)|hyperpage}{23}
-\indexentry{WindowSmooth (class in aqueduct.geom.smooth)|hyperpage}{23}
+\indexentry{aqueduct.geom.smooth (module)|hyperpage}{22}
+\indexentry{Smooth (class in aqueduct.geom.smooth)|hyperpage}{22}
+\indexentry{\_\_init\_\_() (Smooth method)|hyperpage}{22}
+\indexentry{smooth() (Smooth method)|hyperpage}{22}
+\indexentry{\_\_call\_\_() (Smooth method)|hyperpage}{22}
+\indexentry{GeneralWindow (class in aqueduct.geom.smooth)|hyperpage}{22}
+\indexentry{max\_window\_at\_pos() (GeneralWindow static method)|hyperpage}{22}
+\indexentry{check\_bounds\_at\_max\_window\_at\_pos() (GeneralWindow method)|hyperpage}{22}
+\indexentry{WindowSmooth (class in aqueduct.geom.smooth)|hyperpage}{22}
 \indexentry{\_\_init\_\_() (WindowSmooth method)|hyperpage}{23}
 \indexentry{smooth() (WindowSmooth method)|hyperpage}{23}
 \indexentry{DistanceWindowSmooth (class in aqueduct.geom.smooth)|hyperpage}{23}
@@ -80,6 +73,22 @@
 \indexentry{DistanceWindowOverMaxStepSmooth (class in aqueduct.geom.smooth)|hyperpage}{23}
 \indexentry{\_\_init\_\_() (DistanceWindowOverMaxStepSmooth method)|hyperpage}{23}
 \indexentry{smooth() (DistanceWindowOverMaxStepSmooth method)|hyperpage}{23}
+\indexentry{aqueduct.geom.test\_triangle\_height (module)|hyperpage}{23}
+\indexentry{TestTriangle\_height (class in aqueduct.geom.test\_triangle\_height)|hyperpage}{23}
+\indexentry{test\_OutType() (TestTriangle\_height method)|hyperpage}{23}
+\indexentry{test\_2dim() (TestTriangle\_height method)|hyperpage}{23}
+\indexentry{test\_3dim() (TestTriangle\_height method)|hyperpage}{23}
+\indexentry{aqueduct.geom.test\_vectors\_angle\_anorm (module)|hyperpage}{23}
+\indexentry{TestVectors\_angle\_anorm (class in aqueduct.geom.test\_vectors\_angle\_anorm)|hyperpage}{23}
+\indexentry{test\_output\_value() (TestVectors\_angle\_anorm method)|hyperpage}{23}
+\indexentry{test\_vectors\_angle\_anorm() (TestVectors\_angle\_anorm method)|hyperpage}{23}
+\indexentry{test\_list\_input() (TestVectors\_angle\_anorm method)|hyperpage}{23}
+\indexentry{test\_zero() (TestVectors\_angle\_anorm method)|hyperpage}{23}
+\indexentry{test\_zero2() (TestVectors\_angle\_anorm method)|hyperpage}{23}
+\indexentry{test\_huge\_values() (TestVectors\_angle\_anorm method)|hyperpage}{24}
+\indexentry{test\_mixed\_values() (TestVectors\_angle\_anorm method)|hyperpage}{24}
+\indexentry{test\_negative\_vector() (TestVectors\_angle\_anorm method)|hyperpage}{24}
+\indexentry{test\_one\_negative\_value() (TestVectors\_angle\_anorm method)|hyperpage}{24}
 \indexentry{aqueduct.geom.traces (module)|hyperpage}{24}
 \indexentry{vector\_norm() (in module aqueduct.geom.traces)|hyperpage}{24}
 \indexentry{triangle\_angles() (in module aqueduct.geom.traces)|hyperpage}{24}
@@ -97,10 +106,10 @@
 \indexentry{LinearizeRecursive (class in aqueduct.geom.traces)|hyperpage}{24}
 \indexentry{here() (LinearizeRecursive method)|hyperpage}{24}
 \indexentry{\_\_call\_\_() (LinearizeRecursive method)|hyperpage}{24}
-\indexentry{TrianlgeLinearize (class in aqueduct.geom.traces)|hyperpage}{24}
-\indexentry{\_\_init\_\_() (TrianlgeLinearize method)|hyperpage}{24}
-\indexentry{is\_linear() (TrianlgeLinearize method)|hyperpage}{24}
-\indexentry{VectorLinearize (class in aqueduct.geom.traces)|hyperpage}{24}
+\indexentry{TrianlgeLinearize (class in aqueduct.geom.traces)|hyperpage}{25}
+\indexentry{\_\_init\_\_() (TrianlgeLinearize method)|hyperpage}{25}
+\indexentry{is\_linear() (TrianlgeLinearize method)|hyperpage}{25}
+\indexentry{VectorLinearize (class in aqueduct.geom.traces)|hyperpage}{25}
 \indexentry{\_\_init\_\_() (VectorLinearize method)|hyperpage}{25}
 \indexentry{is\_linear\_core() (VectorLinearize method)|hyperpage}{25}
 \indexentry{is\_linear() (VectorLinearize method)|hyperpage}{25}
@@ -110,9 +119,9 @@
 \indexentry{midpoints() (in module aqueduct.geom.traces)|hyperpage}{25}
 \indexentry{length\_step\_std() (in module aqueduct.geom.traces)|hyperpage}{25}
 \indexentry{derrivative() (in module aqueduct.geom.traces)|hyperpage}{25}
-\indexentry{aqueduct.geom (module)|hyperpage}{25}
-\indexentry{aqueduct.traj.dumps (module)|hyperpage}{25}
-\indexentry{TmpDumpWriterOfMDA (class in aqueduct.traj.dumps)|hyperpage}{25}
+\indexentry{aqueduct.geom (module)|hyperpage}{26}
+\indexentry{aqueduct.traj.dumps (module)|hyperpage}{26}
+\indexentry{TmpDumpWriterOfMDA (class in aqueduct.traj.dumps)|hyperpage}{26}
 \indexentry{\_\_init\_\_() (TmpDumpWriterOfMDA method)|hyperpage}{26}
 \indexentry{dump\_frames() (TmpDumpWriterOfMDA method)|hyperpage}{26}
 \indexentry{close() (TmpDumpWriterOfMDA method)|hyperpage}{26}
@@ -144,10 +153,10 @@
 \indexentry{\_\_repr\_\_() (InletClusterGenericType method)|hyperpage}{26}
 \indexentry{make\_val() (InletClusterGenericType method)|hyperpage}{26}
 \indexentry{\_\_cmp\_\_() (InletClusterGenericType method)|hyperpage}{26}
-\indexentry{\_\_hash\_\_() (InletClusterGenericType method)|hyperpage}{26}
-\indexentry{InletClusterExtendedType (class in aqueduct.traj.inlets)|hyperpage}{26}
-\indexentry{\_\_init\_\_() (InletClusterExtendedType method)|hyperpage}{26}
-\indexentry{generic (InletClusterExtendedType attribute)|hyperpage}{26}
+\indexentry{\_\_hash\_\_() (InletClusterGenericType method)|hyperpage}{27}
+\indexentry{InletClusterExtendedType (class in aqueduct.traj.inlets)|hyperpage}{27}
+\indexentry{\_\_init\_\_() (InletClusterExtendedType method)|hyperpage}{27}
+\indexentry{generic (InletClusterExtendedType attribute)|hyperpage}{27}
 \indexentry{Inlet (class in aqueduct.traj.inlets)|hyperpage}{27}
 \indexentry{\_\_getnewargs\_\_() (Inlet method)|hyperpage}{27}
 \indexentry{\_\_getstate\_\_() (Inlet method)|hyperpage}{27}
@@ -174,9 +183,9 @@
 \indexentry{small\_clusters\_to\_outliers() (Inlets method)|hyperpage}{27}
 \indexentry{renumber\_clusters() (Inlets method)|hyperpage}{27}
 \indexentry{sort\_clusters() (Inlets method)|hyperpage}{27}
-\indexentry{clusters\_list (Inlets attribute)|hyperpage}{27}
-\indexentry{clusters\_centers (Inlets attribute)|hyperpage}{27}
-\indexentry{clusters\_size (Inlets attribute)|hyperpage}{27}
+\indexentry{clusters\_list (Inlets attribute)|hyperpage}{28}
+\indexentry{clusters\_centers (Inlets attribute)|hyperpage}{28}
+\indexentry{clusters\_size (Inlets attribute)|hyperpage}{28}
 \indexentry{clusters\_std (Inlets attribute)|hyperpage}{28}
 \indexentry{spaths2ctypes() (Inlets method)|hyperpage}{28}
 \indexentry{lim\_to() (Inlets method)|hyperpage}{28}
@@ -209,9 +218,9 @@
 \indexentry{get\_paths\_in() (GenericPaths method)|hyperpage}{28}
 \indexentry{get\_paths\_out() (GenericPaths method)|hyperpage}{28}
 \indexentry{get\_paths\_for\_frames\_range() (GenericPaths method)|hyperpage}{28}
-\indexentry{find\_paths() (GenericPaths method)|hyperpage}{28}
-\indexentry{find\_paths\_coords() (GenericPaths method)|hyperpage}{28}
-\indexentry{find\_paths\_types() (GenericPaths method)|hyperpage}{28}
+\indexentry{find\_paths() (GenericPaths method)|hyperpage}{29}
+\indexentry{find\_paths\_coords() (GenericPaths method)|hyperpage}{29}
+\indexentry{find\_paths\_types() (GenericPaths method)|hyperpage}{29}
 \indexentry{find\_paths\_coords\_types() (GenericPaths method)|hyperpage}{29}
 \indexentry{get\_single\_path\_coords() (GenericPaths method)|hyperpage}{29}
 \indexentry{get\_single\_path\_types() (GenericPaths method)|hyperpage}{29}
@@ -246,9 +255,9 @@
 \indexentry{get\_coords\_cont() (SinglePath method)|hyperpage}{29}
 \indexentry{\_make\_smooth\_coords() (SinglePath method)|hyperpage}{29}
 \indexentry{apply\_smoothing() (SinglePath method)|hyperpage}{29}
-\indexentry{get\_distance\_cont() (SinglePath method)|hyperpage}{29}
-\indexentry{get\_distance\_rev\_cont() (SinglePath method)|hyperpage}{29}
-\indexentry{get\_distance\_both\_cont() (SinglePath method)|hyperpage}{29}
+\indexentry{get\_distance\_cont() (SinglePath method)|hyperpage}{30}
+\indexentry{get\_distance\_rev\_cont() (SinglePath method)|hyperpage}{30}
+\indexentry{get\_distance\_both\_cont() (SinglePath method)|hyperpage}{30}
 \indexentry{get\_velocity\_cont() (SinglePath method)|hyperpage}{30}
 \indexentry{get\_acceleration\_cont() (SinglePath method)|hyperpage}{30}
 \indexentry{MasterPath (class in aqueduct.traj.paths)|hyperpage}{30}
@@ -274,6 +283,7 @@
 \indexentry{select\_multiple\_resnum() (ReadViaMDA method)|hyperpage}{30}
 \indexentry{\_\_enter\_\_() (ReadViaMDA method)|hyperpage}{30}
 \indexentry{\_\_exit\_\_() (ReadViaMDA method)|hyperpage}{30}
+\indexentry{open\_trajectory() (ReadViaMDA method)|hyperpage}{30}
 \indexentry{ReadAmberNetCDFviaMDA (class in aqueduct.traj.reader)|hyperpage}{30}
 \indexentry{open\_trajectory() (ReadAmberNetCDFviaMDA method)|hyperpage}{30}
 \indexentry{ReadDCDviaMDA (class in aqueduct.traj.reader)|hyperpage}{30}
@@ -341,6 +351,7 @@
 \indexentry{pbar (class in aqueduct.utils.log)|hyperpage}{37}
 \indexentry{\_\_init\_\_() (pbar method)|hyperpage}{37}
 \indexentry{update() (pbar method)|hyperpage}{37}
+\indexentry{heartbeat() (pbar method)|hyperpage}{37}
 \indexentry{finish() (pbar method)|hyperpage}{37}
 \indexentry{get\_str\_timestamp() (in module aqueduct.utils.log)|hyperpage}{37}
 \indexentry{fbm (class in aqueduct.utils.log)|hyperpage}{37}
@@ -372,18 +383,31 @@
 \indexentry{cgo\_entity\_end (BasicPymolCGOPointers attribute)|hyperpage}{38}
 \indexentry{add\_cone() (BasicPymolCGOPointers method)|hyperpage}{38}
 \indexentry{add\_pointer() (BasicPymolCGOPointers method)|hyperpage}{38}
-\indexentry{ConnectToPymol (class in aqueduct.visual.pymol\_connector)|hyperpage}{38}
-\indexentry{cgo\_line\_width (ConnectToPymol attribute)|hyperpage}{38}
-\indexentry{init\_pymol() (ConnectToPymol static method)|hyperpage}{38}
-\indexentry{add\_cgo\_object() (ConnectToPymol static method)|hyperpage}{38}
-\indexentry{del\_cgo\_object() (ConnectToPymol static method)|hyperpage}{38}
-\indexentry{load\_pdb() (ConnectToPymol static method)|hyperpage}{39}
+\indexentry{SimpleTarWriteHelper (class in aqueduct.visual.pymol\_connector)|hyperpage}{38}
+\indexentry{\_\_init\_\_() (SimpleTarWriteHelper method)|hyperpage}{38}
+\indexentry{open() (SimpleTarWriteHelper method)|hyperpage}{38}
+\indexentry{save\_object2tar() (SimpleTarWriteHelper method)|hyperpage}{38}
+\indexentry{save\_file2tar() (SimpleTarWriteHelper method)|hyperpage}{38}
+\indexentry{\_\_del\_\_() (SimpleTarWriteHelper method)|hyperpage}{38}
+\indexentry{ConnectToPymol (class in aqueduct.visual.pymol\_connector)|hyperpage}{39}
+\indexentry{cgo\_line\_width (ConnectToPymol attribute)|hyperpage}{39}
+\indexentry{ct\_pymol (ConnectToPymol attribute)|hyperpage}{39}
+\indexentry{ct\_file (ConnectToPymol attribute)|hyperpage}{39}
+\indexentry{\_\_init\_\_() (ConnectToPymol method)|hyperpage}{39}
+\indexentry{init\_pymol() (ConnectToPymol method)|hyperpage}{39}
+\indexentry{init\_script() (ConnectToPymol method)|hyperpage}{39}
+\indexentry{add\_cgo\_object() (ConnectToPymol method)|hyperpage}{39}
+\indexentry{del\_cgo\_object() (ConnectToPymol method)|hyperpage}{39}
+\indexentry{load\_pdb() (ConnectToPymol method)|hyperpage}{39}
+\indexentry{orient\_on() (ConnectToPymol method)|hyperpage}{39}
+\indexentry{\_\_del\_\_() (ConnectToPymol method)|hyperpage}{39}
 \indexentry{SinglePathPlotter (class in aqueduct.visual.pymol\_connector)|hyperpage}{39}
 \indexentry{\_\_init\_\_() (SinglePathPlotter method)|hyperpage}{39}
 \indexentry{add\_single\_path\_continous\_trace() (SinglePathPlotter method)|hyperpage}{39}
 \indexentry{paths\_trace() (SinglePathPlotter method)|hyperpage}{39}
 \indexentry{paths\_inlets() (SinglePathPlotter method)|hyperpage}{39}
 \indexentry{scatter() (SinglePathPlotter method)|hyperpage}{39}
+\indexentry{convexhull() (SinglePathPlotter method)|hyperpage}{39}
 \indexentry{aqueduct.visual.quickplot (module)|hyperpage}{39}
 \indexentry{cc() (in module aqueduct.visual.quickplot)|hyperpage}{39}
 \indexentry{get\_cmap() (in module aqueduct.visual.quickplot)|hyperpage}{39}
@@ -399,16 +423,16 @@
 \indexentry{spaths\_spectra() (in module aqueduct.visual.quickplot)|hyperpage}{39}
 \indexentry{plot\_spath\_spectrum() (in module aqueduct.visual.quickplot)|hyperpage}{39}
 \indexentry{spath\_spectrum() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{showit() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{get\_ax3d() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{SimpleTracePlotter (class in aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{plot\_line() (SimpleTracePlotter method)|hyperpage}{39}
-\indexentry{single\_trace() (SimpleTracePlotter method)|hyperpage}{39}
-\indexentry{path\_trace() (SimpleTracePlotter method)|hyperpage}{39}
-\indexentry{SimpleProteinPlotter (class in aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{protein\_trace() (SimpleProteinPlotter method)|hyperpage}{39}
-\indexentry{SimplePathPlotter (class in aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{single\_path\_traces() (SimplePathPlotter method)|hyperpage}{39}
+\indexentry{showit() (in module aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{get\_ax3d() (in module aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{SimpleTracePlotter (class in aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{plot\_line() (SimpleTracePlotter method)|hyperpage}{40}
+\indexentry{single\_trace() (SimpleTracePlotter method)|hyperpage}{40}
+\indexentry{path\_trace() (SimpleTracePlotter method)|hyperpage}{40}
+\indexentry{SimpleProteinPlotter (class in aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{protein\_trace() (SimpleProteinPlotter method)|hyperpage}{40}
+\indexentry{SimplePathPlotter (class in aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{single\_path\_traces() (SimplePathPlotter method)|hyperpage}{40}
 \indexentry{MPLTracePlotter (class in aqueduct.visual.quickplot)|hyperpage}{40}
 \indexentry{init\_ax() (MPLTracePlotter method)|hyperpage}{40}
 \indexentry{plot\_line() (MPLTracePlotter method)|hyperpage}{40}

@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aqueduct.geom.test_vectors_angle_anorm &mdash; Aqueduct 0.2.11 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.11',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Aqueduct 0.2.11 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for aqueduct.geom.test_vectors_angle_anorm</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span> <span class="nn">traces</span> <span class="kn">import</span> <span class="n">vectors_angle_anorm</span><span class="p">,</span><span class="n">vector_norm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="TestVectors_angle_anorm"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm">[docs]</a><span class="k">class</span> <span class="nc">TestVectors_angle_anorm</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_output_value"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_output_value">[docs]</a>    <span class="k">def</span> <span class="nf">test_output_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">Anorm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span> <span class="o">=</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span><span class="nb">float</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_vectors_angle_anorm"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_vectors_angle_anorm">[docs]</a>    <span class="k">def</span> <span class="nf">test_vectors_angle_anorm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">A</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">B</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">Anorm</span><span class="o">=</span><span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span><span class="o">=</span><span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">,</span><span class="n">Anorm</span><span class="p">)</span>
+        <span class="n">res</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">8</span><span class="o">/</span><span class="p">(</span><span class="mf">2.83</span><span class="o">*</span><span class="mf">3.46</span><span class="p">),</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">round_res</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">round_outp</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">round_res</span><span class="p">,</span> <span class="n">round_outp</span><span class="p">)</span></div>
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_list_input"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_list_input">[docs]</a>    <span class="k">def</span> <span class="nf">test_list_input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">Anorm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span> <span class="o">=</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">8</span> <span class="o">/</span> <span class="p">(</span><span class="mf">2.83</span> <span class="o">*</span> <span class="mf">3.46</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">round_res</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">round_outp</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">round_res</span><span class="p">,</span> <span class="n">round_outp</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_zero"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_zero">[docs]</a>    <span class="k">def</span> <span class="nf">test_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">Anorm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span> <span class="o">=</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_zero2"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_zero2">[docs]</a>    <span class="k">def</span> <span class="nf">test_zero2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># in such case it would be worth to pass callculation with 0 value</span>
+        <span class="c1"># values must be</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
+        <span class="n">Anorm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span> <span class="o">=</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mf">0.03</span><span class="o">/</span> <span class="p">(</span><span class="mf">0.1732</span> <span class="o">*</span><span class="mf">0.1732</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_huge_values"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_huge_values">[docs]</a>    <span class="k">def</span> <span class="nf">test_huge_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">A</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span><span class="mi">200</span><span class="p">,</span><span class="mi">200</span>
+        <span class="n">B</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span><span class="mi">200</span><span class="p">,</span><span class="mi">200</span>
+        <span class="n">Anorm</span><span class="o">=</span><span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span><span class="o">=</span><span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="n">res</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">120000</span><span class="o">/</span><span class="p">(</span><span class="mf">346.41</span><span class="o">*</span><span class="mf">346.41</span><span class="p">),</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span><span class="n">res</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">test_mixed_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1">#it&#39;s enough if just one vector is extremely short to give vaule about 0</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span>
+        <span class="n">Anorm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span> <span class="o">=</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">60</span><span class="o">/</span> <span class="p">(</span><span class="mf">0.03</span> <span class="o">*</span> <span class="mf">346.41</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_mixed_values"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_mixed_values">[docs]</a>    <span class="k">def</span> <span class="nf">test_mixed_values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># one extremely small value has no influence on result</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span>
+        <span class="n">Anorm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span> <span class="o">=</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">420</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.4177</span> <span class="o">*</span> <span class="mf">346.41</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">roundo</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="n">roundr</span><span class="o">=</span><span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="p">,</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">roundo</span><span class="p">,</span> <span class="n">roundr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_negative_vector"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_negative_vector">[docs]</a>    <span class="k">def</span> <span class="nf">test_negative_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">A</span><span class="o">=-</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="o">-</span><span class="mi">2</span>
+        <span class="n">B</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span>
+        <span class="n">Anorm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span> <span class="o">=</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="o">-</span><span class="mi">8</span><span class="o">/</span> <span class="p">(</span><span class="mf">2.82842</span><span class="o">*</span> <span class="mf">2.82842</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span><span class="n">res</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TestVectors_angle_anorm.test_one_negative_value"><a class="viewcode-back" href="../../../aqueduct.geom.test_vectors_angle_anorm.html#aqueduct.geom.test_vectors_angle_anorm.TestVectors_angle_anorm.test_one_negative_value">[docs]</a>    <span class="k">def</span> <span class="nf">test_one_negative_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># todo: values are quite different-why</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span>
+        <span class="n">Anorm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
+        <span class="n">outp</span> <span class="o">=</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">Anorm</span><span class="p">)</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="n">B</span><span class="p">)</span><span class="o">/</span> <span class="p">(</span><span class="mf">10.4</span> <span class="o">*</span> <span class="mf">2.82</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">roundo</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="n">roundr</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">outp</span><span class="p">,</span> <span class="n">res</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

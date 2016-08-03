@@ -11,10 +11,12 @@
   \item \_\_call\_\_() (Normalize method), \hyperpage{22}
   \item \_\_call\_\_() (PCA method), \hyperpage{22}
   \item \_\_call\_\_() (PerformClustering method), \hyperpage{21}
-  \item \_\_call\_\_() (Smooth method), \hyperpage{23}
+  \item \_\_call\_\_() (Smooth method), \hyperpage{22}
   \item \_\_call\_\_() (Standartize method), \hyperpage{22}
   \item \_\_call\_\_() (fbm method), \hyperpage{37}
   \item \_\_cmp\_\_() (InletClusterGenericType method), \hyperpage{26}
+  \item \_\_del\_\_() (ConnectToPymol method), \hyperpage{39}
+  \item \_\_del\_\_() (SimpleTarWriteHelper method), \hyperpage{38}
   \item \_\_del\_\_() (TmpDumpWriterOfMDA method), \hyperpage{26}
   \item \_\_enter\_\_() (ReadViaMDA method), \hyperpage{30}
   \item \_\_enter\_\_() (fbm method), \hyperpage{37}
@@ -23,17 +25,18 @@
   \item \_\_getitem\_\_() (InletClusterGenericType method), \hyperpage{26}
   \item \_\_getnewargs\_\_() (Inlet method), \hyperpage{27}
   \item \_\_getstate\_\_() (Inlet method), \hyperpage{27}
-  \item \_\_hash\_\_() (InletClusterGenericType method), \hyperpage{26}
+  \item \_\_hash\_\_() (InletClusterGenericType method), \hyperpage{27}
   \item \_\_init\_\_() (ActiveWindowOverMaxStepSmooth method), \hyperpage{23}
   \item \_\_init\_\_() (ActiveWindowSmooth method), \hyperpage{23}
   \item \_\_init\_\_() (BasicPymolCGO method), \hyperpage{38}
   \item \_\_init\_\_() (Center method), \hyperpage{22}
   \item \_\_init\_\_() (ColorMapDistMap method), \hyperpage{39}
   \item \_\_init\_\_() (CompactSelectionMDA method), \hyperpage{31}
+  \item \_\_init\_\_() (ConnectToPymol method), \hyperpage{39}
   \item \_\_init\_\_() (DistanceWindowOverMaxStepSmooth method), \hyperpage{23}
   \item \_\_init\_\_() (DistanceWindowSmooth method), \hyperpage{23}
   \item \_\_init\_\_() (GenericPaths method), \hyperpage{28}
-  \item \_\_init\_\_() (InletClusterExtendedType method), \hyperpage{26}
+  \item \_\_init\_\_() (InletClusterExtendedType method), \hyperpage{27}
   \item \_\_init\_\_() (InletClusterGenericType method), \hyperpage{26}
   \item \_\_init\_\_() (Inlets method), \hyperpage{27}
   \item \_\_init\_\_() (MasterPath method), \hyperpage{30}
@@ -44,13 +47,14 @@
   \item \_\_init\_\_() (PerformClustering method), \hyperpage{21}
   \item \_\_init\_\_() (Reader method), \hyperpage{30}
   \item \_\_init\_\_() (SimpleProgressBar method), \hyperpage{36}
+  \item \_\_init\_\_() (SimpleTarWriteHelper method), \hyperpage{38}
   \item \_\_init\_\_() (SinglePath method), \hyperpage{29}
   \item \_\_init\_\_() (SinglePathID method), \hyperpage{29}
   \item \_\_init\_\_() (SinglePathPlotter method), \hyperpage{39}
-  \item \_\_init\_\_() (Smooth method), \hyperpage{23}
+  \item \_\_init\_\_() (Smooth method), \hyperpage{22}
   \item \_\_init\_\_() (Standartize method), \hyperpage{22}
   \item \_\_init\_\_() (TmpDumpWriterOfMDA method), \hyperpage{26}
-  \item \_\_init\_\_() (TrianlgeLinearize method), \hyperpage{24}
+  \item \_\_init\_\_() (TrianlgeLinearize method), \hyperpage{25}
   \item \_\_init\_\_() (VectorLinearize method), \hyperpage{25}
   \item \_\_init\_\_() (WindowOverMaxStepSmooth method), \hyperpage{23}
   \item \_\_init\_\_() (WindowSmooth method), \hyperpage{23}
@@ -66,19 +70,14 @@
   \item \_\_str\_\_() (InletClusterGenericType method), \hyperpage{26}
   \item \_\_str\_\_() (SinglePathID method), \hyperpage{29}
   \item \_asdict() (Inlet method), \hyperpage{27}
-  \item \_facets() (in module aqueduct.geom.convexhull\_pyhull), \hyperpage{21}
-  \item \_facets() (in module aqueduct.geom.convexhull\_scipy), \hyperpage{21}
+  \item \_facets() (in module aqueduct.geom.convexhull), \hyperpage{21}
   \item \_fields (Inlet attribute), \hyperpage{27}
   \item \_make() (aqueduct.traj.inlets.Inlet class method), \hyperpage{27}
   \item \_make\_smooth\_coords() (SinglePath method), \hyperpage{29}
-  \item \_point\_within\_convexhull() (in module aqueduct.geom.convexhull\_pyhull), \hyperpage{21}
-  \item \_point\_within\_convexhull() (in module aqueduct.geom.convexhull\_scipy), \hyperpage{21}
+  \item \_point\_within\_convexhull() (in module aqueduct.geom.convexhull), \hyperpage{21}
   \item \_replace() (Inlet method), \hyperpage{27}
-  \item \_unfold\_vertices\_list() (in module aqueduct.geom.convexhull\_pyhull), \hyperpage{21}
-  \item \_vertices\_ids() (in module aqueduct.geom.convexhull\_pyhull), \hyperpage{21}
-  \item \_vertices\_ids() (in module aqueduct.geom.convexhull\_scipy), \hyperpage{21}
-  \item \_vertices\_points() (in module aqueduct.geom.convexhull\_pyhull), \hyperpage{21}
-  \item \_vertices\_points() (in module aqueduct.geom.convexhull\_scipy), \hyperpage{21}
+  \item \_vertices\_ids() (in module aqueduct.geom.convexhull), \hyperpage{21}
+  \item \_vertices\_points() (in module aqueduct.geom.convexhull), \hyperpage{21}
 
   \indexspace
   \bigletter A
@@ -86,7 +85,7 @@
   \item ActiveWindowSmooth (class in aqueduct.geom.smooth), \hyperpage{23}
   \item add() (BasicPymolCGOLines method), \hyperpage{38}
   \item add() (BasicPymolCGOSpheres method), \hyperpage{38}
-  \item add\_cgo\_object() (ConnectToPymol static method), \hyperpage{38}
+  \item add\_cgo\_object() (ConnectToPymol method), \hyperpage{39}
   \item add\_cluster\_annotations() (Inlets method), \hyperpage{27}
   \item add\_cone() (BasicPymolCGOPointers method), \hyperpage{38}
   \item add\_coord() (GenericPaths method), \hyperpage{28}
@@ -103,17 +102,17 @@
   \item and\_back\_again() (LinearizeHobbit method), \hyperpage{24}
   \item apply\_smoothing() (SinglePath method), \hyperpage{29}
   \item aqueduct (module), \hyperpage{40}
-  \item aqueduct.geom (module), \hyperpage{25}
+  \item aqueduct.geom (module), \hyperpage{26}
   \item aqueduct.geom.cluster (module), \hyperpage{21}
   \item aqueduct.geom.convexhull (module), \hyperpage{21}
-  \item aqueduct.geom.convexhull\_pyhull (module), \hyperpage{21}
-  \item aqueduct.geom.convexhull\_scipy (module), \hyperpage{21}
-  \item aqueduct.geom.master (module), \hyperpage{22}
+  \item aqueduct.geom.master (module), \hyperpage{21}
   \item aqueduct.geom.pca (module), \hyperpage{22}
-  \item aqueduct.geom.smooth (module), \hyperpage{23}
+  \item aqueduct.geom.smooth (module), \hyperpage{22}
+  \item aqueduct.geom.test\_triangle\_height (module), \hyperpage{23}
+  \item aqueduct.geom.test\_vectors\_angle\_anorm (module), \hyperpage{23}
   \item aqueduct.geom.traces (module), \hyperpage{24}
   \item aqueduct.traj (module), \hyperpage{31}
-  \item aqueduct.traj.dumps (module), \hyperpage{25}
+  \item aqueduct.traj.dumps (module), \hyperpage{26}
   \item aqueduct.traj.inlets (module), \hyperpage{26}
   \item aqueduct.traj.paths (module), \hyperpage{28}
   \item aqueduct.traj.reader (module), \hyperpage{30}
@@ -156,22 +155,23 @@
   \item cgo\_entity\_end (BasicPymolCGOLines attribute), \hyperpage{38}
   \item cgo\_entity\_end (BasicPymolCGOPointers attribute), \hyperpage{38}
   \item cgo\_entity\_end (BasicPymolCGOSpheres attribute), \hyperpage{38}
-  \item cgo\_line\_width (ConnectToPymol attribute), \hyperpage{38}
-  \item check\_bounds\_at\_max\_window\_at\_pos() (GeneralWindow method), \hyperpage{23}
+  \item cgo\_line\_width (ConnectToPymol attribute), \hyperpage{39}
+  \item check\_bounds\_at\_max\_window\_at\_pos() (GeneralWindow method), \hyperpage{22}
   \item clean() (BasicPymolCGO method), \hyperpage{38}
   \item close() (TmpDumpWriterOfMDA method), \hyperpage{26}
   \item cluster2str() (InletClusterGenericType method), \hyperpage{26}
-  \item clusters\_centers (Inlets attribute), \hyperpage{27}
-  \item clusters\_list (Inlets attribute), \hyperpage{27}
-  \item clusters\_size (Inlets attribute), \hyperpage{27}
+  \item clusters\_centers (Inlets attribute), \hyperpage{28}
+  \item clusters\_list (Inlets attribute), \hyperpage{28}
+  \item clusters\_size (Inlets attribute), \hyperpage{28}
   \item clusters\_std (Inlets attribute), \hyperpage{28}
   \item color\_codes() (in module aqueduct.visual.quickplot), \hyperpage{39}
   \item ColorMapDistMap (class in aqueduct.visual.quickplot), \hyperpage{39}
   \item combine() (in module aqueduct.utils.helpers), \hyperpage{31}
   \item CompactSelectionMDA (class in aqueduct.traj.selections), \hyperpage{31}
-  \item compress\_zip() (in module aqueduct.geom.master), \hyperpage{22}
-  \item concatenate() (in module aqueduct.geom.master), \hyperpage{22}
-  \item ConnectToPymol (class in aqueduct.visual.pymol\_connector), \hyperpage{38}
+  \item compress\_zip() (in module aqueduct.geom.master), \hyperpage{21}
+  \item concatenate() (in module aqueduct.geom.master), \hyperpage{21}
+  \item ConnectToPymol (class in aqueduct.visual.pymol\_connector), \hyperpage{39}
+  \item convexhull() (SinglePathPlotter method), \hyperpage{39}
   \item coords (Inlet attribute), \hyperpage{27}
   \item coords (Inlets attribute), \hyperpage{27}
   \item coords (SinglePath attribute), \hyperpage{29}
@@ -181,12 +181,14 @@
   \item coords\_last\_out (SinglePath attribute), \hyperpage{29}
   \item create\_master\_spath() (in module aqueduct.geom.master), \hyperpage{22}
   \item create\_tmpfile() (in module aqueduct.utils.helpers), \hyperpage{32}
+  \item ct\_file (ConnectToPymol attribute), \hyperpage{39}
+  \item ct\_pymol (ConnectToPymol attribute), \hyperpage{39}
 
   \indexspace
   \bigletter D
-  \item decide\_on\_type() (in module aqueduct.geom.master), \hyperpage{22}
+  \item decide\_on\_type() (in module aqueduct.geom.master), \hyperpage{21}
   \item default\_cm\_size (ColorMapDistMap attribute), \hyperpage{39}
-  \item del\_cgo\_object() (ConnectToPymol static method), \hyperpage{38}
+  \item del\_cgo\_object() (ConnectToPymol method), \hyperpage{39}
   \item derrivative() (in module aqueduct.geom.traces), \hyperpage{25}
   \item diff() (in module aqueduct.geom.traces), \hyperpage{25}
   \item DistanceWindowOverMaxStepSmooth (class in aqueduct.geom.smooth), \hyperpage{23}
@@ -206,34 +208,34 @@
   \bigletter F
   \item f\_like() (in module aqueduct.visual.quickplot), \hyperpage{39}
   \item fbm (class in aqueduct.utils.log), \hyperpage{37}
-  \item find\_paths() (GenericPaths method), \hyperpage{28}
-  \item find\_paths\_coords() (GenericPaths method), \hyperpage{28}
+  \item find\_paths() (GenericPaths method), \hyperpage{29}
+  \item find\_paths\_coords() (GenericPaths method), \hyperpage{29}
   \item find\_paths\_coords\_types() (GenericPaths method), \hyperpage{29}
-  \item find\_paths\_types() (GenericPaths method), \hyperpage{28}
+  \item find\_paths\_types() (GenericPaths method), \hyperpage{29}
   \item finish() (pbar method), \hyperpage{37}
   \item finish() (SimpleProgressBar method), \hyperpage{37}
   \item first\_resid() (Selection method), \hyperpage{31}
   \item fit() (PerformClustering method), \hyperpage{21}
-  \item fit\_trace\_to\_points() (in module aqueduct.geom.master), \hyperpage{22}
+  \item fit\_trace\_to\_points() (in module aqueduct.geom.master), \hyperpage{21}
 
   \indexspace
   \bigletter G
-  \item GeneralWindow (class in aqueduct.geom.smooth), \hyperpage{23}
-  \item generic (InletClusterExtendedType attribute), \hyperpage{26}
+  \item GeneralWindow (class in aqueduct.geom.smooth), \hyperpage{22}
+  \item generic (InletClusterExtendedType attribute), \hyperpage{27}
   \item GenericPaths (class in aqueduct.traj.paths), \hyperpage{28}
   \item GenericPathTypeCodes (class in aqueduct.traj.paths), \hyperpage{28}
   \item get() (BasicPymolCGO method), \hyperpage{38}
   \item get\_acceleration\_cont() (SinglePath method), \hyperpage{30}
-  \item get\_ax3d() (in module aqueduct.visual.quickplot), \hyperpage{39}
+  \item get\_ax3d() (in module aqueduct.visual.quickplot), \hyperpage{40}
   \item get\_cmap() (in module aqueduct.visual.quickplot), \hyperpage{39}
   \item get\_convexhull\_of\_atom\_positions() (Selection method), \hyperpage{31}
   \item get\_coords() (SinglePath method), \hyperpage{29}
   \item get\_coords\_cont() (SinglePath method), \hyperpage{29}
-  \item get\_distance\_both\_cont() (SinglePath method), \hyperpage{29}
-  \item get\_distance\_cont() (SinglePath method), \hyperpage{29}
-  \item get\_distance\_rev\_cont() (SinglePath method), \hyperpage{29}
+  \item get\_distance\_both\_cont() (SinglePath method), \hyperpage{30}
+  \item get\_distance\_cont() (SinglePath method), \hyperpage{30}
+  \item get\_distance\_rev\_cont() (SinglePath method), \hyperpage{30}
   \item get\_inlets() (SinglePath method), \hyperpage{29}
-  \item get\_mean\_coord\_() (in module aqueduct.geom.master), \hyperpage{22}
+  \item get\_mean\_coord\_() (in module aqueduct.geom.master), \hyperpage{21}
   \item get\_paths\_for\_frames\_range() (GenericPaths method), \hyperpage{28}
   \item get\_paths\_in() (GenericPaths method), \hyperpage{28}
   \item get\_paths\_out() (GenericPaths method), \hyperpage{28}
@@ -241,7 +243,7 @@
   \item get\_single\_path\_types() (GenericPaths method), \hyperpage{29}
   \item get\_str\_timestamp() (in module aqueduct.utils.log), \hyperpage{37}
   \item get\_velocity\_cont() (SinglePath method), \hyperpage{30}
-  \item get\_weights\_() (in module aqueduct.geom.master), \hyperpage{22}
+  \item get\_weights\_() (in module aqueduct.geom.master), \hyperpage{21}
   \item glue() (in module aqueduct.traj.paths), \hyperpage{28}
   \item greetings() (in module aqueduct), \hyperpage{40}
   \item gregorian\_year\_in\_days (in module aqueduct.utils.log), \hyperpage{34}
@@ -255,6 +257,7 @@
   \item has\_in (SinglePath attribute), \hyperpage{29}
   \item has\_object (SinglePath attribute), \hyperpage{29}
   \item has\_out (SinglePath attribute), \hyperpage{29}
+  \item heartbeat() (pbar method), \hyperpage{37}
   \item heartbeat() (SimpleProgressBar method), \hyperpage{36}
   \item here() (LinearizeOneWay method), \hyperpage{24}
   \item here() (LinearizeRecursive method), \hyperpage{24}
@@ -263,9 +266,10 @@
   \bigletter I
   \item incoming (ProtoInletTypeCodes attribute), \hyperpage{26}
   \item init\_ax() (MPLTracePlotter method), \hyperpage{40}
-  \item init\_pymol() (ConnectToPymol static method), \hyperpage{38}
+  \item init\_pymol() (ConnectToPymol method), \hyperpage{39}
+  \item init\_script() (ConnectToPymol method), \hyperpage{39}
   \item Inlet (class in aqueduct.traj.inlets), \hyperpage{27}
-  \item InletClusterExtendedType (class in aqueduct.traj.inlets), \hyperpage{26}
+  \item InletClusterExtendedType (class in aqueduct.traj.inlets), \hyperpage{27}
   \item InletClusterGenericType (class in aqueduct.traj.inlets), \hyperpage{26}
   \item Inlets (class in aqueduct.traj.inlets), \hyperpage{27}
   \item InletTypeCodes (class in aqueduct.traj.inlets), \hyperpage{26}
@@ -275,7 +279,7 @@
   \item internal\_incoming (InletTypeCodes attribute), \hyperpage{26}
   \item internal\_outgoing (InletTypeCodes attribute), \hyperpage{26}
   \item is\_iterable() (in module aqueduct.utils.helpers), \hyperpage{33}
-  \item is\_linear() (TrianlgeLinearize method), \hyperpage{24}
+  \item is\_linear() (TrianlgeLinearize method), \hyperpage{25}
   \item is\_linear() (VectorLinearize method), \hyperpage{25}
   \item is\_linear\_core() (VectorLinearize method), \hyperpage{25}
   \item is\_number() (in module aqueduct.utils.helpers), \hyperpage{32}
@@ -301,7 +305,7 @@
   \item LinearizeRecursiveVector (class in aqueduct.geom.traces), \hyperpage{25}
   \item list\_blocks\_to\_slices() (in module aqueduct.utils.helpers), \hyperpage{34}
   \item listify() (in module aqueduct.utils.helpers), \hyperpage{33}
-  \item load\_pdb() (ConnectToPymol static method), \hyperpage{39}
+  \item load\_pdb() (ConnectToPymol method), \hyperpage{39}
 
   \indexspace
   \bigletter M
@@ -310,7 +314,7 @@
   \item MasterPath (class in aqueduct.traj.paths), \hyperpage{30}
   \item MasterTrace (class in aqueduct.geom.master), \hyperpage{22}
   \item max\_frame (GenericPaths attribute), \hyperpage{28}
-  \item max\_window\_at\_pos() (GeneralWindow static method), \hyperpage{23}
+  \item max\_window\_at\_pos() (GeneralWindow static method), \hyperpage{22}
   \item MaxStepSmooth (class in aqueduct.geom.smooth), \hyperpage{23}
   \item MeanShiftBandwidth() (in module aqueduct.geom.cluster), \hyperpage{21}
   \item message() (in module aqueduct.utils.log), \hyperpage{37}
@@ -330,9 +334,12 @@
   \indexspace
   \bigletter O
   \item object\_name (GenericPathTypeCodes attribute), \hyperpage{28}
+  \item open() (SimpleTarWriteHelper method), \hyperpage{38}
   \item open\_trajectory() (ReadAmberNetCDFviaMDA method), \hyperpage{30}
   \item open\_trajectory() (ReadDCDviaMDA method), \hyperpage{30}
   \item open\_trajectory() (Reader method), \hyperpage{30}
+  \item open\_trajectory() (ReadViaMDA method), \hyperpage{30}
+  \item orient\_on() (ConnectToPymol method), \hyperpage{39}
   \item out\_name (GenericPathTypeCodes attribute), \hyperpage{28}
   \item outgoing (ProtoInletTypeCodes attribute), \hyperpage{26}
   \item output (InletClusterGenericType attribute), \hyperpage{26}
@@ -345,7 +352,7 @@
   \item path\_in\_code (PathTypesCodes attribute), \hyperpage{28}
   \item path\_object\_code (PathTypesCodes attribute), \hyperpage{28}
   \item path\_out\_code (PathTypesCodes attribute), \hyperpage{28}
-  \item path\_trace() (SimpleTracePlotter method), \hyperpage{39}
+  \item path\_trace() (SimpleTracePlotter method), \hyperpage{40}
   \item paths (SinglePath attribute), \hyperpage{29}
   \item paths\_cont (SinglePath attribute), \hyperpage{29}
   \item paths\_inlets() (SinglePathPlotter method), \hyperpage{39}
@@ -358,11 +365,11 @@
   \item PerformClustering (class in aqueduct.geom.cluster), \hyperpage{21}
   \item plot\_colorful\_lines() (in module aqueduct.visual.quickplot), \hyperpage{39}
   \item plot\_line() (MPLTracePlotter method), \hyperpage{40}
-  \item plot\_line() (SimpleTracePlotter method), \hyperpage{39}
+  \item plot\_line() (SimpleTracePlotter method), \hyperpage{40}
   \item plot\_spath\_spectrum() (in module aqueduct.visual.quickplot), \hyperpage{39}
   \item preprocess() (PCA method), \hyperpage{22}
   \item preprocess\_undo() (PCA method), \hyperpage{22}
-  \item protein\_trace() (SimpleProteinPlotter method), \hyperpage{39}
+  \item protein\_trace() (SimpleProteinPlotter method), \hyperpage{40}
   \item ProtoInletTypeCodes (class in aqueduct.traj.inlets), \hyperpage{26}
 
   \indexspace
@@ -381,6 +388,8 @@
 
   \indexspace
   \bigletter S
+  \item save\_file2tar() (SimpleTarWriteHelper method), \hyperpage{38}
+  \item save\_object2tar() (SimpleTarWriteHelper method), \hyperpage{38}
   \item scatter() (MPLTracePlotter method), \hyperpage{40}
   \item scatter() (SinglePathPlotter method), \hyperpage{39}
   \item scope\_name (GenericPathTypeCodes attribute), \hyperpage{28}
@@ -393,14 +402,15 @@
   \item set\_current\_frame() (Reader method), \hyperpage{30}
   \item set\_current\_frame() (ReadViaMDA method), \hyperpage{30}
   \item show() (SimpleProgressBar method), \hyperpage{36}
-  \item showit() (in module aqueduct.visual.quickplot), \hyperpage{39}
-  \item simple\_types\_distribution() (in module aqueduct.geom.master), \hyperpage{22}
-  \item SimplePathPlotter (class in aqueduct.visual.quickplot), \hyperpage{39}
+  \item showit() (in module aqueduct.visual.quickplot), \hyperpage{40}
+  \item simple\_types\_distribution() (in module aqueduct.geom.master), \hyperpage{21}
+  \item SimplePathPlotter (class in aqueduct.visual.quickplot), \hyperpage{40}
   \item SimpleProgressBar (class in aqueduct.utils.log), \hyperpage{35}
-  \item SimpleProteinPlotter (class in aqueduct.visual.quickplot), \hyperpage{39}
-  \item SimpleTracePlotter (class in aqueduct.visual.quickplot), \hyperpage{39}
-  \item single\_path\_traces() (SimplePathPlotter method), \hyperpage{39}
-  \item single\_trace() (SimpleTracePlotter method), \hyperpage{39}
+  \item SimpleProteinPlotter (class in aqueduct.visual.quickplot), \hyperpage{40}
+  \item SimpleTarWriteHelper (class in aqueduct.visual.pymol\_connector), \hyperpage{38}
+  \item SimpleTracePlotter (class in aqueduct.visual.quickplot), \hyperpage{40}
+  \item single\_path\_traces() (SimplePathPlotter method), \hyperpage{40}
+  \item single\_trace() (SimpleTracePlotter method), \hyperpage{40}
   \item SinglePath (class in aqueduct.traj.paths), \hyperpage{29}
   \item SinglePathID (class in aqueduct.traj.paths), \hyperpage{29}
   \item SinglePathPlotter (class in aqueduct.visual.pymol\_connector), \hyperpage{39}
@@ -408,13 +418,13 @@
   \item size (SinglePath attribute), \hyperpage{29}
   \item small\_clusters\_to\_outliers() (Inlets method), \hyperpage{27}
   \item smart\_time\_string() (in module aqueduct.utils.log), \hyperpage{34}
-  \item Smooth (class in aqueduct.geom.smooth), \hyperpage{23}
+  \item Smooth (class in aqueduct.geom.smooth), \hyperpage{22}
   \item smooth() (ActiveWindowOverMaxStepSmooth method), \hyperpage{23}
   \item smooth() (ActiveWindowSmooth method), \hyperpage{23}
   \item smooth() (DistanceWindowOverMaxStepSmooth method), \hyperpage{23}
   \item smooth() (DistanceWindowSmooth method), \hyperpage{23}
   \item smooth() (MaxStepSmooth method), \hyperpage{23}
-  \item smooth() (Smooth method), \hyperpage{23}
+  \item smooth() (Smooth method), \hyperpage{22}
   \item smooth() (WindowOverMaxStepSmooth method), \hyperpage{23}
   \item smooth() (WindowSmooth method), \hyperpage{23}
   \item sort\_clusters() (Inlets method), \hyperpage{27}
@@ -423,21 +433,36 @@
   \item spaths2ctypes() (Inlets method), \hyperpage{28}
   \item spaths\_spectra() (in module aqueduct.visual.quickplot), \hyperpage{39}
   \item Standartize (class in aqueduct.geom.pca), \hyperpage{22}
-  \item strech\_zip() (in module aqueduct.geom.master), \hyperpage{22}
+  \item strech\_zip() (in module aqueduct.geom.master), \hyperpage{21}
   \item surface (ProtoInletTypeCodes attribute), \hyperpage{26}
   \item surface\_incoming (InletTypeCodes attribute), \hyperpage{26}
   \item surface\_outgoing (InletTypeCodes attribute), \hyperpage{26}
 
   \indexspace
   \bigletter T
+  \item test\_2dim() (TestTriangle\_height method), \hyperpage{23}
+  \item test\_3dim() (TestTriangle\_height method), \hyperpage{23}
+  \item test\_huge\_values() (TestVectors\_angle\_anorm method), \hyperpage{24}
+  \item test\_list\_input() (TestVectors\_angle\_anorm method), \hyperpage{23}
+  \item test\_mixed\_values() (TestVectors\_angle\_anorm method), \hyperpage{24}
+  \item test\_negative\_vector() (TestVectors\_angle\_anorm method), \hyperpage{24}
+  \item test\_one\_negative\_value() (TestVectors\_angle\_anorm method), \hyperpage{24}
+  \item test\_output\_value() (TestVectors\_angle\_anorm method), \hyperpage{23}
+  \item test\_OutType() (TestTriangle\_height method), \hyperpage{23}
+  \item test\_vectors\_angle\_anorm() (TestVectors\_angle\_anorm method), \hyperpage{23}
+  \item test\_zero() (TestVectors\_angle\_anorm method), \hyperpage{23}
+  \item test\_zero2() (TestVectors\_angle\_anorm method), \hyperpage{23}
+  \item TestTriangle\_height (class in aqueduct.geom.test\_triangle\_height), \hyperpage{23}
+  \item TestVectors\_angle\_anorm (class in aqueduct.geom.test\_vectors\_angle\_anorm), 
+		\hyperpage{23}
   \item thead() (in module aqueduct.utils.log), \hyperpage{35}
-  \item TmpDumpWriterOfMDA (class in aqueduct.traj.dumps), \hyperpage{25}
+  \item TmpDumpWriterOfMDA (class in aqueduct.traj.dumps), \hyperpage{26}
   \item toSelectionMDA() (CompactSelectionMDA method), \hyperpage{31}
   \item tracepoints() (in module aqueduct.geom.traces), \hyperpage{25}
   \item triangle\_angles() (in module aqueduct.geom.traces), \hyperpage{24}
   \item triangle\_angles\_last() (in module aqueduct.geom.traces), \hyperpage{24}
   \item triangle\_height() (in module aqueduct.geom.traces), \hyperpage{24}
-  \item TrianlgeLinearize (class in aqueduct.geom.traces), \hyperpage{24}
+  \item TrianlgeLinearize (class in aqueduct.geom.traces), \hyperpage{25}
   \item tsep() (in module aqueduct.utils.log), \hyperpage{35}
   \item ttime() (SimpleProgressBar method), \hyperpage{36}
   \item tupleify() (in module aqueduct.utils.helpers), \hyperpage{33}
@@ -465,7 +490,7 @@
   \indexspace
   \bigletter V
   \item vector\_norm() (in module aqueduct.geom.traces), \hyperpage{24}
-  \item VectorLinearize (class in aqueduct.geom.traces), \hyperpage{24}
+  \item VectorLinearize (class in aqueduct.geom.traces), \hyperpage{25}
   \item vectors\_angle() (in module aqueduct.geom.traces), \hyperpage{24}
   \item vectors\_angle\_alt() (in module aqueduct.geom.traces), \hyperpage{24}
   \item vectors\_angle\_alt\_anorm() (in module aqueduct.geom.traces), \hyperpage{24}
@@ -477,7 +502,7 @@
   \bigletter W
   \item what2what() (in module aqueduct.utils.helpers), \hyperpage{34}
   \item WindowOverMaxStepSmooth (class in aqueduct.geom.smooth), \hyperpage{23}
-  \item WindowSmooth (class in aqueduct.geom.smooth), \hyperpage{23}
+  \item WindowSmooth (class in aqueduct.geom.smooth), \hyperpage{22}
 
   \indexspace
   \bigletter X
@@ -491,6 +516,6 @@
 
   \indexspace
   \bigletter Z
-  \item zip\_zip() (in module aqueduct.geom.master), \hyperpage{22}
+  \item zip\_zip() (in module aqueduct.geom.master), \hyperpage{21}
 
 \end{theindex}

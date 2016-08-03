@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.utils.helpers module &mdash; Aqueduct 0.2.10 documentation</title>
+    <title>aqueduct.utils.helpers module &mdash; Aqueduct 0.2.11 documentation</title>
     
     <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.10',
+        VERSION:     '0.2.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.10 documentation" href="index.html" />
+    <link rel="top" title="Aqueduct 0.2.11 documentation" href="index.html" />
     <link rel="up" title="aqueduct.utils package" href="aqueduct.utils.html" />
     <link rel="next" title="aqueduct.utils.log module" href="aqueduct.utils.log.html" />
     <link rel="prev" title="aqueduct.utils package" href="aqueduct.utils.html" /> 
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="aqueduct.utils.html" title="aqueduct.utils package"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &raquo;</li>
           <li class="nav-item nav-item-2"><a href="aqueduct.html" >aqueduct package</a> &raquo;</li>
           <li class="nav-item nav-item-3"><a href="aqueduct.utils.html" accesskey="U">aqueduct.utils package</a> &raquo;</li> 
@@ -323,8 +323,8 @@ of apropriate length. If the output is not iterable it is converted in to a tupl
 <dl class="function">
 <dt id="aqueduct.utils.helpers.arrayify">
 <code class="descname">arrayify</code><span class="sig-paren">(</span><em>gen</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/helpers.html#arrayify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.helpers.arrayify" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator to convert functions&#8217; outputs into a 2D numpy array. If the output is iterable it is converted in to a a 2D numpy array
-of appropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.</p>
+<dd><p>Decorator to convert functions&#8217; outputs into a 2D numpy array. If the output is iterable it is converted in to a 2D numpy array
+of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.</p>
 <p>Written on the basis of <a class="reference internal" href="#aqueduct.utils.helpers.listify" title="aqueduct.utils.helpers.listify"><code class="xref py py-func docutils literal"><span class="pre">listify()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -341,8 +341,8 @@ of appropriate shape. If the output is not iterable it is converted in to a a 2D
 <dl class="function">
 <dt id="aqueduct.utils.helpers.arrayify1">
 <code class="descname">arrayify1</code><span class="sig-paren">(</span><em>gen</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/helpers.html#arrayify1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.helpers.arrayify1" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decorator to convert functions&#8217; outputs into a 1D numpy array. If the output is iterable it is converted in to a a 2D numpy array
-of appropriate shape. If the output is not iterable it is converted in to a a 2D numpy array of shape 1x1.</p>
+<dd><p>Decorator to convert functions&#8217; outputs into a 1D numpy array. If the output is iterable it is converted in to a 2D numpy array
+of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.</p>
 <p>Written on the basis of <a class="reference internal" href="#aqueduct.utils.helpers.listify" title="aqueduct.utils.helpers.listify"><code class="xref py py-func docutils literal"><span class="pre">listify()</span></code></a>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -378,24 +378,12 @@ identical elements.</p>
 <dl class="function">
 <dt id="aqueduct.utils.helpers.what2what">
 <code class="descname">what2what</code><span class="sig-paren">(</span><em>what</em>, <em>towhat</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/helpers.html#what2what"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.helpers.what2what" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>what</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; Input list for which indices of elements present in <code class="xref py py-attr docutils literal"><span class="pre">towhat</span></code> are returned.</li>
-<li><strong>towhat</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#list" title="(in Python v2.7)"><em>list</em></a>) &#8211; List of elements which input list is indexed to.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Indices of <code class="xref py py-attr docutils literal"><span class="pre">what</span></code> list that are present in <code class="xref py py-attr docutils literal"><span class="pre">towhat</span></code> list.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://docs.python.org/2/library/functions.html#tuple" title="(in Python v2.7)">tuple</a></p>
-</td>
-</tr>
-</tbody>
-</table>
+<dd><p>This function search if elements of the one list (:attr: &#8216;what&#8217;) are present in the other list (:attr: &#8216;towhat&#8217;) and returns indices of elements form :attr:&#8217;what&#8217; list as a tuple.
+If elements from the first list are not present in the second list the tuple is empty.
+:param list what: Input list for which indices of elements present in <code class="xref py py-attr docutils literal"><span class="pre">towhat</span></code> are returned.
+:param list towhat: List of elements which input list is indexed to.
+:return: Indices of <code class="xref py py-attr docutils literal"><span class="pre">what</span></code> list that are present in <code class="xref py py-attr docutils literal"><span class="pre">towhat</span></code> list.
+:rtype: tuple</p>
 </dd></dl>
 
 <dl class="function">
@@ -466,7 +454,7 @@ identical elements.</p>
         <li class="right" >
           <a href="aqueduct.utils.html" title="aqueduct.utils package"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.10 documentation</a> &raquo;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &raquo;</li>
           <li class="nav-item nav-item-2"><a href="aqueduct.html" >aqueduct package</a> &raquo;</li>
           <li class="nav-item nav-item-3"><a href="aqueduct.utils.html" >aqueduct.utils package</a> &raquo;</li> 
