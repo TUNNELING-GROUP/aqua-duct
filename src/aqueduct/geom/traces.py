@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from scipy.spatial.distance import cdist, pdist
-import copy
+from scipy.spatial.distance import pdist
+
+
 # todo : aby zaoszczedzic na obliczeniach mozna pomijac takie(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-> np kat 0.005 rad to 0,29stopnia miary łukowej
 # wektory: promień atomu wodoru to 0.529A
-from aqueduct.utils.helpers import arrayify,lind
 
 
 def vector_norm(V):
-    #calculate length of physicl vector based on it's coordynates
-    #input: tuple or a list
-    #output: float
+    # calculate length of physicl vector based on it's coordynates
+    # input: tuple or a list
+    # output: float
     # return np.sqrt(np.dot(V, V.conj()))
     return np.sqrt(np.dot(V, V))
     # return np.linalg.norm(V)
@@ -20,7 +20,7 @@ def triangle_angles(A, B, C):
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
-    #returns list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]
+    # returns list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]
     A, B, C = map(np.array, (A, B, C))
     a = C - A
     b = B - A
@@ -53,11 +53,11 @@ def triangle_angles_last(A, B, C):
 
 
 def triangle_height(A, B, C):
-    #todo : chceck why value in test incorrect
+    # todo : chceck why value in test incorrect
     # a is head
     # input: 3 space coords of points (as tuple or list)
-    #output float, value of triangle height
-    angles = triangle_angles_last(A, B, C) #ta funkcja zwraca tylko 1 element
+    # output float, value of triangle height
+    angles = triangle_angles_last(A, B, C)  # ta funkcja zwraca tylko 1 element
     A, B, C = map(np.array, (A, B, C))
     c = vector_norm(B - A)
     h = np.sin(angles[-1]) * c
@@ -88,15 +88,13 @@ def vectors_angle_anorm(A, B, A_norm):
     norm2 = A_norm * vector_norm(B)
     if norm2 == 0.:
         return 0.
-    angle = np.clip(np.dot(A, B) / norm2,-1.,1.)
+    angle = np.clip(np.dot(A, B) / norm2, -1., 1.)
     if np.isnan(angle):
         return 0.
     return np.arccos(angle)
 
 
-
 class LinearizeOneWay(object):
-
     def here(self, coords):
         size = len(coords)
         yield 0
@@ -112,8 +110,6 @@ class LinearizeOneWay(object):
 
 
 class LinearizeHobbit(LinearizeOneWay):
-
-
     def and_back_again(self, coords):
         size = len(coords)
         return (size - e - 1 for e in self.here(coords[::-1]))
@@ -124,6 +120,7 @@ class LinearizeHobbit(LinearizeOneWay):
         linearize = sorted(list(set(list(here) + list(and_back_again))))
         return coords[linearize]
 
+
 class LinearizeRecursive(object):
     """
     Base class for linearization methods classes.
@@ -131,7 +128,7 @@ class LinearizeRecursive(object):
     It implements recursive algorithm.
     """
 
-    def here(self,coords,depth=0):
+    def here(self, coords, depth=0):
         """
         Core of recursive linearization argorithm.
 
@@ -149,23 +146,23 @@ class LinearizeRecursive(object):
 
         depth += 1
 
-        lengths = np.hstack(([0],np.cumsum(diff(coords))))
+        lengths = np.hstack(([0], np.cumsum(diff(coords))))
         size = len(lengths)
         if size <= 3:
             return range(size)
         sp = 0
         ep = size - 1
-        mp = int(np.argwhere(lengths>max(lengths)/2)[0])
+        mp = int(np.argwhere(lengths > max(lengths) / 2)[0])
 
         if mp == sp:
             mp += 1
         if mp == ep:
             mp -= 1
 
-        if self.is_linear(coords[[sp,mp,ep]],depth=depth):
-            return [sp,mp,ep]
-        return sorted(list(set(self.here(coords[:mp+1],depth=depth) + [e+mp for e in self.here(coords[mp:],depth=depth)])))
-
+        if self.is_linear(coords[[sp, mp, ep]], depth=depth):
+            return [sp, mp, ep]
+        return sorted(
+            list(set(self.here(coords[:mp + 1], depth=depth) + [e + mp for e in self.here(coords[mp:], depth=depth)])))
 
     def __call__(self, coords):
         here = self.here(coords)
@@ -177,7 +174,7 @@ class TrianlgeLinearize(object):
 
         self.treshold = treshold
 
-    def is_linear(self, coords,**kwargs):
+    def is_linear(self, coords, **kwargs):
         list_of_h = list()
         for head in coords[1:-1]:
             list_of_h.append(triangle_height(head, coords[0], coords[-1]))
@@ -194,12 +191,11 @@ class VectorLinearize(object):
     It implements vectro linearization criterion.
     """
 
-
     def __init__(self, treshold):
 
         self.treshold = treshold
 
-    def is_linear_core(self,coords,depth=None):
+    def is_linear_core(self, coords, depth=None):
         '''
         Method checks if input coordinates are linear acoording to the threshold and depth.
 
@@ -219,7 +215,7 @@ class VectorLinearize(object):
         if depth is None:
             depth = 1
 
-        treshold = self.treshold + self.treshold*(1-0.9**depth) # FIXME: magic constant!
+        treshold = self.treshold + self.treshold * (1 - 0.9 ** depth)  # FIXME: magic constant!
 
         V = coords[-1] - coords[0]
         V_norm = vector_norm(V)
@@ -229,8 +225,7 @@ class VectorLinearize(object):
                 return False
         return True
 
-
-    def is_linear(self, coords, depth=None,**kwargs):
+    def is_linear(self, coords, depth=None, **kwargs):
         '''
         For more detail see :meth:`is_linear_core` which is used as the criterion of linearity in this method.
 
@@ -239,22 +234,20 @@ class VectorLinearize(object):
         :return: True if input coordinates are linear and False otherwise. Criterion is checked for coordinates in normal and reverse order.
         :rtype: bool
         '''
-        if not self.is_linear_core(coords,depth=depth):
+        if not self.is_linear_core(coords, depth=depth):
             return False
-        elif not self.is_linear_core(coords[::-1],depth=depth):
+        elif not self.is_linear_core(coords[::-1], depth=depth):
             return False
         return True
 
 
-class LinearizeRecursiveVector(LinearizeRecursive,VectorLinearize):
+class LinearizeRecursiveVector(LinearizeRecursive, VectorLinearize):
     """
     ..  _simply_smooths_details:
 
     Class provides recursive linearization of coordinates with :class:`LinearizeRecursive` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.
     """
     pass
-
-
 
 
 def diff(trace):
@@ -316,10 +309,11 @@ def length_step_std(trace):
     d = diff(trace)
     return np.sum(d), np.mean(d), np.std(d)
 
+
 def derrivative(values):
     diff = np.diff(values)
     size = len(diff)
-    correction = 1./(size+1) # this correct values so after integration they are closer to expected value
+    correction = 1. / (size + 1)  # this correct values so after integration they are closer to expected value
     # This was calculated by following experiment:
     # w = []
     # for q in range(10000):
@@ -329,9 +323,8 @@ def derrivative(values):
 
     for nr in range(size + 1):
         if nr == 0:
-            yield diff[0] - correction# begin
+            yield diff[0] - correction  # begin
         elif nr == size:
-            yield diff[-1] - correction # end
+            yield diff[-1] - correction  # end
         else:
-            yield (diff[nr - 1] + diff[nr]) / 2.  - correction
-
+            yield (diff[nr - 1] + diff[nr]) / 2. - correction

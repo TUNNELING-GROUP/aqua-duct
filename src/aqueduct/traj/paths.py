@@ -5,13 +5,13 @@ Created on Dec 10, 2015
 @author: tljm
 """
 
-from itertools import izip
-from aqueduct.utils.helpers import tupleify, sortify, is_iterable, listify, arrayify1
 import numpy as np
+
 from aqueduct.geom import traces
 from aqueduct.traj.inlets import Inlet, InletTypeCodes
-from collections import namedtuple
 from aqueduct.utils.helpers import is_number
+from aqueduct.utils.helpers import tupleify, sortify, listify, arrayify1
+
 
 ########################################################################################################################
 # paths/list manipulations
@@ -484,18 +484,17 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
     def get_distance_rev_cont(self, *args, **kwargs):
         length = self.get_distance_cont(*args, **kwargs)
-        return length[-1]-length
+        return length[-1] - length
 
     @arrayify1
     def get_distance_both_cont(self, *args, **kwargs):
         length = self.get_distance_cont(*args, **kwargs)
-        return (min(n,r) for n,r in zip(length,length[-1]-length))
+        return (min(n, r) for n, r in zip(length, length[-1] - length))
 
     @arrayify1
-    def get_velocity_cont(self, smooth=None,normalize=False):
-        distance = self.get_distance_cont(smooth=smooth,normalize=normalize)
+    def get_velocity_cont(self, smooth=None, normalize=False):
+        distance = self.get_distance_cont(smooth=smooth, normalize=normalize)
         return traces.derrivative(distance)
-
 
     @arrayify1
     def get_acceleration_cont(self, smooth=None, normalize=False):
@@ -504,18 +503,10 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
 
 class MasterPath(SinglePath):
-
-    def __init__(self,sp):
-        SinglePath.__init__(self,  sp.id, sp.paths, sp.coords, sp.gtypes)
+    def __init__(self, sp):
+        SinglePath.__init__(self, sp.id, sp.paths, sp.coords, sp.gtypes)
         self.width_cont = None
 
-    def add_width(self,width):
+    def add_width(self, width):
         assert len(width) == self.size
         self.width_cont = width
-
-
-
-
-
-
-

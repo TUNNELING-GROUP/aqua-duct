@@ -6,11 +6,11 @@ purposes including progress bar helpers.
 
 # __all__ = ['debug','info','warning','error','critical','pbar']
 
+import datetime
 import logging
+import time
 from os import linesep
 from sys import stderr
-import time
-import datetime
 
 gregorian_year_in_days = 365.2425
 '''Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year'''
@@ -312,7 +312,7 @@ class pbar(object):
 
     """
 
-    def __init__(self, maxval=100, kind='simple'): # keep kind of pbar simple
+    def __init__(self, maxval=100, kind='simple'):  # keep kind of pbar simple
         """
         :param int maxval: maximal number of iterations stored to :ivar:`__maxval` and passed child progress bar object
         :param str kind: type of progress bar, available types: simple, progressbar, tqdm, pyprind

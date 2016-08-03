@@ -95,7 +95,7 @@ class DistanceWindowSmooth(Smooth, GeneralWindow):
         if avgw != 0:
             window = int(np.ceil(self.window / avgw))
         else:
-            window = len(coords)/10 # FIXME: Magic number!
+            window = len(coords) / 10  # FIXME: Magic number!
         if window < 1:
             window = 1
 
@@ -212,5 +212,3 @@ class DistanceWindowOverMaxStepSmooth(Smooth):
 
     def smooth(self, coords):
         return self.window.smooth(self.mss.smooth(coords))
-
-

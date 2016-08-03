@@ -2,16 +2,15 @@
 
 
 
-import MDAnalysis as mda
 import numpy as np
 
-#from aqueduct.geom.convexhull_pyhull import ConvexHull
+import MDAnalysis as mda
+
 from aqueduct.geom.convexhull import ConvexHull
 from aqueduct.utils.helpers import int2range
 
 
 class Selection(object):
-
     '''
     def __init__(self,selection,selection_string=None):
 
@@ -52,19 +51,19 @@ class Selection(object):
 
     def __add__(self, other):
         raise NotImplementedError()
-    
+
     def first_resid(self):
         return self.resids.tolist()[0]
 
-#TODO: decide if methods should be properties or not 
+
+# TODO: decide if methods should be properties or not
 
 class SelectionMDA(mda.core.AtomGroup.AtomGroup,
                    Selection):
-
     def iterate_over_residues(self):
         return (self.__class__(R) for R in self.residues)
 
-    def unique_resids(self,ikwid=False):
+    def unique_resids(self, ikwid=False):
         # TODO: do something with this method!
         assert ikwid, "This causes bugs! Avoid this method or take special care in using its results. If you want to use it pass additional variable ikwid = True."
         return np.unique(self.resids)
@@ -80,22 +79,18 @@ class SelectionMDA(mda.core.AtomGroup.AtomGroup,
 
 
 class CompactSelectionMDA(object):
+    def __init__(self, sMDA):
 
-    def __init__(self,sMDA):
+        self.indices = map(lambda x: x + 1, map(int, sMDA.indices))
 
-        self.indices = map(lambda x: x+1,map(int,sMDA.indices))
-
-    def toSelectionMDA(self,reader):
+    def toSelectionMDA(self, reader):
 
         sMDA = None
 
         for pr in int2range(self.indices).split():
             if sMDA is None:
-                sMDA = reader.parse_selection('bynum '+pr)
+                sMDA = reader.parse_selection('bynum ' + pr)
             else:
-                sMDA += reader.parse_selection('bynum '+pr)
+                sMDA += reader.parse_selection('bynum ' + pr)
 
         return sMDA
-
-
-

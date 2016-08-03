@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from collections import namedtuple
 import numpy as np
+from collections import namedtuple
+from scipy.spatial.distance import pdist
+
 from aqueduct.utils.helpers import is_iterable, listify, lind
-from scipy.spatial.distance import cdist, pdist, squareform
 
 
 class ProtoInletTypeCodes:
@@ -65,11 +66,11 @@ class InletClusterGenericType(object):
     def __repr__(self):
         return "%s(%s)" % (self.__class__.__name__, str(self))
 
-    def make_val(self,base):
+    def make_val(self, base):
         val = 0.
         for nr, e in enumerate(tuple(self)[::-1]):
             if e is None:
-                e = float(base)**(nr+1)
+                e = float(base) ** (nr + 1)
             else:
                 e += 1
             for dummy_iter in range(nr + 1):
@@ -211,9 +212,9 @@ class Inlets(object):
         if 0 in self.clusters_list:
             sizes.pop(renum_numbers.index(0))
             renum_numbers.pop(renum_numbers.index(0))
-            new_numbers = [0] + lind(renum_numbers,np.argsort(sizes).tolist()[::-1])
+            new_numbers = [0] + lind(renum_numbers, np.argsort(sizes).tolist()[::-1])
         else:
-            new_numbers = lind(renum_numbers,np.argsort(sizes).tolist()[::-1])
+            new_numbers = lind(renum_numbers, np.argsort(sizes).tolist()[::-1])
         old_numbers = self.clusters_list
         if old_numbers == new_numbers:
             return
@@ -232,19 +233,18 @@ class Inlets(object):
 
     @property
     def clusters_size(self):
-        return map(self.clusters.count,self.clusters_list)
+        return map(self.clusters.count, self.clusters_list)
 
     @property
     @listify
     def clusters_std(self):
-        for c,s in zip(self.clusters_list,self.clusters_size):
+        for c, s in zip(self.clusters_list, self.clusters_size):
             if s == 1:
                 yield 0.
             elif s == 2:
                 yield pdist(self.lim2clusters(c).coords, 'euclidean')
             elif s > 2:
                 yield np.std(pdist(self.lim2clusters(c).coords, 'euclidean'))
-
 
     @listify
     def spaths2ctypes(self, spaths):

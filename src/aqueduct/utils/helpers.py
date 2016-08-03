@@ -32,6 +32,7 @@ def combine(seqin):
     :returns: All possible combinations of all input sequences.
     :rtype: list of lists
     '''
+
     # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt
     def rloop(seqin, listout, comb):
         '''recursive looping function'''
@@ -42,6 +43,7 @@ def combine(seqin):
                 rloop(seqin[1:], listout, newcomb)
         else:  # processing last sequence
             listout.append(comb)  # comb finished, add to list
+
     listout = []  # listout initialization
     rloop(seqin, listout, [])  # start recursive process
     return listout
@@ -50,8 +52,8 @@ def combine(seqin):
 ########################################################################
 
 def is_number(s):
-    #http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/
-    if isinstance(s,bool):
+    # http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/
+    if isinstance(s, bool):
         return False
     try:
         float(s)
@@ -100,6 +102,7 @@ class Auto:
     For example, if the input parameter is set to :class:`Auto` it is supposed that its value is calculated
     on the basis of input data or other parameters.
     '''
+
     def __repr__(self):
         '''
         :return: String ``Auto``.
@@ -333,6 +336,7 @@ def arrayify(gen):
 
     return patched
 
+
 def arrayify1(gen):
     '''
     Decorator to convert functions' outputs into a 1D numpy array. If the output is iterable it is converted in to a 2D numpy array
@@ -353,6 +357,7 @@ def arrayify1(gen):
 
     return patched
 
+
 def list_blocks_to_slices(l):
     '''
     Slices list in to block according to its elements identity. Resulting slices correspond to blocks of
@@ -362,7 +367,7 @@ def list_blocks_to_slices(l):
     :return: Generator of slices.
     :rtype: generator
     '''
-    #TODO: poprawic opis
+    # TODO: poprawic opis
     n = len(l)
     if n in [0, 1]:
         yield slice(None, None, None)
@@ -389,7 +394,7 @@ def what2what(what, towhat):
     :return: Indices of :attr:`what` list that are present in :attr:`towhat` list.
     :rtype: tuple
     '''
-    #todo poprawic opis
+    # todo poprawic opis
     towhat = make_iterable(towhat)
     for nr, w in enumerate(make_iterable(what)):
         if w in towhat:

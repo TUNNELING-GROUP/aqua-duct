@@ -5,13 +5,12 @@ Created on Nov 19, 2015
 @author: tljm
 '''
 
+import re
+from os.path import splitext
+
 import MDAnalysis as mda
-#import mdtraj as mdt
 
 from aqueduct.traj.selections import SelectionMDA
-
-from os.path import splitext
-import re
 
 mda_available_formats = {re.compile('(nc|NC)'): 'nc',
                          re.compile('(parmtop|top|PARMTOP|TOP)'): 'parmtop',

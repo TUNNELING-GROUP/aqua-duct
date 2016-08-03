@@ -171,8 +171,9 @@ class ConnectToPymol(object):
 
         # init lines, imports etc.
         self.script_fh.write('''print "Loading Aqua-Duct visualization..."
-from pymol import cmd
-cmd.set("cgo_line_width", %d)
+from pymol import cmd,finish_launching
+finish_launching()
+cmd.set("cgo_line_width",%d)
 from os import close,unlink
 from os.path import splitext
 import tarfile
@@ -190,7 +191,7 @@ def load_pdb(filename,name,state):
     with open(pdb_filename,'w') as fpdb:
         fpdb.write(data_fh.extractfile(filename).read())
     cmd.load(pdb_filename,state=state,object=name)
-''' % (self.cgo_line_width, data_filename,"%s","% s"))
+''' % (self.cgo_line_width, data_filename, "%s", "% s"))
 
     def add_cgo_object(self, name, cgo_object, state=None):
         if state is None:
@@ -218,7 +219,7 @@ def load_pdb(filename,name,state):
             # save pdblile as string
             filename_new = '%s_%d.pdb' % (name, state)
             self.data_fh.save_file2tar(filename, filename_new)
-            self.script_fh.write('''load_pdb("%s","%s",%d)''' % (filename_new,name,state))
+            self.script_fh.write('''load_pdb("%s","%s",%d)''' % (filename_new, name, state))
             self.script_fh.write(os.linesep)
 
     def orient_on(self, name):
