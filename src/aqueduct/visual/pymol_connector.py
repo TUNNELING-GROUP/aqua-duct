@@ -170,7 +170,11 @@ class ConnectToPymol(object):
         self.connection_type = self.ct_file
 
         # init lines, imports etc.
-        self.script_fh.write('''print "Loading Aqua-Duct visualization..."
+        self.script_fh.write('''import argparse
+parser = argparse.ArgumentParser(description="Aqua-Duct visualization script")
+parser.add_argument("--save-session",action="store",dest="session",required=False,default=None,help="Pymol session file name.")
+args = parser.parse_args()
+print "Loading Aqua-Duct visualization..."
 from pymol import cmd,finish_launching
 finish_launching()
 cmd.set("cgo_line_width",%d)
@@ -181,16 +185,23 @@ import cPickle as pickle
 from tempfile import mkstemp
 fd, pdb_filename = mkstemp(suffix="pdb")
 close(fd)
+max_state=0
 data_fh=tarfile.open("%s","r:gz")
 def load_object(filename,name,state):
+    global max_state
     print "Loading %s" % splitext(filename)[0]
     cmd.load_cgo(pickle.load(data_fh.extractfile(filename)), name, state)
     if state<2:
         cmd.refresh()
+    if state>max_state:
+        max_state=state
 def load_pdb(filename,name,state):
+    global max_state
     with open(pdb_filename,'w') as fpdb:
         fpdb.write(data_fh.extractfile(filename).read())
     cmd.load(pdb_filename,state=state,object=name)
+    if state>max_state:
+        max_state=state
 ''' % (self.cgo_line_width, data_filename, "%s", "% s"))
 
     def add_cgo_object(self, name, cgo_object, state=None):
@@ -233,7 +244,22 @@ def load_pdb(filename,name,state):
         if self.connection_type == self.ct_file:
             self.script_fh.write('''data_fh.close()
 unlink(pdb_filename)
-print "Aqua-Duct visualization loaded."''')
+print "Aqua-Duct visualization loaded."
+if args.session:
+    print "Preparing data to save session..."
+    for state in range(max_state):
+        cmd.set_frame(state + 1)
+        cmd.refresh()
+        if (state+1)%100==0:
+            print "wait... %d of %d done..." % (state+1,max_state)
+    print "%d of %d done." % (state+1,max_state)
+    print "Saving session..."
+    cmd.set_frame(1)
+    cmd.save(args.session, state=0)
+    cmd.quit()
+    print 'Let the Valve be always open!'
+    print 'Goodby!'
+''')
             self.script_fh.write(os.linesep)
             self.script_fh.close()
 
