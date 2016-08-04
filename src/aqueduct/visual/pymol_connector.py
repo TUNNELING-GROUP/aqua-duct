@@ -4,10 +4,9 @@
 import cPickle as pickle
 import numpy as np
 import os
-import pymol
 import tarfile
-from pymol import cgo
-from pymol import cmd
+
+import aqueduct.visual.pymol_cgo as cgo
 
 from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
@@ -158,9 +157,13 @@ class ConnectToPymol(object):
         self.script_fh = None
         self.data_fh = SimpleTarWriteHelper()
 
+        cmd = None
+
     def init_pymol(self):
+        import pymol
+        self.cmd = pymol.cmd
         pymol.finish_launching()
-        cmd.set('cgo_line_width', ConnectToPymol.cgo_line_width)
+        self.cmd.set('cgo_line_width', ConnectToPymol.cgo_line_width)
         self.connection_type = self.ct_pymol
 
     def init_script(self, filename):
@@ -171,12 +174,12 @@ class ConnectToPymol(object):
 
         # init lines, imports etc.
         self.script_fh.write('''import argparse
-parser = argparse.ArgumentParser(description="Aqua-Duct visualization script")
+parser=argparse.ArgumentParser(description="Aqua-Duct visualization script")
 parser.add_argument("--save-session",action="store",dest="session",required=False,default=None,help="Pymol session file name.")
-args = parser.parse_args()
-print "Loading Aqua-Duct visualization..."
+args,unknown=parser.parse_known_args()
 from pymol import cmd,finish_launching
 finish_launching()
+print "Loading Aqua-Duct visualization..."
 cmd.set("cgo_line_width",%d)
 from os import close,unlink
 from os.path import splitext
@@ -190,7 +193,7 @@ data_fh=tarfile.open("%s","r:gz")
 def load_object(filename,name,state):
     global max_state
     print "Loading %s" % splitext(filename)[0]
-    cmd.load_cgo(pickle.load(data_fh.extractfile(filename)), name, state)
+    cmd.load_cgo(pickle.load(data_fh.extractfile(filename)),name,state)
     if state<2:
         cmd.refresh()
     if state>max_state:
@@ -208,14 +211,14 @@ def load_pdb(filename,name,state):
         if state is None:
             state = 1
         if self.connection_type == self.ct_pymol:
-            cmd.load_cgo(cgo_object, str(name), state)
+            self.cmd.load_cgo(cgo_object, str(name), state)
         elif self.connection_type == self.ct_file:
             obj_name = '%s_%d.dump' % (name, state)
             self.data_fh.save_object2tar(cgo_object, obj_name)
 
             self.script_fh.write('''load_object("%s","%s",%d)''' % (obj_name, str(name), state))
             self.script_fh.write(os.linesep)
-            # self.script_fh.write('''cmd.refresh()''')
+            # self.script_fh.write('''self.cmd.refresh()''')
             # self.script_fh.write(os.linesep)
 
     def del_cgo_object(self, name, state=None):
@@ -225,7 +228,7 @@ def load_pdb(filename,name,state):
         if state is None:
             state = 1
         if self.connection_type == self.ct_pymol:
-            cmd.load(filename, state=state, object=name)
+            self.cmd.load(filename, state=state, object=name)
         elif self.connection_type == self.ct_file:
             # save pdblile as string
             filename_new = '%s_%d.pdb' % (name, state)
@@ -235,7 +238,7 @@ def load_pdb(filename,name,state):
 
     def orient_on(self, name):
         if self.connection_type == self.ct_pymol:
-            cmd.orient(name)
+            self.cmd.orient(name)
         elif self.connection_type == self.ct_file:
             self.script_fh.write('''cmd.orient("%s")''' % name)
             self.script_fh.write(os.linesep)
@@ -248,17 +251,17 @@ print "Aqua-Duct visualization loaded."
 if args.session:
     print "Preparing data to save session..."
     for state in range(max_state):
-        cmd.set_frame(state + 1)
+        cmd.set_frame(state+1)
         cmd.refresh()
         if (state+1)%100==0:
             print "wait... %d of %d done..." % (state+1,max_state)
     print "%d of %d done." % (state+1,max_state)
     print "Saving session..."
     cmd.set_frame(1)
-    cmd.save(args.session, state=0)
+    cmd.save(args.session,state=0)
+    print "Let the Valve be always open!"
+    print "Goodby!"
     cmd.quit()
-    print 'Let the Valve be always open!'
-    print 'Goodby!'
 ''')
             self.script_fh.write(os.linesep)
             self.script_fh.close()

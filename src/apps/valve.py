@@ -1546,7 +1546,6 @@ def stage_VI_run(config, options,
                  **kwargs):
     from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
     # from aqueduct.visual.pymol_connector import cmd as pymol_cmd
-    from pymol import cmd as pymol_cmd
     from aqueduct.visual.quickplot import ColorMapDistMap
 
     soptions = config.get_smooth_options()
@@ -1669,14 +1668,14 @@ def stage_VI_run(config, options,
             pbar = log.pbar(len(spaths))
             import time
             for state in range(len(spaths)):
-                pymol_cmd.set_frame(state + 1)
+                pymol_connector.cmd.set_frame(state + 1)
                 pbar.update(state)
                 time.sleep(0.1)
             pbar.finish()
             log.message("Finalizing session saving...", cont=True)  # new line
-            pymol_cmd.set_frame(1)
-            pymol_cmd.save(options.save, state=0)
-            pymol_cmd.quit()
+            pymol_connector.cmd.set_frame(1)
+            pymol_connector.cmd.save(options.save, state=0)
+            pymol_connector.cmd.quit()
 
 
 ################################################################################
