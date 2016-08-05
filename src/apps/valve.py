@@ -1546,7 +1546,7 @@ def stage_VI_run(config, options,
                  **kwargs):
     from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
     # from aqueduct.visual.pymol_connector import cmd as pymol_cmd
-    from aqueduct.visual.quickplot import ColorMapDistMap
+    from aqueduct.visual.helpers import ColorMapDistMap
 
     soptions = config.get_smooth_options()
     smooth = get_smooth_method(soptions)

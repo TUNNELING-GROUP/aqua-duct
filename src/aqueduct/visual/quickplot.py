@@ -2,55 +2,15 @@
 import numpy as np
 
 import matplotlib.pyplot as plt
-from matplotlib.colors import colorConverter
 
 from aqueduct.geom import traces
-from aqueduct.traj.paths import GenericPathTypeCodes as gptc
-from aqueduct.traj.paths import PathTypesCodes as ptc
 from aqueduct.utils.helpers import list_blocks_to_slices
+from aqueduct.visual.helpers import color_codes, cc
+
 
 # matplotlib specific
 # mpl color converter
 # cc = lambda c,alpha=1.0 : colorConverter.to_rgba(c,alpha=alpha)
-cc = lambda c, alpha=1.0: colorConverter.to_rgb(c)
-
-
-def get_cmap(name, size=None):
-    return plt.get_cmap(name, lut=size)
-
-
-class ColorMapDistMap(object):
-    default_cm_size = 256
-
-    grey = (0.5, 0.5, 0.5, 1)
-
-    def __init__(self, name='hsv', size=None):
-        # size is number of nodes to be maped to distinguistive colors
-        self.size = size
-        self.cm_size = self.default_cm_size
-        while (self.cm_size < self.size):
-            self.cm_size *= 1.1
-            self.cm_size = int(np.ceil(self.cm_size))
-        # get size
-        self.cmap = get_cmap(name, self.cm_size)
-
-    def __call__(self, node):
-        if node > 0 and node <= self.size:
-            return self.cmap(int(np.round(self.cm_size * f_like(node))))[:3]
-        # return grey otherwise
-        return self.grey[:3]
-
-
-def f_like(n):
-    if n == 1:
-        return 0.0
-    if n == 2:
-        return 0.5
-    n -= 1
-    order = np.floor(np.log(n) / np.log(2))
-    parts = 2 ** order
-    current = n - parts
-    return 0.5 / parts + 1. / parts * current
 
 
 def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=None, smooth_diff=None, types='etypes'):
@@ -80,32 +40,6 @@ def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=
             etype.pop(-1)
         yield ld, sd, etype
 
-
-_dcc_is = ptc.path_in_code + gptc.scope_name
-_dcc_cc = ptc.path_object_code + gptc.object_name
-_dcc_cs = ptc.path_object_code + gptc.scope_name
-_dcc_os = ptc.path_out_code + gptc.scope_name
-
-_dcc_i = ptc.path_in_code
-_dcc_c = ptc.path_object_code
-_dcc_o = ptc.path_out_code
-
-_default_color_codes = {_dcc_is: 'r',
-                        _dcc_cc: 'g',
-                        _dcc_cs: 'y',
-                        _dcc_os: 'b',
-                        _dcc_i: 'r',
-                        _dcc_c: 'g',
-                        _dcc_o: 'b'}
-
-default_color_codes = _default_color_codes
-
-
-def color_codes(code, custom_codes=None):
-    if custom_codes is None:
-        return default_color_codes[code]
-    else:
-        return custom_codes[code]
 
 
 def plot_colorful_lines(x, y, c, **kwargs):

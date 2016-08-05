@@ -11,10 +11,9 @@ import aqueduct.visual.pymol_cgo as cgo
 from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
 from aqueduct.utils.helpers import list_blocks_to_slices
-from aqueduct.visual.quickplot import cc, color_codes
+from aqueduct.visual.helpers import color_codes, cc
 
 
-# TODO: remove pymol form required dependencies - move it to pymol_real
 # TODO: remove matplotlib from required dependencies
 
 class BasicPymolCGO(object):
