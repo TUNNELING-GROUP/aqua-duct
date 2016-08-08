@@ -12,9 +12,8 @@ from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
 from aqueduct.utils.helpers import list_blocks_to_slices
 from aqueduct.visual.helpers import color_codes, cc
+from aqueduct.utils.helpers import create_tmpfile
 
-
-# TODO: remove matplotlib from required dependencies
 
 class BasicPymolCGO(object):
     cgo_entity_begin = []
@@ -120,7 +119,6 @@ class BasicPymolCGOPointers(BasicPymolCGO):
             self.add_cone(coords1=vec, coords2=point, radius1=length / 3., radius2=0, color1=color, color2=color)
 
 
-from aqueduct.utils.helpers import create_tmpfile
 
 
 class SimpleTarWriteHelper(object):
