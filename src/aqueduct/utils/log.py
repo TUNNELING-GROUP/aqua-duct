@@ -263,7 +263,9 @@ class SimpleProgressBar(object):
             else:
                 self.current = step
         self.tcurrent = time.time()
-        self.show()
+        if (step == self.maxval) or (self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
+            # TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision
+            self.show()
 
     def ttime(self):
         """

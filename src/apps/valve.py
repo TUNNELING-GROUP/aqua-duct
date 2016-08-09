@@ -901,6 +901,9 @@ def stage_II_run(config, options,
 
     pbar.finish()
 
+    log.message("Number of residues to trace: %d" % len(all_res))
+    log.message("Number of paths: %d" % len(paths))
+
     return {'all_res': all_res, 'paths': paths, 'options': options}
 
 
@@ -950,6 +953,9 @@ def stage_III_run(config, options,
             pbar.update(nr + 1)
         pbar.finish()
 
+    log.message("Number of paths: %d" % len(paths))
+    log.message("Number of spaths: %d" % len(spaths))
+
     return {'paths': paths, 'spaths': spaths, 'options': options, 'soptions': soptions}
 
 
@@ -966,6 +972,7 @@ def stage_IV_run(config, options,
     # new style clustering
     with log.fbm("Create inlets"):
         inls = Inlets(spaths)
+    log.message("Number of inlets: %d" % inls.size)
 
     def noo():
         # returns number of outliers
@@ -1791,6 +1798,9 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     result6 = valve_exec_stage(5, config, stage_VI_run, no_io=True,
                                reader=reader,
                                **results)
+    ############################################################################
+    # end!
+
 
     ############################################################################
     # end!
