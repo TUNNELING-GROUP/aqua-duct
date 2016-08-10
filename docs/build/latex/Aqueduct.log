@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014-OpenBSD_Ports) (preloaded format=pdflatex 2014.10.12)  2 AUG 2016 19:38
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014-OpenBSD_Ports) (preloaded format=pdflatex 2014.10.12)  10 AUG 2016 16:49
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1037,92 +1037,93 @@ LaTeX Font Info:    Font shape `T1/phv/bx/n' in size <9> not available
 (Font)              Font shape `T1/phv/b/n' tried instead on input line 1106.
 LaTeX Font Info:    Font shape `T1/pcr/bx/n' in size <10> not available
 (Font)              Font shape `T1/pcr/b/n' tried instead on input line 1116.
-[21]
-Underfull \hbox (badness 10000) in paragraph at lines 1244--1244
+
+Underfull \hbox (badness 10000) in paragraph at lines 1232--1232
 []\T1/ptm/m/it/10 spaths\T1/ptm/m/n/10 , \T1/ptm/m/it/10 smooth=None\T1/ptm/m/n
 /10 , \T1/ptm/m/it/10 resid=0\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ctype=None\T1/ptm
 /m/n/10 , \T1/ptm/m/it/10 bias_long=5\T1/ptm/m/n/10 , \T1/ptm/m/it/10 heart-
  []
 
-[22] [23] [24]
-Overfull \hbox (55.46164pt too wide) in paragraph at lines 1904--1907
+[21] [22] [23] [24]
+Overfull \hbox (55.46164pt too wide) in paragraph at lines 1892--1895
 \T1/ptm/m/n/10 Bases: [][]\T1/pcr/m/sl/10 aqueduct.geom.traces.LinearizeRecursi
 ve[][]\T1/ptm/m/n/10 , [][]\T1/pcr/m/sl/10 aqueduct.geom.traces.VectorLinearize
 [][]
  []
 
 [25] [26] [27] [28]
-Underfull \hbox (badness 10000) in paragraph at lines 2632--2634
+Underfull \hbox (badness 10000) in paragraph at lines 2620--2622
 \T1/ptm/m/n/10 Bases: [][]\T1/pcr/m/n/10 object[][]\T1/ptm/m/n/10 , [][]\T1/pcr
 /m/sl/10 aqueduct.traj.paths.PathTypesCodes[][]\T1/ptm/m/n/10 ,
  []
 
 [29] [30]
-Overfull \hbox (19.46164pt too wide) in paragraph at lines 3083--3085
+Overfull \hbox (19.46164pt too wide) in paragraph at lines 3071--3073
 \T1/ptm/m/n/10 Bases: \T1/pcr/m/n/10 MDAnalysis.core.AtomGroup.AtomGroup\T1/ptm
 /m/n/10 , [][]\T1/pcr/m/sl/10 aqueduct.traj.selections.Selection[][]
  []
 
 [31]
-LaTeX Font Info:    Try loading font information for TS1+pcr on input line 3199
+LaTeX Font Info:    Try loading font information for TS1+pcr on input line 3187
 .
  (/usr/local/share/texmf-dist/tex/latex/psnfss/ts1pcr.fd
 File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
 ) [32]
-Underfull \hbox (badness 10000) in paragraph at lines 3372--3375
+Underfull \hbox (badness 10000) in paragraph at lines 3360--3363
 
  []
 
-[33] [34]
+[33] [34] [35]
 LaTeX Font Info:    Font shape `T1/pcr/bx/it' in size <10> not available
-(Font)              Font shape `T1/pcr/b/it' tried instead on input line 3708.
+(Font)              Font shape `T1/pcr/b/it' tried instead on input line 3714.
 LaTeX Font Info:    Font shape `T1/pcr/b/it' in size <10> not available
-(Font)              Font shape `T1/pcr/b/sl' tried instead on input line 3708.
- [35] [36] [37]
-Underfull \hbox (badness 10000) in paragraph at lines 4154--4154
+(Font)              Font shape `T1/pcr/b/sl' tried instead on input line 3714.
+ [36] [37] [38]
+Underfull \hbox (badness 10000) in paragraph at lines 4231--4231
 []\T1/ptm/m/it/10 coords1=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 co-ords2=None\T1
 /ptm/m/n/10 , \T1/ptm/m/it/10 ra-dius1=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 ra-
 dius2=None\T1/ptm/m/n/10 , \T1/ptm/m/it/10 color1=None\T1/ptm/m/n/10 ,
  []
 
-[38]
-Underfull \hbox (badness 10000) in paragraph at lines 4292--4292
+
+Underfull \hbox (badness 10000) in paragraph at lines 4369--4369
 []\T1/ptm/m/it/10 spath\T1/ptm/m/n/10 , \T1/ptm/m/it/10 smooth=None\T1/ptm/m/n/
 10 , \T1/ptm/m/it/10 plot_in=True\T1/ptm/m/n/10 ,
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 4378--4378
+[39]
+Underfull \hbox (badness 10000) in paragraph at lines 4405--4405
 []\T1/ptm/m/it/10 sp\T1/ptm/m/n/10 , \T1/ptm/m/it/10 smooth=None\T1/ptm/m/n/10 
 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 4378--4378
+Underfull \hbox (badness 10000) in paragraph at lines 4405--4405
 \T1/ptm/m/it/10 smooth_len=None\T1/ptm/m/n/10 ,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 4378--4378
+Underfull \hbox (badness 10000) in paragraph at lines 4405--4405
 \T1/ptm/m/it/10 smooth_diff=None\T1/ptm/m/n/10 ,
  []
 
-[39]
-Underfull \hbox (badness 10000) in paragraph at lines 4481--4483
+
+Underfull \hbox (badness 10000) in paragraph at lines 4502--4504
 \T1/ptm/m/n/10 Bases: [][]\T1/pcr/m/sl/10 aqueduct.visual.quickplot.SimplePathP
 lotter[][]\T1/ptm/m/n/10 ,
  []
 
+[40]
 LaTeX Font Info:    Font shape `T1/pcr/m/it' in size <9> not available
-(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 4553.
-[40] [41] [42
+(Font)              Font shape `T1/pcr/m/sl' tried instead on input line 4574.
+ [41] [42
 
 ]
 Chapter 6.
 [43] [44
 
 ]
-Overfull \hbox (9.01607pt too wide) in paragraph at lines 4601--4602
+Overfull \hbox (9.01607pt too wide) in paragraph at lines 4622--4623
 []\T1/pcr/m/n/10 aqueduct.geom.test_vectors_angle_anorm\T1/ptm/m/n/10 ,
  []
 
@@ -1143,258 +1144,258 @@ Underfull \hbox (badness 10000) in paragraph at lines 36--37
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 77--78
+Underfull \hbox (badness 10000) in paragraph at lines 78--79
 []\T1/ptm/m/n/10 _point_within_convexhull() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 80--81
+Underfull \hbox (badness 10000) in paragraph at lines 81--82
 []\T1/ptm/m/n/10 _vertices_points() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 85--86
+Underfull \hbox (badness 10000) in paragraph at lines 86--87
 []\T1/ptm/m/n/10 ActiveWindowSmooth (class in aque-
  []
 
 [47
 
 ]
-Underfull \hbox (badness 10000) in paragraph at lines 137--138
+Underfull \hbox (badness 10000) in paragraph at lines 141--142
 []\T1/ptm/m/n/10 BasicPymolCGO (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 138--139
+Underfull \hbox (badness 10000) in paragraph at lines 142--143
 []\T1/ptm/m/n/10 BasicPymolCGOLines (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 139--140
+Underfull \hbox (badness 10000) in paragraph at lines 143--144
 []\T1/ptm/m/n/10 BasicPymolCGOPointers (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 140--141
+Underfull \hbox (badness 10000) in paragraph at lines 144--145
 []\T1/ptm/m/n/10 BasicPymolCGOSpheres (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 159--160
+Underfull \hbox (badness 10000) in paragraph at lines 164--165
 []\T1/ptm/m/n/10 check_bounds_at_max_window_at_pos() (Gen-er-al-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 170--171
+Underfull \hbox (badness 10000) in paragraph at lines 175--176
 []\T1/ptm/m/n/10 CompactSelectionMDA (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 173--174
+Underfull \hbox (badness 10000) in paragraph at lines 178--179
 []\T1/ptm/m/n/10 ConnectToPymol (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 182--183
+Underfull \hbox (badness 10000) in paragraph at lines 187--188
 []\T1/ptm/m/n/10 create_master_spath() (in mod-ule aque-
  []
 
 [48]
-Underfull \hbox (badness 10000) in paragraph at lines 195--196
+Underfull \hbox (badness 10000) in paragraph at lines 200--201
 []\T1/ptm/m/n/10 DistanceWindowSmooth (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 219--220
+Underfull \hbox (badness 10000) in paragraph at lines 224--225
 []\T1/ptm/m/n/10 fit_trace_to_points() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 231--232
+Underfull \hbox (badness 10000) in paragraph at lines 236--237
 []\T1/ptm/m/n/10 get_convexhull_of_atom_positions() (Se-lec-tion
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 272--273
+Underfull \hbox (badness 10000) in paragraph at lines 277--278
 []\T1/ptm/m/n/10 InletClusterExtendedType (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 286--287
+Underfull \hbox (badness 10000) in paragraph at lines 291--292
 []\T1/ptm/m/n/10 is_point_within_convexhull() (in mod-ule aque-
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 305--306
+[49]
+Underfull \hbox (badness 10000) in paragraph at lines 310--311
 []\T1/ptm/m/n/10 LinearizeRecursiveVector (class in aque-
  []
 
-[49]
-Underfull \hbox (badness 10000) in paragraph at lines 306--307
+
+Underfull \hbox (badness 10000) in paragraph at lines 311--312
 []\T1/ptm/m/n/10 list_blocks_to_slices() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 317--318
+Underfull \hbox (badness 10000) in paragraph at lines 322--323
 []\T1/ptm/m/n/10 max_window_at_pos() (Gen-er-al-Win-dow static
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 319--320
+Underfull \hbox (badness 10000) in paragraph at lines 324--325
 []\T1/ptm/m/n/10 MeanShiftBandwidth() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 338--339
+Underfull \hbox (badness 10000) in paragraph at lines 343--344
 []\T1/ptm/m/n/10 open_trajectory() (ReadAmber-NetCD-Fvi-aMDA
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 366--367
+Underfull \hbox (badness 10000) in paragraph at lines 371--372
 []\T1/ptm/m/n/10 plot_colorful_lines() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 369--370
+Underfull \hbox (badness 10000) in paragraph at lines 374--375
 []\T1/ptm/m/n/10 plot_spath_spectrum() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 378--379
+Underfull \hbox (badness 10000) in paragraph at lines 383--384
 []\T1/ptm/m/n/10 ReadAmberNetCDFviaMDA (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 406--407
+Underfull \hbox (badness 10000) in paragraph at lines 411--412
 []\T1/ptm/m/n/10 simple_types_distribution() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 409--410
+Underfull \hbox (badness 10000) in paragraph at lines 414--415
 []\T1/ptm/m/n/10 SimpleProteinPlotter (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 410--411
+Underfull \hbox (badness 10000) in paragraph at lines 415--416
 []\T1/ptm/m/n/10 SimpleTarWriteHelper (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 411--412
+Underfull \hbox (badness 10000) in paragraph at lines 416--417
 []\T1/ptm/m/n/10 SimpleTracePlotter (class in aque-
  []
 
 [50]
-Underfull \hbox (badness 10000) in paragraph at lines 416--417
+Underfull \hbox (badness 10000) in paragraph at lines 421--422
 []\T1/ptm/m/n/10 SinglePathPlotter (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 422--423
+Underfull \hbox (badness 10000) in paragraph at lines 427--428
 []\T1/ptm/m/n/10 smooth() (Ac-tiveWin-dowOver-MaxStepSmooth
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 424--425
+Underfull \hbox (badness 10000) in paragraph at lines 429--430
 []\T1/ptm/m/n/10 smooth() (Dis-tanceWin-dowOver-MaxStepSmooth
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 432--433
+Underfull \hbox (badness 10000) in paragraph at lines 437--438
 []\T1/ptm/m/n/10 spath_spectrum() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 445--446
+Underfull \hbox (badness 10000) in paragraph at lines 450--451
 []\T1/ptm/m/n/10 test_huge_values() (TestVec-tors_angle_anorm
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 447--448
+Underfull \hbox (badness 10000) in paragraph at lines 452--453
 []\T1/ptm/m/n/10 test_mixed_values() (TestVec-tors_angle_anorm
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 448--449
+Underfull \hbox (badness 10000) in paragraph at lines 453--454
 []\T1/ptm/m/n/10 test_negative_vector() (TestVec-tors_angle_anorm
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 449--450
+Underfull \hbox (badness 10000) in paragraph at lines 454--455
 []\T1/ptm/m/n/10 test_one_negative_value() (TestVec-tors_angle_anorm
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 450--451
+Underfull \hbox (badness 10000) in paragraph at lines 455--456
 []\T1/ptm/m/n/10 test_output_value() (TestVec-tors_angle_anorm
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 455--456
+Underfull \hbox (badness 10000) in paragraph at lines 460--461
 []\T1/ptm/m/n/10 TestTriangle_height (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 456--458
+Underfull \hbox (badness 10000) in paragraph at lines 461--463
 []\T1/ptm/m/n/10 TestVectors_angle_anorm (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 456--458
+Underfull \hbox (badness 10000) in paragraph at lines 461--463
 \T1/ptm/m/n/10 duct.geom.test_vectors_angle_anorm),
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 459--460
+Underfull \hbox (badness 10000) in paragraph at lines 464--465
 []\T1/ptm/m/n/10 TmpDumpWriterOfMDA (class in aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 463--464
+Underfull \hbox (badness 10000) in paragraph at lines 468--469
 []\T1/ptm/m/n/10 triangle_angles_last() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 496--497
+Underfull \hbox (badness 10000) in paragraph at lines 501--502
 []\T1/ptm/m/n/10 vectors_angle_alt_anorm() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 497--498
+Underfull \hbox (badness 10000) in paragraph at lines 502--503
 []\T1/ptm/m/n/10 vectors_angle_anorm() (in mod-ule aque-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 504--505
+Underfull \hbox (badness 10000) in paragraph at lines 509--510
 []\T1/ptm/m/n/10 WindowOverMaxStepSmooth (class in aque-
  []
 
 [51]
-Underfull \hbox (badness 10000) in paragraph at lines 514--516
+Underfull \hbox (badness 10000) in paragraph at lines 519--521
 []\T1/ptm/m/n/10 yield_spath_len_and_smooth_diff_in_types_slices()
  []
 
 [52
 
 ])
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 4620.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 4620.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 4644.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 4644.
  (./Aqueduct.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 4620.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 4620.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 4644.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 4644.
 
 Package rerunfilecheck Info: File `Aqueduct.out' has not changed.
-(rerunfilecheck)             Checksum: C7580364DAAE3B1770BC4D4CA11EC46B;415.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 4620.
+(rerunfilecheck)             Checksum: DC2F592837B6A3796FABA3BDF092AD7A;415.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 4644.
  ) 
 Here is how much of TeX's memory you used:
- 11386 strings out of 493117
- 182600 string characters out of 6138532
- 282679 words of memory out of 5000000
- 13861 multiletter control sequences out of 15000+600000
+ 11402 strings out of 493117
+ 183213 string characters out of 6138532
+ 283379 words of memory out of 5000000
+ 13872 multiletter control sequences out of 15000+600000
  82374 words of font info for 97 fonts, out of 8000000 for 9000
  1142 hyphenation exceptions out of 8191
- 42i,20n,49p,896b,565s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 42i,20n,49p,896b,563s stack positions out of 5000i,500n,10000p,200000b,80000s
 {/usr/local/share/texmf-dist/fonts/enc/dvips/base/8r.enc}</usr/local/share/te
 xmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb></usr/local/share/texmf-dist
 /fonts/type1/public/amsfonts/cm/cmmi7.pfb></usr/local/share/texmf-dist/fonts/ty
@@ -1409,10 +1410,10 @@ lvetic/uhvbo8a.pfb></usr/local/share/texmf-dist/fonts/type1/urw/helvetic/uhvr8a
 share/texmf-dist/fonts/type1/urw/times/utmbi8a.pfb></usr/local/share/texmf-dist
 /fonts/type1/urw/times/utmr8a.pfb></usr/local/share/texmf-dist/fonts/type1/urw/
 times/utmri8a.pfb>
-Output written on Aqueduct.pdf (56 pages, 299095 bytes).
+Output written on Aqueduct.pdf (56 pages, 300132 bytes).
 PDF statistics:
- 1760 PDF objects out of 2073 (max. 8388607)
- 1665 compressed objects within 17 object streams
- 663 named destinations out of 1000 (max. 500000)
+ 1774 PDF objects out of 2073 (max. 8388607)
+ 1679 compressed objects within 17 object streams
+ 668 named destinations out of 1000 (max. 500000)
  85 words of extra memory for PDF output out of 10000 (max. 10000000)
 

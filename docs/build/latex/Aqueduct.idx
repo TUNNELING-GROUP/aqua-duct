@@ -3,6 +3,7 @@
 \indexentry{PerformClustering (class in aqueduct.geom.cluster)|hyperpage}{21}
 \indexentry{\_\_init\_\_() (PerformClustering method)|hyperpage}{21}
 \indexentry{\_\_call\_\_() (PerformClustering method)|hyperpage}{21}
+\indexentry{\_get\_noclusters() (PerformClustering method)|hyperpage}{21}
 \indexentry{fit() (PerformClustering method)|hyperpage}{21}
 \indexentry{centers() (PerformClustering method)|hyperpage}{21}
 \indexentry{aqueduct.geom.convexhull (module)|hyperpage}{21}
@@ -13,15 +14,12 @@
 \indexentry{is\_point\_within\_convexhull() (in module aqueduct.geom.convexhull)|hyperpage}{21}
 \indexentry{aqueduct.geom.master (module)|hyperpage}{21}
 \indexentry{fit\_trace\_to\_points() (in module aqueduct.geom.master)|hyperpage}{21}
-\indexentry{strech\_zip() (in module aqueduct.geom.master)|hyperpage}{21}
-\indexentry{compress\_zip() (in module aqueduct.geom.master)|hyperpage}{21}
-\indexentry{zip\_zip() (in module aqueduct.geom.master)|hyperpage}{21}
 \indexentry{decide\_on\_type() (in module aqueduct.geom.master)|hyperpage}{21}
 \indexentry{simple\_types\_distribution() (in module aqueduct.geom.master)|hyperpage}{21}
 \indexentry{get\_weights\_() (in module aqueduct.geom.master)|hyperpage}{21}
 \indexentry{get\_mean\_coord\_() (in module aqueduct.geom.master)|hyperpage}{21}
 \indexentry{concatenate() (in module aqueduct.geom.master)|hyperpage}{21}
-\indexentry{create\_master\_spath() (in module aqueduct.geom.master)|hyperpage}{22}
+\indexentry{create\_master\_spath() (in module aqueduct.geom.master)|hyperpage}{21}
 \indexentry{MasterTrace (class in aqueduct.geom.master)|hyperpage}{22}
 \indexentry{\_\_init\_\_() (MasterTrace method)|hyperpage}{22}
 \indexentry{aqueduct.geom.pca (module)|hyperpage}{22}
@@ -53,8 +51,8 @@
 \indexentry{max\_window\_at\_pos() (GeneralWindow static method)|hyperpage}{22}
 \indexentry{check\_bounds\_at\_max\_window\_at\_pos() (GeneralWindow method)|hyperpage}{22}
 \indexentry{WindowSmooth (class in aqueduct.geom.smooth)|hyperpage}{22}
-\indexentry{\_\_init\_\_() (WindowSmooth method)|hyperpage}{23}
-\indexentry{smooth() (WindowSmooth method)|hyperpage}{23}
+\indexentry{\_\_init\_\_() (WindowSmooth method)|hyperpage}{22}
+\indexentry{smooth() (WindowSmooth method)|hyperpage}{22}
 \indexentry{DistanceWindowSmooth (class in aqueduct.geom.smooth)|hyperpage}{23}
 \indexentry{\_\_init\_\_() (DistanceWindowSmooth method)|hyperpage}{23}
 \indexentry{smooth() (DistanceWindowSmooth method)|hyperpage}{23}
@@ -85,9 +83,9 @@
 \indexentry{test\_list\_input() (TestVectors\_angle\_anorm method)|hyperpage}{23}
 \indexentry{test\_zero() (TestVectors\_angle\_anorm method)|hyperpage}{23}
 \indexentry{test\_zero2() (TestVectors\_angle\_anorm method)|hyperpage}{23}
-\indexentry{test\_huge\_values() (TestVectors\_angle\_anorm method)|hyperpage}{24}
-\indexentry{test\_mixed\_values() (TestVectors\_angle\_anorm method)|hyperpage}{24}
-\indexentry{test\_negative\_vector() (TestVectors\_angle\_anorm method)|hyperpage}{24}
+\indexentry{test\_huge\_values() (TestVectors\_angle\_anorm method)|hyperpage}{23}
+\indexentry{test\_mixed\_values() (TestVectors\_angle\_anorm method)|hyperpage}{23}
+\indexentry{test\_negative\_vector() (TestVectors\_angle\_anorm method)|hyperpage}{23}
 \indexentry{test\_one\_negative\_value() (TestVectors\_angle\_anorm method)|hyperpage}{24}
 \indexentry{aqueduct.geom.traces (module)|hyperpage}{24}
 \indexentry{vector\_norm() (in module aqueduct.geom.traces)|hyperpage}{24}
@@ -106,9 +104,9 @@
 \indexentry{LinearizeRecursive (class in aqueduct.geom.traces)|hyperpage}{24}
 \indexentry{here() (LinearizeRecursive method)|hyperpage}{24}
 \indexentry{\_\_call\_\_() (LinearizeRecursive method)|hyperpage}{24}
-\indexentry{TrianlgeLinearize (class in aqueduct.geom.traces)|hyperpage}{25}
-\indexentry{\_\_init\_\_() (TrianlgeLinearize method)|hyperpage}{25}
-\indexentry{is\_linear() (TrianlgeLinearize method)|hyperpage}{25}
+\indexentry{TrianlgeLinearize (class in aqueduct.geom.traces)|hyperpage}{24}
+\indexentry{\_\_init\_\_() (TrianlgeLinearize method)|hyperpage}{24}
+\indexentry{is\_linear() (TrianlgeLinearize method)|hyperpage}{24}
 \indexentry{VectorLinearize (class in aqueduct.geom.traces)|hyperpage}{25}
 \indexentry{\_\_init\_\_() (VectorLinearize method)|hyperpage}{25}
 \indexentry{is\_linear\_core() (VectorLinearize method)|hyperpage}{25}
@@ -329,6 +327,9 @@
 \indexentry{list\_blocks\_to\_slices() (in module aqueduct.utils.helpers)|hyperpage}{34}
 \indexentry{what2what() (in module aqueduct.utils.helpers)|hyperpage}{34}
 \indexentry{make\_iterable() (in module aqueduct.utils.helpers)|hyperpage}{34}
+\indexentry{strech\_zip() (in module aqueduct.utils.helpers)|hyperpage}{34}
+\indexentry{compress\_zip() (in module aqueduct.utils.helpers)|hyperpage}{34}
+\indexentry{zip\_zip() (in module aqueduct.utils.helpers)|hyperpage}{34}
 \indexentry{aqueduct.utils.log (module)|hyperpage}{34}
 \indexentry{gregorian\_year\_in\_days (in module aqueduct.utils.log)|hyperpage}{34}
 \indexentry{smart\_time\_string() (in module aqueduct.utils.log)|hyperpage}{34}
@@ -346,7 +347,7 @@
 \indexentry{show() (SimpleProgressBar method)|hyperpage}{36}
 \indexentry{heartbeat() (SimpleProgressBar method)|hyperpage}{36}
 \indexentry{update() (SimpleProgressBar method)|hyperpage}{36}
-\indexentry{ttime() (SimpleProgressBar method)|hyperpage}{36}
+\indexentry{ttime() (SimpleProgressBar method)|hyperpage}{37}
 \indexentry{finish() (SimpleProgressBar method)|hyperpage}{37}
 \indexentry{pbar (class in aqueduct.utils.log)|hyperpage}{37}
 \indexentry{\_\_init\_\_() (pbar method)|hyperpage}{37}
@@ -359,9 +360,22 @@
 \indexentry{\_\_enter\_\_() (fbm method)|hyperpage}{37}
 \indexentry{\_\_exit\_\_() (fbm method)|hyperpage}{37}
 \indexentry{\_\_call\_\_() (fbm method)|hyperpage}{37}
-\indexentry{message() (in module aqueduct.utils.log)|hyperpage}{37}
+\indexentry{message() (in module aqueduct.utils.log)|hyperpage}{38}
 \indexentry{aqueduct.utils.multip (module)|hyperpage}{38}
 \indexentry{aqueduct.utils (module)|hyperpage}{38}
+\indexentry{aqueduct.visual.cmaps (module)|hyperpage}{38}
+\indexentry{aqueduct.visual.helpers (module)|hyperpage}{38}
+\indexentry{cc\_safe() (in module aqueduct.visual.helpers)|hyperpage}{38}
+\indexentry{cc() (in module aqueduct.visual.helpers)|hyperpage}{38}
+\indexentry{color\_codes() (in module aqueduct.visual.helpers)|hyperpage}{38}
+\indexentry{get\_cmap() (in module aqueduct.visual.helpers)|hyperpage}{38}
+\indexentry{ColorMapDistMap (class in aqueduct.visual.helpers)|hyperpage}{38}
+\indexentry{default\_cm\_size (ColorMapDistMap attribute)|hyperpage}{38}
+\indexentry{grey (ColorMapDistMap attribute)|hyperpage}{38}
+\indexentry{\_\_init\_\_() (ColorMapDistMap method)|hyperpage}{38}
+\indexentry{\_\_call\_\_() (ColorMapDistMap method)|hyperpage}{38}
+\indexentry{f\_like() (in module aqueduct.visual.helpers)|hyperpage}{38}
+\indexentry{aqueduct.visual.pymol\_cgo (module)|hyperpage}{38}
 \indexentry{aqueduct.visual.pymol\_connector (module)|hyperpage}{38}
 \indexentry{BasicPymolCGO (class in aqueduct.visual.pymol\_connector)|hyperpage}{38}
 \indexentry{cgo\_entity\_begin (BasicPymolCGO attribute)|hyperpage}{38}
@@ -372,23 +386,23 @@
 \indexentry{get() (BasicPymolCGO method)|hyperpage}{38}
 \indexentry{BasicPymolCGOLines (class in aqueduct.visual.pymol\_connector)|hyperpage}{38}
 \indexentry{cgo\_entity\_begin (BasicPymolCGOLines attribute)|hyperpage}{38}
-\indexentry{cgo\_entity\_end (BasicPymolCGOLines attribute)|hyperpage}{38}
-\indexentry{add() (BasicPymolCGOLines method)|hyperpage}{38}
-\indexentry{BasicPymolCGOSpheres (class in aqueduct.visual.pymol\_connector)|hyperpage}{38}
-\indexentry{cgo\_entity\_begin (BasicPymolCGOSpheres attribute)|hyperpage}{38}
-\indexentry{cgo\_entity\_end (BasicPymolCGOSpheres attribute)|hyperpage}{38}
-\indexentry{add() (BasicPymolCGOSpheres method)|hyperpage}{38}
-\indexentry{BasicPymolCGOPointers (class in aqueduct.visual.pymol\_connector)|hyperpage}{38}
-\indexentry{cgo\_entity\_begin (BasicPymolCGOPointers attribute)|hyperpage}{38}
-\indexentry{cgo\_entity\_end (BasicPymolCGOPointers attribute)|hyperpage}{38}
-\indexentry{add\_cone() (BasicPymolCGOPointers method)|hyperpage}{38}
-\indexentry{add\_pointer() (BasicPymolCGOPointers method)|hyperpage}{38}
-\indexentry{SimpleTarWriteHelper (class in aqueduct.visual.pymol\_connector)|hyperpage}{38}
-\indexentry{\_\_init\_\_() (SimpleTarWriteHelper method)|hyperpage}{38}
-\indexentry{open() (SimpleTarWriteHelper method)|hyperpage}{38}
-\indexentry{save\_object2tar() (SimpleTarWriteHelper method)|hyperpage}{38}
-\indexentry{save\_file2tar() (SimpleTarWriteHelper method)|hyperpage}{38}
-\indexentry{\_\_del\_\_() (SimpleTarWriteHelper method)|hyperpage}{38}
+\indexentry{cgo\_entity\_end (BasicPymolCGOLines attribute)|hyperpage}{39}
+\indexentry{add() (BasicPymolCGOLines method)|hyperpage}{39}
+\indexentry{BasicPymolCGOSpheres (class in aqueduct.visual.pymol\_connector)|hyperpage}{39}
+\indexentry{cgo\_entity\_begin (BasicPymolCGOSpheres attribute)|hyperpage}{39}
+\indexentry{cgo\_entity\_end (BasicPymolCGOSpheres attribute)|hyperpage}{39}
+\indexentry{add() (BasicPymolCGOSpheres method)|hyperpage}{39}
+\indexentry{BasicPymolCGOPointers (class in aqueduct.visual.pymol\_connector)|hyperpage}{39}
+\indexentry{cgo\_entity\_begin (BasicPymolCGOPointers attribute)|hyperpage}{39}
+\indexentry{cgo\_entity\_end (BasicPymolCGOPointers attribute)|hyperpage}{39}
+\indexentry{add\_cone() (BasicPymolCGOPointers method)|hyperpage}{39}
+\indexentry{add\_pointer() (BasicPymolCGOPointers method)|hyperpage}{39}
+\indexentry{SimpleTarWriteHelper (class in aqueduct.visual.pymol\_connector)|hyperpage}{39}
+\indexentry{\_\_init\_\_() (SimpleTarWriteHelper method)|hyperpage}{39}
+\indexentry{open() (SimpleTarWriteHelper method)|hyperpage}{39}
+\indexentry{save\_object2tar() (SimpleTarWriteHelper method)|hyperpage}{39}
+\indexentry{save\_file2tar() (SimpleTarWriteHelper method)|hyperpage}{39}
+\indexentry{\_\_del\_\_() (SimpleTarWriteHelper method)|hyperpage}{39}
 \indexentry{ConnectToPymol (class in aqueduct.visual.pymol\_connector)|hyperpage}{39}
 \indexentry{cgo\_line\_width (ConnectToPymol attribute)|hyperpage}{39}
 \indexentry{ct\_pymol (ConnectToPymol attribute)|hyperpage}{39}
@@ -406,23 +420,14 @@
 \indexentry{add\_single\_path\_continous\_trace() (SinglePathPlotter method)|hyperpage}{39}
 \indexentry{paths\_trace() (SinglePathPlotter method)|hyperpage}{39}
 \indexentry{paths\_inlets() (SinglePathPlotter method)|hyperpage}{39}
-\indexentry{scatter() (SinglePathPlotter method)|hyperpage}{39}
-\indexentry{convexhull() (SinglePathPlotter method)|hyperpage}{39}
-\indexentry{aqueduct.visual.quickplot (module)|hyperpage}{39}
-\indexentry{cc() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{get\_cmap() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{ColorMapDistMap (class in aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{default\_cm\_size (ColorMapDistMap attribute)|hyperpage}{39}
-\indexentry{grey (ColorMapDistMap attribute)|hyperpage}{39}
-\indexentry{\_\_init\_\_() (ColorMapDistMap method)|hyperpage}{39}
-\indexentry{\_\_call\_\_() (ColorMapDistMap method)|hyperpage}{39}
-\indexentry{f\_like() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{yield\_spath\_len\_and\_smooth\_diff\_in\_types\_slices() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{color\_codes() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{plot\_colorful\_lines() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{spaths\_spectra() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{plot\_spath\_spectrum() (in module aqueduct.visual.quickplot)|hyperpage}{39}
-\indexentry{spath\_spectrum() (in module aqueduct.visual.quickplot)|hyperpage}{39}
+\indexentry{scatter() (SinglePathPlotter method)|hyperpage}{40}
+\indexentry{convexhull() (SinglePathPlotter method)|hyperpage}{40}
+\indexentry{aqueduct.visual.quickplot (module)|hyperpage}{40}
+\indexentry{yield\_spath\_len\_and\_smooth\_diff\_in\_types\_slices() (in module aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{plot\_colorful\_lines() (in module aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{spaths\_spectra() (in module aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{plot\_spath\_spectrum() (in module aqueduct.visual.quickplot)|hyperpage}{40}
+\indexentry{spath\_spectrum() (in module aqueduct.visual.quickplot)|hyperpage}{40}
 \indexentry{showit() (in module aqueduct.visual.quickplot)|hyperpage}{40}
 \indexentry{get\_ax3d() (in module aqueduct.visual.quickplot)|hyperpage}{40}
 \indexentry{SimpleTracePlotter (class in aqueduct.visual.quickplot)|hyperpage}{40}
@@ -441,4 +446,4 @@
 \indexentry{aqueduct (module)|hyperpage}{40}
 \indexentry{version() (in module aqueduct)|hyperpage}{40}
 \indexentry{version\_nice() (in module aqueduct)|hyperpage}{40}
-\indexentry{greetings() (in module aqueduct)|hyperpage}{40}
+\indexentry{greetings() (in module aqueduct)|hyperpage}{41}

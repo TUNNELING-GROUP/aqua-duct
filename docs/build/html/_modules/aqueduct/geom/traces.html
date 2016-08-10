@@ -49,19 +49,19 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.geom.traces</h1><div class="highlight"><pre>
-<span></span><span class="c1"># coding: UTF-8</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span><span class="p">,</span> <span class="n">pdist</span>
-<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">pdist</span>
+
+
 <span class="c1"># todo : aby zaoszczedzic na obliczeniach mozna pomijac takie(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-&gt; np kat 0.005 rad to 0,29stopnia miary łukowej</span>
 <span class="c1"># wektory: promień atomu wodoru to 0.529A</span>
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">arrayify</span><span class="p">,</span><span class="n">lind</span>
 
 
 <div class="viewcode-block" id="vector_norm"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.vector_norm">[docs]</a><span class="k">def</span> <span class="nf">vector_norm</span><span class="p">(</span><span class="n">V</span><span class="p">):</span>
-    <span class="c1">#calculate length of physicl vector based on it&#39;s coordynates</span>
-    <span class="c1">#input: tuple or a list</span>
-    <span class="c1">#output: float</span>
+    <span class="c1"># calculate length of physicl vector based on it&#39;s coordynates</span>
+    <span class="c1"># input: tuple or a list</span>
+    <span class="c1"># output: float</span>
     <span class="c1"># return np.sqrt(np.dot(V, V.conj()))</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">V</span><span class="p">))</span></div>
     <span class="c1"># return np.linalg.norm(V)</span>
@@ -71,7 +71,7 @@
     <span class="c1"># http://stackoverflow.com/questions/5122372/angle-between-points</span>
     <span class="c1"># A,B,C are point in the space</span>
     <span class="c1"># input: 3 space coords of points (as tuple or list)</span>
-    <span class="c1">#returns list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]</span>
+    <span class="c1"># returns list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]</span>
     <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">C</span> <span class="o">-</span> <span class="n">A</span>
     <span class="n">b</span> <span class="o">=</span> <span class="n">B</span> <span class="o">-</span> <span class="n">A</span>
@@ -104,11 +104,11 @@
 
 
 <div class="viewcode-block" id="triangle_height"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.triangle_height">[docs]</a><span class="k">def</span> <span class="nf">triangle_height</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">):</span>
-    <span class="c1">#todo : chceck why value in test incorrect</span>
+    <span class="c1"># todo : chceck why value in test incorrect</span>
     <span class="c1"># a is head</span>
     <span class="c1"># input: 3 space coords of points (as tuple or list)</span>
-    <span class="c1">#output float, value of triangle height</span>
-    <span class="n">angles</span> <span class="o">=</span> <span class="n">triangle_angles_last</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span> <span class="c1">#ta funkcja zwraca tylko 1 element</span>
+    <span class="c1"># output float, value of triangle height</span>
+    <span class="n">angles</span> <span class="o">=</span> <span class="n">triangle_angles_last</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>  <span class="c1"># ta funkcja zwraca tylko 1 element</span>
     <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">))</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">B</span> <span class="o">-</span> <span class="n">A</span><span class="p">)</span>
     <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angles</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">*</span> <span class="n">c</span>
@@ -139,15 +139,13 @@
     <span class="n">norm2</span> <span class="o">=</span> <span class="n">A_norm</span> <span class="o">*</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">norm2</span> <span class="o">==</span> <span class="mf">0.</span><span class="p">:</span>
         <span class="k">return</span> <span class="mf">0.</span>
-    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">/</span> <span class="n">norm2</span><span class="p">,</span><span class="o">-</span><span class="mf">1.</span><span class="p">,</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">)</span> <span class="o">/</span> <span class="n">norm2</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">angle</span><span class="p">):</span>
         <span class="k">return</span> <span class="mf">0.</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">angle</span><span class="p">)</span></div>
 
 
-
 <div class="viewcode-block" id="LinearizeOneWay"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeOneWay">[docs]</a><span class="k">class</span> <span class="nc">LinearizeOneWay</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
 <div class="viewcode-block" id="LinearizeOneWay.here"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeOneWay.here">[docs]</a>    <span class="k">def</span> <span class="nf">here</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
         <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
         <span class="k">yield</span> <span class="mi">0</span>
@@ -163,8 +161,6 @@
 
 
 <div class="viewcode-block" id="LinearizeHobbit"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeHobbit">[docs]</a><span class="k">class</span> <span class="nc">LinearizeHobbit</span><span class="p">(</span><span class="n">LinearizeOneWay</span><span class="p">):</span>
-
-
 <div class="viewcode-block" id="LinearizeHobbit.and_back_again"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeHobbit.and_back_again">[docs]</a>    <span class="k">def</span> <span class="nf">and_back_again</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
         <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">size</span> <span class="o">-</span> <span class="n">e</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">here</span><span class="p">(</span><span class="n">coords</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span></div>
@@ -175,6 +171,7 @@
         <span class="n">linearize</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">here</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">and_back_again</span><span class="p">))))</span>
         <span class="k">return</span> <span class="n">coords</span><span class="p">[</span><span class="n">linearize</span><span class="p">]</span></div></div>
 
+
 <div class="viewcode-block" id="LinearizeRecursive"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursive">[docs]</a><span class="k">class</span> <span class="nc">LinearizeRecursive</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for linearization methods classes.</span>
@@ -182,7 +179,7 @@
 <span class="sd">    It implements recursive algorithm.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LinearizeRecursive.here"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursive.here">[docs]</a>    <span class="k">def</span> <span class="nf">here</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">coords</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="LinearizeRecursive.here"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursive.here">[docs]</a>    <span class="k">def</span> <span class="nf">here</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Core of recursive linearization argorithm.</span>
 
@@ -200,23 +197,23 @@
 
         <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(([</span><span class="mi">0</span><span class="p">],</span><span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">diff</span><span class="p">(</span><span class="n">coords</span><span class="p">))))</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(([</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">diff</span><span class="p">(</span><span class="n">coords</span><span class="p">))))</span>
         <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
         <span class="n">sp</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">ep</span> <span class="o">=</span> <span class="n">size</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="n">mp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">lengths</span><span class="o">&gt;</span><span class="nb">max</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">mp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">lengths</span> <span class="o">&gt;</span> <span class="nb">max</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="n">mp</span> <span class="o">==</span> <span class="n">sp</span><span class="p">:</span>
             <span class="n">mp</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">mp</span> <span class="o">==</span> <span class="n">ep</span><span class="p">:</span>
             <span class="n">mp</span> <span class="o">-=</span> <span class="mi">1</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_linear</span><span class="p">(</span><span class="n">coords</span><span class="p">[[</span><span class="n">sp</span><span class="p">,</span><span class="n">mp</span><span class="p">,</span><span class="n">ep</span><span class="p">]],</span><span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">):</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">sp</span><span class="p">,</span><span class="n">mp</span><span class="p">,</span><span class="n">ep</span><span class="p">]</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">here</span><span class="p">(</span><span class="n">coords</span><span class="p">[:</span><span class="n">mp</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span><span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">e</span><span class="o">+</span><span class="n">mp</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">here</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">mp</span><span class="p">:],</span><span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">)])))</span></div>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_linear</span><span class="p">(</span><span class="n">coords</span><span class="p">[[</span><span class="n">sp</span><span class="p">,</span> <span class="n">mp</span><span class="p">,</span> <span class="n">ep</span><span class="p">]],</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">):</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">sp</span><span class="p">,</span> <span class="n">mp</span><span class="p">,</span> <span class="n">ep</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">here</span><span class="p">(</span><span class="n">coords</span><span class="p">[:</span><span class="n">mp</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">e</span> <span class="o">+</span> <span class="n">mp</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">here</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="n">mp</span><span class="p">:],</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">)])))</span></div>
 
 <div class="viewcode-block" id="LinearizeRecursive.__call__"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursive.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
         <span class="n">here</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">here</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
@@ -228,7 +225,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span> <span class="o">=</span> <span class="n">treshold</span></div>
 
-<div class="viewcode-block" id="TrianlgeLinearize.is_linear"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.TrianlgeLinearize.is_linear">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="TrianlgeLinearize.is_linear"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.TrianlgeLinearize.is_linear">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">list_of_h</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="n">list_of_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">triangle_height</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
@@ -245,12 +242,11 @@
 <span class="sd">    It implements vectro linearization criterion.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-
 <div class="viewcode-block" id="VectorLinearize.__init__"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">treshold</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span> <span class="o">=</span> <span class="n">treshold</span></div>
 
-<div class="viewcode-block" id="VectorLinearize.is_linear_core"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.is_linear_core">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">coords</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="VectorLinearize.is_linear_core"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.is_linear_core">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Method checks if input coordinates are linear acoording to the threshold and depth.</span>
 
@@ -270,7 +266,7 @@
         <span class="k">if</span> <span class="n">depth</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
 
-        <span class="n">treshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.9</span><span class="o">**</span><span class="n">depth</span><span class="p">)</span> <span class="c1"># FIXME: magic constant!</span>
+        <span class="n">treshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.9</span> <span class="o">**</span> <span class="n">depth</span><span class="p">)</span>  <span class="c1"># FIXME: magic constant!</span>
 
         <span class="n">V</span> <span class="o">=</span> <span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">V_norm</span> <span class="o">=</span> <span class="n">vector_norm</span><span class="p">(</span><span class="n">V</span><span class="p">)</span>
@@ -280,8 +276,7 @@
                 <span class="k">return</span> <span class="bp">False</span>
         <span class="k">return</span> <span class="bp">True</span></div>
 
-
-<div class="viewcode-block" id="VectorLinearize.is_linear"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.is_linear">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="VectorLinearize.is_linear"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.is_linear">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        For more detail see :meth:`is_linear_core` which is used as the criterion of linearity in this method.</span>
 
@@ -290,22 +285,20 @@
 <span class="sd">        :return: True if input coordinates are linear and False otherwise. Criterion is checked for coordinates in normal and reverse order.</span>
 <span class="sd">        :rtype: bool</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_linear_core</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span><span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_linear_core</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">False</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_linear_core</span><span class="p">(</span><span class="n">coords</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span><span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_linear_core</span><span class="p">(</span><span class="n">coords</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="k">return</span> <span class="bp">True</span></div></div>
 
 
-<div class="viewcode-block" id="LinearizeRecursiveVector"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursiveVector">[docs]</a><span class="k">class</span> <span class="nc">LinearizeRecursiveVector</span><span class="p">(</span><span class="n">LinearizeRecursive</span><span class="p">,</span><span class="n">VectorLinearize</span><span class="p">):</span>
+<div class="viewcode-block" id="LinearizeRecursiveVector"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursiveVector">[docs]</a><span class="k">class</span> <span class="nc">LinearizeRecursiveVector</span><span class="p">(</span><span class="n">LinearizeRecursive</span><span class="p">,</span> <span class="n">VectorLinearize</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ..  _simply_smooths_details:</span>
 
 <span class="sd">    Class provides recursive linearization of coordinates with :class:`LinearizeRecursive` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
-
-
 
 
 <div class="viewcode-block" id="diff"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.diff">[docs]</a><span class="k">def</span> <span class="nf">diff</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
@@ -367,10 +360,11 @@
     <span class="n">d</span> <span class="o">=</span> <span class="n">diff</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
 
+
 <div class="viewcode-block" id="derrivative"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.derrivative">[docs]</a><span class="k">def</span> <span class="nf">derrivative</span><span class="p">(</span><span class="n">values</span><span class="p">):</span>
     <span class="n">diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
     <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span>
-    <span class="n">correction</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">size</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># this correct values so after integration they are closer to expected value</span>
+    <span class="n">correction</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="n">size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># this correct values so after integration they are closer to expected value</span>
     <span class="c1"># This was calculated by following experiment:</span>
     <span class="c1"># w = []</span>
     <span class="c1"># for q in range(10000):</span>
@@ -380,12 +374,11 @@
 
     <span class="k">for</span> <span class="n">nr</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">nr</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">diff</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">correction</span><span class="c1"># begin</span>
+            <span class="k">yield</span> <span class="n">diff</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">correction</span>  <span class="c1"># begin</span>
         <span class="k">elif</span> <span class="n">nr</span> <span class="o">==</span> <span class="n">size</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="n">diff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">correction</span> <span class="c1"># end</span>
+            <span class="k">yield</span> <span class="n">diff</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">correction</span>  <span class="c1"># end</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="p">(</span><span class="n">diff</span><span class="p">[</span><span class="n">nr</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">diff</span><span class="p">[</span><span class="n">nr</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.</span>  <span class="o">-</span> <span class="n">correction</span></div>
-
+            <span class="k">yield</span> <span class="p">(</span><span class="n">diff</span><span class="p">[</span><span class="n">nr</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">diff</span><span class="p">[</span><span class="n">nr</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.</span> <span class="o">-</span> <span class="n">correction</span></div>
 </pre></div>
 
           </div>

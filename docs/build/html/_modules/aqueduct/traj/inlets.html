@@ -49,10 +49,12 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.traj.inlets</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">pdist</span>
+
 <span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">is_iterable</span><span class="p">,</span> <span class="n">listify</span><span class="p">,</span> <span class="n">lind</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">cdist</span><span class="p">,</span> <span class="n">pdist</span><span class="p">,</span> <span class="n">squareform</span>
 
 
 <div class="viewcode-block" id="ProtoInletTypeCodes"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.ProtoInletTypeCodes">[docs]</a><span class="k">class</span> <span class="nc">ProtoInletTypeCodes</span><span class="p">:</span>
@@ -115,11 +117,11 @@
 <div class="viewcode-block" id="InletClusterGenericType.__repr__"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.InletClusterGenericType.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="InletClusterGenericType.make_val"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.InletClusterGenericType.make_val">[docs]</a>    <span class="k">def</span> <span class="nf">make_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">base</span><span class="p">):</span>
+<div class="viewcode-block" id="InletClusterGenericType.make_val"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.InletClusterGenericType.make_val">[docs]</a>    <span class="k">def</span> <span class="nf">make_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
         <span class="n">val</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
             <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">nr</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">e</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">dummy_iter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
@@ -261,9 +263,9 @@
         <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">:</span>
             <span class="n">sizes</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">renum_numbers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
             <span class="n">renum_numbers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">renum_numbers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-            <span class="n">new_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">lind</span><span class="p">(</span><span class="n">renum_numbers</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">new_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">lind</span><span class="p">(</span><span class="n">renum_numbers</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">new_numbers</span> <span class="o">=</span> <span class="n">lind</span><span class="p">(</span><span class="n">renum_numbers</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">new_numbers</span> <span class="o">=</span> <span class="n">lind</span><span class="p">(</span><span class="n">renum_numbers</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">old_numbers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span>
         <span class="k">if</span> <span class="n">old_numbers</span> <span class="o">==</span> <span class="n">new_numbers</span><span class="p">:</span>
             <span class="k">return</span>
@@ -282,19 +284,18 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">clusters_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="o">.</span><span class="n">count</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="nd">@listify</span>
     <span class="k">def</span> <span class="nf">clusters_std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">c</span><span class="p">,</span><span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_size</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_size</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="mf">0.</span>
             <span class="k">elif</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">pdist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lim2clusters</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lim2clusters</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;euclidean&#39;</span><span class="p">))</span>
-
 
     <span class="nd">@listify</span>
 <div class="viewcode-block" id="Inlets.spaths2ctypes"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.Inlets.spaths2ctypes">[docs]</a>    <span class="k">def</span> <span class="nf">spaths2ctypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spaths</span><span class="p">):</span>

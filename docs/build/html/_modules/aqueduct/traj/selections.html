@@ -49,19 +49,19 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.traj.selections</h1><div class="highlight"><pre>
-<span></span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 
-<span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="kn">as</span> <span class="nn">mda</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-<span class="c1">#from aqueduct.geom.convexhull_pyhull import ConvexHull</span>
+<span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="kn">as</span> <span class="nn">mda</span>
+
 <span class="kn">from</span> <span class="nn">aqueduct.geom.convexhull</span> <span class="kn">import</span> <span class="n">ConvexHull</span>
 <span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">int2range</span>
 
 
 <div class="viewcode-block" id="Selection"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.Selection">[docs]</a><span class="k">class</span> <span class="nc">Selection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    def __init__(self,selection,selection_string=None):</span>
 
@@ -102,19 +102,19 @@
 
 <div class="viewcode-block" id="Selection.__add__"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.Selection.__add__">[docs]</a>    <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
-    
+
 <div class="viewcode-block" id="Selection.first_resid"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.Selection.first_resid">[docs]</a>    <span class="k">def</span> <span class="nf">first_resid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">resids</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span></div></div>
 
-<span class="c1">#TODO: decide if methods should be properties or not </span>
+
+<span class="c1"># TODO: decide if methods should be properties or not</span>
 
 <div class="viewcode-block" id="SelectionMDA"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.SelectionMDA">[docs]</a><span class="k">class</span> <span class="nc">SelectionMDA</span><span class="p">(</span><span class="n">mda</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">AtomGroup</span><span class="o">.</span><span class="n">AtomGroup</span><span class="p">,</span>
                    <span class="n">Selection</span><span class="p">):</span>
-
 <div class="viewcode-block" id="SelectionMDA.iterate_over_residues"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.SelectionMDA.iterate_over_residues">[docs]</a>    <span class="k">def</span> <span class="nf">iterate_over_residues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="k">for</span> <span class="n">R</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SelectionMDA.unique_resids"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.SelectionMDA.unique_resids">[docs]</a>    <span class="k">def</span> <span class="nf">unique_resids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">ikwid</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SelectionMDA.unique_resids"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.SelectionMDA.unique_resids">[docs]</a>    <span class="k">def</span> <span class="nf">unique_resids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ikwid</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="c1"># TODO: do something with this method!</span>
         <span class="k">assert</span> <span class="n">ikwid</span><span class="p">,</span> <span class="s2">&quot;This causes bugs! Avoid this method or take special care in using its results. If you want to use it pass additional variable ikwid = True.&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resids</span><span class="p">)</span></div>
@@ -130,25 +130,21 @@
 
 
 <div class="viewcode-block" id="CompactSelectionMDA"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.CompactSelectionMDA">[docs]</a><span class="k">class</span> <span class="nc">CompactSelectionMDA</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="CompactSelectionMDA.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.CompactSelectionMDA.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sMDA</span><span class="p">):</span>
 
-<div class="viewcode-block" id="CompactSelectionMDA.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.CompactSelectionMDA.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sMDA</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">sMDA</span><span class="o">.</span><span class="n">indices</span><span class="p">))</span></div>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">indices</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="nb">map</span><span class="p">(</span><span class="nb">int</span><span class="p">,</span><span class="n">sMDA</span><span class="o">.</span><span class="n">indices</span><span class="p">))</span></div>
-
-<div class="viewcode-block" id="CompactSelectionMDA.toSelectionMDA"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.CompactSelectionMDA.toSelectionMDA">[docs]</a>    <span class="k">def</span> <span class="nf">toSelectionMDA</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">reader</span><span class="p">):</span>
+<div class="viewcode-block" id="CompactSelectionMDA.toSelectionMDA"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.CompactSelectionMDA.toSelectionMDA">[docs]</a>    <span class="k">def</span> <span class="nf">toSelectionMDA</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reader</span><span class="p">):</span>
 
         <span class="n">sMDA</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="k">for</span> <span class="n">pr</span> <span class="ow">in</span> <span class="n">int2range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">sMDA</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">sMDA</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="s1">&#39;bynum &#39;</span><span class="o">+</span><span class="n">pr</span><span class="p">)</span>
+                <span class="n">sMDA</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="s1">&#39;bynum &#39;</span> <span class="o">+</span> <span class="n">pr</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">sMDA</span> <span class="o">+=</span> <span class="n">reader</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="s1">&#39;bynum &#39;</span><span class="o">+</span><span class="n">pr</span><span class="p">)</span>
+                <span class="n">sMDA</span> <span class="o">+=</span> <span class="n">reader</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="s1">&#39;bynum &#39;</span> <span class="o">+</span> <span class="n">pr</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">sMDA</span></div></div>
-
-
-
 </pre></div>
 
           </div>

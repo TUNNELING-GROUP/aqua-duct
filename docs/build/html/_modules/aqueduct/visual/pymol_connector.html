@@ -49,24 +49,22 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.visual.pymol_connector</h1><div class="highlight"><pre>
-<span></span><span class="c1"># import it as pmc?</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># import it as pmc?</span>
 
 <span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pickle</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pymol</span>
 <span class="kn">import</span> <span class="nn">tarfile</span>
-<span class="kn">from</span> <span class="nn">pymol</span> <span class="kn">import</span> <span class="n">cgo</span>
-<span class="kn">from</span> <span class="nn">pymol</span> <span class="kn">import</span> <span class="n">cmd</span>
+
+<span class="kn">import</span> <span class="nn">aqueduct.visual.pymol_cgo</span> <span class="kn">as</span> <span class="nn">cgo</span>
 
 <span class="kn">from</span> <span class="nn">aqueduct.geom</span> <span class="kn">import</span> <span class="n">traces</span>
 <span class="kn">from</span> <span class="nn">aqueduct.traj.paths</span> <span class="kn">import</span> <span class="n">PathTypesCodes</span>
 <span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">list_blocks_to_slices</span>
-<span class="kn">from</span> <span class="nn">aqueduct.visual.quickplot</span> <span class="kn">import</span> <span class="n">cc</span><span class="p">,</span> <span class="n">color_codes</span>
+<span class="kn">from</span> <span class="nn">aqueduct.visual.helpers</span> <span class="kn">import</span> <span class="n">color_codes</span><span class="p">,</span> <span class="n">cc</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">create_tmpfile</span>
 
-
-<span class="c1"># TODO: remove pymol form required dependencies - move it to pymol_real</span>
-<span class="c1"># TODO: remove matplotlib from required dependencies</span>
 
 <div class="viewcode-block" id="BasicPymolCGO"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGO">[docs]</a><span class="k">class</span> <span class="nc">BasicPymolCGO</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="n">cgo_entity_begin</span> <span class="o">=</span> <span class="p">[]</span>
@@ -172,7 +170,6 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">add_cone</span><span class="p">(</span><span class="n">coords1</span><span class="o">=</span><span class="n">vec</span><span class="p">,</span> <span class="n">coords2</span><span class="o">=</span><span class="n">point</span><span class="p">,</span> <span class="n">radius1</span><span class="o">=</span><span class="n">length</span> <span class="o">/</span> <span class="mf">3.</span><span class="p">,</span> <span class="n">radius2</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">color1</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">color2</span><span class="o">=</span><span class="n">color</span><span class="p">)</span></div></div>
 
 
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">create_tmpfile</span>
 
 
 <div class="viewcode-block" id="SimpleTarWriteHelper"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SimpleTarWriteHelper">[docs]</a><span class="k">class</span> <span class="nc">SimpleTarWriteHelper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -206,11 +203,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c1"># possible types are pymol and file</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data_fh</span> <span class="o">=</span> <span class="n">SimpleTarWriteHelper</span><span class="p">()</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_fh</span> <span class="o">=</span> <span class="n">SimpleTarWriteHelper</span><span class="p">()</span>
+
+        <span class="n">cmd</span> <span class="o">=</span> <span class="bp">None</span></div>
 
 <div class="viewcode-block" id="ConnectToPymol.init_pymol"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.init_pymol">[docs]</a>    <span class="k">def</span> <span class="nf">init_pymol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">import</span> <span class="nn">pymol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span> <span class="o">=</span> <span class="n">pymol</span><span class="o">.</span><span class="n">cmd</span>
         <span class="n">pymol</span><span class="o">.</span><span class="n">finish_launching</span><span class="p">()</span>
-        <span class="n">cmd</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;cgo_line_width&#39;</span><span class="p">,</span> <span class="n">ConnectToPymol</span><span class="o">.</span><span class="n">cgo_line_width</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;cgo_line_width&#39;</span><span class="p">,</span> <span class="n">ConnectToPymol</span><span class="o">.</span><span class="n">cgo_line_width</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_pymol</span></div>
 
 <div class="viewcode-block" id="ConnectToPymol.init_script"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.init_script">[docs]</a>    <span class="k">def</span> <span class="nf">init_script</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
@@ -220,40 +221,78 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_file</span>
 
         <span class="c1"># init lines, imports etc.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;print &quot;Loading Aqua-Duct visualization...&quot;</span>
-<span class="s1">from pymol import cgo, cmd</span>
-<span class="s1">cmd.set(&#39;cgo_line_width&#39;, </span><span class="si">%d</span><span class="s1">)</span>
-<span class="s1">from os import close, unlink</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;import argparse</span>
+<span class="s1">parser=argparse.ArgumentParser(description=&quot;Aqua-Duct visualization script&quot;)</span>
+<span class="s1">parser.add_argument(&quot;--save-session&quot;,action=&quot;store&quot;,dest=&quot;session&quot;,required=False,default=None,help=&quot;Pymol session file name.&quot;)</span>
+<span class="s1">parser.add_argument(&quot;--discard&quot;,action=&quot;store&quot;,dest=&quot;discard&quot;,required=False,default=&#39;&#39;,help=&quot;Objects to discard.&quot;)</span>
+<span class="s1">parser.add_argument(&quot;--keep&quot;,action=&quot;store&quot;,dest=&quot;keep&quot;,required=False,default=&#39;&#39;,help=&quot;Objects to keep.&quot;)</span>
+<span class="s1">args,unknown=parser.parse_known_args()</span>
+<span class="s1">import sys</span>
+<span class="s1">def _kd_order():</span>
+<span class="s1">    if args.keep==&#39;&#39; and args.discard!=&#39;&#39;: return &#39;d&#39;</span>
+<span class="s1">    if args.keep!=&#39;&#39; and args.discard==&#39;&#39;: return &#39;k&#39;</span>
+<span class="s1">    if args.keep==&#39;&#39; and args.discard==&#39;&#39;: return None</span>
+<span class="s1">    if sys.argv.index(&#39;--keep&#39;)&lt;sys.argv.index(&#39;--discard&#39;): return &#39;k&#39;</span>
+<span class="s1">    return &#39;d&#39;</span>
+<span class="s1">kd_order = _kd_order()</span>
+<span class="s1">def discard(name):</span>
+<span class="s1">    if len([d for d in args.discard.split() if d in name])&gt;0: return True</span>
+<span class="s1">    return False</span>
+<span class="s1">def keep(name):</span>
+<span class="s1">    if len([k for k in args.keep.split() if k in name])&gt;0: return True</span>
+<span class="s1">    return False</span>
+<span class="s1">def proceed(name):</span>
+<span class="s1">    if kd_order == &#39;k&#39;:</span>
+<span class="s1">        if not keep(name): return False</span>
+<span class="s1">        elif discard(name): return False</span>
+<span class="s1">    elif kd_order == &#39;d&#39;:</span>
+<span class="s1">        if discard(name):</span>
+<span class="s1">            if not keep(name): return False</span>
+<span class="s1">    return True</span>
+<span class="s1">from pymol import cmd,finish_launching</span>
+<span class="s1">finish_launching()</span>
+<span class="s1">print &quot;Loading Aqua-Duct visualization...&quot;</span>
+<span class="s1">cmd.set(&quot;cgo_line_width&quot;,</span><span class="si">%d</span><span class="s1">)</span>
+<span class="s1">from os import close,unlink</span>
 <span class="s1">from os.path import splitext</span>
 <span class="s1">import tarfile</span>
 <span class="s1">import cPickle as pickle</span>
 <span class="s1">from tempfile import mkstemp</span>
-<span class="s1">fd, pdb_filename = mkstemp(suffix=&#39;pdb&#39;)</span>
+<span class="s1">fd, pdb_filename = mkstemp(suffix=&quot;pdb&quot;)</span>
 <span class="s1">close(fd)</span>
-<span class="s1">data_fh = tarfile.open(&quot;</span><span class="si">%s</span><span class="s1">&quot;,&quot;r:gz&quot;)</span>
+<span class="s1">max_state=0</span>
+<span class="s1">data_fh=tarfile.open(&quot;</span><span class="si">%s</span><span class="s1">&quot;,&quot;r:gz&quot;)</span>
 <span class="s1">def load_object(filename,name,state):</span>
+<span class="s1">    if not proceed(name): return</span>
+<span class="s1">    global max_state</span>
 <span class="s1">    print &quot;Loading </span><span class="si">%s</span><span class="s1">&quot; </span><span class="si">% s</span><span class="s1">plitext(filename)[0]</span>
-<span class="s1">    cmd.load_cgo(pickle.load(data_fh.extractfile(filename)), name, state)</span>
+<span class="s1">    cmd.load_cgo(pickle.load(data_fh.extractfile(filename)),name,state)</span>
 <span class="s1">    if state&lt;2:</span>
 <span class="s1">        cmd.refresh()</span>
+<span class="s1">    if state&gt;max_state:</span>
+<span class="s1">        max_state=state</span>
 <span class="s1">def load_pdb(filename,name,state):</span>
+<span class="s1">    if not proceed(name): return</span>
+<span class="s1">    global max_state</span>
 <span class="s1">    with open(pdb_filename,&#39;w&#39;) as fpdb:</span>
 <span class="s1">        fpdb.write(data_fh.extractfile(filename).read())</span>
-<span class="s1">    cmd.load(pdb_filename, state=state, object=name)</span>
-<span class="s1">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cgo_line_width</span><span class="p">,</span> <span class="n">data_filename</span><span class="p">,</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="s2">&quot;</span><span class="si">% s</span><span class="s2">&quot;</span><span class="p">))</span></div>
+<span class="s1">    cmd.load(pdb_filename,state=state,object=name)</span>
+<span class="s1">    if state&gt;max_state:</span>
+<span class="s1">        max_state=state</span>
+<span class="s1">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cgo_line_width</span><span class="p">,</span> <span class="n">data_filename</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">% s</span><span class="s2">&quot;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="ConnectToPymol.add_cgo_object"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.add_cgo_object">[docs]</a>    <span class="k">def</span> <span class="nf">add_cgo_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cgo_object</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">state</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_pymol</span><span class="p">:</span>
-            <span class="n">cmd</span><span class="o">.</span><span class="n">load_cgo</span><span class="p">(</span><span class="n">cgo_object</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">state</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">load_cgo</span><span class="p">(</span><span class="n">cgo_object</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">state</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_file</span><span class="p">:</span>
             <span class="n">obj_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d</span><span class="s1">.dump&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_fh</span><span class="o">.</span><span class="n">save_object2tar</span><span class="p">(</span><span class="n">cgo_object</span><span class="p">,</span> <span class="n">obj_name</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;load_object(&#39;</span><span class="si">%s</span><span class="s1">&#39;, &quot;</span><span class="si">%s</span><span class="s1">&quot;, </span><span class="si">%d</span><span class="s1">)&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">obj_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">state</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;load_object(&quot;</span><span class="si">%s</span><span class="s1">&quot;,&quot;</span><span class="si">%s</span><span class="s1">&quot;,</span><span class="si">%d</span><span class="s1">)&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">obj_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">state</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span></div>
-            <span class="c1"># self.script_fh.write(&#39;&#39;&#39;cmd.refresh()&#39;&#39;&#39;)</span>
+            <span class="c1"># self.script_fh.write(&#39;&#39;&#39;self.cmd.refresh()&#39;&#39;&#39;)</span>
             <span class="c1"># self.script_fh.write(os.linesep)</span>
 
 <div class="viewcode-block" id="ConnectToPymol.del_cgo_object"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.del_cgo_object">[docs]</a>    <span class="k">def</span> <span class="nf">del_cgo_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
@@ -263,25 +302,41 @@
         <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">state</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_pymol</span><span class="p">:</span>
-            <span class="n">cmd</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">,</span> <span class="nb">object</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">,</span> <span class="nb">object</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_file</span><span class="p">:</span>
             <span class="c1"># save pdblile as string</span>
             <span class="n">filename_new</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_</span><span class="si">%d</span><span class="s1">.pdb&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data_fh</span><span class="o">.</span><span class="n">save_file2tar</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">filename_new</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;load_pdb(&quot;</span><span class="si">%s</span><span class="s1">&quot;,&quot;</span><span class="si">%s</span><span class="s1">&quot;,</span><span class="si">%d</span><span class="s1">)&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename_new</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">state</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;load_pdb(&quot;</span><span class="si">%s</span><span class="s1">&quot;,&quot;</span><span class="si">%s</span><span class="s1">&quot;,</span><span class="si">%d</span><span class="s1">)&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filename_new</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ConnectToPymol.orient_on"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.orient_on">[docs]</a>    <span class="k">def</span> <span class="nf">orient_on</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_pymol</span><span class="p">:</span>
-            <span class="n">cmd</span><span class="o">.</span><span class="n">orient</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">orient</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_file</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;cmd.orient(&quot;</span><span class="si">%s</span><span class="s1">&quot;)&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;if proceed(&quot;</span><span class="si">%s</span><span class="s1">&quot;): cmd.orient(&quot;</span><span class="si">%s</span><span class="s1">&quot;)&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">name</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ConnectToPymol.__del__"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.__del__">[docs]</a>    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_file</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;unlink(pdb_filename)</span>
-<span class="s1">print &quot;Aqua-Duct visualization loaded.&quot;&#39;&#39;&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;data_fh.close()</span>
+<span class="s1">unlink(pdb_filename)</span>
+<span class="s1">print &quot;Aqua-Duct visualization loaded.&quot;</span>
+<span class="s1">if args.session:</span>
+<span class="s1">    print &quot;Preparing data to save session...&quot;</span>
+<span class="s1">    for state in range(max_state):</span>
+<span class="s1">        cmd.set_frame(state+1)</span>
+<span class="s1">        cmd.refresh()</span>
+<span class="s1">        if (state+1)%100==0:</span>
+<span class="s1">            print &quot;wait... </span><span class="si">%d</span><span class="s1"> of </span><span class="si">%d</span><span class="s1"> done...&quot; % (state+1,max_state)</span>
+<span class="s1">    print &quot;</span><span class="si">%d</span><span class="s1"> of </span><span class="si">%d</span><span class="s1"> done.&quot; % (state+1,max_state)</span>
+<span class="s1">    print &quot;Saving session...&quot;</span>
+<span class="s1">    cmd.set_frame(1)</span>
+<span class="s1">    cmd.save(args.session,state=0)</span>
+<span class="s1">    print &quot;Let the Valve be always open!&quot;</span>
+<span class="s1">    print &quot;Goodby!&quot;</span>
+<span class="s1">    cmd.quit()</span>
+<span class="s1">&#39;&#39;&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">linesep</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
 
