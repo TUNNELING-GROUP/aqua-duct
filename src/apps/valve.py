@@ -19,6 +19,7 @@ from collections import namedtuple, OrderedDict
 from functools import wraps
 from itertools import izip_longest
 from scipy.spatial.distance import cdist
+from keyword import iskeyword
 
 import MDAnalysis as mda
 import roman
@@ -84,8 +85,13 @@ class ValveConfig(object, ConfigSpecialNames):
 
     def __make_options_nt(self, input_options):
         # options = {opt: self.special_name(input_options[opt]) for opt in input_options}
-        options = dict(
-            ((opt, self.special_name(input_options[opt])) for opt in input_options))  # This is due to old pydev
+        options = list()
+        for opt in input_options:
+            if iskeyword(opt):
+                log.warning('Invalid keyword <%s> in config file skipped. Check configuration file.' % opt)
+                continue
+            options.append((opt, self.special_name(input_options[opt])))
+        options = dict(options)
         options_nt = namedtuple('Options', options.keys())
         return options_nt(**options)
 
