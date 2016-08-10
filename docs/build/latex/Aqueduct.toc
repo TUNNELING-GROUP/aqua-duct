@@ -80,34 +80,37 @@
 \contentsline {subsubsection}{aqueduct.geom package}{21}{subsubsection*.8}
 \contentsline {paragraph}{Submodules}{21}{paragraph*.9}
 \contentsline {subparagraph}{aqueduct.geom.cluster module}{21}{subparagraph*.10}
-\contentsline {subparagraph}{aqueduct.geom.convexhull module}{21}{subparagraph*.17}
-\contentsline {subparagraph}{aqueduct.geom.master module}{21}{subparagraph*.23}
-\contentsline {subparagraph}{aqueduct.geom.pca module}{22}{subparagraph*.36}
-\contentsline {subparagraph}{aqueduct.geom.smooth module}{22}{subparagraph*.56}
-\contentsline {subparagraph}{aqueduct.geom.test\_triangle\_height module}{23}{subparagraph*.85}
-\contentsline {subparagraph}{aqueduct.geom.test\_vectors\_angle\_anorm module}{23}{subparagraph*.90}
-\contentsline {subparagraph}{aqueduct.geom.traces module}{24}{subparagraph*.101}
-\contentsline {paragraph}{Module contents}{26}{paragraph*.132}
-\contentsline {subsubsection}{aqueduct.traj package}{26}{subsubsection*.133}
-\contentsline {paragraph}{Submodules}{26}{paragraph*.134}
-\contentsline {subparagraph}{aqueduct.traj.dumps module}{26}{subparagraph*.135}
-\contentsline {subparagraph}{aqueduct.traj.inlets module}{26}{subparagraph*.141}
-\contentsline {subparagraph}{aqueduct.traj.paths module}{28}{subparagraph*.208}
-\contentsline {subparagraph}{aqueduct.traj.reader module}{30}{subparagraph*.278}
-\contentsline {subparagraph}{aqueduct.traj.selections module}{31}{subparagraph*.303}
-\contentsline {paragraph}{Module contents}{31}{paragraph*.324}
-\contentsline {subsubsection}{aqueduct.utils package}{31}{subsubsection*.325}
-\contentsline {paragraph}{Submodules}{31}{paragraph*.326}
-\contentsline {subparagraph}{aqueduct.utils.helpers module}{31}{subparagraph*.327}
-\contentsline {subparagraph}{aqueduct.utils.log module}{34}{subparagraph*.346}
-\contentsline {subparagraph}{aqueduct.utils.multip module}{38}{subparagraph*.377}
-\contentsline {paragraph}{Module contents}{38}{paragraph*.378}
-\contentsline {subsubsection}{aqueduct.visual package}{38}{subsubsection*.379}
-\contentsline {paragraph}{Submodules}{38}{paragraph*.380}
-\contentsline {subparagraph}{aqueduct.visual.pymol\_connector module}{38}{subparagraph*.381}
-\contentsline {subparagraph}{aqueduct.visual.quickplot module}{39}{subparagraph*.427}
-\contentsline {paragraph}{Module contents}{40}{paragraph*.456}
+\contentsline {subparagraph}{aqueduct.geom.convexhull module}{21}{subparagraph*.18}
+\contentsline {subparagraph}{aqueduct.geom.master module}{21}{subparagraph*.24}
+\contentsline {subparagraph}{aqueduct.geom.pca module}{22}{subparagraph*.34}
+\contentsline {subparagraph}{aqueduct.geom.smooth module}{22}{subparagraph*.54}
+\contentsline {subparagraph}{aqueduct.geom.test\_triangle\_height module}{23}{subparagraph*.83}
+\contentsline {subparagraph}{aqueduct.geom.test\_vectors\_angle\_anorm module}{23}{subparagraph*.88}
+\contentsline {subparagraph}{aqueduct.geom.traces module}{24}{subparagraph*.99}
+\contentsline {paragraph}{Module contents}{26}{paragraph*.130}
+\contentsline {subsubsection}{aqueduct.traj package}{26}{subsubsection*.131}
+\contentsline {paragraph}{Submodules}{26}{paragraph*.132}
+\contentsline {subparagraph}{aqueduct.traj.dumps module}{26}{subparagraph*.133}
+\contentsline {subparagraph}{aqueduct.traj.inlets module}{26}{subparagraph*.139}
+\contentsline {subparagraph}{aqueduct.traj.paths module}{28}{subparagraph*.206}
+\contentsline {subparagraph}{aqueduct.traj.reader module}{30}{subparagraph*.276}
+\contentsline {subparagraph}{aqueduct.traj.selections module}{31}{subparagraph*.301}
+\contentsline {paragraph}{Module contents}{31}{paragraph*.322}
+\contentsline {subsubsection}{aqueduct.utils package}{31}{subsubsection*.323}
+\contentsline {paragraph}{Submodules}{31}{paragraph*.324}
+\contentsline {subparagraph}{aqueduct.utils.helpers module}{31}{subparagraph*.325}
+\contentsline {subparagraph}{aqueduct.utils.log module}{34}{subparagraph*.347}
+\contentsline {subparagraph}{aqueduct.utils.multip module}{38}{subparagraph*.378}
+\contentsline {paragraph}{Module contents}{38}{paragraph*.379}
+\contentsline {subsubsection}{aqueduct.visual package}{38}{subsubsection*.380}
+\contentsline {paragraph}{Submodules}{38}{paragraph*.381}
+\contentsline {subparagraph}{aqueduct.visual.cmaps module}{38}{subparagraph*.382}
+\contentsline {subparagraph}{aqueduct.visual.helpers module}{38}{subparagraph*.383}
+\contentsline {subparagraph}{aqueduct.visual.pymol\_cgo module}{38}{subparagraph*.394}
+\contentsline {subparagraph}{aqueduct.visual.pymol\_connector module}{38}{subparagraph*.395}
+\contentsline {subparagraph}{aqueduct.visual.quickplot module}{40}{subparagraph*.441}
+\contentsline {paragraph}{Module contents}{40}{paragraph*.461}
 \contentsline {subsection}{\numberline {5.1.2}Module contents}{40}{subsection.5.1.2}
 \contentsline {chapter}{\numberline {6}Indices and tables}{43}{chapter.6}
-\contentsline {chapter}{Python Module Index}{45}{section*.460}
-\contentsline {chapter}{Index}{47}{section*.461}
+\contentsline {chapter}{Python Module Index}{45}{section*.465}
+\contentsline {chapter}{Index}{47}{section*.466}

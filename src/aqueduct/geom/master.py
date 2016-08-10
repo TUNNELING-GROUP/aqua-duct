@@ -7,7 +7,7 @@ import numpy as np
 from scipy.spatial.distance import cdist, pdist
 
 from aqueduct.traj.paths import GenericPathTypeCodes, GenericPaths, yield_single_paths, MasterPath
-from aqueduct.utils.helpers import list_blocks_to_slices
+from aqueduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip
 
 
 def fit_trace_to_points(trace, points):
@@ -19,52 +19,6 @@ def fit_trace_to_points(trace, points):
             continue
         points_used.append(pm)
     return points_used
-
-
-def strech_zip(*args):
-    ns = map(float, map(len, args))
-    N = int(max(ns))
-    for n in range(N):
-        yield tuple([args[nr][int(cN / N * n)] for nr, cN in enumerate(ns)])
-
-
-def compress_zip(*args):
-    ns = map(float, map(len, args))
-    N = int(min(ns))
-    position = [0.] * len(args)
-    for n in range(N):
-        this_yield = []
-        next_position = [float(len(a)) / N + p for a, p in zip(args, position)]
-        for a, p, np in zip(args, position, next_position):
-            if n + 1 == N:
-                this_yield.append(a[int(p):])
-            else:
-                this_yield.append(a[int(p):int(np)])
-        yield tuple(this_yield)
-        position = next_position
-
-
-def zip_zip(*args, **kwargs):
-    ns = map(float, map(len, args))
-    if 'N' in kwargs.keys():
-        N = kwargs['N']
-    else:
-        N = int(min(ns))
-    position = [0.] * len(args)
-    for n in range(N):
-        this_yield = []
-        next_position = [float(len(a)) / N + p for a, p in zip(args, position)]
-        for a, p, np in zip(args, position, next_position):
-            ip = int(p)
-            inp = int(np)
-            if n + 1 == N:
-                this_yield.append(a[ip:])
-            else:
-                if ip == inp:
-                    inp += 1
-                this_yield.append(a[ip:inp])
-        yield tuple(this_yield)
-        position = next_position
 
 
 def decide_on_type(cont, s2o_treshold=0.5):

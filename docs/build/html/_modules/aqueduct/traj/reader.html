@@ -49,19 +49,19 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.traj.reader</h1><div class="highlight"><pre>
-<span></span><span class="sd">&#39;&#39;&#39;</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">Created on Nov 19, 2015</span>
 
 <span class="sd">@author: tljm</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
+
 <span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="kn">as</span> <span class="nn">mda</span>
-<span class="c1">#import mdtraj as mdt</span>
 
 <span class="kn">from</span> <span class="nn">aqueduct.traj.selections</span> <span class="kn">import</span> <span class="n">SelectionMDA</span>
-
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">splitext</span>
-<span class="kn">import</span> <span class="nn">re</span>
 
 <span class="n">mda_available_formats</span> <span class="o">=</span> <span class="p">{</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(nc|NC)&#39;</span><span class="p">):</span> <span class="s1">&#39;nc&#39;</span><span class="p">,</span>
                          <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(parmtop|top|PARMTOP|TOP)&#39;</span><span class="p">):</span> <span class="s1">&#39;parmtop&#39;</span><span class="p">,</span>

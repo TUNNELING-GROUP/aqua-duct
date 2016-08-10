@@ -48,7 +48,8 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct</h1><div class="highlight"><pre>
-<span></span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Aqueduct - a collection of tools to trace residues in MD simulation.</span>
 
@@ -62,7 +63,7 @@
 <span class="sd">    :return: 3 element tuple of int numbers</span>
 <span class="sd">    :rtype: tuple</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">11</span></div>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">11</span></div>
     <span class="c1"># better pymol connector - scripts etc.</span>
 
 
@@ -73,9 +74,11 @@
 <span class="sd">    :return: string composed on the basis of the number returned by :func:`version`.</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">return</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span><span class="n">version</span><span class="p">()))</span></div>
+    <span class="k">return</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">version</span><span class="p">()))</span></div>
+
 
 <span class="n">__version__</span> <span class="o">=</span> <span class="n">version_nice</span><span class="p">()</span>
+
 
 <div class="viewcode-block" id="greetings"><a class="viewcode-back" href="../aqueduct.html#aqueduct.greetings">[docs]</a><span class="k">def</span> <span class="nf">greetings</span><span class="p">():</span>
     <span class="sd">&#39;&#39;&#39;</span>

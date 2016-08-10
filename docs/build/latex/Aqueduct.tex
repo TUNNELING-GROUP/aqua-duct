@@ -28,7 +28,7 @@
 
 
 \title{Aqueduct Documentation}
-\date{Aug 02, 2016}
+\date{Aug 10, 2016}
 \release{0.2.11}
 \author{Tomasz Magdziarz}
 \newcommand{\sphinxlogo}{}
@@ -1133,6 +1133,12 @@ Bases: \href{http://docs.python.org/2/library/functions.html\#object}{\code{obje
 \phantomsection\label{aqueduct.geom.cluster:aqueduct.geom.cluster.PerformClustering.__call__}\pysiglinewithargsret{\bfcode{\_\_call\_\_}}{\emph{coords}}{}
 \end{fulllineitems}
 
+\index{\_get\_noclusters() (PerformClustering method)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.geom.cluster:aqueduct.geom.cluster.PerformClustering._get_noclusters}\pysiglinewithargsret{\bfcode{\_get\_noclusters}}{\emph{n}}{}
+\end{fulllineitems}
+
 \index{fit() (PerformClustering method)}
 
 \begin{fulllineitems}
@@ -1188,24 +1194,6 @@ Bases: \href{http://docs.python.org/2/library/functions.html\#object}{\code{obje
 
 \begin{fulllineitems}
 \phantomsection\label{aqueduct.geom.master:aqueduct.geom.master.fit_trace_to_points}\pysiglinewithargsret{\bfcode{fit\_trace\_to\_points}}{\emph{trace}, \emph{points}}{}
-\end{fulllineitems}
-
-\index{strech\_zip() (in module aqueduct.geom.master)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.geom.master:aqueduct.geom.master.strech_zip}\pysiglinewithargsret{\bfcode{strech\_zip}}{\emph{*args}}{}
-\end{fulllineitems}
-
-\index{compress\_zip() (in module aqueduct.geom.master)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.geom.master:aqueduct.geom.master.compress_zip}\pysiglinewithargsret{\bfcode{compress\_zip}}{\emph{*args}}{}
-\end{fulllineitems}
-
-\index{zip\_zip() (in module aqueduct.geom.master)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.geom.master:aqueduct.geom.master.zip_zip}\pysiglinewithargsret{\bfcode{zip\_zip}}{\emph{*args}, \emph{**kwargs}}{}
 \end{fulllineitems}
 
 \index{decide\_on\_type() (in module aqueduct.geom.master)}
@@ -3531,6 +3519,24 @@ iterable or list
 
 \end{fulllineitems}
 
+\index{strech\_zip() (in module aqueduct.utils.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.utils.helpers:aqueduct.utils.helpers.strech_zip}\pysiglinewithargsret{\bfcode{strech\_zip}}{\emph{*args}}{}
+\end{fulllineitems}
+
+\index{compress\_zip() (in module aqueduct.utils.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.utils.helpers:aqueduct.utils.helpers.compress_zip}\pysiglinewithargsret{\bfcode{compress\_zip}}{\emph{*args}}{}
+\end{fulllineitems}
+
+\index{zip\_zip() (in module aqueduct.utils.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.utils.helpers:aqueduct.utils.helpers.zip_zip}\pysiglinewithargsret{\bfcode{zip\_zip}}{\emph{*args}, \emph{**kwargs}}{}
+\end{fulllineitems}
+
 
 
 \subparagraph{aqueduct.utils.log module}
@@ -4034,6 +4040,77 @@ Created on Feb 3, 2016
 \paragraph{Submodules}
 \label{aqueduct.visual:submodules}
 
+\subparagraph{aqueduct.visual.cmaps module}
+\label{aqueduct.visual.cmaps:module-aqueduct.visual.cmaps}\label{aqueduct.visual.cmaps::doc}\label{aqueduct.visual.cmaps:aqueduct-visual-cmaps-module}\index{aqueduct.visual.cmaps (module)}
+
+\subparagraph{aqueduct.visual.helpers module}
+\label{aqueduct.visual.helpers:aqueduct-visual-helpers-module}\label{aqueduct.visual.helpers:module-aqueduct.visual.helpers}\label{aqueduct.visual.helpers::doc}\index{aqueduct.visual.helpers (module)}\index{cc\_safe() (in module aqueduct.visual.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.cc_safe}\pysiglinewithargsret{\bfcode{cc\_safe}}{\emph{c}}{}
+\end{fulllineitems}
+
+\index{cc() (in module aqueduct.visual.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.cc}\pysiglinewithargsret{\bfcode{cc}}{\emph{c}}{}
+\end{fulllineitems}
+
+\index{color\_codes() (in module aqueduct.visual.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.color_codes}\pysiglinewithargsret{\bfcode{color\_codes}}{\emph{code}, \emph{custom\_codes=None}}{}
+\end{fulllineitems}
+
+\index{get\_cmap() (in module aqueduct.visual.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.get_cmap}\pysiglinewithargsret{\bfcode{get\_cmap}}{\emph{size}}{}
+\end{fulllineitems}
+
+\index{ColorMapDistMap (class in aqueduct.visual.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.ColorMapDistMap}\pysiglinewithargsret{\strong{class }\bfcode{ColorMapDistMap}}{\emph{name='hsv'}, \emph{size=None}}{}
+Bases: \href{http://docs.python.org/2/library/functions.html\#object}{\code{object}}
+\index{default\_cm\_size (ColorMapDistMap attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.ColorMapDistMap.default_cm_size}\pysigline{\bfcode{default\_cm\_size}\strong{ = 256}}
+\end{fulllineitems}
+
+\index{grey (ColorMapDistMap attribute)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.ColorMapDistMap.grey}\pysigline{\bfcode{grey}\strong{ = (0.5, 0.5, 0.5, 1)}}
+\end{fulllineitems}
+
+\index{\_\_init\_\_() (ColorMapDistMap method)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.ColorMapDistMap.__init__}\pysiglinewithargsret{\bfcode{\_\_init\_\_}}{\emph{name='hsv'}, \emph{size=None}}{}
+\end{fulllineitems}
+
+\index{\_\_call\_\_() (ColorMapDistMap method)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.ColorMapDistMap.__call__}\pysiglinewithargsret{\bfcode{\_\_call\_\_}}{\emph{node}}{}
+\end{fulllineitems}
+
+
+\end{fulllineitems}
+
+\index{f\_like() (in module aqueduct.visual.helpers)}
+
+\begin{fulllineitems}
+\phantomsection\label{aqueduct.visual.helpers:aqueduct.visual.helpers.f_like}\pysiglinewithargsret{\bfcode{f\_like}}{\emph{n}}{}
+\end{fulllineitems}
+
+
+
+\subparagraph{aqueduct.visual.pymol\_cgo module}
+\label{aqueduct.visual.pymol_cgo:module-aqueduct.visual.pymol_cgo}\label{aqueduct.visual.pymol_cgo::doc}\label{aqueduct.visual.pymol_cgo:aqueduct-visual-pymol-cgo-module}\index{aqueduct.visual.pymol\_cgo (module)}
+
 \subparagraph{aqueduct.visual.pymol\_connector module}
 \label{aqueduct.visual.pymol_connector:module-aqueduct.visual.pymol_connector}\label{aqueduct.visual.pymol_connector::doc}\label{aqueduct.visual.pymol_connector:aqueduct-visual-pymol-connector-module}\index{aqueduct.visual.pymol\_connector (module)}\index{BasicPymolCGO (class in aqueduct.visual.pymol\_connector)}
 
@@ -4322,66 +4399,10 @@ Bases: \href{http://docs.python.org/2/library/functions.html\#object}{\code{obje
 
 
 \subparagraph{aqueduct.visual.quickplot module}
-\label{aqueduct.visual.quickplot:module-aqueduct.visual.quickplot}\label{aqueduct.visual.quickplot::doc}\label{aqueduct.visual.quickplot:aqueduct-visual-quickplot-module}\index{aqueduct.visual.quickplot (module)}\index{cc() (in module aqueduct.visual.quickplot)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.cc}\pysiglinewithargsret{\bfcode{cc}}{\emph{c}, \emph{alpha=1.0}}{}
-\end{fulllineitems}
-
-\index{get\_cmap() (in module aqueduct.visual.quickplot)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.get_cmap}\pysiglinewithargsret{\bfcode{get\_cmap}}{\emph{name}, \emph{size=None}}{}
-\end{fulllineitems}
-
-\index{ColorMapDistMap (class in aqueduct.visual.quickplot)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.ColorMapDistMap}\pysiglinewithargsret{\strong{class }\bfcode{ColorMapDistMap}}{\emph{name='hsv'}, \emph{size=None}}{}
-Bases: \href{http://docs.python.org/2/library/functions.html\#object}{\code{object}}
-\index{default\_cm\_size (ColorMapDistMap attribute)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.ColorMapDistMap.default_cm_size}\pysigline{\bfcode{default\_cm\_size}\strong{ = 256}}
-\end{fulllineitems}
-
-\index{grey (ColorMapDistMap attribute)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.ColorMapDistMap.grey}\pysigline{\bfcode{grey}\strong{ = (0.5, 0.5, 0.5, 1)}}
-\end{fulllineitems}
-
-\index{\_\_init\_\_() (ColorMapDistMap method)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.ColorMapDistMap.__init__}\pysiglinewithargsret{\bfcode{\_\_init\_\_}}{\emph{name='hsv'}, \emph{size=None}}{}
-\end{fulllineitems}
-
-\index{\_\_call\_\_() (ColorMapDistMap method)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.ColorMapDistMap.__call__}\pysiglinewithargsret{\bfcode{\_\_call\_\_}}{\emph{node}}{}
-\end{fulllineitems}
-
-
-\end{fulllineitems}
-
-\index{f\_like() (in module aqueduct.visual.quickplot)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.f_like}\pysiglinewithargsret{\bfcode{f\_like}}{\emph{n}}{}
-\end{fulllineitems}
-
-\index{yield\_spath\_len\_and\_smooth\_diff\_in\_types\_slices() (in module aqueduct.visual.quickplot)}
+\label{aqueduct.visual.quickplot:module-aqueduct.visual.quickplot}\label{aqueduct.visual.quickplot::doc}\label{aqueduct.visual.quickplot:aqueduct-visual-quickplot-module}\index{aqueduct.visual.quickplot (module)}\index{yield\_spath\_len\_and\_smooth\_diff\_in\_types\_slices() (in module aqueduct.visual.quickplot)}
 
 \begin{fulllineitems}
 \phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.yield_spath_len_and_smooth_diff_in_types_slices}\pysiglinewithargsret{\bfcode{yield\_spath\_len\_and\_smooth\_diff\_in\_types\_slices}}{\emph{sp}, \emph{smooth=None}, \emph{smooth\_len=None}, \emph{smooth\_diff=None}, \emph{types='etypes'}}{}
-\end{fulllineitems}
-
-\index{color\_codes() (in module aqueduct.visual.quickplot)}
-
-\begin{fulllineitems}
-\phantomsection\label{aqueduct.visual.quickplot:aqueduct.visual.quickplot.color_codes}\pysiglinewithargsret{\bfcode{color\_codes}}{\emph{code}, \emph{custom\_codes=None}}{}
 \end{fulllineitems}
 
 \index{plot\_colorful\_lines() (in module aqueduct.visual.quickplot)}
@@ -4611,6 +4632,9 @@ graphic. Currently it returns following string:
 \item {\texttt{aqueduct.utils.log}}, \pageref{aqueduct.utils.log:module-aqueduct.utils.log}
 \item {\texttt{aqueduct.utils.multip}}, \pageref{aqueduct.utils.multip:module-aqueduct.utils.multip}
 \item {\texttt{aqueduct.visual}}, \pageref{aqueduct.visual:module-aqueduct.visual}
+\item {\texttt{aqueduct.visual.cmaps}}, \pageref{aqueduct.visual.cmaps:module-aqueduct.visual.cmaps}
+\item {\texttt{aqueduct.visual.helpers}}, \pageref{aqueduct.visual.helpers:module-aqueduct.visual.helpers}
+\item {\texttt{aqueduct.visual.pymol\_cgo}}, \pageref{aqueduct.visual.pymol_cgo:module-aqueduct.visual.pymol_cgo}
 \item {\texttt{aqueduct.visual.pymol\_connector}}, \pageref{aqueduct.visual.pymol_connector:module-aqueduct.visual.pymol_connector}
 \item {\texttt{aqueduct.visual.quickplot}}, \pageref{aqueduct.visual.quickplot:module-aqueduct.visual.quickplot}
 \end{theindex}

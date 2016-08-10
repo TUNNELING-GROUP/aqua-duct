@@ -11,11 +11,9 @@ import aqueduct.visual.pymol_cgo as cgo
 from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
 from aqueduct.utils.helpers import list_blocks_to_slices
-from aqueduct.visual.quickplot import cc, color_codes
+from aqueduct.visual.helpers import color_codes, cc
+from aqueduct.utils.helpers import create_tmpfile
 
-
-# TODO: remove pymol form required dependencies - move it to pymol_real
-# TODO: remove matplotlib from required dependencies
 
 class BasicPymolCGO(object):
     cgo_entity_begin = []
@@ -121,7 +119,6 @@ class BasicPymolCGOPointers(BasicPymolCGO):
             self.add_cone(coords1=vec, coords2=point, radius1=length / 3., radius2=0, color1=color, color2=color)
 
 
-from aqueduct.utils.helpers import create_tmpfile
 
 
 class SimpleTarWriteHelper(object):
@@ -176,7 +173,31 @@ class ConnectToPymol(object):
         self.script_fh.write('''import argparse
 parser=argparse.ArgumentParser(description="Aqua-Duct visualization script")
 parser.add_argument("--save-session",action="store",dest="session",required=False,default=None,help="Pymol session file name.")
+parser.add_argument("--discard",action="store",dest="discard",required=False,default='',help="Objects to discard.")
+parser.add_argument("--keep",action="store",dest="keep",required=False,default='',help="Objects to keep.")
 args,unknown=parser.parse_known_args()
+import sys
+def _kd_order():
+    if args.keep=='' and args.discard!='': return 'd'
+    if args.keep!='' and args.discard=='': return 'k'
+    if args.keep=='' and args.discard=='': return None
+    if sys.argv.index('--keep')<sys.argv.index('--discard'): return 'k'
+    return 'd'
+kd_order = _kd_order()
+def discard(name):
+    if len([d for d in args.discard.split() if d in name])>0: return True
+    return False
+def keep(name):
+    if len([k for k in args.keep.split() if k in name])>0: return True
+    return False
+def proceed(name):
+    if kd_order == 'k':
+        if not keep(name): return False
+        elif discard(name): return False
+    elif kd_order == 'd':
+        if discard(name):
+            if not keep(name): return False
+    return True
 from pymol import cmd,finish_launching
 finish_launching()
 print "Loading Aqua-Duct visualization..."
@@ -191,6 +212,7 @@ close(fd)
 max_state=0
 data_fh=tarfile.open("%s","r:gz")
 def load_object(filename,name,state):
+    if not proceed(name): return
     global max_state
     print "Loading %s" % splitext(filename)[0]
     cmd.load_cgo(pickle.load(data_fh.extractfile(filename)),name,state)
@@ -199,6 +221,7 @@ def load_object(filename,name,state):
     if state>max_state:
         max_state=state
 def load_pdb(filename,name,state):
+    if not proceed(name): return
     global max_state
     with open(pdb_filename,'w') as fpdb:
         fpdb.write(data_fh.extractfile(filename).read())
@@ -240,7 +263,7 @@ def load_pdb(filename,name,state):
         if self.connection_type == self.ct_pymol:
             self.cmd.orient(name)
         elif self.connection_type == self.ct_file:
-            self.script_fh.write('''cmd.orient("%s")''' % name)
+            self.script_fh.write('''if proceed("%s"): cmd.orient("%s")''' % (name,name))
             self.script_fh.write(os.linesep)
 
     def __del__(self):
