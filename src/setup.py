@@ -1,11 +1,11 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-#from distutils.core import setup
-from setuptools import find_packages,setup
+# from distutils.core import setup
+from setuptools import find_packages, setup
 
-version = __import__('aqueduct').version() # version tuple
-version = '.'.join(map(str,version)) # version str
+version = __import__('aqueduct').version()  # version tuple
+version = '.'.join(map(str, version))  # version str
 
 setup(name='aqueduct',
       version=version,
@@ -19,16 +19,16 @@ setup(name='aqueduct',
                         'scikit-learn>=0.14',
                         'MDAnalysis[amber]>=0.15',
                         'roman',
-                       ],
-      extras_require={'full_pymol':["pymol>=1.4"],
-                      'graphs':['matplotlib'],
+                        ],
+      extras_require={'full_pymol': ["pymol>=1.4"],
+                      'graphs': ['matplotlib'],
                       },
-      scripts=['apps/valve.py','apps/valve_runc'],
+      scripts=['apps/valve.py', 'apps/valve_runc'],
       provides=['aqueduct'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Bioinformaticians',
                    'Operating System :: POSIX',
                    'Programming Language :: Python :: 2.7',
-                  ],
+                   ],
       )

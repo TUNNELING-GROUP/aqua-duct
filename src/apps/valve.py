@@ -18,8 +18,8 @@ import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps
 from itertools import izip_longest
-from scipy.spatial.distance import cdist
 from keyword import iskeyword
+from scipy.spatial.distance import cdist
 
 import MDAnalysis as mda
 import roman
@@ -49,7 +49,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 8, 2
+    return 0, 8, 3
 
 
 def version_nice():
@@ -640,13 +640,39 @@ def get_clustering_method(coptions):
             opts.update({'eps': float(coptions.eps)})
         if 'min_samples' in coptions._asdict():
             opts.update({'min_samples': int(coptions.min_samples)})
+        if 'metric' in coptions._asdict():
+            assert coptions.metric in ['cityblock', 'cosine', 'euclidean',
+                                       'manhattan'], "Unknown metric <%s>." % coptions.metric
+            opts.update({'metric': str(coptions.metric)})
+        if 'algorithm' in coptions._asdict():
+            assert coptions.algorithm in ['auto', 'ball_tree', 'kd_tree',
+                                          'brute'], "Unknown NN algorithm <%s>." % coptions.algorithm
+            opts.update({'algorithm': str(coptions.algorithm)})
+        if 'leaf_size' in coptions._asdict():
+            opts.update({'leaf_size': int(coptions.leaf_size)})
 
     def affprop_opts():
-        pass
+        if 'damping' in coptions._asdict():
+            opts.update({'damping': float(coptions.damping)})
+        if 'convergence_iter' in coptions._asdict():
+            opts.update({'convergence_iter': int(coptions.convergence_iter)})
+        if 'max_iter' in coptions._asdict():
+            opts.update({'max_iter': int(coptions.max_iter)})
+        if 'preference' in coptions._asdict():
+            opts.update({'preference': float(coptions.preference)})
 
     def kmeans_opts():
         if 'n_clusters' in coptions._asdict():
             opts.update({'n_clusters': int(coptions.n_clusters)})
+        if 'max_iter' in coptions._asdict():
+            opts.update({'max_iter': int(coptions.max_iter)})
+        if 'n_init' in coptions._asdict():
+            opts.update({'n_init': int(coptions.n_init)})
+        if 'init' in coptions._asdict():
+            assert coptions.init in ['k-means++', 'random'], "Unknown initialization method <%s>." % coptions.init
+            opts.update({'init': str(coptions.init)})
+        if 'tol' in coptions._asdict():
+            opts.update({'tol': float(coptions.tol)})
 
     def meanshift_opts():
         if 'cluster_all' in coptions._asdict():
@@ -656,6 +682,10 @@ def get_clustering_method(coptions):
                 opts.update({'bandwidth': coptions.bandwidth})
             else:
                 opts.update({'bandwidth': float(coptions.bandwidth)})
+        if 'bin_seeding' in coptions._asdict():
+            opts.update({'bin_seeding': bool(coptions.bin_seeding)})
+        if 'min_bin_freq' in coptions._asdict():
+            opts.update({'min_bin_freq': int(coptions.min_bin_freq)})
 
     if coptions.method == 'dbscan':
         dbscan_opts()
@@ -671,7 +701,6 @@ def get_clustering_method(coptions):
         method = MeanShift
 
     return PerformClustering(method, **opts)
-    # return lambda X: perform_clustering(X, method, **opts)
 
 
 ################################################################################
