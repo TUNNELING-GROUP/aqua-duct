@@ -17,7 +17,7 @@ CWD=`pwd`
 cd $BUILDDIR
 git clone https://github.com/Unidata/netcdf4-python.git
 cd netcdf4-python
-sed '/\[directories\]/a \
+sed -i '/\[directories\]/a \
 HDF5_dir = /usr/lib \
 HDF5_libdir = /usr/lib \
 HDF5_incdir = /usr/include \

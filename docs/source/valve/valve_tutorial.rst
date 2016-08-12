@@ -40,7 +40,7 @@ We will use 10ns Amber MD simulation data of sEH protein (PDBID **1cqz**). Neces
 Inspect your system
 -------------------
 
-Before we start any calculations lets have a look at the protein of interest. Start *PyMOL* and get ``1cqz`` PDB structure (for example by typing in *PyMOL* command prompt ``fetch 1cqa``).
+Before we start any calculations lets have a look at the protein of interest. Start *PyMOL* and get ``1cqz`` PDB structure (for example by typing in *PyMOL* command prompt ``fetch 1cqz``).
 
 To setup *Valve* calculations we need to know active site of the protein. More precisely we need to know IDs or residues that are in the active site. This would allow us to create :ref:`object_definition`.
 
