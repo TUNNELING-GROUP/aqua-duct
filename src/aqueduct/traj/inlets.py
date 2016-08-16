@@ -2,6 +2,7 @@
 import numpy as np
 from collections import namedtuple
 from scipy.spatial.distance import pdist
+import copy
 
 from aqueduct.utils.helpers import is_iterable, listify, lind
 
@@ -160,11 +161,35 @@ class Inlets(object):
         return [inlet.reference for inlet in self.inlets_list]
 
     def perform_clustering(self, method):
+        # this do clean clustering, all previous clusters are discarded
         # 0 means outliers
         self.add_cluster_annotations(method(np.array(self.coords)))
         self.number_of_clustered_inlets = len(self.clusters)
         # renumber clusters
         self.renumber_clusters()
+
+    def perform_reclustering(self, method):
+        # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
+        if len(self.clusters) == 0:
+            return self.perform_clustering(method)
+        for cluster in self.clusters_list:
+            self.recluster_cluster(method,cluster)
+        # number of cluster
+        self.number_of_clustered_inlets = len(self.clusters)
+        # renumber clusters
+        self.renumber_clusters()
+
+    def recluster_cluster(self,method,cluster):
+        if cluster in self.clusters_list:
+            reclust = method(np.array(self.lim2clusters(cluster).coords))
+            max_cluster = max(self.clusters_list) + 1
+            nrr = 0  # recluster nr
+            for nr, c in enumerate(self.clusters):
+                if c == cluster:
+                    self.clusters[nr] = reclust[nrr]+max_cluster
+                    nrr += 1
+        # number of cluster
+        self.number_of_clustered_inlets = len(self.clusters)
 
     def recluster_outliers(self, method):
         if 0 in self.clusters_list:
@@ -200,26 +225,25 @@ class Inlets(object):
         else:
             new_numbers = range(1, len(self.clusters_list) + 1)
         old_numbers = self.clusters_list
-        if old_numbers == new_numbers:
-            return
-        for nr, c in enumerate(self.clusters):
-            self.clusters[nr] = new_numbers[old_numbers.index(c)]
+        if old_numbers != new_numbers:
+            for nr, c in enumerate(self.clusters):
+                self.clusters[nr] = new_numbers[old_numbers.index(c)]
         self.sort_clusters()
 
     def sort_clusters(self):
-        renum_numbers = self.clusters_list
-        sizes = self.clusters_size
-        if 0 in self.clusters_list:
-            sizes.pop(renum_numbers.index(0))
-            renum_numbers.pop(renum_numbers.index(0))
-            new_numbers = [0] + lind(renum_numbers, np.argsort(sizes).tolist()[::-1])
-        else:
-            new_numbers = lind(renum_numbers, np.argsort(sizes).tolist()[::-1])
         old_numbers = self.clusters_list
-        if old_numbers == new_numbers:
-            return
-        for nr, c in enumerate(self.clusters):
-            self.clusters[nr] = new_numbers[old_numbers.index(c)]
+        sizes = self.clusters_size
+        # now sort according to sizes but put 0, if present, at the begining
+        if 0 in old_numbers:
+            sizes.pop(old_numbers.index(0))
+            old_numbers.pop(old_numbers.index(0))
+            new_numbers = [0] + map(lambda i: old_numbers[i],np.argsort(sizes).tolist()[::-1])
+        else:
+            new_numbers = map(lambda i: old_numbers[i],np.argsort(sizes).tolist()[::-1])
+        new_clusters = []
+        for c in self.clusters:
+            new_clusters.append(new_numbers[self.clusters_list.index(c)])
+        self.clusters = new_clusters
 
     @property
     def clusters_list(self):

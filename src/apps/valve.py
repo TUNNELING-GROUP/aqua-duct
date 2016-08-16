@@ -49,7 +49,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 8, 3
+    return 0, 9, 0
 
 
 def version_nice():
@@ -122,6 +122,10 @@ class ValveConfig(object, ConfigSpecialNames):
         return 'reclusterization'
 
     @staticmethod
+    def recursive_clusterization_name():
+        return 'recursive_clusterization'
+
+    @staticmethod
     def smooth_name():
         return 'smooth'
 
@@ -173,19 +177,21 @@ class ValveConfig(object, ConfigSpecialNames):
             options.update(self.get_common_traj_data(stage)._asdict())
         return self.__make_options_nt(options)
 
-    def get_cluster_options(self):
-        section = self.cluster_name()
+    def get_cluster_options(self,section_name=None):
+        if section_name == None:
+            section = self.cluster_name()
+        else:
+            section = section_name
         names = self.config.options(section)
         # options = {name: self.config.get(section, name) for name in names}
         options = dict(((name, self.config.get(section, name)) for name in names))
+        # special recursive_clusterization option
+        if self.recursive_clusterization_name() not in options:
+            options.update({self.recursive_clusterization_name():None})
         return self.__make_options_nt(options)
 
     def get_recluster_options(self):
-        section = self.recluster_name()
-        names = self.config.options(section)
-        # options = {name: self.config.get(section, name) for name in names}
-        options = dict(((name, self.config.get(section, name)) for name in names))
-        return self.__make_options_nt(options)
+        return self.get_cluster_options(section_name=self.recluster_name())
 
     def get_smooth_options(self):
         section = self.smooth_name()
@@ -274,6 +280,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+        config.set(section, 'max_level', '5')
         config.set(section, 'recluster_outliers', 'False')
         config.set(section, 'detect_outliers', 'False')
         config.set(section, 'singletons_outliers', 'False')
@@ -996,6 +1003,24 @@ def stage_III_run(config, options,
 
 ################################################################################
 
+def potentially_recursive_clusterization(config,
+                                         clusterization_name,
+                                         inlets_object,
+                                         message='clusterization',
+                                         deep=0,
+                                         max_level=5):
+    with log.fbm("Performing %s, level %d of %d." % (message,deep,max_level)):
+        cluster_options = config.get_cluster_options(section_name=clusterization_name)
+        clustering_function = get_clustering_method(cluster_options)
+        inlets_object.perform_reclustering(clustering_function)
+    log.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
+    if cluster_options.recursive_clusterization:
+        deep += 1
+        if deep > max_level:
+            return
+        return potentially_recursive_clusterization(config,cluster_options.recursive_clusterization,inlets_object,deep=deep,max_level=max_level)
+
+
 # inlets_clusterization
 def stage_IV_run(config, options,
                  spaths=None,
@@ -1003,6 +1028,9 @@ def stage_IV_run(config, options,
     coptions = config.get_cluster_options()
     rcoptions = config.get_recluster_options()
     soptions = config.get_smooth_options()
+
+    max_level = int(options.max_level)
+    assert max_level>=0
 
     # new style clustering
     with log.fbm("Create inlets"):
@@ -1017,13 +1045,15 @@ def stage_IV_run(config, options,
 
     if inls.size > 0:
         # ***** CLUSTERIZATION *****
-        with log.fbm("Performing clusterization"):
-            clustering_function = get_clustering_method(coptions)
-            inls.perform_clustering(clustering_function)
-        log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+        potentially_recursive_clusterization(config, config.cluster_name(), inls,
+                                             message='clusterization',
+                                             max_level=max_level)
+        #with log.fbm("Performing clusterization"):
+        #    clustering_function = get_clustering_method(coptions)
+        #    inls.perform_clustering(clustering_function)
+        log.message('Number of outliers: %d' % noo())
         # ***** OUTLIERS DETECTION *****
         if options.detect_outliers:
-            log.message('Number of outliers so far: %d' % noo())
             with log.fbm("Detecting outliers"):
                 if options.detect_outliers is not Auto:
                     threshold = float(options.detect_outliers)
@@ -1044,14 +1074,15 @@ def stage_IV_run(config, options,
                         if d > threshold:
                             clusters[ids] = 0
                 inls.add_cluster_annotations(clusters)
-        log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
-        log.message('Number of outliers: %d' % noo())
+            log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+            log.message('Number of outliers: %d' % noo())
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
             with log.fbm("Performing reclusterization of outliers"):
                 clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
-                inls.recluster_outliers(clustering_function)
+                #inls.recluster_outliers(clustering_function)
+                inls.recluster_cluster(clustering_function,0)
             log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             log.message('Number of outliers: %d' % noo())
         # ***** SINGLETONS REMOVAL *****
