@@ -376,7 +376,7 @@ def get_str_timestamp():
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
 
 
-level = logging.WARNING
+level = logging.DEBUG
 # format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
 log_format = 'AQ:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]:' + linesep + '\t%(message)s'
 

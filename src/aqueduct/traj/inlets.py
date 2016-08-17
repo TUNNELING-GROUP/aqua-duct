@@ -5,7 +5,7 @@ from scipy.spatial.distance import pdist
 import copy
 
 from aqueduct.utils.helpers import is_iterable, listify, lind
-
+from aqueduct.utils import log
 
 class ProtoInletTypeCodes:
     surface = 'surface'
@@ -168,11 +168,13 @@ class Inlets(object):
         # renumber clusters
         self.renumber_clusters()
 
-    def perform_reclustering(self, method):
+    def perform_reclustering(self, method, skip_outliers=False):
         # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
         if len(self.clusters) == 0:
             return self.perform_clustering(method)
         for cluster in self.clusters_list:
+            if skip_outliers and cluster == 0:
+                continue
             self.recluster_cluster(method,cluster)
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
@@ -181,6 +183,7 @@ class Inlets(object):
 
     def recluster_cluster(self,method,cluster):
         if cluster in self.clusters_list:
+            log.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster,len(self.clusters_list)))
             reclust = method(np.array(self.lim2clusters(cluster).coords))
             max_cluster = max(self.clusters_list) + 1
             nrr = 0  # recluster nr
@@ -188,25 +191,14 @@ class Inlets(object):
                 if c == cluster:
                     self.clusters[nr] = reclust[nrr]+max_cluster
                     nrr += 1
+            log.debug('Reclustering %d cluster: final number of clusters %d.' % (cluster, len(self.clusters_list)))
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
 
     def recluster_outliers(self, method):
-        if 0 in self.clusters_list:
-            max_cluster = max(self.clusters_list)
-            reclust = method(np.array(self.lim2clusters(0).coords))
-            nrr = 0  # recluster nr
-            for nr, c in enumerate(self.clusters):
-                if c == 0:
-                    rc = reclust[nrr]
-                    nrr += 1
-                    if rc > 0:
-                        rc = rc + max_cluster
-                    self.clusters[nr] = rc
-            # number of cluster
-            self.number_of_clustered_inlets = len(self.clusters)
-            # renumber clusters
-            self.renumber_clusters()
+        self.recluster_cluster(method,0)
+        # renumber clusters
+        self.renumber_clusters()
 
     def small_clusters_to_outliers(self, maxsize):
         for c in self.clusters_list:
@@ -232,18 +224,24 @@ class Inlets(object):
 
     def sort_clusters(self):
         old_numbers = self.clusters_list
-        sizes = self.clusters_size
+        old_sizes = self.clusters_size
         # now sort according to sizes but put 0, if present, at the begining
         if 0 in old_numbers:
-            sizes.pop(old_numbers.index(0))
-            old_numbers.pop(old_numbers.index(0))
-            new_numbers = [0] + map(lambda i: old_numbers[i],np.argsort(sizes).tolist()[::-1])
+            zero_size = old_sizes.pop(old_numbers.index(0))
+            zero_number = old_numbers.pop(old_numbers.index(0)) # which is zero!
+            new_numbers = [zero_number] + [old_numbers[i] for i in np.argsort(old_sizes).tolist()[::-1]]
+            new_sizes = [zero_size] + [old_sizes[i] for i in np.argsort(old_sizes).tolist()[::-1]]
+            old_numbers = self.clusters_list
+            #old_sizes = self.clusters_size
         else:
-            new_numbers = map(lambda i: old_numbers[i],np.argsort(sizes).tolist()[::-1])
+            new_numbers = [old_numbers[i] for i in np.argsort(old_sizes).tolist()[::-1]]
+            new_sizes = [old_sizes[i] for i in np.argsort(old_sizes).tolist()[::-1]]
+        trans_dict = {n:o for o,n in zip(old_numbers,new_numbers)}
         new_clusters = []
         for c in self.clusters:
-            new_clusters.append(new_numbers[self.clusters_list.index(c)])
+            new_clusters.append(trans_dict[c])
         self.clusters = new_clusters
+        assert self.clusters_size == new_sizes
 
     @property
     def clusters_list(self):

@@ -332,24 +332,24 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'simply_smooths', 0.05236)
 
         # visualize spaths, all paths in one object
-        config.set(section, 'all_paths_raw', 'True')
-        config.set(section, 'all_paths_smooth', 'True')
-        config.set(section, 'all_paths_split', 'True')  # split by in obj out
-        config.set(section, 'all_paths_raw_io', 'True')
-        config.set(section, 'all_paths_smooth_io', 'True')
+        config.set(section, 'all_paths_raw', 'False')
+        config.set(section, 'all_paths_smooth', 'False')
+        config.set(section, 'all_paths_split', 'False')  # split by in obj out
+        config.set(section, 'all_paths_raw_io', 'False')
+        config.set(section, 'all_paths_smooth_io', 'False')
 
         # visualize spaths, separate objects
-        config.set(section, 'paths_raw', 'True')
-        config.set(section, 'paths_smooth', 'True')
-        config.set(section, 'paths_states', 'True')
-        config.set(section, 'paths_raw_io', 'True')
-        config.set(section, 'paths_smooth_io', 'True')
+        config.set(section, 'paths_raw', 'False')
+        config.set(section, 'paths_smooth', 'False')
+        config.set(section, 'paths_states', 'False')
+        config.set(section, 'paths_raw_io', 'False')
+        config.set(section, 'paths_smooth_io', 'False')
 
-        config.set(section, 'ctypes_raw', 'True')
-        config.set(section, 'ctypes_smooth', 'True')
+        config.set(section, 'ctypes_raw', 'False')
+        config.set(section, 'ctypes_smooth', 'False')
 
         # visualize clusters
-        config.set(section, 'inlets_clusters', 'True')
+        config.set(section, 'inlets_clusters', 'False')
 
         # show protein
         config.set(section, 'show_molecule', 'None')
@@ -1012,7 +1012,7 @@ def potentially_recursive_clusterization(config,
     with log.fbm("Performing %s, level %d of %d." % (message,deep,max_level)):
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
         clustering_function = get_clustering_method(cluster_options)
-        inlets_object.perform_reclustering(clustering_function)
+        inlets_object.perform_reclustering(clustering_function,skip_outliers=True)
     log.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
     if cluster_options.recursive_clusterization:
         deep += 1
