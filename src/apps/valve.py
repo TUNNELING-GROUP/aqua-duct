@@ -1108,6 +1108,30 @@ def stage_IV_run(config, options,
 
         pbar = log.pbar(len(ctypes_generic_list) * 2)
 
+        '''
+        # create pool of workers - mapping function
+        map_fun = map
+        if optimal_threads > 1:
+            pool = mp.Pool(optimal_threads)
+            map_fun = pool.map
+
+
+        from aqueduct.geom.master import calculate_master
+        from multiprocessing import Lock,Manager
+        lock = Manager().Lock()
+
+        with log.fbm("Calculating master paths"):
+            master_paths = {ct:maspat for maspat in map_fun(calculate_master,[(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,None) for nr,ct in enumerate(ctypes_generic_list)])}
+        with log.fbm("Calculating smooth master paths"):
+            master_paths_smooth = {ct:maspat for maspat in map_fun(calculate_master,[(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,smooth) for nr,ct in enumerate(ctypes_generic_list)])}
+
+        # destroy pool of workers
+        if optimal_threads > 1:
+            pool.close()
+            pool.join()
+            del pool
+        '''
+
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             # print len(sps),ct
@@ -1117,6 +1141,7 @@ def stage_IV_run(config, options,
                 {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, heartbeat=pbar.heartbeat)})
             pbar.update(nr * 2 + 1)
         pbar.finish()
+
 
     else:
         log.message("No inlets found. Clusterization skipped.")

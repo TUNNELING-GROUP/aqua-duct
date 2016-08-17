@@ -200,6 +200,13 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, h
     return mp
 
 
+def calculate_master(spaths_resid_ctype_smooth):
+    spaths, resid, ctype, smooth = spaths_resid_ctype_smooth
+    mp = create_master_spath(spaths, resid=resid, ctype=ctype, smooth=smooth)
+    #with lock:
+    #    pbar.update(1)
+    return mp
+
 class MasterTrace(object):
     def __init__(self):
         pass
