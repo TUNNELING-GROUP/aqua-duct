@@ -902,7 +902,7 @@ def stage_II_run(config, options,
                 chull = scope.get_convexhull_of_atom_positions()
                 is_res_in_scope = map_fun(is_point_within_convexhull, izip_longest(all_res_coords, [], fillvalue=chull))
             else:
-                is_res_in_scope = check_res_in_scope(options, scope, res, None)
+                is_res_in_scope = check_res_in_scope(options, scope, all_res, None)
 
             all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
 
