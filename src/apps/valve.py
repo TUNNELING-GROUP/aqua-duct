@@ -1010,6 +1010,7 @@ def potentially_recursive_clusterization(config,
                                          deep=0,
                                          max_level=5):
     with log.fbm("Performing %s, level %d of %d." % (message,deep,max_level)):
+        log.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
         clustering_function = get_clustering_method(cluster_options)
         inlets_object.perform_reclustering(clustering_function,skip_outliers=True)
@@ -1106,7 +1107,7 @@ def stage_IV_run(config, options,
         ctypes_generic = [ct.generic for ct in ctypes]
         ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
-        pbar = log.pbar(len(ctypes_generic_list) * 2)
+        pbar = log.pbar(len(spaths))
 
         '''
         # create pool of workers - mapping function
@@ -1133,13 +1134,13 @@ def stage_IV_run(config, options,
         '''
 
         for nr, ct in enumerate(ctypes_generic_list):
+            log.debug('CType %s (%d)' % (str(ct),nr))
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
+            log.debug('CType %s (%d), number of spaths %d' % (str(ct),nr,len(sps)))
             # print len(sps),ct
-            master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, heartbeat=pbar.heartbeat)})
-            pbar.update(nr * 2)
+            master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
             master_paths_smooth.update(
-                {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, heartbeat=pbar.heartbeat)})
-            pbar.update(nr * 2 + 1)
+                {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
         pbar.finish()
 
 

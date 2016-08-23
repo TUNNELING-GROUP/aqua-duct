@@ -101,10 +101,13 @@ part2type_dict = {0: GenericPathTypeCodes.scope_name,
 parts = (0, 1, 2)
 
 
-def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, heartbeat=None):
+def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, pbar=None):
     def beat():
-        if heartbeat is not None:
-            heartbeat()
+        if pbar is not None:
+            pbar.heartbeat()
+    def update():
+        if pbar is not None:
+            pbar.update(1)
 
     # first check what is the size of paths in all parts and normalize and then scale them
     sizes = []
@@ -171,7 +174,7 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, h
         types.append(types_zz_cat[np.argmin(types_cdist)])
         # types.append(decide_on_type(Counter(types_zz_cat)))
 
-        beat()  # touch progress bar
+        update()  # update progress bar
 
     frames = range(len(coords))
 
