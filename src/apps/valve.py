@@ -1108,7 +1108,6 @@ def stage_IV_run(config, options,
         ctypes_generic = [ct.generic for ct in ctypes]
         ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
-        pbar = log.pbar(len(spaths))
 
         '''
         # create pool of workers - mapping function
@@ -1134,6 +1133,7 @@ def stage_IV_run(config, options,
             del pool
         '''
 
+        pbar = log.pbar(len(spaths)*2)
         for nr, ct in enumerate(ctypes_generic_list):
             log.debug('CType %s (%d)' % (str(ct),nr))
             sps = lind(spaths, what2what(ctypes_generic, [ct]))

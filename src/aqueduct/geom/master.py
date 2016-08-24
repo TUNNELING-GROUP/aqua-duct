@@ -105,6 +105,7 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
     def beat():
         if pbar is not None:
             pbar.heartbeat()
+
     def update():
         if pbar is not None:
             pbar.update(1)
@@ -122,9 +123,9 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
         else:
             # weighted average by paths lengths
             sizes.append(int(np.average([len(sp.types[part]) for sp in spaths], 0, lens)))
+        beat()
     full_size = sum(sizes)  # total size (desired)
-
-    beat()  # touch progress bar
+    pbar_factor = float(len(spaths))/full_size
 
     # get total lenghts of all paths - needed as weights in averaging
     lens = np.array([float(sp.size) for sp in spaths])
@@ -143,9 +144,11 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
     coords = []
     types = []
     widths = []
+    pbar_previous = 0
+
     # loop over zip zipped [smooth] coords of all paths and gtypes with size set to full_size
-    for coords_zz, types_zz in zip(zip_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths], N=full_size),
-                                   zip_zip(*[sp.gtypes_cont for sp in spaths], N=full_size)):
+    for pbar_nr,(coords_zz, types_zz) in enumerate(zip(zip_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths], N=full_size),
+                                                   zip_zip(*[sp.gtypes_cont for sp in spaths], N=full_size))):
         # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
         lens_zz = []
         for l, coord_z in zip(lens, coords_zz):
@@ -174,7 +177,12 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
         types.append(types_zz_cat[np.argmin(types_cdist)])
         # types.append(decide_on_type(Counter(types_zz_cat)))
 
-        update()  # update progress bar
+        pbar_current = int((pbar_nr+1)*pbar_factor)
+        if pbar_current > pbar_previous:
+            pbar_previous = pbar_current
+            update()  # update progress bar
+        else:
+            beat()
 
     frames = range(len(coords))
 
@@ -194,6 +202,7 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
     for c, t, f in zip(coords, types, frames):  # TODO: remove loop
         gp.add_type(f, t)
         gp.add_coord(c)
+        beat()
     # return gp
     beat()  # touch progress bar
     sp = list(yield_single_paths([gp]))[0]

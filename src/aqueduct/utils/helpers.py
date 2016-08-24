@@ -438,10 +438,10 @@ def compress_zip(*args):
 
 
 def zip_zip(*args, **kwargs):
-    ns = map(float, map(len, args))
     if 'N' in kwargs.keys():
         N = kwargs['N']
     else:
+        ns = map(float, map(len, args))
         N = int(min(ns))
     position = [0.] * len(args)
     for n in range(N):

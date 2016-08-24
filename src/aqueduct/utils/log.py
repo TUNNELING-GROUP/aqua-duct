@@ -342,6 +342,7 @@ class pbar(object):
             import pyprind
             self.__pbar = pyprind.ProgBar(maxval)
 
+
     def update(self, val):
         """
         Updates progress bar with value of :obj:`val` parameter. Exact behavior depends
@@ -376,7 +377,7 @@ def get_str_timestamp():
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
 
 
-level = logging.DEBUG
+level = logging.INFO
 # format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
 log_format = 'AQ:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]:' + linesep + '\t%(message)s'
 
