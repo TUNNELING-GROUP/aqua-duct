@@ -291,7 +291,7 @@ class SimpleProgressBar(object):
 
 
 # TODO: try to add tqdm as an alternative for progressbarr which does not work very well in ipython
-
+# TODO: remove all alien pbars!
 
 class pbar(object):
     """
@@ -400,8 +400,6 @@ class fbm(object):
     def __exit__(self, typ, value, traceback):
         if typ is None:
             message("OK.")
-        else:
-            raise typ(value)
 
     def __call__(self, info):
         message(linesep + '\t' + info + '...', cont=True)
@@ -418,3 +416,5 @@ def message(mess, cont=False):
         print >> stderr, mess,
     else:
         print >> stderr, mess
+
+

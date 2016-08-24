@@ -245,7 +245,7 @@ def load_pdb(filename,name,state):
             # self.script_fh.write(os.linesep)
 
     def del_cgo_object(self, name, state=None):
-        raise NotImplementedError("This feature is not implemented yet.")
+        raise NotImplementedError("Deletion of CGO objects is not implemented yet.")
 
     def load_pdb(self, name, filename, state=None):
         if state is None:

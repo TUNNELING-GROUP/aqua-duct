@@ -20,22 +20,22 @@ class Selection(object):
 
     def center_of_mass(self):
         # should return numpy (3,) array
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def iterate_over_residues(self):
         # should iterate over residues in the selection returning object of the same type
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def unique_resids(self):
         # should return array of resids
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def unique_resids_number(self):
         return len(self.unique_resids(ikwid=True))
 
     def atom_positions(self):
         # should return numpy (x,3) array
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def center_of_mass_of_residues(self):
         # should resturn list of lists or generator of center of masses
@@ -47,10 +47,10 @@ class Selection(object):
 
     def uniquify(self):
         # should change selection to unique atoms only
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def __add__(self, other):
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def first_resid(self):
         return self.resids.tolist()[0]

@@ -451,6 +451,7 @@ def CHullCheck_exec(chull, points, threads=optimal_threads):
 
 def check_res_in_scope(options, scope, res, res_coords):
     if options.scope_convexhull:
+        # TODO: Remove it! This is deprecated code. It, probably, never runs.
         if len(res_coords) == 0:
             return []
         # find convex hull of protein

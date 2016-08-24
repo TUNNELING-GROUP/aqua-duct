@@ -17,7 +17,7 @@ class Smooth(object):
         self.recursive = recursive
 
     def smooth(self, coords):
-        raise NotImplementedError("Missing implementation")
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def __call__(self, coords):
         if len(coords) < 3:

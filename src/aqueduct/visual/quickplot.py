@@ -163,7 +163,7 @@ def get_ax3d(fig, sub=111):
 
 class SimpleTracePlotter(object):
     def plot_line(self, coords, color, **kwargs):
-        raise NotImplementedError('This is base class.')
+        raise NotImplementedError('This is abstract class. Missing implementaion in a child class.')
 
     '''
     def path_trace(self,path,color=('r','g','b'),

@@ -34,20 +34,20 @@ class Reader(object):
 
     def open_trajectory(self):
         # should return any object that can be further used to parse trajectory
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     @property
     def number_of_frames(self):
         # should return number of frames
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def set_current_frame(self, frame):
         # should set current frame
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def next_frame(self):
         # should set next frame or raise StopIteration
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def iterate_over_frames(self):
         # should return list of frames ids or generator returning such a list, and should set appropriate frame
@@ -65,15 +65,15 @@ class Reader(object):
         # should parse and return selection object
         # is this object updated automatically depends on the particular implementation of Reader class
         # in particular MDA updates postions of atoms accoriding to current frame, to renew selection one has to parse it again
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def select_resnum(self, resnum):
         # should return selection object
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def select_multiple_resnum(self, resnum_list):
         # should return selection object
-        raise NotImplementedError()
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
 
 class ReadViaMDA(Reader):
@@ -112,10 +112,8 @@ class ReadViaMDA(Reader):
         return self
 
     def __exit__(self, typ, value, traceback):
-        if typ is None:
-            self.trajectory_object.trajectory.close()
-        else:
-            raise typ(value)
+        self.trajectory_object.trajectory.close()
+
 
     def open_trajectory(self):
         topology = splitext(self.topology_file_name)[1][1:]
