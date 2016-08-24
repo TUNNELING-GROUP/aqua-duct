@@ -1143,6 +1143,7 @@ def stage_IV_run(config, options,
             master_paths_smooth.update(
                 {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
         pbar.finish()
+        # TODO: issue warinig if creation of master path failed
 
 
     else:
@@ -1721,9 +1722,11 @@ def stage_VI_run(config, options,
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
                 plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
                 if ct in master_paths_smooth:
+                    if master_paths_smooth[ct] is None: continue
                     plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
                                        smooth=lambda anything: anything)
                 if ct in master_paths:
+                    if master_paths[ct] is None: continue
                     plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
                                        smooth=smooth)
 
