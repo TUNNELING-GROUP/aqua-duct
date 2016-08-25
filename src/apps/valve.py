@@ -1010,7 +1010,7 @@ def potentially_recursive_clusterization(config,
                                          message='clusterization',
                                          deep=0,
                                          max_level=5):
-    with log.fbm("Performing %s, level %d of %d." % (message,deep,max_level)):
+    with log.fbm("Performing %s, level %d of %d" % (message,deep,max_level)):
         log.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
         clustering_function = get_clustering_method(cluster_options)
