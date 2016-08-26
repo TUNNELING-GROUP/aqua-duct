@@ -28,7 +28,7 @@ from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
 from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
-from aqueduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans
+from aqueduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch
 from aqueduct.geom.convexhull import is_point_within_convexhull
 from aqueduct.geom.master import create_master_spath
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
@@ -49,7 +49,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 0
+    return 0, 9, 1
 
 
 def version_nice():
@@ -296,16 +296,12 @@ class ValveConfig(object, ConfigSpecialNames):
         section = self.cluster_name()
         config.add_section(section)
         config.set(section, 'method', 'meanshift')
-        config.set(section, 'cluster_all', 'False')
-        config.set(section, 'bandwidth', 'Auto')
 
         ################
         # reclusterization
         section = self.recluster_name()
         config.add_section(section)
         config.set(section, 'method', 'dbscan')
-        config.set(section, 'eps', '5.0')
-        config.set(section, 'min_samples', '3')
 
         ################
         snr += 1
@@ -638,7 +634,7 @@ def get_smooth_method(soptions):
 
 
 def get_clustering_method(coptions):
-    assert coptions.method in ['dbscan', 'affprop', 'meanshift',
+    assert coptions.method in ['dbscan', 'affprop', 'meanshift','birch',
                                'kmeans'], 'Unknown clusterization method %s.' % coptions.method
 
     opts = {}
@@ -695,6 +691,14 @@ def get_clustering_method(coptions):
         if 'min_bin_freq' in coptions._asdict():
             opts.update({'min_bin_freq': int(coptions.min_bin_freq)})
 
+    def birch_opts():
+        if 'threshold' in coptions._asdict():
+            opts.update({'threshold': float(coptions.threshold)})
+        if 'branching_factor' in coptions._asdict():
+            opts.update({'branching_factor': int(coptions.branching_factor)})
+        if 'n_clusters' in coptions._asdict():
+            opts.update({'n_clusters': int(coptions.n_clusters)})
+
     if coptions.method == 'dbscan':
         dbscan_opts()
         method = DBSCAN
@@ -707,6 +711,9 @@ def get_clustering_method(coptions):
     elif coptions.method == 'meanshift':
         meanshift_opts()
         method = MeanShift
+    elif coptions.method == 'birch':
+        birch_opts()
+        method = Birch
 
     return PerformClustering(method, **opts)
 
@@ -1013,6 +1020,7 @@ def potentially_recursive_clusterization(config,
     with log.fbm("Performing %s, level %d of %d" % (message,deep,max_level)):
         log.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
+        # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options)
         inlets_object.perform_reclustering(clustering_function,skip_outliers=True)
     log.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))

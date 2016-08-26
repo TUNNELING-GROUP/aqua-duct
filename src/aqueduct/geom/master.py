@@ -147,6 +147,7 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
     widths = []
     pbar_previous = 0
 
+    # following loop calculates types distribution only
     # loop over zip zipped [smooth] coords of all paths and gtypes with size set to full_size
     for pbar_nr,(coords_zz, types_zz) in enumerate(zip(zip_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths], N=full_size),
                                                    zip_zip(*[sp.gtypes_cont for sp in spaths], N=full_size))):
@@ -173,10 +174,11 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
             widths.append(0.)
         # concatenate zip_zip gtypes
         types_zz_cat = list(concatenate(*types_zz))
-        # pick correct type..., check distance of coords[-1] to coords_zz_cat
-        types_cdist = cdist(np.matrix(coords[-1]), coords_zz_cat, metric='euclidean')
-        types.append(types_zz_cat[np.argmin(types_cdist)])
+        # # pick correct type..., check distance of coords[-1] to coords_zz_cat
+        # types_cdist = cdist(np.matrix(coords[-1]), coords_zz_cat, metric='euclidean')
+        # types.append(types_zz_cat[np.argmin(types_cdist)])
         # types.append(decide_on_type(Counter(types_zz_cat)))
+        types.append(float(types_zz_cat.count(GenericPathTypeCodes.scope_name))/len(types_zz_cat))
 
         pbar_current = int((pbar_nr+1)*pbar_factor)
         if pbar_current > pbar_previous:
@@ -184,6 +186,20 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
             update()  # update progress bar
         else:
             beat()
+    # get proper types
+    # make median distribuitions
+    types_dist_orig = np.matrix(np.median([simple_types_distribution(sp.gtypes_cont) for sp in spaths],axis=0))
+    types_dist_range = list(set(types))
+    types_thresholds = []
+    for t in types_dist_range:
+        new_pro_types = [{True:GenericPathTypeCodes.scope_name,
+                          False:GenericPathTypeCodes.object_name}[typ>=t] for typ in types]
+        types_thresholds.append(cdist(np.matrix(simple_types_distribution(new_pro_types)),
+                               types_dist_orig, metric='euclidean'))
+        beat()
+    # get threshold for which value of types_thresholds is smallest
+    types = [{True: GenericPathTypeCodes.scope_name,
+              False: GenericPathTypeCodes.object_name}[typ >= types_dist_range[np.argmin(types_thresholds)]] for typ in types]
 
     frames = range(len(coords))
 

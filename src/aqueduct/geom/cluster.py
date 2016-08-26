@@ -5,7 +5,7 @@ Clusterization is done by :mod:`scikit-learn` module.
 '''
 
 import numpy as np
-from sklearn.cluster import DBSCAN, AffinityPropagation, KMeans, MeanShift, estimate_bandwidth
+from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShift, estimate_bandwidth
 
 # problems with clustering methods and size of set
 # DBSCAN:              n > 0
