@@ -15,13 +15,14 @@ from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShif
 
 
 from aqueduct.utils.helpers import Auto
-
+from aqueduct.utils import log
 
 def MeanShiftBandwidth(X, **kwargs):
     if 'bandwidth' in kwargs:
         if kwargs['bandwidth'] is Auto:
             bandwidth = estimate_bandwidth(np.array(X), quantile=0.5)  # this seems to be optimal
             kwargs.update({'bandwidth': bandwidth})
+            log.message("\nMeanshift automatic bandwidth calculation: bandwidth = %f" % float(bandwidth)) # TODO: make it properly
     return kwargs
 
 
