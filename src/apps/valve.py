@@ -13,6 +13,7 @@ import multiprocessing as mp
 import numpy as np
 import os
 import re
+import operator
 import shlex
 import sys
 from collections import namedtuple, OrderedDict
@@ -126,6 +127,11 @@ class ValveConfig(object, ConfigSpecialNames):
         return 'recursive_clusterization'
 
     @staticmethod
+    def recursive_threshold_name():
+        return 'recursive_treshold'
+
+
+    @staticmethod
     def smooth_name():
         return 'smooth'
 
@@ -188,6 +194,8 @@ class ValveConfig(object, ConfigSpecialNames):
         # special recursive_clusterization option
         if self.recursive_clusterization_name() not in options:
             options.update({self.recursive_clusterization_name():None})
+        if self.recursive_threshold_name() not in options:
+            options.update({self.recursive_threshold_name():None})
         return self.__make_options_nt(options)
 
     def get_recluster_options(self):
@@ -1011,6 +1019,21 @@ def stage_III_run(config, options,
 
 ################################################################################
 
+def get_skip_size_function(rt=None):
+    if rt is None: return None
+    op = re.compile('[<>=]+')
+    op = ''.join(sorted(op.findall(rt)[0]))
+    vl = re.compile('[0-9.]+')
+    vl = float(vl.findall(rt)[0])
+    operator_dict = {'>' : operator.gt,
+                     '=>': operator.ge,
+                     '=' : operator.eq,
+                     '<=': operator.le,
+                     '<' : operator.lt}
+    assert op in operator_dict.keys()
+    return lambda size_of_cluster: operator_dict[op](size_of_cluster,vl)
+
+
 def potentially_recursive_clusterization(config,
                                          clusterization_name,
                                          inlets_object,
@@ -1022,7 +1045,9 @@ def potentially_recursive_clusterization(config,
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
         # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options)
-        inlets_object.perform_reclustering(clustering_function,skip_outliers=True)
+        # get skip_size function according to recursive_treshold
+        skip_size = get_skip_size_function(cluster_options.recursive_treshold)
+        inlets_object.perform_reclustering(clustering_function,skip_outliers=True,skip_size=skip_size)
     log.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
     if cluster_options.recursive_clusterization:
         deep += 1

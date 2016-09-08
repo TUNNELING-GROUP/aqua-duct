@@ -168,13 +168,18 @@ class Inlets(object):
         # renumber clusters
         self.renumber_clusters()
 
-    def perform_reclustering(self, method, skip_outliers=False):
+    def perform_reclustering(self, method, skip_outliers=False, skip_size=None):
         # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
         if len(self.clusters) == 0:
             return self.perform_clustering(method)
         for cluster in self.clusters_list:
             if skip_outliers and cluster == 0:
                 continue
+            # check cluster size and skip if does not fit to skip_thershold function
+            cluster_size = float(self.clusters.count(cluster))/self.size
+            if skip_size is not None:
+                if skip_size(cluster_size):
+                    continue
             self.recluster_cluster(method,cluster)
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
