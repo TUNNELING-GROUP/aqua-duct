@@ -13,8 +13,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     '''
-    return 0, 2, 14
-    # added clusterization method and chnaged master
+    return 0, 2, 15
+    # clusterization threshold
 
 
 def version_nice():

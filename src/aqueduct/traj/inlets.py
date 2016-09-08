@@ -174,12 +174,15 @@ class Inlets(object):
             return self.perform_clustering(method)
         for cluster in self.clusters_list:
             if skip_outliers and cluster == 0:
+                log.message('Skipping outliers.')
                 continue
             # check cluster size and skip if does not fit to skip_thershold function
             cluster_size = float(self.clusters.count(cluster))/self.size
             if skip_size is not None:
                 if skip_size(cluster_size):
+                    log.message('Cluster %d of size %0.3f skipped.' % (cluster,cluster_size))
                     continue
+                log.message('Cluster %d of size %0.3f submitted to reclusterization.' % (cluster, cluster_size))
             self.recluster_cluster(method,cluster)
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)

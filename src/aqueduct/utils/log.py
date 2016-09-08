@@ -392,19 +392,26 @@ critical = logging.critical
 
 class fbm(object):
     # feedback message
-    def __init__(self, info):
-        message(info + '...', cont=True)
+    def __init__(self, info, cont=True):
+        self.__cont = cont
+        self.__info = info
+        message(info + '...', cont=self.__cont)
 
     def __enter__(self):
         return self
 
     def __exit__(self, typ, value, traceback):
         if typ is None:
-            message("OK.")
+            if self.__cont:
+                message("OK.")
+            else:
+                message(self.__info + ": DONE.")
 
     def __call__(self, info):
-        message(linesep + '\t' + info + '...', cont=True)
-
+        if self.__cont:
+            message(linesep + '\t' + info + '...', cont=True)
+        else:
+            message(info + '...', cont=False)
 
 def message(mess, cont=False):
     """

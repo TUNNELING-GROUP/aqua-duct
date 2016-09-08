@@ -22,7 +22,7 @@ def MeanShiftBandwidth(X, **kwargs):
         if kwargs['bandwidth'] is Auto:
             bandwidth = estimate_bandwidth(np.array(X), quantile=0.5)  # this seems to be optimal
             kwargs.update({'bandwidth': bandwidth})
-            log.message("\nMeanshift automatic bandwidth calculation: bandwidth = %f" % float(bandwidth)) # TODO: make it properly
+            log.message("Meanshift automatic bandwidth calculation: bandwidth = %f" % float(bandwidth)) # TODO: make it properly
     return kwargs
 
 

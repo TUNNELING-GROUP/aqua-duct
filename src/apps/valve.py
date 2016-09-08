@@ -50,7 +50,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 1
+    return 0, 9, 2
 
 
 def version_nice():
@@ -128,7 +128,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
     @staticmethod
     def recursive_threshold_name():
-        return 'recursive_treshold'
+        return 'recursive_threshold'
 
 
     @staticmethod
@@ -304,12 +304,16 @@ class ValveConfig(object, ConfigSpecialNames):
         section = self.cluster_name()
         config.add_section(section)
         config.set(section, 'method', 'meanshift')
+        config.set(section, self.recursive_clusterization_name(), self.cluster_name())
+        config.set(section, self.recursive_threshold_name(), 'False')
 
         ################
         # reclusterization
         section = self.recluster_name()
         config.add_section(section)
         config.set(section, 'method', 'dbscan')
+        config.set(section, self.recursive_clusterization_name(), 'False')
+        config.set(section, self.recursive_threshold_name(), 'False')
 
         ################
         snr += 1
@@ -393,6 +397,12 @@ class ValveConfig(object, ConfigSpecialNames):
                 else:
                     v = str(v)
                 output.append('%s = %s' % (k, v))
+        # is something missing?
+        for miss in self.config.sections():
+            if miss in names: continue
+            output.append('[%s]' % miss)
+            for option in self.config.options(miss):
+                output.append('%s = %s' % (option, str(self.config.get(miss,option))))
 
         return output
 
@@ -1027,11 +1037,10 @@ def get_skip_size_function(rt=None):
     vl = float(vl.findall(rt)[0])
     operator_dict = {'>' : operator.gt,
                      '=>': operator.ge,
-                     '=' : operator.eq,
                      '<=': operator.le,
                      '<' : operator.lt}
     assert op in operator_dict.keys()
-    return lambda size_of_cluster: operator_dict[op](size_of_cluster,vl)
+    return lambda size_of_cluster: operator_dict[op](vl,size_of_cluster)
 
 
 def potentially_recursive_clusterization(config,
@@ -1040,13 +1049,13 @@ def potentially_recursive_clusterization(config,
                                          message='clusterization',
                                          deep=0,
                                          max_level=5):
-    with log.fbm("Performing %s, level %d of %d" % (message,deep,max_level)):
+    with log.fbm("Performing %s, level %d of %d" % (message,deep,max_level),cont=False):
         log.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
         # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options)
         # get skip_size function according to recursive_treshold
-        skip_size = get_skip_size_function(cluster_options.recursive_treshold)
+        skip_size = get_skip_size_function(cluster_options.recursive_threshold)
         inlets_object.perform_reclustering(clustering_function,skip_outliers=True,skip_size=skip_size)
     log.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
     if cluster_options.recursive_clusterization:
