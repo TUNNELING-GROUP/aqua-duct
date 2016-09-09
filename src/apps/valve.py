@@ -1020,6 +1020,22 @@ def stage_III_run(config, options,
                     traj_reader.set_current_frame(frame)
                     radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
                     spheres.append((center,radius))
+        '''
+        # remove redundant spheres
+        some_may_be_redundant = True
+        while some_may_be_redundant:
+            some_may_be_redundant = False
+            if len(spheres) > 1:
+                for nr,sphe1 in enumerate(spheres):
+                    for sphe2 in spheres[1:]:
+                        d = cdist(np.matrix(sphe1[0]),np.matrix(sphe2[0]))
+                        if d + sphe1[1] < sphe2[1]:
+                            spheres.pop(nr)
+                            some_may_be_redundant = True
+                            break
+                    if some_may_be_redundant:
+                        break
+        '''
         log.message("Auto Barber in action:")
         pbar = log.pbar(len(paths))
         for p in paths.values():
