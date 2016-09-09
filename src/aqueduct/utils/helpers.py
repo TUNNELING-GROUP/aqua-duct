@@ -269,6 +269,29 @@ def sortify(gen):
 
     return patched
 
+def uniqify(gen):
+    '''
+    Decorator to convert functions' outputs into a sorted list of unique objects. If the output is iterable it is
+    converted in to a list of appropriate length. If the output is not iterable it is converted in to a list of length 1.
+
+    Written on the basis of :func:`listify`.
+
+    :returns: Output of decorated function converted to a sorted list of unique objects.
+    :rtype: list
+    '''
+
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        obj = gen(*args, **kwargs)
+        if is_iterable(obj):
+            obj = list(set(obj))
+            obj.sort()
+            return obj
+        return [obj]
+
+    return patched
+
+
 
 def listify(gen):
     '''

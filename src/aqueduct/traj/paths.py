@@ -6,10 +6,10 @@ Created on Dec 10, 2015
 """
 
 import numpy as np
-
+from scipy.spatial.distance import cdist, pdist
 from aqueduct.geom import traces
 from aqueduct.traj.inlets import Inlet, InletTypeCodes
-from aqueduct.utils.helpers import is_number
+from aqueduct.utils.helpers import is_number, lind
 from aqueduct.utils.helpers import tupleify, sortify, listify, arrayify1
 
 
@@ -260,6 +260,15 @@ class GenericPaths(object, GenericPathTypeCodes):
         return in_, object_, out_
 
 
+    def barber_with_spheres(self,spheres):
+        for center,radius in spheres:
+            distances = cdist(np.matrix(center), self.coords, metric='euclidean').flatten()
+            self.coords = lind(self.coords,np.argwhere(distances>radius).flatten().tolist())
+            self.types = lind(self.types,np.argwhere(distances>radius).flatten().tolist())
+            self.frames = lind(self.frames,np.argwhere(distances>radius).flatten().tolist())
+
+
+
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
 class SinglePathID(object):
     def __init__(self, id=None, nr=None):
@@ -470,7 +479,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         # permament change!
         self.coords_in, self.coords_object, self.coords_out = self._make_smooth_coords(self.coords_cont, smooth)
 
-        ####################################################################################################################
+    ####################################################################################################################
 
     def get_distance_cont(self, smooth=None, normalize=False):
         length = np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth)))))
@@ -500,6 +509,10 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     def get_acceleration_cont(self, smooth=None, normalize=False):
         velocity = self.get_velocity_cont(smooth=smooth, normalize=normalize)
         return traces.derrivative(velocity)
+
+    ####################################################################################################################
+
+
 
 
 class MasterPath(SinglePath):

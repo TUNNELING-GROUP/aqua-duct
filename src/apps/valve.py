@@ -20,7 +20,7 @@ from collections import namedtuple, OrderedDict
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import cdist, pdist
 
 import MDAnalysis as mda
 import roman
@@ -50,7 +50,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 2
+    return 0, 9, 3
 
 
 def version_nice():
@@ -273,6 +273,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+        config.set(section, 'auto_barber', 'False')
         config.set(section, 'discard_empty_paths', 'True')
         config.set(section, 'sort_by_id', 'True')
         config.set(section, 'apply_smoothing', 'False')
@@ -980,6 +981,7 @@ def stage_II_run(config, options,
 # separate_paths
 def stage_III_run(config, options,
                   paths=None,
+                  reader=None,
                   **kwargs):
     soptions = config.get_smooth_options()
 
@@ -995,10 +997,40 @@ def stage_III_run(config, options,
     spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
     pbar.finish()
 
+
     if options.discard_short_paths > 0:
         shorter_then = int(options.discard_short_paths)
         with log.fbm("Discard paths shorter then %d" % shorter_then):
             spaths = [sp for sp in spaths if sp.size > shorter_then]
+
+    if options.auto_barber:
+        spheres = []
+        with reader.get() as traj_reader:
+            barber = traj_reader.parse_selection(options.auto_barber)
+            for sp in spaths:
+                if sp.has_in:
+                    center = sp.coords_in[0]
+                    frame = sp.path_in[0]
+                    traj_reader.set_current_frame(frame)
+                    radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
+                    spheres.append((center, radius))
+                if sp.has_out:
+                    center = sp.coords_out[-1]
+                    frame = sp.path_out[-1]
+                    traj_reader.set_current_frame(frame)
+                    radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
+                    spheres.append((center,radius))
+        log.message("Auto Barber in action:")
+        pbar = log.pbar(len(paths))
+        for p in paths.values():
+            p.barber_with_spheres(spheres)
+            pbar.update(1)
+        pbar.finish()
+        log.message("Recreate separate paths:")
+        pbar = log.pbar(len(paths))
+        # yield_single_paths requires a list of paths not a dictionary
+        spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
+        pbar.finish()
 
     if options.sort_by_id:
         with log.fbm("Sort separate paths by resid"):
@@ -1914,6 +1946,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
 
     # STAGE III
     result3 = valve_exec_stage(2, config, stage_III_run,
+                               reader=reader,
                                **result2)
 
     # STAGE IV
