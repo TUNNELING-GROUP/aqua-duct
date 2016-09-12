@@ -130,7 +130,6 @@ class ValveConfig(object, ConfigSpecialNames):
     def recursive_threshold_name():
         return 'recursive_threshold'
 
-
     @staticmethod
     def smooth_name():
         return 'smooth'
@@ -183,7 +182,7 @@ class ValveConfig(object, ConfigSpecialNames):
             options.update(self.get_common_traj_data(stage)._asdict())
         return self.__make_options_nt(options)
 
-    def get_cluster_options(self,section_name=None):
+    def get_cluster_options(self, section_name=None):
         if section_name == None:
             section = self.cluster_name()
         else:
@@ -193,9 +192,9 @@ class ValveConfig(object, ConfigSpecialNames):
         options = dict(((name, self.config.get(section, name)) for name in names))
         # special recursive_clusterization option
         if self.recursive_clusterization_name() not in options:
-            options.update({self.recursive_clusterization_name():None})
+            options.update({self.recursive_clusterization_name(): None})
         if self.recursive_threshold_name() not in options:
-            options.update({self.recursive_threshold_name():None})
+            options.update({self.recursive_threshold_name(): None})
         return self.__make_options_nt(options)
 
     def get_recluster_options(self):
@@ -403,7 +402,7 @@ class ValveConfig(object, ConfigSpecialNames):
             if miss in names: continue
             output.append('[%s]' % miss)
             for option in self.config.options(miss):
-                output.append('%s = %s' % (option, str(self.config.get(miss,option))))
+                output.append('%s = %s' % (option, str(self.config.get(miss, option))))
 
         return output
 
@@ -653,7 +652,7 @@ def get_smooth_method(soptions):
 
 
 def get_clustering_method(coptions):
-    assert coptions.method in ['dbscan', 'affprop', 'meanshift','birch',
+    assert coptions.method in ['dbscan', 'affprop', 'meanshift', 'birch',
                                'kmeans'], 'Unknown clusterization method %s.' % coptions.method
 
     opts = {}
@@ -997,7 +996,6 @@ def stage_III_run(config, options,
     spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
     pbar.finish()
 
-
     if options.discard_short_paths > 0:
         shorter_then = int(options.discard_short_paths)
         with log.fbm("Discard paths shorter then %d" % shorter_then):
@@ -1006,6 +1004,8 @@ def stage_III_run(config, options,
     if options.auto_barber:
         spheres = []
         with reader.get() as traj_reader:
+            log.message("Auto Barber is looking where to cut:")
+            pbar = log.pbar(len(spaths))
             barber = traj_reader.parse_selection(options.auto_barber)
             for sp in spaths:
                 if sp.has_in:
@@ -1019,9 +1019,12 @@ def stage_III_run(config, options,
                     frame = sp.path_out[-1]
                     traj_reader.set_current_frame(frame)
                     radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
-                    spheres.append((center,radius))
-        '''
+                    spheres.append((center, radius))
+                pbar.update(1)
+            pbar.finish()
         # remove redundant spheres
+        log.message("Removing redundant cutting places:")
+        pbar = log.pbar(len(spheres))
         some_may_be_redundant = True
         while some_may_be_redundant:
             some_may_be_redundant = False
@@ -1031,10 +1034,13 @@ def stage_III_run(config, options,
                         d = cdist(np.matrix(sphe1[0]),np.matrix(sphe2[0]))
                         if d + sphe1[1] < sphe2[1]:
                             spheres.pop(nr)
+                            pbar.update(1)
                             some_may_be_redundant = True
                             break
                     if some_may_be_redundant:
                         break
+        pbar.finish()
+        '''
         '''
         log.message("Auto Barber in action:")
         pbar = log.pbar(len(paths))
@@ -1078,18 +1084,18 @@ def stage_III_run(config, options,
 ################################################################################
 
 def get_skip_size_function(rt=None):
-    if not isinstance(rt,str): return None
+    if not isinstance(rt, str): return None
     assert re.compile('^[<>=]+[0-9.]+$').match(rt) is not None, "Wrong threshold definition: %s" % rt
     op = re.compile('[<>=]+')
     op = ''.join(sorted(op.findall(rt)[0]))
     vl = re.compile('[0-9.]+')
     vl = float(vl.findall(rt)[0])
-    operator_dict = {'>' : operator.gt,
+    operator_dict = {'>': operator.gt,
                      '=>': operator.ge,
                      '<=': operator.le,
-                     '<' : operator.lt}
-    assert op in operator_dict.keys(), "Unsupported operator %s in threshold %s" % (op,rt)
-    return lambda size_of_cluster: operator_dict[op](vl,size_of_cluster)
+                     '<': operator.lt}
+    assert op in operator_dict.keys(), "Unsupported operator %s in threshold %s" % (op, rt)
+    return lambda size_of_cluster: operator_dict[op](vl, size_of_cluster)
 
 
 def potentially_recursive_clusterization(config,
@@ -1098,20 +1104,21 @@ def potentially_recursive_clusterization(config,
                                          message='clusterization',
                                          deep=0,
                                          max_level=5):
-    with log.fbm("Performing %s, level %d of %d" % (message,deep,max_level),cont=False):
+    with log.fbm("Performing %s, level %d of %d" % (message, deep, max_level), cont=False):
         log.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
         # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options)
         # get skip_size function according to recursive_treshold
         skip_size = get_skip_size_function(cluster_options.recursive_threshold)
-        inlets_object.perform_reclustering(clustering_function,skip_outliers=True,skip_size=skip_size)
+        inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
     log.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
     if cluster_options.recursive_clusterization:
         deep += 1
         if deep > max_level:
             return
-        return potentially_recursive_clusterization(config,cluster_options.recursive_clusterization,inlets_object,deep=deep,max_level=max_level)
+        return potentially_recursive_clusterization(config, cluster_options.recursive_clusterization, inlets_object,
+                                                    deep=deep, max_level=max_level)
 
 
 # inlets_clusterization
@@ -1123,7 +1130,7 @@ def stage_IV_run(config, options,
     soptions = config.get_smooth_options()
 
     max_level = int(options.max_level)
-    assert max_level>=0
+    assert max_level >= 0
 
     # new style clustering
     with log.fbm("Create inlets"):
@@ -1141,7 +1148,7 @@ def stage_IV_run(config, options,
         potentially_recursive_clusterization(config, config.cluster_name(), inls,
                                              message='clusterization',
                                              max_level=max_level)
-        #with log.fbm("Performing clusterization"):
+        # with log.fbm("Performing clusterization"):
         #    clustering_function = get_clustering_method(coptions)
         #    inls.perform_clustering(clustering_function)
         log.message('Number of outliers: %d' % noo())
@@ -1174,8 +1181,8 @@ def stage_IV_run(config, options,
             with log.fbm("Performing reclusterization of outliers"):
                 clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
-                #inls.recluster_outliers(clustering_function)
-                inls.recluster_cluster(clustering_function,0)
+                # inls.recluster_outliers(clustering_function)
+                inls.recluster_cluster(clustering_function, 0)
             log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             log.message('Number of outliers: %d' % noo())
         # ***** SINGLETONS REMOVAL *****
@@ -1198,7 +1205,6 @@ def stage_IV_run(config, options,
         master_paths_smooth = {}
         ctypes_generic = [ct.generic for ct in ctypes]
         ctypes_generic_list = sorted(list(set(ctypes_generic)))
-
 
         '''
         # create pool of workers - mapping function
@@ -1224,11 +1230,11 @@ def stage_IV_run(config, options,
             del pool
         '''
 
-        pbar = log.pbar(len(spaths)*2)
+        pbar = log.pbar(len(spaths) * 2)
         for nr, ct in enumerate(ctypes_generic_list):
-            log.debug('CType %s (%d)' % (str(ct),nr))
+            log.debug('CType %s (%d)' % (str(ct), nr))
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            log.debug('CType %s (%d), number of spaths %d' % (str(ct),nr,len(sps)))
+            log.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
             # print len(sps),ct
             master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
             master_paths_smooth.update(

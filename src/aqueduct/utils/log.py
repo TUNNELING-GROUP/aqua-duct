@@ -285,6 +285,7 @@ class SimpleProgressBar(object):
             self.update(self.maxval)
         else:
             self.update(0)
+            self.show()
         stderr.write(linesep)
         stderr.write("Total time: %s" % self.ttime())
         stderr.write(linesep)
@@ -421,6 +422,7 @@ def message(mess, cont=False):
     :param bool cont: if set True no new line is printed
     """
     if cont:
+        #stderr.write(mess)
         print >> stderr, mess,
     else:
         print >> stderr, mess

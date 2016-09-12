@@ -52,6 +52,7 @@ class PerformClustering(object):
         if self.method is MeanShift:
             if len(coords) < 6:
                 self.clusters = self._get_noclusters(len(coords))
+                log.message("Number of objects %d < 6 is too small for MeanShift method. Skipping." % (len(coords)))
                 return self.clusters
             method = self.method(**MeanShiftBandwidth(coords, **self.method_kwargs))
         else:
@@ -59,6 +60,8 @@ class PerformClustering(object):
                 if 'n_clusters' in self.method_kwargs:
                     if len(coords) < self.method_kwargs['n_clusters']:
                         self.clusters = self._get_noclusters(len(coords))
+                        log.message(
+                            "Number of objects %d < %d is too small for KMeans method. Skipping." % (len(coords),self.method_kwargs['n_clusters']))
                         return self.clusters
             method = self.method(**self.method_kwargs)
         self.method_results = method.fit(coords)
