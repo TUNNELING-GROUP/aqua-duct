@@ -5,6 +5,18 @@ Aqueduct - a collection of tools to trace residues in MD simulation.
 
 """
 
+import logging
+try:  # Python 2.7+
+    from logging import NullHandler
+except ImportError:
+    class NullHandler(logging.Handler):
+        def emit(self, record):
+            pass
+
+logger_name = __name__
+logger = logging.getLogger(logger_name)
+logger.addHandler(NullHandler())
+logger.setLevel(logging.DEBUG)
 
 def version():
     '''
@@ -13,8 +25,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     '''
-    return 0, 2, 16
-    # barber
+    return 0, 2, 17
+    # chnged logging, old log changed to clui
 
 
 def version_nice():

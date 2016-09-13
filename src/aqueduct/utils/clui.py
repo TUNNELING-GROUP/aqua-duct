@@ -7,7 +7,15 @@ purposes including progress bar helpers.
 # __all__ = ['debug','info','warning','error','critical','pbar']
 
 import logging
+logger = logging.getLogger(__name__)
 
+import datetime
+import time
+from os import linesep
+from sys import stderr
+
+
+'''
 #level = logging.INFO
 # format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
 log_format = 'AQ:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
@@ -22,6 +30,24 @@ info = logging.info
 warning = logging.warning
 error = logging.error
 critical = logging.critical
+'''
+
+def message(mess, cont=False):
+    """
+    Prints message to standard error.
+
+    :param str mess: message to print
+    :param bool cont: if set True no new line is printed
+    """
+    if cont:
+        mess = mess + ' '
+    else:
+        mess = mess + linesep
+
+
+    for line in mess[:-1].split(linesep):
+        logger.info(line)
+    stderr.write(mess)
 
 
 class fbm(object):
@@ -47,26 +73,9 @@ class fbm(object):
         else:
             message(info + '...', cont=False)
 
-def message(mess, cont=False):
-    """
-    Prints message to standard error.
-
-    :param str mess: message to print
-    :param bool cont: if set True no new line is printed
-    """
-    if cont:
-        #stderr.write(mess)
-        print >> stderr, mess,
-    else:
-        print >> stderr, mess
 
 
 
-
-import datetime
-import time
-from os import linesep
-from sys import stderr
 
 gregorian_year_in_days = 365.2425
 '''Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year'''
@@ -343,8 +352,8 @@ class SimpleProgressBar(object):
             self.update(0)
             self.show()
         stderr.write(linesep)
-        stderr.write("Total time: %s" % self.ttime())
-        stderr.write(linesep)
+        message("Total time: %s" % self.ttime())
+        #stderr.write(linesep)
 
 pbar = SimpleProgressBar
 

@@ -2,13 +2,15 @@
 
 # this modlue is a prototype and have to be revritten
 
+import logging
+logger = logging.getLogger(__name__)
 
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
 
 from aqueduct.traj.paths import GenericPathTypeCodes, GenericPaths, yield_single_paths, MasterPath
 from aqueduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip
-from aqueduct.utils import log
+from aqueduct.utils import clui
 
 
 def fit_trace_to_points(trace, points):
@@ -225,7 +227,7 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
     try:
         sp = list(yield_single_paths([gp]))[0]
     except IndexError:
-        log.warning('No master path found for ctype %s' % str(ctype))
+        logger.warning('No master path found for ctype %s' % str(ctype))
         return None
     beat()  # touch progress bar
     mp = MasterPath(sp)

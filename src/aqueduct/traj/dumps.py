@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
 
+import logging
+logger = logging.getLogger(__name__)
 from os import unlink
 
 import MDAnalysis as mda
 
-from aqueduct.utils import log
+from aqueduct.utils import clui
 from aqueduct.utils.helpers import create_tmpfile
 
 
@@ -27,7 +29,7 @@ class TmpDumpWriterOfMDA(object):
                 reader.set_current_frame(frame)
                 self.mdawriter.write(to_dump)
             else:
-                log.error(
+                logger.error(
                     'Requested frame %d exceeded available number of frames %d.' % (frame, reader.number_of_frames - 1))
 
     def close(self):

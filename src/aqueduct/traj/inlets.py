@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+
+import logging
+logger = logging.getLogger(__name__)
 import numpy as np
 from collections import namedtuple
 from scipy.spatial.distance import pdist
 import copy
 
 from aqueduct.utils.helpers import is_iterable, listify, lind
-from aqueduct.utils import log
+from aqueduct.utils import clui
 
 
 class ProtoInletTypeCodes:
@@ -175,15 +178,15 @@ class Inlets(object):
             return self.perform_clustering(method)
         for cluster in self.clusters_list:
             if skip_outliers and cluster == 0:
-                log.message('Skipping outliers.')
+                clui.message('Skipping outliers.')
                 continue
             # check cluster size and skip if does not fit to skip_thershold function
             cluster_size = float(self.clusters.count(cluster)) / self.size
             if skip_size is not None:
                 if skip_size(cluster_size):
-                    log.message('Cluster %d of size %0.3f skipped.' % (cluster, cluster_size))
+                    clui.message('Cluster %d of size %0.3f skipped.' % (cluster, cluster_size))
                     continue
-            log.message('Cluster %d of size %0.3f submitted to reclusterization.' % (cluster, cluster_size))
+            clui.message('Cluster %d of size %0.3f submitted to reclusterization.' % (cluster, cluster_size))
             self.recluster_cluster(method, cluster)
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
@@ -192,7 +195,7 @@ class Inlets(object):
 
     def recluster_cluster(self, method, cluster):
         if cluster in self.clusters_list:
-            log.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
+            logger.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
             reclust = method(np.array(self.lim2clusters(cluster).coords))
             max_cluster = max(self.clusters_list) + 1
             nrr = 0  # recluster nr
@@ -200,7 +203,7 @@ class Inlets(object):
                 if c == cluster:
                     self.clusters[nr] = reclust[nrr] + max_cluster
                     nrr += 1
-            log.debug('Reclustering %d cluster: final number of clusters %d.' % (cluster, len(self.clusters_list)))
+            logger.debug('Reclustering %d cluster: final number of clusters %d.' % (cluster, len(self.clusters_list)))
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
 
