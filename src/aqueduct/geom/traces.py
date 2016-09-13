@@ -53,7 +53,7 @@ def triangle_angles_last(A, B, C):
 
 
 def triangle_height(A, B, C):
-    # todo : chceck why value in test incorrect
+    # todo : chceck why value in test is incorrect
     # a is head
     # input: 3 space coords of points (as tuple or list)
     # output float, value of triangle height
@@ -95,6 +95,8 @@ def vectors_angle_anorm(A, B, A_norm):
 
 
 class LinearizeOneWay(object):
+    #co to jest coords? wspolrzedne jednego punktu? lista?
+    #jaką wartość powinna zwracac?
     def here(self, coords):
         size = len(coords)
         yield 0
