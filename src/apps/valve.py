@@ -5,6 +5,7 @@
 This is driver for aqueduct.
 """
 
+
 import ConfigParser
 import cPickle as pickle
 import copy
@@ -1893,6 +1894,8 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+    parser.add_argument("--debug", action="store_true", dest="debug", required=False,
+                        help="Prints debug info.")
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                         help="Dumps template config file. Suppress all other output or actions.")
     parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
@@ -1903,6 +1906,13 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
                         help="Prints versions and exits..")
 
     args = parser.parse_args()
+    ############################################################################
+    # debug
+    if args.debug:
+        log.reset_logging(log.logging.DEBUG)
+    else:
+        log.reset_logging(log.logging.INFO)
+
     ############################################################################
     # special option for dumping template config
     config = ValveConfig()  # config template
