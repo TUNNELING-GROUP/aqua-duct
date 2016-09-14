@@ -138,7 +138,7 @@ class LinearizeRecursive(object):
 
         If these points are linear their indices are returned. Otherwise, coordinates are split into two parts. First part spans points from the first point to the middle point (inclusive) and the second parth spans points from the middle (inclusive) to the last point. Next, these two parts are submitted recursively to :meth:`here`.
 
-         Results of these recursive calls are joined, redundant indecies are removed and sorted reslult is returned.
+         Results of these recursive calls are joined, redundant indices are removed and sorted result is returned.
 
         :param numpy.ndarray coords: Input coordinates.
         :param int depth: Depth of recurence.
