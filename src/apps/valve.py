@@ -6,19 +6,15 @@ This is driver for aqueduct.
 """
 
 import logging
-from aqueduct import logger_name as aq_logger_name
-logger = logging.getLogger(aq_logger_name)
-
+from aqueduct import logger, logger_name
 formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
+# create and add console handler with WARNING level to the AQ logger
 formatter = logging.Formatter(formatter_string)
-
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)
-ch.setLevel(logging.WARNING)
-
+ch.setLevel(logging.WARNING) # default level is WARNING
 logger.addHandler(ch)
 
-import os
 import ConfigParser
 import cPickle as pickle
 import copy
@@ -1924,26 +1920,22 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
 
     ############################################################################
     # debug
+    # at this stage logger is the AQ root logger
     if args.debug:
+        logger.removeHandler(ch) # remove old ch handlers
         ch = logging.StreamHandler()
         ch.setFormatter(formatter)
         ch.setLevel(logging.DEBUG)
         logger.addHandler(ch)
     if args.debug_file:
-        formatter = logging.Formatter('VALVE@%(asctime)s: ' + formatter_string)
+        formatter = logging.Formatter('(asctime)s: ' + formatter_string)
         fh = logging.FileHandler(args.debug_file)
         fh.setFormatter(formatter)
         fh.setLevel(logging.DEBUG)
         logger.addHandler(fh)
-        '''
-        logger.debug('This is a debug message')
-        logger.info('This is an info message')
-        logger.warning('This is a warning message')
-        logger.error('This is an error message')
-        logger.critical('This is a critical error message')
-        '''
-
-    logger = logging.getLogger(aq_logger_name+'.valve')
+    # finally, get valve logger
+    logger = logging.getLogger(logger_name+'.valve')
+    logger.info('Initialization of Valve logging done.')
 
     ############################################################################
     # special option for dumping template config

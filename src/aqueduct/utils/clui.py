@@ -8,6 +8,7 @@ purposes including progress bar helpers.
 
 import logging
 logger = logging.getLogger(__name__)
+from aqueduct import logger as root_logger
 
 import datetime
 import time
@@ -32,9 +33,19 @@ error = logging.error
 critical = logging.critical
 '''
 
+def emit_message_to_file_in_root_logger(mess):
+    # get file handler, if exist
+    if logging.FileHandler in map(type,root_logger.handlers):
+        fh = root_logger.handlers[map(type,root_logger.handlers).index(logging.FileHandler)]
+        with fh.lock:
+            with open(fh.baseFilename,'a') as logfile:
+                logfile.write(mess)
+
+
 def message(mess, cont=False):
     """
     Prints message to standard error.
+    If FileHandler is present in the :py:`root_logger` the same message is appended to the log file.
 
     :param str mess: message to print
     :param bool cont: if set True no new line is printed
@@ -44,9 +55,7 @@ def message(mess, cont=False):
     else:
         mess = mess + linesep
 
-
-    for line in mess[:-1].split(linesep):
-        logger.info(line)
+    emit_message_to_file_in_root_logger(mess)
     stderr.write(mess)
 
 
@@ -355,11 +364,10 @@ class SimpleProgressBar(object):
         message("Total time: %s" % self.ttime())
         #stderr.write(linesep)
 
-pbar = SimpleProgressBar
-
-
+pbar = SimpleProgressBar # default progress bar
 
 def get_str_timestamp():
+    # returns time stamp as string
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
 
 
