@@ -1,40 +1,33 @@
 # -*- coding: utf-8 -*-
 """
-Module comprises convieniences functions and definitios for logging
-purposes including progress bar helpers.
+Module comprises convieniences functions and definitios for different operations related to command line user interface.
 """
 
-# __all__ = ['debug','info','warning','error','critical','pbar']
-
 import logging
+
 logger = logging.getLogger(__name__)
 
+from aqueduct import logger as root_logger
 import datetime
 import time
 from os import linesep
 from sys import stderr
 
 
-'''
-#level = logging.INFO
-# format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
-log_format = 'AQ:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
+def emit_message_to_file_in_root_logger(mess):
+    # emits message to the file used by file handler in the root logger
+    # assumes there is only one file handler
+    if logging.FileHandler in map(type, root_logger.handlers):
+        fh = root_logger.handlers[map(type, root_logger.handlers).index(logging.FileHandler)]
+        with fh.lock:
+            with open(fh.baseFilename, 'a') as logfile:
+                logfile.write(mess)
 
-logging.basicConfig(format=log_format)
-
-def reset_logging(level=None):
-    logging.basicConfig(format=log_format, level=level)
-
-debug = logging.debug
-info = logging.info
-warning = logging.warning
-error = logging.error
-critical = logging.critical
-'''
 
 def message(mess, cont=False):
     """
     Prints message to standard error.
+    If FileHandler is present in the :py:`root_logger` the same message is appended to the log file.
 
     :param str mess: message to print
     :param bool cont: if set True no new line is printed
@@ -43,10 +36,7 @@ def message(mess, cont=False):
         mess = mess + ' '
     else:
         mess = mess + linesep
-
-
-    for line in mess[:-1].split(linesep):
-        logger.info(line)
+    emit_message_to_file_in_root_logger(mess)
     stderr.write(mess)
 
 
@@ -72,9 +62,6 @@ class fbm(object):
             message(linesep + '\t' + info + '...', cont=True)
         else:
             message(info + '...', cont=False)
-
-
-
 
 
 gregorian_year_in_days = 365.2425
@@ -212,13 +199,15 @@ class SimpleProgressBar(object):
 
     barlenght = 24
 
-    def __init__(self, maxval=None,  mess=None):
+    def __init__(self, maxval=None, mess=None):
         """
         :param int maxval: Maximal number of iterations stored to :attr:`maxval`.
         :param str mess: Optional message displayed at progress bar initialization.
         """
 
-        assert isinstance(maxval, (int, long)), 'Parameter maxval should be of int or long type, %r given instead.' % type(maxval)
+        assert isinstance(maxval,
+                          (int, long)), 'Parameter maxval should be of int or long type, %r given instead.' % type(
+            maxval)
         if maxval < 1:
             self.maxval = 1
         else:
@@ -328,7 +317,8 @@ class SimpleProgressBar(object):
             else:
                 self.current = step
         self.tcurrent = time.time()
-        if (step == self.maxval) or (self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
+        if (step == self.maxval) or (
+                        self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
             # TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision
             self.show()
 
@@ -353,13 +343,12 @@ class SimpleProgressBar(object):
             self.show()
         stderr.write(linesep)
         message("Total time: %s" % self.ttime())
-        #stderr.write(linesep)
+        # stderr.write(linesep)
 
-pbar = SimpleProgressBar
 
+pbar = SimpleProgressBar  # default progress bar
 
 
 def get_str_timestamp():
+    # returns time stamp as string
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
-
-
