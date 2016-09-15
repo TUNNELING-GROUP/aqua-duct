@@ -1,19 +1,19 @@
 Configuration file options
 ==========================
 
-Valve Configuration file is a simple and plain text file. It is similar to INI files commonly used in one of the popular operating systems and is compliant with Python module :mod:`ConfigParser`.
+Valve Configuration file is a simple and plain text file. It has similar structure as INI files commonly used in one of the popular operating systems and is compliant with Python module :mod:`ConfigParser`.
 
 Configuration file comprises of several *sections*. They can be grouped in to three categories. Names of sections given in **bold** text.
 
 #. Global settings:
     * **global**
 #. Stages options:
-    * **traceable_residues**
-    * **raw_paths**
-    * **separate_paths**
-    * **inlets_clusterization**
-    * **analysis**
-    * **visualize**
+    #. **traceable_residues**
+    #. **raw_paths**
+    #. **separate_paths**
+    #. **inlets_clusterization**
+    #. **analysis**
+    #. **visualize**
 #. Methods options:
     * **smooth**
     * **clusterization**
@@ -22,73 +22,89 @@ Configuration file comprises of several *sections*. They can be grouped in to th
 Section **global**
 ------------------
 
-This section allows settings of trajectory data and progress bar type.
+This section allows settings of trajectory data and some other future global options.
 
-Available options
-^^^^^^^^^^^^^^^^^
+======  =============   ==========================================================================
+Option  Default value   Description
+======  =============   ==========================================================================
+top     None            Path to topology file. Aqueduct supports PDB, PRMTOP, PFS topology files.
+trj     None            Path to trajectory file. Aqueduct supports NC and DCD trajectory files.
+======  =============   ==========================================================================
 
-* ``top`` - Path to topology file.
-* ``trj`` - Path to trajectory file.
+.. note::
 
-Example
-^^^^^^^
+    Options **top** and **trj** are mandatory.
 
-::
-
-    [global]
-    top = path/to/topology/file.prmtop
-    trj = path/to/trajectory/file.nc
 
 Common settings of stage sections
 ---------------------------------
 
-Option **execute**
-^^^^^^^^^^^^^^^^^^
+Stages 1-4 which perform calsulations have some common options allowig for execution control and saving/loading data.
 
-All stage sections have ``execute`` option which decides if the stage is executed or skipped. There are two possible values of ``execute`` option: ``run``, and ``skip``.
+========    =================   ===================================================================
+Option      Default value       Description
+========    =================   ===================================================================
+execute     runonce             Option controls stage execution. It can have one of three possible
+                                values: ``run``, ``runonce``, and ``skip``. If it is set to ``run``
+                                calculations are always performed and if **dump** is set dump file
+                                is saved. If it is set to ``runonce`` calculations are performed
+                                if there is no dump file specified by **dump** option. If it is
+                                present calculations are skiped and data is loaded from the file.
+                                If it is set to ``skip`` calculations are skiped and if **dump**
+                                is set data is loaded from the file.
+dump        [dump file name]    File name of dump data. It is used to save results of calculations
+                                or to load previously calculated data - this depends on **execute**
+                                option. Default value of this option depends on the stage and for
+                                stages 1 to 4 is one of the following (listed in order):
 
-If ``execute`` is set to ``run`` the stage is executed and results of calculations can be optionally saved.
+                                * 1_traceable_residues_data.dump
+                                * 2_raw_paths_data.dump
+                                * 3_separate_paths_data.dump
+                                * 4_inlets_clusterization_data.dump
+========    =================   ===================================================================
 
-If ``execute`` is set to ``skip`` execution of the stage is skipped. Results of calculations saved previously can be optionally loaded.
+Stages 5-6 also uses **execute** option, however, since they do not perform calculations `per se` in stead of **dump** option they use **save**.
 
-Option **save**
-^^^^^^^^^^^^^^^
+========    =================   ===================================================================
+Option      Default value       Description
+========    =================   ===================================================================
+execute     run                 Option controls stage execution. It can have one of three possible
+                                values: ``run``, ``runonce``, and ``skip``. If it is set to ``run``
+                                or ``runonce`` stage is executed and results is saved according to
+                                **save** option. If it is set to ``skip`` stage is skipped.
+save        [save file name]    File name for saving results. Default value of this option depends
+                                on the stage and for stages 1 to 4 is one of the following
+                                (listed in order):
 
-This options allows to save a dump of calculated data on the disk. If ``execute`` is set to ``run`` and ``save`` is set to file name results are saved as gziped pickled dump.
+                                * 5_analysis_results.txt
+                                * 6_visualize_results.py
 
-In case of **analysis** and **visualize** sections this setting has slightly different function. Results of **analysis** section as saved to the file pointed by **save** as plain text comprising of tables and summaries. Stage **visualize**, on the other hand, uses **save** option to save PyMOL session.
+                                Stage 6 can save results in two file types:
 
-Option **load**
-^^^^^^^^^^^^^^^
+                                #. As Python script - extension ``.py`` puls companion archive
+                                   ``.tar.gz``,
+                                #. As PyMOL session - extension ``.pse``.
 
-This options allows to read previously saved dump of results. It is used only if ``ececute`` is set to ``skip`` and is valid only for **traceable_residues**, **raw_paths**, **separate_paths**, and **inlets_clusterization** stages.
+========    =================   ===================================================================
+
 
 Stage **traceable_residues**
 ----------------------------
 
-Option **scope**
-^^^^^^^^^^^^^^^^
+=================   ==============  ================================================================
+Option              Default value   Description
+=================   ==============  ================================================================
+scope               None            Definition of *Scope* of interest. See also
+                                    :ref:`scope_definition`.
+scope_convexhull    True            Flag to set if the *Scope* is direct or convex hull definition.
+object              None            Definition of *Object* of interest. See also
+                                    :ref:`object_definition`.
+=================   ==============  ================================================================
 
-Definition of *Scope* of interest. See also :ref:`scope_definition`.
 
 .. note::
 
-    This option is mandatory.
-
-Option **scope_convexhull**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Flag to set if the *Scope* is direct or convex hull definition.
-
-
-Option **object**
-^^^^^^^^^^^^^^^^^
-
-Definition of *Object* of interest. See also :ref:`object_definition`.
-
-.. note::
-
-    This option is mandatory.
+    Options **scope** and **object** are mandatory.
 
 
 Stage **raw_paths**
@@ -96,148 +112,134 @@ Stage **raw_paths**
 
 This stage also requires definition of the *Scope* and *Object*. If appropriate settings are not given, settings from the previous stage are used.
 
-Option **clear_in_object_info**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=====================   ==============  ================================================================
+Option                  Default value   Description
+=====================   ==============  ================================================================
+scope                   None            Definition of *Scope* of interest. See also
+                                        :ref:`scope_definition`. If ``None`` value form previous stage
+                                        is used.
+scope_convexhull        None            Flag to set if the *Scope* is direct or convex hull definition.
+                                        If ``None`` value form previous stage is used.
+object                  None            Definition of *Object* of interest. See also
+                                        :ref:`object_definition`. If ``None`` value form previous stage
+                                        is used
+clear_in_object_info    False           If it is set to ``True`` information on occupation of *Object*
+                                        site by traceable residues calculated in the previous stage is
+                                        cleared and have to be recalculated. This is useful if
+                                        definition of *Object* was changed.
+=====================   ==============  ================================================================
 
-If it is set to ``True`` information on occupation of *Object* site by traceable residues calculated in the previous stage are cleared and have to be recalculated. This is useful if definition of *Object* is changed.
 
 Stage **separate_paths**
 ------------------------
 
-Option **discard_empty_paths**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=====================   ==============  ================================================================
+Option                  Default value   Description
+=====================   ==============  ================================================================
+discard_empty_paths     True            If set to ``True`` empty paths are discarded.
+sort_by_id              True            If set to ``True`` separate paths are sorted by ID. Otherwise
+                                        they are sorted in order of apparance.
+apply_smoothing         False           If set to ``True`` smooth paths are precalculated according to
+                                        **smooth** setting. This speed up access to smooth paths in
+                                        later stages but makes dump data much bigger.
+apply_soft_smoothing    True            If set to ``True`` raw paths are replaced by smooth paths
+                                        calculated according to **smooth** section.
+discard_short_paths     1               This option allows to discard paths that are shorter then the
+                                        threshold.
+=====================   ==============  ================================================================
 
-If set to ``True`` empty paths are discarded.
-
-Option **sort_by_id**
-^^^^^^^^^^^^^^^^^^^^^
-
-If set to ``True`` separate paths are sorted by ID.
-
-
-Option **apply_smoothing**
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If set to ``True`` smooth paths are precalculated according to **smooth** setting.
-This speed up access to smooth paths in later stages but makes dump data much bigger.
-
-
-Option **apply_soft_smoothing**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If set to ``True`` raw paths are replaced by smooth paths calculated according to **smooth** section.
-
-Option **discard_short_paths**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-This option allows to discard paths that are shorter then the threshold.
 
 Stage **inlets_clusterization**
 -------------------------------
 
-Option **recluster_outliers**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If set to ``True`` reclusterization of outliers is executed according to the method defined in **reclusterization** section.
-
-Option **detect_outliers**
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If set detection of outliers is executed. See :ref:`clusterization_of_inlets` for more details.
-
-Option **singletons_outliers**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Maximal size of cluster to be considered as outliers. If set to number > 0 clusters of that size are removed and their objects are moved to outliers. See :ref:`clusterization_of_inlets` for more details.
-
+=====================   ==============  ================================================================
+Option                  Default value   Description
+=====================   ==============  ================================================================
+recluster_outliers      False           If set to ``True`` reclusterization of outliers is executed
+                                        according to the method defined in **reclusterization** section.
+detect_outliers         False           If set detection of outliers is executed. It could be set as a
+                                        floating point distance threshold or set tu ``Auto``. See
+                                        :ref:`clusterization_of_inlets` for more details.
+singletons_outliers     False           Maximal size of cluster to be considered as outliers. If set to
+                                        number > 0 clusters of that size are removed and their objects
+                                        are moved to outliers. See :ref:`clusterization_of_inlets` for
+                                        more details.
+max_level               5               Maximal number of recursive clusterization levels.
+=====================   ==============  ================================================================
 
 Stage **analysis**
 ------------------
 
-Option **dump_config**
-^^^^^^^^^^^^^^^^^^^^^^
-
-If set to ``True`` configuration options, as seen by Valve, are added to the head of results.
+=====================   ==============  ================================================================
+Option                  Default value   Description
+=====================   ==============  ================================================================
+dump_config             True            If set to ``True`` configuration options, as seen by Valve, are
+                                        added to the head of results.
+=====================   ==============  ================================================================
 
 
 Stage **visualize**
 -------------------
 
-Option **simply_smooths**
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=====================   ==============  ================================================================
+Option                  Default value   Description
+=====================   ==============  ================================================================
+simply_smooths          0.05236         If set to float number simplification of smooth paths is
+                                        applied. Simplification removes points which do not (or almost
+                                        do not) change the shape of smooth path. For more details see
+                                        :ref:`Recursive Vector Linearization <simply_smooths_details>`.
+all_paths_raw           False           If True produces one object in PyMOL that holds all paths
+                                        visualized by raw coordinates.
+all_paths_smooth        False           If True produces one object in PyMOL that holds all paths
+                                        visualized by smooth coordinates.
+all_paths_split         False           If is set True objects produced by **all_paths_raw** and
+                                        **all_paths_smooth** are split into Incoming, Object, and
+                                        Outgoing parts and visualized as three different objects.
+all_paths_raw_io        False           If set True arrows pointing beginning and end of paths are
+                                        displayed oriented accordingly to raw paths orientation.
+all_paths_smooth_io     False           If set True arrows pointing beginning and end of paths are
+                                        displayed oriented accordingly to smooth paths orientation.
+paths_raw               False           If set True raw paths are displayed as separate objects or as
+                                        one object with states corresponding to number of path.
+paths_smooth            False           If set True smooth paths are displayed as separate objects or
+                                        as one object with states corresponding to number of path.
+paths_raw_io            False           If set True arrows indicating beginning and and of paths,
+                                        oriented accordingly to raw paths, are displayed as separate
+                                        objects or as one object with states corresponding to number
+                                        of paths.
+paths_smooth_io         False           If set True arrows indicating beginning and and of paths,
+                                        oriented accordingly to smooth paths, are displayed as separate
+                                        objects or as one object with states corresponding to number
+                                        of paths.
+paths_states            False           If True objects displayed by **paths_raw**, **paths_smooth**,
+                                        **paths_raw_io**, and **paths_smooth_io** are displayed as one
+                                        object with with states corresponding to number of paths.
+                                        Otherwise they are displayed as separate objects.
+ctypes_raw              False           Displays raw paths in a similar manner as non split
+                                        **all_paths_raw** but each cluster type is displayed in
+                                        separate object.
+ctypes_smooth           False           Displays smooth paths in a similar manner as non split
+                                        **all_paths_smooth** but each cluster type is displayed in
+                                        separate object.
+show_molecule           False           If is set to selection of some molecular object in the system,
+                                        for example to ``protein``, this object is displayed.
+show_molecule_frames    0               Allows to indicate which frames of object defined by
+                                        **show_molecule** should be displayed. It is possible to set
+                                        several frames. In that case frames would be displayed as
+                                        states.
+show_chull              False           If is set to selection of some molecular object in the system,
+                                        for example to ``protein``, convex hull of this object is
+                                        displayed.
+show_chull_frames       0               Allows to indicate for which frames of object defined by
+                                        **show_chull** convex hull should be displayed. It is possible
+                                        to set several frames. In that case frames would be displayed
+                                        as states.
+=====================   ==============  ================================================================
 
-If set to float number simplification of smooth paths is applied.
-Simplification removes points which do not (or almost do not) change the shape of smooth path. For more details see :ref:`Recursive Vector Linearization <simply_smooths_details>`.
-
-Option **all_paths_raw**
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-If True produces one object in PyMOL that holds all paths visualized by raw coordinates.
-
-Option **all_paths_smooth**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If True produces one object in PyMOL that holds all paths visualized by smooth coordinates.
-
-Option **all_paths_split**
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If is set True objects produced by **all_paths_raw** and **all_paths_smooth** are split into Incoming, Object, and Outgoing parts and visualized as three different objects.
-
-Options **all_paths_raw_io** and **all_paths_smooth_io**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If set True arrows pointing beginning and end of paths are displayed oriented accordingly to raw or smooth paths.
-
-Option **paths_raw**
-^^^^^^^^^^^^^^^^^^^^
-
-If set True raw paths are displayed as separate objects or as one object with states corresponding to number of path.
-
-Option **paths_raw**
-^^^^^^^^^^^^^^^^^^^^
-
-If set True smooth paths are displayed as separate objects or as one object with states corresponding to number of path.
-
-Option **paths_raw_io**
-^^^^^^^^^^^^^^^^^^^^^^^
-
-If set True arrows indicating beginning and and of paths, oriented accordingly to raw paths, are displayed as separate objects or as one object with states corresponding to number of paths.
-
-Option **paths_smooth_io**
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-If set True arrows indicating beginning and and of paths, oriented accordingly to smooth paths, are displayed as separate objects or as one object with states corresponding to number of paths.
-
-Option **paths_states**
-^^^^^^^^^^^^^^^^^^^^^^^
-
-If True objects displayed by **paths_raw**, **paths_smooth**, **paths_raw_io**, and **paths_smooth_io** are displayed as one object with with states corresponding to number of paths. Otherwise they are displayed as separate objects.
-
-Option **ctypes_raw**
-^^^^^^^^^^^^^^^^^^^^^
-
-Displays raw paths in a similar manner as non split **all_paths_raw** but each cluster type is displayed in separate object.
-
-Option **ctypes_smooth**
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Displays smooth paths in a similar manner as non split **all_paths_smooth** but each cluster type is displayed in separate object.
-
-
-Option **show_molecule**
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-If is set to selection of some molecular object in the system, for example to ``protein``, this object is displayed.
 
 .. note::
 
     Possibly due to limitations of :mod:`MDAnalysis` only whole molecules can be displayed. If **show_molecule** is set to ``backbone`` complete protein will be displayed any way. This may change in future version of :mod:`MDAnalysis` and or :mod:`aqueduct`.
-
-Option **show_molecule_frames**
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Allows to indicate which frames of object defined by **show_molecule** should be displayed. It is possible to set several frames. In that case frames would be displayed as states.
 
 .. note::
 
@@ -246,3 +248,42 @@ Allows to indicate which frames of object defined by **show_molecule** should be
 .. note::
 
     If several states are displayed protein tertiary structure data might be lost. This seems to be limitation of either :mod:`MDAnalysis` or PyMOL.
+
+Clusterization sections
+-----------------------
+
+Default section for definition of clusterization method is named **clusterization** and default section for reclusterization method definition is named **reclusterization**. All clusterization sections shares some common options. Other options depends on the method.
+
+=========================   =============== ================================================================
+Option                      Default value   Description
+=========================   =============== ================================================================
+method                      meanshift or    Name of clasteriation method. It have to be one of the
+                            dbscan          following: dbscan, affprop, meanshift, birch. Default value
+                                            depends if it is **clusteriation** section (meanshift) or
+                                            **reclusterization** section (dbscan).
+recursive_clusterization    clusterization  If set to name of some section that holds clusterization method
+                            or None         settings this method will be called in the next recurention of
+                                            clusteriation. Default value for **reclusterization** is None.
+recursive_threshold         None            Allows to set threshold of that excludes clusters of certain
+                                            size from reclusterization. Value of this option comprises of
+                                            `operator` and `value`. Operator can be one of the following:
+                                            >, >=, <=, <. Value have to be expressed as floating number and
+                                            it have to be in the range of 0 to 1.
+=========================   =============== ================================================================
+
+Clustrization method dbscan
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+=========================   =============== ================================================================
+Option                      Value type      Description
+=========================   =============== ================================================================
+
+eps float
+
+min_samples int
+
+metric ['cityblock', 'cosine', 'euclidean', 'manhattan']
+
+algorithm ['auto', 'ball_tree', 'kd_tree', 'brute'],
+
+leaf_size int
