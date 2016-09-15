@@ -3,6 +3,7 @@ import numpy as np
 from traces import LinearizeRecursive
 
 
+
 class TestLinearizeRecursive(TestCase):
     #jeszcze nie wiem jak to przetestowac
     def test_here(self):
@@ -11,3 +12,4 @@ class TestLinearizeRecursive(TestCase):
 
         out=[1,3]
         self.assertEqual(out,res.here(test_case))
+# todo: "AttributeError: 'LinearizeRecursive' object has no attribute 'is_linear'

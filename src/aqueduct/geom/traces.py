@@ -53,7 +53,6 @@ def triangle_angles_last(A, B, C):
 
 
 def triangle_height(A, B, C):
-    # todo : chceck why value in test is incorrect
     # a is head
     # input: 3 space coords of points (as tuple or list)
     # output float, value of triangle height
@@ -145,7 +144,7 @@ class LinearizeRecursive(object):
         :return: Indices of :arg:`coords` points that can be used instead of all points in visulatization.
         :rtype: list of int
         """
-
+        # klasa nie ma zdefiniowanej metody is_linear
         depth += 1
 
         lengths = np.hstack(([0], np.cumsum(diff(coords))))
