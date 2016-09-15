@@ -7,12 +7,13 @@ This is driver for aqueduct.
 
 import logging
 from aqueduct import logger, logger_name
+
 formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
 # create and add console handler with WARNING level to the AQ logger
 formatter = logging.Formatter(formatter_string)
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)
-ch.setLevel(logging.WARNING) # default level is WARNING
+ch.setLevel(logging.WARNING)  # default level is WARNING
 logger.addHandler(ch)
 
 import ConfigParser
@@ -51,7 +52,6 @@ from aqueduct.traj.reader import ReadViaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import clui
 from aqueduct.utils.helpers import range2int, Auto, what2what, lind
-
 
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
@@ -1040,10 +1040,10 @@ def stage_III_run(config, options,
         while some_may_be_redundant:
             some_may_be_redundant = False
             if len(spheres) > 1:
-                for nr,sphe1 in enumerate(spheres):
+                for nr, sphe1 in enumerate(spheres):
                     for sphe2 in spheres[1:]:
                         if sphe1[1] > sphe2[1]: continue
-                        d = cdist(np.matrix(sphe1[0]),np.matrix(sphe2[0]))
+                        d = cdist(np.matrix(sphe1[0]), np.matrix(sphe2[0]))
                         if d + sphe1[1] < sphe2[1]:
                             spheres.pop(nr)
                             pbar.update(1)
@@ -1905,7 +1905,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-    parser.add_argument("--debug", action="store_true", dest="debug", required=False,help="Prints debug info.")
+    parser.add_argument("--debug", action="store_true", dest="debug", required=False, help="Prints debug info.")
     parser.add_argument("--debug-file", action="store", dest="debug_file", required=False, help="Debug log file.")
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                         help="Dumps template config file. Suppress all other output or actions.")
@@ -1922,19 +1922,19 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     # debug
     # at this stage logger is the AQ root logger
     if args.debug:
-        logger.removeHandler(ch) # remove old ch handlers
+        logger.removeHandler(ch)  # remove old ch handlers
         ch = logging.StreamHandler()
         ch.setFormatter(formatter)
         ch.setLevel(logging.DEBUG)
         logger.addHandler(ch)
     if args.debug_file:
-        formatter = logging.Formatter('(asctime)s: ' + formatter_string)
+        formatter = logging.Formatter('%(asctime)s: ' + formatter_string)
         fh = logging.FileHandler(args.debug_file)
         fh.setFormatter(formatter)
         fh.setLevel(logging.DEBUG)
         logger.addHandler(fh)
     # finally, get valve logger
-    logger = logging.getLogger(logger_name+'.valve')
+    logger = logging.getLogger(logger_name + '.valve')
     logger.info('Initialization of Valve logging done.')
 
     ############################################################################
@@ -1942,6 +1942,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     config = ValveConfig()  # config template
     if args.dump_template_conf:
         import StringIO
+
         config_dump = StringIO.StringIO()
         config.save_config_stream(config_dump)
         print config_dump.getvalue()
@@ -2014,7 +2015,8 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     for result in (result2, result3, result4):
         results.update(result)
 
-    result5 = valve_exec_stage(4, config, stage_V_run, no_io=True,
+    result5 = valve_exec_stage(4, config, stage_V_run,
+                               no_io=True,
                                **results)
 
     # STAGE VI
@@ -2022,7 +2024,8 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     for result in (result3, result4):
         results.update(result)
 
-    result6 = valve_exec_stage(5, config, stage_VI_run, no_io=True,
+    result6 = valve_exec_stage(5, config, stage_VI_run,
+                               no_io=True,
                                reader=reader,
                                **results)
     ############################################################################
@@ -2033,3 +2036,4 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     # end!
 
     valve_end()
+    logger.info('Valve calulations finished.')
