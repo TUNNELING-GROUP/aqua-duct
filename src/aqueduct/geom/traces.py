@@ -53,7 +53,7 @@ def triangle_angles_last(A, B, C):
 
 
 def triangle_height(A, B, C):
-    # todo : chceck why value in test incorrect
+    # todo : chceck why value in test is incorrect
     # a is head
     # input: 3 space coords of points (as tuple or list)
     # output float, value of triangle height
@@ -67,6 +67,7 @@ def triangle_height(A, B, C):
 
 
 def vectors_angle(A, B):
+    # calculates angles between A B
     angle = np.arccos(np.dot(A, B) / (vector_norm(A) * vector_norm(B)))
     if np.isnan(angle):
         return 0.0
@@ -74,10 +75,12 @@ def vectors_angle(A, B):
 
 
 def vectors_angle_alt(A, B):
+    # calculates angles between A B, alternative method
     return np.arccos(np.clip(np.dot(A / vector_norm(A), B / vector_norm(B)), -1.0, 1.0))
 
 
 def vectors_angle_alt_anorm(A, B, A_norm):
+    # calculates angles between A B, alternative method with additional A_norm holding norm of A
     return np.arccos(np.clip(np.dot(A / A_norm, B / vector_norm(B)), -1.0, 1.0))
 
 
@@ -95,7 +98,11 @@ def vectors_angle_anorm(A, B, A_norm):
 
 
 class LinearizeOneWay(object):
+    #co to jest coords? wspolrzedne jednego punktu? lista?
+    #jaką wartość powinna zwracac?
     def here(self, coords):
+        # coords - 3D coordintates of a trace
+        # yields indices of coords that spans linear fragments of the trace; done in one way
         size = len(coords)
         yield 0
         ep = 0
@@ -108,13 +115,25 @@ class LinearizeOneWay(object):
                 yield ep
                 break
 
+    def __call__(self, coords):
+        # returns these points from coords that are linear simplification of coords
+        # __call__ is required by child classes
+        here = self.here(coords)
+        return coords[here]
+
 
 class LinearizeHobbit(LinearizeOneWay):
     def and_back_again(self, coords):
+        # coords - 3D coordintates of a trace
+        # yields indices of coords that spans linear fragments of the trace; done in opposite way than in one way
         size = len(coords)
         return (size - e - 1 for e in self.here(coords[::-1]))
 
     def __call__(self, coords):
+        # coords - 3D coordintates of a trace
+        # wrapper that uses here and and_back_again methods to get merged uniq and sorted indices of coords that spans linear fragments of the trace
+        # returns these points from coords that are linear simplification of coords
+        # __call__ is required by child classes
         here = self.here(coords)
         and_back_again = self.and_back_again(coords)
         linearize = sorted(list(set(list(here) + list(and_back_again))))
@@ -165,21 +184,27 @@ class LinearizeRecursive(object):
             list(set(self.here(coords[:mp + 1], depth=depth) + [e + mp for e in self.here(coords[mp:], depth=depth)])))
 
     def __call__(self, coords):
+        # returns these points from coords that are linear simplification of coords
+        # __call__ is required by child classes
         here = self.here(coords)
         return coords[here]
 
 
-class TrianlgeLinearize(object):
-    def __init__(self, treshold):
-
-        self.treshold = treshold
+class TriangleLinearize(object):
+    def __init__(self, threshold):
+        # threshold - maximal allowed sum of heights of triangles made of beginning, end and all middle points
+        self.threshold = threshold
 
     def is_linear(self, coords, **kwargs):
+        # coords - 3D coordintates of a trace
+        # returns True if coords make a straight line
+        # criterion of linearity:
+        # if sum of heights of triangles made of beginning, end and all middle points does not exceed threshold coords are linear
         list_of_h = list()
         for head in coords[1:-1]:
             list_of_h.append(triangle_height(head, coords[0], coords[-1]))
             # print list_of_h, sum(list_of_h)
-            if sum(list_of_h) > self.treshold:
+            if sum(list_of_h) > self.threshold:
                 return False
         return True
 
@@ -197,7 +222,7 @@ class VectorLinearize(object):
 
     def is_linear_core(self, coords, depth=None):
         '''
-        Method checks if input coordinates are linear acoording to the threshold and depth.
+        Method checks if input coordinates are linear according to the threshold and depth.
 
         It begins with calculation of the threshold. If `depth` is None it is set to 1. Current treshold is calculated with following simple equation:
 
@@ -251,6 +276,8 @@ class LinearizeRecursiveVector(LinearizeRecursive, VectorLinearize):
 
 
 def diff(trace):
+    # trace - 3D coordinates
+    # returns distances between coordinates
     assert isinstance(trace, np.ndarray), "Trace should be of np.ndarray type, %r submited instead." % type(trace)
     assert len(trace.shape) == 2, "Traces should be 2d, %dd submited instead (trace no. %d)" % len(trace.shape)
 
@@ -266,12 +293,18 @@ def diff(trace):
 
 
 def tracepoints(start, stop, nr):
-    # nr == 1 then midpoint is returned
+    # returns points between start and stop as linear interpolations
+    # if nr == 1 then midpoint is returned
     return np.array([np.linspace(cb, ce, nr + 2)[1:-1] for cb, ce in zip(start, stop)]).T
 
 
 def midpoints(paths):
-    # paths is a tuple of 2d np.arrays,
+    # paths - a tuple of 2d np.arrays that holds 3D coordinates, each element holds one trace, all elements are supposed to make one path divided in to sections
+    # yields paths elements with additional mid points
+    # if input paths is follwoing:
+    #   11111 33333 55555
+    # function yields the same elements plus midpoints:
+    #   111112 2333334 455555
     assert isinstance(paths, tuple), "Paths should be of tuple type, %r submitted instead." % type(paths)
     for nr, trace in enumerate(paths):
         assert isinstance(trace,
@@ -306,11 +339,17 @@ def midpoints(paths):
 
 
 def length_step_std(trace):
+    # trace - 3D coordinates
+    # calculates diff over trace and returns sum, mean and std of diff
     d = diff(trace)
     return np.sum(d), np.mean(d), np.std(d)
 
 
 def derrivative(values):
+    # values - 3D coordinates
+    # calculates derrivative of lenght of trace
+    # uses diff but yields the same number of values as in input data
+    # this is done by interpolation and applying simple correction
     diff = np.diff(values)
     size = len(diff)
     correction = 1. / (size + 1)  # this correct values so after integration they are closer to expected value

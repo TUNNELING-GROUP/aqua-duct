@@ -6,7 +6,7 @@ import numpy as np
 
 import MDAnalysis as mda
 
-from aqueduct.geom.convexhull import ConvexHull
+from aqueduct.geom.convexhull import SciPyConvexHull
 from aqueduct.utils.helpers import int2range
 
 
@@ -43,7 +43,7 @@ class Selection(object):
 
     def get_convexhull_of_atom_positions(self):
         # should return modified ConvexHull object
-        return ConvexHull(self.atom_positions())
+        return SciPyConvexHull(self.atom_positions())
 
     def uniquify(self):
         # should change selection to unique atoms only

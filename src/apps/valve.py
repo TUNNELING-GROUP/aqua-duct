@@ -5,6 +5,17 @@
 This is driver for aqueduct.
 """
 
+import logging
+from aqueduct import logger, logger_name
+
+formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
+# create and add console handler with WARNING level to the AQ logger
+formatter = logging.Formatter(formatter_string)
+ch = logging.StreamHandler()
+ch.setFormatter(formatter)
+ch.setLevel(logging.WARNING)  # default level is WARNING
+logger.addHandler(ch)
+
 import ConfigParser
 import cPickle as pickle
 import copy
@@ -20,7 +31,7 @@ from collections import namedtuple, OrderedDict
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import cdist, pdist
 
 import MDAnalysis as mda
 import roman
@@ -39,7 +50,7 @@ from aqueduct.traj.inlets import Inlets, InletTypeCodes
 from aqueduct.traj.paths import GenericPaths, yield_single_paths
 from aqueduct.traj.reader import ReadViaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
-from aqueduct.utils import log
+from aqueduct.utils import clui
 from aqueduct.utils.helpers import range2int, Auto, what2what, lind
 
 # TODO: Move it to separate module
@@ -50,7 +61,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 2
+    return 0, 9, 4
 
 
 def version_nice():
@@ -89,7 +100,7 @@ class ValveConfig(object, ConfigSpecialNames):
         options = list()
         for opt in input_options:
             if iskeyword(opt):
-                log.warning('Invalid keyword <%s> in config file skipped. Check configuration file.' % opt)
+                logger.warning('Invalid keyword <%s> in config file skipped. Check configuration file.' % opt)
                 continue
             options.append((opt, self.special_name(input_options[opt])))
         options = dict(options)
@@ -129,7 +140,6 @@ class ValveConfig(object, ConfigSpecialNames):
     @staticmethod
     def recursive_threshold_name():
         return 'recursive_threshold'
-
 
     @staticmethod
     def smooth_name():
@@ -183,7 +193,7 @@ class ValveConfig(object, ConfigSpecialNames):
             options.update(self.get_common_traj_data(stage)._asdict())
         return self.__make_options_nt(options)
 
-    def get_cluster_options(self,section_name=None):
+    def get_cluster_options(self, section_name=None):
         if section_name == None:
             section = self.cluster_name()
         else:
@@ -193,9 +203,9 @@ class ValveConfig(object, ConfigSpecialNames):
         options = dict(((name, self.config.get(section, name)) for name in names))
         # special recursive_clusterization option
         if self.recursive_clusterization_name() not in options:
-            options.update({self.recursive_clusterization_name():None})
+            options.update({self.recursive_clusterization_name(): None})
         if self.recursive_threshold_name() not in options:
-            options.update({self.recursive_threshold_name():None})
+            options.update({self.recursive_threshold_name(): None})
         return self.__make_options_nt(options)
 
     def get_recluster_options(self):
@@ -273,6 +283,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+        config.set(section, 'auto_barber', 'False')
         config.set(section, 'discard_empty_paths', 'True')
         config.set(section, 'sort_by_id', 'True')
         config.set(section, 'apply_smoothing', 'False')
@@ -402,7 +413,7 @@ class ValveConfig(object, ConfigSpecialNames):
             if miss in names: continue
             output.append('[%s]' % miss)
             for option in self.config.options(miss):
-                output.append('%s = %s' % (option, str(self.config.get(miss,option))))
+                output.append('%s = %s' % (option, str(self.config.get(miss, option))))
 
         return output
 
@@ -495,18 +506,18 @@ def get_res_in_scope(is_res_in_scope, res):
 # separators - logging
 
 def sep():
-    return log.gsep(sep='-', times=48)
+    return clui.gsep(sep='-', times=48)
 
 
 def asep():
-    return log.gsep(sep='=', times=72)
+    return clui.gsep(sep='=', times=72)
 
 
 ################################################################################
 # save - load helpers
 
 def save_dump(filename, data_to_save, **kwargs):
-    with log.fbm('Saving data dump in %s file' % filename):
+    with clui.fbm('Saving data dump in %s file' % filename):
         with gzip.open(filename, mode='w', compresslevel=9) as f:
             # first version:
             pickle.dump({'version': version(),
@@ -518,7 +529,7 @@ def save_dump(filename, data_to_save, **kwargs):
 
 
 def load_dump(filename):
-    with log.fbm('Loading data dump from %s file' % filename):
+    with clui.fbm('Loading data dump from %s file' % filename):
         with gzip.open(filename, mode='r') as f:
             # version!
             loaded_data = pickle.load(f)
@@ -538,17 +549,17 @@ def load_dump(filename):
 
 def check_version_compilance(current, loaded, what):
     if current[0] > loaded[0]:
-        log.error('Loaded data has %s major version lower then the application.' % what)
+        logger.error('Loaded data has %s major version lower then the application.' % what)
     if current[0] < loaded[0]:
-        log.error('Loaded data has %s major version higher then the application.' % what)
+        logger.error('Loaded data has %s major version higher then the application.' % what)
     if current[0] != loaded[0]:
-        log.error('Possible problems with API compilance.')
+        logger.error('Possible problems with API compilance.')
     if current[1] > loaded[1]:
-        log.warning('Loaded data has %s minor version lower then the application.' % what)
+        logger.warning('Loaded data has %s minor version lower then the application.' % what)
     if current[1] < loaded[1]:
-        log.warning('Loaded data has %s minor version higher then the application.' % what)
+        logger.warning('Loaded data has %s minor version higher then the application.' % what)
     if current[1] != loaded[1]:
-        log.warning('Possible problems with API compilance.')
+        logger.warning('Possible problems with API compilance.')
 
 
 def check_versions(version_dict):
@@ -652,7 +663,7 @@ def get_smooth_method(soptions):
 
 
 def get_clustering_method(coptions):
-    assert coptions.method in ['dbscan', 'affprop', 'meanshift','birch',
+    assert coptions.method in ['dbscan', 'affprop', 'meanshift', 'birch',
                                'kmeans'], 'Unknown clusterization method %s.' % coptions.method
 
     opts = {}
@@ -739,27 +750,27 @@ def get_clustering_method(coptions):
 ################################################################################
 
 def valve_begin():
-    log.message(greetings_aqueduct())  # nice greetings
-    log.message('Aqueduct version %s' % aqueduct_version_nice())
-    log.message('Valve driver version %s' % version_nice())
-    log.message(sep())
+    clui.message(greetings_aqueduct())  # nice greetings
+    clui.message('Aqueduct version %s' % aqueduct_version_nice())
+    clui.message('Valve driver version %s' % version_nice())
+    clui.message(sep())
 
 
 def valve_end():
-    log.message(sep())
-    log.message('Let the Valve be always open!')
-    log.message('Goodby!')
+    clui.message(sep())
+    clui.message('Let the Valve be always open!')
+    clui.message('Goodby!')
 
 
 def valve_load_config(filename, config):
     assert filename is not None, "No config file provided."
     assert os.path.isfile(filename), "Config file %s does not exist." % filename
-    with log.fbm('Load configuration file'):
+    with clui.fbm('Load configuration file'):
         config.load_config(filename)
 
 
 def valve_read_trajectory(top, traj):
-    with log.fbm('Read trajectory'):
+    with clui.fbm('Read trajectory'):
         return TrajectoryReader(top, traj)
         # read trajectory
         # traj_list = shlex.split(traj)
@@ -768,10 +779,10 @@ def valve_read_trajectory(top, traj):
 
 
 def valve_begin_stage(stage, config):
-    log.message(sep())
-    log.message('Starting Stage %s: %s' % (roman.toRoman(stage + 1), config.stage_names(stage)))
+    clui.message(sep())
+    clui.message('Starting Stage %s: %s' % (roman.toRoman(stage + 1), config.stage_names(stage)))
     options = config.get_stage_options(stage)
-    log.message('Execute mode: %s' % options.execute)
+    clui.message('Execute mode: %s' % options.execute)
     return options
 
 
@@ -815,8 +826,8 @@ def stage_I_run(config, options,
                 reader=None,
                 max_frame=None,
                 **kwargs):
-    log.message("Loop over frames - search of residues in object:")
-    pbar = log.pbar(max_frame)
+    clui.message("Loop over frames - search of residues in object:")
+    pbar = clui.pbar(max_frame)
 
     # create pool of workers - mapping function
     map_fun = map
@@ -874,7 +885,7 @@ def stage_I_run(config, options,
     if all_res is None:
         raise ValueError("No traceable residues was found.")
 
-    log.message("Number of residues to trace: %d" % all_res.unique_resids_number())
+    clui.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
     return {'all_res': all_res,
             'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
@@ -891,11 +902,11 @@ def stage_II_run(config, options,
                  max_frame=None,
                  **kwargs):
     if options.clear_in_object_info:
-        log.message('Clear data on residues in object over frames.')
-        log.message('This will be recalculated on demand.')
+        clui.message('Clear data on residues in object over frames.')
+        clui.message('This will be recalculated on demand.')
         res_ids_in_object_over_frames = {}
 
-    with log.fbm("Init paths container"):
+    with clui.fbm("Init paths container"):
         paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=max_frame)) for resid in
                       all_res.unique_resids(ikwid=True)))
 
@@ -903,11 +914,11 @@ def stage_II_run(config, options,
 
         scope = traj_reader.parse_selection(options.scope)
 
-        with log.fbm("Rebuild treceable residues with current trajectory"):
+        with clui.fbm("Rebuild treceable residues with current trajectory"):
             all_res = rebuild_selection(all_res, traj_reader)
 
-        log.message("Trajectory scan:")
-        pbar = log.pbar(max_frame)
+        clui.message("Trajectory scan:")
+        pbar = clui.pbar(max_frame)
 
         # create pool of workers - mapping function
         map_fun = map
@@ -969,8 +980,8 @@ def stage_II_run(config, options,
 
     pbar.finish()
 
-    log.message("Number of residues to trace: %d" % len(all_res))
-    log.message("Number of paths: %d" % len(paths))
+    clui.message("Number of residues to trace: %d" % len(all_res))
+    clui.message("Number of paths: %d" % len(paths))
 
     return {'all_res': all_res, 'paths': paths, 'options': options}
 
@@ -980,49 +991,104 @@ def stage_II_run(config, options,
 # separate_paths
 def stage_III_run(config, options,
                   paths=None,
+                  reader=None,
                   **kwargs):
     soptions = config.get_smooth_options()
 
     if options.discard_empty_paths:
-        with log.fbm("Discard residues with empty paths"):
+        with clui.fbm("Discard residues with empty paths"):
             for key in paths.keys():
                 if len(paths[key].frames) == 0:
                     paths.pop(key)
 
-    log.message("Create separate paths:")
-    pbar = log.pbar(len(paths))
+    clui.message("Create separate paths:")
+    pbar = clui.pbar(len(paths))
     # yield_single_paths requires a list of paths not a dictionary
     spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
     pbar.finish()
 
     if options.discard_short_paths > 0:
         shorter_then = int(options.discard_short_paths)
-        with log.fbm("Discard paths shorter then %d" % shorter_then):
+        with clui.fbm("Discard paths shorter then %d" % shorter_then):
             spaths = [sp for sp in spaths if sp.size > shorter_then]
 
+    if options.auto_barber:
+        spheres = []
+        with reader.get() as traj_reader:
+            clui.message("Auto Barber is looking where to cut:")
+            pbar = clui.pbar(len(spaths))
+            barber = traj_reader.parse_selection(options.auto_barber)
+            for sp in spaths:
+                if sp.has_in:
+                    center = sp.coords_in[0]
+                    frame = sp.path_in[0]
+                    traj_reader.set_current_frame(frame)
+                    radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
+                    spheres.append((center, radius))
+                if sp.has_out:
+                    center = sp.coords_out[-1]
+                    frame = sp.path_out[-1]
+                    traj_reader.set_current_frame(frame)
+                    radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
+                    spheres.append((center, radius))
+                pbar.update(1)
+            pbar.finish()
+        # remove redundant spheres
+        clui.message("Removing redundant cutting places:")
+        pbar = clui.pbar(len(spheres))
+        some_may_be_redundant = True
+        while some_may_be_redundant:
+            some_may_be_redundant = False
+            if len(spheres) > 1:
+                for nr, sphe1 in enumerate(spheres):
+                    for sphe2 in spheres[1:]:
+                        if sphe1[1] > sphe2[1]: continue
+                        d = cdist(np.matrix(sphe1[0]), np.matrix(sphe2[0]))
+                        if d + sphe1[1] < sphe2[1]:
+                            spheres.pop(nr)
+                            pbar.update(1)
+                            some_may_be_redundant = True
+                            break
+                    if some_may_be_redundant:
+                        break
+        pbar.finish()
+        '''
+        '''
+        clui.message("Auto Barber in action:")
+        pbar = clui.pbar(len(paths))
+        for p in paths.values():
+            p.barber_with_spheres(spheres)
+            pbar.update(1)
+        pbar.finish()
+        clui.message("Recreate separate paths:")
+        pbar = clui.pbar(len(paths))
+        # yield_single_paths requires a list of paths not a dictionary
+        spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
+        pbar.finish()
+
     if options.sort_by_id:
-        with log.fbm("Sort separate paths by resid"):
+        with clui.fbm("Sort separate paths by resid"):
             spaths = sorted(spaths, key=lambda sp: (sp.id.id, sp.id.nr))
     # apply smoothing?
     if options.apply_smoothing or options.apply_soft_smoothing:
         smooth = get_smooth_method(soptions)
     if options.apply_smoothing:
-        log.message('Applying hard smoothing:')
-        pbar = log.pbar(len(spaths))
+        clui.message('Applying hard smoothing:')
+        pbar = clui.pbar(len(spaths))
         for nr, sp in enumerate(spaths):
             sp.apply_smoothing(smooth)
             pbar.update(nr + 1)
         pbar.finish()
     if options.apply_soft_smoothing:
-        log.message('Applying soft smoothing:')
-        pbar = log.pbar(len(spaths))
+        clui.message('Applying soft smoothing:')
+        pbar = clui.pbar(len(spaths))
         for nr, sp in enumerate(spaths):
             sp.get_coords(smooth=smooth)
             pbar.update(nr + 1)
         pbar.finish()
 
-    log.message("Number of paths: %d" % len(paths))
-    log.message("Number of spaths: %d" % len(spaths))
+    clui.message("Number of paths: %d" % len(paths))
+    clui.message("Number of spaths: %d" % len(spaths))
 
     return {'paths': paths, 'spaths': spaths, 'options': options, 'soptions': soptions}
 
@@ -1030,17 +1096,18 @@ def stage_III_run(config, options,
 ################################################################################
 
 def get_skip_size_function(rt=None):
-    if rt is None: return None
+    if not isinstance(rt, str): return None
+    assert re.compile('^[<>=]+[0-9.]+$').match(rt) is not None, "Wrong threshold definition: %s" % rt
     op = re.compile('[<>=]+')
     op = ''.join(sorted(op.findall(rt)[0]))
     vl = re.compile('[0-9.]+')
     vl = float(vl.findall(rt)[0])
-    operator_dict = {'>' : operator.gt,
+    operator_dict = {'>': operator.gt,
                      '=>': operator.ge,
                      '<=': operator.le,
-                     '<' : operator.lt}
-    assert op in operator_dict.keys()
-    return lambda size_of_cluster: operator_dict[op](vl,size_of_cluster)
+                     '<': operator.lt}
+    assert op in operator_dict.keys(), "Unsupported operator %s in threshold %s" % (op, rt)
+    return lambda size_of_cluster: operator_dict[op](vl, size_of_cluster)
 
 
 def potentially_recursive_clusterization(config,
@@ -1049,20 +1116,21 @@ def potentially_recursive_clusterization(config,
                                          message='clusterization',
                                          deep=0,
                                          max_level=5):
-    with log.fbm("Performing %s, level %d of %d" % (message,deep,max_level),cont=False):
-        log.debug('Clustering options section: %s' % clusterization_name)
+    with clui.fbm("Performing %s, level %d of %d" % (message, deep, max_level), cont=False):
+        logger.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
         # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options)
         # get skip_size function according to recursive_treshold
         skip_size = get_skip_size_function(cluster_options.recursive_threshold)
-        inlets_object.perform_reclustering(clustering_function,skip_outliers=True,skip_size=skip_size)
-    log.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
+        inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
+    clui.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
     if cluster_options.recursive_clusterization:
         deep += 1
         if deep > max_level:
             return
-        return potentially_recursive_clusterization(config,cluster_options.recursive_clusterization,inlets_object,deep=deep,max_level=max_level)
+        return potentially_recursive_clusterization(config, cluster_options.recursive_clusterization, inlets_object,
+                                                    deep=deep, max_level=max_level)
 
 
 # inlets_clusterization
@@ -1074,12 +1142,12 @@ def stage_IV_run(config, options,
     soptions = config.get_smooth_options()
 
     max_level = int(options.max_level)
-    assert max_level>=0
+    assert max_level >= 0
 
     # new style clustering
-    with log.fbm("Create inlets"):
+    with clui.fbm("Create inlets"):
         inls = Inlets(spaths)
-    log.message("Number of inlets: %d" % inls.size)
+    clui.message("Number of inlets: %d" % inls.size)
 
     def noo():
         # returns number of outliers
@@ -1092,13 +1160,13 @@ def stage_IV_run(config, options,
         potentially_recursive_clusterization(config, config.cluster_name(), inls,
                                              message='clusterization',
                                              max_level=max_level)
-        #with log.fbm("Performing clusterization"):
+        # with log.fbm("Performing clusterization"):
         #    clustering_function = get_clustering_method(coptions)
         #    inls.perform_clustering(clustering_function)
-        log.message('Number of outliers: %d' % noo())
+        clui.message('Number of outliers: %d' % noo())
         # ***** OUTLIERS DETECTION *****
         if options.detect_outliers:
-            with log.fbm("Detecting outliers"):
+            with clui.fbm("Detecting outliers"):
                 if options.detect_outliers is not Auto:
                     threshold = float(options.detect_outliers)
                 clusters = inls.clusters
@@ -1118,38 +1186,37 @@ def stage_IV_run(config, options,
                         if d > threshold:
                             clusters[ids] = 0
                 inls.add_cluster_annotations(clusters)
-            log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
-            log.message('Number of outliers: %d' % noo())
+            clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+            clui.message('Number of outliers: %d' % noo())
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
-            with log.fbm("Performing reclusterization of outliers"):
+            with clui.fbm("Performing reclusterization of outliers"):
                 clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
-                #inls.recluster_outliers(clustering_function)
-                inls.recluster_cluster(clustering_function,0)
-            log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
-            log.message('Number of outliers: %d' % noo())
+                # inls.recluster_outliers(clustering_function)
+                inls.recluster_cluster(clustering_function, 0)
+            clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+            clui.message('Number of outliers: %d' % noo())
         # ***** SINGLETONS REMOVAL *****
         if options.singletons_outliers:
-            with log.fbm("Removing clusters of size %d" % int(options.singletons_outliers)):
+            with clui.fbm("Removing clusters of size %d" % int(options.singletons_outliers)):
                 inls.small_clusters_to_outliers(int(options.singletons_outliers))
-            log.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
-            log.message('Number of outliers: %d' % noo())
+            clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+            clui.message('Number of outliers: %d' % noo())
 
-        with log.fbm("Calculating cluster types"):
+        with clui.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)
 
         # now, there is something to do with ctypes!
         # we can create master paths!
 
-        log.message("Creating master paths for cluster types:")
+        clui.message("Creating master paths for cluster types:")
 
         smooth = get_smooth_method(soptions)
         master_paths = {}
         master_paths_smooth = {}
         ctypes_generic = [ct.generic for ct in ctypes]
         ctypes_generic_list = sorted(list(set(ctypes_generic)))
-
 
         '''
         # create pool of workers - mapping function
@@ -1175,11 +1242,11 @@ def stage_IV_run(config, options,
             del pool
         '''
 
-        pbar = log.pbar(len(spaths)*2)
+        pbar = clui.pbar(len(spaths) * 2)
         for nr, ct in enumerate(ctypes_generic_list):
-            log.debug('CType %s (%d)' % (str(ct),nr))
+            logger.debug('CType %s (%d)' % (str(ct), nr))
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            log.debug('CType %s (%d), number of spaths %d' % (str(ct),nr,len(sps)))
+            logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
             # print len(sps),ct
             master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
             master_paths_smooth.update(
@@ -1189,7 +1256,7 @@ def stage_IV_run(config, options,
 
 
     else:
-        log.message("No inlets found. Clusterization skipped.")
+        clui.message("No inlets found. Clusterization skipped.")
         # make empty results
         ctypes = inls.spaths2ctypes(spaths)
         master_paths = {}
@@ -1360,17 +1427,17 @@ class PrintAnalysis(object):
         if nr is not None:
             info2print = (self.nr_template % nr) + info2print
         if self.output2stderr:
-            log.message(info2print)
+            clui.message(info2print)
         print >> self.filehandle, info2print
 
     def sep(self):
         self(asep())
 
     def thead(self, info2print):
-        self(log.thead(info2print))
+        self(clui.thead(info2print))
 
     def under(self, info2print):
-        self(log.underline(info2print))
+        self(clui.underline(info2print))
 
 
 ################################################################################
@@ -1539,18 +1606,18 @@ def stage_V_run(config, options,
     # file handle?
     pa = PrintAnalysis(options.save)
     if options.save:
-        log.message('Using user provided file (%s).' % options.save)
-        log.message(sep())
-        log.message('')
+        clui.message('Using user provided file (%s).' % options.save)
+        clui.message(sep())
+        clui.message('')
     else:
-        log.message('Using standard output.')
-        log.message(sep())
-        log.message('')
+        clui.message('Using standard output.')
+        clui.message(sep())
+        clui.message('')
 
     ############
     pa.sep()
     pa('Aqueduct analysis')
-    pa(log.get_str_timestamp())
+    pa(clui.get_str_timestamp())
 
     ############
     if options.dump_config:
@@ -1695,7 +1762,7 @@ def stage_VI_run(config, options,
     smooth = get_smooth_method(soptions)
 
     # start pymol
-    with log.fbm("Starting PyMOL"):
+    with clui.fbm("Starting PyMOL"):
         pymol_connector = ConnectToPymol()
         if is_pymol_connector_script(options.save):
             pymol_connector.init_script(options.save)
@@ -1711,7 +1778,7 @@ def stage_VI_run(config, options,
     ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
     if options.show_molecule:
-        with log.fbm("Molecule"):
+        with clui.fbm("Molecule"):
             with reader.get() as traj_reader:
                 mda_ppr = mda.core.flags["permissive_pdb_reader"]
                 mda.core.flags["permissive_pdb_reader"] = False
@@ -1723,7 +1790,7 @@ def stage_VI_run(config, options,
                 mda.core.flags["permissive_pdb_reader"] = mda_ppr
                 # it would be nice to plot convexhull
     if options.show_chull:
-        with log.fbm("Convexhull"):
+        with clui.fbm("Convexhull"):
             with reader.get() as traj_reader:
                 options_stageII = config.get_stage_options(1)
                 if options_stageII.scope_convexhull:
@@ -1735,7 +1802,7 @@ def stage_VI_run(config, options,
                         spp.convexhull(chull, state=frame + 1)
 
     if options.inlets_clusters:
-        with log.fbm("Clusters"):
+        with clui.fbm("Clusters"):
             # TODO: require stage V for that?
             no_of_clusters = len(inls.clusters_list)  # total, including outliers
             cmap = ColorMapDistMap(size=no_of_clusters)
@@ -1749,18 +1816,18 @@ def stage_VI_run(config, options,
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
 
     if options.ctypes_raw:
-        with log.fbm("CTypes raw"):
+        with clui.fbm("CTypes raw"):
             for nr, ct in enumerate(ctypes_generic_list):
-                log.message(str(ct), cont=True)
+                clui.message(str(ct), cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
                 plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
                 if ct in master_paths:
                     plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
 
     if options.ctypes_smooth:
-        with log.fbm("CTypes smooth"):
+        with clui.fbm("CTypes smooth"):
             for nr, ct in enumerate(ctypes_generic_list):
-                log.message(str(ct), cont=True)
+                clui.message(str(ct), cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
                 plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
                 if ct in master_paths_smooth:
@@ -1773,34 +1840,34 @@ def stage_VI_run(config, options,
                                        smooth=smooth)
 
     if options.all_paths_raw:
-        with log.fbm("All raw paths"):
+        with clui.fbm("All raw paths"):
             plot_spaths_traces(spaths, name='all_raw', split=options.all_paths_split, spp=spp)
     if options.all_paths_raw_io:
-        with log.fbm("All raw paths io"):
+        with clui.fbm("All raw paths io"):
             plot_spaths_inlets(spaths, name='all_raw_paths_io', spp=spp)
 
     if options.all_paths_smooth:
-        with log.fbm("All smooth paths"):
+        with clui.fbm("All smooth paths"):
             plot_spaths_traces(spaths, name='all_smooth', split=options.all_paths_split, spp=spp, smooth=smooth)
     if options.all_paths_smooth_io:
-        with log.fbm("All smooth paths io"):
+        with clui.fbm("All smooth paths io"):
             plot_spaths_inlets(spaths, name='all_smooth_paths_io', spp=spp)
 
-    with log.fbm("Paths as states"):
+    with clui.fbm("Paths as states"):
         if options.paths_raw:
-            log.message("raw", cont=True)
+            clui.message("raw", cont=True)
             plot_spaths_traces(spaths, name='raw_paths', states=options.paths_states, separate=not options.paths_states,
                                spp=spp)
         if options.paths_smooth:
-            log.message("smooth", cont=True)
+            clui.message("smooth", cont=True)
             plot_spaths_traces(spaths, name='smooth_paths', states=options.paths_states,
                                separate=not options.paths_states, smooth=smooth, spp=spp)
         if options.paths_raw_io:
-            log.message("raw_io", cont=True)
+            clui.message("raw_io", cont=True)
             plot_spaths_inlets(spaths, name='raw_paths_io', states=options.paths_states,
                                separate=not options.paths_states, spp=spp)
         if options.paths_smooth_io:
-            log.message("smooth_io", cont=True)
+            clui.message("smooth_io", cont=True)
             plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states,
                                separate=not options.paths_states, smooth=smooth, spp=spp)
 
@@ -1808,16 +1875,16 @@ def stage_VI_run(config, options,
         pymol_connector.orient_on('molecule')
 
     if is_pymol_connector_session(options.save):
-        with log.fbm("Saving session (%s)" % options.save):
-            log.message("")  # new line
-            pbar = log.pbar(len(spaths))
+        with clui.fbm("Saving session (%s)" % options.save):
+            clui.message("")  # new line
+            pbar = clui.pbar(len(spaths))
             import time
             for state in range(len(spaths)):
                 pymol_connector.cmd.set_frame(state + 1)
                 pbar.update(state)
                 time.sleep(0.1)
             pbar.finish()
-            log.message("Finalizing session saving...", cont=True)  # new line
+            clui.message("Finalizing session saving...", cont=True)  # new line
             pymol_connector.cmd.set_frame(1)
             pymol_connector.cmd.save(options.save, state=0)
             pymol_connector.cmd.quit()
@@ -1838,6 +1905,8 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
+    parser.add_argument("--debug", action="store_true", dest="debug", required=False, help="Prints debug info.")
+    parser.add_argument("--debug-file", action="store", dest="debug_file", required=False, help="Debug log file.")
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                         help="Dumps template config file. Suppress all other output or actions.")
     parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
@@ -1848,6 +1917,26 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
                         help="Prints versions and exits..")
 
     args = parser.parse_args()
+
+    ############################################################################
+    # debug
+    # at this stage logger is the AQ root logger
+    if args.debug:
+        logger.removeHandler(ch)  # remove old ch handlers
+        ch = logging.StreamHandler()
+        ch.setFormatter(formatter)
+        ch.setLevel(logging.DEBUG)
+        logger.addHandler(ch)
+    if args.debug_file:
+        formatter = logging.Formatter('%(asctime)s: ' + formatter_string)
+        fh = logging.FileHandler(args.debug_file)
+        fh.setFormatter(formatter)
+        fh.setLevel(logging.DEBUG)
+        logger.addHandler(fh)
+    # finally, get valve logger
+    logger = logging.getLogger(logger_name + '.valve')
+    logger.info('Initialization of Valve logging done.')
+
     ############################################################################
     # special option for dumping template config
     config = ValveConfig()  # config template
@@ -1878,14 +1967,14 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
         optimal_threads = cpu_count + 1
     else:
         optimal_threads = int(args.threads)
-    log.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
+    clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
     if (optimal_threads > 1 and optimal_threads < 3) or (optimal_threads - 1 > cpu_count):
-        log.message("Number of threads is not optimal; CPU count reported by system: %d" % cpu_count)
+        clui.message("Number of threads is not optimal; CPU count reported by system: %d" % cpu_count)
     # because it is used by mp.Pool it should be -1???
     if optimal_threads > 1:
         optimal_threads -= 1
-        log.message("Main process would use 1 thread.")
-        log.message("Concurent calculations would use %d threads." % optimal_threads)
+        clui.message("Main process would use 1 thread.")
+        clui.message("Concurent calculations would use %d threads." % optimal_threads)
 
     ############################################################################
     # STAGE 0
@@ -1895,11 +1984,11 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     if args.max_frame:
         max_frame = int(args.max_frame)
         if max_frame > reader.max_frame:
-            log.warning("Desired --max-frame %d setting exceeds number of available frames (%d)." % (
+            logger.warning("Desired --max-frame %d setting exceeds number of available frames (%d)." % (
                 max_frame + 1, reader.max_frame + 1))
     else:
         max_frame = reader.max_frame
-    log.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
+    clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
 
     # STAGE I
     result1 = valve_exec_stage(0, config, stage_I_run,
@@ -1914,6 +2003,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
 
     # STAGE III
     result3 = valve_exec_stage(2, config, stage_III_run,
+                               reader=reader,
                                **result2)
 
     # STAGE IV
@@ -1925,7 +2015,8 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     for result in (result2, result3, result4):
         results.update(result)
 
-    result5 = valve_exec_stage(4, config, stage_V_run, no_io=True,
+    result5 = valve_exec_stage(4, config, stage_V_run,
+                               no_io=True,
                                **results)
 
     # STAGE VI
@@ -1933,7 +2024,8 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     for result in (result3, result4):
         results.update(result)
 
-    result6 = valve_exec_stage(5, config, stage_VI_run, no_io=True,
+    result6 = valve_exec_stage(5, config, stage_VI_run,
+                               no_io=True,
                                reader=reader,
                                **results)
     ############################################################################
@@ -1944,3 +2036,4 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     # end!
 
     valve_end()
+    logger.info('Valve calulations finished.')

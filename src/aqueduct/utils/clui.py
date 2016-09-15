@@ -1,16 +1,68 @@
 # -*- coding: utf-8 -*-
 """
-Module comprises convieniences functions and definitios for logging
-purposes including progress bar helpers.
+Module comprises convieniences functions and definitios for different operations related to command line user interface.
 """
 
-# __all__ = ['debug','info','warning','error','critical','pbar']
-
-import datetime
 import logging
+
+logger = logging.getLogger(__name__)
+
+from aqueduct import logger as root_logger
+import datetime
 import time
 from os import linesep
 from sys import stderr
+
+
+def emit_message_to_file_in_root_logger(mess):
+    # emits message to the file used by file handler in the root logger
+    # assumes there is only one file handler
+    if logging.FileHandler in map(type, root_logger.handlers):
+        fh = root_logger.handlers[map(type, root_logger.handlers).index(logging.FileHandler)]
+        with fh.lock:
+            with open(fh.baseFilename, 'a') as logfile:
+                logfile.write(mess)
+
+
+def message(mess, cont=False):
+    """
+    Prints message to standard error.
+    If FileHandler is present in the :py:`root_logger` the same message is appended to the log file.
+
+    :param str mess: message to print
+    :param bool cont: if set True no new line is printed
+    """
+    if cont:
+        mess = mess + ' '
+    else:
+        mess = mess + linesep
+    emit_message_to_file_in_root_logger(mess)
+    stderr.write(mess)
+
+
+class fbm(object):
+    # feedback message
+    def __init__(self, info, cont=True):
+        self.__cont = cont
+        self.__info = info
+        message(info + '...', cont=self.__cont)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, typ, value, traceback):
+        if typ is None:
+            if self.__cont:
+                message("OK.")
+            else:
+                message(self.__info + ": DONE.")
+
+    def __call__(self, info):
+        if self.__cont:
+            message(linesep + '\t' + info + '...', cont=True)
+        else:
+            message(info + '...', cont=False)
+
 
 gregorian_year_in_days = 365.2425
 '''Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year'''
@@ -147,13 +199,15 @@ class SimpleProgressBar(object):
 
     barlenght = 24
 
-    def __init__(self, mess=None, maxval=None):
+    def __init__(self, maxval=None, mess=None):
         """
         :param int maxval: Maximal number of iterations stored to :attr:`maxval`.
         :param str mess: Optional message displayed at progress bar initialization.
         """
 
-        assert isinstance(maxval, (int, long))
+        assert isinstance(maxval,
+                          (int, long)), 'Parameter maxval should be of int or long type, %r given instead.' % type(
+            maxval)
         if maxval < 1:
             self.maxval = 1
         else:
@@ -263,7 +317,8 @@ class SimpleProgressBar(object):
             else:
                 self.current = step
         self.tcurrent = time.time()
-        if (step == self.maxval) or (self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
+        if (step == self.maxval) or (
+                        self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
             # TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision
             self.show()
 
@@ -285,144 +340,15 @@ class SimpleProgressBar(object):
             self.update(self.maxval)
         else:
             self.update(0)
+            self.show()
         stderr.write(linesep)
-        stderr.write("Total time: %s" % self.ttime())
-        stderr.write(linesep)
+        message("Total time: %s" % self.ttime())
+        # stderr.write(linesep)
 
 
-# TODO: try to add tqdm as an alternative for progressbarr which does not work very well in ipython
-# TODO: remove all alien pbars!
-
-class pbar(object):
-    """
-    Progress bar wrapper class.
-    It can use several types of progress bars, including :class:`SimpleProgressBar`. Additionaly, it can
-    handle progress bars with following packages (must be installed separately):
-
-    * progressbar
-    * tqdm
-    * pyprind
-
-    :ivar int __maxval: maximal number of iterations
-    :ivar str __kind: type of progress bar
-    :ivar int __curval: current number of iterations
-    :ivar __pbar: progress bar child object
-
-    .. warning::
-
-        :class:`SimpleProgressBar` is the only one kind of progress bar recommended.
-
-    """
-
-    def __init__(self, maxval=100, kind='simple'):  # keep kind of pbar simple
-        """
-        :param int maxval: maximal number of iterations stored to :ivar:`__maxval` and passed child progress bar object
-        :param str kind: type of progress bar, available types: simple, progressbar, tqdm, pyprind
-        """
-
-        assert kind in ['simple', 'progressbar', 'tqdm', 'pyprind']
-
-        self.__kind = kind
-        self.__maxval = maxval
-        self.__curval = 0
-
-        if self.__kind == "simple":
-            self.__pbar = SimpleProgressBar(maxval=maxval)
-        if self.__kind == "progressbar":
-            import progressbar as pb
-            widgets = [pb.Percentage(), ' ',
-                       pb.Bar(), ' ',
-                       pb.ETA()]
-            self.__pbar = pb.ProgressBar(widgets=widgets, maxval=maxval).start()
-        elif self.__kind == "tqdm":
-            # it does not work as expected
-            from tqdm import tqdm
-            self.__pbar = tqdm(leave=True, ascii=True, total=maxval)
-        elif self.__kind == "pyprind":
-            import pyprind
-            self.__pbar = pyprind.ProgBar(maxval)
-
-
-    def update(self, val):
-        """
-        Updates progress bar with value of :obj:`val` parameter. Exact behavior depends
-        on the type of progress bar.
-
-        :param int val: value used to update progress bar
-        """
-        if self.__kind in ["tqdm", "pyprind"]:
-            if val < 1:
-                return
-        if self.__kind in ["tqdm", "pyprind"]:
-            self.__pbar.update()
-        else:
-            self.__pbar.update(val)
-
-    def heartbeat(self):
-        if self.__kind in ["simple"]:
-            self.__pbar.heartbeat()
-
-    def finish(self):
-        """
-        Finishes progress bar. It cals appropriate, if exist, method of child progress bar object.
-        is writen to standard error.
-        """
-        if self.__kind in ["progressbar", "simple"]:
-            self.__pbar.finish()
-        if self.__kind == "tqdm":
-            self.__pbar.close()
+pbar = SimpleProgressBar  # default progress bar
 
 
 def get_str_timestamp():
+    # returns time stamp as string
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
-
-
-level = logging.INFO
-# format = linesep+'AQUARIUM:%(levelname)1.1s:[%(module)s|%(funcName)s@s%(lineno)d]:'+linesep+'%(message)s'
-log_format = linesep + 'AQ:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]:' + linesep + '\t%(message)s'
-
-logging.basicConfig(format=log_format, level=level)
-
-debug = logging.debug
-info = logging.info
-warning = logging.warning
-error = logging.error
-critical = logging.critical
-
-
-class fbm(object):
-    # feedback message
-    def __init__(self, info, cont=True):
-        self.__cont = cont
-        self.__info = info
-        message(info + '...', cont=self.__cont)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, typ, value, traceback):
-        if typ is None:
-            if self.__cont:
-                message("OK.")
-            else:
-                message(self.__info + ": DONE.")
-
-    def __call__(self, info):
-        if self.__cont:
-            message(linesep + '\t' + info + '...', cont=True)
-        else:
-            message(info + '...', cont=False)
-
-def message(mess, cont=False):
-    """
-    Prints message to standard error.
-
-    :param str mess: message to print
-    :param bool cont: if set True no new line is printed
-    """
-    if cont:
-        print >> stderr, mess,
-    else:
-        print >> stderr, mess
-
-
