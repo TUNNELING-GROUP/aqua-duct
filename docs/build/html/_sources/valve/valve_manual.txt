@@ -175,6 +175,11 @@ Clusterization of inlets is performed in following steps:
 
 #. [Optional] Reclusterization of outliers. It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
 
+Potentially recursive clusterization
+""""""""""""""""""""""""""""""""""""
+
+Both `Initial clusterization` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clusterization methods option *recursive_clusterization* is used appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clusterization (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*. For additional information see :ref:`clusterization_options`.
+
 Analysis
 ^^^^^^^^
 

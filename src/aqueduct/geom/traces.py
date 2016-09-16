@@ -342,6 +342,9 @@ def midpoints(paths):
 def length_step_std(trace):
     # trace - 3D coordinates
     # calculates diff over trace and returns sum, mean and std of diff
+    # if trace is empty or have length < 2 nans are returned
+    if len(trace) < 2:
+        return float('nan'),float('nan'),float('nan')
     d = diff(trace)
     return np.sum(d), np.mean(d), np.std(d)
 

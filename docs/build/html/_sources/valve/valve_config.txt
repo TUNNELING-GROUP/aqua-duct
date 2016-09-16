@@ -81,7 +81,7 @@ save        [save file name]    File name for saving results. Default value of t
 
                                 Stage 6 can save results in two file types:
 
-                                #. As Python script - extension ``.py`` puls companion archive
+                                #. As Python script - extension ``.py`` plus companion archive
                                    ``.tar.gz``,
                                 #. As PyMOL session - extension ``.pse``.
 
@@ -121,8 +121,8 @@ scope                   None            Definition of *Scope* of interest. See a
 scope_convexhull        None            Flag to set if the *Scope* is direct or convex hull definition.
                                         If ``None`` value form previous stage is used.
 object                  None            Definition of *Object* of interest. See also
-                                        :ref:`object_definition`. If ``None`` value form previous stage
-                                        is used
+                                        :ref:`object_definition`. If ``None``, value form the previous
+                                        stage is used
 clear_in_object_info    False           If it is set to ``True`` information on occupation of *Object*
                                         site by traceable residues calculated in the previous stage is
                                         cleared and have to be recalculated. This is useful if
@@ -252,6 +252,8 @@ show_chull_frames       0               Allows to indicate for which frames of o
 
     If several states are displayed protein tertiary structure data might be lost. This seems to be limitation of either :mod:`MDAnalysis` or PyMOL.
 
+.. _clusterization_options:
+
 Clusterization sections
 -----------------------
 
@@ -264,9 +266,10 @@ method                      meanshift or    Name of clasteriation method. It hav
                             dbscan          following: dbscan, affprop, meanshift, birch, kmeans. Default
                                             value depends if it is **clusteriation** section (meanshift) or
                                             **reclusterization** section (dbscan).
-recursive_clusterization    clusterization  If set to name of some section that holds clusterization method
-                            or None         settings this method will be called in the next recurention of
-                                            clusteriation. Default value for **reclusterization** is None.
+recursive_clusterization    clusterization  If it is set to name of some section that holds clusterization
+                            or None         method settings this method will be called in the next
+                                            recursion of clusteriation. Default value for
+                                            **reclusterization** is None.
 recursive_threshold         None            Allows to set threshold of that excludes clusters of certain
                                             size from reclusterization. Value of this option comprises of
                                             `operator` and `value`. Operator can be one of the following:

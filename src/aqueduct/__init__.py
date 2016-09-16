@@ -26,12 +26,12 @@ def version():
     :rtype: tuple
     '''
     return 0, 2, 17
-    # chnged logging, old log changed to clui
+    # changed logging, old log changed to clui
 
 
 def version_nice():
     '''
-    Returns :mod:`aqueduct` version number as nicely formated string.
+    Returns :mod:`aqueduct` version number as nicely formatted string.
 
     :return: string composed on the basis of the number returned by :func:`version`.
     :rtype: str
@@ -71,4 +71,9 @@ def greetings():
 #              ##              ##              #
 #              ##              ##              #
 ------------------------------------------------'''
+
+
     return greet
+
+
+

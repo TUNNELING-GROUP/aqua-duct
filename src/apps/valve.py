@@ -1066,6 +1066,13 @@ def stage_III_run(config, options,
         spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
         pbar.finish()
 
+        if options.discard_short_paths > 0:
+            shorter_then = int(options.discard_short_paths)
+            with clui.fbm("Discard (again) paths shorter then %d" % shorter_then):
+                spaths = [sp for sp in spaths if sp.size > shorter_then]
+
+
+
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):
             spaths = sorted(spaths, key=lambda sp: (sp.id.id, sp.id.nr))
@@ -1471,7 +1478,7 @@ def spath_lenght_total_info_header():
 def spath_lenght_total_info(spath):
     line = []
     for t in traces.midpoints(spath.coords):
-        if len(t) > 0:
+        if len(t) > 1: # traces.length_step_std requires at least 2 points
             line.append(traces.length_step_std(t)[0])
         else:
             line.append(float('nan'))

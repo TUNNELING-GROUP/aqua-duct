@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Configuration file options &#8212; Aqueduct 0.2.17 documentation</title>
+    <title>Configuration file options &mdash; Aqueduct 0.2.17 documentation</title>
     
     <link rel="stylesheet" href="../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -50,7 +50,7 @@
         <li class="right" >
           <a href="valve_manual.html" title="Valve manual"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -95,8 +95,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -112,7 +112,7 @@
             
   <div class="section" id="configuration-file-options">
 <h1>Configuration file options<a class="headerlink" href="#configuration-file-options" title="Permalink to this headline">¶</a></h1>
-<p>Valve Configuration file is a simple and plain text file. It has similar structure as INI files commonly used in one of the popular operating systems and is compliant with Python module <a class="reference external" href="https://docs.python.org/2/library/configparser.html#module-ConfigParser" title="(in Python v2.7)"><code class="xref py py-mod docutils literal"><span class="pre">ConfigParser</span></code></a>.</p>
+<p>Valve Configuration file is a simple and plain text file. It has similar structure as INI files commonly used in one of the popular operating systems and is compliant with Python module <a class="reference external" href="http://docs.python.org/2/library/configparser.html#module-ConfigParser" title="(in Python v2.7)"><code class="xref py py-mod docutils literal"><span class="pre">ConfigParser</span></code></a>.</p>
 <p>Configuration file comprises of several <em>sections</em>. They can be grouped in to three categories. Names of sections given in <strong>bold</strong> text.</p>
 <ol class="arabic">
 <li><dl class="first docutils">
@@ -253,7 +253,7 @@ on the stage and for stages 1 to 4 is one of the following
 </ul>
 <p>Stage 6 can save results in two file types:</p>
 <ol class="last arabic simple">
-<li>As Python script - extension <code class="docutils literal"><span class="pre">.py</span></code> puls companion archive
+<li>As Python script - extension <code class="docutils literal"><span class="pre">.py</span></code> plus companion archive
 <code class="docutils literal"><span class="pre">.tar.gz</span></code>,</li>
 <li>As PyMOL session - extension <code class="docutils literal"><span class="pre">.pse</span></code>.</li>
 </ol>
@@ -328,8 +328,8 @@ If <code class="docutils literal"><span class="pre">None</span></code> value for
 <tr class="row-even"><td>object</td>
 <td>None</td>
 <td>Definition of <em>Object</em> of interest. See also
-<a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object definition</span></a>. If <code class="docutils literal"><span class="pre">None</span></code> value form previous stage
-is used</td>
+<a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object definition</span></a>. If <code class="docutils literal"><span class="pre">None</span></code>, value form the previous
+stage is used</td>
 </tr>
 <tr class="row-odd"><td>clear_in_object_info</td>
 <td>False</td>
@@ -585,7 +585,7 @@ as states.</td>
 </div>
 </div>
 <div class="section" id="clusterization-sections">
-<h2>Clusterization sections<a class="headerlink" href="#clusterization-sections" title="Permalink to this headline">¶</a></h2>
+<span id="clusterization-options"></span><h2>Clusterization sections<a class="headerlink" href="#clusterization-sections" title="Permalink to this headline">¶</a></h2>
 <p>Default section for definition of clusterization method is named <strong>clusterization</strong> and default section for reclusterization method definition is named <strong>reclusterization</strong>. All clusterization sections shares some common options. Other options depends on the method.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -611,9 +611,10 @@ value depends if it is <strong>clusteriation</strong> section (meanshift) or
 <tr class="row-odd"><td>recursive_clusterization</td>
 <td>clusterization
 or None</td>
-<td>If set to name of some section that holds clusterization method
-settings this method will be called in the next recurention of
-clusteriation. Default value for <strong>reclusterization</strong> is None.</td>
+<td>If it is set to name of some section that holds clusterization
+method settings this method will be called in the next
+recursion of clusteriation. Default value for
+<strong>reclusterization</strong> is None.</td>
 </tr>
 <tr class="row-even"><td>recursive_threshold</td>
 <td>None</td>
@@ -919,12 +920,12 @@ it has to be int number.</td>
         <li class="right" >
           <a href="valve_manual.html" title="Valve manual"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
     </div>
   </body>
 </html>
