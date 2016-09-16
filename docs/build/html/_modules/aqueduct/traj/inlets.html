@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.traj.inlets &#8212; Aqueduct 0.2.17 documentation</title>
+    <title>aqueduct.traj.inlets &mdash; Aqueduct 0.2.17 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -43,9 +43,9 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -53,8 +53,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -69,17 +69,17 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.traj.inlets</h1><div class="highlight"><pre>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">pdist</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">pdist</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="k">import</span> <span class="n">is_iterable</span><span class="p">,</span> <span class="n">listify</span><span class="p">,</span> <span class="n">lind</span>
-<span class="kn">from</span> <span class="nn">aqueduct.utils</span> <span class="k">import</span> <span class="n">clui</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">is_iterable</span><span class="p">,</span> <span class="n">listify</span><span class="p">,</span> <span class="n">lind</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils</span> <span class="kn">import</span> <span class="n">clui</span>
 
 
 <div class="viewcode-block" id="ProtoInletTypeCodes"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.ProtoInletTypeCodes">[docs]</a><span class="k">class</span> <span class="nc">ProtoInletTypeCodes</span><span class="p">:</span>
@@ -126,7 +126,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
 <div class="viewcode-block" id="InletClusterGenericType.cluster2str"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.InletClusterGenericType.cluster2str">[docs]</a>    <span class="k">def</span> <span class="nf">cluster2str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cl</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">cl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cl</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;N&#39;</span>
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">cl</span><span class="p">)</span></div>
 
@@ -145,7 +145,7 @@
 <div class="viewcode-block" id="InletClusterGenericType.make_val"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.InletClusterGenericType.make_val">[docs]</a>    <span class="k">def</span> <span class="nf">make_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
         <span class="n">val</span> <span class="o">=</span> <span class="mf">0.</span>
         <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-            <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">e</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -155,7 +155,7 @@
         <span class="k">return</span> <span class="n">val</span></div>
 
 <div class="viewcode-block" id="InletClusterGenericType.__cmp__"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.InletClusterGenericType.__cmp__">[docs]</a>    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">):</span>
             <span class="k">return</span> <span class="mi">1</span>
@@ -194,19 +194,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inlets_ids</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_clustered_inlets</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_clustered_inlets</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="k">for</span> <span class="n">spath</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">extend_inlets</span><span class="p">(</span><span class="n">spath</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Inlets.extend_inlets"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.Inlets.extend_inlets">[docs]</a>    <span class="k">def</span> <span class="nf">extend_inlets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spath</span><span class="p">,</span> <span class="n">onlytype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Inlets.extend_inlets"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.Inlets.extend_inlets">[docs]</a>    <span class="k">def</span> <span class="nf">extend_inlets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spath</span><span class="p">,</span> <span class="n">onlytype</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
 
-        <span class="k">if</span> <span class="n">onlytype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">onlytype</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">onlytype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">onlytype</span>
 
         <span class="n">nr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">inlet</span> <span class="ow">in</span> <span class="n">spath</span><span class="o">.</span><span class="n">get_inlets</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">onlytype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">onlytype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">inlet</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">onlytype</span><span class="p">:</span>
                     <span class="k">continue</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inlet</span><span class="p">)</span>
@@ -243,7 +243,7 @@
         <span class="c1"># renumber clusters</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">renumber_clusters</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Inlets.perform_reclustering"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.Inlets.perform_reclustering">[docs]</a>    <span class="k">def</span> <span class="nf">perform_reclustering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">skip_outliers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Inlets.perform_reclustering"><a class="viewcode-back" href="../../../aqueduct.traj.inlets.html#aqueduct.traj.inlets.Inlets.perform_reclustering">[docs]</a>    <span class="k">def</span> <span class="nf">perform_reclustering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">skip_outliers</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">skip_size</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="c1"># this do reclusterization of all clusters, if no cluster exists perform_clustering is called</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_clustering</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
@@ -253,7 +253,7 @@
                 <span class="k">continue</span>
             <span class="c1"># check cluster size and skip if does not fit to skip_thershold function</span>
             <span class="n">cluster_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">cluster</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
-            <span class="k">if</span> <span class="n">skip_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">skip_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">skip_size</span><span class="p">(</span><span class="n">cluster_size</span><span class="p">):</span>
                     <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;Cluster </span><span class="si">%d</span><span class="s1"> of size </span><span class="si">%0.3f</span><span class="s1"> skipped.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">cluster_size</span><span class="p">))</span>
                     <span class="k">continue</span>
@@ -357,7 +357,7 @@
         <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">:</span>
             <span class="n">ctypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lim2spaths</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="o">.</span><span class="n">types</span>
             <span class="n">clusters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lim2spaths</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="o">.</span><span class="n">clusters</span>
-            <span class="n">surfin</span><span class="p">,</span> <span class="n">interin</span><span class="p">,</span> <span class="n">interout</span><span class="p">,</span> <span class="n">surfout</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="n">surfin</span><span class="p">,</span> <span class="n">interin</span><span class="p">,</span> <span class="n">interout</span><span class="p">,</span> <span class="n">surfout</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
             <span class="k">for</span> <span class="n">ct</span><span class="p">,</span> <span class="n">cl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ctypes</span><span class="p">,</span> <span class="n">clusters</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_surface</span> <span class="ow">and</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_incoming</span><span class="p">:</span>
                     <span class="n">surfin</span> <span class="o">=</span> <span class="n">cl</span>
@@ -418,14 +418,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
     </div>
   </body>
 </html>

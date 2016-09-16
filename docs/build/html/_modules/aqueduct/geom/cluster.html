@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.geom.cluster &#8212; Aqueduct 0.2.17 documentation</title>
+    <title>aqueduct.geom.cluster &mdash; Aqueduct 0.2.17 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -43,9 +43,9 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -53,8 +53,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -69,14 +69,14 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.geom.cluster</h1><div class="highlight"><pre>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">This module provides functions for clusterization.</span>
 <span class="sd">Clusterization is done by :mod:`scikit-learn` module.</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="k">import</span> <span class="n">Birch</span><span class="p">,</span> <span class="n">DBSCAN</span><span class="p">,</span> <span class="n">AffinityPropagation</span><span class="p">,</span> <span class="n">KMeans</span><span class="p">,</span> <span class="n">MeanShift</span><span class="p">,</span> <span class="n">estimate_bandwidth</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">Birch</span><span class="p">,</span> <span class="n">DBSCAN</span><span class="p">,</span> <span class="n">AffinityPropagation</span><span class="p">,</span> <span class="n">KMeans</span><span class="p">,</span> <span class="n">MeanShift</span><span class="p">,</span> <span class="n">estimate_bandwidth</span>
 
 <span class="c1"># problems with clustering methods and size of set</span>
 <span class="c1"># DBSCAN:              n &gt; 0</span>
@@ -85,8 +85,8 @@
 <span class="c1"># MeanShift:           n &gt; 6</span>
 
 
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="k">import</span> <span class="n">Auto</span>
-<span class="kn">from</span> <span class="nn">aqueduct.utils</span> <span class="k">import</span> <span class="n">clui</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">Auto</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils</span> <span class="kn">import</span> <span class="n">clui</span>
 
 <div class="viewcode-block" id="MeanShiftBandwidth"><a class="viewcode-back" href="../../../aqueduct.geom.cluster.html#aqueduct.geom.cluster.MeanShiftBandwidth">[docs]</a><span class="k">def</span> <span class="nf">MeanShiftBandwidth</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">if</span> <span class="s1">&#39;bandwidth&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
@@ -105,8 +105,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">method_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="bp">None</span></div>
 
 <div class="viewcode-block" id="PerformClustering.__call__"><a class="viewcode-back" href="../../../aqueduct.geom.cluster.html#aqueduct.geom.cluster.PerformClustering.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
         <span class="c1"># compatibility</span>
@@ -140,8 +140,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span></div>
 
 <div class="viewcode-block" id="PerformClustering.centers"><a class="viewcode-back" href="../../../aqueduct.geom.cluster.html#aqueduct.geom.cluster.PerformClustering.centers">[docs]</a>    <span class="k">def</span> <span class="nf">centers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Perform clusterization first.&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Perform clusterization first.&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;Perform clusterization first.&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;Perform clusterization first.&quot;</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">method_results</span><span class="p">,</span> <span class="s1">&#39;cluster_centers_&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span><span class="o">.</span><span class="n">cluster_centers_</span>
@@ -162,14 +162,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
     </div>
   </body>
 </html>

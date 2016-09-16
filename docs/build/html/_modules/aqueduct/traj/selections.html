@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.traj.selections &#8212; Aqueduct 0.2.17 documentation</title>
+    <title>aqueduct.traj.selections &mdash; Aqueduct 0.2.17 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -43,9 +43,9 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -53,8 +53,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -69,16 +69,16 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.traj.selections</h1><div class="highlight"><pre>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 
-<span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="k">as</span> <span class="nn">mda</span>
+<span class="kn">import</span> <span class="nn">MDAnalysis</span> <span class="kn">as</span> <span class="nn">mda</span>
 
-<span class="kn">from</span> <span class="nn">aqueduct.geom.convexhull</span> <span class="k">import</span> <span class="n">SciPyConvexHull</span>
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="k">import</span> <span class="n">int2range</span>
+<span class="kn">from</span> <span class="nn">aqueduct.geom.convexhull</span> <span class="kn">import</span> <span class="n">SciPyConvexHull</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">int2range</span>
 
 
 <div class="viewcode-block" id="Selection"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.Selection">[docs]</a><span class="k">class</span> <span class="nc">Selection</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -102,7 +102,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This is abstract class. Missing implementation in a child class.&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Selection.unique_resids_number"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.Selection.unique_resids_number">[docs]</a>    <span class="k">def</span> <span class="nf">unique_resids_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_resids</span><span class="p">(</span><span class="n">ikwid</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unique_resids</span><span class="p">(</span><span class="n">ikwid</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Selection.atom_positions"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.Selection.atom_positions">[docs]</a>    <span class="k">def</span> <span class="nf">atom_positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># should return numpy (x,3) array</span>
@@ -134,7 +134,7 @@
 <div class="viewcode-block" id="SelectionMDA.iterate_over_residues"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.SelectionMDA.iterate_over_residues">[docs]</a>    <span class="k">def</span> <span class="nf">iterate_over_residues</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">R</span><span class="p">)</span> <span class="k">for</span> <span class="n">R</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">residues</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="SelectionMDA.unique_resids"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.SelectionMDA.unique_resids">[docs]</a>    <span class="k">def</span> <span class="nf">unique_resids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ikwid</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SelectionMDA.unique_resids"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.SelectionMDA.unique_resids">[docs]</a>    <span class="k">def</span> <span class="nf">unique_resids</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ikwid</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="c1"># TODO: do something with this method!</span>
         <span class="k">assert</span> <span class="n">ikwid</span><span class="p">,</span> <span class="s2">&quot;This causes bugs! Avoid this method or take special care in using its results. If you want to use it pass additional variable ikwid = True.&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resids</span><span class="p">)</span></div>
@@ -156,10 +156,10 @@
 
 <div class="viewcode-block" id="CompactSelectionMDA.toSelectionMDA"><a class="viewcode-back" href="../../../aqueduct.traj.selections.html#aqueduct.traj.selections.CompactSelectionMDA.toSelectionMDA">[docs]</a>    <span class="k">def</span> <span class="nf">toSelectionMDA</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reader</span><span class="p">):</span>
 
-        <span class="n">sMDA</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">sMDA</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="k">for</span> <span class="n">pr</span> <span class="ow">in</span> <span class="n">int2range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">sMDA</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sMDA</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
                 <span class="n">sMDA</span> <span class="o">=</span> <span class="n">reader</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="s1">&#39;bynum &#39;</span> <span class="o">+</span> <span class="n">pr</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">sMDA</span> <span class="o">+=</span> <span class="n">reader</span><span class="o">.</span><span class="n">parse_selection</span><span class="p">(</span><span class="s1">&#39;bynum &#39;</span> <span class="o">+</span> <span class="n">pr</span><span class="p">)</span>
@@ -181,14 +181,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
     </div>
   </body>
 </html>
