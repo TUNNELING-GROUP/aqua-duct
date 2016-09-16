@@ -1,20 +1,21 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<!doctype html>
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Aqueduct installation guide &mdash; Aqueduct 0.2.11 documentation</title>
+    <title>Aqueduct installation guide &#8212; Aqueduct 0.2.17 documentation</title>
     
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.11',
+        VERSION:     '0.2.17',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,9 +25,14 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.11 documentation" href="index.html" />
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="top" title="Aqueduct 0.2.17 documentation" href="index.html" />
     <link rel="next" title="Valve manual" href="valve/valve_manual.html" />
-    <link rel="prev" title="Welcome to Aqueduct’s documentation!" href="index.html" /> 
+    <link rel="prev" title="Welcome to Aqueduct’s documentation!" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -44,83 +50,9 @@
         <li class="right" >
           <a href="index.html" title="Welcome to Aqueduct’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.17 documentation</a> &#187;</li> 
       </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
-  <div class="section" id="aqueduct-installation-guide">
-<h1>Aqueduct installation guide<a class="headerlink" href="#aqueduct-installation-guide" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="overview">
-<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
-<p>This package comprises of two elements:</p>
-<ol class="arabic simple">
-<li>aqueduct,</li>
-<li>valve.</li>
-</ol>
-<p>Aqueduct is a Python module. It is a collection of tools to trace residues in MD simulation. Valve is a driver Python script. It uses aqueduct to perform such a tracing.</p>
-</div>
-<div class="section" id="install">
-<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="aqueduct">
-<h3>Aqueduct<a class="headerlink" href="#aqueduct" title="Permalink to this headline">¶</a></h3>
-<p>Installation was tested on limited number of POSIX-like systems.</p>
-<p>In some specific cases installation is very simple:</p>
-<ol class="arabic">
-<li><p class="first">Download <a class="reference download internal" href="_downloads/aqueduct.tar.gz" download=""><code class="xref download docutils literal"><span class="pre">aqueduct.tar.gz</span></code></a> bundle file..</p>
-</li>
-<li><p class="first">Unpack aqueduct bundle file.</p>
-</li>
-<li><p class="first">Go to src directory.</p>
-</li>
-<li><p class="first">Type:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
-</pre></div>
-</div>
-</li>
-</ol>
-<p>Aqueduct requires several Python modules to work and in particular it requires MDAnalysis with AMBER support. This, on the other hand, requires netCDF4. Installation of this combination is sometimes cumbersome. General procedure is following:</p>
-<ol class="arabic">
-<li><p class="first">Install libnetcdf4 and libhdf5 development libraries.</p>
-</li>
-<li><p class="first">Install netCDF4:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">netCDF4</span>
-</pre></div>
-</div>
-</li>
-<li><p class="first">Try to install aqueduct.</p>
-</li>
-</ol>
-<p>If, by chance, you are on Ubuntu 14.04 you can try helper script <a class="reference download internal" href="_downloads/ubuntu_mdanalysis_install_helper.sh" download=""><code class="xref download docutils literal"><span class="pre">ubuntu_mdanalysis_install_helper.sh</span></code></a>.</p>
-</div>
-<div class="section" id="valve">
-<h3>Valve<a class="headerlink" href="#valve" title="Permalink to this headline">¶</a></h3>
-<p>Valve does not need installation <em>per se</em>. Once aqueduct is installed, valve can be run by a following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
-</pre></div>
-</div>
-<p>Valve script, ie valve.py, is located in apps directory.</p>
-</div>
-<div class="section" id="extras">
-<h3>Extras<a class="headerlink" href="#extras" title="Permalink to this headline">¶</a></h3>
-<p>Access to some visualization capabilities of Aqueduct requires additional Python modules:</p>
-<ol class="arabic simple">
-<li>matplotlib,</li>
-<li>pymol.</li>
-</ol>
-<p>These are usually easy to install.</p>
-</div>
-</div>
-</div>
-
-
-          </div>
-        </div>
-      </div>
+    </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
@@ -153,13 +85,87 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="aqueduct-installation-guide">
+<h1>Aqueduct installation guide<a class="headerlink" href="#aqueduct-installation-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>This package comprises of two elements:</p>
+<ol class="arabic simple">
+<li>aqueduct,</li>
+<li>valve.</li>
+</ol>
+<p>Aqueduct is a Python module. It is a collection of tools to trace residues in MD simulation. Valve is a driver Python script. It uses aqueduct to perform such a tracing.</p>
+</div>
+<div class="section" id="install">
+<h2>Install<a class="headerlink" href="#install" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="aqueduct">
+<h3>Aqueduct<a class="headerlink" href="#aqueduct" title="Permalink to this headline">¶</a></h3>
+<p>Installation was tested on limited number of POSIX-like systems.</p>
+<p>In some specific cases installation is very simple:</p>
+<ol class="arabic">
+<li><p class="first">Download <a class="reference download internal" href="_downloads/aqueduct.tar.gz" download=""><code class="xref download docutils literal"><span class="pre">aqueduct.tar.gz</span></code></a> bundle file..</p>
+</li>
+<li><p class="first">Unpack aqueduct bundle file.</p>
+</li>
+<li><p class="first">Go to src directory.</p>
+</li>
+<li><p class="first">Type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>Aqueduct requires several Python modules to work and in particular it requires MDAnalysis with AMBER support. This, on the other hand, requires netCDF4. Installation of this combination is sometimes cumbersome. General procedure is following:</p>
+<ol class="arabic">
+<li><p class="first">Install libnetcdf4 and libhdf5 development libraries.</p>
+</li>
+<li><p class="first">Install netCDF4:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">pip</span> <span class="n">install</span> <span class="n">netCDF4</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Try to install aqueduct.</p>
+</li>
+</ol>
+<p>If, by chance, you are on Ubuntu 14.04 you can try helper script <a class="reference download internal" href="_downloads/ubuntu_mdanalysis_install_helper.sh" download=""><code class="xref download docutils literal"><span class="pre">ubuntu_mdanalysis_install_helper.sh</span></code></a>.</p>
+</div>
+<div class="section" id="valve">
+<h3>Valve<a class="headerlink" href="#valve" title="Permalink to this headline">¶</a></h3>
+<p>Valve does not need installation <em>per se</em>. Once aqueduct is installed, valve can be run by a following command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">python</span> <span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+<p>Valve script, ie valve.py, is located in apps directory.</p>
+</div>
+<div class="section" id="extras">
+<h3>Extras<a class="headerlink" href="#extras" title="Permalink to this headline">¶</a></h3>
+<p>Access to some visualization capabilities of Aqueduct requires additional Python modules:</p>
+<ol class="arabic simple">
+<li>matplotlib,</li>
+<li>pymol.</li>
+</ol>
+<p>These are usually easy to install.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -179,12 +185,12 @@
         <li class="right" >
           <a href="index.html" title="Welcome to Aqueduct’s documentation!"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.17 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div>
   </body>
 </html>

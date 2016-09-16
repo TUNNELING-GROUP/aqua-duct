@@ -39,7 +39,8 @@ extensions = [
 
 
 intersphinx_mapping = {'python': ('http://docs.python.org/2', None),
-                       'numpy': ('http://docs.scipy.org/doc/numpy/', None),}
+                       'numpy': ('http://docs.scipy.org/doc/numpy/', None),
+                       'sklearn': ('http://scikit-learn.org/stable', None)}
 
 autoclass_content = 'class'
 #autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'special-members', 'show-inheritance']

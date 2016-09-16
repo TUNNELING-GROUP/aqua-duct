@@ -1,20 +1,21 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<!doctype html>
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.utils.log module &mdash; Aqueduct 0.2.11 documentation</title>
+    <title>aqueduct.utils.log module &#8212; Aqueduct 0.2.17 documentation</title>
     
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.11',
+        VERSION:     '0.2.17',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,10 +25,12 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.11 documentation" href="index.html" />
-    <link rel="up" title="aqueduct.utils package" href="aqueduct.utils.html" />
-    <link rel="next" title="aqueduct.utils.multip module" href="aqueduct.utils.multip.html" />
-    <link rel="prev" title="aqueduct.utils.helpers module" href="aqueduct.utils.helpers.html" /> 
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="top" title="Aqueduct 0.2.17 documentation" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -39,456 +42,11 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="aqueduct.utils.multip.html" title="aqueduct.utils.multip module"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="aqueduct.utils.helpers.html" title="aqueduct.utils.helpers module"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="aqueduct.html" >aqueduct package</a> &raquo;</li>
-          <li class="nav-item nav-item-3"><a href="aqueduct.utils.html" accesskey="U">aqueduct.utils package</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.17 documentation</a> &#187;</li> 
       </ul>
-    </div>  
-
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
-            
-  <div class="section" id="module-aqueduct.utils.log">
-<span id="aqueduct-utils-log-module"></span><h1>aqueduct.utils.log module<a class="headerlink" href="#module-aqueduct.utils.log" title="Permalink to this headline">¶</a></h1>
-<p>Module comprises convieniences functions and definitios for logging
-purposes including progress bar helpers.</p>
-<dl class="data">
-<dt id="aqueduct.utils.log.gregorian_year_in_days">
-<code class="descname">gregorian_year_in_days</code><em class="property"> = 365.2425</em><a class="headerlink" href="#aqueduct.utils.log.gregorian_year_in_days" title="Permalink to this definition">¶</a></dt>
-<dd><p>Length of Gregorian year in days. Average value. Source: <a class="reference external" href="https://en.wikipedia.org/wiki/Year">https://en.wikipedia.org/wiki/Year</a></p>
-</dd></dl>
-
-<dl class="function">
-<dt id="aqueduct.utils.log.smart_time_string">
-<code class="descname">smart_time_string</code><span class="sig-paren">(</span><em>s</em>, <em>rl=0</em>, <em>t=1.1</em>, <em>maximal_length=None</em>, <em>maximal_units=5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#smart_time_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.smart_time_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function transforms time in seconds to nicely formatted string of
-length defined by <code class="xref py py-attr docutils literal"><span class="pre">maximal_length</span></code>. Depending on number of seconds time is represented with
-one or more of the following units:</p>
-<table border="1" class="docutils">
-<colgroup>
-<col width="35%" />
-<col width="65%" />
-</colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Unit name</th>
-<th class="head">Unit abbreviation</th>
-</tr>
-</thead>
-<tbody valign="top">
-<tr class="row-even"><td>seconds</td>
-<td>s</td>
-</tr>
-<tr class="row-odd"><td>minutes</td>
-<td>m</td>
-</tr>
-<tr class="row-even"><td>hours</td>
-<td>h</td>
-</tr>
-<tr class="row-odd"><td>days</td>
-<td>d</td>
-</tr>
-<tr class="row-even"><td>years</td>
-<td>y</td>
-</tr>
-</tbody>
-</table>
-<p>Maximal number of units used in time string can be set with <code class="xref py py-attr docutils literal"><span class="pre">maximal_units</span></code>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>s</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Input time in seconds.</li>
-<li><strong>rl</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of units already used for representing time.</li>
-<li><strong>t</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)"><em>float</em></a>) &#8211; Exces above standard number of current time units.</li>
-<li><strong>maximal_length</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Maximal length of the output string. Must be greater then 0.</li>
-<li><strong>maximal_units</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Maximal number of units used in the output string. Must be greater then 0 and lower then 6.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">string of nicely formated time</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="aqueduct.utils.log.gsep">
-<code class="descname">gsep</code><span class="sig-paren">(</span><em>sep='-'</em>, <em>times=72</em>, <em>length=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#gsep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.gsep" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generic separator.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sep</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Element(s) of separator.</li>
-<li><strong>times</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Number of times <code class="xref py py-attr docutils literal"><span class="pre">sep</span></code> is printed.</li>
-<li><strong>length</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Optional maximal length of output.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">String separator.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="aqueduct.utils.log.tsep">
-<code class="descname">tsep</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#tsep"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.tsep" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>line</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Input line.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Returns default <a class="reference internal" href="#aqueduct.utils.log.gsep" title="aqueduct.utils.log.gsep"><code class="xref py py-func docutils literal"><span class="pre">gsep()</span></code></a> of length of <code class="xref py py-attr docutils literal"><span class="pre">line</span></code>.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="aqueduct.utils.log.underline">
-<code class="descname">underline</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#underline"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.underline" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>line</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Input line.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String made by concatenation of <code class="xref py py-attr docutils literal"><span class="pre">line</span></code>, <code class="xref py py-mod docutils literal"><span class="pre">os.linesep</span></code>, and output of <a class="reference internal" href="#aqueduct.utils.log.tsep" title="aqueduct.utils.log.tsep"><code class="xref py py-func docutils literal"><span class="pre">tsep()</span></code></a> called with <code class="xref py py-attr docutils literal"><span class="pre">line</span></code>.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="aqueduct.utils.log.thead">
-<code class="descname">thead</code><span class="sig-paren">(</span><em>line</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#thead"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.thead" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>line</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Input line.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">String made by concatenation of output of <a class="reference internal" href="#aqueduct.utils.log.tsep" title="aqueduct.utils.log.tsep"><code class="xref py py-func docutils literal"><span class="pre">tsep()</span></code></a> called with <code class="xref py py-attr docutils literal"><span class="pre">line</span></code>, <code class="xref py py-attr docutils literal"><span class="pre">line</span></code>, <code class="xref py py-mod docutils literal"><span class="pre">os.linesep</span></code>, and again output of <a class="reference internal" href="#aqueduct.utils.log.tsep" title="aqueduct.utils.log.tsep"><code class="xref py py-func docutils literal"><span class="pre">tsep()</span></code></a> called with <code class="xref py py-attr docutils literal"><span class="pre">line</span></code>.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="class">
-<dt id="aqueduct.utils.log.SimpleProgressBar">
-<em class="property">class </em><code class="descname">SimpleProgressBar</code><span class="sig-paren">(</span><em>mess=None</em>, <em>maxval=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Simple progress bar displaying progress with percent indicator, progress bar and ETA.
-Progress is measured by iterations.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
-<li><a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar.rotate" title="aqueduct.utils.log.SimpleProgressBar.rotate"><strong>rotate</strong></a> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; String comprising characters with frames of a rotating toy.</li>
-<li><a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar.barlenght" title="aqueduct.utils.log.SimpleProgressBar.barlenght"><strong>barlenght</strong></a> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Length of progress bar.</li>
-<li><strong>maxval</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; maximal number of iterations</li>
-<li><strong>current</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; current number of iterations</li>
-<li><strong>overrun_notice</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if True, overrun above <a href="#id1"><span class="problematic" id="id2">:ivar:`maxval`</span></a> iterations causes insert of newline</li>
-<li><strong>overrun</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; flag of overrun</li>
-<li><strong>begin</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; time in seconds at the initialization of the <a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar" title="aqueduct.utils.log.SimpleProgressBar"><code class="xref py py-class docutils literal"><span class="pre">SimpleProgressBar</span></code></a> class.</li>
-<li><strong>tcurrent</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; time in seconds of current iteration</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<dl class="attribute">
-<dt id="aqueduct.utils.log.SimpleProgressBar.rotate">
-<code class="descname">rotate</code><em class="property"> = '\\|/-'</em><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.rotate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="aqueduct.utils.log.SimpleProgressBar.barlenght">
-<code class="descname">barlenght</code><em class="property"> = 24</em><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.barlenght" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>mess=None</em>, <em>maxval=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>maxval</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Maximal number of iterations stored to <code class="xref py py-attr docutils literal"><span class="pre">maxval</span></code>.</li>
-<li><strong>mess</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; Optional message displayed at progress bar initialization.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.bar">
-<code class="descname">bar</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.bar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.bar" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.ETA">
-<code class="descname">ETA</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.ETA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.ETA" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns ETA calculated on the basis of current number of iterations
-<code class="xref py py-attr docutils literal"><span class="pre">current</span></code> and current time <code class="xref py py-attr docutils literal"><span class="pre">tcurrent</span></code>. If number of
-iterations is 0 returns <code class="docutils literal"><span class="pre">?</span></code>.
-Time is formated wiht <a class="reference internal" href="#aqueduct.utils.log.smart_time_string" title="aqueduct.utils.log.smart_time_string"><code class="xref py py-func docutils literal"><span class="pre">smart_time_string()</span></code></a>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">ETA as string.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.percent">
-<code class="descname">percent</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.percent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.percent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns float number of precent progress calculated in the basis
-of current number of iterations <code class="xref py py-attr docutils literal"><span class="pre">current</span></code>. Should return
-number between 0 and 100.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">percent progress number</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)">float</a></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.show">
-<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.show" title="Permalink to this definition">¶</a></dt>
-<dd><p>Shows current progress.</p>
-<p>If value returned by <a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar.percent" title="aqueduct.utils.log.SimpleProgressBar.percent"><code class="xref py py-meth docutils literal"><span class="pre">percent()</span></code></a> is =&lt; 100 then progres is printed as
-percent indicator leaded by ETA calculated by <a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar.ETA" title="aqueduct.utils.log.SimpleProgressBar.ETA"><code class="xref py py-meth docutils literal"><span class="pre">ETA()</span></code></a>.</p>
-<p>If value returned by <a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar.percent" title="aqueduct.utils.log.SimpleProgressBar.percent"><code class="xref py py-meth docutils literal"><span class="pre">percent()</span></code></a> is &gt; 100 then progress is printed as
-number of iterations and total time.</p>
-<p>Progress bar is writen to standard error.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.heartbeat">
-<code class="descname">heartbeat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.heartbeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.heartbeat" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.update">
-<code class="descname">update</code><span class="sig-paren">(</span><em>step</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates number of current iterations <code class="xref py py-obj docutils literal"><span class="pre">current</span></code> by one if <code class="xref py py-obj docutils literal"><span class="pre">step</span></code> is &gt; 0.
-Otherwise number of current iterations is not updated.
-In boths cases time of current iteration <code class="xref py py-obj docutils literal"><span class="pre">tcurrent</span></code> is updated and
-<a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar.show" title="aqueduct.utils.log.SimpleProgressBar.show"><code class="xref py py-meth docutils literal"><span class="pre">show()</span></code></a> is called.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>step</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; update step</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.ttime">
-<code class="descname">ttime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.ttime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.ttime" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates and returns total time string formated with <a class="reference internal" href="#aqueduct.utils.log.smart_time_string" title="aqueduct.utils.log.smart_time_string"><code class="xref py py-func docutils literal"><span class="pre">smart_time_string()</span></code></a>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">string of total time</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)">str</a></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.SimpleProgressBar.finish">
-<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#SimpleProgressBar.finish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.SimpleProgressBar.finish" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finishes progress bar. First, <a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar.update" title="aqueduct.utils.log.SimpleProgressBar.update"><code class="xref py py-meth docutils literal"><span class="pre">update()</span></code></a> is called with <code class="xref py py-obj docutils literal"><span class="pre">step</span></code> = 0. Next message of total time
-is writen to standard error.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="aqueduct.utils.log.pbar">
-<em class="property">class </em><code class="descname">pbar</code><span class="sig-paren">(</span><em>maxval=100</em>, <em>kind='simple'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#pbar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.pbar" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<p>Progress bar wrapper class.
-It can use several types of progress bars, including <a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar" title="aqueduct.utils.log.SimpleProgressBar"><code class="xref py py-class docutils literal"><span class="pre">SimpleProgressBar</span></code></a>. Additionaly, it can
-handle progress bars with following packages (must be installed separately):</p>
-<ul class="simple">
-<li>progressbar</li>
-<li>tqdm</li>
-<li>pyprind</li>
-</ul>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Variables:</th><td class="field-body"><ul class="first last simple">
-<li><strong>__maxval</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; maximal number of iterations</li>
-<li><strong>__kind</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; type of progress bar</li>
-<li><strong>__curval</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; current number of iterations</li>
-<li><strong>__pbar</strong> &#8211; progress bar child object</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition warning">
-<p class="first admonition-title">Warning</p>
-<p class="last"><a class="reference internal" href="#aqueduct.utils.log.SimpleProgressBar" title="aqueduct.utils.log.SimpleProgressBar"><code class="xref py py-class docutils literal"><span class="pre">SimpleProgressBar</span></code></a> is the only one kind of progress bar recommended.</p>
-</div>
-<dl class="method">
-<dt id="aqueduct.utils.log.pbar.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>maxval=100</em>, <em>kind='simple'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#pbar.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.pbar.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>maxval</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; maximal number of iterations stored to <a href="#id3"><span class="problematic" id="id4">:ivar:`__maxval`</span></a> and passed child progress bar object</li>
-<li><strong>kind</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; type of progress bar, available types: simple, progressbar, tqdm, pyprind</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.pbar.update">
-<code class="descname">update</code><span class="sig-paren">(</span><em>val</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#pbar.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.pbar.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates progress bar with value of <code class="xref py py-obj docutils literal"><span class="pre">val</span></code> parameter. Exact behavior depends
-on the type of progress bar.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>val</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; value used to update progress bar</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.pbar.heartbeat">
-<code class="descname">heartbeat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#pbar.heartbeat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.pbar.heartbeat" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.pbar.finish">
-<code class="descname">finish</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#pbar.finish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.pbar.finish" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finishes progress bar. It cals appropriate, if exist, method of child progress bar object.
-is writen to standard error.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="aqueduct.utils.log.get_str_timestamp">
-<code class="descname">get_str_timestamp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#get_str_timestamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.get_str_timestamp" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="class">
-<dt id="aqueduct.utils.log.fbm">
-<em class="property">class </em><code class="descname">fbm</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#fbm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.fbm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
-<dl class="method">
-<dt id="aqueduct.utils.log.fbm.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#fbm.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.fbm.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.fbm.__enter__">
-<code class="descname">__enter__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#fbm.__enter__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.fbm.__enter__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.fbm.__exit__">
-<code class="descname">__exit__</code><span class="sig-paren">(</span><em>typ</em>, <em>value</em>, <em>traceback</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#fbm.__exit__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.fbm.__exit__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="aqueduct.utils.log.fbm.__call__">
-<code class="descname">__call__</code><span class="sig-paren">(</span><em>info</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#fbm.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.fbm.__call__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="aqueduct.utils.log.message">
-<code class="descname">message</code><span class="sig-paren">(</span><em>mess</em>, <em>cont=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/utils/log.html#message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.utils.log.message" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prints message to standard error.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>mess</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#str" title="(in Python v2.7)"><em>str</em></a>) &#8211; message to print</li>
-<li><strong>cont</strong> (<a class="reference external" href="http://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)"><em>bool</em></a>) &#8211; if set True no new line is printed</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</div>
-
-
-          </div>
-        </div>
-      </div>
+    </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="aqueduct.utils.helpers.html"
-                        title="previous chapter">aqueduct.utils.helpers module</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="aqueduct.utils.multip.html"
-                        title="next chapter">aqueduct.utils.multip module</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -499,13 +57,35 @@ is writen to standard error.</p>
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="aqueduct-utils-log-module">
+<h1>aqueduct.utils.log module<a class="headerlink" href="#aqueduct-utils-log-module" title="Permalink to this headline">¶</a></h1>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt class="docutils">/home/tljm/Research/aqua-duct/docs/source/aqueduct.utils.log.rst</tt>, line 4)</p>
+autodoc: failed to import module u&#8217;aqueduct.utils.log&#8217;; the following exception was raised:
+Traceback (most recent call last):
+  File &#8220;/usr/local/lib/python2.7/dist-packages/sphinx/ext/autodoc.py&#8221;, line 519, in import_object
+    __import__(self.modname)
+ImportError: No module named log
+</div>
+</div>
+
+
+          </div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -519,21 +99,12 @@ is writen to standard error.</p>
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="aqueduct.utils.multip.html" title="aqueduct.utils.multip module"
-             >next</a> |</li>
-        <li class="right" >
-          <a href="aqueduct.utils.helpers.html" title="aqueduct.utils.helpers module"
-             >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="aqueduct.html" >aqueduct package</a> &raquo;</li>
-          <li class="nav-item nav-item-3"><a href="aqueduct.utils.html" >aqueduct.utils package</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.17 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div>
   </body>
 </html>

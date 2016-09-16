@@ -1,20 +1,21 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<!doctype html>
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.geom.master module &mdash; Aqueduct 0.2.11 documentation</title>
+    <title>aqueduct.geom.master module &#8212; Aqueduct 0.2.17 documentation</title>
     
-    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.11',
+        VERSION:     '0.2.17',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,10 +25,15 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.11 documentation" href="index.html" />
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="top" title="Aqueduct 0.2.17 documentation" href="index.html" />
     <link rel="up" title="aqueduct.geom package" href="aqueduct.geom.html" />
     <link rel="next" title="aqueduct.geom.pca module" href="aqueduct.geom.pca.html" />
-    <link rel="prev" title="aqueduct.geom.convexhull module" href="aqueduct.geom.convexhull.html" /> 
+    <link rel="prev" title="aqueduct.geom.convexhull module" href="aqueduct.geom.convexhull.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -45,12 +51,39 @@
         <li class="right" >
           <a href="aqueduct.geom.convexhull.html" title="aqueduct.geom.convexhull module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="aqueduct.html" >aqueduct package</a> &raquo;</li>
-          <li class="nav-item nav-item-3"><a href="aqueduct.geom.html" accesskey="U">aqueduct.geom package</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="aqueduct.html" >aqueduct package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="aqueduct.geom.html" accesskey="U">aqueduct.geom package</a> &#187;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="aqueduct.geom.convexhull.html"
+                        title="previous chapter">aqueduct.geom.convexhull module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="aqueduct.geom.pca.html"
+                        title="next chapter">aqueduct.geom.pca module</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/aqueduct.geom.master.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -91,13 +124,18 @@
 
 <dl class="function">
 <dt id="aqueduct.geom.master.create_master_spath">
-<code class="descname">create_master_spath</code><span class="sig-paren">(</span><em>spaths</em>, <em>smooth=None</em>, <em>resid=0</em>, <em>ctype=None</em>, <em>bias_long=5</em>, <em>heartbeat=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/master.html#create_master_spath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.master.create_master_spath" title="Permalink to this definition">¶</a></dt>
+<code class="descname">create_master_spath</code><span class="sig-paren">(</span><em>spaths</em>, <em>smooth=None</em>, <em>resid=0</em>, <em>ctype=None</em>, <em>bias_long=5</em>, <em>pbar=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/master.html#create_master_spath"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.master.create_master_spath" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="aqueduct.geom.master.calculate_master">
+<code class="descname">calculate_master</code><span class="sig-paren">(</span><em>spaths_resid_ctype_smooth</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/master.html#calculate_master"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.master.calculate_master" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="class">
 <dt id="aqueduct.geom.master.MasterTrace">
 <em class="property">class </em><code class="descname">MasterTrace</code><a class="reference internal" href="_modules/aqueduct/geom/master.html#MasterTrace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.master.MasterTrace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference external" href="http://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
 <dl class="method">
 <dt id="aqueduct.geom.master.MasterTrace.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aqueduct/geom/master.html#MasterTrace.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aqueduct.geom.master.MasterTrace.__init__" title="Permalink to this definition">¶</a></dt>
@@ -109,33 +147,6 @@
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="aqueduct.geom.convexhull.html"
-                        title="previous chapter">aqueduct.geom.convexhull module</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="aqueduct.geom.pca.html"
-                        title="next chapter">aqueduct.geom.pca module</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/aqueduct.geom.master.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -155,15 +166,15 @@
         <li class="right" >
           <a href="aqueduct.geom.convexhull.html" title="aqueduct.geom.convexhull module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="aqueduct.html" >aqueduct package</a> &raquo;</li>
-          <li class="nav-item nav-item-3"><a href="aqueduct.geom.html" >aqueduct.geom package</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >aqueduct</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="aqueduct.html" >aqueduct package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="aqueduct.geom.html" >aqueduct.geom package</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div>
   </body>
 </html>

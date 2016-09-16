@@ -1,20 +1,21 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<!doctype html>
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.traj.paths &mdash; Aqueduct 0.2.11 documentation</title>
+    <title>aqueduct.traj.paths &#8212; Aqueduct 0.2.17 documentation</title>
     
-    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.11',
+        VERSION:     '0.2.17',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +25,13 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.11 documentation" href="../../../index.html" />
-    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="top" title="Aqueduct 0.2.17 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -37,11 +43,25 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -49,19 +69,19 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.traj.paths</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Created on Dec 10, 2015</span>
 
 <span class="sd">@author: tljm</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-
-<span class="kn">from</span> <span class="nn">aqueduct.geom</span> <span class="kn">import</span> <span class="n">traces</span>
-<span class="kn">from</span> <span class="nn">aqueduct.traj.inlets</span> <span class="kn">import</span> <span class="n">Inlet</span><span class="p">,</span> <span class="n">InletTypeCodes</span>
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">is_number</span>
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">tupleify</span><span class="p">,</span> <span class="n">sortify</span><span class="p">,</span> <span class="n">listify</span><span class="p">,</span> <span class="n">arrayify1</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">cdist</span><span class="p">,</span> <span class="n">pdist</span>
+<span class="kn">from</span> <span class="nn">aqueduct.geom</span> <span class="k">import</span> <span class="n">traces</span>
+<span class="kn">from</span> <span class="nn">aqueduct.traj.inlets</span> <span class="k">import</span> <span class="n">Inlet</span><span class="p">,</span> <span class="n">InletTypeCodes</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="k">import</span> <span class="n">is_number</span><span class="p">,</span> <span class="n">lind</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="k">import</span> <span class="n">tupleify</span><span class="p">,</span> <span class="n">sortify</span><span class="p">,</span> <span class="n">listify</span><span class="p">,</span> <span class="n">arrayify1</span>
 
 
 <span class="c1">########################################################################################################################</span>
@@ -115,7 +135,7 @@
     <span class="c1"># object to store paths... is it required?</span>
 
 
-<div class="viewcode-block" id="GenericPaths.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">min_pf</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">max_pf</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="GenericPaths.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="n">min_pf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_pf</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="c1"># id is any type of object; it is used as identifier</span>
 
@@ -155,13 +175,13 @@
     <span class="c1"># xrange(self.max_frame,self.min_frame-1,-1)</span>
 
 <div class="viewcode-block" id="GenericPaths.get_paths_in"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.get_paths_in">[docs]</a>    <span class="k">def</span> <span class="nf">get_paths_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">frames_range</span> <span class="o">=</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_frame</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">frames_range</span> <span class="o">=</span> <span class="n">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_frame</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_paths_for_frames_range</span><span class="p">(</span><span class="n">frames_range</span><span class="p">):</span>
             <span class="n">path</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
             <span class="k">yield</span> <span class="n">path</span></div>
 
 <div class="viewcode-block" id="GenericPaths.get_paths_out"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.get_paths_out">[docs]</a>    <span class="k">def</span> <span class="nf">get_paths_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">frames_range</span> <span class="o">=</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_frame</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">frames_range</span> <span class="o">=</span> <span class="n">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_frame</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_frame</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_paths_for_frames_range</span><span class="p">(</span><span class="n">frames_range</span><span class="p">):</span>
             <span class="n">path</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
             <span class="k">yield</span> <span class="n">path</span></div>
@@ -191,7 +211,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_path</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">yield</span> <span class="n">current_path</span></div>
 
-<div class="viewcode-block" id="GenericPaths.find_paths"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.find_paths">[docs]</a>    <span class="k">def</span> <span class="nf">find_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="GenericPaths.find_paths"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.find_paths">[docs]</a>    <span class="k">def</span> <span class="nf">find_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">paths_out</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_paths_out</span><span class="p">())</span>
         <span class="n">paths_in</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_paths_in</span><span class="p">())</span>
 
@@ -211,12 +231,12 @@
                     <span class="k">continue</span>
             <span class="c1"># TODO: make separate method/function for that</span>
             <span class="c1"># correct for max/min possible frame</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_possible_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_possible_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_out</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">path_out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_possible_frame</span><span class="p">:</span>
                         <span class="n">path_core</span> <span class="o">+=</span> <span class="n">path_out</span>
                         <span class="n">path_out</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_possible_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_possible_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_in</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">path_in</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_possible_frame</span><span class="p">:</span>
                         <span class="n">path_core</span> <span class="o">=</span> <span class="n">path_in</span> <span class="o">+</span> <span class="n">path_core</span>
@@ -227,22 +247,22 @@
             <span class="n">path_core</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">path_out</span> <span class="ow">in</span> <span class="n">paths_out</span><span class="p">:</span>
                 <span class="c1"># correct for max/min possible frame</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_possible_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_possible_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">path_out</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">path_out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_possible_frame</span><span class="p">:</span>
                             <span class="n">path_core</span> <span class="o">+=</span> <span class="n">path_out</span>
                             <span class="n">path_out</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">yield</span> <span class="n">path_in</span><span class="p">,</span> <span class="n">path_core</span><span class="p">,</span> <span class="n">path_out</span></div>
 
-<div class="viewcode-block" id="GenericPaths.find_paths_coords"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.find_paths_coords">[docs]</a>    <span class="k">def</span> <span class="nf">find_paths_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="GenericPaths.find_paths_coords"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.find_paths_coords">[docs]</a>    <span class="k">def</span> <span class="nf">find_paths_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_paths</span><span class="p">(</span><span class="n">fullonly</span><span class="o">=</span><span class="n">fullonly</span><span class="p">):</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_path_coords</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GenericPaths.find_paths_types"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.find_paths_types">[docs]</a>    <span class="k">def</span> <span class="nf">find_paths_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="GenericPaths.find_paths_types"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.find_paths_types">[docs]</a>    <span class="k">def</span> <span class="nf">find_paths_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_paths</span><span class="p">(</span><span class="n">fullonly</span><span class="o">=</span><span class="n">fullonly</span><span class="p">):</span>
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_path_types</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GenericPaths.find_paths_coords_types"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.find_paths_coords_types">[docs]</a>    <span class="k">def</span> <span class="nf">find_paths_coords_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="GenericPaths.find_paths_coords_types"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.find_paths_coords_types">[docs]</a>    <span class="k">def</span> <span class="nf">find_paths_coords_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_paths</span><span class="p">(</span><span class="n">fullonly</span><span class="o">=</span><span class="n">fullonly</span><span class="p">):</span>
             <span class="k">yield</span> <span class="n">path</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_path_coords</span><span class="p">(</span><span class="n">path</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_single_path_types</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></div>
 
@@ -308,12 +328,21 @@
             <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">p_out</span><span class="p">:</span>
                 <span class="n">out_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">[</span><span class="n">f</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="n">in_</span><span class="p">,</span> <span class="n">object_</span><span class="p">,</span> <span class="n">out_</span></div></div>
+        <span class="k">return</span> <span class="n">in_</span><span class="p">,</span> <span class="n">object_</span><span class="p">,</span> <span class="n">out_</span></div>
+
+
+<div class="viewcode-block" id="GenericPaths.barber_with_spheres"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.GenericPaths.barber_with_spheres">[docs]</a>    <span class="k">def</span> <span class="nf">barber_with_spheres</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">spheres</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">center</span><span class="p">,</span><span class="n">radius</span> <span class="ow">in</span> <span class="n">spheres</span><span class="p">:</span>
+            <span class="n">distances</span> <span class="o">=</span> <span class="n">cdist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">center</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="s1">&#39;euclidean&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="n">lind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">distances</span><span class="o">&gt;</span><span class="n">radius</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">types</span> <span class="o">=</span> <span class="n">lind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">distances</span><span class="o">&gt;</span><span class="n">radius</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">frames</span> <span class="o">=</span> <span class="n">lind</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">frames</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">distances</span><span class="o">&gt;</span><span class="n">radius</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span></div></div>
+
 
 
 <span class="c1"># SinglePathID = namedtuple(&#39;SinglePathID&#39;, &#39;id nr&#39;)</span>
 <div class="viewcode-block" id="SinglePathID"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePathID">[docs]</a><span class="k">class</span> <span class="nc">SinglePathID</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<div class="viewcode-block" id="SinglePathID.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePathID.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">nr</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SinglePathID.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePathID.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">nr</span> <span class="o">=</span> <span class="n">nr</span></div>
 
@@ -321,7 +350,7 @@
         <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">:</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nr</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="yield_single_paths"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.yield_single_paths">[docs]</a><span class="k">def</span> <span class="nf">yield_single_paths</span><span class="p">(</span><span class="n">gps</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="yield_single_paths"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.yield_single_paths">[docs]</a><span class="k">def</span> <span class="nf">yield_single_paths</span><span class="p">(</span><span class="n">gps</span><span class="p">,</span> <span class="n">fullonly</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="c1"># iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects</span>
     <span class="n">nr_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">gp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gps</span><span class="p">):</span>
@@ -350,8 +379,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">coords_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_object</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_out</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">types_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">types_object</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">types_out</span> <span class="o">=</span> <span class="n">types</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_object</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_out</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">smooth_method</span> <span class="o">=</span> <span class="bp">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_object</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_out</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smooth_method</span> <span class="o">=</span> <span class="kc">None</span></div>
 
         <span class="c1"># return np.vstack([c for c in self._coords if len(c) &gt; 0])</span>
 
@@ -371,7 +400,7 @@
     <span class="k">def</span> <span class="nf">coords_filo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># first in and last out plus type!</span>
         <span class="k">return</span> <span class="p">[(</span><span class="n">inlet</span><span class="p">,</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">incoming</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">outgoing</span><span class="p">}[</span><span class="n">nr</span><span class="p">])</span> <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">inlet</span> <span class="ow">in</span>
-                <span class="nb">enumerate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">coords_first_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_last_out</span><span class="p">))</span> <span class="k">if</span> <span class="n">inlet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">]</span>
+                <span class="nb">enumerate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">coords_first_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_last_out</span><span class="p">))</span> <span class="k">if</span> <span class="n">inlet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
 
     <span class="c1"># ---------------------------------------------------------------------------------------------------------------- #</span>
 
@@ -478,16 +507,16 @@
     <span class="c1">####################################################################################################################</span>
 
     <span class="nd">@tupleify</span>
-<div class="viewcode-block" id="SinglePath.get_coords"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SinglePath.get_coords"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_coords">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed</span>
         <span class="c1"># if smooth is not none applies smoothing</span>
-        <span class="k">if</span> <span class="n">smooth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">smooth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">smooth</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_method</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_object</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_smooth_coords</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">coords_cont</span><span class="p">,</span> <span class="n">smooth</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">smooth_method</span> <span class="o">=</span> <span class="n">smooth</span>
             <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">coords</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_object</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth_coords_out</span><span class="p">)):</span>
-                <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">yield</span> <span class="n">coords</span>
@@ -495,12 +524,12 @@
             <span class="k">for</span> <span class="n">coords</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">coords</span></div>
 
-<div class="viewcode-block" id="SinglePath.get_coords_cont"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_coords_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SinglePath.get_coords_cont"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_coords_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_coords_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># returns coords as one array</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_coords</span><span class="p">(</span><span class="n">smooth</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">])</span></div>
 
     <span class="nd">@tupleify</span>
-<div class="viewcode-block" id="SinglePath._make_smooth_coords"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath._make_smooth_coords">[docs]</a>    <span class="k">def</span> <span class="nf">_make_smooth_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SinglePath._make_smooth_coords"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath._make_smooth_coords">[docs]</a>    <span class="k">def</span> <span class="nf">_make_smooth_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># if smooth is not none applies smoothing</span>
         <span class="c1"># smooth should be callable and should return an object of length equal to submitted one</span>
         <span class="c1"># get continuous coords</span>
@@ -521,9 +550,9 @@
         <span class="c1"># permament change!</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">coords_in</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_object</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_smooth_coords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">coords_cont</span><span class="p">,</span> <span class="n">smooth</span><span class="p">)</span></div>
 
-        <span class="c1">####################################################################################################################</span>
+    <span class="c1">####################################################################################################################</span>
 
-<div class="viewcode-block" id="SinglePath.get_distance_cont"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_distance_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_distance_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SinglePath.get_distance_cont"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_distance_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_distance_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_coords_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)))))</span>
         <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">is_number</span><span class="p">(</span><span class="n">normalize</span><span class="p">):</span>
@@ -543,20 +572,24 @@
         <span class="k">return</span> <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">length</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">length</span><span class="p">))</span></div>
 
     <span class="nd">@arrayify1</span>
-<div class="viewcode-block" id="SinglePath.get_velocity_cont"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_velocity_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_velocity_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SinglePath.get_velocity_cont"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_velocity_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_velocity_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">distance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_distance_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">traces</span><span class="o">.</span><span class="n">derrivative</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span></div>
 
     <span class="nd">@arrayify1</span>
-<div class="viewcode-block" id="SinglePath.get_acceleration_cont"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_acceleration_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_acceleration_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="SinglePath.get_acceleration_cont"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.SinglePath.get_acceleration_cont">[docs]</a>    <span class="k">def</span> <span class="nf">get_acceleration_cont</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">velocity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_velocity_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">traces</span><span class="o">.</span><span class="n">derrivative</span><span class="p">(</span><span class="n">velocity</span><span class="p">)</span></div></div>
+
+    <span class="c1">####################################################################################################################</span>
+
+
 
 
 <div class="viewcode-block" id="MasterPath"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.MasterPath">[docs]</a><span class="k">class</span> <span class="nc">MasterPath</span><span class="p">(</span><span class="n">SinglePath</span><span class="p">):</span>
 <div class="viewcode-block" id="MasterPath.__init__"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.MasterPath.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sp</span><span class="p">):</span>
         <span class="n">SinglePath</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">paths</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">gtypes</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">width_cont</span> <span class="o">=</span> <span class="bp">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">width_cont</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="MasterPath.add_width"><a class="viewcode-back" href="../../../aqueduct.traj.paths.html#aqueduct.traj.paths.MasterPath.add_width">[docs]</a>    <span class="k">def</span> <span class="nf">add_width</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">width</span><span class="p">):</span>
         <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
@@ -564,20 +597,6 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -591,14 +610,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div>
   </body>
 </html>

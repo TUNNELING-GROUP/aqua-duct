@@ -6,8 +6,8 @@ Submodules
 
 .. toctree::
 
+   aqueduct.utils.clui
    aqueduct.utils.helpers
-   aqueduct.utils.log
    aqueduct.utils.multip
 
 Module contents

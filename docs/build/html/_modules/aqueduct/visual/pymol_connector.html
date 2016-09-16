@@ -1,20 +1,21 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<!doctype html>
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.visual.pymol_connector &mdash; Aqueduct 0.2.11 documentation</title>
+    <title>aqueduct.visual.pymol_connector &#8212; Aqueduct 0.2.17 documentation</title>
     
-    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.11',
+        VERSION:     '0.2.17',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +25,13 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.11 documentation" href="../../../index.html" />
-    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="top" title="Aqueduct 0.2.17 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -37,11 +43,25 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -49,21 +69,21 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.visual.pymol_connector</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="c1"># import it as pmc?</span>
 
-<span class="kn">import</span> <span class="nn">cPickle</span> <span class="kn">as</span> <span class="nn">pickle</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cPickle</span> <span class="k">as</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tarfile</span>
 
-<span class="kn">import</span> <span class="nn">aqueduct.visual.pymol_cgo</span> <span class="kn">as</span> <span class="nn">cgo</span>
+<span class="kn">import</span> <span class="nn">aqueduct.visual.pymol_cgo</span> <span class="k">as</span> <span class="nn">cgo</span>
 
-<span class="kn">from</span> <span class="nn">aqueduct.geom</span> <span class="kn">import</span> <span class="n">traces</span>
-<span class="kn">from</span> <span class="nn">aqueduct.traj.paths</span> <span class="kn">import</span> <span class="n">PathTypesCodes</span>
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">list_blocks_to_slices</span>
-<span class="kn">from</span> <span class="nn">aqueduct.visual.helpers</span> <span class="kn">import</span> <span class="n">color_codes</span><span class="p">,</span> <span class="n">cc</span>
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">create_tmpfile</span>
+<span class="kn">from</span> <span class="nn">aqueduct.geom</span> <span class="k">import</span> <span class="n">traces</span>
+<span class="kn">from</span> <span class="nn">aqueduct.traj.paths</span> <span class="k">import</span> <span class="n">PathTypesCodes</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="k">import</span> <span class="n">list_blocks_to_slices</span>
+<span class="kn">from</span> <span class="nn">aqueduct.visual.helpers</span> <span class="k">import</span> <span class="n">color_codes</span><span class="p">,</span> <span class="n">cc</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="k">import</span> <span class="n">create_tmpfile</span>
 
 
 <div class="viewcode-block" id="BasicPymolCGO"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGO">[docs]</a><span class="k">class</span> <span class="nc">BasicPymolCGO</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -71,17 +91,17 @@
     <span class="n">cgo_entity_end</span> <span class="o">=</span> <span class="p">[]</span>
 
 <div class="viewcode-block" id="BasicPymolCGO.__init__"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGO.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">previous</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previous</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="BasicPymolCGO.clean"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGO.clean">[docs]</a>    <span class="k">def</span> <span class="nf">clean</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">previous</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previous</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity_begin</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BasicPymolCGO.new"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGO.new">[docs]</a>    <span class="k">def</span> <span class="nf">new</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">previous</span> <span class="o">=</span> <span class="bp">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">previous</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="BasicPymolCGO.get"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGO.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity_end</span></div></div>
@@ -91,15 +111,15 @@
     <span class="n">cgo_entity_begin</span> <span class="o">=</span> <span class="p">[</span><span class="n">cgo</span><span class="o">.</span><span class="n">BEGIN</span><span class="p">,</span> <span class="n">cgo</span><span class="o">.</span><span class="n">LINES</span><span class="p">]</span>
     <span class="n">cgo_entity_end</span> <span class="o">=</span> <span class="p">[</span><span class="n">cgo</span><span class="o">.</span><span class="n">END</span><span class="p">]</span>
 
-<div class="viewcode-block" id="BasicPymolCGOLines.add"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGOLines.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicPymolCGOLines.add"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGOLines.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
-        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cgo</span><span class="o">.</span><span class="n">COLOR</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">color</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">coord</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">previous</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cgo</span><span class="o">.</span><span class="n">VERTEX</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">previous</span><span class="p">))</span>
 
@@ -112,16 +132,16 @@
     <span class="n">cgo_entity_begin</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">cgo_entity_end</span> <span class="o">=</span> <span class="p">[]</span>
 
-<div class="viewcode-block" id="BasicPymolCGOSpheres.add"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGOSpheres.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicPymolCGOSpheres.add"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGOSpheres.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># color to colors...</span>
-        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">color</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">color</span><span class="p">)</span><span class="o">.</span><span class="n">A</span>
-        <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">radius</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span><span class="o">.</span><span class="n">A1</span>
 
-        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">coords</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">coord</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coords</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">color</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                         <span class="n">c</span> <span class="o">=</span> <span class="n">color</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
@@ -130,7 +150,7 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cgo</span><span class="o">.</span><span class="n">SPHERE</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">coord</span><span class="p">))</span>
-                <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">radius</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                         <span class="n">r</span> <span class="o">=</span> <span class="n">radius</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span>
                     <span class="k">else</span><span class="p">:</span>
@@ -146,9 +166,9 @@
     <span class="n">cgo_entity_begin</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">cgo_entity_end</span> <span class="o">=</span> <span class="p">[]</span>
 
-<div class="viewcode-block" id="BasicPymolCGOPointers.add_cone"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGOPointers.add_cone">[docs]</a>    <span class="k">def</span> <span class="nf">add_cone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">coords2</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">radius1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">radius2</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">color1</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">color2</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicPymolCGOPointers.add_cone"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGOPointers.add_cone">[docs]</a>    <span class="k">def</span> <span class="nf">add_cone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coords2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">radius1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">radius2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color2</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># color to colors... ???</span>
-        <span class="k">if</span> <span class="n">coords1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">coords2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">coords1</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">coords2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cgo</span><span class="o">.</span><span class="n">CONE</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">coords1</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">coords2</span><span class="p">))</span>
@@ -159,7 +179,7 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">cgo_entity</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">cgo</span><span class="o">.</span><span class="n">NULL</span><span class="p">,</span> <span class="n">cgo</span><span class="o">.</span><span class="n">POINTS</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="BasicPymolCGOPointers.add_pointer"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGOPointers.add_pointer">[docs]</a>    <span class="k">def</span> <span class="nf">add_pointer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+<div class="viewcode-block" id="BasicPymolCGOPointers.add_pointer"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.BasicPymolCGOPointers.add_pointer">[docs]</a>    <span class="k">def</span> <span class="nf">add_pointer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">point</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">vec</span> <span class="o">=</span> <span class="n">point</span> <span class="o">-</span> <span class="n">direction</span>
         <span class="n">vec_len</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">vec</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">))</span>
         <span class="n">vec</span> <span class="o">=</span> <span class="p">(</span><span class="n">vec</span> <span class="o">/</span> <span class="n">vec_len</span><span class="p">)</span> <span class="o">*</span> <span class="n">length</span>
@@ -174,7 +194,7 @@
 
 <div class="viewcode-block" id="SimpleTarWriteHelper"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SimpleTarWriteHelper">[docs]</a><span class="k">class</span> <span class="nc">SimpleTarWriteHelper</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <div class="viewcode-block" id="SimpleTarWriteHelper.__init__"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SimpleTarWriteHelper.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tar_fh</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tar_fh</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tmp_file</span> <span class="o">=</span> <span class="n">create_tmpfile</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="SimpleTarWriteHelper.open"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SimpleTarWriteHelper.open">[docs]</a>    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
@@ -189,7 +209,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tar_fh</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="n">name</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SimpleTarWriteHelper.__del__"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SimpleTarWriteHelper.__del__">[docs]</a>    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tar_fh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tar_fh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tar_fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="n">os</span><span class="o">.</span><span class="n">unlink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tmp_file</span><span class="p">)</span></div></div>
 
@@ -200,12 +220,12 @@
     <span class="n">ct_file</span> <span class="o">=</span> <span class="s1">&#39;file&#39;</span>
 
 <div class="viewcode-block" id="ConnectToPymol.__init__"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">=</span> <span class="bp">None</span>  <span class="c1"># possible types are pymol and file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># possible types are pymol and file</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">script_fh</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data_fh</span> <span class="o">=</span> <span class="n">SimpleTarWriteHelper</span><span class="p">()</span>
 
-        <span class="n">cmd</span> <span class="o">=</span> <span class="bp">None</span></div>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="ConnectToPymol.init_pymol"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.init_pymol">[docs]</a>    <span class="k">def</span> <span class="nf">init_pymol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">pymol</span>
@@ -281,8 +301,8 @@
 <span class="s1">        max_state=state</span>
 <span class="s1">&#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cgo_line_width</span><span class="p">,</span> <span class="n">data_filename</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">% s</span><span class="s2">&quot;</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="ConnectToPymol.add_cgo_object"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.add_cgo_object">[docs]</a>    <span class="k">def</span> <span class="nf">add_cgo_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cgo_object</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ConnectToPymol.add_cgo_object"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.add_cgo_object">[docs]</a>    <span class="k">def</span> <span class="nf">add_cgo_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">cgo_object</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">state</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_pymol</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">load_cgo</span><span class="p">(</span><span class="n">cgo_object</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">state</span><span class="p">)</span>
@@ -295,11 +315,11 @@
             <span class="c1"># self.script_fh.write(&#39;&#39;&#39;self.cmd.refresh()&#39;&#39;&#39;)</span>
             <span class="c1"># self.script_fh.write(os.linesep)</span>
 
-<div class="viewcode-block" id="ConnectToPymol.del_cgo_object"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.del_cgo_object">[docs]</a>    <span class="k">def</span> <span class="nf">del_cgo_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This feature is not implemented yet.&quot;</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ConnectToPymol.del_cgo_object"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.del_cgo_object">[docs]</a>    <span class="k">def</span> <span class="nf">del_cgo_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Deletion of CGO objects is not implemented yet.&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ConnectToPymol.load_pdb"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.load_pdb">[docs]</a>    <span class="k">def</span> <span class="nf">load_pdb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+<div class="viewcode-block" id="ConnectToPymol.load_pdb"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.ConnectToPymol.load_pdb">[docs]</a>    <span class="k">def</span> <span class="nf">load_pdb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">state</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ct_pymol</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cmd</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">,</span> <span class="nb">object</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
@@ -342,7 +362,7 @@
 
 
 <div class="viewcode-block" id="SinglePathPlotter"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SinglePathPlotter">[docs]</a><span class="k">class</span> <span class="nc">SinglePathPlotter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<div class="viewcode-block" id="SinglePathPlotter.__init__"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SinglePathPlotter.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pymol_connector</span><span class="p">,</span> <span class="n">linearize</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SinglePathPlotter.__init__"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SinglePathPlotter.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pymol_connector</span><span class="p">,</span> <span class="n">linearize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_lines</span> <span class="o">=</span> <span class="n">BasicPymolCGOLines</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_spheres</span> <span class="o">=</span> <span class="n">BasicPymolCGOSpheres</span><span class="p">()</span>
@@ -356,10 +376,10 @@
 
 <div class="viewcode-block" id="SinglePathPlotter.add_single_path_continous_trace"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SinglePathPlotter.add_single_path_continous_trace">[docs]</a>    <span class="k">def</span> <span class="nf">add_single_path_continous_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                         <span class="n">spath</span><span class="p">,</span>
-                                        <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                                        <span class="n">plot_in</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                                        <span class="n">plot_object</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                                        <span class="n">plot_out</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                                        <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                        <span class="n">plot_in</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                        <span class="n">plot_object</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                        <span class="n">plot_out</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                                         <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_lines</span><span class="o">.</span><span class="n">new</span><span class="p">()</span>
@@ -375,7 +395,7 @@
 
         <span class="c1"># create traces</span>
         <span class="n">traces_list</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">coords_cont</span><span class="p">[</span><span class="n">sl</span><span class="p">]</span> <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">sls</span><span class="p">])</span>
-        <span class="n">new_line</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">new_line</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">trace</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">traces</span><span class="o">.</span><span class="n">midpoints</span><span class="p">(</span><span class="n">traces_list</span><span class="p">),</span> <span class="n">sls</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># now trace has midpoints</span>
@@ -398,16 +418,16 @@
 
             <span class="k">if</span> <span class="n">new_line</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">cgo_lines</span><span class="o">.</span><span class="n">new</span><span class="p">()</span>
-                <span class="n">new_line</span> <span class="o">=</span> <span class="bp">False</span></div>
+                <span class="n">new_line</span> <span class="o">=</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="SinglePathPlotter.paths_trace"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SinglePathPlotter.paths_trace">[docs]</a>    <span class="k">def</span> <span class="nf">paths_trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spaths</span><span class="p">,</span>
-                    <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">name</span><span class="o">=</span><span class="s1">&#39;paths&#39;</span><span class="p">,</span>
-                    <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                    <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
         <span class="c1"># if state_function is None</span>
-        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">state</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_lines</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">spath</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spaths</span><span class="p">):</span>
@@ -415,22 +435,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pymol_connector</span><span class="o">.</span><span class="n">add_cgo_object</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cgo_lines</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SinglePathPlotter.paths_inlets"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SinglePathPlotter.paths_inlets">[docs]</a>    <span class="k">def</span> <span class="nf">paths_inlets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spaths</span><span class="p">,</span>
-                     <span class="n">smooth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                     <span class="n">color</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
-                     <span class="n">plot_in</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
-                     <span class="n">plot_out</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                     <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                     <span class="n">plot_in</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                     <span class="n">plot_out</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                      <span class="n">name</span><span class="o">=</span><span class="s1">&#39;in-out-let&#39;</span><span class="p">,</span>
-                     <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                     <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 
-        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">state</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_pointers</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">spath</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">spaths</span><span class="p">):</span>
             <span class="n">coords</span> <span class="o">=</span> <span class="n">spath</span><span class="o">.</span><span class="n">get_coords_cont</span><span class="p">(</span><span class="n">smooth</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
             <span class="n">etypes</span> <span class="o">=</span> <span class="n">spath</span><span class="o">.</span><span class="n">etypes_cont</span>
             <span class="k">if</span> <span class="n">plot_in</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">c</span> <span class="o">=</span> <span class="n">color_codes</span><span class="p">(</span><span class="n">etypes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">c</span> <span class="o">=</span> <span class="n">color</span>
@@ -439,7 +459,7 @@
                                               <span class="n">length</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
                                               <span class="n">color</span><span class="o">=</span><span class="n">cc</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">plot_out</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">color</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">c</span> <span class="o">=</span> <span class="n">color_codes</span><span class="p">(</span><span class="n">etypes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">c</span> <span class="o">=</span> <span class="n">color</span>
@@ -447,18 +467,18 @@
                                               <span class="n">direction</span><span class="o">=</span><span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span>
                                               <span class="n">length</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
                                               <span class="n">color</span><span class="o">=</span><span class="n">cc</span><span class="p">(</span><span class="n">c</span><span class="p">),</span>
-                                              <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                                              <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">pymol_connector</span><span class="o">.</span><span class="n">add_cgo_object</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cgo_pointers</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SinglePathPlotter.scatter"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SinglePathPlotter.scatter">[docs]</a>    <span class="k">def</span> <span class="nf">scatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span>
                 <span class="n">radius</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
                 <span class="n">color</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">,</span>
                 <span class="n">name</span><span class="o">=</span><span class="s1">&#39;scatter&#39;</span><span class="p">,</span>
-                <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">color</span> <span class="o">=</span> <span class="n">cc</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">state</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_spheres</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
@@ -470,11 +490,11 @@
 <div class="viewcode-block" id="SinglePathPlotter.convexhull"><a class="viewcode-back" href="../../../aqueduct.visual.pymol_connector.html#aqueduct.visual.pymol_connector.SinglePathPlotter.convexhull">[docs]</a>    <span class="k">def</span> <span class="nf">convexhull</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chull</span><span class="p">,</span>
                    <span class="n">color</span><span class="o">=</span><span class="s1">&#39;m&#39;</span><span class="p">,</span>
                    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;convexhull&#39;</span><span class="p">,</span>
-                   <span class="n">state</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                   <span class="n">state</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">color</span> <span class="o">=</span> <span class="n">cc</span><span class="p">(</span><span class="n">color</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">state</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">cgo_lines</span><span class="o">.</span><span class="n">clean</span><span class="p">()</span>
@@ -489,20 +509,6 @@
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
       <div class="clearer"></div>
     </div>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -514,14 +520,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div>
   </body>
 </html>

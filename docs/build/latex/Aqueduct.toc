@@ -3,7 +3,7 @@
 \contentsline {section}{\numberline {1.1}Overview}{3}{section.1.1}
 \contentsline {section}{\numberline {1.2}Install}{3}{section.1.2}
 \contentsline {subsection}{\numberline {1.2.1}Aqueduct}{3}{subsection.1.2.1}
-\contentsline {subsection}{\numberline {1.2.2}Valve}{3}{subsection.1.2.2}
+\contentsline {subsection}{\numberline {1.2.2}Valve}{4}{subsection.1.2.2}
 \contentsline {subsection}{\numberline {1.2.3}Extras}{4}{subsection.1.2.3}
 \contentsline {chapter}{\numberline {2}\emph {Valve} manual}{5}{chapter.2}
 \contentsline {section}{\numberline {2.1}\emph {Valve} invocation}{5}{section.2.1}
@@ -16,101 +16,77 @@
 \contentsline {subsubsection}{Scope definition}{7}{subsubsection*.4}
 \contentsline {subsection}{\numberline {2.2.2}Raw paths}{7}{subsection.2.2.2}
 \contentsline {subsection}{\numberline {2.2.3}Separate paths}{7}{subsection.2.2.3}
+\contentsline {subsubsection}{Auto Barber}{8}{subsubsection*.5}
 \contentsline {subsection}{\numberline {2.2.4}Clusterization of inlets}{8}{subsection.2.2.4}
 \contentsline {subsection}{\numberline {2.2.5}Analysis}{8}{subsection.2.2.5}
-\contentsline {subsubsection}{Separate path ID}{9}{subsubsection*.5}
-\contentsline {subsubsection}{Cluster Type of separate path}{9}{subsubsection*.6}
-\contentsline {subsection}{\numberline {2.2.6}Visualization}{9}{subsection.2.2.6}
-\contentsline {subsubsection}{Color schemes}{10}{subsubsection*.7}
+\contentsline {subsubsection}{Separate path ID}{9}{subsubsection*.6}
+\contentsline {subsubsection}{Cluster Type of separate path}{9}{subsubsection*.7}
+\contentsline {subsection}{\numberline {2.2.6}Visualization}{10}{subsection.2.2.6}
+\contentsline {subsubsection}{Color schemes}{10}{subsubsection*.8}
 \contentsline {chapter}{\numberline {3}Configuration file options}{11}{chapter.3}
 \contentsline {section}{\numberline {3.1}Section \textbf {global}}{11}{section.3.1}
-\contentsline {subsection}{\numberline {3.1.1}Available options}{11}{subsection.3.1.1}
-\contentsline {subsection}{\numberline {3.1.2}Example}{11}{subsection.3.1.2}
-\contentsline {section}{\numberline {3.2}Common settings of stage sections}{12}{section.3.2}
-\contentsline {subsection}{\numberline {3.2.1}Option \textbf {execute}}{12}{subsection.3.2.1}
-\contentsline {subsection}{\numberline {3.2.2}Option \textbf {save}}{12}{subsection.3.2.2}
-\contentsline {subsection}{\numberline {3.2.3}Option \textbf {load}}{12}{subsection.3.2.3}
-\contentsline {section}{\numberline {3.3}Stage \textbf {traceable\_residues}}{12}{section.3.3}
-\contentsline {subsection}{\numberline {3.3.1}Option \textbf {scope}}{12}{subsection.3.3.1}
-\contentsline {subsection}{\numberline {3.3.2}Option \textbf {scope\_convexhull}}{12}{subsection.3.3.2}
-\contentsline {subsection}{\numberline {3.3.3}Option \textbf {object}}{12}{subsection.3.3.3}
-\contentsline {section}{\numberline {3.4}Stage \textbf {raw\_paths}}{12}{section.3.4}
-\contentsline {subsection}{\numberline {3.4.1}Option \textbf {clear\_in\_object\_info}}{13}{subsection.3.4.1}
+\contentsline {section}{\numberline {3.2}Common settings of stage sections}{11}{section.3.2}
+\contentsline {section}{\numberline {3.3}Stage \textbf {traceable\_residues}}{13}{section.3.3}
+\contentsline {section}{\numberline {3.4}Stage \textbf {raw\_paths}}{13}{section.3.4}
 \contentsline {section}{\numberline {3.5}Stage \textbf {separate\_paths}}{13}{section.3.5}
-\contentsline {subsection}{\numberline {3.5.1}Option \textbf {discard\_empty\_paths}}{13}{subsection.3.5.1}
-\contentsline {subsection}{\numberline {3.5.2}Option \textbf {sort\_by\_id}}{13}{subsection.3.5.2}
-\contentsline {subsection}{\numberline {3.5.3}Option \textbf {apply\_smoothing}}{13}{subsection.3.5.3}
-\contentsline {subsection}{\numberline {3.5.4}Option \textbf {apply\_soft\_smoothing}}{13}{subsection.3.5.4}
-\contentsline {subsection}{\numberline {3.5.5}Option \textbf {discard\_short\_paths}}{13}{subsection.3.5.5}
-\contentsline {section}{\numberline {3.6}Stage \textbf {inlets\_clusterization}}{13}{section.3.6}
-\contentsline {subsection}{\numberline {3.6.1}Option \textbf {recluster\_outliers}}{13}{subsection.3.6.1}
-\contentsline {subsection}{\numberline {3.6.2}Option \textbf {detect\_outliers}}{13}{subsection.3.6.2}
-\contentsline {subsection}{\numberline {3.6.3}Option \textbf {singletons\_outliers}}{13}{subsection.3.6.3}
-\contentsline {section}{\numberline {3.7}Stage \textbf {analysis}}{13}{section.3.7}
-\contentsline {subsection}{\numberline {3.7.1}Option \textbf {dump\_config}}{13}{subsection.3.7.1}
-\contentsline {section}{\numberline {3.8}Stage \textbf {visualize}}{14}{section.3.8}
-\contentsline {subsection}{\numberline {3.8.1}Option \textbf {simply\_smooths}}{14}{subsection.3.8.1}
-\contentsline {subsection}{\numberline {3.8.2}Option \textbf {all\_paths\_raw}}{14}{subsection.3.8.2}
-\contentsline {subsection}{\numberline {3.8.3}Option \textbf {all\_paths\_smooth}}{14}{subsection.3.8.3}
-\contentsline {subsection}{\numberline {3.8.4}Option \textbf {all\_paths\_split}}{14}{subsection.3.8.4}
-\contentsline {subsection}{\numberline {3.8.5}Options \textbf {all\_paths\_raw\_io} and \textbf {all\_paths\_smooth\_io}}{14}{subsection.3.8.5}
-\contentsline {subsection}{\numberline {3.8.6}Option \textbf {paths\_raw}}{14}{subsection.3.8.6}
-\contentsline {subsection}{\numberline {3.8.7}Option \textbf {paths\_raw}}{14}{subsection.3.8.7}
-\contentsline {subsection}{\numberline {3.8.8}Option \textbf {paths\_raw\_io}}{14}{subsection.3.8.8}
-\contentsline {subsection}{\numberline {3.8.9}Option \textbf {paths\_smooth\_io}}{14}{subsection.3.8.9}
-\contentsline {subsection}{\numberline {3.8.10}Option \textbf {paths\_states}}{14}{subsection.3.8.10}
-\contentsline {subsection}{\numberline {3.8.11}Option \textbf {ctypes\_raw}}{15}{subsection.3.8.11}
-\contentsline {subsection}{\numberline {3.8.12}Option \textbf {ctypes\_smooth}}{15}{subsection.3.8.12}
-\contentsline {subsection}{\numberline {3.8.13}Option \textbf {show\_molecule}}{15}{subsection.3.8.13}
-\contentsline {subsection}{\numberline {3.8.14}Option \textbf {show\_molecule\_frames}}{15}{subsection.3.8.14}
-\contentsline {chapter}{\numberline {4}\emph {Valve} tutorial}{17}{chapter.4}
-\contentsline {section}{\numberline {4.1}\emph {Valve} invocation}{17}{section.4.1}
-\contentsline {section}{\numberline {4.2}Test data}{17}{section.4.2}
-\contentsline {section}{\numberline {4.3}Inspect your system}{17}{section.4.3}
-\contentsline {subsection}{\numberline {4.3.1}Create \emph {Object definition}}{18}{subsection.4.3.1}
-\contentsline {subsection}{\numberline {4.3.2}Create \emph {Scope definition}}{18}{subsection.4.3.2}
-\contentsline {section}{\numberline {4.4}Prepare config file}{18}{section.4.4}
-\contentsline {section}{\numberline {4.5}Run \emph {Valve}}{18}{section.4.5}
-\contentsline {subsection}{\numberline {4.5.1}Visual inspection}{18}{subsection.4.5.1}
-\contentsline {subsection}{\numberline {4.5.2}Analysis tables}{19}{subsection.4.5.2}
-\contentsline {section}{\numberline {4.6}Feedback}{19}{section.4.6}
-\contentsline {chapter}{\numberline {5}aqueduct}{21}{chapter.5}
-\contentsline {section}{\numberline {5.1}aqueduct package}{21}{section.5.1}
-\contentsline {subsection}{\numberline {5.1.1}Subpackages}{21}{subsection.5.1.1}
-\contentsline {subsubsection}{aqueduct.geom package}{21}{subsubsection*.8}
-\contentsline {paragraph}{Submodules}{21}{paragraph*.9}
-\contentsline {subparagraph}{aqueduct.geom.cluster module}{21}{subparagraph*.10}
-\contentsline {subparagraph}{aqueduct.geom.convexhull module}{21}{subparagraph*.18}
-\contentsline {subparagraph}{aqueduct.geom.master module}{21}{subparagraph*.24}
-\contentsline {subparagraph}{aqueduct.geom.pca module}{22}{subparagraph*.34}
-\contentsline {subparagraph}{aqueduct.geom.smooth module}{22}{subparagraph*.54}
-\contentsline {subparagraph}{aqueduct.geom.test\_triangle\_height module}{23}{subparagraph*.83}
-\contentsline {subparagraph}{aqueduct.geom.test\_vectors\_angle\_anorm module}{23}{subparagraph*.88}
-\contentsline {subparagraph}{aqueduct.geom.traces module}{24}{subparagraph*.99}
-\contentsline {paragraph}{Module contents}{26}{paragraph*.130}
-\contentsline {subsubsection}{aqueduct.traj package}{26}{subsubsection*.131}
-\contentsline {paragraph}{Submodules}{26}{paragraph*.132}
-\contentsline {subparagraph}{aqueduct.traj.dumps module}{26}{subparagraph*.133}
-\contentsline {subparagraph}{aqueduct.traj.inlets module}{26}{subparagraph*.139}
-\contentsline {subparagraph}{aqueduct.traj.paths module}{28}{subparagraph*.206}
-\contentsline {subparagraph}{aqueduct.traj.reader module}{30}{subparagraph*.276}
-\contentsline {subparagraph}{aqueduct.traj.selections module}{31}{subparagraph*.301}
-\contentsline {paragraph}{Module contents}{31}{paragraph*.322}
-\contentsline {subsubsection}{aqueduct.utils package}{31}{subsubsection*.323}
-\contentsline {paragraph}{Submodules}{31}{paragraph*.324}
-\contentsline {subparagraph}{aqueduct.utils.helpers module}{31}{subparagraph*.325}
-\contentsline {subparagraph}{aqueduct.utils.log module}{34}{subparagraph*.347}
-\contentsline {subparagraph}{aqueduct.utils.multip module}{38}{subparagraph*.378}
-\contentsline {paragraph}{Module contents}{38}{paragraph*.379}
-\contentsline {subsubsection}{aqueduct.visual package}{38}{subsubsection*.380}
-\contentsline {paragraph}{Submodules}{38}{paragraph*.381}
-\contentsline {subparagraph}{aqueduct.visual.cmaps module}{38}{subparagraph*.382}
-\contentsline {subparagraph}{aqueduct.visual.helpers module}{38}{subparagraph*.383}
-\contentsline {subparagraph}{aqueduct.visual.pymol\_cgo module}{38}{subparagraph*.394}
-\contentsline {subparagraph}{aqueduct.visual.pymol\_connector module}{38}{subparagraph*.395}
-\contentsline {subparagraph}{aqueduct.visual.quickplot module}{40}{subparagraph*.441}
-\contentsline {paragraph}{Module contents}{40}{paragraph*.461}
-\contentsline {subsection}{\numberline {5.1.2}Module contents}{40}{subsection.5.1.2}
-\contentsline {chapter}{\numberline {6}Indices and tables}{43}{chapter.6}
-\contentsline {chapter}{Python Module Index}{45}{section*.465}
-\contentsline {chapter}{Index}{47}{section*.466}
+\contentsline {section}{\numberline {3.6}Stage \textbf {inlets\_clusterization}}{14}{section.3.6}
+\contentsline {section}{\numberline {3.7}Stage \textbf {analysis}}{14}{section.3.7}
+\contentsline {section}{\numberline {3.8}Stage \textbf {visualize}}{15}{section.3.8}
+\contentsline {section}{\numberline {3.9}Clusterization sections}{16}{section.3.9}
+\contentsline {subsection}{\numberline {3.9.1}dbscan}{16}{subsection.3.9.1}
+\contentsline {subsection}{\numberline {3.9.2}affprop}{17}{subsection.3.9.2}
+\contentsline {subsection}{\numberline {3.9.3}meanshift}{17}{subsection.3.9.3}
+\contentsline {subsection}{\numberline {3.9.4}birch}{17}{subsection.3.9.4}
+\contentsline {subsection}{\numberline {3.9.5}kmeans}{17}{subsection.3.9.5}
+\contentsline {section}{\numberline {3.10}Smooth section}{18}{section.3.10}
+\contentsline {chapter}{\numberline {4}\emph {Valve} tutorial}{19}{chapter.4}
+\contentsline {section}{\numberline {4.1}\emph {Valve} invocation}{19}{section.4.1}
+\contentsline {section}{\numberline {4.2}Test data}{19}{section.4.2}
+\contentsline {section}{\numberline {4.3}Inspect your system}{19}{section.4.3}
+\contentsline {subsection}{\numberline {4.3.1}Create \emph {Object definition}}{20}{subsection.4.3.1}
+\contentsline {subsection}{\numberline {4.3.2}Create \emph {Scope definition}}{20}{subsection.4.3.2}
+\contentsline {section}{\numberline {4.4}Prepare config file}{20}{section.4.4}
+\contentsline {section}{\numberline {4.5}Run \emph {Valve}}{20}{section.4.5}
+\contentsline {subsection}{\numberline {4.5.1}Visual inspection}{20}{subsection.4.5.1}
+\contentsline {subsection}{\numberline {4.5.2}Analysis tables}{21}{subsection.4.5.2}
+\contentsline {section}{\numberline {4.6}Feedback}{21}{section.4.6}
+\contentsline {chapter}{\numberline {5}aqueduct}{23}{chapter.5}
+\contentsline {section}{\numberline {5.1}aqueduct package}{23}{section.5.1}
+\contentsline {subsection}{\numberline {5.1.1}Subpackages}{23}{subsection.5.1.1}
+\contentsline {subsubsection}{aqueduct.geom package}{23}{subsubsection*.9}
+\contentsline {paragraph}{Submodules}{23}{paragraph*.10}
+\contentsline {subparagraph}{aqueduct.geom.cluster module}{23}{subparagraph*.11}
+\contentsline {subparagraph}{aqueduct.geom.convexhull module}{23}{subparagraph*.19}
+\contentsline {subparagraph}{aqueduct.geom.master module}{23}{subparagraph*.26}
+\contentsline {subparagraph}{aqueduct.geom.pca module}{24}{subparagraph*.37}
+\contentsline {subparagraph}{aqueduct.geom.smooth module}{24}{subparagraph*.57}
+\contentsline {subparagraph}{aqueduct.geom.test\_triangle\_height module}{25}{subparagraph*.86}
+\contentsline {subparagraph}{aqueduct.geom.test\_vectors\_angle\_anorm module}{26}{subparagraph*.91}
+\contentsline {subparagraph}{aqueduct.geom.traces module}{26}{subparagraph*.102}
+\contentsline {paragraph}{Module contents}{28}{paragraph*.134}
+\contentsline {subsubsection}{aqueduct.traj package}{28}{subsubsection*.135}
+\contentsline {paragraph}{Submodules}{28}{paragraph*.136}
+\contentsline {subparagraph}{aqueduct.traj.dumps module}{28}{subparagraph*.137}
+\contentsline {subparagraph}{aqueduct.traj.inlets module}{28}{subparagraph*.143}
+\contentsline {subparagraph}{aqueduct.traj.paths module}{30}{subparagraph*.212}
+\contentsline {subparagraph}{aqueduct.traj.reader module}{32}{subparagraph*.283}
+\contentsline {subparagraph}{aqueduct.traj.selections module}{33}{subparagraph*.308}
+\contentsline {paragraph}{Module contents}{34}{paragraph*.329}
+\contentsline {subsubsection}{aqueduct.utils package}{34}{subsubsection*.330}
+\contentsline {paragraph}{Submodules}{34}{paragraph*.331}
+\contentsline {subparagraph}{aqueduct.utils.clui module}{34}{subparagraph*.332}
+\contentsline {subparagraph}{aqueduct.utils.helpers module}{37}{subparagraph*.360}
+\contentsline {subparagraph}{aqueduct.utils.multip module}{40}{subparagraph*.383}
+\contentsline {paragraph}{Module contents}{40}{paragraph*.384}
+\contentsline {subsubsection}{aqueduct.visual package}{40}{subsubsection*.385}
+\contentsline {paragraph}{Submodules}{40}{paragraph*.386}
+\contentsline {subparagraph}{aqueduct.visual.cmaps module}{40}{subparagraph*.387}
+\contentsline {subparagraph}{aqueduct.visual.helpers module}{40}{subparagraph*.388}
+\contentsline {subparagraph}{aqueduct.visual.pymol\_cgo module}{41}{subparagraph*.399}
+\contentsline {subparagraph}{aqueduct.visual.pymol\_connector module}{41}{subparagraph*.400}
+\contentsline {subparagraph}{aqueduct.visual.quickplot module}{42}{subparagraph*.446}
+\contentsline {paragraph}{Module contents}{43}{paragraph*.466}
+\contentsline {subsection}{\numberline {5.1.2}Module contents}{43}{subsection.5.1.2}
+\contentsline {chapter}{\numberline {6}Indices and tables}{45}{chapter.6}
+\contentsline {chapter}{Python Module Index}{47}{section*.470}
+\contentsline {chapter}{Index}{49}{section*.471}

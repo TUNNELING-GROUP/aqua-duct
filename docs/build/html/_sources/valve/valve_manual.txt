@@ -138,6 +138,7 @@ The second stage of calculations uses the list of all traceable residues from th
 
 For each of the *traceable residues* a special *Path* object is created. If the residue is in the *Scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *Object* or not.
 
+
 Separate paths
 ^^^^^^^^^^^^^^
 
@@ -148,6 +149,14 @@ Each *separate path* comprises of three parts:
 #. *Incoming* - Defined as a path that leads from the point in which residue enters the *Scope* and enters the object for the firs time.
 #. *Object* - Defined as a path that leads from the point in which residue enters the *Object* for the first time and leaves it for the last time.
 #. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *Object* for the last lime and leaves the *Scope*.
+
+.. _auto_barber_procedure:
+
+Auto Barber
+"""""""""""
+
+After the initial search of *Separate Path* objects it is possible to run procedure which trims paths down to the surface of macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of `Scope`. Recreation of separate paths is run automatically after Auto Barber procedure.
+
 
 .. _clusterization_of_inlets:
 

@@ -50,7 +50,7 @@ execute     runonce             Option controls stage execution. It can have one
                                 is saved. If it is set to ``runonce`` calculations are performed
                                 if there is no dump file specified by **dump** option. If it is
                                 present calculations are skiped and data is loaded from the file.
-                                If it is set to ``skip`` calculations are skiped and if **dump**
+                                If it is set to ``skip`` calculations are skip and if **dump**
                                 is set data is loaded from the file.
 dump        [dump file name]    File name of dump data. It is used to save results of calculations
                                 or to load previously calculated data - this depends on **execute**
@@ -146,6 +146,9 @@ apply_soft_smoothing    True            If set to ``True`` raw paths are replace
                                         calculated according to **smooth** section.
 discard_short_paths     1               This option allows to discard paths that are shorter then the
                                         threshold.
+auto_barber             None            This option allows to select molecular entity used in Auto
+                                        Barber procedure. See also :ref:`auto_barber_procedure` and
+                                        :meth:`~aqueduct.traj.paths.GenericPaths.barber_with_spheres`.
 =====================   ==============  ================================================================
 
 
@@ -258,8 +261,8 @@ Default section for definition of clusterization method is named **clusterizatio
 Option                      Default value   Description
 =========================   =============== ================================================================
 method                      meanshift or    Name of clasteriation method. It have to be one of the
-                            dbscan          following: dbscan, affprop, meanshift, birch. Default value
-                                            depends if it is **clusteriation** section (meanshift) or
+                            dbscan          following: dbscan, affprop, meanshift, birch, kmeans. Default
+                                            value depends if it is **clusteriation** section (meanshift) or
                                             **reclusterization** section (dbscan).
 recursive_clusterization    clusterization  If set to name of some section that holds clusterization method
                             or None         settings this method will be called in the next recurention of
@@ -271,19 +274,134 @@ recursive_threshold         None            Allows to set threshold of that excl
                                             it have to be in the range of 0 to 1.
 =========================   =============== ================================================================
 
-Clustrization method dbscan
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+dbscan
+^^^^^^
+
+For detailed description look at :class:`sklearn.cluster.DBSCAN` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
 =========================   =============== ================================================================
 Option                      Value type      Description
 =========================   =============== ================================================================
+eps                         float           The maximum distance between two samples for them to be
+                                            considered as in the same neighborhood.
+min_samples                 int             The number of samples (or total weight) in a neighborhood for
+                                            a point to be considered as a core point. This includes the
+                                            point itself.
+metric                      str             The metric to use when calculating distance between instances
+                                            in a feature array. Can be one of the following:
 
-eps float
+                                            * ``cityblock``,
+                                            * ``cosine``,
+                                            * ``euclidean``,
+                                            * ``manhattan``.
+algorithm                   str             The algorithm to be used by the NearestNeighbors module to
+                                            compute pointwise distances and find nearest neighbors.
+                                            Can be one of the following:
 
-min_samples int
+                                            * ``auto``,
+                                            * ``ball_tree``,
+                                            * ``kd_tree``,
+                                            * ``brute``.
+leaf_size                   int             Leaf size passed to BallTree or cKDTree.
+=========================   =============== ================================================================
 
-metric ['cityblock', 'cosine', 'euclidean', 'manhattan']
+affprop
+^^^^^^^
 
-algorithm ['auto', 'ball_tree', 'kd_tree', 'brute'],
+For detailed description look at :class:`~sklearn.cluster.AffinityPropagation` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-leaf_size int
+=========================   =============== ================================================================
+Option                      Value type      Description
+=========================   =============== ================================================================
+damping                     float           Damping factor between 0.5 and 1.
+convergence_iter            int             Number of iterations with no change in the number of estimated
+                                            clusters that stops the convergence.
+max_iter                    int             Maximum number of iterations.
+preference                  float           Points with larger values of preferences are more likely to be
+                                            chosen as exemplars.
+=========================   =============== ================================================================
+
+meanshift
+^^^^^^^^^
+
+For detailed description look at :class:`~sklearn.cluster.MeanShift` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+
+=========================   =============== ================================================================
+Option                      Value type      Description
+=========================   =============== ================================================================
+bandwidth                   Auto or float   Bandwidth used in the RBF kernel. If ``Auto`` or ``None``
+                                            automatic method for bandwidth estimation is used. See
+                                            :func:`~sklearn.cluster.estimate_bandwidth`.
+cluster_all                 bool            If true, then all points are clustered, even those orphans that
+                                            are not within any kernel.
+bin_seeding                 bool            If true, initial kernel locations are not locations of all
+                                            points, but rather the location of the discretized version of
+                                            points, where points are binned onto a grid whose coarseness
+                                            corresponds to the bandwidth.
+min_bin_freq                int             To speed up the algorithm, accept only those bins with at least
+                                            min_bin_freq points as seeds. If not defined, set to 1.
+=========================   =============== ================================================================
+
+birch
+^^^^^
+
+For detailed description look at :class:`~sklearn.cluster.Birch` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+
+=========================   =============== ================================================================
+Option                      Value type      Description
+=========================   =============== ================================================================
+threshold                   float           The radius of the subcluster obtained by merging a new sample
+                                            and the closest subcluster should be lesser than the threshold.
+                                            Otherwise a new subcluster is started.
+branching_factor            int             Maximum number of CF subclusters in each node.
+n_clusters                  int             Number of clusters after the final clustering step, which
+                                            treats the subclusters from the leaves as new samples. By
+                                            default, this final clustering step is not performed and the
+                                            subclusters are returned as they are.
+=========================   =============== ================================================================
+
+kmeans
+^^^^^^
+
+For detailed description look at :class:`~sklearn.cluster.KMeans` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+
+=========================   =============== ================================================================
+Option                      Value type      Description
+=========================   =============== ================================================================
+n_clusters                  int             The number of clusters to form as well as the number of
+                                            centroids to generate.
+max_iter                    int             Maximum number of iterations of the k-means algorithm for a
+                                            single run.
+n_init                      int             Number of time the k-means algorithm will be run with different
+                                            centroid seeds. The final results will be the best output of
+                                            n_init consecutive runs in terms of inertia.
+init                        str             Method for initialization, defaults to ``k-means++``. Can be
+                                            one of following: ``k-means++`` or ``random``.
+tol                         float           Relative tolerance with regards to inertia to declare
+                                            convergence.
+=========================   =============== ================================================================
+
+Smooth section
+--------------
+
+Section **smooth** supports following options:
+
+=========================   =============== ================================================================
+Option                      Value type      Description
+=========================   =============== ================================================================
+method                      str             Smoothing method. Can be one of the following:
+
+                                            * ``window``, (see :class:`~aqueduct.geom.smooth.WindowSmooth`)
+                                            * ``mss``, (see :class:`~aqueduct.geom.smooth.MaxStepSmooth`)
+                                            * ``window_mss``, (see :class:`~aqueduct.geom.smooth.WindowOverMaxStepSmooth`)
+                                            * ``awin``, (see :class:`~aqueduct.geom.smooth.ActiveWindowSmooth`)
+                                            * ``awin_mss``, (see :class:`~aqueduct.geom.smooth.ActiveWindowOverMaxStepSmooth`)
+                                            * ``dwin``, (see :class:`~aqueduct.geom.smooth.DistanceWindowSmooth`)
+                                            * ``dwin_mss``. (see :class:`~aqueduct.geom.smooth.DistanceWindowOverMaxStepSmooth`)
+recursive                   int             Number of recursive runs of smoothing method.
+window                      int or float    In window based method defines window size. In plain ``window``
+                                            it has to be int number.
+step                        int             In step based method defines size of the step.
+function                    str             In window based methods defines averaging function. Can be
+                                            ``mean`` or ``median``.
+=========================   =============== ================================================================

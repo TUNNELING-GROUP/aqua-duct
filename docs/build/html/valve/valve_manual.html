@@ -1,20 +1,21 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<!doctype html>
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Valve manual &mdash; Aqueduct 0.2.11 documentation</title>
+    <title>Valve manual &#8212; Aqueduct 0.2.17 documentation</title>
     
-    <link rel="stylesheet" href="../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.11',
+        VERSION:     '0.2.17',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,9 +25,14 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.11 documentation" href="../index.html" />
+    <script type="text/javascript" src="../_static/bizstyle.js"></script>
+    <link rel="top" title="Aqueduct 0.2.17 documentation" href="../index.html" />
     <link rel="next" title="Configuration file options" href="valve_config.html" />
-    <link rel="prev" title="Aqueduct installation guide" href="../aqueduct_install.html" /> 
+    <link rel="prev" title="Aqueduct installation guide" href="../aqueduct_install.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -44,9 +50,72 @@
         <li class="right" >
           <a href="../aqueduct_install.html" title="Aqueduct installation guide"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#"><em>Valve</em> manual</a><ul>
+<li><a class="reference internal" href="#valve-invocation"><em>Valve</em> invocation</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a></li>
+<li><a class="reference internal" href="#configuration-file-template">Configuration file template</a></li>
+<li><a class="reference internal" href="#valve-calculation-run"><em>Valve</em> calculation run</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#how-does-valve-work">How does <em>Valve</em> work</a><ul>
+<li><a class="reference internal" href="#traceable-residues">Traceable residues</a><ul>
+<li><a class="reference internal" href="#object-definition">Object definition</a></li>
+<li><a class="reference internal" href="#scope-definition">Scope definition</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#raw-paths">Raw paths</a></li>
+<li><a class="reference internal" href="#separate-paths">Separate paths</a><ul>
+<li><a class="reference internal" href="#auto-barber">Auto Barber</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#clusterization-of-inlets">Clusterization of inlets</a></li>
+<li><a class="reference internal" href="#analysis">Analysis</a><ul>
+<li><a class="reference internal" href="#separate-path-id">Separate path ID</a></li>
+<li><a class="reference internal" href="#cluster-type-of-separate-path">Cluster Type of separate path</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#visualization">Visualization</a><ul>
+<li><a class="reference internal" href="#color-schemes">Color schemes</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../aqueduct_install.html"
+                        title="previous chapter">Aqueduct installation guide</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="valve_config.html"
+                        title="next chapter">Configuration file options</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/valve/valve_manual.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -62,11 +131,11 @@
 <div class="section" id="usage">
 <h3>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h3>
 <p>Basic help of <em>Valve</em> usage can be displayed by following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
 </pre></div>
 </div>
 <p>It should display following information:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">template</span><span class="o">-</span><span class="n">config</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">THREADS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONFIG_FILE</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">usage</span><span class="p">:</span> <span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">template</span><span class="o">-</span><span class="n">config</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">t</span> <span class="n">THREADS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">CONFIG_FILE</span><span class="p">]</span>
                 <span class="p">[</span><span class="o">--</span><span class="nb">max</span><span class="o">-</span><span class="n">frame</span> <span class="n">MAX_FRAME</span><span class="p">]</span>
 
 <span class="n">Valve</span><span class="p">,</span> <span class="n">Aqueduct</span> <span class="n">driver</span>
@@ -88,11 +157,11 @@
 <div class="section" id="configuration-file-template">
 <h3>Configuration file template<a class="headerlink" href="#configuration-file-template" title="Permalink to this headline">¶</a></h3>
 <p>Configuration file used by <em>Valve</em> is of moderate length and complexity. It can be easily prepared with a template file that can be printed by <em>Valve</em>. Use following command to print configuration file template on the screen:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">template</span><span class="o">-</span><span class="n">config</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">template</span><span class="o">-</span><span class="n">config</span>
 </pre></div>
 </div>
 <p>Configuration file template can also be easily saved in to a file with:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">template</span><span class="o">-</span><span class="n">config</span> <span class="o">&gt;</span> <span class="n">config</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">dump</span><span class="o">-</span><span class="n">template</span><span class="o">-</span><span class="n">config</span> <span class="o">&gt;</span> <span class="n">config</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>Where config.txt is a configuration file template.</p>
@@ -101,7 +170,7 @@
 <div class="section" id="valve-calculation-run">
 <h3><em>Valve</em> calculation run<a class="headerlink" href="#valve-calculation-run" title="Permalink to this headline">¶</a></h3>
 <p>Once configuration file is ready <em>Valve</em> calculations can be run with a following simple command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">c</span> <span class="n">config</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">c</span> <span class="n">config</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>Some of <em>Valve</em> calculations can be run in parallel. By default all available CPU cores are used. This is not always desired - limitation of used CPU cores can be done with <code class="docutils literal"><span class="pre">-t</span></code> option which limits number of concurrent threads used by <em>Valve</em>. If it equals 1 no parallelism is used.</p>
@@ -143,7 +212,7 @@ If it set, for example, to <code class="docutils literal"><span class="pre">1000
 <li>It have to define spatial boundaries of the <em>Object</em> site.</li>
 </ol>
 <p>For example, proper Object definition could be following:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">resname</span> <span class="n">WAT</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">sphzone</span> <span class="mf">6.0</span> <span class="p">(</span><span class="n">resnum</span> <span class="mi">99</span> <span class="ow">or</span> <span class="n">resnum</span> <span class="mi">147</span><span class="p">))</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="p">(</span><span class="n">resname</span> <span class="n">WAT</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">sphzone</span> <span class="mf">6.0</span> <span class="p">(</span><span class="n">resnum</span> <span class="mi">99</span> <span class="ow">or</span> <span class="n">resnum</span> <span class="mi">147</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>It defines <code class="docutils literal"><span class="pre">WAT</span></code> as residues that should be traced and defines spatial constrains of the <em>Object</em> site as spherical zone within 6 Angstroms of the center of masses of residues with number 99 and 147.</p>
@@ -152,7 +221,7 @@ If it set, for example, to <code class="docutils literal"><span class="pre">1000
 <span id="id2"></span><h4>Scope definition<a class="headerlink" href="#scope-definition" title="Permalink to this headline">¶</a></h4>
 <p><em>Scope</em> can be defined in two ways: as <em>Object</em> but with broader boundaries or as the convex hull of selected molecular object.</p>
 <p>In the first case definition is very similar to <em>Object</em> and it have to follow the same limitations. For example, proper <em>Scope</em> definition could be following:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">resname</span> <span class="n">WAT</span> <span class="n">around</span> <span class="mf">2.0</span> <span class="n">protein</span>
+<div class="highlight-default"><div class="highlight"><pre><span class="n">resname</span> <span class="n">WAT</span> <span class="n">around</span> <span class="mf">2.0</span> <span class="n">protein</span>
 </pre></div>
 </div>
 <p>It consequently have to define <code class="docutils literal"><span class="pre">WAT</span></code> as residues of interest and defines spatial constrains as all <code class="docutils literal"><span class="pre">WAT</span></code> residues that are within 2 Angstroms of the protein.</p>
@@ -177,6 +246,10 @@ If it set, for example, to <code class="docutils literal"><span class="pre">1000
 <li><em>Object</em> - Defined as a path that leads from the point in which residue enters the <em>Object</em> for the first time and leaves it for the last time.</li>
 <li><em>Outgoing</em> - Defined as a path that leads from the point in which residue leaves the <em>Object</em> for the last lime and leaves the <em>Scope</em>.</li>
 </ol>
+<div class="section" id="auto-barber">
+<span id="auto-barber-procedure"></span><h4>Auto Barber<a class="headerlink" href="#auto-barber" title="Permalink to this headline">¶</a></h4>
+<p>After the initial search of <em>Separate Path</em> objects it is possible to run procedure which trims paths down to the surface of macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of <cite>Scope</cite>. Recreation of separate paths is run automatically after Auto Barber procedure.</p>
+</div>
 </div>
 <div class="section" id="clusterization-of-inlets">
 <span id="id3"></span><h3>Clusterization of inlets<a class="headerlink" href="#clusterization-of-inlets" title="Permalink to this headline">¶</a></h3>
@@ -319,66 +392,6 @@ Molecule is loaded as PDB file. Other objects like Inlets clusters or paths are 
           </div>
         </div>
       </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="../index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#"><em>Valve</em> manual</a><ul>
-<li><a class="reference internal" href="#valve-invocation"><em>Valve</em> invocation</a><ul>
-<li><a class="reference internal" href="#usage">Usage</a></li>
-<li><a class="reference internal" href="#configuration-file-template">Configuration file template</a></li>
-<li><a class="reference internal" href="#valve-calculation-run"><em>Valve</em> calculation run</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#how-does-valve-work">How does <em>Valve</em> work</a><ul>
-<li><a class="reference internal" href="#traceable-residues">Traceable residues</a><ul>
-<li><a class="reference internal" href="#object-definition">Object definition</a></li>
-<li><a class="reference internal" href="#scope-definition">Scope definition</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#raw-paths">Raw paths</a></li>
-<li><a class="reference internal" href="#separate-paths">Separate paths</a></li>
-<li><a class="reference internal" href="#clusterization-of-inlets">Clusterization of inlets</a></li>
-<li><a class="reference internal" href="#analysis">Analysis</a><ul>
-<li><a class="reference internal" href="#separate-path-id">Separate path ID</a></li>
-<li><a class="reference internal" href="#cluster-type-of-separate-path">Cluster Type of separate path</a></li>
-</ul>
-</li>
-<li><a class="reference internal" href="#visualization">Visualization</a><ul>
-<li><a class="reference internal" href="#color-schemes">Color schemes</a></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="../aqueduct_install.html"
-                        title="previous chapter">Aqueduct installation guide</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="valve_config.html"
-                        title="next chapter">Configuration file options</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="../_sources/valve/valve_manual.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
       <div class="clearer"></div>
     </div>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -396,12 +409,12 @@ Molecule is loaded as PDB file. Other objects like Inlets clusters or paths are 
         <li class="right" >
           <a href="../aqueduct_install.html" title="Aqueduct installation guide"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div>
   </body>
 </html>

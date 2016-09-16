@@ -1,20 +1,21 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<!doctype html>
 
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.geom.cluster &mdash; Aqueduct 0.2.11 documentation</title>
+    <title>aqueduct.geom.cluster &#8212; Aqueduct 0.2.17 documentation</title>
     
-    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.11',
+        VERSION:     '0.2.17',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,8 +25,13 @@
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="Aqueduct 0.2.11 documentation" href="../../../index.html" />
-    <link rel="up" title="aqueduct" href="../../aqueduct.html" /> 
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="top" title="Aqueduct 0.2.17 documentation" href="../../../index.html" />
+    <link rel="up" title="aqueduct" href="../../aqueduct.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
   </head>
   <body role="document">
     <div class="related" role="navigation" aria-label="related navigation">
@@ -37,11 +43,25 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
       </ul>
-    </div>  
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
 
     <div class="document">
       <div class="documentwrapper">
@@ -49,14 +69,14 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.geom.cluster</h1><div class="highlight"><pre>
-<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">This module provides functions for clusterization.</span>
 <span class="sd">Clusterization is done by :mod:`scikit-learn` module.</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="kn">import</span> <span class="n">DBSCAN</span><span class="p">,</span> <span class="n">AffinityPropagation</span><span class="p">,</span> <span class="n">KMeans</span><span class="p">,</span> <span class="n">MeanShift</span><span class="p">,</span> <span class="n">estimate_bandwidth</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sklearn.cluster</span> <span class="k">import</span> <span class="n">Birch</span><span class="p">,</span> <span class="n">DBSCAN</span><span class="p">,</span> <span class="n">AffinityPropagation</span><span class="p">,</span> <span class="n">KMeans</span><span class="p">,</span> <span class="n">MeanShift</span><span class="p">,</span> <span class="n">estimate_bandwidth</span>
 
 <span class="c1"># problems with clustering methods and size of set</span>
 <span class="c1"># DBSCAN:              n &gt; 0</span>
@@ -65,28 +85,17 @@
 <span class="c1"># MeanShift:           n &gt; 6</span>
 
 
-<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="kn">import</span> <span class="n">Auto</span>
-
+<span class="kn">from</span> <span class="nn">aqueduct.utils.helpers</span> <span class="k">import</span> <span class="n">Auto</span>
+<span class="kn">from</span> <span class="nn">aqueduct.utils</span> <span class="k">import</span> <span class="n">clui</span>
 
 <div class="viewcode-block" id="MeanShiftBandwidth"><a class="viewcode-back" href="../../../aqueduct.geom.cluster.html#aqueduct.geom.cluster.MeanShiftBandwidth">[docs]</a><span class="k">def</span> <span class="nf">MeanShiftBandwidth</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">if</span> <span class="s1">&#39;bandwidth&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;bandwidth&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="n">Auto</span><span class="p">:</span>
             <span class="n">bandwidth</span> <span class="o">=</span> <span class="n">estimate_bandwidth</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">X</span><span class="p">),</span> <span class="n">quantile</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># this seems to be optimal</span>
             <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;bandwidth&#39;</span><span class="p">:</span> <span class="n">bandwidth</span><span class="p">})</span>
+            <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Meanshift automatic bandwidth calculation: bandwidth = </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">float</span><span class="p">(</span><span class="n">bandwidth</span><span class="p">))</span> <span class="c1"># TODO: make it properly</span>
     <span class="k">return</span> <span class="n">kwargs</span></div>
 
-
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">def perform_clustering(coords,method,**kwargs):</span>
-<span class="sd">    # if length of coords is less then 2 then there is no sense in clustering?</span>
-<span class="sd">    if len(coords) &lt; 2:</span>
-<span class="sd">        return [1 for dummy in coords]</span>
-<span class="sd">    # special cases</span>
-<span class="sd">    if method is MeanShift:</span>
-<span class="sd">        kwargs = MeanShiftBandwidth(coords,**kwargs)</span>
-<span class="sd">    clust = method(**kwargs).fit(coords)</span>
-<span class="sd">    return map(int,clust.labels_ + 1) # TODO: add one to it? Is it OK?</span>
-<span class="sd">&#39;&#39;&#39;</span>
 
 
 <div class="viewcode-block" id="PerformClustering"><a class="viewcode-back" href="../../../aqueduct.geom.cluster.html#aqueduct.geom.cluster.PerformClustering">[docs]</a><span class="k">class</span> <span class="nc">PerformClustering</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -96,8 +105,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="o">=</span> <span class="n">method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">method_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="bp">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="PerformClustering.__call__"><a class="viewcode-back" href="../../../aqueduct.geom.cluster.html#aqueduct.geom.cluster.PerformClustering.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
         <span class="c1"># compatibility</span>
@@ -114,6 +123,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span> <span class="ow">is</span> <span class="n">MeanShift</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_noclusters</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
+                <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;Number of objects </span><span class="si">%d</span><span class="s2"> &lt; 6 is too small for MeanShift method. Skipping.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)))</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span>
             <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="o">**</span><span class="n">MeanShiftBandwidth</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">method_kwargs</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -121,6 +131,8 @@
                 <span class="k">if</span> <span class="s1">&#39;n_clusters&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_kwargs</span><span class="p">:</span>
                     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_kwargs</span><span class="p">[</span><span class="s1">&#39;n_clusters&#39;</span><span class="p">]:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_noclusters</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
+                        <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span>
+                            <span class="s2">&quot;Number of objects </span><span class="si">%d</span><span class="s2"> &lt; </span><span class="si">%d</span><span class="s2"> is too small for KMeans method. Skipping.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">),</span><span class="bp">self</span><span class="o">.</span><span class="n">method_kwargs</span><span class="p">[</span><span class="s1">&#39;n_clusters&#39;</span><span class="p">]))</span>
                         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span>
             <span class="n">method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">method</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">method_kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
@@ -128,8 +140,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span></div>
 
 <div class="viewcode-block" id="PerformClustering.centers"><a class="viewcode-back" href="../../../aqueduct.geom.cluster.html#aqueduct.geom.cluster.PerformClustering.centers">[docs]</a>    <span class="k">def</span> <span class="nf">centers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;Perform clusterization first.&quot;</span>
-        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">,</span> <span class="s2">&quot;Perform clusterization first.&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Perform clusterization first.&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;Perform clusterization first.&quot;</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">method_results</span><span class="p">,</span> <span class="s1">&#39;cluster_centers_&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">method_results</span><span class="o">.</span><span class="n">cluster_centers_</span>
@@ -137,20 +149,6 @@
 </pre></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -164,14 +162,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.11 documentation</a> &raquo;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &copy; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+        &#169; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
     </div>
   </body>
 </html>

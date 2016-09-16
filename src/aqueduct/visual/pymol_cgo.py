@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+# Works for PyMOL 1.4, 1.7, 1.8
+
 ALPHA = 25.0
 ALPHA_TRIANGLE = 17.0
 BEGIN = 2.0

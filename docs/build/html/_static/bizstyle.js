@@ -36,6 +36,6 @@ $(window).resize(function(){
         $("li.nav-item-0 a").text("Top");
     }
     else {
-        $("li.nav-item-0 a").text("Aqueduct 0.2.10 documentation");
+        $("li.nav-item-0 a").text("Aqueduct 0.2.17 documentation");
     }
 });
