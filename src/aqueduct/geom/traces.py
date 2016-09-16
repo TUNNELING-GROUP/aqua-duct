@@ -138,8 +138,25 @@ class LinearizeHobbit(LinearizeOneWay):
         linearize = sorted(list(set(list(here) + list(and_back_again))))
         return coords[linearize]
 
+class TriangleLinearize(object):
+    def __init__(self, threshold):
+        # threshold - maximal allowed sum of heights of triangles made of beginning, end and all middle points
+        self.threshold = threshold
 
-class LinearizeRecursive(object):
+    def is_linear(self, coords, **kwargs):
+        # coords - 3D coordintates of a trace
+        # returns True if coords make a straight line
+        # criterion of linearity:
+        # if sum of heights of triangles made of beginning, end and all middle points does not exceed threshold coords are linear
+        list_of_h = list()
+        for head in coords[1:-1]:
+            list_of_h.append(triangle_height(head, coords[0], coords[-1]))
+            # print list_of_h, sum(list_of_h)
+            if sum(list_of_h) > self.threshold:
+                return False
+        return True
+
+class LinearizeRecursive(TriangleLinearize):
     """
     Base class for linearization methods classes.
 
@@ -189,23 +206,7 @@ class LinearizeRecursive(object):
         return coords[here]
 
 
-class TriangleLinearize(object):
-    def __init__(self, threshold):
-        # threshold - maximal allowed sum of heights of triangles made of beginning, end and all middle points
-        self.threshold = threshold
 
-    def is_linear(self, coords, **kwargs):
-        # coords - 3D coordintates of a trace
-        # returns True if coords make a straight line
-        # criterion of linearity:
-        # if sum of heights of triangles made of beginning, end and all middle points does not exceed threshold coords are linear
-        list_of_h = list()
-        for head in coords[1:-1]:
-            list_of_h.append(triangle_height(head, coords[0], coords[-1]))
-            # print list_of_h, sum(list_of_h)
-            if sum(list_of_h) > self.threshold:
-                return False
-        return True
 
 
 class VectorLinearize(object):
