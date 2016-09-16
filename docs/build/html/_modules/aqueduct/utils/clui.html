@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.utils.clui &#8212; Aqueduct 0.2.17 documentation</title>
+    <title>aqueduct.utils.clui &mdash; Aqueduct 0.2.17 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -43,9 +43,9 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -53,8 +53,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -69,7 +69,7 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.utils.clui</h1><div class="highlight"><pre>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module comprises convieniences functions and definitios for different operations related to command line user interface.</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -78,11 +78,11 @@
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">aqueduct</span> <span class="k">import</span> <span class="n">logger</span> <span class="k">as</span> <span class="n">root_logger</span>
+<span class="kn">from</span> <span class="nn">aqueduct</span> <span class="kn">import</span> <span class="n">logger</span> <span class="k">as</span> <span class="n">root_logger</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">linesep</span>
-<span class="kn">from</span> <span class="nn">sys</span> <span class="k">import</span> <span class="n">stderr</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">linesep</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="kn">import</span> <span class="n">stderr</span>
 
 
 <div class="viewcode-block" id="emit_message_to_file_in_root_logger"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.emit_message_to_file_in_root_logger">[docs]</a><span class="k">def</span> <span class="nf">emit_message_to_file_in_root_logger</span><span class="p">(</span><span class="n">mess</span><span class="p">):</span>
@@ -95,7 +95,7 @@
                 <span class="n">logfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mess</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="message"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.message">[docs]</a><span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="n">mess</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="message"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.message">[docs]</a><span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="n">mess</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Prints message to standard error.</span>
 <span class="sd">    If FileHandler is present in the :py:`root_logger` the same message is appended to the log file.</span>
@@ -113,7 +113,7 @@
 
 <div class="viewcode-block" id="fbm"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.fbm">[docs]</a><span class="k">class</span> <span class="nc">fbm</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="c1"># feedback message</span>
-<div class="viewcode-block" id="fbm.__init__"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.fbm.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="fbm.__init__"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.fbm.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__cont</span> <span class="o">=</span> <span class="n">cont</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__info</span> <span class="o">=</span> <span class="n">info</span>
         <span class="n">message</span><span class="p">(</span><span class="n">info</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__cont</span><span class="p">)</span></div>
@@ -122,7 +122,7 @@
         <span class="k">return</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="fbm.__exit__"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.fbm.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">typ</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">typ</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cont</span><span class="p">:</span>
                 <span class="n">message</span><span class="p">(</span><span class="s2">&quot;OK.&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -130,16 +130,16 @@
 
 <div class="viewcode-block" id="fbm.__call__"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.fbm.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cont</span><span class="p">:</span>
-            <span class="n">message</span><span class="p">(</span><span class="n">linesep</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">info</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">message</span><span class="p">(</span><span class="n">linesep</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">info</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">message</span><span class="p">(</span><span class="n">info</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div></div>
+            <span class="n">message</span><span class="p">(</span><span class="n">info</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span></div></div>
 
 
 <span class="n">gregorian_year_in_days</span> <span class="o">=</span> <span class="mf">365.2425</span>
 <span class="sd">&#39;&#39;&#39;Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year&#39;&#39;&#39;</span>
 
 
-<div class="viewcode-block" id="smart_time_string"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.smart_time_string">[docs]</a><span class="k">def</span> <span class="nf">smart_time_string</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">rl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">maximal_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maximal_units</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<div class="viewcode-block" id="smart_time_string"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.smart_time_string">[docs]</a><span class="k">def</span> <span class="nf">smart_time_string</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">rl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">maximal_length</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">maximal_units</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Function transforms time in seconds to nicely formatted string of</span>
 <span class="sd">    length defined by :attr:`maximal_length`. Depending on number of seconds time is represented with</span>
@@ -168,7 +168,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># assert isinstance(maximal_length, (int, long))</span>
     <span class="c1"># assert maximal_length &gt; 0</span>
-    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">maximal_units</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">long</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">maximal_units</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">))</span>
     <span class="k">assert</span> <span class="n">maximal_units</span> <span class="o">&gt;</span> <span class="mi">0</span>
     <span class="k">assert</span> <span class="n">maximal_units</span> <span class="o">&lt;</span> <span class="mi">6</span>
 
@@ -186,7 +186,7 @@
             <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%2.2d</span><span class="s2"> h&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">smart_time_string</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">,</span> <span class="n">rl</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">t</span> <span class="o">*</span> <span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">gregorian_year_in_days</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> d&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">smart_time_string</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span><span class="p">),</span> <span class="n">rl</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="bp">True</span><span class="p">:</span>
             <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> y&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">gregorian_year_in_days</span><span class="p">)))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">smart_time_string</span><span class="p">(</span>
                 <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">gregorian_year_in_days</span><span class="p">),</span> <span class="n">rl</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">maximal_length</span><span class="p">:</span>
@@ -197,7 +197,7 @@
 <span class="c1">###################################</span>
 <span class="c1"># vis separators</span>
 
-<div class="viewcode-block" id="gsep"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.gsep">[docs]</a><span class="k">def</span> <span class="nf">gsep</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="gsep"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.gsep">[docs]</a><span class="k">def</span> <span class="nf">gsep</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Generic separator.</span>
 
@@ -270,14 +270,14 @@
 
     <span class="n">barlenght</span> <span class="o">=</span> <span class="mi">24</span>
 
-<div class="viewcode-block" id="SimpleProgressBar.__init__"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.SimpleProgressBar.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mess</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SimpleProgressBar.__init__"><a class="viewcode-back" href="../../../aqueduct.utils.clui.html#aqueduct.utils.clui.SimpleProgressBar.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">mess</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        :param int maxval: Maximal number of iterations stored to :attr:`maxval`.</span>
 <span class="sd">        :param str mess: Optional message displayed at progress bar initialization.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">maxval</span><span class="p">,</span>
-                          <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">long</span><span class="p">)),</span> <span class="s1">&#39;Parameter maxval should be of int or long type, </span><span class="si">%r</span><span class="s1"> given instead.&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+                          <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">long</span><span class="p">)),</span> <span class="s1">&#39;Parameter maxval should be of int or long type, </span><span class="si">%r</span><span class="s1"> given instead.&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
             <span class="n">maxval</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">maxval</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">maxval</span> <span class="o">=</span> <span class="mi">1</span>
@@ -286,8 +286,8 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">current</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">overrun_notice</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">overrun</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">overrun_notice</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">overrun</span> <span class="o">=</span> <span class="bp">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">begin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">begin</span>
@@ -295,7 +295,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">begin</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_idx</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">if</span> <span class="n">mess</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">mess</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">message</span><span class="p">(</span><span class="n">mess</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
@@ -361,8 +361,8 @@
         <span class="k">if</span> <span class="n">percent</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">overrun_notice</span><span class="p">:</span>
                 <span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">linesep</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">overrun_notice</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">overrun</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">overrun_notice</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">overrun</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\r</span><span class="si">%d</span><span class="s2"> iterations out of </span><span class="si">%d</span><span class="s2">. Total time: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxval</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttime</span><span class="p">()))</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">overrun</span><span class="p">:</span>
             <span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
@@ -439,14 +439,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
     </div>
   </body>
 </html>

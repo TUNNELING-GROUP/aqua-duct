@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.utils.helpers &#8212; Aqueduct 0.2.17 documentation</title>
+    <title>aqueduct.utils.helpers &mdash; Aqueduct 0.2.17 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -43,9 +43,9 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -53,8 +53,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -69,16 +69,16 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.utils.helpers</h1><div class="highlight"><pre>
-<span class="c1"># -*- coding: utf-8 -*-</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">Collection of helpers - functions and decorators.</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Iterable</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">wraps</span>
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">close</span>
-<span class="kn">from</span> <span class="nn">tempfile</span> <span class="k">import</span> <span class="n">mkstemp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Iterable</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">close</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">mkstemp</span>
 
 
 <span class="c1">########################################################################</span>
@@ -125,19 +125,19 @@
 <div class="viewcode-block" id="is_number"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.is_number">[docs]</a><span class="k">def</span> <span class="nf">is_number</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
     <span class="c1"># http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">False</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">True</span>
     <span class="k">except</span><span class="p">:</span>
         <span class="k">pass</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="kn">import</span> <span class="nn">unicodedata</span>
         <span class="n">unicodedata</span><span class="o">.</span><span class="n">numeric</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">True</span>
     <span class="k">except</span><span class="p">:</span>
         <span class="k">pass</span>
-    <span class="k">return</span> <span class="kc">False</span></div>
+    <span class="k">return</span> <span class="bp">False</span></div>
 
 
 <div class="viewcode-block" id="lind"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.lind">[docs]</a><span class="k">def</span> <span class="nf">lind</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">ind</span><span class="p">):</span>
@@ -188,7 +188,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__repr__</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="create_tmpfile"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.create_tmpfile">[docs]</a><span class="k">def</span> <span class="nf">create_tmpfile</span><span class="p">(</span><span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="create_tmpfile"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.create_tmpfile">[docs]</a><span class="k">def</span> <span class="nf">create_tmpfile</span><span class="p">(</span><span class="n">ext</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Creates temporary file. File is created, closed and its file name is returned.</span>
 
@@ -200,7 +200,7 @@
 <span class="sd">    :return: File name of created temporary file.</span>
 <span class="sd">    :rtype: str</span>
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">suffix</span> <span class="o">=</span> <span class="s2">&quot;.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
@@ -209,7 +209,7 @@
     <span class="k">return</span> <span class="n">name</span></div>
 
 
-<div class="viewcode-block" id="range2int"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.range2int">[docs]</a><span class="k">def</span> <span class="nf">range2int</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">uniq</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="range2int"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.range2int">[docs]</a><span class="k">def</span> <span class="nf">range2int</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">uniq</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Transforms a string range in to a list of integers (with added missing elements from given ranges).</span>
 
@@ -263,13 +263,13 @@
     <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">l</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">l</span><span class="p">))</span>
     <span class="n">l</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-    <span class="n">previous</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">previous</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">previous</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">previous</span> <span class="o">=</span> <span class="n">e</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
             <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
-            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
             <span class="k">continue</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">previous</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="n">e</span><span class="p">:</span>
@@ -277,15 +277,15 @@
                 <span class="n">previous</span> <span class="o">=</span> <span class="n">e</span>
                 <span class="k">continue</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">while</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">]:</span>
+                <span class="k">while</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">]:</span>
                     <span class="n">out</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
                 <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
-                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
                 <span class="n">previous</span> <span class="o">=</span> <span class="n">e</span>
                 <span class="k">continue</span>
-    <span class="k">while</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">]:</span>
+    <span class="k">while</span> <span class="n">out</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="s1">&#39;:&#39;</span><span class="p">]:</span>
         <span class="n">out</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">out</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">out</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">out</span></div>
@@ -312,10 +312,10 @@
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">_</span> <span class="o">=</span> <span class="p">(</span><span class="n">e</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="bp">True</span>
     <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
         <span class="k">pass</span>
-    <span class="k">return</span> <span class="kc">False</span></div>
+    <span class="k">return</span> <span class="bp">False</span></div>
 
 
 <div class="viewcode-block" id="sortify"><a class="viewcode-back" href="../../../aqueduct.utils.helpers.html#aqueduct.utils.helpers.sortify">[docs]</a><span class="k">def</span> <span class="nf">sortify</span><span class="p">(</span><span class="n">gen</span><span class="p">):</span>
@@ -464,7 +464,7 @@
     <span class="c1"># TODO: poprawic opis</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
-        <span class="k">yield</span> <span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">yield</span> <span class="nb">slice</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">prev</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">prev_nr</span> <span class="o">=</span> <span class="mi">0</span>
@@ -568,14 +568,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
     </div>
   </body>
 </html>

@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aqueduct.geom.traces &#8212; Aqueduct 0.2.17 documentation</title>
+    <title>aqueduct.geom.traces &mdash; Aqueduct 0.2.17 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -43,9 +43,9 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" accesskey="U">aqueduct</a> &raquo;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -53,8 +53,8 @@
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
     <form class="search" action="../../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
@@ -69,9 +69,9 @@
           <div class="body" role="main">
             
   <h1>Source code for aqueduct.geom.traces</h1><div class="highlight"><pre>
-<span class="c1"># -*- coding: utf-8 -*-</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">pdist</span>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="kn">import</span> <span class="n">pdist</span>
 
 
 <span class="c1"># todo : aby zaoszczedzic na obliczeniach mozna pomijac takie(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-&gt; np kat 0.005 rad to 0,29stopnia miary łukowej</span>
@@ -124,7 +124,6 @@
 
 
 <div class="viewcode-block" id="triangle_height"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.triangle_height">[docs]</a><span class="k">def</span> <span class="nf">triangle_height</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">):</span>
-    <span class="c1"># todo : chceck why value in test is incorrect</span>
     <span class="c1"># a is head</span>
     <span class="c1"># input: 3 space coords of points (as tuple or list)</span>
     <span class="c1"># output float, value of triangle height</span>
@@ -210,8 +209,25 @@
         <span class="n">linearize</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">here</span><span class="p">)</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">and_back_again</span><span class="p">))))</span>
         <span class="k">return</span> <span class="n">coords</span><span class="p">[</span><span class="n">linearize</span><span class="p">]</span></div></div>
 
+<div class="viewcode-block" id="TriangleLinearize"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.TriangleLinearize">[docs]</a><span class="k">class</span> <span class="nc">TriangleLinearize</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="TriangleLinearize.__init__"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.TriangleLinearize.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
+        <span class="c1"># threshold - maximal allowed sum of heights of triangles made of beginning, end and all middle points</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span></div>
 
-<div class="viewcode-block" id="LinearizeRecursive"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursive">[docs]</a><span class="k">class</span> <span class="nc">LinearizeRecursive</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="TriangleLinearize.is_linear"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.TriangleLinearize.is_linear">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># coords - 3D coordintates of a trace</span>
+        <span class="c1"># returns True if coords make a straight line</span>
+        <span class="c1"># criterion of linearity:</span>
+        <span class="c1"># if sum of heights of triangles made of beginning, end and all middle points does not exceed threshold coords are linear</span>
+        <span class="n">list_of_h</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">list_of_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">triangle_height</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="c1"># print list_of_h, sum(list_of_h)</span>
+            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">list_of_h</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span></div></div>
+
+<div class="viewcode-block" id="LinearizeRecursive"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursive">[docs]</a><span class="k">class</span> <span class="nc">LinearizeRecursive</span><span class="p">(</span><span class="n">TriangleLinearize</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for linearization methods classes.</span>
 
@@ -226,14 +242,14 @@
 
 <span class="sd">        If these points are linear their indices are returned. Otherwise, coordinates are split into two parts. First part spans points from the first point to the middle point (inclusive) and the second parth spans points from the middle (inclusive) to the last point. Next, these two parts are submitted recursively to :meth:`here`.</span>
 
-<span class="sd">         Results of these recursive calls are joined, redundant indecies are removed and sorted reslult is returned.</span>
+<span class="sd">         Results of these recursive calls are joined, redundant indices are removed and sorted result is returned.</span>
 
 <span class="sd">        :param numpy.ndarray coords: Input coordinates.</span>
 <span class="sd">        :param int depth: Depth of recurence.</span>
 <span class="sd">        :return: Indices of :arg:`coords` points that can be used instead of all points in visulatization.</span>
 <span class="sd">        :rtype: list of int</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
+        <span class="c1"># klasa nie ma zdefiniowanej metody is_linear</span>
         <span class="n">depth</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="n">lengths</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(([</span><span class="mi">0</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">diff</span><span class="p">(</span><span class="n">coords</span><span class="p">))))</span>
@@ -261,23 +277,7 @@
         <span class="k">return</span> <span class="n">coords</span><span class="p">[</span><span class="n">here</span><span class="p">]</span></div></div>
 
 
-<div class="viewcode-block" id="TriangleLinearize"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.TriangleLinearize">[docs]</a><span class="k">class</span> <span class="nc">TriangleLinearize</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-<div class="viewcode-block" id="TriangleLinearize.__init__"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.TriangleLinearize.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
-        <span class="c1"># threshold - maximal allowed sum of heights of triangles made of beginning, end and all middle points</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span> <span class="o">=</span> <span class="n">threshold</span></div>
 
-<div class="viewcode-block" id="TriangleLinearize.is_linear"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.TriangleLinearize.is_linear">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="c1"># coords - 3D coordintates of a trace</span>
-        <span class="c1"># returns True if coords make a straight line</span>
-        <span class="c1"># criterion of linearity:</span>
-        <span class="c1"># if sum of heights of triangles made of beginning, end and all middle points does not exceed threshold coords are linear</span>
-        <span class="n">list_of_h</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">head</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">list_of_h</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">triangle_height</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">coords</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-            <span class="c1"># print list_of_h, sum(list_of_h)</span>
-            <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">list_of_h</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
 
 
 <div class="viewcode-block" id="VectorLinearize"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize">[docs]</a><span class="k">class</span> <span class="nc">VectorLinearize</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -291,7 +291,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span> <span class="o">=</span> <span class="n">treshold</span></div>
 
-<div class="viewcode-block" id="VectorLinearize.is_linear_core"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.is_linear_core">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="VectorLinearize.is_linear_core"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.is_linear_core">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear_core</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        Method checks if input coordinates are linear according to the threshold and depth.</span>
 
@@ -308,7 +308,7 @@
 <span class="sd">        :return: True if input coordinates are linear and False otherwise.</span>
 <span class="sd">        :rtype: bool</span>
 <span class="sd">        &#39;&#39;&#39;</span>
-        <span class="k">if</span> <span class="n">depth</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">depth</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">depth</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="n">treshold</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">treshold</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mf">0.9</span> <span class="o">**</span> <span class="n">depth</span><span class="p">)</span>  <span class="c1"># FIXME: magic constant!</span>
@@ -318,10 +318,10 @@
         <span class="k">for</span> <span class="n">cp</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
             <span class="n">V_sum</span> <span class="o">=</span> <span class="n">cp</span> <span class="o">-</span> <span class="n">coords</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">vectors_angle_anorm</span><span class="p">(</span><span class="n">V</span><span class="p">,</span> <span class="n">V_sum</span><span class="p">,</span> <span class="n">V_norm</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">treshold</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span></div>
 
-<div class="viewcode-block" id="VectorLinearize.is_linear"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.is_linear">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="VectorLinearize.is_linear"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.VectorLinearize.is_linear">[docs]</a>    <span class="k">def</span> <span class="nf">is_linear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">        For more detail see :meth:`is_linear_core` which is used as the criterion of linearity in this method.</span>
 
@@ -331,10 +331,10 @@
 <span class="sd">        :rtype: bool</span>
 <span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_linear_core</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="bp">False</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_linear_core</span><span class="p">(</span><span class="n">coords</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">depth</span><span class="o">=</span><span class="n">depth</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">False</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span></div></div>
 
 
 <div class="viewcode-block" id="LinearizeRecursiveVector"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.LinearizeRecursiveVector">[docs]</a><span class="k">class</span> <span class="nc">LinearizeRecursiveVector</span><span class="p">(</span><span class="n">LinearizeRecursive</span><span class="p">,</span> <span class="n">VectorLinearize</span><span class="p">):</span>
@@ -354,7 +354,7 @@
 
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="bp">None</span>
 
     <span class="n">trace_diff</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">trace</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
@@ -384,7 +384,7 @@
         <span class="c1"># assert len(trace.shape) == 2, &quot;Traces should be 2d, %dd submited instead (trace no. %d)&quot; %(len(trace.shape),nr)</span>
 
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
-    <span class="n">last_trace</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">last_trace</span> <span class="o">=</span> <span class="bp">None</span>
     <span class="k">if</span> <span class="n">n</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">trace</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
             <span class="c1"># find past and next trace</span>
@@ -412,6 +412,9 @@
 <div class="viewcode-block" id="length_step_std"><a class="viewcode-back" href="../../../aqueduct.geom.traces.html#aqueduct.geom.traces.length_step_std">[docs]</a><span class="k">def</span> <span class="nf">length_step_std</span><span class="p">(</span><span class="n">trace</span><span class="p">):</span>
     <span class="c1"># trace - 3D coordinates</span>
     <span class="c1"># calculates diff over trace and returns sum, mean and std of diff</span>
+    <span class="c1"># if trace is empty or have length &lt; 2 nans are returned</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">),</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">),</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;nan&#39;</span><span class="p">)</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">diff</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">d</span><span class="p">)</span></div>
 
@@ -454,14 +457,14 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
-          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqueduct 0.2.17 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li class="nav-item nav-item-2"><a href="../../aqueduct.html" >aqueduct</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, Tomasz Magdziarz.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.6.
+        &copy; Copyright 2016, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
     </div>
   </body>
 </html>
