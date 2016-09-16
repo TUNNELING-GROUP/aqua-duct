@@ -53,7 +53,6 @@ def triangle_angles_last(A, B, C):
 
 
 def triangle_height(A, B, C):
-    # todo : chceck why value in test is incorrect
     # a is head
     # input: 3 space coords of points (as tuple or list)
     # output float, value of triangle height
@@ -155,14 +154,14 @@ class LinearizeRecursive(object):
 
         If these points are linear their indices are returned. Otherwise, coordinates are split into two parts. First part spans points from the first point to the middle point (inclusive) and the second parth spans points from the middle (inclusive) to the last point. Next, these two parts are submitted recursively to :meth:`here`.
 
-         Results of these recursive calls are joined, redundant indecies are removed and sorted reslult is returned.
+         Results of these recursive calls are joined, redundant indices are removed and sorted result is returned.
 
         :param numpy.ndarray coords: Input coordinates.
         :param int depth: Depth of recurence.
         :return: Indices of :arg:`coords` points that can be used instead of all points in visulatization.
         :rtype: list of int
         """
-
+        # klasa nie ma zdefiniowanej metody is_linear
         depth += 1
 
         lengths = np.hstack(([0], np.cumsum(diff(coords))))

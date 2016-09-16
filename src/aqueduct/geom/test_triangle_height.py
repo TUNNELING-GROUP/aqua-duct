@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-
+from math import sqrt
 from traces import triangle_height
 
 
@@ -24,4 +24,4 @@ class TestTriangle_height(TestCase):
         B = 2, 2, 2
         C = 2, 4, 2
         case = triangle_height(A, B, C)
-        self.assertEquals(case, 2.449489743)
+        self.assertAlmostEqual(case, 2.828427,6)

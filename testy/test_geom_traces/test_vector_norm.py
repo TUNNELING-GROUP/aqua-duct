@@ -30,7 +30,7 @@ class TestVector_norm(TestCase):
         #calculate 3 dimensional vector length too
         test_val=(2,3,4)
         case=vector_norm(test_val)
-        self.assertAlmostEqual(case, 5.3851648)\
+        self.assertAlmostEqual(case, 5.3851648)
 
     def test_type(self):
         test_val = (5)
