@@ -24,6 +24,9 @@ def emit_message_to_file_in_root_logger(mess):
                 logfile.write(mess)
 
 
+def message_special(mess):
+    emit_message_to_file_in_root_logger(mess)
+
 def message(mess, cont=False):
     """
     Prints message to standard error.
@@ -213,6 +216,8 @@ class SimpleProgressBar(object):
         else:
             self.maxval = maxval
 
+        self.tens = []
+
         self.current = 0
 
         self.overrun_notice = True
@@ -292,10 +297,23 @@ class SimpleProgressBar(object):
                 stderr.write(linesep)
                 self.overrun_notice = False
                 self.overrun = True
-            stderr.write("\r%d iterations out of %d. Total time: %s" % (self.current, self.maxval, self.ttime()))
+            mess_spec = "%d iterations out of %d. Total time: %s" % (self.current, self.maxval, self.ttime())
+            mess = "\r" + mess_spec
         elif not self.overrun:
-            stderr.write(
-                "\r%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA()) + "\033[K")  # FIXME: magic constant!
+            mess_spec = "%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA())
+            mess = "\r" + mess_spec + "\033[K"  # FIXME: magic constant!
+
+        stderr.write(mess)
+        # TODO: do not use last_rotate_time here, use separate marker, last_rotate_time can be used in over run notice
+        if int(percent) / 10 not in self.tens: # FIXME: magic constant!
+            if percent > 100:
+                if self.tcurrent - self.last_rotate_time > 60.:  # FIXME: magic constant, remove it!
+                    message_special(mess_spec + linesep)
+                    self.tens.append(int(percent) / 10)
+                    self.last_rotate_time = self.tcurrent
+            else:
+                message_special(mess_spec+linesep)
+                self.tens.append(int(percent) / 10)
 
     def heartbeat(self):
         if time.time() - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!

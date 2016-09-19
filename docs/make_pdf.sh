@@ -28,7 +28,9 @@ export PYTHONPATH=$PYTHONPATH_CACHE
 
 if [ -d ~/Dropbox/AQUADUCT/documentation_builds ]
 then
-    cp -R build/latex ~/Dropbox/AQUADUCT/documentation_builds
+    mkdir -p ~/Dropbox/AQUADUCT/documentation_builds/latex
+    rm -rf ~/Dropbox/AQUADUCT/documentation_builds/latex/*
+    cp -R build/latex/*.pdf ~/Dropbox/AQUADUCT/documentation_builds/latex
     cp -R build/html ~/Dropbox/AQUADUCT/documentation_builds
 fi
 
