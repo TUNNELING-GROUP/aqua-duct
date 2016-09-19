@@ -5,12 +5,11 @@ import numpy as np
 
 class TestAbsLinearRecursive(TestCase):
     def test_here(self):
-        #DIDN'T PASS
         A = [0, 2, 0]
         B = [2, 2, 0]
         C = [4, 2, 0]
         test_case = absLinearRecursive(0.5)
-        out = [0, 2]
+        out = [0, 1, 2]
         data = np.array([A, B, C])
         self.assertEqual(out, test_case.here(data))
 
@@ -25,7 +24,7 @@ class TestAbsLinearRecursive(TestCase):
         G = [4, 3, 1]
         test_case = absLinearRecursive(0.5)
         out = [0,2,3,4,5,6]
-        data = np.array([A, B, C, D, E, F, G])
+        data = np.array([A, B,C, D, E, F, G])
         self.assertEqual(out, test_case.here(data))
 
     def test_here3(self):

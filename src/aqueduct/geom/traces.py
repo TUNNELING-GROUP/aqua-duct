@@ -104,7 +104,7 @@ class LinearizeOneWay(object):
         # yields indices of coords that spans linear fragments of the trace; done in one way
         size = len(coords)
         yield 0
-        ep = 0
+        ep = 0 #czy warunek sp<0 jest kiedykolwiek spelniony?
         for sp in range(size):
             if sp < ep:
                 continue
@@ -150,9 +150,9 @@ class LinearizeRecursive(object):
         """
         Core of recursive linearization argorithm.
 
-        It checks if the first, the last and the middle point are linear acoording to the criterion. The middle point is selected a point that is in the middle of lenght of the paths made by input coordinates.
+        It checks if the first, the last and the middle point are linear according to the criterion. The middle point is a selected point that is in the middle of length of the paths made by input coordinates.
 
-        If these points are linear their indices are returned. Otherwise, coordinates are split into two parts. First part spans points from the first point to the middle point (inclusive) and the second parth spans points from the middle (inclusive) to the last point. Next, these two parts are submitted recursively to :meth:`here`.
+        If these points are linear their indices are returned. Otherwise, coordinates are split into two parts. First part spans points from the first point to the middle point (inclusive) and the second part spans points from the middle (inclusive) to the last point. Next, these two parts are submitted recursively to :meth:`here`.
 
          Results of these recursive calls are joined, redundant indices are removed and sorted result is returned.
 
@@ -192,6 +192,7 @@ class LinearizeRecursive(object):
 class TriangleLinearize(object):
     def __init__(self, threshold):
         # threshold - maximal allowed sum of heights of triangles made of beginning, end and all middle points
+        ## bardzo ostre kryterium!!
         self.threshold = threshold
 
     def is_linear(self, coords, **kwargs):
@@ -209,7 +210,8 @@ class TriangleLinearize(object):
 
 class absLinearRecursive(LinearizeRecursive,TriangleLinearize):
     pass
-
+class absOneWay(LinearizeOneWay,TriangleLinearize):
+    pass
 class VectorLinearize(object):
     """
     Base class for linearization methods classes.
