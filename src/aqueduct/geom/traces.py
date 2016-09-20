@@ -101,15 +101,15 @@ class LinearizeOneWay(object):
     #jaką wartość powinna zwracac?
     def here(self, coords):
         # coords - 3D coordintates of a trace
-        # yields indices of coords that spans linear fragments of the trace; done in one way
+        # yields indices of coords which is a staring point of linear fragments of the trace and the next point after enf of linear segment; done in one way
         size = len(coords)
         yield 0
-        ep = 0 #czy warunek sp<0 jest kiedykolwiek spelniony?
+        ep = 0
         for sp in range(size):
             if sp < ep:
                 continue
             for ep in range(sp + 2, size):
-                if self.is_linear(coords[sp:ep]):
+                if self.is_linear(coords[sp:ep+1]):
                     continue
                 yield ep
                 break
@@ -216,7 +216,7 @@ class VectorLinearize(object):
     """
     Base class for linearization methods classes.
 
-    It implements vectro linearization criterion.
+    It implements vector linearization criterion.
     """
 
     def __init__(self, treshold):
@@ -227,15 +227,15 @@ class VectorLinearize(object):
         '''
         Method checks if input coordinates are linear according to the threshold and depth.
 
-        It begins with calculation of the threshold. If `depth` is None it is set to 1. Current treshold is calculated with following simple equation:
+        It begins with calculation of the threshold. If `depth` is None it is set to 1. Current threshold is calculated with following simple equation:
 
         .. math::
 
-            treshold_{current} = treshold_{initial} * (2 - 0.9^{depth})
+            threshold_{current} = threshold_{initial} * (2 - 0.9^{depth})
 
-        Next, in a loop over all points but the first and the last the angle is calculated between two vectors. The first one made by the point and the firs point, and the second vector made by the last and the first point. If any of the calculated angles is bigger the the treshold methods returns False; otherwise method returns True.
+        Next, in a loop over all points but the first and the last the angle is calculated between two vectors. The first one made by the point and the first point, and the second vector made by the last and the first point. If any of the calculated angles is bigger the the treshold methods returns False; otherwise method returns True.
 
-        :param numpy.ndarray coords: Coodrdinates for which linearizetion criterion is checked.
+        :param numpy.ndarray coords: Coordinates for which linearization criterion is checked.
         :param int depth: Depth of recurence.
         :return: True if input coordinates are linear and False otherwise.
         :rtype: bool
@@ -257,7 +257,7 @@ class VectorLinearize(object):
         '''
         For more detail see :meth:`is_linear_core` which is used as the criterion of linearity in this method.
 
-        :param numpy.ndarray coords: Coodrdinates for which linearizetion criterion is checked.
+        :param numpy.ndarray coords: Coordinates for which linearization criterion is checked.
         :param int depth: Depth of recurence.
         :return: True if input coordinates are linear and False otherwise. Criterion is checked for coordinates in normal and reverse order.
         :rtype: bool
