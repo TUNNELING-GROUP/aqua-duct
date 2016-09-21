@@ -119,6 +119,26 @@ class LinearizeOneWay(object):
         # __call__ is required by child classes
         here = self.here(coords)
         return coords[here]
+#poprawiony algorytm
+class LinearizeOneWayPTR(object):
+
+    def here(self, coords):
+        # coords - 3D coordintates of a trace
+        # yields indices of coords which is a staring point of linear fragments of the trace and the next point after enf of linear segment; done in one way
+        size = len(coords)
+        yield 0
+        if size <= 3:
+            yield 2
+        else:
+            for sp in range(size-2):
+                ep=sp+3
+                if self.is_linear(coords[sp:ep]):
+                    continue
+                yield sp+1
+                print sp+1
+                continue
+            yield size-1
+
 
 
 class LinearizeHobbit(LinearizeOneWay):
@@ -212,6 +232,7 @@ class absLinearRecursive(LinearizeRecursive,TriangleLinearize):
     pass
 class absOneWay(LinearizeOneWay,TriangleLinearize):
     pass
+
 class VectorLinearize(object):
     """
     Base class for linearization methods classes.
@@ -268,6 +289,8 @@ class VectorLinearize(object):
             return False
         return True
 
+class abspoprOneWay(LinearizeOneWayPTR,TriangleLinearize):
+    pass
 
 class LinearizeRecursiveVector(LinearizeRecursive, VectorLinearize):
     """
