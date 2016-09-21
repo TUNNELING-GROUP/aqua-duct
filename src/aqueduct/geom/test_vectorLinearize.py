@@ -9,11 +9,6 @@ class TestVectorLinearize(TestCase):
         obj=VectorLinearize(a)
         self.assertTrue(isinstance(obj,VectorLinearize))
 
-    # todo: threshold moze byc ujemny?
-    # def test_threshold_negative(self):
-    #     a = -100
-    #     self.assertRaises(ValueError, VectorLinearize(-10))
-
     def test_threshold_abovezero(self):
         a = 0
         A = [0, 2, 0]
@@ -62,7 +57,6 @@ class TestVectorLinearize(TestCase):
         obj = VectorLinearize(a)
         self.assertTrue(obj.is_linear_core(typed) == False)
 
-    #TODO: czy powinien zwracac true dla 2 wartosci?
     def test_2val(self):
         a=0
         A = [0, 2, 0]
@@ -70,5 +64,4 @@ class TestVectorLinearize(TestCase):
         data = [A, B]
         typed = np.array(data)
         obj = VectorLinearize(a)
-        self.assertFalse(obj.is_linear(typed)==True)
-g
+        self.assertTrue(obj.is_linear(typed)==True)

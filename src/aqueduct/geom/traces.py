@@ -3,12 +3,17 @@ import numpy as np
 from scipy.spatial.distance import pdist
 
 
-# todo : aby zaoszczedzic na obliczeniach mozna pomijac takie(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-> np kat 0.005 rad to 0,29stopnia miary łukowej
+# todo : aby zaoszczedzic na obliczeniach mozna pomijac takie katy(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-> np kat 0.005 rad to 0,29stopnia miary łukowej
 # wektory: promień atomu wodoru to 0.529A
 
 
 def vector_norm(V):
-    # calculate length of physicl vector based on it's coordynates
+    '''
+
+    :param V: a tuple or a list of coordinates
+    :return:
+    '''
+    # calculate length of physical vector based on it's coordinates
     # input: tuple or a list
     # output: float
     # return np.sqrt(np.dot(V, V.conj()))
@@ -135,7 +140,6 @@ class LinearizeOneWayPTR(object):
                 if self.is_linear(coords[sp:ep]):
                     continue
                 yield sp+1
-                print sp+1
                 continue
             yield size-1
 
