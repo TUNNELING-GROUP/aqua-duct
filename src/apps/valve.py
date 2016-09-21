@@ -1052,8 +1052,6 @@ def stage_III_run(config, options,
                     if some_may_be_redundant:
                         break
         pbar.finish()
-        '''
-        '''
         clui.message("Auto Barber in action:")
         pbar = clui.pbar(len(paths))
         for p in paths.values():
@@ -1070,8 +1068,6 @@ def stage_III_run(config, options,
             shorter_then = int(options.discard_short_paths)
             with clui.fbm("Discard (again) paths shorter then %d" % shorter_then):
                 spaths = [sp for sp in spaths if sp.size > shorter_then]
-
-
 
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):
