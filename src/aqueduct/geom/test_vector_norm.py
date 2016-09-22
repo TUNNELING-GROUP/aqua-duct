@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
 from aqueduct.geom.traces import vector_norm
-import numpy as np
-
+import math
 
 class TestVector_norm(TestCase):
     def test_vector_norm(self):
@@ -36,3 +35,8 @@ class TestVector_norm(TestCase):
         test_val = (5)
         case1 = vector_norm(test_val)
         self.assertTrue(case1, float)
+
+    def test_tupletuple(self):
+        test_val = ((0,0,0),(0,2,2))
+        case1 = vector_norm(test_val)
+        self.assertEqual(case1,2*math.sqrt(2) )
