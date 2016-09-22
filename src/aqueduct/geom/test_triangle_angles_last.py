@@ -60,3 +60,9 @@ class TestTriangle_angles_last(TestCase):
         result = [math.pi / 2]
         myRoundedResult = [round(elem, 1) for elem in result]
         self.assertEqual(myRoundedList, myRoundedResult)
+
+    def test_triangle_angles_zero(self):
+        A = [0, 0, 0]
+        B = [2, 2, 0]
+        C = [0, 0, 0]
+        self.assertRises(ZeroDivisionError,triangle_angles_last(A, B, C))

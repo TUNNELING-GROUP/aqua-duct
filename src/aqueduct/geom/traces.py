@@ -8,11 +8,11 @@ from scipy.spatial.distance import pdist
 
 
 def vector_norm(V):
-    '''
+    """
 
-    :param V: a tuple or a list of coordinates
-    :return:
-    '''
+    :param V: a vector in a form of array-like object, tuple or a list
+    :return: normalized length of a vector
+    """
     # calculate length of physical vector based on it's coordinates
     # input: tuple or a list
     # output: float
@@ -22,6 +22,13 @@ def vector_norm(V):
 
 
 def triangle_angles(A, B, C):
+    '''
+    Parameters are coordinates of points which are tops of triangle. The function calculates angles in a triangle formed by given coordinates.
+    :param A: coordinates of the first point
+    :param B: coordinates of the second point
+    :param C: coordinates of the third point
+    :return: list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]
+    '''
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
@@ -41,6 +48,13 @@ def triangle_angles(A, B, C):
 
 
 def triangle_angles_last(A, B, C):
+    '''
+    Parameters are coordinates of points which are tops of triangle. The function calculates the [ABC] angle.
+    :param A: coordinates of the first point [A top]
+    :param B: coordinates of the second point [B top]
+    :param C: coordinates of the third point [C top]
+    :return: list with one value of ABC angle in radians
+    '''
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
@@ -58,6 +72,14 @@ def triangle_angles_last(A, B, C):
 
 
 def triangle_height(A, B, C):
+    """
+    Parameters are coordinates of points which are tops of triangle. The function calculates the ABC triangle height.
+
+    :param A: coordinates of the first point [A top]
+    :param B: coordinates of the second point [B top]
+    :param C: coordinates of the third point [C top]
+    :return: one value of ABC triangle height
+    """
     # a is head
     # input: 3 space coords of points (as tuple or list)
     # output float, value of triangle height
@@ -102,8 +124,8 @@ def vectors_angle_anorm(A, B, A_norm):
 
 
 class LinearizeOneWay(object):
-    #co to jest coords? wspolrzedne jednego punktu? lista?
-    #jaką wartość powinna zwracac?
+    # co to jest coords? wspolrzedne jednego punktu? lista?
+    # jaką wartość powinna zwracac?
     def here(self, coords):
         # coords - 3D coordintates of a trace
         # yields indices of coords which is a staring point of linear fragments of the trace and the next point after enf of linear segment; done in one way
@@ -114,7 +136,7 @@ class LinearizeOneWay(object):
             if sp < ep:
                 continue
             for ep in range(sp + 2, size):
-                if self.is_linear(coords[sp:ep+1]):
+                if self.is_linear(coords[sp:ep + 1]):
                     continue
                 yield ep
                 break
@@ -124,9 +146,10 @@ class LinearizeOneWay(object):
         # __call__ is required by child classes
         here = self.here(coords)
         return coords[here]
-#poprawiony algorytm
-class LinearizeOneWayPTR(object):
 
+
+# poprawiony algorytm
+class LinearizeOneWayPTR(object):
     def here(self, coords):
         # coords - 3D coordintates of a trace
         # yields indices of coords which is a staring point of linear fragments of the trace and the next point after enf of linear segment; done in one way
@@ -135,14 +158,13 @@ class LinearizeOneWayPTR(object):
         if size <= 3:
             yield 2
         else:
-            for sp in range(size-2):
-                ep=sp+3
+            for sp in range(size - 2):
+                ep = sp + 3
                 if self.is_linear(coords[sp:ep]):
                     continue
-                yield sp+1
+                yield sp + 1
                 continue
-            yield size-1
-
+            yield size - 1
 
 
 class LinearizeHobbit(LinearizeOneWay):
@@ -172,7 +194,7 @@ class LinearizeRecursive(object):
 
     def here(self, coords, depth=0):
         """
-        Core of recursive linearization argorithm.
+        Core of recursive linearization argorithm. gggggggggggggggggg
 
         It checks if the first, the last and the middle point are linear according to the criterion. The middle point is a selected point that is in the middle of length of the paths made by input coordinates.
 
@@ -232,10 +254,14 @@ class TriangleLinearize(object):
                 return False
         return True
 
-class absLinearRecursive(LinearizeRecursive,TriangleLinearize):
+
+class absLinearRecursive(LinearizeRecursive, TriangleLinearize):
     pass
-class absOneWay(LinearizeOneWay,TriangleLinearize):
+
+
+class absOneWay(LinearizeOneWay, TriangleLinearize):
     pass
+
 
 class VectorLinearize(object):
     """
@@ -293,8 +319,10 @@ class VectorLinearize(object):
             return False
         return True
 
-class abspoprOneWay(LinearizeOneWayPTR,TriangleLinearize):
+
+class abspoprOneWay(LinearizeOneWayPTR, TriangleLinearize):
     pass
+
 
 class LinearizeRecursiveVector(LinearizeRecursive, VectorLinearize):
     """
@@ -373,7 +401,7 @@ def length_step_std(trace):
     # calculates diff over trace and returns sum, mean and std of diff
     # if trace is empty or have length < 2 nans are returned
     if len(trace) < 2:
-        return float('nan'),float('nan'),float('nan')
+        return float('nan'), float('nan'), float('nan')
     d = diff(trace)
     return np.sum(d), np.mean(d), np.std(d)
 
