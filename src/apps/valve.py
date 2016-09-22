@@ -1253,7 +1253,6 @@ def stage_IV_run(config, options,
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
             # print len(sps),ct
-            '''
             ctspc = CTypeSpathsCollection(spaths=sps,ctype=ct,pbar=pbar)
             master_paths.update({ct: ctspc.get_master_path(resid=nr)})
             master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
@@ -1261,6 +1260,7 @@ def stage_IV_run(config, options,
             master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
             master_paths_smooth.update(
                 {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
+            '''
 
         pbar.finish()
         # TODO: issue warinig if creation of master path failed
