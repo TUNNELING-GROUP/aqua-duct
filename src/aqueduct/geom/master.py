@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# this modlue is a prototype and have to be revritten
+# this modlue is a prototype and have to be rewritten
 
 import logging
 logger = logging.getLogger(__name__)
@@ -9,9 +9,9 @@ import numpy as np
 from scipy.spatial.distance import cdist, pdist
 
 from aqueduct.traj.paths import GenericPathTypeCodes, GenericPaths, yield_single_paths, MasterPath
-from aqueduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip
+from aqueduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip, xzip_xzip
 from aqueduct.utils import clui
-
+from aqueduct.traj.inlets import InletClusterGenericType,InletClusterExtendedType
 
 def fit_trace_to_points(trace, points):
     dist = cdist(trace, points)
@@ -102,6 +102,162 @@ part2type_dict = {0: GenericPathTypeCodes.scope_name,
                   2: GenericPathTypeCodes.scope_name}
 
 parts = (0, 1, 2)
+
+
+class CTypeSpathsCollection(object):
+
+    parts = (0, 1, 2) # spath parts
+
+    # takes group of paths belonging to one ctype and allows to get MasterPath
+    def __init__(self,spaths=None,ctype=None,bias_long=5,pbar=None):
+        self.spaths = spaths
+        assert isinstance(ctype,InletClusterGenericType) or isinstance(ctype,InletClusterExtendedType)
+        self.ctype = ctype
+        self.bias_long = bias_long
+        self.pbar = pbar
+
+    def beat(self):
+        if self.pbar is not None:
+            self.pbar.heartbeat()
+    def update(self):
+        if self.pbar is not None:
+            self.pbar.update(1)
+
+
+    def lens(self):
+        # get total lenghts of all paths - needed as weights in averaging
+        # if ctype in #:# and not 0 and not None then take object part only length
+        if self.ctype.input is not None:
+            if self.ctype.input > 0:
+                if self.ctype.input == self.ctype.output:
+                    return np.array([float(len(sp.types_object)) for sp in self.spaths])
+        return np.array([float(sp.size) for sp in self.spaths])
+
+    def lens_norm(self):
+        lens = self.lens()
+        if np.max(lens) > 0:
+            lens /= np.max(lens)  # normalize
+            return lens ** self.bias_long  # bias to long paths
+
+    def lens_real(self):
+        return [sp.size for sp in self.spaths]
+
+    def full_size(self):
+        # get total size (desired) of master path
+        # first check what is the size of paths in all parts and normalize and then scale them
+        sizes = []
+        for part in self.parts:
+            # lengths of all paths of part part
+            lens = np.array([float(len(sp.types[part])) for sp in self.spaths])
+            if np.max(lens) > 0:
+                lens /= np.max(lens)  # normalization
+                lens = lens ** self.bias_long  # scale them by increasing weights of long paths
+            if sum(lens) == 0:
+                sizes.append(0)
+            else:
+                # weighted average by paths lengths
+                sizes.append(int(np.average([len(sp.types[part]) for sp in self.spaths], 0, lens)))
+        return sum(sizes)  # total size (desired)
+
+
+    def get_master_path(self,smooth=None,resid=0):
+        # containers for coords, types and widths of master path
+        coords = []
+        types = []
+        widths = []
+        pbar_previous = 0
+
+        lens = self.lens_norm()
+        full_size = self.full_size()
+        pbar_factor = float(len(self.spaths))/full_size
+
+        # following loop calculates types distribution only
+        # loop over zip zipped [smooth] coords of all paths and gtypes with size set to full_size
+        #for pbar_nr,(coords_zz, types_zz) in enumerate(zip(zip_zip(*[sp.get_coords_cont(smooth=smooth) for sp in spaths], N=full_size),zip_zip(*[sp.gtypes_cont for sp in spaths], N=full_size))):
+        for pbar_nr,sp_slices in enumerate(xzip_xzip(*self.lens_real(),N=full_size)):
+            coords_zz = [sp.get_coords_cont(smooth=smooth)[sl] for sp,sl in zip(self.spaths,sp_slices)]
+            types_zz = [sp.gtypes_cont[sl] for sp,sl in zip(self.spaths,sp_slices)]
+
+            # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
+            lens_zz = []
+            for l, coord_z in zip(lens, coords_zz):
+                if len(coord_z) > 0:
+                    lens_zz.append([float(l) / len(coord_z)] * len(coord_z))  # normalize and correct lengths
+                else:
+                    # lens_zz.append([float(l)] * len(coord_z))
+                    lens_zz.append([])
+            # concatenate zip_zip coords and lens
+            coords_zz_cat = list(concatenate(*coords_zz))
+            lens_zz_cat = list(concatenate(*lens_zz))
+            # average coords_zz_cat using weights of lens_zz_cat
+            coords.append(np.average(coords_zz_cat, 0, lens_zz_cat))
+            # calculate widths
+            if len(coords_zz) > 1:
+                # try tu use weighted distance - wminkowski with p=2 is equivalent to weighted euclidean
+                # id_of_max = np.argmax(pdist(coords_zz_cat, 'wminkowski', p=2, w=lens_zz_cat))
+                # widths.append(pdist(coords_zz_cat, 'euclidean')[id_of_max])
+                widths.append(np.mean(pdist(coords_zz_cat, 'euclidean')))
+            else:
+                widths.append(0.)
+            # concatenate zip_zip gtypes
+            types_zz_cat = list(concatenate(*types_zz))
+            # # pick correct type..., check distance of coords[-1] to coords_zz_cat
+            # types_cdist = cdist(np.matrix(coords[-1]), coords_zz_cat, metric='euclidean')
+            # types.append(types_zz_cat[np.argmin(types_cdist)])
+            # types.append(decide_on_type(Counter(types_zz_cat)))
+            types.append(float(types_zz_cat.count(GenericPathTypeCodes.scope_name))/len(types_zz_cat))
+
+            pbar_current = int((pbar_nr+1)*pbar_factor)
+            if pbar_current > pbar_previous:
+                pbar_previous = pbar_current
+                self.update()  # update progress bar
+            else:
+                self.beat()
+        # get proper types
+        # make median distribuitions
+        types_dist_orig = np.matrix(np.median([simple_types_distribution(sp.gtypes_cont) for sp in self.spaths],axis=0))
+        types_dist_range = list(set(types))
+        types_thresholds = []
+        for t in types_dist_range:
+            new_pro_types = [{True:GenericPathTypeCodes.scope_name,
+                              False:GenericPathTypeCodes.object_name}[typ>=t] for typ in types]
+            types_thresholds.append(cdist(np.matrix(simple_types_distribution(new_pro_types)),
+                                   types_dist_orig, metric='euclidean'))
+            self.beat()
+        # get threshold for which value of types_thresholds is smallest
+        types = [{True: GenericPathTypeCodes.scope_name,
+                  False: GenericPathTypeCodes.object_name}[typ >= types_dist_range[np.argmin(types_thresholds)]] for typ in types]
+
+        frames = range(len(coords))
+
+        min_pf = 0
+        max_pf = len(coords) - 1
+
+        if self.ctype is None:
+            min_pf = None
+            max_pf = None
+        else:
+            if self.ctype.input is not None:
+                min_pf = None
+            if self.ctype.output is not None:
+                max_pf = None
+
+        gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf)
+        for c, t, f in zip(coords, types, frames):  # TODO: remove loop
+            gp.add_type(f, t)
+            gp.add_coord(c)
+            self.beat()
+
+
+        try:
+            sp = list(yield_single_paths([gp]))[0]
+        except IndexError:
+            logger.warning('No master path found for ctype %s' % str(self.ctype))
+            return None
+        self.beat()  # touch progress bar
+        mp = MasterPath(sp)
+        mp.add_width(widths)
+        return mp
 
 
 def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, pbar=None):
@@ -242,6 +398,3 @@ def calculate_master(spaths_resid_ctype_smooth):
     #    pbar.update(1)
     return mp
 
-class MasterTrace(object):
-    def __init__(self):
-        pass

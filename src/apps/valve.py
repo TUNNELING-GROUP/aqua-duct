@@ -42,7 +42,7 @@ from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
 from aqueduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch
 from aqueduct.geom.convexhull import is_point_within_convexhull
-from aqueduct.geom.master import create_master_spath
+from aqueduct.geom.master import create_master_spath, CTypeSpathsCollection
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
@@ -1041,7 +1041,7 @@ def stage_III_run(config, options,
             some_may_be_redundant = False
             if len(spheres) > 1:
                 for nr, sphe1 in enumerate(spheres):
-                    for sphe2 in spheres[1:]:
+                    for sphe2 in spheres[nr+1:]:
                         if sphe1[1] > sphe2[1]: continue
                         d = cdist(np.matrix(sphe1[0]), np.matrix(sphe2[0]))
                         if d + sphe1[1] < sphe2[1]:
@@ -1058,6 +1058,8 @@ def stage_III_run(config, options,
             p.barber_with_spheres(spheres)
             pbar.update(1)
         pbar.finish()
+        # now, it might be that some of paths are empty
+        paths = {k:v for k,v in paths.iteritems() if len(v.coords) > 0}
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
@@ -1251,9 +1253,15 @@ def stage_IV_run(config, options,
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
             # print len(sps),ct
+            '''
+            ctspc = CTypeSpathsCollection(spaths=sps,ctype=ct,pbar=pbar)
+            master_paths.update({ct: ctspc.get_master_path(resid=nr)})
+            master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
+            '''
             master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
             master_paths_smooth.update(
                 {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
+
         pbar.finish()
         # TODO: issue warinig if creation of master path failed
 
