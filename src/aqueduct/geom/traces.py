@@ -22,13 +22,13 @@ def vector_norm(V):
 
 
 def triangle_angles(A, B, C):
-    '''
+    """
     Parameters are coordinates of points which are tops of triangle. The function calculates angles in a triangle formed by given coordinates.
     :param A: coordinates of the first point
     :param B: coordinates of the second point
     :param C: coordinates of the third point
     :return: list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]
-    '''
+    """
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
@@ -48,13 +48,13 @@ def triangle_angles(A, B, C):
 
 
 def triangle_angles_last(A, B, C):
-    '''
+    """
     Parameters are coordinates of points which are tops of triangle. The function calculates the [ABC] angle.
     :param A: coordinates of the first point [A top]
     :param B: coordinates of the second point [B top]
     :param C: coordinates of the third point [C top]
     :return: list with one value of ABC angle in radians
-    '''
+    """
     # http://stackoverflow.com/questions/5122372/angle-between-points
     # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
@@ -92,8 +92,15 @@ def triangle_height(A, B, C):
     return h
 
 
+
 def vectors_angle(A, B):
-    # calculates angles between A B
+    """
+    This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates.
+
+    :param A: coordinates of the first point which is the end of the vector
+    :param B: coordinates of the second point which is the end of the vector
+    :return: the angle between vectors in question (in radians)
+    """
     angle = np.arccos(np.dot(A, B) / (vector_norm(A) * vector_norm(B)))
     if np.isnan(angle):
         return 0.0
@@ -101,19 +108,40 @@ def vectors_angle(A, B):
 
 
 def vectors_angle_alt(A, B):
-    # calculates angles between A B, alternative method
+    """
+    This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates
+     - alternative method.
+
+    :param A: coordinates of the first point which is the end of the vector
+    :param B: coordinates of the second point which is the end of the vector
+    :return: the angle between vectors in question (in radians)
+    """
     return np.arccos(np.clip(np.dot(A / vector_norm(A), B / vector_norm(B)), -1.0, 1.0))
 
 
 def vectors_angle_alt_anorm(A, B, A_norm):
-    # calculates angles between A B, alternative method with additional A_norm holding norm of A
+    """
+    This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates
+     - alternative method with additional A_norm holding norm of A.
+
+    :param A: coordinates of the first point which is the end of the vector
+    :param B: coordinates of the second point which is the end of the vector
+    :param A_norm: additional parameter holding normalized of vector A
+    :return: the angle between vectors in question (in radians)
+    """
     return np.arccos(np.clip(np.dot(A / A_norm, B / vector_norm(B)), -1.0, 1.0))
 
 
 def vectors_angle_anorm(A, B, A_norm):
-    # A_norm is normalized vector A, A and B are points in the space
-    # function calculates angle between A and B relative to the origin of coordinate system
-    # function can take negative values!
+    """
+    This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates
+     using additional A_norm holding norm of A.
+
+    :param A: coordinates of the first point which is the end of the vector
+    :param B: coordinates of the second point which is the end of the vector
+    :param A_norm: additional parameter holding normalized of vector A
+    :return: the angle between vectors in question (in radians)
+    """
     norm2 = A_norm * vector_norm(B)
     if norm2 == 0.:
         return 0.
@@ -123,36 +151,44 @@ def vectors_angle_anorm(A, B, A_norm):
     return np.arccos(angle)
 
 
-class LinearizeOneWay(object):
-    # co to jest coords? wspolrzedne jednego punktu? lista?
-    # jaką wartość powinna zwracac?
-    def here(self, coords):
-        # coords - 3D coordintates of a trace
-        # yields indices of coords which is a staring point of linear fragments of the trace and the next point after enf of linear segment; done in one way
-        size = len(coords)
-        yield 0
-        ep = 0
-        for sp in range(size):
-            if sp < ep:
-                continue
-            for ep in range(sp + 2, size):
-                if self.is_linear(coords[sp:ep + 1]):
-                    continue
-                yield ep
-                break
-
-    def __call__(self, coords):
-        # returns these points from coords that are linear simplification of coords
-        # __call__ is required by child classes
-        here = self.here(coords)
-        return coords[here]
+# class LinearizeOneWay(object):
+#     # co to jest coords? wspolrzedne jednego punktu? lista?
+#     # jaką wartość powinna zwracac?
+#     def here(self, coords):
+#         # coords - 3D coordintates of a trace
+#         # yields indices of coords which is a staring point of linear fragments of the trace and the next point after
+# enf of linear segment; done in one way
+#         size = len(coords)
+#         yield 0
+#         ep = 0
+#         for sp in range(size):
+#             if sp < ep:
+#                 continue
+#             for ep in range(sp + 2, size):
+#                 if self.is_linear(coords[sp:ep + 1]):
+#                     continue
+#                 yield ep
+#                 break
+#
+#     def __call__(self, coords):
+#         # returns these points from coords that are linear simplification of coords
+#         # __call__ is required by child classes
+#         here = self.here(coords)
+#         return coords[here]
 
 
 # poprawiony algorytm
-class LinearizeOneWayPTR(object):
+class LinearizeOneWay(object):
     def here(self, coords):
         # coords - 3D coordintates of a trace
-        # yields indices of coords which is a staring point of linear fragments of the trace and the next point after enf of linear segment; done in one way
+        # yields indices of coords which is a staring point of linear fragments of the trace and the next point after
+        # enf of linear segment; done in one way
+        """
+        This function simplifies the trace by removing the redundant, linear points
+        :param coords: 3D coordinates of a trace as an array-like object
+        :return: indices of coordinates which are a staring and ending points of linear fragments and other non-linear
+        points of the trace
+        """
         size = len(coords)
         yield 0
         if size <= 3:
@@ -194,7 +230,7 @@ class LinearizeRecursive(object):
 
     def here(self, coords, depth=0):
         """
-        Core of recursive linearization argorithm. gggggggggggggggggg
+        Core of recursive linearization argorithm.
 
         It checks if the first, the last and the middle point are linear according to the criterion. The middle point is a selected point that is in the middle of length of the paths made by input coordinates.
 
@@ -275,7 +311,7 @@ class VectorLinearize(object):
         self.treshold = treshold
 
     def is_linear_core(self, coords, depth=None):
-        '''
+        """
         Method checks if input coordinates are linear according to the threshold and depth.
 
         It begins with calculation of the threshold. If `depth` is None it is set to 1. Current threshold is calculated with following simple equation:
@@ -290,7 +326,7 @@ class VectorLinearize(object):
         :param int depth: Depth of recurence.
         :return: True if input coordinates are linear and False otherwise.
         :rtype: bool
-        '''
+        """
         if depth is None:
             depth = 1
 
@@ -305,14 +341,15 @@ class VectorLinearize(object):
         return True
 
     def is_linear(self, coords, depth=None, **kwargs):
-        '''
+
+        """
         For more detail see :meth:`is_linear_core` which is used as the criterion of linearity in this method.
 
         :param numpy.ndarray coords: Coordinates for which linearization criterion is checked.
         :param int depth: Depth of recurence.
         :return: True if input coordinates are linear and False otherwise. Criterion is checked for coordinates in normal and reverse order.
         :rtype: bool
-        '''
+        """
         if not self.is_linear_core(coords, depth=depth):
             return False
         elif not self.is_linear_core(coords[::-1], depth=depth):
@@ -320,7 +357,11 @@ class VectorLinearize(object):
         return True
 
 
-class abspoprOneWay(LinearizeOneWayPTR, TriangleLinearize):
+class abspoprOneWay(LinearizeOneWay, TriangleLinearize):
+    pass
+class absOneWay2(LinearizeOneWay,VectorLinearize):
+    pass
+class absLinearizeRecursive(LinearizeRecursive,TriangleLinearize):
     pass
 
 

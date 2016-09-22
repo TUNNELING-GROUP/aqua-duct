@@ -15,6 +15,8 @@
 import sys
 import os
 
+[sys.path.pop(i) for i in [nr for nr,p in enumerate(sys.path) if 'aqueduct' in p and 'dist-packages' in p][::-1]]
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.

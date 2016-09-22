@@ -20,6 +20,9 @@ Submodules
    aqueduct.geom.test_trianlgeLinearize
    aqueduct.geom.test_vectorLinearize
    aqueduct.geom.test_vector_norm
+   aqueduct.geom.test_vectors_angle
+   aqueduct.geom.test_vectors_angle_alt
+   aqueduct.geom.test_vectors_angle_alt_anorm
    aqueduct.geom.test_vectors_angle_anorm
    aqueduct.geom.traces
 
