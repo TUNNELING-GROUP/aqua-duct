@@ -15,6 +15,10 @@
 import sys
 import os
 
+# Following is due to stupid Debian policy of using dist-packages directory.
+# Ubuntu inherits this behavior. It prevents virtualenv of being effective
+# in building docs for cutting edge AQ in the presence of globally instaled
+# version.
 [sys.path.pop(i) for i in [nr for nr,p in enumerate(sys.path) if 'aqueduct' in p and 'dist-packages' in p][::-1]]
 
 # If extensions (or modules to document with autodoc) are in another directory,
