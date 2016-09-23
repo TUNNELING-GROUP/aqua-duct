@@ -193,7 +193,7 @@ class CTypeSpathsCollectionWorker(object):
     def coords_types_prob_widths(self,sp_slices_):
         # get zz coords and types
         coords_zz = [sp.get_coords_cont(smooth=self.smooth)[sl] for sp, sl in zip(self.spaths, sp_slices_)]
-        del sp_slices_
+
 
         # here we have coords_zz and types_zz
         # and we can calculate coords, types_prob, widths
@@ -230,6 +230,7 @@ class CTypeSpathsCollectionWorker(object):
 
         # concatenate zip_zip gtypes
         types_zz_cat = list(concatenate(*[sp.gtypes_cont[sl] for sp, sl in zip(self.spaths, sp_slices_)]))
+        del sp_slices_
         # append type porbability to types
 
         types_to_append = float(types_zz_cat.count(GenericPathTypeCodes.scope_name)) / len(types_zz_cat)
@@ -273,10 +274,15 @@ class CTypeSpathsCollection(object):
         map_fun = map
         if True:
             pool = multiprocessing.Pool(8)
-            map_fun = pool.map
+            map_fun = pool.imap
+            chunk_size = int(full_size / 8 / 8)
+            if chunk_size == 0:
+                chunk_size = 1
 
 
-        for coords_,types_,widths_, in map_fun(worker,xzip_xzip(*worker.lens_real_cache,N=full_size)):
+        # TODO: it is possible to add pbar support here!
+        # TODO: consider of using imap_unordered, it might use less memory in this case
+        for coords_,types_,widths_, in map_fun(worker,xzip_xzip(*worker.lens_real_cache,N=full_size),chunk_size):
             coords.append(coords_)
             types.append(types_)
             widths.append(widths_)
