@@ -5,7 +5,7 @@ PDIR=$TDIR/aqueduct
 mkdir -p $PDIR
 cp -r src/* $PDIR
 
-if [ `uname` == 'OpenBSD' ]
+if [ `uname` = 'OpenBSD' ]
 then
     find $PDIR -iname '*.pyc' -exec rm {} \;
     find $PDIR -iname '*.orig' -exec rm {} \;

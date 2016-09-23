@@ -1258,20 +1258,16 @@ def stage_IV_run(config, options,
             del pool
 
         '''
-        pbar = clui.pbar(len(ctypes_generic_list) * 4)
+        pbar = clui.pbar(len(spaths)*2)
 
         for nr, ct in enumerate(ctypes_generic_list):
             logger.debug('CType %s (%d)' % (str(ct), nr))
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            pbar.update(1)
             logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
             # print len(sps),ct
-            ctspc = CTypeSpathsCollection(spaths=sps,ctype=ct)
-            pbar.update(1)
+            ctspc = CTypeSpathsCollection(spaths=sps,ctype=ct,pbar=pbar)
             master_paths.update({ct: ctspc.get_master_path(resid=nr)})
-            pbar.update(1)
             master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
-            pbar.update(1)
             del ctspc
             #master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
             #master_paths_smooth.update(
