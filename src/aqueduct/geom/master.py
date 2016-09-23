@@ -100,6 +100,8 @@ class CTypeSpathsCollection(object):
         self.bias_long = bias_long
         self.pbar = pbar
 
+        self.lens_norm_cache = self.lens_norm()
+
     def beat(self):
         if self.pbar is not None:
             self.pbar.heartbeat()
@@ -164,6 +166,25 @@ class CTypeSpathsCollection(object):
         # make median distribuitions
         return np.matrix(np.median([self.simple_types_distribution(sp.gtypes_cont) for sp in self.spaths], axis=0))
 
+
+    def types_prob_to_types(self,types_prob):
+        # get proper types
+        types_dist_orig = self.types_distribution()
+        types_dist_range = list(set(types_prob))
+        types_thresholds = []
+        for t in types_dist_range:
+            new_pro_types = [{True: GenericPathTypeCodes.scope_name,
+                              False: GenericPathTypeCodes.object_name}[typ >= t] for typ in types_prob]
+            types_thresholds.append(cdist(np.matrix(self.simple_types_distribution(new_pro_types)),
+                                          types_dist_orig, metric='euclidean'))
+            self.beat()
+        # get threshold for which value of types_thresholds is smallest
+        types = [{True: GenericPathTypeCodes.scope_name,
+                  False: GenericPathTypeCodes.object_name}[typ >= types_dist_range[np.argmin(types_thresholds)]] for typ
+                 in types_prob]
+        return types
+
+
     def get_master_path(self,smooth=None,resid=0):
         # containers for coords, types and widths of master path
         coords = []
@@ -180,6 +201,10 @@ class CTypeSpathsCollection(object):
             # get zz coords and types
             coords_zz = [sp.get_coords_cont(smooth=smooth)[sl] for sp,sl in zip(self.spaths,sp_slices)]
             types_zz = [sp.gtypes_cont[sl] for sp,sl in zip(self.spaths,sp_slices)]
+
+            # here we have coords_zz and types_zz
+            # and we can calculate coords, types_prob, widths
+
             # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
             lens_zz = []
             for l, coord_z in zip(lens, coords_zz):
@@ -188,6 +213,10 @@ class CTypeSpathsCollection(object):
                 else:
                     # lens_zz.append([float(l)] * len(coord_z))
                     lens_zz.append([])
+
+            # here we have coords_zz, types_zz, lens_zz
+            # and we can calculate coords, types_prob, widths
+
             # concatenate zip_zip coords and lens
             coords_zz_cat = list(concatenate(*coords_zz))
             lens_zz_cat = list(concatenate(*lens_zz))
@@ -212,20 +241,13 @@ class CTypeSpathsCollection(object):
         # at this stage we have coords, widths and types probability
 
         # get proper types
-        types_dist_orig = self.types_distribution()
-        types_dist_range = list(set(types))
-        types_thresholds = []
-        for t in types_dist_range:
-            new_pro_types = [{True:GenericPathTypeCodes.scope_name,
-                              False:GenericPathTypeCodes.object_name}[typ>=t] for typ in types]
-            types_thresholds.append(cdist(np.matrix(self.simple_types_distribution(new_pro_types)),
-                                   types_dist_orig, metric='euclidean'))
-            self.beat()
-        # get threshold for which value of types_thresholds is smallest
-        types = [{True: GenericPathTypeCodes.scope_name,
-                  False: GenericPathTypeCodes.object_name}[typ >= types_dist_range[np.argmin(types_thresholds)]] for typ in types]
+        types = self.types_prob_to_types(types)
+
         # make frames
         frames = range(len(coords))
+
+        # finalize
+
         # max min frames
         min_pf = 0
         max_pf = len(coords) - 1
@@ -237,6 +259,7 @@ class CTypeSpathsCollection(object):
                 min_pf = None
             if self.ctype.output is not None:
                 max_pf = None
+
         # get and populate GenericPath
         gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf)
         for c, t, f in zip(coords, types, frames):  # TODO: remove loop
@@ -389,8 +412,5 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
 
 def calculate_master(spaths_resid_ctype_smooth):
     spaths, resid, ctype, smooth = spaths_resid_ctype_smooth
-    mp = create_master_spath(spaths, resid=resid, ctype=ctype, smooth=smooth)
-    #with lock:
-    #    pbar.update(1)
-    return mp
+    return CTypeSpathsCollection(spaths=spaths, ctype=ctype).get_master_path(smooth=smooth,resid=resid)
 
