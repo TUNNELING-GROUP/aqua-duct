@@ -375,6 +375,12 @@ class LinearizeRecursiveVector(LinearizeRecursive, VectorLinearize):
 
 
 def diff(trace):
+    """
+    This function calculates the distance between 2 given points.
+
+    :param trace: coordinates in numpy array object
+    :return: distance between points
+    """
     # trace - 3D coordinates
     # returns distances between coordinates
     assert isinstance(trace, np.ndarray), "Trace should be of np.ndarray type, %r submited instead." % type(trace)
@@ -392,6 +398,13 @@ def diff(trace):
 
 
 def tracepoints(start, stop, nr):
+    """
+
+    :param start: coordinates of the first point as a numpy array object
+    :param stop: coordinates of the second point as a numpy array object
+    :param nr: number of elements between the first and second point
+    :return: two-dimentional numpy array; number of dimentions depends on nr parameter
+    """
     # returns points between start and stop as linear interpolations
     # if nr == 1 then midpoint is returned
     return np.array([np.linspace(cb, ce, nr + 2)[1:-1] for cb, ce in zip(start, stop)]).T
