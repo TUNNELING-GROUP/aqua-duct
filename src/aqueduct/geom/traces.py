@@ -375,6 +375,12 @@ class LinearizeRecursiveVector(LinearizeRecursive, VectorLinearize):
 
 
 def diff(trace):
+    """
+    This function calculates the distance between 2 given points.
+
+    :param trace: coordinates in numpy array object
+    :return: distance between points
+    """
     # trace - 3D coordinates
     # returns distances between coordinates
     assert isinstance(trace, np.ndarray), "Trace should be of np.ndarray type, %r submited instead." % type(trace)
@@ -392,13 +398,27 @@ def diff(trace):
 
 
 def tracepoints(start, stop, nr):
+    """
+
+    :param start: coordinates of the first point as a numpy array object
+    :param stop: coordinates of the second point as a numpy array object
+    :param nr: number of elements between the first and second point
+    :return: two-dimentional numpy array; number of dimentions depends on nr parameter
+    """
     # returns points between start and stop as linear interpolations
     # if nr == 1 then midpoint is returned
     return np.array([np.linspace(cb, ce, nr + 2)[1:-1] for cb, ce in zip(start, stop)]).T
 
 
 def midpoints(paths):
-    # paths - a tuple of 2d np.arrays that holds 3D coordinates, each element holds one trace, all elements are supposed to make one path divided in to sections
+    """
+    The function returns a tuple of numpy arrays extended with mid point spanning last and first element(column)
+     of these arrays.
+    :param paths: a tuple of 2-dimentional np.arrays that hold 3D coordinates; each element holds one trace,
+    all elements are supposed to make one path divided in to sections
+    :return: paths elements with additional mid points as a generator object
+    """
+    # paths - a tuple of 2d np.arrays that hold 3D coordinates, each element holds one trace, all elements are supposed to make one path divided in to sections
     # yields paths elements with additional mid points
     # if input paths is follwoing:
     #   11111 33333 55555
@@ -438,6 +458,11 @@ def midpoints(paths):
 
 
 def length_step_std(trace):
+    """
+    This function caclulates sum, mean and standard deviation from all segments of a trace.
+    :param trace: coordinates of points as numpy array
+    :return: a tuple with basics statistics of a trace
+    """
     # trace - 3D coordinates
     # calculates diff over trace and returns sum, mean and std of diff
     # if trace is empty or have length < 2 nans are returned
