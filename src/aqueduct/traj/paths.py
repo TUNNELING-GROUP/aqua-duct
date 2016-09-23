@@ -262,10 +262,11 @@ class GenericPaths(object, GenericPathTypeCodes):
 
     def barber_with_spheres(self,spheres):
         for center,radius in spheres:
-            distances = cdist(np.matrix(center), self.coords, metric='euclidean').flatten()
-            self.coords = lind(self.coords,np.argwhere(distances>radius).flatten().tolist())
-            self.types = lind(self.types,np.argwhere(distances>radius).flatten().tolist())
-            self.frames = lind(self.frames,np.argwhere(distances>radius).flatten().tolist())
+            if len(self.coords) > 0:
+                distances = cdist(np.matrix(center), self.coords, metric='euclidean').flatten()
+                self.coords = lind(self.coords,np.argwhere(distances>radius).flatten().tolist())
+                self.types = lind(self.types,np.argwhere(distances>radius).flatten().tolist())
+                self.frames = lind(self.frames,np.argwhere(distances>radius).flatten().tolist())
 
 
 

@@ -12,7 +12,9 @@ Submodules
    aqueduct.geom.pca
    aqueduct.geom.smooth
    aqueduct.geom.test_absLinearRecursive
+   aqueduct.geom.test_absLinearizeRecursive
    aqueduct.geom.test_absOneWay
+   aqueduct.geom.test_absOneWay2
    aqueduct.geom.test_abspoprOneWay
    aqueduct.geom.test_linearizeOneWay
    aqueduct.geom.test_triangle_angles_last

@@ -17,6 +17,8 @@ else
     MAKE=make
 fi
 
+PYTHONPATH_CACHE=$PYTHONPATH
+export PYTHONPATH=`pwd`/../src
 
 $SPHINX_APIDOC -f -e -o source/ ../src/aqueduct/
 sed -i '/undoc/d' source/*.*.rst
@@ -33,3 +35,4 @@ find build/html/ -iname '*.html' -exec sed -i 's/localhost/'$( hostname )'/g' {}
 
 rm -rf source/aqueduct.tar.gz
 
+export PYTHONPATH=$PYTHONPATH_CACHE

@@ -464,8 +464,7 @@ def zip_zip(*args, **kwargs):
     if 'N' in kwargs.keys():
         N = kwargs['N']
     else:
-        ns = map(float, map(len, args))
-        N = int(min(ns))
+        N = int(min(map(float, map(len, args))))
     position = [0.] * len(args)
     for n in range(N):
         this_yield = []
@@ -481,3 +480,30 @@ def zip_zip(*args, **kwargs):
                 this_yield.append(a[ip:inp])
         yield tuple(this_yield)
         position = next_position
+
+def xzip_xzip(*args,**kwargs):
+    if 'N' in kwargs.keys():
+        N = kwargs['N']
+    else:
+        N = int(min(map(float, args)))
+    position = [0.] * len(args)
+
+    for n in xrange(N):
+        this_yield = []
+        #next_position = [float(a) / N + p for a, p in zip(args, position)]
+        next_position_ = (float(args[i]) / N + position[i] for i in xrange(len(args)))
+        next_position = []
+        for i in xrange(len(args)):
+            a = args[i]
+            ip = int(position[i])
+            next_position.append(next_position_.next())
+            inp = int(next_position[-1])
+            if n + 1 == N:
+                this_yield.append(slice(ip,None))
+            else:
+                if ip == inp:
+                    inp += 1
+                this_yield.append(slice(ip,inp))
+        yield tuple(this_yield)
+        position = next_position
+
