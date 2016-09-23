@@ -13,6 +13,9 @@ from aqueduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip, x
 from aqueduct.utils import clui
 from aqueduct.traj.inlets import InletClusterGenericType,InletClusterExtendedType
 
+from multiprocessing import Queue,Manager,Lock,Value,Process
+
+
 def fit_trace_to_points(trace, points):
     dist = cdist(trace, points)
     points_min = np.argmin(dist, 1).tolist()
@@ -196,11 +199,12 @@ class CTypeSpathsCollection(object):
         # pbar magic
         pbar_previous = 0
         pbar_factor = float(len(self.spaths))/full_size
-        # loop over zip zipped coords and types
-        for pbar_nr,sp_slices in enumerate(xzip_xzip(*self.lens_real(),N=full_size)):
+
+
+        def coords_types_prob_widths(sp_slices_):
             # get zz coords and types
-            coords_zz = [sp.get_coords_cont(smooth=smooth)[sl] for sp,sl in zip(self.spaths,sp_slices)]
-            types_zz = [sp.gtypes_cont[sl] for sp,sl in zip(self.spaths,sp_slices)]
+            coords_zz = [sp.get_coords_cont(smooth=smooth)[sl] for sp,sl in zip(self.spaths,sp_slices_)]
+            types_zz = [sp.gtypes_cont[sl] for sp,sl in zip(self.spaths,sp_slices_)]
 
             # here we have coords_zz and types_zz
             # and we can calculate coords, types_prob, widths
@@ -221,16 +225,51 @@ class CTypeSpathsCollection(object):
             coords_zz_cat = list(concatenate(*coords_zz))
             lens_zz_cat = list(concatenate(*lens_zz))
             # average coords_zz_cat using weights of lens_zz_cat
-            coords.append(np.average(coords_zz_cat, axis=0, weights=lens_zz_cat))
+
+            coords_to_append = np.average(coords_zz_cat, axis=0, weights=lens_zz_cat)
+
             # calculate widths
             if len(coords_zz) > 1:
-                widths.append(np.mean(pdist(coords_zz_cat, 'euclidean')))
+                widths_to_append = np.mean(pdist(coords_zz_cat, 'euclidean'))
             else:
-                widths.append(0.)
+                widths_to_append = 0.
+
             # concatenate zip_zip gtypes
             types_zz_cat = list(concatenate(*types_zz))
             # append type porbability to types
-            types.append(float(types_zz_cat.count(GenericPathTypeCodes.scope_name))/len(types_zz_cat))
+
+            types_to_append = float(types_zz_cat.count(GenericPathTypeCodes.scope_name))/len(types_zz_cat)
+
+            return coords_to_append,types_to_append,widths_to_append
+
+
+        ######
+        # MP #
+        ######
+
+        T = 8
+        manager = Manager()
+        Q = manager.Queue(T)
+        # create pool of workers
+        pool = []
+        for i in xrange(T):
+            p = Process(target=coords_types_prob_widths, args=(Q,))
+            p.start()
+            pool.append(p)
+
+        # loop over zip zipped coords and types
+        for pbar_nr,sp_slices in enumerate(xzip_xzip(*self.lens_real(),N=full_size)):
+
+            coords_to_append,types_to_append,widths_to_append = coords_types_prob_widths(sp_slices)
+            # well, may be sp_slices could be put into Queue
+
+
+            # done, append
+
+            coords.append(coords_to_append)
+            types.append(types_to_append)
+            widths.append(widths_to_append)
+
             # pbar magic
             pbar_current = int((pbar_nr+1)*pbar_factor)
             if pbar_current > pbar_previous:
