@@ -169,9 +169,11 @@ class CTypeSpathsCollection(object):
     parts = (0, 1, 2) # spath parts
 
     # takes group of paths belonging to one ctype and allows to get MasterPath
-    def __init__(self,spaths=None,ctype=None,bias_long=5,pbar=None):
+    def __init__(self,spaths=None,ctype=None,bias_long=5,pbar=None,threads=1):
 
         self.pbar = pbar
+        self.threads = threads
+        logger.debug("Threads passed %d",threads)
 
         self.spaths = spaths
         assert isinstance(ctype,InletClusterGenericType) or isinstance(ctype,InletClusterExtendedType)
@@ -297,10 +299,10 @@ class CTypeSpathsCollection(object):
 
         # create pool of workers - mapping function
         map_fun = map
-        if True:
-            pool = multiprocessing.Pool(8)
+        if self.threads > 1:
+            pool = multiprocessing.Pool(self.threads)
             map_fun = pool.imap_unordered
-            chunk_size = int(full_size / 8 / 8)
+            chunk_size = int(full_size / self.threads / self.threads)
             if chunk_size == 0:
                 chunk_size = 1
 
@@ -319,9 +321,10 @@ class CTypeSpathsCollection(object):
                 self.beat()
 
 
-        if True:
+        if self.threads > 1:
             pool.close()
             pool.join()
+            pool.terminate()
             del pool
 
         # at this stage we have coords, widths and types probability
