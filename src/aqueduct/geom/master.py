@@ -193,7 +193,7 @@ class CTypeSpathsCollectionWorker(object):
     def coords_types_prob_widths(self,sp_slices_):
         # get zz coords and types
         coords_zz = [sp.get_coords_cont(smooth=self.smooth)[sl] for sp, sl in zip(self.spaths, sp_slices_)]
-        types_zz = [sp.gtypes_cont[sl] for sp, sl in zip(self.spaths, sp_slices_)]
+        del sp_slices_
 
         # here we have coords_zz and types_zz
         # and we can calculate coords, types_prob, widths
@@ -212,19 +212,24 @@ class CTypeSpathsCollectionWorker(object):
 
         # concatenate zip_zip coords and lens
         coords_zz_cat = list(concatenate(*coords_zz))
+        del coords_zz
+
         lens_zz_cat = list(concatenate(*lens_zz))
+        del lens_zz
         # average coords_zz_cat using weights of lens_zz_cat
 
         coords_to_append = np.average(coords_zz_cat, axis=0, weights=lens_zz_cat)
+        del lens_zz_cat
 
         # calculate widths
-        if len(coords_zz) > 1:
+        if len(self.spaths) > 1: # is the len of coords_zz the same as sp_slices_ and self.spaths?
             widths_to_append = np.mean(pdist(coords_zz_cat, 'euclidean'))
         else:
             widths_to_append = 0.
+        del coords_zz_cat
 
         # concatenate zip_zip gtypes
-        types_zz_cat = list(concatenate(*types_zz))
+        types_zz_cat = list(concatenate(*[sp.gtypes_cont[sl] for sp, sl in zip(self.spaths, sp_slices_)]))
         # append type porbability to types
 
         types_to_append = float(types_zz_cat.count(GenericPathTypeCodes.scope_name)) / len(types_zz_cat)
@@ -479,4 +484,3 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
 def calculate_master(spaths_resid_ctype_smooth):
     spaths, resid, ctype, smooth = spaths_resid_ctype_smooth
     return CTypeSpathsCollection(spaths=spaths, ctype=ctype).get_master_path(smooth=smooth,resid=resid)
-
