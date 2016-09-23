@@ -1224,6 +1224,7 @@ def stage_IV_run(config, options,
         ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
         '''
+        '''
         # create pool of workers - mapping function
         map_fun = map
         if optimal_threads > 1:
@@ -1232,21 +1233,26 @@ def stage_IV_run(config, options,
 
 
         from aqueduct.geom.master import calculate_master
-        from multiprocessing import Lock,Manager
-        lock = Manager().Lock()
+        #from multiprocessing import Lock,Manager
+        #lock = Manager().Lock()
 
-        with log.fbm("Calculating master paths"):
-            master_paths = {ct:maspat for maspat in map_fun(calculate_master,[(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,None) for nr,ct in enumerate(ctypes_generic_list)])}
-        with log.fbm("Calculating smooth master paths"):
-            master_paths_smooth = {ct:maspat for maspat in map_fun(calculate_master,[(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,smooth) for nr,ct in enumerate(ctypes_generic_list)])}
+        master_paths = {}
+        master_paths_smooth = {}
+
+        with clui.fbm("Calculating master and smooth paths"):
+            for mpnr,mapa in enumerate(map_fun(calculate_master,[(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,None) for nr,ct in enumerate(ctypes_generic_list)] + [(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,smooth) for nr,ct in enumerate(ctypes_generic_list)])):
+                if mpnr < len(ctypes_generic_list):
+                    master_paths.update({ctypes_generic_list[mpnr]:mapa})
+                else:
+                    master_paths_smooth.update({ctypes_generic_list[mpnr-len(ctypes_generic_list)]: mapa})
 
         # destroy pool of workers
         if optimal_threads > 1:
             pool.close()
             pool.join()
             del pool
-        '''
 
+        '''
         pbar = clui.pbar(len(spaths) * 2)
         for nr, ct in enumerate(ctypes_generic_list):
             logger.debug('CType %s (%d)' % (str(ct), nr))
@@ -1256,13 +1262,11 @@ def stage_IV_run(config, options,
             ctspc = CTypeSpathsCollection(spaths=sps,ctype=ct,pbar=pbar)
             master_paths.update({ct: ctspc.get_master_path(resid=nr)})
             master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
-            '''
             master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
             master_paths_smooth.update(
                 {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
-            '''
-
         pbar.finish()
+        '''
         # TODO: issue warinig if creation of master path failed
 
 
