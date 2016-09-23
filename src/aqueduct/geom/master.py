@@ -16,6 +16,11 @@ from aqueduct.traj.inlets import InletClusterGenericType,InletClusterExtendedTyp
 from multiprocessing import Queue,Manager,Lock,Value,Process
 
 
+import multiprocessing
+
+from itertools import izip_longest
+
+
 def fit_trace_to_points(trace, points):
     dist = cdist(trace, points)
     points_min = np.argmin(dist, 1).tolist()
@@ -91,26 +96,25 @@ part2type_dict = {0: GenericPathTypeCodes.scope_name,
 parts = (0, 1, 2)
 
 
-class CTypeSpathsCollection(object):
+class CTypeSpathsCollectionWorker(object):
 
     parts = (0, 1, 2) # spath parts
 
     # takes group of paths belonging to one ctype and allows to get MasterPath
-    def __init__(self,spaths=None,ctype=None,bias_long=5,pbar=None):
+    def __init__(self,spaths=None,ctype=None,bias_long=5,smooth=None):
         self.spaths = spaths
         assert isinstance(ctype,InletClusterGenericType) or isinstance(ctype,InletClusterExtendedType)
         self.ctype = ctype
         self.bias_long = bias_long
-        self.pbar = pbar
+        self.smooth = smooth
 
+        # precompute some values
+        self.lens_cache = self.lens()
+        self.lens_real_cache = self.lens_real()
         self.lens_norm_cache = self.lens_norm()
+        self.full_size_cache = self.full_size()
 
-    def beat(self):
-        if self.pbar is not None:
-            self.pbar.heartbeat()
-    def update(self):
-        if self.pbar is not None:
-            self.pbar.update(1)
+        #self.lock = Lock()
 
 
     def lens(self):
@@ -169,8 +173,7 @@ class CTypeSpathsCollection(object):
         # make median distribuitions
         return np.matrix(np.median([self.simple_types_distribution(sp.gtypes_cont) for sp in self.spaths], axis=0))
 
-
-    def types_prob_to_types(self,types_prob):
+    def types_prob_to_types(self, types_prob):
         # get proper types
         types_dist_orig = self.types_distribution()
         types_dist_range = list(set(types_prob))
@@ -180,7 +183,6 @@ class CTypeSpathsCollection(object):
                               False: GenericPathTypeCodes.object_name}[typ >= t] for typ in types_prob]
             types_thresholds.append(cdist(np.matrix(self.simple_types_distribution(new_pro_types)),
                                           types_dist_orig, metric='euclidean'))
-            self.beat()
         # get threshold for which value of types_thresholds is smallest
         types = [{True: GenericPathTypeCodes.scope_name,
                   False: GenericPathTypeCodes.object_name}[typ >= types_dist_range[np.argmin(types_thresholds)]] for typ
@@ -188,74 +190,93 @@ class CTypeSpathsCollection(object):
         return types
 
 
+    def coords_types_prob_widths(self,sp_slices_):
+        # get zz coords and types
+        coords_zz = [sp.get_coords_cont(smooth=self.smooth)[sl] for sp, sl in zip(self.spaths, sp_slices_)]
+        types_zz = [sp.gtypes_cont[sl] for sp, sl in zip(self.spaths, sp_slices_)]
+
+        # here we have coords_zz and types_zz
+        # and we can calculate coords, types_prob, widths
+
+        # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
+        lens_zz = []
+        for l, coord_z in zip(self.lens_cache, coords_zz):
+            if len(coord_z) > 0:
+                lens_zz.append([float(l) / len(coord_z)] * len(coord_z))  # normalize and correct lengths
+            else:
+                # lens_zz.append([float(l)] * len(coord_z))
+                lens_zz.append([])
+
+        # here we have coords_zz, types_zz, lens_zz
+        # and we can calculate coords, types_prob, widths
+
+        # concatenate zip_zip coords and lens
+        coords_zz_cat = list(concatenate(*coords_zz))
+        lens_zz_cat = list(concatenate(*lens_zz))
+        # average coords_zz_cat using weights of lens_zz_cat
+
+        coords_to_append = np.average(coords_zz_cat, axis=0, weights=lens_zz_cat)
+
+        # calculate widths
+        if len(coords_zz) > 1:
+            widths_to_append = np.mean(pdist(coords_zz_cat, 'euclidean'))
+        else:
+            widths_to_append = 0.
+
+        # concatenate zip_zip gtypes
+        types_zz_cat = list(concatenate(*types_zz))
+        # append type porbability to types
+
+        types_to_append = float(types_zz_cat.count(GenericPathTypeCodes.scope_name)) / len(types_zz_cat)
+
+
+        return coords_to_append, types_to_append, widths_to_append
+
+    def __call__(self,sp_slices_):
+        out = self.coords_types_prob_widths(sp_slices_)
+        return out
+
+class CTypeSpathsCollection(object):
+
+    # takes group of paths belonging to one ctype and allows to get MasterPath
+    def __init__(self,spaths=None,ctype=None,bias_long=5):
+
+        self.spaths = spaths
+        assert isinstance(ctype,InletClusterGenericType) or isinstance(ctype,InletClusterExtendedType)
+        self.ctype = ctype
+        self.bias_long = bias_long
+
+
     def get_master_path(self,smooth=None,resid=0):
+
+        worker = CTypeSpathsCollectionWorker(spaths=self.spaths,ctype=self.ctype,bias_long=self.bias_long,smooth=smooth)
+
         # containers for coords, types and widths of master path
         coords = []
         types = []
         widths = []
         # some spaths properties
-        lens = self.lens_norm()
-        full_size = self.full_size()
+
+        full_size = worker.full_size_cache
         # pbar magic
         pbar_previous = 0
         pbar_factor = float(len(self.spaths))/full_size
 
 
-        def coords_types_prob_widths(sp_slices_):
-            # get zz coords and types
-            coords_zz = [sp.get_coords_cont(smooth=smooth)[sl] for sp,sl in zip(self.spaths,sp_slices_)]
-            types_zz = [sp.gtypes_cont[sl] for sp,sl in zip(self.spaths,sp_slices_)]
 
-            # here we have coords_zz and types_zz
-            # and we can calculate coords, types_prob, widths
-
-            # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
-            lens_zz = []
-            for l, coord_z in zip(lens, coords_zz):
-                if len(coord_z) > 0:
-                    lens_zz.append([float(l) / len(coord_z)] * len(coord_z))  # normalize and correct lengths
-                else:
-                    # lens_zz.append([float(l)] * len(coord_z))
-                    lens_zz.append([])
-
-            # here we have coords_zz, types_zz, lens_zz
-            # and we can calculate coords, types_prob, widths
-
-            # concatenate zip_zip coords and lens
-            coords_zz_cat = list(concatenate(*coords_zz))
-            lens_zz_cat = list(concatenate(*lens_zz))
-            # average coords_zz_cat using weights of lens_zz_cat
-
-            coords_to_append = np.average(coords_zz_cat, axis=0, weights=lens_zz_cat)
-
-            # calculate widths
-            if len(coords_zz) > 1:
-                widths_to_append = np.mean(pdist(coords_zz_cat, 'euclidean'))
-            else:
-                widths_to_append = 0.
-
-            # concatenate zip_zip gtypes
-            types_zz_cat = list(concatenate(*types_zz))
-            # append type porbability to types
-
-            types_to_append = float(types_zz_cat.count(GenericPathTypeCodes.scope_name))/len(types_zz_cat)
-
-            return coords_to_append,types_to_append,widths_to_append
+        # create pool of workers - mapping function
+        map_fun = map
+        if True:
+            pool = multiprocessing.Pool(8)
+            map_fun = pool.map
 
 
-        ######
-        # MP #
-        ######
+        for coords_,types_,widths_, in map_fun(worker,xzip_xzip(*worker.lens_real_cache,N=full_size)):
+            coords.append(coords_)
+            types.append(types_)
+            widths.append(widths_)
 
-        T = 8
-        manager = Manager()
-        Q = manager.Queue(T)
-        # create pool of workers
-        pool = []
-        for i in xrange(T):
-            p = Process(target=coords_types_prob_widths, args=(Q,))
-            p.start()
-            pool.append(p)
+        '''
 
         # loop over zip zipped coords and types
         for pbar_nr,sp_slices in enumerate(xzip_xzip(*self.lens_real(),N=full_size)):
@@ -277,10 +298,18 @@ class CTypeSpathsCollection(object):
                 self.update()  # update progress bar
             else:
                 self.beat()
+        '''
+
+
+        if True:
+            pool.close()
+            pool.join()
+            del pool
+
         # at this stage we have coords, widths and types probability
 
         # get proper types
-        types = self.types_prob_to_types(types)
+        types = worker.types_prob_to_types(types)
 
         # make frames
         frames = range(len(coords))
@@ -304,14 +333,12 @@ class CTypeSpathsCollection(object):
         for c, t, f in zip(coords, types, frames):  # TODO: remove loop
             gp.add_type(f, t)
             gp.add_coord(c)
-            self.beat()
         # now try to get first SinglePath, if unable issue WARNING
         try:
             sp = list(yield_single_paths([gp]))[0]
         except IndexError:
             logger.warning('No master path found for ctype %s' % str(self.ctype))
             return None
-        self.beat()  # touch progress bar
         # finally get MasterPath and add widths
         mp = MasterPath(sp)
         mp.add_width(widths)

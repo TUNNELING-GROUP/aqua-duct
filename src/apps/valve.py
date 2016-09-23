@@ -33,6 +33,8 @@ from itertools import izip_longest
 from keyword import iskeyword
 from scipy.spatial.distance import cdist, pdist
 
+from multiprocessing import Manager
+
 import MDAnalysis as mda
 import roman
 
@@ -52,6 +54,8 @@ from aqueduct.traj.reader import ReadViaMDA
 from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import clui
 from aqueduct.utils.helpers import range2int, Auto, what2what, lind
+
+
 
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
@@ -1239,6 +1243,7 @@ def stage_IV_run(config, options,
         master_paths = {}
         master_paths_smooth = {}
 
+        '''
         with clui.fbm("Calculating master and smooth paths"):
             for mpnr,mapa in enumerate(map_fun(calculate_master,[(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,None) for nr,ct in enumerate(ctypes_generic_list)] + [(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,smooth) for nr,ct in enumerate(ctypes_generic_list)])):
                 if mpnr < len(ctypes_generic_list):
@@ -1253,20 +1258,22 @@ def stage_IV_run(config, options,
             del pool
 
         '''
-        pbar = clui.pbar(len(spaths) * 2)
+        pbar = clui.pbar(len(ctypes_generic_list) * 2)
+
         for nr, ct in enumerate(ctypes_generic_list):
             logger.debug('CType %s (%d)' % (str(ct), nr))
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
             # print len(sps),ct
-            ctspc = CTypeSpathsCollection(spaths=sps,ctype=ct,pbar=pbar)
+            ctspc = CTypeSpathsCollection(spaths=sps,ctype=ct)
             master_paths.update({ct: ctspc.get_master_path(resid=nr)})
+            pbar.update(1)
             master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
-            master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
-            master_paths_smooth.update(
-                {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
+            pbar.update(1)
+            #master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
+            #master_paths_smooth.update(
+            #    {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
         pbar.finish()
-        '''
         # TODO: issue warinig if creation of master path failed
 
 

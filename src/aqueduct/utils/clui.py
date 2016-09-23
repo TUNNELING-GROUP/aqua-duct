@@ -13,6 +13,7 @@ import time
 from os import linesep
 from sys import stderr
 
+from multiprocessing import Queue,Manager,Lock,Value,Process
 
 def emit_message_to_file_in_root_logger(mess):
     # emits message to the file used by file handler in the root logger
@@ -208,6 +209,8 @@ class SimpleProgressBar(object):
         :param str mess: Optional message displayed at progress bar initialization.
         """
 
+        self.lock = Manager().Lock()
+
         assert isinstance(maxval,
                           (int, long)), 'Parameter maxval should be of int or long type, %r given instead.' % type(
             maxval)
@@ -215,6 +218,7 @@ class SimpleProgressBar(object):
             self.maxval = 1
         else:
             self.maxval = maxval
+
 
         self.tens = []
 
@@ -232,6 +236,8 @@ class SimpleProgressBar(object):
         if mess is not None:
             message(mess)
         self.show()
+
+
 
     def bar(self):
         barval = int(self.percent() / 100 * self.barlenght)
@@ -316,9 +322,10 @@ class SimpleProgressBar(object):
                 self.tens.append(int(percent) / 10)
 
     def heartbeat(self):
-        if time.time() - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!
-            self.tcurrent = time.time()
-            self.show()
+        with self.lock:
+            if time.time() - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!
+                self.tcurrent = time.time()
+                self.show()
 
     def update(self, step):
         """
@@ -329,16 +336,17 @@ class SimpleProgressBar(object):
 
         :param int step: update step
         """
-        if step > 0:
-            if step == 1:
-                self.current += 1
-            else:
-                self.current = step
-        self.tcurrent = time.time()
-        if (step == self.maxval) or (
-                        self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
-            # TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision
-            self.show()
+        with self.lock:
+            if step > 0:
+                if step == 1:
+                    self.current += 1
+                else:
+                    self.current = step
+            self.tcurrent = time.time()
+            if (step == self.maxval) or (
+                            self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
+                # TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision
+                self.show()
 
     def ttime(self):
         """
