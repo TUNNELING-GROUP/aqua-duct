@@ -25,8 +25,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     '''
-    return 0, 2, 18
-    # master module has CTypesSpathsCollection class
+    return 0, 2, 19
+    # master module improved - mp calculations of master paths
 
 
 def version_nice():

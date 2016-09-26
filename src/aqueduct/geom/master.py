@@ -302,7 +302,7 @@ class CTypeSpathsCollection(object):
         if self.threads > 1:
             pool = multiprocessing.Pool(self.threads)
             map_fun = pool.imap_unordered
-            chunk_size = int(full_size / (self.threads)**3)
+            chunk_size = int(full_size / (self.threads)**2)
             if chunk_size == 0:
                 chunk_size = 1
 
