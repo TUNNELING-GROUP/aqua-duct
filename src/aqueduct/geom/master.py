@@ -308,19 +308,19 @@ class CTypeSpathsCollection(object):
 
         # TODO: it is possible to add pbar support here!
         # TODO: consider of using imap_unordered, it might use less memory in this case
+        spath_nr_max = 0
         for pbar_nr,(spath_nr,(coords_,types_,widths_)) in enumerate(map_fun(worker,enumerate(xzip_xzip(*worker.lens_real_cache,N=full_size)),chunk_size)):
             coords[spath_nr] = coords_
             types[spath_nr] = types_
             widths[spath_nr] = widths_
-            if pbar_nr != spath_nr:
-                print pbar_nr,spath_nr
+            spath_nr_max = max(spath_nr,spath_nr_max)
             pbar_current = int((pbar_nr + 1) * pbar_factor)
             if pbar_current > pbar_previous:
                 pbar_previous = pbar_current
                 self.update()  # update progress bar
             else:
                 self.beat()
-
+        assert pbar_nr == spath_nr_max, "Internal error. Final global progress of master path generation not synced with maximal number of spath. Please send a bug report to developer(s): %s" % clui.mail
 
         if self.threads > 1:
             pool.close()

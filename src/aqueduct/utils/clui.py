@@ -8,6 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from aqueduct import logger as root_logger
+from aqueduct import __mail__ as mail
 import datetime
 import time
 from os import linesep

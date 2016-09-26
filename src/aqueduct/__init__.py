@@ -40,6 +40,7 @@ def version_nice():
 
 
 __version__ = version_nice()
+__mail__ = 'info@aquaduct.pl'
 
 
 def greetings():
@@ -74,6 +75,3 @@ def greetings():
 
 
     return greet
-
-
-
