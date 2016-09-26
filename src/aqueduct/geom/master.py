@@ -302,7 +302,7 @@ class CTypeSpathsCollection(object):
         if self.threads > 1:
             pool = multiprocessing.Pool(self.threads)
             map_fun = pool.imap_unordered
-            chunk_size = int(full_size / self.threads / self.threads)
+            chunk_size = int(full_size / (self.threads)**3)
             if chunk_size == 0:
                 chunk_size = 1
 
@@ -312,7 +312,8 @@ class CTypeSpathsCollection(object):
             coords[spath_nr] = coords_
             types[spath_nr] = types_
             widths[spath_nr] = widths_
-
+            if pbar_nr != spath_nr:
+                print pbar_nr,spath_nr
             pbar_current = int((pbar_nr + 1) * pbar_factor)
             if pbar_current > pbar_previous:
                 pbar_previous = pbar_current
