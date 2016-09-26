@@ -16,7 +16,11 @@ Submodules
    aqueduct.geom.test_absOneWay
    aqueduct.geom.test_absOneWay2
    aqueduct.geom.test_abspoprOneWay
+   aqueduct.geom.test_diff
+   aqueduct.geom.test_length_step_std
    aqueduct.geom.test_linearizeOneWay
+   aqueduct.geom.test_midpoints
+   aqueduct.geom.test_tracepoints
    aqueduct.geom.test_triangle_angles_last
    aqueduct.geom.test_triangle_height
    aqueduct.geom.test_trianlgeLinearize
