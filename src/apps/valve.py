@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 
 """
-This is driver for aqueduct.
+This is a driver for Aqueduct.
 """
+
+################################################################################
+# reuse AQ logger
 
 import logging
 from aqueduct import logger, logger_name
@@ -16,47 +19,9 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.WARNING)  # default level is WARNING
 logger.addHandler(ch)
 
+################################################################################
+
 import multiprocessing as mp
-
-class PoolOfAqua(object):
-
-    pool = list()
-
-    def __init__(self,T=1):
-        self.T = 1
-        self.init_pool(T)
-
-    def __del__(self):
-        self.pool.close()
-        self.pool.join()
-        del self.pool
-
-    def __del_chunksize(self,kwargs):
-        if 'chunksize' in kwargs.keys():
-            kwargs.pop('chunksize')
-
-    def init_pool(self,T):
-        self.T = T
-        self.pool.close()
-        self.pool.join()
-        self.pool = mp.Pool(T)
-
-    def normal_map(self, *args, **kwargs):
-        self.__del_chunksize()
-        return map(*args, **kwargs)
-
-    def map(self, *args, **kwargs):
-        if self.T == 1:
-            return self.normal_map(*args,**kwargs)
-        return self.pool.imap(*args,**kwargs)
-
-    def map_uno(self, *args, **kwargs):
-        if self.T == 1:
-            return enumerate(self.normal_map(*args,**kwargs))
-        return self.pool.imap_unordered(*args, **kwargs)
-
-POOL = PoolOfAqua()
-
 import ConfigParser
 import cPickle as pickle
 import copy
@@ -67,16 +32,14 @@ import re
 import operator
 import shlex
 import sys
+import MDAnalysis as mda
+import roman
+
 from collections import namedtuple, OrderedDict
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
-from scipy.spatial.distance import cdist, pdist
-
-from multiprocessing import Manager
-
-import MDAnalysis as mda
-import roman
+from scipy.spatial.distance import cdist
 
 from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
@@ -84,7 +47,7 @@ from aqueduct import version_nice as aqueduct_version_nice
 from aqueduct.geom import traces
 from aqueduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch
 from aqueduct.geom.convexhull import is_point_within_convexhull
-from aqueduct.geom.master import create_master_spath, CTypeSpathsCollection
+from aqueduct.geom.master import CTypeSpathsCollection
 from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
 from aqueduct.traj.dumps import TmpDumpWriterOfMDA
@@ -95,11 +58,8 @@ from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aqueduct.utils import clui
 from aqueduct.utils.helpers import range2int, Auto, what2what, lind
 
-
-
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
-
 # global optimal_threads
 optimal_threads = None
 
@@ -591,27 +551,27 @@ def load_dump(filename):
         # return loaded_data_nt(**loaded_data)
 
 
-def check_version_compilance(current, loaded, what):
+def check_version_compliance(current, loaded, what):
     if current[0] > loaded[0]:
         logger.error('Loaded data has %s major version lower then the application.' % what)
     if current[0] < loaded[0]:
         logger.error('Loaded data has %s major version higher then the application.' % what)
     if current[0] != loaded[0]:
-        logger.error('Possible problems with API compilance.')
+        logger.error('Possible problems with API compliance.')
     if current[1] > loaded[1]:
         logger.warning('Loaded data has %s minor version lower then the application.' % what)
     if current[1] < loaded[1]:
         logger.warning('Loaded data has %s minor version higher then the application.' % what)
     if current[1] != loaded[1]:
-        logger.warning('Possible problems with API compilance.')
+        logger.warning('Possible problems with API compliance.')
 
 
 def check_versions(version_dict):
     assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
     assert 'version' in version_dict, "File is corrupted, cannot read version data."
     assert 'aqueduct_version' in version_dict, "File is corrupted, cannot read version data."
-    check_version_compilance(aqueduct_version(), version_dict['aqueduct_version'], 'Aqueduct')
-    check_version_compilance(version(), version_dict['version'], 'Valve')
+    check_version_compliance(aqueduct_version(), version_dict['aqueduct_version'], 'Aqueduct')
+    check_version_compliance(version(), version_dict['version'], 'Valve')
 
 
 ################################################################################
@@ -874,7 +834,10 @@ def stage_I_run(config, options,
     pbar = clui.pbar(max_frame)
 
     # create pool of workers - mapping function
-    map_fun = POOL.map
+    map_fun = map
+    if optimal_threads > 1:
+        pool = mp.Pool(optimal_threads)
+        map_fun = pool.map
 
     with reader.get() as traj_reader:
 
@@ -915,7 +878,12 @@ def stage_I_run(config, options,
             else:
                 res_ids_in_object_over_frames.update({frame: []})
             pbar.update(frame)
+
     # destroy pool of workers
+    if optimal_threads > 1:
+        pool.close()
+        pool.join()
+        del pool
 
     pbar.finish()
 
@@ -1078,7 +1046,7 @@ def stage_III_run(config, options,
             some_may_be_redundant = False
             if len(spheres) > 1:
                 for nr, sphe1 in enumerate(spheres):
-                    for sphe2 in spheres[nr+1:]:
+                    for sphe2 in spheres[nr + 1:]:
                         if sphe1[1] > sphe2[1]: continue
                         d = cdist(np.matrix(sphe1[0]), np.matrix(sphe2[0]))
                         if d + sphe1[1] < sphe2[1]:
@@ -1096,7 +1064,7 @@ def stage_III_run(config, options,
             pbar.update(1)
         pbar.finish()
         # now, it might be that some of paths are empty
-        paths = {k:v for k,v in paths.iteritems() if len(v.coords) > 0}
+        paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
@@ -1268,10 +1236,9 @@ def stage_IV_run(config, options,
             pool = mp.Pool(optimal_threads)
             map_fun = pool.map
 
-
         from aqueduct.geom.master import calculate_master
-        #from multiprocessing import Lock,Manager
-        #lock = Manager().Lock()
+        # from multiprocessing import Lock,Manager
+        # lock = Manager().Lock()
 
         master_paths = {}
         master_paths_smooth = {}
@@ -1291,19 +1258,19 @@ def stage_IV_run(config, options,
             del pool
 
         '''
-        pbar = clui.pbar(len(spaths)*2)
+        pbar = clui.pbar(len(spaths) * 2)
 
         for nr, ct in enumerate(ctypes_generic_list):
             logger.debug('CType %s (%d)' % (str(ct), nr))
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
             # print len(sps),ct
-            ctspc = CTypeSpathsCollection(spaths=sps,ctype=ct,pbar=pbar,threads=optimal_threads)
+            ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads)
             master_paths.update({ct: ctspc.get_master_path(resid=nr)})
             master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
             del ctspc
-            #master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
-            #master_paths_smooth.update(
+            # master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
+            # master_paths_smooth.update(
             #    {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
         pbar.finish()
         # TODO: issue warinig if creation of master path failed
@@ -1525,7 +1492,7 @@ def spath_lenght_total_info_header():
 def spath_lenght_total_info(spath):
     line = []
     for t in traces.midpoints(spath.coords):
-        if len(t) > 1: # traces.length_step_std requires at least 2 points
+        if len(t) > 1:  # traces.length_step_std requires at least 2 points
             line.append(traces.length_step_std(t)[0])
         else:
             line.append(float('nan'))
@@ -2029,8 +1996,6 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
         optimal_threads -= 1
         clui.message("Main process would use 1 thread.")
         clui.message("Concurent calculations would use %d threads." % optimal_threads)
-
-    POOL.init_pool(optimal_threads)
 
     ############################################################################
     # STAGE 0
