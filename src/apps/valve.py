@@ -16,11 +16,51 @@ ch.setFormatter(formatter)
 ch.setLevel(logging.WARNING)  # default level is WARNING
 logger.addHandler(ch)
 
+import multiprocessing as mp
+
+class PoolOfAqua(object):
+
+    pool = list()
+
+    def __init__(self,T=1):
+        self.T = 1
+        self.init_pool(T)
+
+    def __del__(self):
+        self.pool.close()
+        self.pool.join()
+        del self.pool
+
+    def __del_chunksize(self,kwargs):
+        if 'chunksize' in kwargs.keys():
+            kwargs.pop('chunksize')
+
+    def init_pool(self,T):
+        self.T = T
+        self.pool.close()
+        self.pool.join()
+        self.pool = mp.Pool(T)
+
+    def normal_map(self, *args, **kwargs):
+        self.__del_chunksize()
+        return map(*args, **kwargs)
+
+    def map(self, *args, **kwargs):
+        if self.T == 1:
+            return self.normal_map(*args,**kwargs)
+        return self.pool.imap(*args,**kwargs)
+
+    def map_uno(self, *args, **kwargs):
+        if self.T == 1:
+            return enumerate(self.normal_map(*args,**kwargs))
+        return self.pool.imap_unordered(*args, **kwargs)
+
+POOL = PoolOfAqua()
+
 import ConfigParser
 import cPickle as pickle
 import copy
 import gzip
-import multiprocessing as mp
 import numpy as np
 import os
 import re
@@ -834,10 +874,7 @@ def stage_I_run(config, options,
     pbar = clui.pbar(max_frame)
 
     # create pool of workers - mapping function
-    map_fun = map
-    if optimal_threads > 1:
-        pool = mp.Pool(optimal_threads)
-        map_fun = pool.map
+    map_fun = POOL.map
 
     with reader.get() as traj_reader:
 
@@ -879,10 +916,6 @@ def stage_I_run(config, options,
                 res_ids_in_object_over_frames.update({frame: []})
             pbar.update(frame)
     # destroy pool of workers
-    if optimal_threads > 1:
-        pool.close()
-        pool.join()
-        del pool
 
     pbar.finish()
 
@@ -1996,6 +2029,8 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
         optimal_threads -= 1
         clui.message("Main process would use 1 thread.")
         clui.message("Concurent calculations would use %d threads." % optimal_threads)
+
+    POOL.init_pool(optimal_threads)
 
     ############################################################################
     # STAGE 0
