@@ -750,6 +750,37 @@ def get_clustering_method(coptions):
 
     return PerformClustering(method, **opts)
 
+def get_linearize_method(loption):
+    if loption:
+        assert isinstance(loption,(str,unicode)), "Wrong Linearize method definition: %r" % loption
+        assert re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$').match(loption.lower()) or re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)[(][)]$').match(loption.lower()), "Wrong Linearize method definition: %s" % loption
+        # http://stackoverflow.com/questions/12929308/python-regular-expression-that-matches-floating-point-numbers#12929311
+        way = [w for w in ['recursive','oneway','hobbit'] if w in loption.lower()][0]
+        crit = [c for c in ['triangle','vector'] if c in loption][0]
+        threshold = re.compile('[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?').findall(loption)
+        if len(threshold):
+            threshold = float(threshold[0])
+        else:
+            threshold = None
+        # get method
+        if way == 'recursive':
+            if crit == 'triangle':
+                met = traces.LinearizeRecursiveTriangle
+            else:
+                met = traces.LinearizeRecursiveVector
+        elif way == 'oneway':
+            if crit == 'triangle':
+                met = traces.LinearizeOneWayTriangle
+            else:
+                met = traces.LinearizeOneWayVector
+        elif way == 'hobbit':
+            if crit == 'triangle':
+                met = traces.LinearizeHobbitTriangle
+            else:
+                met = traces.LinearizeHobbitVector
+        if threshold is None:
+            return met()
+        return met(threshold)
 
 ################################################################################
 
@@ -1791,7 +1822,7 @@ def stage_VI_run(config, options,
             pymol_connector.init_pymol()
 
         if options.simply_smooths:
-            spp = SinglePathPlotter(pymol_connector, linearize=float(options.simply_smooths))
+            spp = SinglePathPlotter(pymol_connector, linearize=get_linearize_method(options.simply_smooths))
         else:
             spp = SinglePathPlotter(pymol_connector, linearize=None)
 

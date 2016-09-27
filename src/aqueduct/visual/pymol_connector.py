@@ -297,6 +297,7 @@ class SinglePathPlotter(object):
         self.cgo_spheres = BasicPymolCGOSpheres()
         self.cgo_pointers = BasicPymolCGOPointers()
 
+        # linearize have to be callable! or False or None
         self.linearize = linearize
 
         self.pymol_connector = pymol_connector
@@ -341,7 +342,7 @@ class SinglePathPlotter(object):
                     c = color_codes(et)
                     # now, it is possible to linearize!
                     if smooth and self.linearize:
-                        trace = traces.LinearizeRecursiveVector(self.linearize)(trace)
+                        trace = self.linearize(trace)
                     self.cgo_lines.add(trace, cc(c))
                     # new_line = True
 

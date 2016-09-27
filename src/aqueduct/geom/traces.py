@@ -402,8 +402,8 @@ class VectorLinearize(object):
     It implements vector linearization criterion.
     """
 
-    def __init__(self, treshold):
-
+    def __init__(self, treshold = 0.05236):
+        # TODO: Add docs
         self.treshold = treshold
 
     def is_linear_core(self, coords, depth=None):
