@@ -1,5 +1,5 @@
 from unittest import TestCase
-from aqueduct.geom.traces import abspoprOneWay
+from aqueduct.geom.traces import LinearizeOneWayTriangle
 import numpy as np
 import types
 from itertools import islice
@@ -10,7 +10,7 @@ class TestAbspoprOneWay(TestCase):
         B = [2, 2, 0]
         C = [4, 2, 0]
         data = np.array([A, B, C])
-        test_case = abspoprOneWay(0.5)
+        test_case = LinearizeOneWayTriangle(0.5)
         self.assertTrue(isinstance(test_case.here(data),types.GeneratorType))
 
     def test_here1(self):
@@ -19,7 +19,7 @@ class TestAbspoprOneWay(TestCase):
         C = [4, 2, 0]
         out = (0,2)
         data = np.array([A, B, C])
-        test_case = abspoprOneWay(0.5)
+        test_case = LinearizeOneWayTriangle(0.5)
         self.assertEqual(tuple(test_case.here(data)),out)
 
     def test_here2(self):
@@ -34,7 +34,7 @@ class TestAbspoprOneWay(TestCase):
         I = [9, 8, 3]
         out = (0,1,2,3,4,7,8) #4,8
         data = np.array([A, B, C, D, E, F, G, H, I])
-        test_case = abspoprOneWay(0)
+        test_case = LinearizeOneWayTriangle(0)
         self.assertEqual(tuple(test_case.here(data)), out)
 
     def test_here3(self):
@@ -45,7 +45,7 @@ class TestAbspoprOneWay(TestCase):
         E = [4, 7, 0]
         F = [2, 3, 2]
         G = [4, 3, 1]
-        test_case = abspoprOneWay(0.1)
+        test_case = LinearizeOneWayTriangle(0.1)
         out = (0,3,4,5,6)
         data = np.array([A, B, C, D, E, F, G])
         self.assertEqual(out, tuple(test_case.here(data)))
@@ -62,7 +62,7 @@ class TestAbspoprOneWay(TestCase):
         I = [9, 8, 3]
         out = (0, 5,6,7,8)
         data = np.array([A, B, C, D, E, F, G, H, I])
-        test_case = abspoprOneWay(0.00)
+        test_case = LinearizeOneWayTriangle(0.00)
         self.assertEqual(tuple(test_case.here(data)), out)
 
 
@@ -84,7 +84,7 @@ class TestAbspoprOneWay(TestCase):
         O = [9, 4, 4]
         out = (0,1,2,3,4,7,8,9,10,11,14)
         data = np.array([A, B, C, D, E, F, G, H, I,J,K,L,M,N,O])
-        test_case = abspoprOneWay(0.5)
+        test_case = LinearizeOneWayTriangle(0.5)
         self.assertEqual(tuple(test_case.here(data)), out)
 
     def test_here1_tuple(self):
@@ -93,7 +93,7 @@ class TestAbspoprOneWay(TestCase):
         C = [4, 2, 0]
         out = (0, 2)
         data = (A, B, C)
-        test_case = abspoprOneWay(0.5)
+        test_case = LinearizeOneWayTriangle(0.5)
         self.assertEqual(tuple(test_case.here(data)), out)
 
     def test_here1_list(self):
@@ -102,5 +102,5 @@ class TestAbspoprOneWay(TestCase):
         C = [4, 2, 0]
         out = (0, 2)
         data = [A, B, C]
-        test_case = abspoprOneWay(0.5)
+        test_case = LinearizeOneWayTriangle(0.5)
         self.assertEqual(tuple(test_case.here(data)), out)

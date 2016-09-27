@@ -3,9 +3,136 @@ import numpy as np
 from scipy.spatial.distance import pdist
 
 
+################################################################################
+# traces utils and helpers
+
+def diff(trace):
+    """
+    This function calculates the distance between 2 given points.
+
+    :param trace: coordinates in numpy array object
+    :return: distance between points
+    """
+    # trace - 3D coordinates
+    # returns distances between coordinates
+    assert isinstance(trace, np.ndarray), "Trace should be of np.ndarray type, %r submited instead." % type(trace)
+    assert len(trace.shape) == 2, "Traces should be 2d, %dd submited instead (trace no. %d)" % len(trace.shape)
+
+    n = len(trace)
+    if n < 2:
+        return None
+
+    trace_diff = []
+    for nr, row in enumerate(trace[:-1]):
+        trace_diff.append(float(pdist(np.vstack((row, trace[nr + 1])), metric='euclidean')))
+
+    return np.array(trace_diff)
+
+
+def tracepoints(start, stop, nr):
+    """
+
+    :param start: coordinates of the first point as a numpy array object
+    :param stop: coordinates of the second point as a numpy array object
+    :param nr: number of elements between the first and second point
+    :return: two-dimentional numpy array; number of dimentions depends on nr parameter
+    """
+    # returns points between start and stop as linear interpolations
+    # if nr == 1 then midpoint is returned
+    return np.array([np.linspace(cb, ce, nr + 2)[1:-1] for cb, ce in zip(start, stop)]).T
+
+
+def midpoints(paths):
+    """
+    The function returns a tuple of numpy arrays extended with mid point spanning last and first element(column)
+     of these arrays.
+    :param paths: a tuple of 2-dimentional np.arrays that hold 3D coordinates; each element holds one trace,
+    all elements are supposed to make one path divided in to sections
+    :return: paths elements with additional mid points as a generator object
+    """
+    # paths - a tuple of 2d np.arrays that hold 3D coordinates, each element holds one trace, all elements are supposed to make one path divided in to sections
+    # yields paths elements with additional mid points
+    # if input paths is follwoing:
+    #   11111 33333 55555
+    # function yields the same elements plus midpoints:
+    #   111112 2333334 455555
+    assert isinstance(paths, tuple), "Paths should be of tuple type, %r submitted instead." % type(paths)
+    for nr, trace in enumerate(paths):
+        assert isinstance(trace,
+                          np.ndarray), "Traces should be of numpy.ndarray type, %r submited instead (trace no. %d)" % (
+            type(trace), nr)
+        # assert len(trace.shape) == 2, "Traces should be 2d, %dd submited instead (trace no. %d)" %(len(trace.shape),nr)
+
+    n = len(paths)
+    last_trace = None
+    if n > 1:
+        for nr, trace in enumerate(paths):
+            # find past and next trace
+            past = []
+            if nr - 1 >= 0:
+                if paths[nr - 1].size > 0:
+                    past = paths[nr - 1][-1]
+            next = []
+            if nr + 1 < n:
+                if paths[nr + 1].size > 0:
+                    next = paths[nr + 1][0]
+            # calculate midpoints if relevant
+            if len(trace) > 0:
+                if len(past) > 0:
+                    midp = tracepoints(past, trace[0], 1)
+                    trace = np.vstack((midp, trace))
+                if len(next) > 0:
+                    midp = tracepoints(trace[-1], next, 1)
+                    trace = np.vstack((trace, midp))
+            yield trace
+    else:
+        yield paths[0]
+
+
+def length_step_std(trace):
+    """
+    This function caclulates sum, mean and standard deviation from all segments of a trace.
+    :param trace: coordinates of points as numpy array
+    :return: a tuple with basics statistics of a trace
+    """
+    # trace - 3D coordinates
+    # calculates diff over trace and returns sum, mean and std of diff
+    # if trace is empty or have length < 2 nans are returned
+    if len(trace) < 2:
+        return float('nan'), float('nan'), float('nan')
+    d = diff(trace)
+    return np.sum(d), np.mean(d), np.std(d)
+
+
+def derrivative(values):
+    # values - 3D coordinates
+    # calculates derrivative of lenght of trace
+    # uses diff but yields the same number of values as in input data
+    # this is done by interpolation and applying simple correction
+    diff = np.diff(values)
+    size = len(diff)
+    correction = 1. / (size + 1)  # this correct values so after integration they are closer to expected value
+    # This was calculated by following experiment:
+    # w = []
+    # for q in range(10000):
+    #     r = np.cumsum(np.random.rand(10000))
+    #     w.append(r[-1]/sum(list(traces.derrivative(r))))
+    # np.mean(w) # w is of narmal distribution
+
+    for nr in range(size + 1):
+        if nr == 0:
+            yield diff[0] - correction  # begin
+        elif nr == size:
+            yield diff[-1] - correction  # end
+        else:
+            yield (diff[nr - 1] + diff[nr]) / 2. - correction
+
+
 # todo : aby zaoszczedzic na obliczeniach mozna pomijac takie katy(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-> np kat 0.005 rad to 0,29stopnia miary łukowej
 # wektory: promień atomu wodoru to 0.529A
 
+################################################################################
+# vectors, triangles and angles helpers
 
 def vector_norm(V):
     """
@@ -150,32 +277,8 @@ def vectors_angle_anorm(A, B, A_norm):
         return 0.
     return np.arccos(angle)
 
-
-# class LinearizeOneWay(object):
-#     # co to jest coords? wspolrzedne jednego punktu? lista?
-#     # jaką wartość powinna zwracac?
-#     def here(self, coords):
-#         # coords - 3D coordintates of a trace
-#         # yields indices of coords which is a staring point of linear fragments of the trace and the next point after
-# enf of linear segment; done in one way
-#         size = len(coords)
-#         yield 0
-#         ep = 0
-#         for sp in range(size):
-#             if sp < ep:
-#                 continue
-#             for ep in range(sp + 2, size):
-#                 if self.is_linear(coords[sp:ep + 1]):
-#                     continue
-#                 yield ep
-#                 break
-#
-#     def __call__(self, coords):
-#         # returns these points from coords that are linear simplification of coords
-#         # __call__ is required by child classes
-#         here = self.here(coords)
-#         return coords[here]
-
+################################################################################
+# Linearization classes
 
 # poprawiony algorytm
 class LinearizeOneWay(object):
@@ -270,6 +373,8 @@ class LinearizeRecursive(object):
         here = self.here(coords)
         return coords[here]
 
+################################################################################
+# Linearize criteria
 
 class TriangleLinearize(object):
     def __init__(self, threshold):
@@ -289,15 +394,6 @@ class TriangleLinearize(object):
             if sum(list_of_h) > self.threshold:
                 return False
         return True
-
-
-class absLinearRecursive(LinearizeRecursive, TriangleLinearize):
-    pass
-
-
-class absOneWay(LinearizeOneWay, TriangleLinearize):
-    pass
-
 
 class VectorLinearize(object):
     """
@@ -356,141 +452,56 @@ class VectorLinearize(object):
             return False
         return True
 
-
-class abspoprOneWay(LinearizeOneWay, TriangleLinearize):
-    pass
-class absOneWay2(LinearizeOneWay,VectorLinearize):
-    pass
-class absLinearizeRecursive(LinearizeRecursive,TriangleLinearize):
-    pass
-
+################################################################################
+# Concrete classes for linearization
 
 class LinearizeRecursiveVector(LinearizeRecursive, VectorLinearize):
     """
     ..  _simply_smooths_details:
 
-    Class provides recursive linearization of coordinates with :class:`LinearizeRecursive` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.
+    Class provides recursive linearization of coordinates with :class:`LinearizeRecursive` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`. This is default method.
+    """
+    pass
+
+class LinearizeRecursiveTriangle(LinearizeRecursive, TriangleLinearize):
+    """
+    Class provides recursive linearization of coordinates with :class:`LinearizeRecursive` algorithm and the criterion of linearity implemented by :class:`TriangleLinearize`.
     """
     pass
 
 
-def diff(trace):
+class LinearizeHobbitVector(LinearizeHobbit, VectorLinearize):
     """
-    This function calculates the distance between 2 given points.
+    ..  _simply_smooths_details:
 
-    :param trace: coordinates in numpy array object
-    :return: distance between points
+    Class provides recursive linearization of coordinates with :class:`LinearizeHobbit` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.
     """
-    # trace - 3D coordinates
-    # returns distances between coordinates
-    assert isinstance(trace, np.ndarray), "Trace should be of np.ndarray type, %r submited instead." % type(trace)
-    assert len(trace.shape) == 2, "Traces should be 2d, %dd submited instead (trace no. %d)" % len(trace.shape)
+    pass
 
-    n = len(trace)
-    if n < 2:
-        return None
-
-    trace_diff = []
-    for nr, row in enumerate(trace[:-1]):
-        trace_diff.append(float(pdist(np.vstack((row, trace[nr + 1])), metric='euclidean')))
-
-    return np.array(trace_diff)
-
-
-def tracepoints(start, stop, nr):
+class LinearizeHobbitTriangle(LinearizeHobbit, TriangleLinearize):
     """
-
-    :param start: coordinates of the first point as a numpy array object
-    :param stop: coordinates of the second point as a numpy array object
-    :param nr: number of elements between the first and second point
-    :return: two-dimentional numpy array; number of dimentions depends on nr parameter
+    Class provides recursive linearization of coordinates with :class:`LinearizeHobbit` algorithm and the criterion of linearity implemented by :class:`TriangleLinearize`.
     """
-    # returns points between start and stop as linear interpolations
-    # if nr == 1 then midpoint is returned
-    return np.array([np.linspace(cb, ce, nr + 2)[1:-1] for cb, ce in zip(start, stop)]).T
+    pass
 
 
-def midpoints(paths):
+class LinearizeOneWayVector(LinearizeOneWay, VectorLinearize):
     """
-    The function returns a tuple of numpy arrays extended with mid point spanning last and first element(column)
-     of these arrays.
-    :param paths: a tuple of 2-dimentional np.arrays that hold 3D coordinates; each element holds one trace,
-    all elements are supposed to make one path divided in to sections
-    :return: paths elements with additional mid points as a generator object
+    ..  _simply_smooths_details:
+
+    Class provides recursive linearization of coordinates with :class:`LinearizeOneWay` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.
     """
-    # paths - a tuple of 2d np.arrays that hold 3D coordinates, each element holds one trace, all elements are supposed to make one path divided in to sections
-    # yields paths elements with additional mid points
-    # if input paths is follwoing:
-    #   11111 33333 55555
-    # function yields the same elements plus midpoints:
-    #   111112 2333334 455555
-    assert isinstance(paths, tuple), "Paths should be of tuple type, %r submitted instead." % type(paths)
-    for nr, trace in enumerate(paths):
-        assert isinstance(trace,
-                          np.ndarray), "Traces should be of numpy.ndarray type, %r submited instead (trace no. %d)" % (
-            type(trace), nr)
-        # assert len(trace.shape) == 2, "Traces should be 2d, %dd submited instead (trace no. %d)" %(len(trace.shape),nr)
+    pass
 
-    n = len(paths)
-    last_trace = None
-    if n > 1:
-        for nr, trace in enumerate(paths):
-            # find past and next trace
-            past = []
-            if nr - 1 >= 0:
-                if paths[nr - 1].size > 0:
-                    past = paths[nr - 1][-1]
-            next = []
-            if nr + 1 < n:
-                if paths[nr + 1].size > 0:
-                    next = paths[nr + 1][0]
-            # calculate midpoints if relevant
-            if len(trace) > 0:
-                if len(past) > 0:
-                    midp = tracepoints(past, trace[0], 1)
-                    trace = np.vstack((midp, trace))
-                if len(next) > 0:
-                    midp = tracepoints(trace[-1], next, 1)
-                    trace = np.vstack((trace, midp))
-            yield trace
-    else:
-        yield paths[0]
-
-
-def length_step_std(trace):
+class LinearizeOneWayTriangle(LinearizeOneWay, TriangleLinearize):
     """
-    This function caclulates sum, mean and standard deviation from all segments of a trace.
-    :param trace: coordinates of points as numpy array
-    :return: a tuple with basics statistics of a trace
+    Class provides recursive linearization of coordinates with :class:`LinearizeOneWay` algorithm and the criterion of linearity implemented by :class:`TriangleLinearize`.
     """
-    # trace - 3D coordinates
-    # calculates diff over trace and returns sum, mean and std of diff
-    # if trace is empty or have length < 2 nans are returned
-    if len(trace) < 2:
-        return float('nan'), float('nan'), float('nan')
-    d = diff(trace)
-    return np.sum(d), np.mean(d), np.std(d)
+    pass
+
+################################################################################
 
 
-def derrivative(values):
-    # values - 3D coordinates
-    # calculates derrivative of lenght of trace
-    # uses diff but yields the same number of values as in input data
-    # this is done by interpolation and applying simple correction
-    diff = np.diff(values)
-    size = len(diff)
-    correction = 1. / (size + 1)  # this correct values so after integration they are closer to expected value
-    # This was calculated by following experiment:
-    # w = []
-    # for q in range(10000):
-    #     r = np.cumsum(np.random.rand(10000))
-    #     w.append(r[-1]/sum(list(traces.derrivative(r))))
-    # np.mean(w) # w is of narmal distribution
 
-    for nr in range(size + 1):
-        if nr == 0:
-            yield diff[0] - correction  # begin
-        elif nr == size:
-            yield diff[-1] - correction  # end
-        else:
-            yield (diff[nr - 1] + diff[nr]) / 2. - correction
+
+
