@@ -168,7 +168,7 @@ def triangle_angles(A, B, C):
     for e1, e2 in ((a, b), (a, c), (b, -c)):
         num = np.dot(e1, e2)
         denom = vector_norm(e1) * vector_norm(e2)
-        angles.append(np.arccos(num / denom))
+        angles.append(np.arccos(np.clip(num / denom, -1, 1)))  # cliping values in to [-1,1]
         if np.isnan(angles[-1]):
             angles[-1] = 0.
     return angles
@@ -194,7 +194,7 @@ def triangle_angles_last(A, B, C):
     for e1, e2 in ((b, -c),):
         num = np.dot(e1, e2)
         denom = vector_norm(e1) * vector_norm(e2)
-        angles.append(np.arccos(num / denom))
+        angles.append(np.arccos(np.clip(num / denom,-1,1))) # cliping values in to [-1,1]
     return angles
 
 
