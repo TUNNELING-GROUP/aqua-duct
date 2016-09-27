@@ -352,7 +352,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.remove_option(section, 'dump')
         config.set(section, 'save', '%d_%s_results.py' % (snr + 1, section))
 
-        config.set(section, 'simply_smooths', 'LinearizeRecursiveVector(0.05236)')
+        config.set(section, 'simply_smooths', 'LinearizeRecursiveVector')
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'False')
         config.set(section, 'all_paths_smooth', 'False')
