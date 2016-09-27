@@ -377,7 +377,7 @@ class LinearizeRecursive(object):
 # Linearize criteria
 
 class TriangleLinearize(object):
-    def __init__(self, threshold):
+    def __init__(self, threshold = 0.01):
         # threshold - maximal allowed sum of heights of triangles made of beginning, end and all middle points
         ## bardzo ostre kryterium!!
         self.threshold = threshold

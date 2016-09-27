@@ -352,8 +352,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.remove_option(section, 'dump')
         config.set(section, 'save', '%d_%s_results.py' % (snr + 1, section))
 
-        config.set(section, 'simply_smooths', 0.05236)
-
+        config.set(section, 'simply_smooths', 'LinearizeRecursiveVector(0.05236)')
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'False')
         config.set(section, 'all_paths_smooth', 'False')
@@ -753,13 +752,16 @@ def get_clustering_method(coptions):
 def get_linearize_method(loption):
     if loption:
         assert isinstance(loption,(str,unicode)), "Wrong Linearize method definition: %r" % loption
-        assert re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$').match(loption.lower()) or re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)[(][)]$').match(loption.lower()), "Wrong Linearize method definition: %s" % loption
+        possible_formats = [re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
+                           re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
+                           re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)$')]
+        assert True in [pf.match(loption.lower()) is not None for pf in possible_formats], "Wrong Linearize method definition: %s" % loption
         # http://stackoverflow.com/questions/12929308/python-regular-expression-that-matches-floating-point-numbers#12929311
         way = [w for w in ['recursive','oneway','hobbit'] if w in loption.lower()][0]
         crit = [c for c in ['triangle','vector'] if c in loption.lower()][0]
         threshold = re.compile('[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?').findall(loption)
         if len(threshold):
-            threshold = float(threshold[0])
+            threshold = float(threshold[0][0])
         else:
             threshold = None
         # get method
