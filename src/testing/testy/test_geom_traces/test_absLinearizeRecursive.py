@@ -1,6 +1,6 @@
 
 from unittest import TestCase
-from traces import absLinearizeRecursive
+from aqueduct.geom.traces import absLinearizeRecursive
 import numpy as np
 import types
 

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from traces import absOneWay2
+from aqueduct.geom.traces import absOneWay2
 import numpy as np
 import types
 from itertools import islice

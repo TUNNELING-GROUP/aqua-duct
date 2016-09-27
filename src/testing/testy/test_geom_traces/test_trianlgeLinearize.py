@@ -1,5 +1,5 @@
 from unittest import TestCase
-from traces import TriangleLinearize
+from aqueduct.geom.traces import TriangleLinearize
 import numpy as np
 import math
 
