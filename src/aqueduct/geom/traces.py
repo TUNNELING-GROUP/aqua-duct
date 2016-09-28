@@ -473,6 +473,7 @@ def length_step_std(trace):
 
 
 def derrivative(values):
+    # FIXME: This function is porbably completely wrong! AP is going to rewrite it.
     # values - 3D coordinates
     # calculates derrivative of lenght of trace
     # uses diff but yields the same number of values as in input data
