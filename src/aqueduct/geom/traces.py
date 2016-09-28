@@ -472,8 +472,6 @@ class LinearizeRecursiveTriangle(LinearizeRecursive, TriangleLinearize):
 
 class LinearizeHobbitVector(LinearizeHobbit, VectorLinearize):
     """
-    ..  _simply_smooths_details:
-
     Class provides recursive linearization of coordinates with :class:`LinearizeHobbit` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.
     """
     pass
@@ -487,8 +485,6 @@ class LinearizeHobbitTriangle(LinearizeHobbit, TriangleLinearize):
 
 class LinearizeOneWayVector(LinearizeOneWay, VectorLinearize):
     """
-    ..  _simply_smooths_details:
-
     Class provides recursive linearization of coordinates with :class:`LinearizeOneWay` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.
     """
     pass
@@ -500,8 +496,3 @@ class LinearizeOneWayTriangle(LinearizeOneWay, TriangleLinearize):
     pass
 
 ################################################################################
-
-
-
-
-

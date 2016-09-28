@@ -184,60 +184,69 @@ dump_config             True            If set to ``True`` configuration options
 Stage **visualize**
 -------------------
 
-=====================   ==============  ================================================================
-Option                  Default value   Description
-=====================   ==============  ================================================================
-simply_smooths          0.05236         If set to float number simplification of smooth paths is
-                                        applied. Simplification removes points which do not (or almost
-                                        do not) change the shape of smooth path. For more details see
-                                        :ref:`Recursive Vector Linearization <simply_smooths_details>`.
-all_paths_raw           False           If True produces one object in PyMOL that holds all paths
-                                        visualized by raw coordinates.
-all_paths_smooth        False           If True produces one object in PyMOL that holds all paths
-                                        visualized by smooth coordinates.
-all_paths_split         False           If is set True objects produced by **all_paths_raw** and
-                                        **all_paths_smooth** are split into Incoming, Object, and
-                                        Outgoing parts and visualized as three different objects.
-all_paths_raw_io        False           If set True arrows pointing beginning and end of paths are
-                                        displayed oriented accordingly to raw paths orientation.
-all_paths_smooth_io     False           If set True arrows pointing beginning and end of paths are
-                                        displayed oriented accordingly to smooth paths orientation.
-paths_raw               False           If set True raw paths are displayed as separate objects or as
-                                        one object with states corresponding to number of path.
-paths_smooth            False           If set True smooth paths are displayed as separate objects or
-                                        as one object with states corresponding to number of path.
-paths_raw_io            False           If set True arrows indicating beginning and and of paths,
-                                        oriented accordingly to raw paths, are displayed as separate
-                                        objects or as one object with states corresponding to number
-                                        of paths.
-paths_smooth_io         False           If set True arrows indicating beginning and and of paths,
-                                        oriented accordingly to smooth paths, are displayed as separate
-                                        objects or as one object with states corresponding to number
-                                        of paths.
-paths_states            False           If True objects displayed by **paths_raw**, **paths_smooth**,
-                                        **paths_raw_io**, and **paths_smooth_io** are displayed as one
-                                        object with with states corresponding to number of paths.
-                                        Otherwise they are displayed as separate objects.
-ctypes_raw              False           Displays raw paths in a similar manner as non split
-                                        **all_paths_raw** but each cluster type is displayed in
-                                        separate object.
-ctypes_smooth           False           Displays smooth paths in a similar manner as non split
-                                        **all_paths_smooth** but each cluster type is displayed in
-                                        separate object.
-show_molecule           False           If is set to selection of some molecular object in the system,
-                                        for example to ``protein``, this object is displayed.
-show_molecule_frames    0               Allows to indicate which frames of object defined by
-                                        **show_molecule** should be displayed. It is possible to set
-                                        several frames. In that case frames would be displayed as
-                                        states.
-show_chull              False           If is set to selection of some molecular object in the system,
-                                        for example to ``protein``, convex hull of this object is
-                                        displayed.
-show_chull_frames       0               Allows to indicate for which frames of object defined by
-                                        **show_chull** convex hull should be displayed. It is possible
-                                        to set several frames. In that case frames would be displayed
-                                        as states.
-=====================   ==============  ================================================================
+=====================   =========================   ================================================================
+Option                  Default value               Description
+=====================   =========================   ================================================================
+simply_smooths          LinearizeRecursiveVector    Option indicates linear simplification method to be used in
+                                                    plotting smooth paths. Simplification removes points which do
+                                                    not (or almost do not) change the shape of smooth path.
+                                                    Possible choices are:
+                                                    :class:`~aqueduct.geom.traces.LinearizeRecursiveVector`,
+                                                    :class:`~aqueduct.geom.traces.LinearizeHobbitVector`,
+                                                    :class:`~aqueduct.geom.traces.LinearizeOneWayVector`,
+                                                    :class:`~aqueduct.geom.traces.LinearizeRecursiveTriangle`,
+                                                    :class:`~aqueduct.geom.traces.LinearizeHobbitTriangle`,
+                                                    :class:`~aqueduct.geom.traces.LinearizeOneWayTriangle`.
+                                                    Optionally name of the method can be followed by a threshold
+                                                    value in parentheses. It is recommended to use default method
+                                                    or ``LinearizeHobbitVector`` method.
+all_paths_raw           False                       If True produces one object in PyMOL that holds all paths
+                                                    visualized by raw coordinates.
+all_paths_smooth        False                       If True produces one object in PyMOL that holds all paths
+                                                    visualized by smooth coordinates.
+all_paths_split         False                       If is set True objects produced by **all_paths_raw** and
+                                                    **all_paths_smooth** are split into Incoming, Object, and
+                                                    Outgoing parts and visualized as three different objects.
+all_paths_raw_io        False                       If set True arrows pointing beginning and end of paths are
+                                                    displayed oriented accordingly to raw paths orientation.
+all_paths_smooth_io     False                       If set True arrows pointing beginning and end of paths are
+                                                    displayed oriented accordingly to smooth paths orientation.
+paths_raw               False                       If set True raw paths are displayed as separate objects or as
+                                                    one object with states corresponding to number of path.
+paths_smooth            False                       If set True smooth paths are displayed as separate objects or
+                                                    as one object with states corresponding to number of path.
+paths_raw_io            False                       If set True arrows indicating beginning and and of paths,
+                                                    oriented accordingly to raw paths, are displayed as separate
+                                                    objects or as one object with states corresponding to number
+                                                    of paths.
+paths_smooth_io         False                       If set True arrows indicating beginning and and of paths,
+                                                    oriented accordingly to smooth paths, are displayed as separate
+                                                    objects or as one object with states corresponding to number
+                                                    of paths.
+paths_states            False                       If True objects displayed by **paths_raw**, **paths_smooth**,
+                                                    **paths_raw_io**, and **paths_smooth_io** are displayed as one
+                                                    object with with states corresponding to number of paths.
+                                                    Otherwise they are displayed as separate objects.
+ctypes_raw              False                       Displays raw paths in a similar manner as non split
+                                                    **all_paths_raw** but each cluster type is displayed in
+                                                    separate object.
+ctypes_smooth           False                       Displays smooth paths in a similar manner as non split
+                                                    **all_paths_smooth** but each cluster type is displayed in
+                                                    separate object.
+show_molecule           False                       If is set to selection of some molecular object in the system,
+                                                    for example to ``protein``, this object is displayed.
+show_molecule_frames    0                           Allows to indicate which frames of object defined by
+                                                    **show_molecule** should be displayed. It is possible to set
+                                                    several frames. In that case frames would be displayed as
+                                                    states.
+show_chull              False                       If is set to selection of some molecular object in the system,
+                                                    for example to ``protein``, convex hull of this object is
+                                                    displayed.
+show_chull_frames       0                           Allows to indicate for which frames of object defined by
+                                                    **show_chull** convex hull should be displayed. It is possible
+                                                    to set several frames. In that case frames would be displayed
+                                                    as states.
+=====================   =========================   ================================================================
 
 
 .. note::

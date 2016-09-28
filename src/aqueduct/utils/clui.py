@@ -32,7 +32,7 @@ def message_special(mess):
 def message(mess, cont=False):
     """
     Prints message to standard error.
-    If FileHandler is present in the :py:`root_logger` the same message is appended to the log file.
+    If FileHandler is present in the :class:`root_logger` the same message is appended to the log file.
 
     :param str mess: message to print
     :param bool cont: if set True no new line is printed
@@ -204,7 +204,6 @@ class SimpleProgressBar(object):
 
     :cvar str rotate: String comprising characters with frames of a rotating toy.
     :cvar int barlenght: Length of progress bar.
-
     :ivar int maxval: maximal number of iterations
     :ivar int current: current number of iterations
     :ivar bool overrun_notice: if True, overrun above :ivar:`maxval` iterations causes insert of newline
