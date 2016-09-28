@@ -39,7 +39,7 @@ from collections import namedtuple, OrderedDict
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
-from scipy.spatial.distance import cdist
+from scipy.spatial.distance import cdist # if scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation
 
 from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
@@ -352,7 +352,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.remove_option(section, 'dump')
         config.set(section, 'save', '%d_%s_results.py' % (snr + 1, section))
 
-        config.set(section, 'simply_smooths', 'LinearizeRecursiveVector')
+        config.set(section, 'simply_smooths', 'RecursiveVector')
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'False')
         config.set(section, 'all_paths_smooth', 'False')
