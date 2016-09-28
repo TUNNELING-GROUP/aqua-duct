@@ -26,19 +26,21 @@ import ConfigParser
 import cPickle as pickle
 import copy
 import gzip
-import numpy as np
 import os
 import re
 import operator
 import shlex
 import sys
-import MDAnalysis as mda
-import roman
 
-from collections import namedtuple, OrderedDict
+import numpy as np
+import MDAnalysis as mda
+import roman # TODO: remove this dependency!
+
+from collections import namedtuple, OrderedDict # TODO: check if OrderedDict is REALLY used
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
+
 from scipy.spatial.distance import cdist # if scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation
 
 from aqueduct import greetings as greetings_aqueduct
@@ -432,12 +434,7 @@ class TrajectoryReader(object):
         self.trj = shlex.split(trj)
 
     def get(self):
-        # assume it is a Amber NetCDF
-        # TODO: check if it is DCD and do something?
-        # TODO: move it to another class, ReaderHelper for instance.
-
         return ReadViaMDA(self.top, self.trj)
-        # return ReadAmberNetCDFviaMDA(self.top, self.trj)
 
     @property
     def max_frame(self):
@@ -451,7 +448,8 @@ def rebuild_selection(selection, reader):
 
 ################################################################################
 # convex hull helpers
-# TODO: Move it to separate module
+# TODO: Move it to separate module.
+# TODO: Following functions are or will be deprecated, remove them.
 
 def CHullCheck(point):
     return CHullCheck.chull.point_within(point)
