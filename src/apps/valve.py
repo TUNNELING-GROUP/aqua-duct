@@ -96,7 +96,7 @@ class ConfigSpecialNames:
                 return self.special_names_dict[name.lower()]
         return name
 
-
+# TODO: add parser for initial checking of configuration file
 class ValveConfig(object, ConfigSpecialNames):
     def __init__(self):
         self.config = self.get_default_config()
@@ -750,9 +750,9 @@ def get_clustering_method(coptions):
 def get_linearize_method(loption):
     if loption:
         assert isinstance(loption,(str,unicode)), "Wrong Linearize method definition: %r" % loption
-        possible_formats = [re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
-                           re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
-                           re.compile('^linearize(recursive|oneway|hobbit)(triangle|vector)$')]
+        possible_formats = [re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
+                           re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
+                           re.compile('^(recursive|oneway|hobbit)(triangle|vector)$')]
         assert True in [pf.match(loption.lower()) is not None for pf in possible_formats], "Wrong Linearize method definition: %s" % loption
         # http://stackoverflow.com/questions/12929308/python-regular-expression-that-matches-floating-point-numbers#12929311
         way = [w for w in ['recursive','oneway','hobbit'] if w in loption.lower()][0]
@@ -1466,7 +1466,7 @@ def add_ctype_id(gen):
 
 class PrintAnalysis(object):
     nr_template = '%7d '
-
+    # TODO: Change it in such a way that it cooperates well with debug-file option.
     def __init__(self, fileoption):
         self.output2stderr = False
         if fileoption:
@@ -1659,8 +1659,8 @@ def stage_V_run(config, options,
     pa = PrintAnalysis(options.save)
     if options.save:
         clui.message('Using user provided file (%s).' % options.save)
-        clui.message(sep())
-        clui.message('')
+        #clui.message(sep())
+        #clui.message('')
     else:
         clui.message('Using standard output.')
         clui.message(sep())
