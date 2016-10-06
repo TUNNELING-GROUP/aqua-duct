@@ -31,7 +31,6 @@ def diff(trace):
 
 def tracepoints(start, stop, nr):
     """
-
     :param start: coordinates of the first point as a numpy array object
     :param stop: coordinates of the second point as a numpy array object
     :param nr: number of elements between the first and second point
@@ -46,8 +45,8 @@ def midpoints(paths):
     """
     The function returns a tuple of numpy arrays extended with mid point spanning last and first element(column)
      of these arrays.
-    :param paths: a tuple of 2-dimentional np.arrays that hold 3D coordinates; each element holds one trace,
-    all elements are supposed to make one path divided in to sections
+
+    :param paths: a tuple of 2-dimentional np.arrays that hold 3D coordinates; each element holds one trace, all elements are supposed to make one path divided in to sections
     :return: paths elements with additional mid points as a generator object
     """
     # paths - a tuple of 2d np.arrays that hold 3D coordinates, each element holds one trace, all elements are supposed to make one path divided in to sections
@@ -91,7 +90,8 @@ def midpoints(paths):
 
 def length_step_std(trace):
     """
-    This function caclulates sum, mean and standard deviation from all segments of a trace.
+    This function calculates sum, mean and standard deviation from all segments of a trace.
+
     :param trace: coordinates of points as numpy array
     :return: a tuple with basics statistics of a trace
     """
@@ -151,6 +151,7 @@ def vector_norm(V):
 def triangle_angles(A, B, C):
     """
     Parameters are coordinates of points which are tops of triangle. The function calculates angles in a triangle formed by given coordinates.
+
     :param A: coordinates of the first point
     :param B: coordinates of the second point
     :param C: coordinates of the third point
@@ -177,6 +178,7 @@ def triangle_angles(A, B, C):
 def triangle_angles_last(A, B, C):
     """
     Parameters are coordinates of points which are tops of triangle. The function calculates the [ABC] angle.
+
     :param A: coordinates of the first point [A top]
     :param B: coordinates of the second point [B top]
     :param C: coordinates of the third point [C top]
@@ -339,11 +341,11 @@ class LinearizeRecursive(object):
 
         If these points are linear their indices are returned. Otherwise, coordinates are split into two parts. First part spans points from the first point to the middle point (inclusive) and the second part spans points from the middle (inclusive) to the last point. Next, these two parts are submitted recursively to :meth:`here`.
 
-         Results of these recursive calls are joined, redundant indices are removed and sorted result is returned.
+        Results of these recursive calls are joined, redundant indices are removed and sorted result is returned.
 
         :param numpy.ndarray coords: Input coordinates.
         :param int depth: Depth of recurence.
-        :return: Indices of :arg:`coords` points that can be used instead of all points in visulatization.
+        :return: Indices of ``coords`` points that can be used instead of all points in visulatization.
         :rtype: list of int
         """
         # klasa nie ma zdefiniowanej metody is_linear
