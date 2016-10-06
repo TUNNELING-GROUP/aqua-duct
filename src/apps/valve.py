@@ -1161,6 +1161,9 @@ def potentially_recursive_clusterization(config,
     with clui.fbm("Performing %s, level %d of %d" % (message, deep, max_level), cont=False):
         logger.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
+        clui.message('Clustering options:')
+        for k,v in cluster_options._asdict().iteritems():
+            clui.message("%s = %s" % (str(k),str(v)))
         # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options)
         # get skip_size function according to recursive_treshold
