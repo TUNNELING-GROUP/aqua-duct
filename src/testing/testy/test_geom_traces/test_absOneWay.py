@@ -1,5 +1,5 @@
 from unittest import TestCase
-from traces import absOneWay
+from aqueduct.geom.traces import LinearizeOneWayTriangle
 import numpy as np
 import types
 from itertools import islice
@@ -63,5 +63,5 @@ class TestAbsOneWay(TestCase):
         I = [9, 8, 3]
         out = (0, 4)
         data = np.array([A, B, C, D, E, F, G, H, I])
-        test_case = absOneWay(0.00)
+        test_case = LinearizeOneWayTriangle(0.00)
         self.assertEqual(tuple(test_case.here(data)), out)

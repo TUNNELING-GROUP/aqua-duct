@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
 from math import sqrt
-from traces import triangle_height
+from aqueduct.geom.traces import triangle_height
 
 
 class TestTriangle_height(TestCase):

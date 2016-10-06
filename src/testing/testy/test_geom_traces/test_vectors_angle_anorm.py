@@ -2,22 +2,22 @@
 import numpy as np
 from unittest import TestCase
 
-from traces import vectors_angle_alt_anorm, vector_norm
+from aqueduct.geom.traces import vectors_angle_anorm, vector_norm
 
 
-class TestVectors_angle_alt_anorm(TestCase):
+class TestVectors_angle_anorm(TestCase):
     def test_output_value(self):
         A = (0, 2, 2)
         B = (2, 2, 2)
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         self.assertTrue(isinstance(outp, float))
 
-    def test_vectors_angle_alt_anorm(self):
+    def test_vectors_angle_anorm(self):
         A = (0, 2, 2)
         B = (2, 2, 2)
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         res = np.arccos(np.clip(8 / (2.83 * 3.46), -1, 1))
         round_res = round(res, 3)
         round_outp = round(outp, 3)
@@ -27,7 +27,7 @@ class TestVectors_angle_alt_anorm(TestCase):
         A = [0, 2, 2]
         B = [2, 2, 2]
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         res = np.arccos(np.clip(8 / (2.83 * 3.46), -1, 1))
         round_res = round(res, 3)
         round_outp = round(outp, 3)
@@ -37,7 +37,7 @@ class TestVectors_angle_alt_anorm(TestCase):
         A = [0, 0, 0]
         B = [2, 2, 2]
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         self.assertEqual(outp, 0)
 
     def test_zero2(self):
@@ -46,7 +46,7 @@ class TestVectors_angle_alt_anorm(TestCase):
         A = [0.1, 0.1, 0.1]
         B = [0.1, 0.1, 0.1]
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         res = np.arccos(np.clip(0.03 / (0.1732 * 0.1732), -1, 1))
         self.assertAlmostEqual(outp, res)
 
@@ -54,7 +54,7 @@ class TestVectors_angle_alt_anorm(TestCase):
         A = 200, 200, 200
         B = 200, 200, 200
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         res = np.arccos(np.clip(120000 / (346.41 * 346.41), -1, 1))
         self.assertEqual(outp, res)
 
@@ -63,7 +63,7 @@ class TestVectors_angle_alt_anorm(TestCase):
         A = 0.1, 0.1, 0.1
         B = 200, 200, 200
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         res = np.arccos(np.clip(60 / (0.03 * 346.41), -1, 1))
         self.assertAlmostEqual(outp, res)
 
@@ -72,7 +72,7 @@ class TestVectors_angle_alt_anorm(TestCase):
         A = 1, 1, 0.1
         B = 200, 200, 200
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         res = np.arccos(np.clip(420 / (1.4177 * 346.41), -1, 1))
         roundo = round(outp, 3)
         roundr = round(res, 3)
@@ -82,7 +82,7 @@ class TestVectors_angle_alt_anorm(TestCase):
         A = -2, -2, -2
         B = 2, 2, 2
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         res = np.arccos(np.clip(-8 / (2.82842 * 2.82842), -1, 1))
         self.assertAlmostEqual(outp, res)
 
@@ -91,8 +91,8 @@ class TestVectors_angle_alt_anorm(TestCase):
         A = -10, 2, 2
         B = 2, 2, 2
         Anorm = vector_norm(A)
-        outp = vectors_angle_alt_anorm(A, B, Anorm)
+        outp = vectors_angle_anorm(A, B, Anorm)
         res = np.arccos(np.clip(np.dot(A, B) / (10.4 * 2.82), -1, 1))
         roundo = round(outp, 3)
         roundr = round(res, 3)
-        self.assertAlmostEqual(outp, res)
+        self.assertAlmostEqual(outp, res,0)

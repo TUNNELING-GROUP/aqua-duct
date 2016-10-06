@@ -1,6 +1,6 @@
 
 from unittest import TestCase
-from traces import absLinearizeRecursive
+from aqueduct.geom.traces import LinearizeRecursiveTriangle
 import numpy as np
 import types
 
@@ -34,7 +34,7 @@ class TestAbsLinearizeRecursive(TestCase):
         I = [9, 8, 3]
         out = [0, 1, 2, 3, 4, 7, 8]
         data = np.array([A, B, C, D, E, F, G, H, I])
-        test_case = absLinearizeRecursive(0)
+        test_case = LinearizeRecursiveTriangle(0)
         self.assertEqual(test_case.here(data), out)
 
     # def test_here3(self):

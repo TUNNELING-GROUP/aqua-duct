@@ -160,9 +160,8 @@ class CTypeSpathsCollectionWorker(object):
 
         return coords_to_append, types_to_append, widths_to_append
 
-    def __call__(self,(nr,sp_slices_)):
-        out = self.coords_types_prob_widths(sp_slices_)
-        return nr,out
+    def __call__(self,nr_sp_slices_):
+        return nr_sp_slices_[0],self.coords_types_prob_widths(nr_sp_slices_[-1])
 
 class CTypeSpathsCollection(object):
 

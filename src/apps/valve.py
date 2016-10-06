@@ -26,20 +26,22 @@ import ConfigParser
 import cPickle as pickle
 import copy
 import gzip
-import numpy as np
 import os
 import re
 import operator
 import shlex
 import sys
-import MDAnalysis as mda
-import roman
 
-from collections import namedtuple, OrderedDict
+import numpy as np
+import MDAnalysis as mda
+import roman # TODO: remove this dependency!
+
+from collections import namedtuple, OrderedDict # TODO: check if OrderedDict is REALLY used
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
-from scipy.spatial.distance import cdist
+
+from scipy.spatial.distance import cdist # if scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation
 
 from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
@@ -65,7 +67,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 5
+    return 0, 9, 6
 
 
 def version_nice():
@@ -94,7 +96,7 @@ class ConfigSpecialNames:
                 return self.special_names_dict[name.lower()]
         return name
 
-
+# TODO: add parser for initial checking of configuration file
 class ValveConfig(object, ConfigSpecialNames):
     def __init__(self):
         self.config = self.get_default_config()
@@ -307,6 +309,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'recluster_outliers', 'False')
         config.set(section, 'detect_outliers', 'False')
         config.set(section, 'singletons_outliers', 'False')
+        config.set(section, 'create_master_paths', 'False')
 
         ################
         # smooth
@@ -352,8 +355,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.remove_option(section, 'dump')
         config.set(section, 'save', '%d_%s_results.py' % (snr + 1, section))
 
-        config.set(section, 'simply_smooths', 0.05236)
-
+        config.set(section, 'simply_smooths', 'RecursiveVector')
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'False')
         config.set(section, 'all_paths_smooth', 'False')
@@ -433,12 +435,7 @@ class TrajectoryReader(object):
         self.trj = shlex.split(trj)
 
     def get(self):
-        # assume it is a Amber NetCDF
-        # TODO: check if it is DCD and do something?
-        # TODO: move it to another class, ReaderHelper for instance.
-
         return ReadViaMDA(self.top, self.trj)
-        # return ReadAmberNetCDFviaMDA(self.top, self.trj)
 
     @property
     def max_frame(self):
@@ -452,7 +449,8 @@ def rebuild_selection(selection, reader):
 
 ################################################################################
 # convex hull helpers
-# TODO: Move it to separate module
+# TODO: Move it to separate module.
+# TODO: Following functions are or will be deprecated, remove them.
 
 def CHullCheck(point):
     return CHullCheck.chull.point_within(point)
@@ -750,6 +748,40 @@ def get_clustering_method(coptions):
 
     return PerformClustering(method, **opts)
 
+def get_linearize_method(loption):
+    if loption:
+        assert isinstance(loption,(str,unicode)), "Wrong Linearize method definition: %r" % loption
+        possible_formats = [re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
+                           re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
+                           re.compile('^(recursive|oneway|hobbit)(triangle|vector)$')]
+        assert True in [pf.match(loption.lower()) is not None for pf in possible_formats], "Wrong Linearize method definition: %s" % loption
+        # http://stackoverflow.com/questions/12929308/python-regular-expression-that-matches-floating-point-numbers#12929311
+        way = [w for w in ['recursive','oneway','hobbit'] if w in loption.lower()][0]
+        crit = [c for c in ['triangle','vector'] if c in loption.lower()][0]
+        threshold = re.compile('[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?').findall(loption)
+        if len(threshold):
+            threshold = float(threshold[0][0])
+        else:
+            threshold = None
+        # get method
+        if way == 'recursive':
+            if crit == 'triangle':
+                met = traces.LinearizeRecursiveTriangle
+            else:
+                met = traces.LinearizeRecursiveVector
+        elif way == 'oneway':
+            if crit == 'triangle':
+                met = traces.LinearizeOneWayTriangle
+            else:
+                met = traces.LinearizeOneWayVector
+        elif way == 'hobbit':
+            if crit == 'triangle':
+                met = traces.LinearizeHobbitTriangle
+            else:
+                met = traces.LinearizeHobbitVector
+        if threshold is None:
+            return met()
+        return met(threshold)
 
 ################################################################################
 
@@ -1129,6 +1161,9 @@ def potentially_recursive_clusterization(config,
     with clui.fbm("Performing %s, level %d of %d" % (message, deep, max_level), cont=False):
         logger.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
+        clui.message('Clustering options:')
+        for k,v in cluster_options._asdict().iteritems():
+            clui.message("%s = %s" % (str(k),str(v)))
         # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options)
         # get skip_size function according to recursive_treshold
@@ -1200,7 +1235,7 @@ def stage_IV_run(config, options,
             clui.message('Number of outliers: %d' % noo())
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
-            with clui.fbm("Performing reclusterization of outliers"):
+            with clui.fbm("Performing reclusterization of outliers",cont=False):
                 clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
                 # inls.recluster_outliers(clustering_function)
@@ -1219,62 +1254,32 @@ def stage_IV_run(config, options,
 
         # now, there is something to do with ctypes!
         # we can create master paths!
-
-        clui.message("Creating master paths for cluster types:")
-
-        smooth = get_smooth_method(soptions)
+        # but only if user wants this
         master_paths = {}
         master_paths_smooth = {}
-        ctypes_generic = [ct.generic for ct in ctypes]
-        ctypes_generic_list = sorted(list(set(ctypes_generic)))
+        if options.create_master_paths:
+            with clui.fbm("Creating master paths for cluster types",cont=False):
+                smooth = get_smooth_method(soptions)
+                ctypes_generic = [ct.generic for ct in ctypes]
+                ctypes_generic_list = sorted(list(set(ctypes_generic)))
+                # create pool of workers - mapping function
+                map_fun = map
+                if optimal_threads > 1:
+                    pool = mp.Pool(optimal_threads)
+                    map_fun = pool.map
 
-        '''
-        '''
-        # create pool of workers - mapping function
-        map_fun = map
-        if optimal_threads > 1:
-            pool = mp.Pool(optimal_threads)
-            map_fun = pool.map
-
-        from aqueduct.geom.master import calculate_master
-        # from multiprocessing import Lock,Manager
-        # lock = Manager().Lock()
-
-        master_paths = {}
-        master_paths_smooth = {}
-
-        '''
-        with clui.fbm("Calculating master and smooth paths"):
-            for mpnr,mapa in enumerate(map_fun(calculate_master,[(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,None) for nr,ct in enumerate(ctypes_generic_list)] + [(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,smooth) for nr,ct in enumerate(ctypes_generic_list)])):
-                if mpnr < len(ctypes_generic_list):
-                    master_paths.update({ctypes_generic_list[mpnr]:mapa})
-                else:
-                    master_paths_smooth.update({ctypes_generic_list[mpnr-len(ctypes_generic_list)]: mapa})
-
-        # destroy pool of workers
-        if optimal_threads > 1:
-            pool.close()
-            pool.join()
-            del pool
-
-        '''
-        pbar = clui.pbar(len(spaths) * 2)
-
-        for nr, ct in enumerate(ctypes_generic_list):
-            logger.debug('CType %s (%d)' % (str(ct), nr))
-            sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
-            # print len(sps),ct
-            ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads)
-            master_paths.update({ct: ctspc.get_master_path(resid=nr)})
-            master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
-            del ctspc
-            # master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
-            # master_paths_smooth.update(
-            #    {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
-        pbar.finish()
-        # TODO: issue warinig if creation of master path failed
-
+                pbar = clui.pbar(len(spaths) * 2)
+                for nr, ct in enumerate(ctypes_generic_list):
+                    logger.debug('CType %s (%d)' % (str(ct), nr))
+                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
+                    # print len(sps),ct
+                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads)
+                    master_paths.update({ct: ctspc.get_master_path(resid=nr)})
+                    master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
+                    del ctspc
+                pbar.finish()
+                # TODO: issue warning if creation of master path failed
 
     else:
         clui.message("No inlets found. Clusterization skipped.")
@@ -1435,7 +1440,7 @@ def add_ctype_id(gen):
 
 class PrintAnalysis(object):
     nr_template = '%7d '
-
+    # TODO: Change it in such a way that it cooperates well with debug-file option.
     def __init__(self, fileoption):
         self.output2stderr = False
         if fileoption:
@@ -1628,8 +1633,8 @@ def stage_V_run(config, options,
     pa = PrintAnalysis(options.save)
     if options.save:
         clui.message('Using user provided file (%s).' % options.save)
-        clui.message(sep())
-        clui.message('')
+        #clui.message(sep())
+        #clui.message('')
     else:
         clui.message('Using standard output.')
         clui.message(sep())
@@ -1791,7 +1796,7 @@ def stage_VI_run(config, options,
             pymol_connector.init_pymol()
 
         if options.simply_smooths:
-            spp = SinglePathPlotter(pymol_connector, linearize=float(options.simply_smooths))
+            spp = SinglePathPlotter(pymol_connector, linearize=get_linearize_method(options.simply_smooths))
         else:
             spp = SinglePathPlotter(pymol_connector, linearize=None)
 
