@@ -39,6 +39,8 @@ def cc(c):
 
 
 
+
+
 _dcc_is = ptc.path_in_code + gptc.scope_name
 _dcc_cc = ptc.path_object_code + gptc.object_name
 _dcc_cs = ptc.path_object_code + gptc.scope_name

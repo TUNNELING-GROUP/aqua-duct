@@ -67,7 +67,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 6
+    return 0, 9, 7
 
 
 def version_nice():
@@ -1788,7 +1788,7 @@ def stage_VI_run(config, options,
     smooth = get_smooth_method(soptions)
 
     # start pymol
-    with clui.fbm("Starting PyMOL"):
+    with clui.fbm("Starting PyMOL connection",cont=False):
         pymol_connector = ConnectToPymol()
         if is_pymol_connector_script(options.save):
             pymol_connector.init_script(options.save)
@@ -1904,6 +1904,7 @@ def stage_VI_run(config, options,
         with clui.fbm("Saving session (%s)" % options.save):
             clui.message("")  # new line
             pbar = clui.pbar(len(spaths))
+            # FIXME: Loop over states is not required if there is no object with many states.
             import time
             for state in range(len(spaths)):
                 pymol_connector.cmd.set_frame(state + 1)

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # import it as pmc?
 
-import cPickle as pickle
 import numpy as np
+import cPickle as pickle
 import os
 import tarfile
 
@@ -12,7 +12,7 @@ from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
 from aqueduct.utils.helpers import list_blocks_to_slices
 from aqueduct.visual.helpers import color_codes, cc
-from aqueduct.utils.helpers import create_tmpfile
+from aqueduct.utils.helpers import create_tmpfile,listify
 
 
 class BasicPymolCGO(object):
@@ -35,6 +35,8 @@ class BasicPymolCGO(object):
     def get(self):
         return self.cgo_entity + self.cgo_entity_end
 
+    def make_color_triple(self,color_definition):
+        return tuple(color_definition)
 
 class BasicPymolCGOLines(BasicPymolCGO):
     cgo_entity_begin = [cgo.BEGIN, cgo.LINES]
@@ -44,7 +46,8 @@ class BasicPymolCGOLines(BasicPymolCGO):
 
         if color is not None:
             self.cgo_entity.append(cgo.COLOR)
-            self.cgo_entity.extend(map(float, color))
+            #self.cgo_entity.extend(map(float, color))
+            self.cgo_entity.append(self.make_color_triple(map(float, color)))
 
         if coords is not None:
             for nr, coord in enumerate(coords):
@@ -76,7 +79,8 @@ class BasicPymolCGOSpheres(BasicPymolCGO):
                     else:
                         c = color[0]
                     self.cgo_entity.append(cgo.COLOR)
-                    self.cgo_entity.extend(map(float, c))
+                    self.cgo_entity.append(self.make_color_triple(map(float, c)))
+                    #self.cgo_entity.extend(map(float, c))
                 self.cgo_entity.append(cgo.SPHERE)
                 self.cgo_entity.extend(map(float, coord))
                 if radius is not None:
@@ -103,8 +107,10 @@ class BasicPymolCGOPointers(BasicPymolCGO):
             self.cgo_entity.extend(map(float, coords2))
             self.cgo_entity.append(float(radius1))
             self.cgo_entity.append(float(radius2))
-            self.cgo_entity.extend(map(float, color1))
-            self.cgo_entity.extend(map(float, color2))
+            self.cgo_entity.append(self.make_color_triple(map(float, color1)))
+            self.cgo_entity.append(self.make_color_triple(map(float, color2)))
+            #self.cgo_entity.extend(map(float, color1))
+            #self.cgo_entity.extend(map(float, color2))
 
             self.cgo_entity.extend([cgo.NULL, cgo.POINTS])
 
@@ -156,6 +162,16 @@ class ConnectToPymol(object):
 
         cmd = None
 
+    @listify
+    def decode_color(self,cgo_object):
+        for element in cgo_object:
+            if isinstance(element,tuple):
+                for e in element:
+                    yield e
+            else:
+                yield element
+
+
     def init_pymol(self):
         import pymol
         self.cmd = pymol.cmd
@@ -175,6 +191,7 @@ parser=argparse.ArgumentParser(description="Aqua-Duct visualization script")
 parser.add_argument("--save-session",action="store",dest="session",required=False,default=None,help="Pymol session file name.")
 parser.add_argument("--discard",action="store",dest="discard",required=False,default='',help="Objects to discard.")
 parser.add_argument("--keep",action="store",dest="keep",required=False,default='',help="Objects to keep.")
+parser.add_argument("--force-color",action="store",dest="fc",required=False,default='',help="Force specific color.")
 args,unknown=parser.parse_known_args()
 import sys
 def _kd_order():
@@ -211,11 +228,26 @@ fd, pdb_filename = mkstemp(suffix="pdb")
 close(fd)
 max_state=0
 data_fh=tarfile.open("%s","r:gz")
+def decode_color(cgo_object,fc=None):
+    for element in cgo_object:
+        if isinstance(element,tuple):
+            if fc is None:
+                for e in element: yield e
+            else:
+                for e in fc: yield e
+        yield element
 def load_object(filename,name,state):
     if not proceed(name): return
     global max_state
     print "Loading %s" % splitext(filename)[0]
-    cmd.load_cgo(pickle.load(data_fh.extractfile(filename)),name,state)
+    obj=pickle.load(data_fh.extractfile(filename))
+    if name in args.fc.split():
+        forced_color=args.fc.split()[args.fc.split().index(name)+1]
+        forced_color=cmd.get_color_tuple(forced_color)
+        obj=decode_color(obj,fc=forced_color)
+    else:
+        obj=decode_color(obj)
+    cmd.load_cgo(obj,name,state)
     if state<2:
         cmd.refresh()
     if state>max_state:
@@ -234,7 +266,7 @@ def load_pdb(filename,name,state):
         if state is None:
             state = 1
         if self.connection_type == self.ct_pymol:
-            self.cmd.load_cgo(cgo_object, str(name), state)
+            self.cmd.load_cgo(self.decode_color(cgo_object), str(name), state)
         elif self.connection_type == self.ct_file:
             obj_name = '%s_%d.dump' % (name, state)
             self.data_fh.save_object2tar(cgo_object, obj_name)
