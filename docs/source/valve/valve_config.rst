@@ -168,6 +168,9 @@ singletons_outliers     False           Maximal size of cluster to be considered
                                         are moved to outliers. See :ref:`clusterization_of_inlets` for
                                         more details.
 max_level               5               Maximal number of recursive clusterization levels.
+create_master_paths     False           If set to ``True`` master paths are created (fast CPU and big
+                                        RAM recommended; 50k frames long simulation may need ca 20GB of
+                                        memory)
 =====================   ==============  ================================================================
 
 Stage **analysis**

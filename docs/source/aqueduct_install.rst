@@ -10,7 +10,7 @@ This package comprises of two elements:
 #. aqueduct,
 #. valve.
 
-Aqueduct is a Python module. It is a collection of tools to trace residues in MD simulation. Valve is a driver Python script. It uses aqueduct to perform such a tracing.
+Aqueduct is a Python module. It is a collection of tools to trace residues in MD simulation. Valve is a driver Python script. It uses aqueduct to perform such a tracing. Valve is shipped together with Aqueduct.
 
 Install
 -------
@@ -22,7 +22,7 @@ Installation was tested on limited number of POSIX-like systems.
 
 In some specific cases installation is very simple:
 
-#. Download :download:`aqueduct.tar.gz` bundle file..
+#. Download :download:`aqueduct.tar.gz` bundle file.
 #. Unpack aqueduct bundle file.
 #. Go to src directory.
 #. Type::

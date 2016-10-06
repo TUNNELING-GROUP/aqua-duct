@@ -309,6 +309,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'recluster_outliers', 'False')
         config.set(section, 'detect_outliers', 'False')
         config.set(section, 'singletons_outliers', 'False')
+        config.set(section, 'create_master_paths', 'False')
 
         ################
         # smooth
@@ -1231,7 +1232,7 @@ def stage_IV_run(config, options,
             clui.message('Number of outliers: %d' % noo())
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
-            with clui.fbm("Performing reclusterization of outliers"):
+            with clui.fbm("Performing reclusterization of outliers",cont=False):
                 clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
                 # inls.recluster_outliers(clustering_function)
@@ -1250,62 +1251,32 @@ def stage_IV_run(config, options,
 
         # now, there is something to do with ctypes!
         # we can create master paths!
-
-        clui.message("Creating master paths for cluster types:")
-
-        smooth = get_smooth_method(soptions)
+        # but only if user wants this
         master_paths = {}
         master_paths_smooth = {}
-        ctypes_generic = [ct.generic for ct in ctypes]
-        ctypes_generic_list = sorted(list(set(ctypes_generic)))
+        if options.create_master_paths:
+            with clui.fbm("Creating master paths for cluster types",cont=False):
+                smooth = get_smooth_method(soptions)
+                ctypes_generic = [ct.generic for ct in ctypes]
+                ctypes_generic_list = sorted(list(set(ctypes_generic)))
+                # create pool of workers - mapping function
+                map_fun = map
+                if optimal_threads > 1:
+                    pool = mp.Pool(optimal_threads)
+                    map_fun = pool.map
 
-        '''
-        '''
-        # create pool of workers - mapping function
-        map_fun = map
-        if optimal_threads > 1:
-            pool = mp.Pool(optimal_threads)
-            map_fun = pool.map
-
-        from aqueduct.geom.master import calculate_master
-        # from multiprocessing import Lock,Manager
-        # lock = Manager().Lock()
-
-        master_paths = {}
-        master_paths_smooth = {}
-
-        '''
-        with clui.fbm("Calculating master and smooth paths"):
-            for mpnr,mapa in enumerate(map_fun(calculate_master,[(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,None) for nr,ct in enumerate(ctypes_generic_list)] + [(lind(spaths, what2what(ctypes_generic, [ct])),nr,ct,smooth) for nr,ct in enumerate(ctypes_generic_list)])):
-                if mpnr < len(ctypes_generic_list):
-                    master_paths.update({ctypes_generic_list[mpnr]:mapa})
-                else:
-                    master_paths_smooth.update({ctypes_generic_list[mpnr-len(ctypes_generic_list)]: mapa})
-
-        # destroy pool of workers
-        if optimal_threads > 1:
-            pool.close()
-            pool.join()
-            del pool
-
-        '''
-        pbar = clui.pbar(len(spaths) * 2)
-
-        for nr, ct in enumerate(ctypes_generic_list):
-            logger.debug('CType %s (%d)' % (str(ct), nr))
-            sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
-            # print len(sps),ct
-            ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads)
-            master_paths.update({ct: ctspc.get_master_path(resid=nr)})
-            master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
-            del ctspc
-            # master_paths.update({ct: create_master_spath(sps, resid=nr, ctype=ct, pbar=pbar)})
-            # master_paths_smooth.update(
-            #    {ct: create_master_spath(sps, resid=nr, ctype=ct, smooth=smooth, pbar=pbar)})
-        pbar.finish()
-        # TODO: issue warinig if creation of master path failed
-
+                pbar = clui.pbar(len(spaths) * 2)
+                for nr, ct in enumerate(ctypes_generic_list):
+                    logger.debug('CType %s (%d)' % (str(ct), nr))
+                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
+                    # print len(sps),ct
+                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads)
+                    master_paths.update({ct: ctspc.get_master_path(resid=nr)})
+                    master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
+                    del ctspc
+                pbar.finish()
+                # TODO: issue warning if creation of master path failed
 
     else:
         clui.message("No inlets found. Clusterization skipped.")
