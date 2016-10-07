@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+
 logger = logging.getLogger(__name__)
 import numpy as np
 from collections import namedtuple
@@ -54,7 +55,8 @@ class InletClusterGenericType(object):
     def output(self):
         return self.clusters[-1]
 
-    def cluster2str(self, cl):
+    @staticmethod
+    def cluster2str(cl):
         if cl is None:
             return 'N'
         return '%d' % int(cl)
@@ -169,9 +171,9 @@ class Inlets(object):
         # 0 means outliers
         self.add_cluster_annotations(method(np.array(self.coords)))
         self.number_of_clustered_inlets = len(self.clusters)
-        clui.message("New clusters created: %s" % (' '.join(map(str,sorted(set(self.clusters))))))
+        clui.message("New clusters created: %s" % (' '.join(map(str, sorted(set(self.clusters))))))
         # renumber clusters
-        #self.renumber_clusters()
+        # self.renumber_clusters()
 
     def perform_reclustering(self, method, skip_outliers=False, skip_size=None):
         # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
@@ -192,7 +194,7 @@ class Inlets(object):
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
         # renumber clusters
-        #self.renumber_clusters()
+        # self.renumber_clusters()
 
     def recluster_cluster(self, method, cluster):
         if cluster in self.clusters_list:
@@ -204,20 +206,22 @@ class Inlets(object):
                 # how many clusters? what aboout outliers?
                 n_reclust = len(set(reclust))
                 out_reclust = 0 in reclust
-                clui.message('Cluster %d was split into %d clusters.' % (cluster,n_reclust))
+                clui.message('Cluster %d was split into %d clusters.' % (cluster, n_reclust))
                 if out_reclust:
                     clui.message('Outliers were detected and will have annotation of the old cluster %d.' % cluster)
                 else:
                     clui.message('No outliers were detected, the old cluster %d will be removed.' % cluster)
                 # change numbers of reclust
                 max_cluster = max(self.clusters_list)
-                for nr,r in enumerate(reclust):
+                for nr, r in enumerate(reclust):
                     if r != 0:
                         reclust[nr] = r + max_cluster
                 if out_reclust:
-                    clui.message('The old cluster %d will be split into new clusters: %s' % (cluster,(' '.join(map(str,sorted(set(reclust))[1:])))))
+                    clui.message('The old cluster %d will be split into new clusters: %s' % (
+                        cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))
                 else:
-                    clui.message('The old cluster %d will be split into new clusters: %s' % (cluster, (' '.join(map(str, sorted(set(reclust)))))))
+                    clui.message('The old cluster %d will be split into new clusters: %s' % (
+                        cluster, (' '.join(map(str, sorted(set(reclust)))))))
                 # add new clusters
                 nrr = 0
                 for nr, c in enumerate(self.clusters):
@@ -231,7 +235,7 @@ class Inlets(object):
     def recluster_outliers(self, method):
         self.recluster_cluster(method, 0)
         # renumber clusters
-        #self.renumber_clusters()
+        # self.renumber_clusters()
 
     def small_clusters_to_outliers(self, maxsize):
         for c in self.clusters_list:
@@ -241,8 +245,8 @@ class Inlets(object):
                 for nr, cc in enumerate(self.clusters):
                     if cc == c:
                         self.clusters[nr] = 0
-        # renumber clusters
-        #self.renumber_clusters()
+                        # renumber clusters
+                        # self.renumber_clusters()
 
     def renumber_clusters(self):
         if 0 in self.clusters_list:

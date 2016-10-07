@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 Created on Nov 19, 2015
 
 @author: tljm
-'''
+"""
 
 import re
 from os.path import splitext
@@ -113,7 +113,6 @@ class ReadViaMDA(Reader):
 
     def __exit__(self, typ, value, traceback):
         self.trajectory_object.trajectory.close()
-
 
     def open_trajectory(self):
         topology = splitext(self.topology_file_name)[1][1:]

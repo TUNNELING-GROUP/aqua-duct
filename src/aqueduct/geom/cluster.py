@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-'''
+"""
 This module provides functions for clusterization.
 Clusterization is done by :mod:`scikit-learn` module.
-'''
+"""
 
 import numpy as np
 from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShift, estimate_bandwidth
@@ -17,14 +17,15 @@ from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShif
 from aqueduct.utils.helpers import Auto
 from aqueduct.utils import clui
 
+
 def MeanShiftBandwidth(X, **kwargs):
     if 'bandwidth' in kwargs:
         if kwargs['bandwidth'] is Auto:
             bandwidth = estimate_bandwidth(np.array(X), quantile=0.5)  # this seems to be optimal
             kwargs.update({'bandwidth': bandwidth})
-            clui.message("Meanshift automatic bandwidth calculation: bandwidth = %f" % float(bandwidth)) # TODO: make it properly
+            clui.message("Meanshift automatic bandwidth calculation: bandwidth = %f" % float(
+                bandwidth))  # TODO: make it properly
     return kwargs
-
 
 
 class PerformClustering(object):
@@ -41,8 +42,8 @@ class PerformClustering(object):
         # compatibility
         return self.fit(coords)
 
-    def _get_noclusters(self,n):
-        return [0]*n
+    def _get_noclusters(self, n):
+        return [0] * n
 
     def fit(self, coords):
         if len(coords) < 2:
@@ -61,7 +62,8 @@ class PerformClustering(object):
                     if len(coords) < self.method_kwargs['n_clusters']:
                         self.clusters = self._get_noclusters(len(coords))
                         clui.message(
-                            "Number of objects %d < %d is too small for KMeans method. Skipping." % (len(coords),self.method_kwargs['n_clusters']))
+                            "Number of objects %d < %d is too small for KMeans method. Skipping." % (
+                                len(coords), self.method_kwargs['n_clusters']))
                         return self.clusters
             method = self.method(**self.method_kwargs)
         self.method_results = method.fit(coords)

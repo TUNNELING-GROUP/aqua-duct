@@ -34,14 +34,15 @@ import sys
 
 import numpy as np
 import MDAnalysis as mda
-import roman # TODO: remove this dependency!
+import roman  # TODO: remove this dependency!
 
-from collections import namedtuple, OrderedDict # TODO: check if OrderedDict is REALLY used
+from collections import namedtuple, OrderedDict  # TODO: check if OrderedDict is REALLY used
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
 
-from scipy.spatial.distance import cdist # if scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation
+from scipy.spatial.distance import cdist
+# if scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation
 
 from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
@@ -95,6 +96,7 @@ class ConfigSpecialNames:
             if name.lower() in self.special_names_dict:
                 return self.special_names_dict[name.lower()]
         return name
+
 
 # TODO: add parser for initial checking of configuration file
 class ValveConfig(object, ConfigSpecialNames):
@@ -200,7 +202,7 @@ class ValveConfig(object, ConfigSpecialNames):
         return self.__make_options_nt(options)
 
     def get_cluster_options(self, section_name=None):
-        if section_name == None:
+        if section_name is None:
             section = self.cluster_name()
         else:
             section = section_name
@@ -450,7 +452,7 @@ def rebuild_selection(selection, reader):
 ################################################################################
 # convex hull helpers
 # TODO: Move it to separate module.
-# TODO: Following functions are or will be deprecated, remove them.
+# TODO: Following functions are or will be deprecated, remove them as soon as possible.
 
 def CHullCheck(point):
     return CHullCheck.chull.point_within(point)
@@ -748,16 +750,19 @@ def get_clustering_method(coptions):
 
     return PerformClustering(method, **opts)
 
+
 def get_linearize_method(loption):
     if loption:
-        assert isinstance(loption,(str,unicode)), "Wrong Linearize method definition: %r" % loption
-        possible_formats = [re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
-                           re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
-                           re.compile('^(recursive|oneway|hobbit)(triangle|vector)$')]
-        assert True in [pf.match(loption.lower()) is not None for pf in possible_formats], "Wrong Linearize method definition: %s" % loption
+        assert isinstance(loption, (str, unicode)), "Wrong Linearize method definition: %r" % loption
+        possible_formats = [
+            re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
+            re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
+            re.compile('^(recursive|oneway|hobbit)(triangle|vector)$')]
+        assert True in [pf.match(loption.lower()) is not None for pf in
+                        possible_formats], "Wrong Linearize method definition: %s" % loption
         # http://stackoverflow.com/questions/12929308/python-regular-expression-that-matches-floating-point-numbers#12929311
-        way = [w for w in ['recursive','oneway','hobbit'] if w in loption.lower()][0]
-        crit = [c for c in ['triangle','vector'] if c in loption.lower()][0]
+        way = [w for w in ['recursive', 'oneway', 'hobbit'] if w in loption.lower()][0]
+        crit = [c for c in ['triangle', 'vector'] if c in loption.lower()][0]
         threshold = re.compile('[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?').findall(loption)
         if len(threshold):
             threshold = float(threshold[0][0])
@@ -782,6 +787,7 @@ def get_linearize_method(loption):
         if threshold is None:
             return met()
         return met(threshold)
+
 
 ################################################################################
 
@@ -1162,8 +1168,8 @@ def potentially_recursive_clusterization(config,
         logger.debug('Clustering options section: %s' % clusterization_name)
         cluster_options = config.get_cluster_options(section_name=clusterization_name)
         clui.message('Clustering options:')
-        for k,v in cluster_options._asdict().iteritems():
-            clui.message("%s = %s" % (str(k),str(v)))
+        for k, v in cluster_options._asdict().iteritems():
+            clui.message("%s = %s" % (str(k), str(v)))
         # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options)
         # get skip_size function according to recursive_treshold
@@ -1235,7 +1241,7 @@ def stage_IV_run(config, options,
             clui.message('Number of outliers: %d' % noo())
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
-            with clui.fbm("Performing reclusterization of outliers",cont=False):
+            with clui.fbm("Performing reclusterization of outliers", cont=False):
                 clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
                 # inls.recluster_outliers(clustering_function)
@@ -1258,15 +1264,10 @@ def stage_IV_run(config, options,
         master_paths = {}
         master_paths_smooth = {}
         if options.create_master_paths:
-            with clui.fbm("Creating master paths for cluster types",cont=False):
+            with clui.fbm("Creating master paths for cluster types", cont=False):
                 smooth = get_smooth_method(soptions)
                 ctypes_generic = [ct.generic for ct in ctypes]
                 ctypes_generic_list = sorted(list(set(ctypes_generic)))
-                # create pool of workers - mapping function
-                map_fun = map
-                if optimal_threads > 1:
-                    pool = mp.Pool(optimal_threads)
-                    map_fun = pool.map
 
                 pbar = clui.pbar(len(spaths) * 2)
                 for nr, ct in enumerate(ctypes_generic_list):
@@ -1440,6 +1441,7 @@ def add_ctype_id(gen):
 
 class PrintAnalysis(object):
     nr_template = '%7d '
+
     # TODO: Change it in such a way that it cooperates well with debug-file option.
     def __init__(self, fileoption):
         self.output2stderr = False
@@ -1633,8 +1635,8 @@ def stage_V_run(config, options,
     pa = PrintAnalysis(options.save)
     if options.save:
         clui.message('Using user provided file (%s).' % options.save)
-        #clui.message(sep())
-        #clui.message('')
+        # clui.message(sep())
+        # clui.message('')
     else:
         clui.message('Using standard output.')
         clui.message(sep())
@@ -1788,7 +1790,7 @@ def stage_VI_run(config, options,
     smooth = get_smooth_method(soptions)
 
     # start pymol
-    with clui.fbm("Starting PyMOL connection",cont=False):
+    with clui.fbm("Starting PyMOL connection", cont=False):
         pymol_connector = ConnectToPymol()
         if is_pymol_connector_script(options.save):
             pymol_connector.init_script(options.save)
@@ -1995,7 +1997,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     else:
         optimal_threads = int(args.threads)
     clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
-    if (optimal_threads > 1 and optimal_threads < 3) or (optimal_threads - 1 > cpu_count):
+    if (1 < optimal_threads < 3) or (optimal_threads - 1 > cpu_count):
         clui.message("Number of threads is not optimal; CPU count reported by system: %d" % cpu_count)
     # because it is used by mp.Pool it should be -1???
     if optimal_threads > 1:

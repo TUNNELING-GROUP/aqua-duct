@@ -12,7 +12,7 @@ from aqueduct.geom import traces
 from aqueduct.traj.paths import PathTypesCodes
 from aqueduct.utils.helpers import list_blocks_to_slices
 from aqueduct.visual.helpers import color_codes, cc
-from aqueduct.utils.helpers import create_tmpfile,listify
+from aqueduct.utils.helpers import create_tmpfile, listify
 
 
 class BasicPymolCGO(object):
@@ -35,8 +35,10 @@ class BasicPymolCGO(object):
     def get(self):
         return self.cgo_entity + self.cgo_entity_end
 
-    def make_color_triple(self,color_definition):
+    @staticmethod
+    def make_color_triple(color_definition):
         return tuple(color_definition)
+
 
 class BasicPymolCGOLines(BasicPymolCGO):
     cgo_entity_begin = [cgo.BEGIN, cgo.LINES]
@@ -46,7 +48,7 @@ class BasicPymolCGOLines(BasicPymolCGO):
 
         if color is not None:
             self.cgo_entity.append(cgo.COLOR)
-            #self.cgo_entity.extend(map(float, color))
+            # self.cgo_entity.extend(map(float, color))
             self.cgo_entity.append(self.make_color_triple(map(float, color)))
 
         if coords is not None:
@@ -80,7 +82,7 @@ class BasicPymolCGOSpheres(BasicPymolCGO):
                         c = color[0]
                     self.cgo_entity.append(cgo.COLOR)
                     self.cgo_entity.append(self.make_color_triple(map(float, c)))
-                    #self.cgo_entity.extend(map(float, c))
+                    # self.cgo_entity.extend(map(float, c))
                 self.cgo_entity.append(cgo.SPHERE)
                 self.cgo_entity.extend(map(float, coord))
                 if radius is not None:
@@ -109,22 +111,20 @@ class BasicPymolCGOPointers(BasicPymolCGO):
             self.cgo_entity.append(float(radius2))
             self.cgo_entity.append(self.make_color_triple(map(float, color1)))
             self.cgo_entity.append(self.make_color_triple(map(float, color2)))
-            #self.cgo_entity.extend(map(float, color1))
-            #self.cgo_entity.extend(map(float, color2))
+            # self.cgo_entity.extend(map(float, color1))
+            # self.cgo_entity.extend(map(float, color2))
 
             self.cgo_entity.extend([cgo.NULL, cgo.POINTS])
 
     def add_pointer(self, point=None, direction=None, length=None, color=None, reverse=False):
         vec = point - direction
-        vec_len = np.sqrt(np.sum((vec) ** 2))
+        vec_len = np.sqrt(np.sum(vec ** 2))
         vec = (vec / vec_len) * length
         vec = point + vec
         if reverse:
             self.add_cone(coords1=point, coords2=vec, radius1=length / 3., radius2=0, color1=color, color2=color)
         else:
             self.add_cone(coords1=vec, coords2=point, radius1=length / 3., radius2=0, color1=color, color2=color)
-
-
 
 
 class SimpleTarWriteHelper(object):
@@ -160,17 +160,16 @@ class ConnectToPymol(object):
         self.script_fh = None
         self.data_fh = SimpleTarWriteHelper()
 
-        cmd = None
+        self.cmd = None
 
     @listify
-    def decode_color(self,cgo_object):
+    def decode_color(self, cgo_object):
         for element in cgo_object:
-            if isinstance(element,tuple):
+            if isinstance(element, tuple):
                 for e in element:
                     yield e
             else:
                 yield element
-
 
     def init_pymol(self):
         import pymol
@@ -295,7 +294,7 @@ def load_pdb(filename,name,state):
         if self.connection_type == self.ct_pymol:
             self.cmd.orient(name)
         elif self.connection_type == self.ct_file:
-            self.script_fh.write('''if proceed("%s"): cmd.orient("%s")''' % (name,name))
+            self.script_fh.write('''if proceed("%s"): cmd.orient("%s")''' % (name, name))
             self.script_fh.write(os.linesep)
 
     def __del__(self):

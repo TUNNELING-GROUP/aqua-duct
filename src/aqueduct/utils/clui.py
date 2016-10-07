@@ -14,7 +14,8 @@ import time
 from os import linesep
 from sys import stderr
 
-from multiprocessing import Queue,Manager,Lock,Value,Process
+from multiprocessing import Queue, Manager, Lock, Value, Process
+
 
 def emit_message_to_file_in_root_logger(mess):
     # emits message to the file used by file handler in the root logger
@@ -28,6 +29,7 @@ def emit_message_to_file_in_root_logger(mess):
 
 def message_special(mess):
     emit_message_to_file_in_root_logger(mess)
+
 
 def message(mess, cont=False):
     """
@@ -70,7 +72,7 @@ class fbm(object):
 
 
 class tictoc(object):
-    def __init__(self,mess):
+    def __init__(self, mess):
         self.__tic = 0
         self.__toc = 0
         self.__mess = mess
@@ -82,7 +84,7 @@ class tictoc(object):
     def __exit__(self, typ, value, traceback):
         self.__toc = time.time()
         if typ is None:
-            logger.debug('Execution time of [%s] %0.2f',self.__mess,self.__toc-self.__tic)
+            logger.debug('Execution time of [%s] %0.2f', self.__mess, self.__toc - self.__tic)
 
 
 gregorian_year_in_days = 365.2425
@@ -235,7 +237,6 @@ class SimpleProgressBar(object):
         else:
             self.maxval = maxval
 
-
         self.tens = []
 
         self.current = 0
@@ -252,8 +253,6 @@ class SimpleProgressBar(object):
         if mess is not None:
             message(mess)
         self.show()
-
-
 
     def bar(self):
         barval = int(self.percent() / 100 * self.barlenght)
@@ -327,14 +326,14 @@ class SimpleProgressBar(object):
 
         stderr.write(mess)
         # TODO: do not use last_rotate_time here, use separate marker, last_rotate_time can be used in over run notice
-        if int(percent) / 10 not in self.tens: # FIXME: magic constant!
+        if int(percent) / 10 not in self.tens:  # FIXME: magic constant!
             if percent > 100:
                 if self.tcurrent - self.last_rotate_time > 60.:  # FIXME: magic constant, remove it!
                     message_special(mess_spec + linesep)
                     self.tens.append(int(percent) / 10)
                     self.last_rotate_time = self.tcurrent
             else:
-                message_special(mess_spec+linesep)
+                message_special(mess_spec + linesep)
                 self.tens.append(int(percent) / 10)
 
     def heartbeat(self):

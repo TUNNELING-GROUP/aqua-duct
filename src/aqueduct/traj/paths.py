@@ -64,11 +64,11 @@ class GenericPaths(object, GenericPathTypeCodes):
     # object to store paths... is it required?
 
 
-    def __init__(self, id, min_pf=None, max_pf=None):
+    def __init__(self, id_of_res, min_pf=None, max_pf=None):
 
         # id is any type of object; it is used as identifier
 
-        self.id = id
+        self.id = id_of_res
 
         self.types = []
         self.frames = []
@@ -259,21 +259,19 @@ class GenericPaths(object, GenericPathTypeCodes):
 
         return in_, object_, out_
 
-
-    def barber_with_spheres(self,spheres):
-        for center,radius in spheres:
+    def barber_with_spheres(self, spheres):
+        for center, radius in spheres:
             if len(self.coords) > 0:
                 distances = cdist(np.matrix(center), self.coords, metric='euclidean').flatten()
-                self.coords = lind(self.coords,np.argwhere(distances>radius).flatten().tolist())
-                self.types = lind(self.types,np.argwhere(distances>radius).flatten().tolist())
-                self.frames = lind(self.frames,np.argwhere(distances>radius).flatten().tolist())
-
+                self.coords = lind(self.coords, np.argwhere(distances > radius).flatten().tolist())
+                self.types = lind(self.types, np.argwhere(distances > radius).flatten().tolist())
+                self.frames = lind(self.frames, np.argwhere(distances > radius).flatten().tolist())
 
 
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
 class SinglePathID(object):
-    def __init__(self, id=None, nr=None):
-        self.id = id
+    def __init__(self, path_id=None, nr=None):
+        self.id = path_id
         self.nr = nr
 
     def __str__(self):
@@ -284,16 +282,16 @@ def yield_single_paths(gps, fullonly=False, progress=False):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
     nr_dict = {}
     for nr, gp in enumerate(gps):
-        id = gp.id
+        path_id = gp.id
         for paths, coords, types in gp.find_paths_coords_types(fullonly=fullonly):
-            if id in nr_dict:
-                nr_dict.update({id: (nr_dict[id] + 1)})
+            if path_id in nr_dict:
+                nr_dict.update({path_id: (nr_dict[path_id] + 1)})
             else:
-                nr_dict.update({id: 0})
+                nr_dict.update({path_id: 0})
             if progress:
-                yield SinglePath(SinglePathID(id=id, nr=nr_dict[id]), paths, coords, types), nr
+                yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id]), paths, coords, types), nr
             else:
-                yield SinglePath(SinglePathID(id=id, nr=nr_dict[id]), paths, coords, types)
+                yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id]), paths, coords, types)
 
 
 class SinglePath(object, PathTypesCodes, InletTypeCodes):
@@ -302,9 +300,9 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
     empty_coords = np.zeros((0, 3))
 
-    def __init__(self, id, paths, coords, types):
+    def __init__(self, path_id, paths, coords, types):
 
-        self.id = id
+        self.id = path_id
         self.path_in, self.path_object, self.path_out = paths
         self.coords_in, self.coords_object, self.coords_out = map(np.array, coords)
         self.types_in, self.types_object, self.types_out = types
@@ -511,9 +509,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         velocity = self.get_velocity_cont(smooth=smooth, normalize=normalize)
         return traces.derrivative(velocity)
 
-    ####################################################################################################################
-
-
+        ####################################################################################################################
 
 
 class MasterPath(SinglePath):

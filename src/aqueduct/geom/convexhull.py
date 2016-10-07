@@ -7,12 +7,15 @@ from scipy.spatial import ConvexHull as SciPyConvexHull
 from aqueduct.utils.helpers import uniqify
 from scipy.spatial.distance import cdist, pdist
 
+
 def _vertices_ids(convexhull):
     return convexhull.vertices.tolist()
+
 
 def _vertices_points(convexhull):
     # returns points of all vertices
     return convexhull.points[convexhull.vertices]
+
 
 def _point_within_convexhull(convexhull, point):
     # checks if point is within convexhull
@@ -21,17 +24,19 @@ def _point_within_convexhull(convexhull, point):
     # return 0 not in _unfold_vertices_list(new_hull.vertices)
     return 0 not in new_hull.vertices_ids
 
+
 def _facets(convexhull):
     for simp in convexhull.simplices:
         yield np.vstack((convexhull.points[simp], convexhull.points[simp][0]))
+
 
 @uniqify
 def _edges(convexhull):
     for simp in convexhull.simplices:
         n = len(simp)
-        for nr,point in enumerate(simp):
+        for nr, point in enumerate(simp):
             if nr < n - 1:
-                yield point, simp[nr+1]
+                yield point, simp[nr + 1]
             else:
                 yield point, simp[0]
 
@@ -42,10 +47,12 @@ SciPyConvexHull.point_within = _point_within_convexhull
 SciPyConvexHull.facets = property(_facets)
 SciPyConvexHull.edges = property(_edges)
 
+
 def is_point_within_convexhull(point_chull):
     # This is helper function to check if point is within convex hull.
     # point_chull is a tuple where first element holds a point and the second is a ConvexHull object.
     return point_chull[-1].point_within(point_chull[0])
+
 
 '''
 class ConvexHull(object):

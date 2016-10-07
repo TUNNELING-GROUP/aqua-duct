@@ -41,7 +41,6 @@ def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=
         yield ld, sd, etype
 
 
-
 def plot_colorful_lines(x, y, c, **kwargs):
     sls = list(list_blocks_to_slices(c))
     n = len(sls)
