@@ -42,7 +42,8 @@ from itertools import izip_longest
 from keyword import iskeyword
 
 from scipy.spatial.distance import cdist
-# if scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation
+# If scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation.
+# This warning emerges if MDAnalysis is imported and then scipy. Observed under Ubuntu 14.04.
 
 from aqueduct import greetings as greetings_aqueduct
 from aqueduct import version as aqueduct_version
