@@ -234,7 +234,8 @@ def decode_color(cgo_object,fc=None):
                 for e in element: yield e
             else:
                 for e in fc: yield e
-        yield element
+        else:
+            yield element
 def load_object(filename,name,state):
     if not proceed(name): return
     global max_state
