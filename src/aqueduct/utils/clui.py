@@ -351,6 +351,7 @@ class SimpleProgressBar(object):
 
         :param int step: update step
         """
+        # TODO: change logic of step == 1 vs step > 1 - add or set?
         with self.lock:
             if step > 0:
                 if step == 1:

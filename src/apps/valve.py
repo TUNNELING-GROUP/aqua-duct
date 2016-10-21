@@ -69,7 +69,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 7
+    return 0, 9, 8
 
 
 def version_nice():
@@ -829,9 +829,11 @@ def valve_begin_stage(stage, config):
     return options
 
 
-def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
+def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_status=None,
                      **kwargs):
     options = valve_begin_stage(stage, config)
+
+    run_status.update({stage: False})
 
     # TODO: consder to create traj_reader object here instead of doing it in stage_run or in load...
     # execute?
@@ -839,8 +841,14 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False,
     if (not no_io) and options.dump:
         if os.path.isfile(options.dump) or os.path.islink(options.dump):
             can_be_loaded = True
+    # has to be run?
+    if options.execute in ['runonce'] and can_be_loaded and stage > 0:
+        if run_status[stage-1]:
+             can_be_loaded = False
+
     if options.execute in ['run'] or (options.execute in ['runonce'] and not can_be_loaded):
         result = stage_run(config, options, reader=reader, **kwargs)
+        run_status.update({stage:True})
         if not no_io:
             ###########
             # S A V E #
@@ -1032,6 +1040,11 @@ def stage_II_run(config, options,
 
 ################################################################################
 
+class ABSphere(namedtuple('ABSphere','center radius')):
+    pass
+
+
+
 # separate_paths
 def stage_III_run(config, options,
                   paths=None,
@@ -1068,34 +1081,66 @@ def stage_III_run(config, options,
                     frame = sp.path_in[0]
                     traj_reader.set_current_frame(frame)
                     radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
-                    spheres.append((center, radius))
+                    spheres.append(ABSphere(center, radius))
                 if sp.has_out:
                     center = sp.coords_out[-1]
                     frame = sp.path_out[-1]
                     traj_reader.set_current_frame(frame)
                     radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
-                    spheres.append((center, radius))
+                    spheres.append(ABSphere(center, radius))
                 pbar.update(1)
             pbar.finish()
+
         # remove redundant spheres
-        clui.message("Removing redundant cutting places:")
+        clui.message("Barber, cat thyself:")
         pbar = clui.pbar(len(spheres))
-        some_may_be_redundant = True
-        while some_may_be_redundant:
-            some_may_be_redundant = False
-            if len(spheres) > 1:
-                for nr, sphe1 in enumerate(spheres):
-                    for sphe2 in spheres[nr + 1:]:
-                        if sphe1[1] > sphe2[1]: continue
-                        d = cdist(np.matrix(sphe1[0]), np.matrix(sphe2[0]))
-                        if d + sphe1[1] < sphe2[1]:
-                            spheres.pop(nr)
-                            pbar.update(1)
-                            some_may_be_redundant = True
-                            break
-                    if some_may_be_redundant:
-                        break
+
+        there_is_something_to_cut = True
+
+        noredundat_spheres_count = 0
+
+        while True:
+            spheres.sort(key=lambda s: s.radius, reverse=True)
+            # create matrix of coords and vector of radii
+            spheres_coords = np.array([sphe.center for sphe in spheres])
+            spheres_radii = np.array([sphe.radius for sphe in spheres])
+            noredundat_spheres = []
+
+            while spheres:
+                # topmost is the biggest one
+                big = spheres.pop(0)
+                center, radius = big
+                # calculate distances of all to big but big
+                distances = cdist(np.matrix(center), spheres_coords[1:], metric='euclidean').flatten()
+                # add radii
+                distances += spheres_radii[1:]
+                # remove if distance <= radius
+                to_keep = distances <= radius
+                # do keep
+                spheres_coords = spheres_coords[1:][to_keep]
+                spheres_radii = spheres_radii[1:][to_keep]
+                # do keep spheres
+                np.argwhere(to_keep).flatten()
+                to_keep_ids = np.argwhere(to_keep).flatten().tolist()
+                spheres = lind(spheres,to_keep_ids)
+                # add big to non redundant
+                noredundat_spheres.append(big)
+                pbar.update(sum(to_keep == False))
+                logger.debug("PBar update by %d" % sum(to_keep == False))
+                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (len(noredundat_spheres), len(spheres)))
+
+            if len(noredundat_spheres) == noredundat_spheres_count:
+                logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(
+                    noredundat_spheres))
+                break
+            else:
+                noredundat_spheres_count = len(noredundat_spheres)
+                spheres = noredundat_spheres
+
         pbar.finish()
+
+        spheres = noredundat_spheres
+
         clui.message("Auto Barber in action:")
         pbar = clui.pbar(len(paths))
         for p in paths.values():
@@ -2020,24 +2065,31 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
         max_frame = reader.max_frame
     clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
 
+    # run status
+    run_status = {}
+
     # STAGE I
     result1 = valve_exec_stage(0, config, stage_I_run,
+                               run_status=run_status,
                                reader=reader,
                                max_frame=max_frame)
 
     # STAGE II
     result2 = valve_exec_stage(1, config, stage_II_run,
+                               run_status=run_status,
                                reader=reader,
                                max_frame=max_frame,
                                **result1)
 
     # STAGE III
     result3 = valve_exec_stage(2, config, stage_III_run,
+                               run_status=run_status,
                                reader=reader,
                                **result2)
 
     # STAGE IV
     result4 = valve_exec_stage(3, config, stage_IV_run,
+                               run_status=run_status,
                                **result3)
 
     # STAGE V
@@ -2046,6 +2098,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
         results.update(result)
 
     result5 = valve_exec_stage(4, config, stage_V_run,
+                               run_status=run_status,
                                no_io=True,
                                **results)
 
@@ -2055,6 +2108,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
         results.update(result)
 
     result6 = valve_exec_stage(5, config, stage_VI_run,
+                               run_status=run_status,
                                no_io=True,
                                reader=reader,
                                **results)
