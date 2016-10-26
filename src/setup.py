@@ -1,11 +1,13 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-# from distutils.core import setup
+import sys
 from setuptools import find_packages, setup
 
 version = __import__('aqueduct').version()  # version tuple
 version = '.'.join(map(str, version))  # version str
+#sys.path.append('apps')
+#version = '.'.join((version, __import__('valve').version_onenumber()))
 
 setup(name='aqueduct',
       version=version,

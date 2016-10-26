@@ -69,12 +69,14 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 8
+    return 0, 9, 9
 
 
 def version_nice():
     return '.'.join(map(str, version()))
 
+def version_onenumber():
+    return ''.join(map(str, version()))
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = version_nice()
@@ -384,6 +386,8 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'show_molecule_frames', '0')
         config.set(section, 'show_chull', 'None')
         config.set(section, 'show_chull_frames', '0')
+        config.set(section, 'show_object', 'None')
+        config.set(section, 'show_object_frames', '0')
 
         return config
 
@@ -1866,14 +1870,22 @@ def stage_VI_run(config, options,
     if options.show_chull:
         with clui.fbm("Convexhull"):
             with reader.get() as traj_reader:
-                options_stageII = config.get_stage_options(1)
-                if options_stageII.scope_convexhull:
-                    scope = traj_reader.parse_selection(options_stageII.scope)
-                    frames_to_show = range2int(options.show_chull_frames)
-                    for frame in frames_to_show:
-                        traj_reader.set_current_frame(frame)
-                        chull = scope.get_convexhull_of_atom_positions()
-                        spp.convexhull(chull, state=frame + 1)
+                scope = traj_reader.parse_selection(options.show_chull)
+                frames_to_show = range2int(options.show_chull_frames)
+                for frame in frames_to_show:
+                    traj_reader.set_current_frame(frame)
+                    chull = scope.get_convexhull_of_atom_positions()
+                    spp.convexhull(chull, state=frame + 1)
+
+    if options.show_object:
+        with clui.fbm("Object shape"):
+            with reader.get() as traj_reader:
+                object_shape = traj_reader.parse_selection(options.show_object)
+                frames_to_show = range2int(options.show_object_frames)
+                for frame in frames_to_show:
+                    traj_reader.set_current_frame(frame)
+                    chull = object_shape.get_convexhull_of_atom_positions()
+                    spp.convexhull(chull, name='object_shape', color='c', state=frame + 1)
 
     if options.inlets_clusters:
         with clui.fbm("Clusters"):
