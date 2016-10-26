@@ -36,3 +36,5 @@ find build/html/ -iname '*.html' -exec sed -i 's/localhost/'$( hostname )'/g' {}
 rm -rf source/aqueduct.tar.gz
 
 export PYTHONPATH=$PYTHONPATH_CACHE
+
+rsync -avz -P --delete build/html/ 192.168.1.15:/home/tljm/public_html/aq/

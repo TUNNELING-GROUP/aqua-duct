@@ -253,6 +253,16 @@ show_chull_frames       0                   Allows to indicate for which frames 
                                             **show_chull** convex hull should be displayed. It is possible
                                             to set several frames. In that case frames would be displayed
                                             as states.
+show_object             False               If is set to selection of some molecular object in the system
+                                            convex hull of this object is displayed. This works exacly the
+                                            same way as **show_chull** but is meant to mark object shape.
+                                            It can be achevied by using `name * and` molecular object
+                                            definition plus some spatial constrains, for example those
+                                            used in object definition.
+show_object_frames      0                   Allows to indicate for which frames of object defined by
+                                            **show_object** convex hull should be displayed. It is possible
+                                            to set several frames. In that case frames would be displayed
+                                            as states.
 =====================   ================    ========================================================================================
 
 
