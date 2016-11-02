@@ -2,11 +2,12 @@ import numpy as np
 
 # from matplotlib.colors import colorConverter
 
+import scipy.spatial.distance as distance
 
 from aqueduct.traj.paths import GenericPathTypeCodes as gptc
 from aqueduct.traj.paths import PathTypesCodes as ptc
 from aqueduct.visual.cmaps import default as default_cmap
-from aqueduct.utils.helpers import zip_zip, is_number
+from aqueduct.utils.helpers import zip_zip, is_number, lind
 
 _cl2rgba = {'b': (0.0, 0.0, 1.0, 1.0),
             'c': (0.0, 0.75, 0.75, 1.0),
@@ -16,6 +17,9 @@ _cl2rgba = {'b': (0.0, 0.0, 1.0, 1.0),
             'r': (1.0, 0.0, 0.0, 1.0),
             'y': (0.75, 0.75, 0, 1.0)}
 
+
+def euclidean(A,B):
+    return distance.cdist(A, B, 'euclidean')
 
 # cc = lambda c, alpha=1.0: colorConverter.to_rgb(c)
 
@@ -83,10 +87,44 @@ class ColorMapDistMap(object):
             self.cm_size = int(np.ceil(self.cm_size))
         # get size
         self.cmap = get_cmap(self.cm_size)
+        self.cmap = self.__do_cadex()
+        
+    def __do_cadex(self):
+        m = self.cm_size # number of objects
+        k = self.size
+        # indices
+        mi = [] # model
+        ti = range(m) # test
+        # FIRST OBJECT
+        #self.log(self,"selecting %d of %d objects" % (len(mi)+1,k))
+        # get distance to mean object
+        Xm = np.array(self.cmap).mean(axis=0) # mean object
+        Xm.shape = (1,Xm.shape[0]) # fix shape
+        Dm = euclidean(Xm,np.array(self.cmap))
+        # min value will be the first object
+        mi.append(ti.pop(Dm.argmin()))
+        if k > 1:
+            #self.log(self,"selecting %d of %d objects" % (len(mi)+1,k))
+            # SECOND OBJECT
+            Xm = self.X[mi[-1]]
+            Xm.shape = (1,Xm.shape[0]) # fix shape
+            Dm = self.distance(Xm,self.X[ti,:])
+            # max value will be the first object
+            mi.append(ti.pop(Dm.argmax()))
+
+            if k > 2:
+                while (len(mi)<k):
+                    #self.log(self,"selecting %d of %d objects" % (len(mi)+1,k))                            # distance matrix
+                    Dm = self.__D[:,ti][mi,:]
+                    mi.append(ti.pop(Dm.min(axis=0).argmax()))
+        # sorting
+        return lind(self.cmap,mi)
+
 
     def __call__(self, node):
         if 0 < node <= self.size:
-            return self.cmap[int(np.round(self.cm_size * f_like(node)))][:3]
+            return self.cmap[node]
+            #return self.cmap[int(np.round(self.cm_size * f_like(node)))][:3]
         # return grey otherwise
         return self.grey[:3]
 
