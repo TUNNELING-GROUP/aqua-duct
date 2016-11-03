@@ -21,6 +21,9 @@ _cl2rgba = {'b': (0.0, 0.0, 1.0, 1.0),
 def euclidean(A,B):
     return distance.cdist(A, B, 'euclidean')
 
+def cityblock(A,B):
+    return distance.cdist(A, B, 'cityblock')
+
 # cc = lambda c, alpha=1.0: colorConverter.to_rgb(c)
 
 def cc_safe(c):
@@ -74,9 +77,37 @@ def get_cmap(size):
 
 
 class ColorMapDistMap(object):
-    default_cm_size = 256
 
+    default_cm_size = 256
     grey = (0.5, 0.5, 0.5, 1)
+
+    def distance(self,E1,E2):
+        # E1 and E2 are RGBs matrices
+        D = []
+        for e1 in E1:
+            DD = []
+            for e2 in E2:
+                DD.append(self.color_distance(e1,e2))
+                print DD[-1]
+            D.append(DD)
+        return np.array(D)
+
+    @staticmethod
+    def color_distance(e1,e2):
+        # e1 and e2 are colors defs of rgb components in this order
+        # Taken from http://www.compuphase.com/cmetric.htm
+        # scale them to 0-255 range
+        def to0255(E):
+            return [int(e*255) for e in E]
+        e1 = to0255(e1)
+        e2 = to0255(e2)
+
+        rmean = (e1[0]+e2[0])/2
+        r = e1[0]-e2[0]
+        g = e1[1]-e2[1]
+        b = e1[2]-e2[2]
+        return np.sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8))
+
 
     def __init__(self, name='hsv', size=None):
         # size is number of nodes to be maped to distinguistive colors
@@ -96,26 +127,23 @@ class ColorMapDistMap(object):
         mi = [] # model
         ti = range(m) # test
         # FIRST OBJECT
-        #self.log(self,"selecting %d of %d objects" % (len(mi)+1,k))
         # get distance to mean object
         Xm = np.array(self.cmap).mean(axis=0) # mean object
         Xm.shape = (1,Xm.shape[0]) # fix shape
-        Dm = euclidean(Xm,np.array(self.cmap))
+        Dm = self.distance(Xm,np.array(self.cmap))
+        D = self.distance(np.array(self.cmap),np.array(self.cmap))
         # min value will be the first object
         mi.append(ti.pop(Dm.argmin()))
         if k > 1:
-            #self.log(self,"selecting %d of %d objects" % (len(mi)+1,k))
             # SECOND OBJECT
-            Xm = self.X[mi[-1]]
+            Xm = np.array(self.cmap)[mi[-1]]
             Xm.shape = (1,Xm.shape[0]) # fix shape
-            Dm = self.distance(Xm,self.X[ti,:])
+            Dm = self.distance(Xm,np.array(self.cmap)[ti,:])
             # max value will be the first object
             mi.append(ti.pop(Dm.argmax()))
-
             if k > 2:
                 while (len(mi)<k):
-                    #self.log(self,"selecting %d of %d objects" % (len(mi)+1,k))                            # distance matrix
-                    Dm = self.__D[:,ti][mi,:]
+                    Dm = D[:,ti][mi,:]
                     mi.append(ti.pop(Dm.min(axis=0).argmax()))
         # sorting
         return lind(self.cmap,mi)
@@ -123,7 +151,7 @@ class ColorMapDistMap(object):
 
     def __call__(self, node):
         if 0 < node <= self.size:
-            return self.cmap[node]
+            return self.cmap[node-1]
             #return self.cmap[int(np.round(self.cm_size * f_like(node)))][:3]
         # return grey otherwise
         return self.grey[:3]
