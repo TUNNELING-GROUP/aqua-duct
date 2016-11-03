@@ -118,7 +118,8 @@ class ColorMapDistMap(object):
             self.cm_size = int(np.ceil(self.cm_size))
         # get size
         self.cmap = get_cmap(self.cm_size)
-        self.cmap = self.__do_cadex()
+        #self.cmap = self.__do_cadex()
+        self.cmap = self.__do_duplex()
         
     def __do_cadex(self):
         m = self.cm_size # number of objects
@@ -145,8 +146,67 @@ class ColorMapDistMap(object):
                 while (len(mi)<k):
                     Dm = D[:,ti][mi,:]
                     mi.append(ti.pop(Dm.min(axis=0).argmax()))
-        # sorting
+        # sorting?
+        mi.sort()
+        ti.sort()
+
         return lind(self.cmap,mi)
+
+
+    def get2Farthest(self,D,i):
+        m = D.shape[0]
+        fp = D.argmax() # farthest points
+        x = i[fp % m]
+        y = i[fp / m]
+        i.pop(i.index(x))
+        i.pop(i.index(y))
+        return x,y
+
+    def get1Farthest(self,D,i):
+        m = D.shape[0]
+        n = D.shape[1]
+        fp = (D.min(axis=1)).argmax() # farthest points
+        y = i[fp]
+        i.pop(i.index(y))
+        return y
+
+
+    def __do_duplex(self):
+        
+        m = self.cm_size # number of objects
+        k = self.size
+        kt = m - k
+        D = self.distance(np.array(self.cmap),np.array(self.cmap))
+        # indices
+        i = range(m)
+        mi = [] # model
+        ti = [] # test
+        # First two objects go to mi
+        x,y = self.get2Farthest(D[i,:][:,i],i)
+        mi += [x,y]
+        #print 0,mi,ti,i
+        # Second two objects go to ti
+        x,y = self.get2Farthest(D[i,:][:,i],i)
+        ti += [x,y]
+        #print 1,mi,ti,i
+        # next...
+        if self.k > 2:
+            l = 1
+            while (len(ti) < kt):
+                x = self.get1Farthest(D[i,:][:,mi], i)
+                mi += [x]
+                #print "%da" % l,mi,ti,i
+                x = self.get1Farthest(D[i,:][:,ti], i)
+                ti += [x]
+                #print "%db" % l,mi,ti,i
+        mi += i # add remaining to mi
+
+        # sorting?
+        mi.sort()
+        ti.sort()
+        
+        return lind(self.cmap,mi)
+
 
 
     def __call__(self, node):
