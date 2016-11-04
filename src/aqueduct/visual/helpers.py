@@ -78,8 +78,11 @@ def get_cmap(size):
 
 class ColorMapDistMap(object):
 
-    default_cm_size = 256
     grey = (0.5, 0.5, 0.5, 1)
+
+    def __init__(self):
+        self.cmap = default_cmap
+        self.cmap = self.__do_cadex()
 
     def distance(self,E1,E2):
         # E1 and E2 are RGBs matrices
@@ -88,7 +91,6 @@ class ColorMapDistMap(object):
             DD = []
             for e2 in E2:
                 DD.append(self.color_distance(e1,e2))
-                print DD[-1]
             D.append(DD)
         return np.array(D)
 
@@ -108,22 +110,9 @@ class ColorMapDistMap(object):
         b = e1[2]-e2[2]
         return np.sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8))
 
-
-    def __init__(self, name='hsv', size=None):
-        # size is number of nodes to be maped to distinguistive colors
-        self.size = size
-        self.cm_size = self.default_cm_size
-        while self.cm_size < self.size:
-            self.cm_size *= 1.1
-            self.cm_size = int(np.ceil(self.cm_size))
-        # get size
-        self.cmap = get_cmap(self.cm_size)
-        #self.cmap = self.__do_cadex()
-        self.cmap = self.__do_duplex()
-        
     def __do_cadex(self):
-        m = self.cm_size # number of objects
-        k = self.size
+        m = len(self.cmap) # number of objects
+        k = len(self.cmap)
         # indices
         mi = [] # model
         ti = range(m) # test
@@ -134,7 +123,8 @@ class ColorMapDistMap(object):
         Dm = self.distance(Xm,np.array(self.cmap))
         D = self.distance(np.array(self.cmap),np.array(self.cmap))
         # min value will be the first object
-        mi.append(ti.pop(Dm.argmin()))
+        #mi.append(ti.pop(Dm.argmin()))
+        mi.append(ti.pop(-1))
         if k > 1:
             # SECOND OBJECT
             Xm = np.array(self.cmap)[mi[-1]]
@@ -146,72 +136,12 @@ class ColorMapDistMap(object):
                 while (len(mi)<k):
                     Dm = D[:,ti][mi,:]
                     mi.append(ti.pop(Dm.min(axis=0).argmax()))
-        # sorting?
-        mi.sort()
-        ti.sort()
-
-        return lind(self.cmap,mi)
-
-
-    def get2Farthest(self,D,i):
-        m = D.shape[0]
-        fp = D.argmax() # farthest points
-        x = i[fp % m]
-        y = i[fp / m]
-        i.pop(i.index(x))
-        i.pop(i.index(y))
-        return x,y
-
-    def get1Farthest(self,D,i):
-        m = D.shape[0]
-        n = D.shape[1]
-        fp = (D.min(axis=1)).argmax() # farthest points
-        y = i[fp]
-        i.pop(i.index(y))
-        return y
-
-
-    def __do_duplex(self):
-        
-        m = self.cm_size # number of objects
-        k = self.size
-        kt = m - k
-        D = self.distance(np.array(self.cmap),np.array(self.cmap))
-        # indices
-        i = range(m)
-        mi = [] # model
-        ti = [] # test
-        # First two objects go to mi
-        x,y = self.get2Farthest(D[i,:][:,i],i)
-        mi += [x,y]
-        #print 0,mi,ti,i
-        # Second two objects go to ti
-        x,y = self.get2Farthest(D[i,:][:,i],i)
-        ti += [x,y]
-        #print 1,mi,ti,i
-        # next...
-        if self.k > 2:
-            l = 1
-            while (len(ti) < kt):
-                x = self.get1Farthest(D[i,:][:,mi], i)
-                mi += [x]
-                #print "%da" % l,mi,ti,i
-                x = self.get1Farthest(D[i,:][:,ti], i)
-                ti += [x]
-                #print "%db" % l,mi,ti,i
-        mi += i # add remaining to mi
-
-        # sorting?
-        mi.sort()
-        ti.sort()
-        
-        return lind(self.cmap,mi)
-
-
+        return lind(self.cmap,mi+ti)
 
     def __call__(self, node):
-        if 0 < node <= self.size:
-            return self.cmap[node-1]
+        if 0 < node:
+            # cycle...
+            return self.cmap[(node-1) % len(self.cmap)][:3]
             #return self.cmap[int(np.round(self.cm_size * f_like(node)))][:3]
         # return grey otherwise
         return self.grey[:3]

@@ -27,8 +27,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 2, 21
-    # force-color in pymol vis scripts
+    return 0, 2, 22
+    # asorted improvements in vis etc.
 
 
 def version_nice():

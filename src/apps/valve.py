@@ -69,7 +69,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 9
+    return 0, 9, 10
 
 
 def version_nice():
@@ -1891,7 +1891,7 @@ def stage_VI_run(config, options,
         with clui.fbm("Clusters"):
             # TODO: require stage V for that?
             no_of_clusters = len(inls.clusters_list)  # total, including outliers
-            cmap = ColorMapDistMap(size=max(inls.clusters_list))
+            cmap = ColorMapDistMap()
             for c in inls.clusters_list:
                 # coords for current cluster
                 ics = inls.lim2clusters(c).coords

@@ -219,14 +219,18 @@ finish_launching()
 print "Loading Aqua-Duct visualization..."
 cmd.set("cgo_line_width",%d)
 from os import close,unlink
-from os.path import splitext
+from os.path import splitext,isfile
 import tarfile
 import cPickle as pickle
 from tempfile import mkstemp
 fd, pdb_filename = mkstemp(suffix="pdb")
 close(fd)
 max_state=0
-data_fh=tarfile.open("%s","r:gz")
+arch_file="%s"
+if not isfile(arch_file):
+    import tkFileDialog
+    arch_file=tkFileDialog.askopenfilename(filetypes=[("AQ Vis Arch","*.tar.gz")],title="Select AQ visualization archive")
+data_fh=tarfile.open(arch_file,"r:gz")
 def decode_color(cgo_object,fc=None):
     for element in cgo_object:
         if isinstance(element,tuple):
