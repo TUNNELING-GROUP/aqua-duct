@@ -1257,7 +1257,7 @@ def stage_IV_run(config, options,
     # new style clustering
     with clui.fbm("Create inlets"):
         # here we can check center of system
-        inls = Inlets(spaths)
+        inls = Inlets(spaths,center_of_system=center_of_system)
     clui.message("Number of inlets: %d" % inls.size)
 
     def noo():
