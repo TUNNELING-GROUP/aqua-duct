@@ -69,7 +69,7 @@ optimal_threads = None
 
 
 def version():
-    return 0, 9, 10
+    return 0, 10, 0
 
 
 def version_nice():
@@ -893,7 +893,9 @@ def stage_I_run(config, options,
     with reader.get() as traj_reader:
 
         scope = traj_reader.parse_selection(options.scope)
-
+        # scope will be used to derrive center of system
+        center_of_system = np.array([0.,0.,0.])
+        
         # create some containers
         res_ids_in_object_over_frames = {}
         all_res = None
@@ -901,6 +903,8 @@ def stage_I_run(config, options,
         for frame in traj_reader.iterate_over_frames():
             if frame > max_frame:
                 break
+            # center of system
+            center_of_system += scope.center_of_mass()
             # current res selection
             res = traj_reader.parse_selection(options.object)
 
@@ -929,13 +933,15 @@ def stage_I_run(config, options,
             else:
                 res_ids_in_object_over_frames.update({frame: []})
             pbar.update(frame)
-
+    
     # destroy pool of workers
     if optimal_threads > 1:
         pool.close()
         pool.join()
         del pool
-
+    
+    center_of_system /= (frame+1)
+    logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
     pbar.finish()
 
     if all_res is None:
@@ -945,6 +951,7 @@ def stage_I_run(config, options,
 
     return {'all_res': all_res,
             'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
+            'center_of_system': center_of_system,
             'options': options}
 
 
@@ -1152,7 +1159,8 @@ def stage_III_run(config, options,
             pbar.update(1)
         pbar.finish()
         # now, it might be that some of paths are empty
-        paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
+        #paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
+        paths = dict((k,v) for k, v in paths.iteritems() if len(v.coords) > 0) # more universal as dict comprehension may not work in <2.7
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
@@ -1237,6 +1245,7 @@ def potentially_recursive_clusterization(config,
 # inlets_clusterization
 def stage_IV_run(config, options,
                  spaths=None,
+                 center_of_system=None,
                  **kwargs):
     coptions = config.get_cluster_options()
     rcoptions = config.get_recluster_options()
@@ -1247,6 +1256,7 @@ def stage_IV_run(config, options,
 
     # new style clustering
     with clui.fbm("Create inlets"):
+        # here we can check center of system
         inls = Inlets(spaths)
     clui.message("Number of inlets: %d" % inls.size)
 
@@ -2102,6 +2112,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     # STAGE IV
     result4 = valve_exec_stage(3, config, stage_IV_run,
                                run_status=run_status,
+                               center_of_system=result1['center_of_system'],
                                **result3)
 
     # STAGE V

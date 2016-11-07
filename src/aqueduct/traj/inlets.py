@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 import numpy as np
 from collections import namedtuple
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, squareform
 import copy
 
 from aqueduct.utils.helpers import is_iterable, listify, lind
@@ -104,6 +104,19 @@ class InletClusterGenericType(object):
         return hash(str(self))
 
 
+# alien
+def make_spherical(xyz):
+    #http://stackoverflow.com/questions/4116658/faster-numpy-cartesian-to-spherical-coordinate-conversion#4116899
+    assert xyz.ndim == 2
+    sph = np.zeros(xyz.shape)
+    xy = xyz[:,0]**2 + xyz[:,1]**2
+    sph[:,0] = np.sqrt(xy + xyz[:,2]**2)
+    sph[:,1] = np.arctan2(np.sqrt(xy), xyz[:,2]) # for elevation angle defined from Z-axis down
+    #sph[1] = np.arctan2(xyz[2], np.sqrt(xy)) # for elevation angle defined from XY-plane up
+    sph[:,2] = np.arctan2(xyz[:,1], xyz[:,0])
+    return sph
+
+
 class InletClusterExtendedType(InletClusterGenericType):
     def __init__(self, surfin, interin, interout, surfout):
         InletClusterGenericType.__init__(self, surfin, surfout)
@@ -119,8 +132,9 @@ Inlet = namedtuple('Inlet', 'coords type reference')
 
 class Inlets(object):
     # class for list of inlets
-    def __init__(self, spaths, onlytype=InletTypeCodes.all_surface):
+    def __init__(self, spaths, center_of_system=None, onlytype=InletTypeCodes.all_surface):
 
+        self.center_of_system = center_of_system
         self.onlytype = onlytype
         self.inlets_list = []
         self.inlets_ids = []
@@ -166,10 +180,18 @@ class Inlets(object):
     def refs(self):
         return [inlet.reference for inlet in self.inlets_list]
 
+    def call_clusterization_method(self, method, data):
+        # this method runs clusterization method against provided data
+        # if center_of_system was set then use distance matrix...
+        if self.center_of_system:
+            return method(squareform(pdist(make_spherical(np.array(data)-self.center_of_system),'cosine')))
+        return method(np.array(data))
+
+
     def perform_clustering(self, method):
         # this do clean clustering, all previous clusters are discarded
         # 0 means outliers
-        self.add_cluster_annotations(method(np.array(self.coords)))
+        self.add_cluster_annotations(self.call_clusterization_method(method,self.coords))
         self.number_of_clustered_inlets = len(self.clusters)
         clui.message("New clusters created: %s" % (' '.join(map(str, sorted(set(self.clusters))))))
         # renumber clusters
@@ -196,10 +218,11 @@ class Inlets(object):
         # renumber clusters
         # self.renumber_clusters()
 
+    #CLUSTER
     def recluster_cluster(self, method, cluster):
         if cluster in self.clusters_list:
             logger.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
-            reclust = method(np.array(self.lim2clusters(cluster).coords))
+            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords)
             if len(set(reclust)) <= 1:
                 clui.message('No new clusters found.')
             else:
@@ -273,7 +296,8 @@ class Inlets(object):
         else:
             new_numbers = [old_numbers[i] for i in np.argsort(old_sizes).tolist()[::-1]]
             new_sizes = [old_sizes[i] for i in np.argsort(old_sizes).tolist()[::-1]]
-        trans_dict = {n: o for o, n in zip(old_numbers, new_numbers)}
+        #trans_dict = {n: o for o, n in zip(old_numbers, new_numbers)}
+        trans_dict = dict((n,o) for o, n in zip(old_numbers, new_numbers)) # more universal as dict comprehension may not work in <2.7
         new_clusters = []
         for c in self.clusters:
             new_clusters.append(trans_dict[c])

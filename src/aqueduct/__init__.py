@@ -27,8 +27,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 2, 22
-    # asorted improvements in vis etc.
+    return 0, 2, 23
+    # center of system added to inlets
 
 
 def version_nice():
