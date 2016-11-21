@@ -183,7 +183,8 @@ class Inlets(object):
     def call_clusterization_method(self, method, data):
         # this method runs clusterization method against provided data
         # if center_of_system was set then use distance matrix...
-        if self.center_of_system is not None:
+        #if self.center_of_system is not None:
+        if False:
             D = squareform(pdist(make_spherical(np.array(data)-self.center_of_system),'cosine'))
             logger.debug("Inlets' coordinates changed to cosine distance of %d variables" % D.shape[0])
             return method(D)

@@ -2112,7 +2112,7 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     # STAGE IV
     result4 = valve_exec_stage(3, config, stage_IV_run,
                                run_status=run_status,
-                               center_of_system=result1['center_of_system'],
+                               center_of_system=result1['center_of_system'], # TODO: remove it or make it effective (in current implementation it does not make any sense though)
                                **result3)
 
     # STAGE V
