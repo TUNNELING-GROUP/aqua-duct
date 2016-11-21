@@ -13,29 +13,23 @@ Usually *Valve* is run by::
 
     valve.py
 
-Due to specific setup in our laboratory *Valve* has to be run through simple wrapper script::
-
-    valve_run
-
-Additionally, to speed up all calculations it is assumed that *Valve* is run with ``--max-frame 1000`` option::
-
-    valve_run --max-frame 1000
-
 To check is *Valve* is installed and works properly try to issue following commands::
 
-    valve_run --help
-    valve_run --version
+    valve.py --help
+    valve.py --version
+
+
+.. _test_data:
 
 Test data
 ---------
 
 **Mouse!**
 
-We will use 10ns Amber MD simulation data of sEH protein (PDBID **1cqz**). Necessary files can be downloaded `here <http://localhost:8001>`_:
+We will use 10ns Amber MD simulation data of sEH protein (PDBID **1cqz**). Necessary files can be found `here <http://aquaduct.pl>`_, see Download section:
 
 * Go to download server.
-* Go to ``1cqz`` directory.
-* Download all files and save them in sane location on your machine. Please note, that ``.nc`` file is ca. 3.5 GB so it may take a while to download it.
+* Download sample data zip and extract it.
 
 Inspect your system
 -------------------
@@ -49,7 +43,7 @@ But wait. Is it really the correct structure? How many chains there are? What is
 Create *Object definition*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Lets load another structure. Open file ``first_frame_1cqz.pdb`` downloaded from test data `repository <http://localhost:8001>`_. It is a first frame of the MD simulation and it is en example of how the frame of MD looks like. In order to create :ref:`object_definition` you have to discover following things:
+Lets load another structure. Open file ``1cqz_sample_topology.pdb`` (see :ref:`Test data<test_data>`). It is a first frame of the MD simulation and it is en example of how the frame of MD looks like. In order to create :ref:`object_definition` you have to discover following things:
 
 #. What is the name of water residue?
 #. What are numbers of residues in the active site?
@@ -85,7 +79,7 @@ Run *Valve*
 
 Make sure all necessary data is in place. Open terminal, go to your working directory and type in::
 
-    valve_run --max-frame 1000 -c config.txt
+    valve.py -c config.txt
 
 Depending on your machine and current load it may take a while (matter of minutes) to complete all calculations.
 
@@ -94,15 +88,20 @@ Visual inspection
 
 In the last stage *PyMOL* should pop up and *Valve* should start to feed it with visualization data. This would take a moment and if you set up ``save`` option a *PyMOL* session would be saved. Once it is done *Valve* quits and switches off *PyMOL*. Now, you can restart it and read saved session.
 
+Clusterization
+^^^^^^^^^^^^^^
+
+Improve clusterization of Inlets. See :doc:`valve_config` for more hints on available clusterization options.
+
 Analysis tables
 ^^^^^^^^^^^^^^^
 
-Open ``results.txt`` file and look at summaries and tables. See also :doc:`valve_manual`.
+Open ``5_analysys_results.txt`` file and look at summaries and tables. See also :doc:`valve_manual`.
 
 Feedback
 --------
 
-Give us your opinion. Send your questions, inquires, anything to developer(s): `Tomasz Magdziarz <t.magdziarz@tunnelinggroup.pl>`_.
+Give us your opinion. Send your questions, inquires, anything to developer(s): `<info@aquaduct.pl>`_.
 This are couple of questions that might be useful to form your opinion.
 
 #. What do you like in *Valve* and *Aqueduct*?

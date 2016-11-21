@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # install necessary libraries - required by netCDF4
-apt-get -y install libnetcdf-dev libhdf5-dev git
+sudo apt-get -y install libnetcdf-dev libhdf5-dev git
 
 # install required python packages
-apt-get -y install python-dev python-pip python-numpy python-scipy python-matplotlib python-scikits-learn pymol
+sudo apt-get -y install python-dev python-pip python-numpy python-scipy python-matplotlib python-scikits-learn pymol
 
 PIP=`which pip`
 
@@ -24,9 +24,9 @@ HDF5_incdir = /usr/include \
 netCDF4_dir = /usr/lib \
 netCDF4_libdir = /usr/lib \
 netCDF4_incdir = /usr/include' setup.cfg
-python setup.py install
+sudo python setup.py install
 cd $CWD
 rm -rf $BUILDDIR
 
 # install MDAnalysis
-$PIP install "MDAnalysis[amber]>=0.15" $@
+sudo $PIP install "MDAnalysis[amber]>=0.15" $@

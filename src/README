@@ -15,7 +15,7 @@ INSTALL
 
         Installation was tested on limited number of POSIX-like systems.
         In some specific cases installation is very simple:
-        1) Unpack aqueduct boundle file.
+        1) Unpack aqueduct bundle file.
         2) Go to src directory.
         3) Type:
             python setup.py install
@@ -36,7 +36,7 @@ INSTALL
 
         Valve does not need installation per se. Once aqueduct is
         installed, valve can be run by a following command:
-            python valve.py --help
+            valve.py --help
         Valve script, ie valve.py, is located in apps directory.
 
     EXTRAS
@@ -46,3 +46,8 @@ INSTALL
         1) matplotlib,
         2) pymol.
         These are usually easy to install.
+
+TROUBLESHOOTING
+
+    If you encounter any problems with installation do not hesitate to
+    contact us at info@aquaduct.pl. We are REALLY willing to help!

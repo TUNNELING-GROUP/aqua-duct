@@ -45,7 +45,7 @@ Valve
 
 Valve does not need installation *per se*. Once aqueduct is installed, valve can be run by a following command::
 
-    python valve.py --help
+    valve.py --help
 
 Valve script, ie valve.py, is located in apps directory.
 
@@ -58,3 +58,8 @@ Access to some visualization capabilities of Aqueduct requires additional Python
 #. pymol.
 
 These are usually easy to install.
+
+Troubleshooting
+---------------
+
+If you encounter any problems with installation do not hesitate to contact us at `<info@aquaduct.pl>`_. We are REALLY willing to help!
