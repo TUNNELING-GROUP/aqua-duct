@@ -188,6 +188,13 @@ class Inlets(object):
             D = squareform(pdist(make_spherical(np.array(data)-self.center_of_system),'cosine'))
             logger.debug("Inlets' coordinates changed to cosine distance of %d variables" % D.shape[0])
             return method(D)
+            return method(np.array(data) - self.center_of_system)
+            #sph = make_spherical(np.array(data)-self.center_of_system)
+            #sph /= np.std(sph)
+            #D = squareform(pdist(np.array(data)-self.center_of_system,'cosine'))
+            #logger.debug("Inlets' coordinates changed to cosine distance of %d variables" % D.shape[0])
+            #return method(sph)
+            #return method(D)
         return method(np.array(data))
 
 
