@@ -4,6 +4,7 @@ TDIR=`mktemp -d`
 PDIR=$TDIR/aqueduct
 mkdir -p $PDIR
 cp -r src/* $PDIR
+rm -rf $PDIR/testing
 
 if [ `uname` = 'OpenBSD' ]
 then
