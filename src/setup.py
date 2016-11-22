@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016  Tomasz Magdziarz <info@aquaduct.pl>
+# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,9 +28,9 @@ version = '.'.join(map(str, version))  # version str
 setup(name='aqueduct',
       version=version,
       description='Tracing residues in MD simulation',
-      author='Tomasz Magdziarz',
-      author_email='tomasz.magdziarz@polsl.pl',
-      url='http://tunnelinggroup.pl',
+      author='Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk',
+      author_email='info@aquaduct.pl',
+      url='http://aquaduct.pl',
       packages=find_packages(include=['aqueduct*']),
       install_requires=['numpy>=1.7',
                         'scipy>=0.13',
