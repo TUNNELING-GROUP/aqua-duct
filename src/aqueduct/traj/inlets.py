@@ -201,10 +201,11 @@ class Inlets(object):
         # if center_of_system was set then use distance matrix...
         #if self.center_of_system is not None:
         if False:
-            D = squareform(pdist(make_spherical(np.array(data)-self.center_of_system),'cosine'))
-            logger.debug("Inlets' coordinates changed to cosine distance of %d variables" % D.shape[0])
-            return method(D)
-            return method(np.array(data) - self.center_of_system)
+            pass
+            #D = squareform(pdist(make_spherical(np.array(data)-self.center_of_system),'cosine'))
+            #logger.debug("Inlets' coordinates changed to cosine distance of %d variables" % D.shape[0])
+            #return method(D)
+            #return method(np.array(data) - self.center_of_system)
             #sph = make_spherical(np.array(data)-self.center_of_system)
             #sph /= np.std(sph)
             #D = squareform(pdist(np.array(data)-self.center_of_system,'cosine'))
