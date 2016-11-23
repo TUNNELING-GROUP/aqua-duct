@@ -15,6 +15,9 @@ else
     find $PDIR -iname '*.orig' -delete
 fi
 
-tar -C $TDIR -cf aqueduct.tar aqueduct
+VERSION=`echo '__version__' | python -i src/aqueduct/__init__.py 2>/dev/null | head -1 | cut -b 2- | rev | cut -b 2- | rev`
+VERSION="_"$VERSION
+
+tar -C $TDIR -cf aqueduct$VERSION.tar aqueduct
 rm -rf $TDIR
-gzip -f -9 aqueduct.tar
+gzip -f -9 aqueduct$VERSION.tar

@@ -25,8 +25,13 @@ sed -i '/undoc/d' source/*.*.rst
 
 # ubuntu 14.04 helper
 cp ../src/ubuntu_mdanalysis_install_helper.sh source/
+
+# installation pkg & RST file!
 $( cd .. ; ./make_pkg.sh )
-mv ../aqueduct.tar.gz source/
+rm -rf source/aqueduct*.tar.gz
+mv ../aqueduct*.tar.gz source/
+AQUEDUCT=$( basename $( ls source/aqueduct*.tar.gz ) )
+sed 's/AQUEDUCT/'$AQUEDUCT'/' source/aqueduct_install.template > source/aqueduct_install.rst
 
 $MAKE SPHINXBUILD=$SPHINXBUILD html
 
@@ -37,4 +42,4 @@ rm -rf source/aqueduct.tar.gz
 
 export PYTHONPATH=$PYTHONPATH_CACHE
 
-rsync -avz -P --delete build/html/ 192.168.1.15:/home/tljm/public_html/aq/
+#rsync -avz -P --delete build/html/ 192.168.1.15:/home/tljm/public_html/aq/
