@@ -22,8 +22,8 @@ from os import unlink
 
 import MDAnalysis as mda
 
-from aqueduct.utils import clui
-from aqueduct.utils.helpers import create_tmpfile
+from aquaduct.utils import clui
+from aquaduct.utils.helpers import create_tmpfile
 
 
 class TmpDumpWriterOfMDA(object):

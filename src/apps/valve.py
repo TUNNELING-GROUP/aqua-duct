@@ -26,7 +26,7 @@ This is a driver for Aqueduct.
 # reuse AQ logger
 
 import logging
-from aqueduct import logger, logger_name
+from aquaduct import logger, logger_name
 
 formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
 # create and add console handler with WARNING level to the AQ logger
@@ -62,22 +62,22 @@ from scipy.spatial.distance import cdist
 # If scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation.
 # This warning emerges if MDAnalysis is imported and then scipy. Observed under Ubuntu 14.04.
 
-from aqueduct import greetings as greetings_aqueduct
-from aqueduct import version as aqueduct_version
-from aqueduct import version_nice as aqueduct_version_nice
-from aqueduct.geom import traces
-from aqueduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch
-from aqueduct.geom.convexhull import is_point_within_convexhull
-from aqueduct.geom.master import CTypeSpathsCollection
-from aqueduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
+from aquaduct import greetings as greetings_aqueduct
+from aquaduct import version as aqueduct_version
+from aquaduct import version_nice as aqueduct_version_nice
+from aquaduct.geom import traces
+from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch
+from aquaduct.geom.convexhull import is_point_within_convexhull
+from aquaduct.geom.master import CTypeSpathsCollection
+from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
-from aqueduct.traj.dumps import TmpDumpWriterOfMDA
-from aqueduct.traj.inlets import Inlets, InletTypeCodes
-from aqueduct.traj.paths import GenericPaths, yield_single_paths
-from aqueduct.traj.reader import ReadViaMDA
-from aqueduct.traj.selections import CompactSelectionMDA, SelectionMDA
-from aqueduct.utils import clui
-from aqueduct.utils.helpers import range2int, Auto, what2what, lind
+from aquaduct.traj.dumps import TmpDumpWriterOfMDA
+from aquaduct.traj.inlets import Inlets, InletTypeCodes
+from aquaduct.traj.paths import GenericPaths, yield_single_paths
+from aquaduct.traj.reader import ReadViaMDA
+from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
+from aquaduct.utils import clui
+from aquaduct.utils.helpers import range2int, Auto, what2what, lind
 
 # TODO: Move it to separate module
 cpu_count = mp.cpu_count()
@@ -1859,9 +1859,9 @@ def stage_VI_run(config, options,
                  master_paths=None,
                  master_paths_smooth=None,
                  **kwargs):
-    from aqueduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
-    # from aqueduct.visual.pymol_connector import cmd as pymol_cmd
-    from aqueduct.visual.helpers import ColorMapDistMap
+    from aquaduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
+    # from aquaduct.visual.pymol_connector import cmd as pymol_cmd
+    from aquaduct.visual.helpers import ColorMapDistMap
 
     soptions = config.get_smooth_options()
     smooth = get_smooth_method(soptions)

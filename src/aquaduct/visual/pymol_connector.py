@@ -21,13 +21,13 @@ import cPickle as pickle
 import os
 import tarfile
 
-import aqueduct.visual.pymol_cgo as cgo
+import aquaduct.visual.pymol_cgo as cgo
 
-from aqueduct.geom import traces
-from aqueduct.traj.paths import PathTypesCodes
-from aqueduct.utils.helpers import list_blocks_to_slices
-from aqueduct.visual.helpers import color_codes, cc
-from aqueduct.utils.helpers import create_tmpfile, listify
+from aquaduct.geom import traces
+from aquaduct.traj.paths import PathTypesCodes
+from aquaduct.utils.helpers import list_blocks_to_slices
+from aquaduct.visual.helpers import color_codes, cc
+from aquaduct.utils.helpers import create_tmpfile, listify
 
 
 class BasicPymolCGO(object):

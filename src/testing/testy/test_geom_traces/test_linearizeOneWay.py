@@ -1,5 +1,5 @@
 from unittest import TestCase
-from aqueduct.geom.traces import LinearizeOneWay
+from aquaduct.geom.traces import LinearizeOneWay
 
 class TestLinearizeOneWay(TestCase):
     def test_Linearize_One_Way(self):

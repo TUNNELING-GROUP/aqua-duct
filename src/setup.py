@@ -20,18 +20,18 @@
 import sys
 from setuptools import find_packages, setup
 
-version = __import__('aqueduct').version()  # version tuple
+version = __import__('aquaduct').version()  # version tuple
 version = '.'.join(map(str, version))  # version str
 #sys.path.append('apps')
 #version = '.'.join((version, __import__('valve').version_onenumber()))
 
-setup(name='aqueduct',
+setup(name='aquaduct',
       version=version,
       description='Tracing residues in MD simulation',
       author='Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk',
       author_email='info@aquaduct.pl',
       url='http://aquaduct.pl',
-      packages=find_packages(include=['aqueduct*']),
+      packages=find_packages(include=['aquaduct*']),
       install_requires=['numpy>=1.7',
                         'scipy>=0.13',
                         'scikit-learn>=0.16',
@@ -42,7 +42,7 @@ setup(name='aqueduct',
                       'graphs': ['matplotlib'],
                       },
       scripts=['apps/valve.py', 'apps/valve_run'],
-      provides=['aqueduct'],
+      provides=['aquaduct'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Bioinformaticians',

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from aqueduct.geom.traces import vector_norm
+from aquaduct.geom.traces import vector_norm
 import math
 
 class TestVector_norm(TestCase):

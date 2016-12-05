@@ -22,10 +22,10 @@ import numpy as np
 
 import scipy.spatial.distance as distance
 
-from aqueduct.traj.paths import GenericPathTypeCodes as gptc
-from aqueduct.traj.paths import PathTypesCodes as ptc
-from aqueduct.visual.cmaps import default as default_cmap
-from aqueduct.utils.helpers import zip_zip, is_number, lind
+from aquaduct.traj.paths import GenericPathTypeCodes as gptc
+from aquaduct.traj.paths import PathTypesCodes as ptc
+from aquaduct.visual.cmaps import default as default_cmap
+from aquaduct.utils.helpers import zip_zip, is_number, lind
 
 _cl2rgba = {'b': (0.0, 0.0, 1.0, 1.0),
             'c': (0.0, 0.75, 0.75, 1.0),

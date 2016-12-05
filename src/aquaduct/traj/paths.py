@@ -18,10 +18,10 @@
 
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
-from aqueduct.geom import traces
-from aqueduct.traj.inlets import Inlet, InletTypeCodes
-from aqueduct.utils.helpers import is_number, lind
-from aqueduct.utils.helpers import tupleify, sortify, listify, arrayify1
+from aquaduct.geom import traces
+from aquaduct.traj.inlets import Inlet, InletTypeCodes
+from aquaduct.utils.helpers import is_number, lind
+from aquaduct.utils.helpers import tupleify, sortify, listify, arrayify1
 
 
 ########################################################################################################################

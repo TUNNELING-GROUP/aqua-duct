@@ -31,8 +31,8 @@ from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShif
 # MeanShift:           n > 6
 
 
-from aqueduct.utils.helpers import Auto
-from aqueduct.utils import clui
+from aquaduct.utils.helpers import Auto
+from aquaduct.utils import clui
 
 
 def MeanShiftBandwidth(X, **kwargs):

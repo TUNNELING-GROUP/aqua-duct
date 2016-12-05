@@ -37,7 +37,7 @@ logger.setLevel(logging.DEBUG)
 
 def version():
     """
-    Returns :mod:`aqueduct` version number.
+    Returns :mod:`aquaduct` version number.
 
     :return: 3 element tuple of int numbers
     :rtype: tuple
@@ -48,7 +48,7 @@ def version():
 
 def version_nice():
     """
-    Returns :mod:`aqueduct` version number as nicely formatted string.
+    Returns :mod:`aquaduct` version number as nicely formatted string.
 
     :return: string composed on the basis of the number returned by :func:`version`.
     :rtype: str
@@ -62,7 +62,7 @@ __mail__ = 'info@aquaduct.pl'
 
 def greetings():
     """
-    Returns fancy greetings of :mod:`aqueduct`. It has a form of ASCII-like
+    Returns fancy greetings of :mod:`aquaduct`. It has a form of ASCII-like
     graphic. Currently it returns following string::
 
         ------------------------------------------------
@@ -76,7 +76,7 @@ def greetings():
         #              ##              ##              #
         ------------------------------------------------
 
-    :return: :mod:`aqueduct` fancy greetings.
+    :return: :mod:`aquaduct` fancy greetings.
     :rtype: str
     """
     greet = '''------------------------------------------------

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from aqueduct.geom.traces import tracepoints
+from aquaduct.geom.traces import tracepoints
 import numpy as np
 
 

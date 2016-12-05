@@ -20,8 +20,8 @@ import numpy as np
 
 import MDAnalysis as mda
 
-from aqueduct.geom.convexhull import SciPyConvexHull
-from aqueduct.utils.helpers import int2range
+from aquaduct.geom.convexhull import SciPyConvexHull
+from aquaduct.utils.helpers import int2range
 
 
 class Selection(object):

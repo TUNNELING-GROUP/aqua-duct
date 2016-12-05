@@ -1,5 +1,5 @@
 from unittest import TestCase
-from aqueduct.geom.traces import LinearizeOneWayVector
+from aquaduct.geom.traces import LinearizeOneWayVector
 import numpy as np
 import types
 from itertools import islice

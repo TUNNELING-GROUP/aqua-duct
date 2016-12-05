@@ -1,6 +1,6 @@
 from unittest import TestCase
 import numpy as np
-from aqueduct.geom.traces import diff
+from aquaduct.geom.traces import diff
 from math import sqrt
 
 class TestDiff(TestCase):

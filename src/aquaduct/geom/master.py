@@ -25,10 +25,10 @@ logger = logging.getLogger(__name__)
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
 
-from aqueduct.traj.paths import GenericPathTypeCodes, GenericPaths, yield_single_paths, MasterPath
-from aqueduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip, xzip_xzip
-from aqueduct.utils import clui
-from aqueduct.traj.inlets import InletClusterGenericType, InletClusterExtendedType
+from aquaduct.traj.paths import GenericPathTypeCodes, GenericPaths, yield_single_paths, MasterPath
+from aquaduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip, xzip_xzip
+from aquaduct.utils import clui
+from aquaduct.traj.inlets import InletClusterGenericType, InletClusterExtendedType
 
 from multiprocessing import Queue, Manager, Lock, Value, Process
 

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from aqueduct.geom.traces import triangle_angles_last
+from aquaduct.geom.traces import triangle_angles_last
 import math
 class TestTriangle_angles_last(TestCase):
     def test_type(self):

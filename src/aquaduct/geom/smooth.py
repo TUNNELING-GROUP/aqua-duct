@@ -18,8 +18,8 @@
 
 import numpy as np
 
-from aqueduct.geom import traces
-from aqueduct.utils.helpers import arrayify
+from aquaduct.geom import traces
+from aquaduct.utils.helpers import arrayify
 
 
 class Smooth(object):
