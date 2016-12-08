@@ -20,10 +20,7 @@
 import sys
 from setuptools import find_packages, setup
 
-version = __import__('aqueduct').version()  # version tuple
-version = '.'.join(map(str, version))  # version str
-#sys.path.append('apps')
-#version = '.'.join((version, __import__('valve').version_onenumber()))
+version = __import__('aqueduct').version_nice()  # version str
 
 setup(name='aqueduct',
       version=version,
@@ -32,11 +29,11 @@ setup(name='aqueduct',
       author_email='info@aquaduct.pl',
       url='http://aquaduct.pl',
       packages=find_packages(include=['aqueduct*']),
-      install_requires=['numpy>=1.7',
-                        'scipy>=0.13',
-                        'scikit-learn>=0.16',
-                        'MDAnalysis[amber]>=0.15',
-                        'roman',
+      install_requires=['numpy>=1.7.0',
+                        'scipy>=0.13.0',
+                        'scikit-learn>=0.16.0',
+                        'MDAnalysis[amber]>=0.15.0',
+                        'roman>=2.0.0',
                         ],
       extras_require={'full_pymol': ["pymol>=1.4"],
                       'graphs': ['matplotlib'],
@@ -45,7 +42,7 @@ setup(name='aqueduct',
       provides=['aqueduct'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
-                   'Intended Audience :: Bioinformaticians',
+                   'Intended Audience :: Science/Research',
                    'Operating System :: POSIX',
                    'Programming Language :: Python :: 2.7',
                    ],

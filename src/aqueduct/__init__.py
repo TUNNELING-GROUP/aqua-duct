@@ -53,7 +53,7 @@ def version_nice():
     :return: string composed on the basis of the number returned by :func:`version`.
     :rtype: str
     """
-    return '.'.join(map(str, version()))
+    return '.'.join(map(str, version()))+'b'
 
 
 __version__ = version_nice()
