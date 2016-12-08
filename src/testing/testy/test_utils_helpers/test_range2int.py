@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from aqueduct.utils.helpers import range2int
+from aquaduct.utils.helpers import range2int
 
 
 class TestRange2int(TestCase):

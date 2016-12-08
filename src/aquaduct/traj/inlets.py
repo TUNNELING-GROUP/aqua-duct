@@ -24,8 +24,8 @@ from collections import namedtuple
 from scipy.spatial.distance import pdist, squareform
 import copy
 
-from aqueduct.utils.helpers import is_iterable, listify, lind
-from aqueduct.utils import clui
+from aquaduct.utils.helpers import is_iterable, listify, lind
+from aquaduct.utils import clui
 
 
 class ProtoInletTypeCodes:

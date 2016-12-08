@@ -2,7 +2,7 @@
 import numpy as np
 from unittest import TestCase
 
-from aqueduct.geom.traces import vectors_angle_alt_anorm, vector_norm
+from aquaduct.geom.traces import vectors_angle_alt_anorm, vector_norm
 
 
 class TestVectors_angle_alt_anorm(TestCase):

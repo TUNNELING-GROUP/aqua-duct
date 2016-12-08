@@ -22,7 +22,7 @@ from setuptools import find_packages, setup
 
 version = __import__('aqueduct').version_nice()  # version str
 
-setup(name='aqueduct',
+setup(name='aquaduct',
       version=version,
       description='Tracing residues in MD simulation',
       author='Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk',
@@ -39,7 +39,7 @@ setup(name='aqueduct',
                       'graphs': ['matplotlib'],
                       },
       scripts=['apps/valve.py', 'apps/valve_run'],
-      provides=['aqueduct'],
+      provides=['aquaduct'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Science/Research',

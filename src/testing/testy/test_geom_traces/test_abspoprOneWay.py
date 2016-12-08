@@ -1,5 +1,5 @@
 from unittest import TestCase
-from aqueduct.geom.traces import LinearizeOneWayTriangle
+from aquaduct.geom.traces import LinearizeOneWayTriangle
 import numpy as np
 import types
 from itertools import islice

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from aqueduct.utils.helpers import is_iterable
-from aqueduct.utils.helpers import Auto
+from aquaduct.utils.helpers import is_iterable
+from aquaduct.utils.helpers import Auto
 
 class TestIs_iterable(TestCase):
     def test_is_iterable(self):

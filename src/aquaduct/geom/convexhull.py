@@ -20,7 +20,7 @@ import numpy as np
 
 from scipy.spatial import ConvexHull as SciPyConvexHull
 
-from aqueduct.utils.helpers import uniqify
+from aquaduct.utils.helpers import uniqify
 from scipy.spatial.distance import cdist, pdist
 
 

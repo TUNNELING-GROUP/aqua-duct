@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from aqueduct.utils.helpers import sortify
+from aquaduct.utils.helpers import sortify
 
 
 def corvus_generator():

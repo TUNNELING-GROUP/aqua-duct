@@ -20,9 +20,9 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from aqueduct.geom import traces
-from aqueduct.utils.helpers import list_blocks_to_slices
-from aqueduct.visual.helpers import color_codes, cc
+from aquaduct.geom import traces
+from aquaduct.utils.helpers import list_blocks_to_slices
+from aquaduct.visual.helpers import color_codes, cc
 
 
 # matplotlib specific
