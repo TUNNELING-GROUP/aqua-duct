@@ -42,8 +42,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 2, 23
-    # center of system added to inlets
+    return 0, 2, 24
+    # changed module name
 
 
 def version_nice():
@@ -53,7 +53,7 @@ def version_nice():
     :return: string composed on the basis of the number returned by :func:`version`.
     :rtype: str
     """
-    return '.'.join(map(str, version()))+'b'
+    return '.'.join(map(str, version()))
 
 
 __version__ = version_nice()
@@ -66,7 +66,7 @@ def greetings():
     graphic. Currently it returns following string::
 
         ------------------------------------------------
-                   ~ ~ ~ A Q U E D U C T ~ ~ ~
+                  ~ ~ ~ A Q U A - D U C T ~ ~ ~
         ################################################
         ####        ########        ########        ####
         ##            ####            ####            ##
@@ -80,7 +80,7 @@ def greetings():
     :rtype: str
     """
     greet = '''------------------------------------------------
-           ~ ~ ~ A Q U E D U C T ~ ~ ~
+          ~ ~ ~ A Q U A - D U C T ~ ~ ~
 ################################################
 ####        ########        ########        ####
 ##            ####            ####            ##

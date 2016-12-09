@@ -19,7 +19,7 @@
 
 
 """
-This is a driver for Aqueduct.
+This is a driver for Aqua-Duct.
 """
 
 ################################################################################
@@ -33,7 +33,7 @@ formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]:
 formatter = logging.Formatter(formatter_string)
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)
-ch.setLevel(logging.WARNING)  # default level is WARNING
+ch.setLevel(logging.WARNING) # default level is WARNING
 logger.addHandler(ch)
 
 ################################################################################
@@ -41,6 +41,7 @@ logger.addHandler(ch)
 import multiprocessing as mp
 import ConfigParser
 import cPickle as pickle
+import StringIO
 import copy
 import gzip
 import os
@@ -57,6 +58,7 @@ from collections import namedtuple, OrderedDict  # TODO: check if OrderedDict is
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
+from distutils.version import LooseVersion
 
 from scipy.spatial.distance import cdist
 # If scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation.
@@ -553,13 +555,37 @@ def save_dump(filename, data_to_save, **kwargs):
             # then other kwargs
             pickle.dump(kwargs, f)
 
+class LoadDumpWrapper(object):
+    """This is wrapper for pickled data that provides compatibility
+    with earlier versions of Aquaduct.
+
+    Conversions in use:
+
+    1) replace 'aqueduct.' by 'aquaduct.'
+
+    """
+
+    def __init__(self,filehandle):
+        self.fh = filehandle
+
+    def convert(self,s):
+        return s.replace('aqueduct.','aquaduct.')
+
+    def read(self,*args,**kwargs):
+        return self.convert(self.fh.read(*args,**kwargs))
+
+    def readline(self,*args,**kwargs):
+        return self.convert(self.fh.readline(*args,**kwargs))
+
 
 def load_dump(filename):
     with clui.fbm('Loading data dump from %s file' % filename):
-        with gzip.open(filename, mode='r') as f:
+        with gzip.open(filename, mode='r') as protof:
+            f = LoadDumpWrapper(protof)
             # version!
             loaded_data = pickle.load(f)
             check_versions(loaded_data)
+
             # loaded data!
             loaded_data = pickle.load(f)
             # enything else?
@@ -912,7 +938,7 @@ def stage_I_run(config, options,
         scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
         center_of_system = np.array([0.,0.,0.])
-        
+
         # create some containers
         res_ids_in_object_over_frames = {}
         all_res = None
@@ -950,13 +976,13 @@ def stage_I_run(config, options,
             else:
                 res_ids_in_object_over_frames.update({frame: []})
             pbar.update(frame)
-    
+
     # destroy pool of workers
     if optimal_threads > 1:
         pool.close()
         pool.join()
         del pool
-    
+
     center_of_system /= (frame+1)
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
     pbar.finish()
@@ -2012,9 +2038,9 @@ if __name__ == "__main__":
     # argument parsing
     import argparse
 
-    description_version = '''Aqueduct library version %s
+    description_version = '''Aquaduct library version %s
 Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
-    description = '''Valve, Aqueduct driver'''
+    description = '''Valve, Aquaduct driver'''
 
     parser = argparse.ArgumentParser(description=description,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
@@ -2057,7 +2083,6 @@ Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
     # special option for dumping template config
     config = ValveConfig()  # config template
     if args.dump_template_conf:
-        import StringIO
 
         config_dump = StringIO.StringIO()
         config.save_config_stream(config_dump)
@@ -2178,10 +2203,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                no_io=True,
                                reader=reader,
                                **results)
-    ############################################################################
-    # end!
-
-
     ############################################################################
     # end!
 
