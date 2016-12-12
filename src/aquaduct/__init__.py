@@ -42,8 +42,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 2, 24
-    # changed module name
+    return 0, 2, 25
+    # default dtype
 
 
 def version_nice():
