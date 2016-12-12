@@ -878,11 +878,12 @@ def valve_begin_stage(stage, config):
 
 def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_status=None,
                      **kwargs):
+    # This function runs stages in a smart way, checks execution logic, and loads/saves dumps if required.
     options = valve_begin_stage(stage, config)
 
     run_status.update({stage: False})
 
-    # TODO: consder to create traj_reader object here instead of doing it in stage_run or in load...
+    # TODO: Consider to create traj_reader object here instead of doing it in stage_run or in load...
     # execute?
     can_be_loaded = False
     if (not no_io) and options.dump:
@@ -942,7 +943,8 @@ def stage_I_run(config, options,
         # create some containers
         res_ids_in_object_over_frames = {}
         all_res = None
-
+        
+        # the loop over frames
         for frame in traj_reader.iterate_over_frames():
             if frame > max_frame:
                 break
@@ -950,26 +952,14 @@ def stage_I_run(config, options,
             center_of_system += scope.center_of_mass()
             # current res selection
             res = traj_reader.parse_selection(options.object)
-
-            # check if res are in scope
-            if options.scope_convexhull:
-                res_coords = list(res.center_of_mass_of_residues())
-                chull = scope.get_convexhull_of_atom_positions()
-                is_res_in_scope = map_fun(is_point_within_convexhull, izip_longest(res_coords, [], fillvalue=chull))
+            # find matching residues:
+            res_new = scope.containing_residues(res,convex_hull=options.scope_convexhull,map_fun=map_fun)
+            # adds them to all_res
+            if all_res:
+                all_res += res_new
+                all_res.uniquify()
             else:
-                is_res_in_scope = check_res_in_scope(options, scope, res, None)
-
-            # discard res out of scope
-            res_new = get_res_in_scope(is_res_in_scope, res)
-
-            # add it to all res in object
-            if res_new is not None:
-                if all_res:
-                    all_res += res_new
-                    all_res.uniquify()
-                else:
-                    all_res = res_new
-
+                all_res = res_new
             # remeber ids of res in object in current frame
             if res_new is not None:
                 res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
@@ -983,9 +973,9 @@ def stage_I_run(config, options,
         pool.join()
         del pool
 
+    pbar.finish()
     center_of_system /= (frame+1)
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
-    pbar.finish()
 
     if all_res is None:
         raise ValueError("No traceable residues was found.")
@@ -1037,24 +1027,17 @@ def stage_II_run(config, options,
                 break
 
             all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
-
-            # check if is res are in scope
-            # is_res_in_scope = check_res_in_scope(options, scope, all_res, all_res_coords)
-            # check is res are in scope
-            if options.scope_convexhull:
-                chull = scope.get_convexhull_of_atom_positions()
-                is_res_in_scope = map_fun(is_point_within_convexhull, izip_longest(all_res_coords, [], fillvalue=chull))
-            else:
-                is_res_in_scope = check_res_in_scope(options, scope, all_res, None)
-
             all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
+            # check if is res are in scope
+            is_res_in_scope = scope.contains_residues(all_res,convex_hull=options.scope_convexhull,map_fun=map_fun)
 
+            # loop over coord, is  in scope, and resid
             for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
                 # the point is that nr is not pointing to correct element in paths
                 # now, nr is useless because paths is a dictionary, use resids instead
                 assert paths[resid].id == resid, \
                     "Internal error. Paths IDs not synced with resids. \
-                     Please send a bug report to developer(s): %s" % __mail__
+                     Please send a bug report to the developer(s): %s" % __mail__
                 if isscope:
                     paths[resid].add_coord(coord)
 
@@ -2142,11 +2125,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         clui.message("Main process would use 1 thread.")
         clui.message("Concurent calculations would use %d threads." % optimal_threads)
 
+    # At this point calculations starts. All options are read.
+    # Options:
+    # goptions - global options
+    # config - configuration file object
+
     ############################################################################
     # STAGE 0
 
-    reader = valve_read_trajectory(goptions.top, goptions.trj)
+    # TODO: Is it always required?
+    reader = valve_read_trajectory(goptions.top, goptions.trj) # trajectory reader
 
+    # Maximal frame checks
     if args.max_frame:
         max_frame = int(args.max_frame)
         if max_frame > reader.max_frame:
@@ -2154,9 +2144,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 max_frame + 1, reader.max_frame + 1))
     else:
         max_frame = reader.max_frame
+    # TODO: Is it reported correctly?
     clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
 
-    # run status
+    # container for collecting whether particular stage was executed
     run_status = {}
 
     # STAGE I

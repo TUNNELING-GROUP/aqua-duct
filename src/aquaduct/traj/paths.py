@@ -22,6 +22,7 @@ from aquaduct.geom import traces
 from aquaduct.traj.inlets import Inlet, InletTypeCodes
 from aquaduct.utils.helpers import is_number, lind
 from aquaduct.utils.helpers import tupleify, sortify, listify, arrayify1
+from aquaduct.utils.maths import make_default_array
 
 
 ########################################################################################################################
@@ -92,7 +93,8 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.min_possible_frame = min_pf
 
     def add_coord(self, coord):
-        self.coords.append(coord)
+        # store coord as numpy float 32
+        self.coords.append(make_default_array(coord))
 
     def add_object(self, frame):
         self.add_type(frame, self.object_name)
@@ -309,13 +311,13 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     # special class
     # represents one path
 
-    empty_coords = np.zeros((0, 3))
+    empty_coords = make_default_array(np.zeros((0, 3)))
 
     def __init__(self, path_id, paths, coords, types):
 
         self.id = path_id
         self.path_in, self.path_object, self.path_out = paths
-        self.coords_in, self.coords_object, self.coords_out = map(np.array, coords)
+        self.coords_in, self.coords_object, self.coords_out = map(make_default_array, coords)
         self.types_in, self.types_object, self.types_out = types
 
         self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = None, None, None
@@ -369,7 +371,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     @property
     def coords_cont(self):
         # returns coords as one array
-        return np.vstack([c for c in self.coords if len(c) > 0])
+        return make_default_array(np.vstack([c for c in self.coords if len(c) > 0]))
 
     ####################################################################################################################
     # paths
@@ -465,7 +467,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
     def get_coords_cont(self, smooth=None):
         # returns coords as one array
-        return np.vstack([c for c in self.get_coords(smooth) if len(c) > 0])
+        return make_default_array(np.vstack([c for c in self.get_coords(smooth) if len(c) > 0]))
 
     @tupleify
     def _make_smooth_coords(self, coords, smooth=None):
@@ -480,7 +482,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         nr = 0
         for path in self.paths:
             if len(path) > 0:
-                yield np.array(coords_smooth[nr:nr + len(path)])
+                yield make_default_array(coords_smooth[nr:nr + len(path)])
                 nr += len(path)
             else:
                 yield self.empty_coords
@@ -492,7 +494,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     ####################################################################################################################
 
     def get_distance_cont(self, smooth=None, normalize=False):
-        length = np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth)))))
+        length = make_default_array(np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth))))))
         if normalize:
             if is_number(normalize):
                 norm_factor = float(normalize)
