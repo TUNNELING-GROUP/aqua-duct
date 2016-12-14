@@ -101,20 +101,57 @@ class InletClusterGenericType(object):
             val += e
         return val
 
+    # def __cmp__(self, other):
+    #     if other is None:
+    #         return 1
+    #     if not isinstance(other, self.__class__):
+    #         return 1
+    #
+    #     result = 0
+    #     base = max(max(self), max(other), len(self), len(other)) + 2.
+    #
+    #     if self.make_val(base) - other.make_val(base) > 0:
+    #         return 1
+    #     elif self.make_val(base) - other.make_val(base) < 0:
+    #         return -1
+    #     return 0
+
     def __cmp__(self, other):
-        if other is None:
-            return 1
-        if not isinstance(other, self.__class__):
-            return 1
 
-        result = 0
-        base = max(max(self), max(other), len(self), len(other)) + 2.
+        def sort_for_cmp(a, b):
 
-        if self.make_val(base) - other.make_val(base) > 0:
-            return 1
-        elif self.make_val(base) - other.make_val(base) < 0:
-            return -1
-        return 0
+            # this function compares two elements and returns 0 for a == b, 1 for a > b , -1 for a < b
+
+            if a == b:
+                return 0
+            elif a is None:
+                if b > 0:
+                    return 1
+                elif b == 0:
+                    return -1
+            elif b is None:
+                if a > 0:
+                    return -1
+                elif a == 0:
+                    return 1
+            elif a == 0:
+                if b != 0:
+                    return 1
+            elif b == 0:
+                if a != 0:
+                    return -1
+            elif a > b:
+                return 1
+            elif a < b:
+                return -1
+
+            # firstly only inputs are sorted, in case of self.input == other.input the outputs are sorted
+
+        value = sort_for_cmp(self.input, other.input)
+        if value == 0:
+            return sort_for_cmp(self.output, other.output)
+        else:
+            return value
 
     def __hash__(self):
         return hash(str(self))
