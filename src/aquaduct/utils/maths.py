@@ -18,5 +18,10 @@
 
 import numpy as np
 
+float_default = np.float32
+int_default = np.int32
+
 def make_default_array(array_like):
-    return np.array(array_like,dtype=np.float32)
+    if isinstance(array_like,np.ndarray):
+        return array_like.astype(float_default)
+    return np.array(array_like,dtype=float_default)

@@ -422,6 +422,23 @@ def list_blocks_to_slices(l):
             prev_nr = nr + 1
         yield slice(prev_nr, nr + 2, 1)
 
+def split_list(l,s):
+    # l is list
+    # s is element to split
+    if s not in l:
+        yield l
+    else:
+        n = l.count(s)
+        i = -1
+        b = 0
+        while n:
+            i = l.index(s,i+1)
+            yield l[b:i]
+            b = i+1
+            n -= 1
+        yield l[b:]
+            
+
 
 @tupleify
 def what2what(what, towhat):
@@ -524,3 +541,12 @@ def xzip_xzip(*args, **kwargs):
                 this_yield.append(slice(ip, inp))
         yield tuple(this_yield)
         position = next_position
+
+
+class Bunch(object):
+    """
+    http://code.activestate.com/recipes/52308
+    foo=Bunch(a=1,b=2)
+    """
+    def __init__(self, **kwds):
+        self.__dict__.update(kwds)
