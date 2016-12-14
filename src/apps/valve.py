@@ -1777,9 +1777,12 @@ def stage_V_run(config, options,
         ctypes_size.append(len(sps))
         # pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
 
+    '''
     # sorted by sizes:
     ctypes_generic_list = sorted(ctypes_generic_list, key=lambda ctyp: ctypes_size[ctypes_generic_list.index(ctyp)],
                                  reverse=True)
+    '''
+    
     for nr, ct in enumerate(ctypes_generic_list):
         sps = lind(spaths, what2what(ctypes_generic, [ct]))
         ctypes_size.append(len(sps))

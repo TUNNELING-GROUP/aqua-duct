@@ -146,7 +146,7 @@ class InletClusterGenericType(object):
                 return -1
 
             # firstly only inputs are sorted, in case of self.input == other.input the outputs are sorted
-
+        
         value = sort_for_cmp(self.input, other.input)
         if value == 0:
             return sort_for_cmp(self.output, other.output)
