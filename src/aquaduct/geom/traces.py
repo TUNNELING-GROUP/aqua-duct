@@ -1,4 +1,21 @@
 # -*- coding: utf-8 -*-
+
+# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
+# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import numpy as np
 from scipy.spatial.distance import pdist
 
@@ -71,17 +88,17 @@ def midpoints(paths):
             if nr - 1 >= 0:
                 if paths[nr - 1].size > 0:
                     past = paths[nr - 1][-1]
-            next = []
+            next_trace = []
             if nr + 1 < n:
                 if paths[nr + 1].size > 0:
-                    next = paths[nr + 1][0]
+                    next_trace = paths[nr + 1][0]
             # calculate midpoints if relevant
             if len(trace) > 0:
                 if len(past) > 0:
                     midp = tracepoints(past, trace[0], 1)
                     trace = np.vstack((midp, trace))
-                if len(next) > 0:
-                    midp = tracepoints(trace[-1], next, 1)
+                if len(next_trace) > 0:
+                    midp = tracepoints(trace[-1], next_trace, 1)
                     trace = np.vstack((trace, midp))
             yield trace
     else:
@@ -196,7 +213,7 @@ def triangle_angles_last(A, B, C):
     for e1, e2 in ((b, -c),):
         num = np.dot(e1, e2)
         denom = vector_norm(e1) * vector_norm(e2)
-        angles.append(np.arccos(np.clip(num / denom,-1,1))) # cliping values in to [-1,1]
+        angles.append(np.arccos(np.clip(num / denom, -1, 1)))  # cliping values in to [-1,1]
     return angles
 
 
@@ -219,7 +236,6 @@ def triangle_height(A, B, C):
     if np.isnan(h):
         h = 0.
     return h
-
 
 
 def vectors_angle(A, B):
@@ -278,6 +294,7 @@ def vectors_angle_anorm(A, B, A_norm):
     if np.isnan(angle):
         return 0.
     return np.arccos(angle)
+
 
 ################################################################################
 # Linearization classes
@@ -375,11 +392,12 @@ class LinearizeRecursive(object):
         here = self.here(coords)
         return coords[here]
 
+
 ################################################################################
 # Linearize criteria
 
 class TriangleLinearize(object):
-    def __init__(self, threshold = 0.01):
+    def __init__(self, threshold=0.01):
         # threshold - maximal allowed sum of heights of triangles made of beginning, end and all middle points
         ## bardzo ostre kryterium!!
         self.threshold = threshold
@@ -397,6 +415,7 @@ class TriangleLinearize(object):
                 return False
         return True
 
+
 class VectorLinearize(object):
     """
     Base class for linearization methods classes.
@@ -404,7 +423,7 @@ class VectorLinearize(object):
     It implements vector linearization criterion.
     """
 
-    def __init__(self, treshold = 0.05236):
+    def __init__(self, treshold=0.05236):
         # TODO: Add docs
         self.treshold = treshold
 
@@ -454,6 +473,7 @@ class VectorLinearize(object):
             return False
         return True
 
+
 ################################################################################
 # Concrete classes for linearization
 
@@ -464,6 +484,7 @@ class LinearizeRecursiveVector(LinearizeRecursive, VectorLinearize):
     Class provides recursive linearization of coordinates with :class:`LinearizeRecursive` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`. This is default method.
     """
     pass
+
 
 class LinearizeRecursiveTriangle(LinearizeRecursive, TriangleLinearize):
     """
@@ -478,6 +499,7 @@ class LinearizeHobbitVector(LinearizeHobbit, VectorLinearize):
     """
     pass
 
+
 class LinearizeHobbitTriangle(LinearizeHobbit, TriangleLinearize):
     """
     Class provides recursive linearization of coordinates with :class:`LinearizeHobbit` algorithm and the criterion of linearity implemented by :class:`TriangleLinearize`.
@@ -490,6 +512,7 @@ class LinearizeOneWayVector(LinearizeOneWay, VectorLinearize):
     Class provides recursive linearization of coordinates with :class:`LinearizeOneWay` algorithm and the criterion of linearity implemented by :class:`VectorLinearize`.
     """
     pass
+
 
 class LinearizeOneWayTriangle(LinearizeOneWay, TriangleLinearize):
     """

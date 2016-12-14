@@ -1,7 +1,24 @@
 # -*- coding: utf-8 -*-
-'''
+
+# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
+# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
 Collection of helpers - functions and decorators.
-'''
+"""
 
 import numpy as np
 from collections import Iterable
@@ -14,7 +31,7 @@ from tempfile import mkstemp
 #  aliens
 
 def combine(seqin):
-    '''
+    """
     This is an alien function. It is not extensively used.
 
     Directly taken form http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt
@@ -28,14 +45,14 @@ def combine(seqin):
 
         [[1, 3], [1, 4], [2, 3], [2, 4]]
 
-    :param tuple sequin: Tuple of sequences to combine.
+    :param tuple seqin: Tuple of sequences to combine.
     :returns: All possible combinations of all input sequences.
     :rtype: list of lists
-    '''
+    """
 
     # http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/302478/index_txt
     def rloop(seqin, listout, comb):
-        '''recursive looping function'''
+        """recursive looping function"""
         if seqin:  # any more sequences to process?
             for item in seqin[0]:
                 newcomb = comb + [item]  # add next item to current comb
@@ -93,7 +110,7 @@ def lind(l, ind):
 
 
 class Auto:
-    '''
+    """
     Auto type definition.
     The class is used as an alternative value for options (if particular option supports it).
     If options (or variables/parameters etc.) have value of :class:`Auto` it means that an automatic
@@ -101,24 +118,24 @@ class Auto:
 
     For example, if the input parameter is set to :class:`Auto` it is supposed that its value is calculated
     on the basis of input data or other parameters.
-    '''
+    """
 
     def __repr__(self):
-        '''
+        """
         :return: String ``Auto``.
         :rtype: str
-        '''
+        """
         return "Auto"
 
     def __str__(self):
-        '''
+        """
         Calls :meth:`__repr__`.
-        '''
+        """
         return self.__repr__()
 
 
 def create_tmpfile(ext=None):
-    '''
+    """
     Creates temporary file. File is created, closed and its file name is returned.
 
     .. note::
@@ -128,7 +145,7 @@ def create_tmpfile(ext=None):
     :param str ext: Optional extension of the file.
     :return: File name of created temporary file.
     :rtype: str
-    '''
+    """
     if ext is None:
         suffix = ''
     else:
@@ -139,7 +156,7 @@ def create_tmpfile(ext=None):
 
 
 def range2int(r, uniq=True):
-    '''
+    """
     Transforms a string range in to a list of integers (with added missing elements from given ranges).
 
     For example, a following string::
@@ -154,7 +171,7 @@ def range2int(r, uniq=True):
     :param bool uniq: Optional parameter, if set to `True` only unique and sorted integers are returned.
     :return: List of integers.
     :rtype: list of int
-    '''
+    """
     out = []
     for rr in r.split():
         if ':' in rr:
@@ -174,7 +191,7 @@ def range2int(r, uniq=True):
 
 def int2range(l):
     # the function can order case with letter, letters are at the end of string
-    '''
+    """
     Transforms a list of integers in to a string of ranges.
 
     For example, a following list::
@@ -188,7 +205,7 @@ def int2range(l):
     :param list l: input list of int
     :return: String of ranges.
     :rtype: str
-    '''
+    """
     out = []
     l = list(set(l))
     l.sort()
@@ -221,7 +238,7 @@ def int2range(l):
 
 
 def is_iterable(l):
-    '''
+    """
     Checks if provided object is iterable.
     Returns True is it is iterable, otherwise returns False.
 
@@ -238,7 +255,7 @@ def is_iterable(l):
 
         Current implementation is primitive and HAVE TO be replaced.
 
-    '''
+    """
     try:
         _ = (e for e in l)
         return True
@@ -248,7 +265,7 @@ def is_iterable(l):
 
 
 def sortify(gen):
-    '''
+    """
     Decorator to convert functions' outputs into a sorted list. If the output is iterable it is converted in to a list
     of appropriate length. If the output is not iterable it is converted in to a list of length 1.
 
@@ -256,7 +273,7 @@ def sortify(gen):
 
     :returns: Output of decorated function converted to a sorted list.
     :rtype: list
-    '''
+    """
 
     @wraps(gen)
     def patched(*args, **kwargs):
@@ -269,8 +286,9 @@ def sortify(gen):
 
     return patched
 
+
 def uniqify(gen):
-    '''
+    """
     Decorator to convert functions' outputs into a sorted list of unique objects. If the output is iterable it is
     converted in to a list of appropriate length. If the output is not iterable it is converted in to a list of length 1.
 
@@ -278,7 +296,7 @@ def uniqify(gen):
 
     :returns: Output of decorated function converted to a sorted list of unique objects.
     :rtype: list
-    '''
+    """
 
     @wraps(gen)
     def patched(*args, **kwargs):
@@ -292,9 +310,8 @@ def uniqify(gen):
     return patched
 
 
-
 def listify(gen):
-    '''
+    """
     Decorator to convert functions' outputs into a list. If the output is iterable it is converted in to a list
     of appropriate length. If the output is not iterable it is converted in to a list of length 1.
 
@@ -306,7 +323,7 @@ def listify(gen):
 
     :returns: Output of decorated function converted to a list.
     :rtype: list
-    '''
+    """
 
     @wraps(gen)
     def patched(*args, **kwargs):
@@ -319,7 +336,7 @@ def listify(gen):
 
 
 def tupleify(gen):
-    '''
+    """
     Decorator to convert functions' outputs into a tuple. If the output is iterable it is converted in to a tuple
     of apropriate length. If the output is not iterable it is converted in to a tuple of length 1.
 
@@ -327,7 +344,7 @@ def tupleify(gen):
 
     :returns: Output of decorated function converted to a tuple.
     :rtype: tuple
-    '''
+    """
 
     @wraps(gen)
     def patched(*args, **kwargs):
@@ -340,7 +357,7 @@ def tupleify(gen):
 
 
 def arrayify(gen):
-    '''
+    """
     Decorator to convert functions' outputs into a 2D numpy array. If the output is iterable it is converted in to a 2D numpy array
     of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.
 
@@ -348,7 +365,7 @@ def arrayify(gen):
 
     :returns: Output of decorated function converted to a 2D numpy array.
     :rtype: numpy.ndarray
-    '''
+    """
 
     @wraps(gen)
     def patched(*args, **kwargs):
@@ -361,7 +378,7 @@ def arrayify(gen):
 
 
 def arrayify1(gen):
-    '''
+    """
     Decorator to convert functions' outputs into a 1D numpy array. If the output is iterable it is converted in to a 2D numpy array
     of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.
 
@@ -369,7 +386,7 @@ def arrayify1(gen):
 
     :returns: Output of decorated function converted to a 1D numpy array.
     :rtype: numpy.ndarray
-    '''
+    """
 
     @wraps(gen)
     def patched(*args, **kwargs):
@@ -382,14 +399,14 @@ def arrayify1(gen):
 
 
 def list_blocks_to_slices(l):
-    '''
+    """
     Slices list in to block according to its elements identity. Resulting slices correspond to blocks of
     identical elements.
 
     :param list l: List of any objects.
     :return: Generator of slices.
     :rtype: generator
-    '''
+    """
     # TODO: poprawic opis
     n = len(l)
     if n in [0, 1]:
@@ -408,7 +425,7 @@ def list_blocks_to_slices(l):
 
 @tupleify
 def what2what(what, towhat):
-    '''
+    """
     what2what(what, towhat)
     This function search if elements of the one list (:attr: 'what') are present in the other list (:attr: 'towhat') and returns indices of elements form :attr:'what' list as a tuple.
     If elements from the first list are not present in the second list the tuple is empty.
@@ -416,7 +433,7 @@ def what2what(what, towhat):
     :param list towhat: List of elements which input list is indexed to.
     :return: Indices of :attr:`what` list that are present in :attr:`towhat` list.
     :rtype: tuple
-    '''
+    """
     # todo poprawic opis
     towhat = make_iterable(towhat)
     for nr, w in enumerate(make_iterable(what)):
@@ -425,13 +442,13 @@ def what2what(what, towhat):
 
 
 def make_iterable(something):
-    '''
+    """
     If input object is not iterable returns it as one element list. Otherwise returns the object.
 
     :param object something: Input object.
     :return: Iterable object.
     :rtype: iterable or list
-    '''
+    """
     if not is_iterable(something):
         return [something]
     return something
@@ -481,7 +498,8 @@ def zip_zip(*args, **kwargs):
         yield tuple(this_yield)
         position = next_position
 
-def xzip_xzip(*args,**kwargs):
+
+def xzip_xzip(*args, **kwargs):
     if 'N' in kwargs.keys():
         N = kwargs['N']
     else:
@@ -490,7 +508,7 @@ def xzip_xzip(*args,**kwargs):
 
     for n in xrange(N):
         this_yield = []
-        #next_position = [float(a) / N + p for a, p in zip(args, position)]
+        # next_position = [float(a) / N + p for a, p in zip(args, position)]
         next_position_ = (float(args[i]) / N + position[i] for i in xrange(len(args)))
         next_position = []
         for i in xrange(len(args)):
@@ -499,11 +517,10 @@ def xzip_xzip(*args,**kwargs):
             next_position.append(next_position_.next())
             inp = int(next_position[-1])
             if n + 1 == N:
-                this_yield.append(slice(ip,None))
+                this_yield.append(slice(ip, None))
             else:
                 if ip == inp:
                     inp += 1
-                this_yield.append(slice(ip,inp))
+                this_yield.append(slice(ip, inp))
         yield tuple(this_yield)
         position = next_position
-

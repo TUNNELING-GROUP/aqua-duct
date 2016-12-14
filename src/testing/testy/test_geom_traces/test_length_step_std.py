@@ -1,5 +1,5 @@
 from unittest import TestCase
-from aqueduct.geom.traces import length_step_std
+from aquaduct.geom.traces import length_step_std
 import numpy as np
 import math
 

@@ -1,5 +1,5 @@
 from unittest import TestCase
-from aqueduct.geom.traces import midpoints
+from aquaduct.geom.traces import midpoints
 import numpy as np
 
 

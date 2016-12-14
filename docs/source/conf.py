@@ -19,7 +19,7 @@ import os
 # Ubuntu inherits this behavior. It prevents virtualenv of being effective
 # in building docs for cutting edge AQ in the presence of globally instaled
 # version.
-[sys.path.pop(i) for i in [nr for nr,p in enumerate(sys.path) if 'aqueduct' in p and 'dist-packages' in p][::-1]]
+[sys.path.pop(i) for i in [nr for nr,p in enumerate(sys.path) if 'aquaduct' in p and 'dist-packages' in p][::-1]]
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -90,8 +90,8 @@ copyright = u'2016, Tomasz Magdziarz'
 # built documents.
 #
 # The short X.Y version.
-import aqueduct
-version = aqueduct.version_nice()
+import aquaduct
+version = aquaduct.version_nice()
 # The full version, including alpha/beta/rc tags.
 release = version
 
@@ -268,7 +268,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'aqueduct', u'Aqueduct Documentation',
+    ('index', 'aquaduct', u'Aqueduct Documentation',
      [u'Tomasz Magdziarz'], 1)
 ]
 

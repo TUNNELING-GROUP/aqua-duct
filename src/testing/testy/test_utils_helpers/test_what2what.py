@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from aqueduct.utils.helpers import what2what
+from aquaduct.utils.helpers import what2what
 
 class TestWhat2what(TestCase):
     def test_what2what_output_type(self):

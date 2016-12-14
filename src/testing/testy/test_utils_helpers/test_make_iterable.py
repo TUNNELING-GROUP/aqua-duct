@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from aqueduct.utils.helpers import make_iterable
+from aquaduct.utils.helpers import make_iterable
 
 
 class TestMake_iterable(TestCase):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from unittest import TestCase
-from aqueduct.utils.helpers import arrayify
+from aquaduct.utils.helpers import arrayify
 import numpy
 
 class TestArrayify(TestCase):
@@ -51,7 +51,7 @@ class TestArrayify(TestCase):
         @arrayify
         def do_sth_with_table(tables):
             output=tables*10
-            return(output)
+            return output
 
         one_element = 10
         res = (1, 1)

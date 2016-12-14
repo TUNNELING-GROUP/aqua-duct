@@ -1,6 +1,6 @@
 
 from unittest import TestCase
-from aqueduct.geom.traces import LinearizeRecursiveTriangle
+from aquaduct.geom.traces import LinearizeRecursiveTriangle
 import numpy as np
 import types
 

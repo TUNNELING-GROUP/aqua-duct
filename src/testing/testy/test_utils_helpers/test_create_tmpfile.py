@@ -3,7 +3,7 @@ from unittest import TestCase
 import shutil, tempfile
 import os
 from os import path
-from aqueduct.utils.helpers import create_tmpfile
+from aquaduct.utils.helpers import create_tmpfile
 
 # source: https://gist.github.com/odyniec/d4ea0959d4e0ba17a980
 

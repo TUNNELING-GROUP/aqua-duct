@@ -1,14 +1,31 @@
 # -*- coding: utf-8 -*-
 
+# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
+# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import logging
+
 logger = logging.getLogger(__name__)
 import numpy as np
 from collections import namedtuple
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, squareform
 import copy
 
-from aqueduct.utils.helpers import is_iterable, listify, lind
-from aqueduct.utils import clui
+from aquaduct.utils.helpers import is_iterable, listify, lind
+from aquaduct.utils import clui
 
 
 class ProtoInletTypeCodes:
@@ -54,7 +71,8 @@ class InletClusterGenericType(object):
     def output(self):
         return self.clusters[-1]
 
-    def cluster2str(self, cl):
+    @staticmethod
+    def cluster2str(cl):
         if cl is None:
             return 'N'
         return '%d' % int(cl)
@@ -102,6 +120,19 @@ class InletClusterGenericType(object):
         return hash(str(self))
 
 
+# alien
+def make_spherical(xyz):
+    #http://stackoverflow.com/questions/4116658/faster-numpy-cartesian-to-spherical-coordinate-conversion#4116899
+    assert xyz.ndim == 2
+    sph = np.zeros(xyz.shape)
+    xy = xyz[:,0]**2 + xyz[:,1]**2
+    sph[:,0] = np.sqrt(xy + xyz[:,2]**2)
+    sph[:,1] = np.arctan2(np.sqrt(xy), xyz[:,2]) # for elevation angle defined from Z-axis down
+    #sph[1] = np.arctan2(xyz[2], np.sqrt(xy)) # for elevation angle defined from XY-plane up
+    sph[:,2] = np.arctan2(xyz[:,1], xyz[:,0])
+    return sph
+
+
 class InletClusterExtendedType(InletClusterGenericType):
     def __init__(self, surfin, interin, interout, surfout):
         InletClusterGenericType.__init__(self, surfin, surfout)
@@ -117,8 +148,9 @@ Inlet = namedtuple('Inlet', 'coords type reference')
 
 class Inlets(object):
     # class for list of inlets
-    def __init__(self, spaths, onlytype=InletTypeCodes.all_surface):
+    def __init__(self, spaths, center_of_system=None, onlytype=InletTypeCodes.all_surface):
 
+        self.center_of_system = center_of_system
         self.onlytype = onlytype
         self.inlets_list = []
         self.inlets_ids = []
@@ -164,14 +196,33 @@ class Inlets(object):
     def refs(self):
         return [inlet.reference for inlet in self.inlets_list]
 
+    def call_clusterization_method(self, method, data):
+        # this method runs clusterization method against provided data
+        # if center_of_system was set then use distance matrix...
+        #if self.center_of_system is not None:
+        if False:
+            pass
+            #D = squareform(pdist(make_spherical(np.array(data)-self.center_of_system),'cosine'))
+            #logger.debug("Inlets' coordinates changed to cosine distance of %d variables" % D.shape[0])
+            #return method(D)
+            #return method(np.array(data) - self.center_of_system)
+            #sph = make_spherical(np.array(data)-self.center_of_system)
+            #sph /= np.std(sph)
+            #D = squareform(pdist(np.array(data)-self.center_of_system,'cosine'))
+            #logger.debug("Inlets' coordinates changed to cosine distance of %d variables" % D.shape[0])
+            #return method(sph)
+            #return method(D)
+        return method(np.array(data))
+
+
     def perform_clustering(self, method):
         # this do clean clustering, all previous clusters are discarded
         # 0 means outliers
-        self.add_cluster_annotations(method(np.array(self.coords)))
+        self.add_cluster_annotations(self.call_clusterization_method(method,self.coords))
         self.number_of_clustered_inlets = len(self.clusters)
-        clui.message("New clusters created: %s" % (' '.join(map(str,sorted(set(self.clusters))))))
+        clui.message("New clusters created: %s" % (' '.join(map(str, sorted(set(self.clusters))))))
         # renumber clusters
-        #self.renumber_clusters()
+        # self.renumber_clusters()
 
     def perform_reclustering(self, method, skip_outliers=False, skip_size=None):
         # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
@@ -192,32 +243,35 @@ class Inlets(object):
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
         # renumber clusters
-        #self.renumber_clusters()
+        # self.renumber_clusters()
 
+    #CLUSTER
     def recluster_cluster(self, method, cluster):
         if cluster in self.clusters_list:
             logger.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
-            reclust = method(np.array(self.lim2clusters(cluster).coords))
+            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords)
             if len(set(reclust)) <= 1:
                 clui.message('No new clusters found.')
             else:
                 # how many clusters? what aboout outliers?
                 n_reclust = len(set(reclust))
                 out_reclust = 0 in reclust
-                clui.message('Cluster %d was split into %d clusters.' % (cluster,n_reclust))
+                clui.message('Cluster %d was split into %d clusters.' % (cluster, n_reclust))
                 if out_reclust:
                     clui.message('Outliers were detected and will have annotation of the old cluster %d.' % cluster)
                 else:
                     clui.message('No outliers were detected, the old cluster %d will be removed.' % cluster)
                 # change numbers of reclust
                 max_cluster = max(self.clusters_list)
-                for nr,r in enumerate(reclust):
+                for nr, r in enumerate(reclust):
                     if r != 0:
                         reclust[nr] = r + max_cluster
                 if out_reclust:
-                    clui.message('The old cluster %d will be split into new clusters: %s' % (cluster,(' '.join(map(str,sorted(set(reclust))[1:])))))
+                    clui.message('The old cluster %d will be split into new clusters: %s' % (
+                        cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))
                 else:
-                    clui.message('The old cluster %d will be split into new clusters: %s' % (cluster, (' '.join(map(str, sorted(set(reclust)))))))
+                    clui.message('The old cluster %d will be split into new clusters: %s' % (
+                        cluster, (' '.join(map(str, sorted(set(reclust)))))))
                 # add new clusters
                 nrr = 0
                 for nr, c in enumerate(self.clusters):
@@ -231,7 +285,7 @@ class Inlets(object):
     def recluster_outliers(self, method):
         self.recluster_cluster(method, 0)
         # renumber clusters
-        #self.renumber_clusters()
+        # self.renumber_clusters()
 
     def small_clusters_to_outliers(self, maxsize):
         for c in self.clusters_list:
@@ -241,8 +295,8 @@ class Inlets(object):
                 for nr, cc in enumerate(self.clusters):
                     if cc == c:
                         self.clusters[nr] = 0
-        # renumber clusters
-        #self.renumber_clusters()
+                        # renumber clusters
+                        # self.renumber_clusters()
 
     def renumber_clusters(self):
         if 0 in self.clusters_list:
@@ -269,7 +323,8 @@ class Inlets(object):
         else:
             new_numbers = [old_numbers[i] for i in np.argsort(old_sizes).tolist()[::-1]]
             new_sizes = [old_sizes[i] for i in np.argsort(old_sizes).tolist()[::-1]]
-        trans_dict = {n: o for o, n in zip(old_numbers, new_numbers)}
+        #trans_dict = {n: o for o, n in zip(old_numbers, new_numbers)}
+        trans_dict = dict((n,o) for o, n in zip(old_numbers, new_numbers)) # more universal as dict comprehension may not work in <2.7
         new_clusters = []
         for c in self.clusters:
             new_clusters.append(trans_dict[c])

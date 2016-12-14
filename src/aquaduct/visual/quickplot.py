@@ -1,11 +1,28 @@
 # -*- coding: utf-8 -*-
+
+# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
+# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import numpy as np
 
 import matplotlib.pyplot as plt
 
-from aqueduct.geom import traces
-from aqueduct.utils.helpers import list_blocks_to_slices
-from aqueduct.visual.helpers import color_codes, cc
+from aquaduct.geom import traces
+from aquaduct.utils.helpers import list_blocks_to_slices
+from aquaduct.visual.helpers import color_codes, cc
 
 
 # matplotlib specific
@@ -39,7 +56,6 @@ def yield_spath_len_and_smooth_diff_in_types_slices(sp, smooth=None, smooth_len=
         while len(etype) > len(ld):
             etype.pop(-1)
         yield ld, sd, etype
-
 
 
 def plot_colorful_lines(x, y, c, **kwargs):
