@@ -1,9 +1,9 @@
 *Valve* tutorial
 ================
 
-This is a tentative *Valve* manual. Created for the sake of Aqueduct training we have today. Eventually, it will be rewritten to the official version.
+This is a tentative *Valve* manual. Created for the sake of Aqua-Duct training we have today. Eventually, it will be rewritten to the official version.
 
-This tutorial assumes :mod:`aqueduct` and *Valve* is already installed - see :doc:`../aqueduct_install`. It is also assumed that user is acquainted with :doc:`valve_manual` and *Valve* :doc:`valve_config`.
+This tutorial assumes :mod:`aquaduct` and *Valve* is already installed - see :doc:`../aquaduct_install`. It is also assumed that user is acquainted with :doc:`valve_manual` and *Valve* :doc:`valve_config`.
 
 
 *Valve* invocation
@@ -104,8 +104,7 @@ Feedback
 Give us your opinion. Send your questions, inquires, anything to developer(s): `<info@aquaduct.pl>`_.
 This are couple of questions that might be useful to form your opinion.
 
-#. What do you like in *Valve* and *Aqueduct*?
-#. What do you do not like in *Valve* or *Aqueduct*?
+#. What do you like in *Valve* and *Aqua-Duct*?
+#. What do you do not like in *Valve* or *Aqua-Duct*?
 #. What is missing?
 #. Do you find it useful?
-

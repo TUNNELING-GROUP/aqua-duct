@@ -557,11 +557,11 @@ def save_dump(filename, data_to_save, **kwargs):
 
 class LoadDumpWrapper(object):
     """This is wrapper for pickled data that provides compatibility
-    with earlier versions of Aquaduct.
+    with earlier versions of Aqua-Duct.
 
     Conversions in use:
 
-    1) replace 'aquaduct.' by 'aquaduct.'
+    1) replace 'aqueduct.' by 'aquaduct.'
 
     """
 
@@ -569,7 +569,7 @@ class LoadDumpWrapper(object):
         self.fh = filehandle
 
     def convert(self,s):
-        return s.replace('aquaduct.','aquaduct.')
+        return s.replace('aqueduct.','aquaduct.')
 
     def read(self,*args,**kwargs):
         return self.convert(self.fh.read(*args,**kwargs))
@@ -618,7 +618,7 @@ def check_versions(version_dict):
     assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
     assert 'version' in version_dict, "File is corrupted, cannot read version data."
     assert 'aquaduct_version' in version_dict, "File is corrupted, cannot read version data."
-    check_version_compliance(aquaduct_version(), version_dict['aquaduct_version'], 'Aqueduct')
+    check_version_compliance(aquaduct_version(), version_dict['aquaduct_version'], 'Aqua-Duct')
     check_version_compliance(version(), version_dict['version'], 'Valve')
 
 
@@ -841,7 +841,7 @@ def get_linearize_method(loption):
 
 def valve_begin():
     clui.message(greetings_aquaduct())  # nice greetings
-    clui.message('Aqueduct version %s' % aquaduct_version_nice())
+    clui.message('Aqua-Duct version %s' % aquaduct_version_nice())
     clui.message('Valve driver version %s' % version_nice())
     clui.message(sep())
 
@@ -943,7 +943,7 @@ def stage_I_run(config, options,
         # create some containers
         res_ids_in_object_over_frames = {}
         all_res = None
-        
+
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
             if frame > max_frame:
@@ -1730,7 +1730,7 @@ def stage_V_run(config, options,
 
     ############
     pa.sep()
-    pa('Aqueduct analysis')
+    pa('Aqua-Duct analysis')
     pa(clui.get_str_timestamp())
 
     ############
@@ -1782,7 +1782,7 @@ def stage_V_run(config, options,
     ctypes_generic_list = sorted(ctypes_generic_list, key=lambda ctyp: ctypes_size[ctypes_generic_list.index(ctyp)],
                                  reverse=True)
     '''
-    
+
     for nr, ct in enumerate(ctypes_generic_list):
         sps = lind(spaths, what2what(ctypes_generic, [ct]))
         ctypes_size.append(len(sps))
@@ -2036,7 +2036,7 @@ Valve driver version %s''' % (aquaduct_version_nice(), version_nice())
     parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                         help="Dumps template config file. Suppress all other output or actions.")
     parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
-                        help="Limit Aqueduct calculations to given number of threads.")
+                        help="Limit Aqua-Duct calculations to given number of threads.")
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
     parser.add_argument("--max-frame", action="store", dest="max_frame", required=False, help="Limit number of frames.")
     parser.add_argument("--version", action="store_true", dest="print_version", required=False,
