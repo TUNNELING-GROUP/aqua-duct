@@ -27,8 +27,8 @@ This section allows settings of trajectory data and some other future global opt
 ======  =============   ==========================================================================
 Option  Default value   Description
 ======  =============   ==========================================================================
-top     None            Path to topology file. Aquaduct supports PDB, PRMTOP, PFS topology files.
-trj     None            Path to trajectory file. Aquaduct supports NC and DCD trajectory files.
+top     None            Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.
+trj     None            Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.
 ======  =============   ==========================================================================
 
 .. note::
