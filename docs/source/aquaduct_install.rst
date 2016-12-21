@@ -1,4 +1,4 @@
-Aqueduct installation guide
+Aquaduct installation guide
 ===========================
 
 Overview
@@ -7,15 +7,15 @@ Overview
 
 This package comprises of two elements:
 
-#. aqueduct,
+#. aquaduct,
 #. valve.
 
-Aqueduct is a Python module. It is a collection of tools to trace residues in MD simulation. Valve is a driver Python script. It uses aqueduct to perform such a tracing. Valve is shipped together with Aqueduct.
+Aquaduct is a Python module. It is a collection of tools to trace residues in MD simulation. Valve is a driver Python script. It uses aquaduct to perform such a tracing. Valve is shipped together with Aquaduct.
 
 Install
 -------
 
-Aqueduct
+Aquaduct
 ^^^^^^^^
 
 Installation was tested on limited number of POSIX-like systems.
@@ -23,27 +23,27 @@ Installation was tested on limited number of POSIX-like systems.
 In some specific cases installation is very simple:
 
 #. Download :download:`aquaduct_0.2.25.tar.gz` bundle file.
-#. Unpack aqueduct bundle file.
+#. Unpack aquaduct bundle file.
 #. Go to src directory.
 #. Type::
 
     python setup.py install
 
-Aqueduct requires several Python modules to work and in particular it requires MDAnalysis with AMBER support. This, on the other hand, requires netCDF4. Installation of this combination is sometimes cumbersome. General procedure is following:
+Aquaduct requires several Python modules to work and in particular it requires MDAnalysis with AMBER support. This, on the other hand, requires netCDF4. Installation of this combination is sometimes cumbersome. General procedure is following:
 
 #. Install libnetcdf4 and libhdf5 development libraries.
 #. Install netCDF4::
 
     pip install netCDF4
 
-#. Try to install aqueduct.
+#. Try to install aquaduct.
 
 If, by chance, you are on Ubuntu 14.04 you can try helper script :download:`ubuntu_mdanalysis_install_helper.sh`.
 
 Valve
 ^^^^^
 
-Valve does not need installation *per se*. Once aqueduct is installed, valve can be run by a following command::
+Valve does not need installation *per se*. Once aquaduct is installed, valve can be run by a following command::
 
     valve.py --help
 
@@ -52,7 +52,7 @@ Valve script, ie valve.py, is located in apps directory.
 Extras
 ^^^^^^
 
-Access to some visualization capabilities of Aqueduct requires additional Python modules:
+Access to some visualization capabilities of Aquaduct requires additional Python modules:
 
 #. matplotlib,
 #. pymol.

@@ -561,7 +561,7 @@ class LoadDumpWrapper(object):
 
     Conversions in use:
 
-    1) replace 'aqueduct.' by 'aquaduct.'
+    1) replace 'aquaduct.' by 'aquaduct.'
 
     """
 
@@ -569,7 +569,7 @@ class LoadDumpWrapper(object):
         self.fh = filehandle
 
     def convert(self,s):
-        return s.replace('aqueduct.','aquaduct.')
+        return s.replace('aquaduct.','aquaduct.')
 
     def read(self,*args,**kwargs):
         return self.convert(self.fh.read(*args,**kwargs))
