@@ -64,9 +64,9 @@ from scipy.spatial.distance import cdist
 # If scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation.
 # This warning emerges if MDAnalysis is imported and then scipy. Observed under Ubuntu 14.04.
 
-from aquaduct import greetings as greetings_aqueduct
-from aquaduct import version as aqueduct_version
-from aquaduct import version_nice as aqueduct_version_nice
+from aquaduct import greetings as greetings_aquaduct
+from aquaduct import version as aquaduct_version
+from aquaduct import version_nice as aquaduct_version_nice
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch
 from aquaduct.geom.convexhull import is_point_within_convexhull
@@ -549,7 +549,7 @@ def save_dump(filename, data_to_save, **kwargs):
         with gzip.open(filename, mode='w', compresslevel=9) as f:
             # first version:
             pickle.dump({'version': version(),
-                         'aqueduct_version': aqueduct_version()}, f)
+                         'aquaduct_version': aquaduct_version()}, f)
             # then data to save:
             pickle.dump(data_to_save, f)
             # then other kwargs
@@ -561,7 +561,7 @@ class LoadDumpWrapper(object):
 
     Conversions in use:
 
-    1) replace 'aqueduct.' by 'aquaduct.'
+    1) replace 'aquaduct.' by 'aquaduct.'
 
     """
 
@@ -569,7 +569,7 @@ class LoadDumpWrapper(object):
         self.fh = filehandle
 
     def convert(self,s):
-        return s.replace('aqueduct.','aquaduct.')
+        return s.replace('aquaduct.','aquaduct.')
 
     def read(self,*args,**kwargs):
         return self.convert(self.fh.read(*args,**kwargs))
@@ -617,8 +617,8 @@ def check_version_compliance(current, loaded, what):
 def check_versions(version_dict):
     assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
     assert 'version' in version_dict, "File is corrupted, cannot read version data."
-    assert 'aqueduct_version' in version_dict, "File is corrupted, cannot read version data."
-    check_version_compliance(aqueduct_version(), version_dict['aqueduct_version'], 'Aqueduct')
+    assert 'aquaduct_version' in version_dict, "File is corrupted, cannot read version data."
+    check_version_compliance(aquaduct_version(), version_dict['aquaduct_version'], 'Aqueduct')
     check_version_compliance(version(), version_dict['version'], 'Valve')
 
 
@@ -840,8 +840,8 @@ def get_linearize_method(loption):
 ################################################################################
 
 def valve_begin():
-    clui.message(greetings_aqueduct())  # nice greetings
-    clui.message('Aqueduct version %s' % aqueduct_version_nice())
+    clui.message(greetings_aquaduct())  # nice greetings
+    clui.message('Aqueduct version %s' % aquaduct_version_nice())
     clui.message('Valve driver version %s' % version_nice())
     clui.message(sep())
 
@@ -2025,7 +2025,7 @@ if __name__ == "__main__":
     import argparse
 
     description_version = '''Aquaduct library version %s
-Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
+Valve driver version %s''' % (aquaduct_version_nice(), version_nice())
     description = '''Valve, Aquaduct driver'''
 
     parser = argparse.ArgumentParser(description=description,

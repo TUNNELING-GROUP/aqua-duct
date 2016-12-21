@@ -1,6 +1,6 @@
-aqueduct.geom.master module
+aquaduct.utils.maths module
 ===========================
 
-.. automodule:: aqueduct.geom.master
+.. automodule:: aquaduct.utils.maths
     :members:
     :show-inheritance:

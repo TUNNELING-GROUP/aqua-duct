@@ -1,6 +1,6 @@
-aqueduct.geom.smooth module
+aquaduct.traj.reader module
 ===========================
 
-.. automodule:: aqueduct.geom.smooth
+.. automodule:: aquaduct.traj.reader
     :members:
     :show-inheritance:

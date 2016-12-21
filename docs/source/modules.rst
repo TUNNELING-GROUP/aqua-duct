@@ -1,7 +1,7 @@
-aqueduct
+aquaduct
 ========
 
 .. toctree::
    :maxdepth: 4
 
-   aqueduct
+   aquaduct

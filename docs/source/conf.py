@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Aqueduct documentation build configuration file, created by
+# Aqua-Duct documentation build configuration file, created by
 # sphinx-quickstart on Tue Mar 22 21:59:29 2016.
 #
 # This file is execfile()d with the current directory set to its
@@ -82,7 +82,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Aqueduct'
+project = u'Aqua-Duct'
 copyright = u'2016, Tomasz Magdziarz'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -218,7 +218,7 @@ html_static_path = ['_static']
 #html_file_suffix = None
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'Aqueductdoc'
+htmlhelp_basename = 'Aqua-Duct_doc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -238,7 +238,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-  ('index', 'Aqueduct.tex', u'Aqueduct Documentation',
+  ('index', 'Aqua-Duct.tex', u'Aqua-Duct Documentation',
    u'Tomasz Magdziarz', 'manual'),
 ]
 
@@ -268,7 +268,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'aquaduct', u'Aqueduct Documentation',
+    ('index', 'aquaduct', u'Aqua-Duct Documentation',
      [u'Tomasz Magdziarz'], 1)
 ]
 
@@ -282,8 +282,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'Aqueduct', u'Aqueduct Documentation',
-   u'Tomasz Magdziarz', 'Aqueduct', 'One line description of project.',
+  ('index', 'Aqua-Duct', u'Aqua-Duct Documentation',
+   u'Tomasz Magdziarz', 'Aqua-Duct', 'One line description of project.',
    'Miscellaneous'),
 ]
 

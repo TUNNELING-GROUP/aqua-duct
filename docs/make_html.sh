@@ -20,19 +20,19 @@ fi
 PYTHONPATH_CACHE=$PYTHONPATH
 export PYTHONPATH=`pwd`/../src
 
-$SPHINX_APIDOC -f -e -o source/ ../src/aqueduct/
+$SPHINX_APIDOC -f -e -o source/ ../src/aquaduct/
 sed -i '/undoc/d' source/*.*.rst
 
 # ubuntu 14.04 helper
 cp ../src/ubuntu_mdanalysis_install_helper.sh source/
 
 # installation pkg & RST file!
-rm -rf ../aqueduct*.tar.gz
+rm -rf ../aquaduct*.tar.gz
 $( cd .. ; ./make_pkg.sh )
-rm -rf source/aqueduct*.tar.gz
-mv ../aqueduct*.tar.gz source/
-AQUEDUCT=$( basename $( ls source/aqueduct*.tar.gz ) )
-sed 's/AQUEDUCT/'$AQUEDUCT'/' source/aqueduct_install.template > source/aqueduct_install.rst
+rm -rf source/aquaduct*.tar.gz
+mv ../aquaduct*.tar.gz source/
+AQUADUCT=$( basename $( ls source/aquaduct*.tar.gz ) )
+sed 's/AQUADUCT/'$AQUADUCT'/' source/aquaduct_install.template > source/aquaduct_install.rst
 
 rm -rf -- build/html*
 $MAKE SPHINXBUILD=$SPHINXBUILD html
@@ -40,11 +40,11 @@ $MAKE SPHINXBUILD=$SPHINXBUILD html
 # rework links to other resources
 #find build/html/ -iname '*.html' -exec sed -i 's/localhost/'$( hostname )'/g' {} +
 
-rm -rf source/aqueduct*.tar.gz
+rm -rf source/aquaduct*.tar.gz
 
 export PYTHONPATH=$PYTHONPATH_CACHE
 
-rm -rf aqueduct_docs.zip
-$( cd build/html ; zip -r -9 ../../aqueduct_docs.zip * )
+rm -rf aquaduct_docs.zip
+$( cd build/html ; zip -r -9 ../../aquaduct_docs.zip * )
 
 #rsync -avz -P --delete build/html/ 192.168.1.15:/home/tljm/public_html/aq/

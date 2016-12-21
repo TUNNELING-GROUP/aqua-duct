@@ -20,7 +20,7 @@
 import sys
 from setuptools import find_packages, setup
 
-version = __import__('aqueduct').version_nice()  # version str
+version = __import__('aquaduct').version_nice()  # version str
 
 setup(name='aquaduct',
       version=version,

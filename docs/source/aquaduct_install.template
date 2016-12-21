@@ -22,7 +22,7 @@ Installation was tested on limited number of POSIX-like systems.
 
 In some specific cases installation is very simple:
 
-#. Download :download:`aqueduct_.tar.gz` bundle file.
+#. Download :download:`AQUEDUCT` bundle file.
 #. Unpack aqueduct bundle file.
 #. Go to src directory.
 #. Type::

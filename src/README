@@ -6,16 +6,16 @@ LICENSE
 OVERVIEW
 
     This package comprises of two elements:
-    1) aqueduct,
+    1) aquaduct,
     2) valve.
-    Aqueduct is a Python module. It is a collection of tools to trace
+    Aqua-Duct is a Python module. It is a collection of tools to trace
     residues in MD simulation.
     Valve is a driver Python script. It uses aqueduct to perform such
     a tracing.
 
 INSTALL
 
-    AQUEDUCT
+    AQUA-DUCT
 
         Installation was tested on limited number of POSIX-like systems.
         In some specific cases installation is very simple:

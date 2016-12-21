@@ -1,6 +1,6 @@
-aqueduct.utils.clui module
+aquaduct.traj.dumps module
 ==========================
 
-.. automodule:: aqueduct.utils.clui
+.. automodule:: aquaduct.traj.dumps
     :members:
     :show-inheritance:

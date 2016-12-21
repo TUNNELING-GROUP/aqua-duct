@@ -1,6 +1,6 @@
-aqueduct.geom.traces module
+aquaduct.traj.inlets module
 ===========================
 
-.. automodule:: aqueduct.geom.traces
+.. automodule:: aquaduct.traj.inlets
     :members:
     :show-inheritance:

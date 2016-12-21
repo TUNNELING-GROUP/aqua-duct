@@ -1,12 +1,12 @@
 
-*.prmtop*
-*.binpos*
-*.traj*
-*.nc*
-*.dcd*
-*.pdb*
+*.prmtop
+*.binpos
+*.traj
+*.nc
+*.dcd
+*.pdb
 
-*.dump*
+*.dump
 
 *.pyc
 *.pyo
