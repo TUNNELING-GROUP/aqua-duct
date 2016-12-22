@@ -1,5 +1,5 @@
 Aqua-Duct installation guide
-===========================
+============================
 
 Overview
 --------
@@ -16,7 +16,7 @@ Install
 -------
 
 Aqua-Duct
-^^^^^^^^
+^^^^^^^^^
 
 Installation was tested on limited number of POSIX-like systems.
 
