@@ -4,21 +4,64 @@ Aqua-Duct installation guide
 Overview
 --------
 
+Aqua-Duct software is software written in Python (CPython) and comprises of two elements:
 
-This package comprises of two elements:
+#. aquaduct - a Python package ,
+#. valve - a script that uses  :mod:`aquaduct` to perform calculations.
 
-#. aquaduct,
-#. valve.
+Requirements
+------------
 
-Aqua-Duct is a Python module. It is a collection of tools to trace residues in MD simulation. Valve is a driver Python script. It uses aquaduct to perform such a tracing. Valve is shipped together with Aqua-Duct.
+Software-wise requirements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* Python 2.7 (CPython implementation)
+    * numpy > 1.7
+    * scipy > 0.13
+
+Hardware-wise requirements
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Aqua-Duct should work on every machine on which you can install the above mentioned software. On computers older then 10 years it may work very slow though. We recommend 64bit SMP architecture, with at least 4GB RAM (32 GB RAM is recommended).
+
 
 Install
 -------
 
-Aqua-Duct
+Generic Python installation
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The easiest way to install Aqua-Duct you have to install Python and use following command::
+
+    pip install aquaduct
+
+Depending on the settings of your system you can prepend the above command with `sudo` or `doas` or do *user* instalation::
+
+    # sudo
+    sudo pip install aquaduct
+
+    # doas
+    doas pip install aquaduct
+
+    # 'user' installation
+    pip install aquaduct --user
+
+It is also good idea to try to install Aqua-Duct using virtualenv::
+
+    virtualenv aquaduct_installation
+    cd aquaduct_installation
+    . bin/activate
+    pip install aquaduct
+
+
+GNU/Linux
 ^^^^^^^^^
 
-Installation was tested on limited number of POSIX-like systems.
+Installation was tested on limited number of GNU/Linux systems. On the most of modern installations you can simply follow generic instructions, for example under Ubuntu 16.04 you can type::
+
+    sudo pip install aquaduct
+
+Other systems may require additional work:
 
 In some specific cases installation is very simple:
 
