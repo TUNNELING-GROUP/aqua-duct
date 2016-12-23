@@ -9,6 +9,12 @@ Aqua-Duct software is software written in Python (CPython) and comprises of two 
 #. aquaduct - a Python package ,
 #. valve - a script that uses  :mod:`aquaduct` to perform calculations.
 
+Troubleshooting
+---------------
+
+If you encounter any problems with installation do not hesitate to contact us at `<info@aquaduct.pl>`_. We are **REALLY** willing to help!
+
+
 Requirements
 ------------
 
@@ -59,6 +65,10 @@ Installation of Pymol
 Under most modern GNU/Linux distributions Pymol is available as a package in repositories. For example if you are under Ubuntu/Debian you can install it by following command::
 
     sudo apt-get install pymol
+
+Under Windows there are several ways to install Pymol, for more details see `Pymol web site <http://pymol.org>`_.
+
+Instructions for macOS are below.
 
 GNU/Linux
 ^^^^^^^^^
@@ -138,20 +148,49 @@ Windows
 
 Installation under Windows is also possible. The limiting factor is MDAnalysis which is not officially available under Windows yet. You can, however, install Cygwin and perofrom Aqua-Duct installation in Cygwin.
 
-Cygwin installation
-###################
+First, start with `Cygwin installation <https://cygwin.com/>`_. During the setup select following packages:
 
-#. Download setup and install Cygwin.
-#. Select following packages during Cygwin installation:
+* python (2.7)
+* python-devel (2.7)
+* python-cygwin
+* libnetcdf-devel
+* libhdf5-devel
+* libopenblas
+* lapack
 
-    #. 
+You can also select following packages:
 
-OpenBSD
-^^^^^^^
+* python-numpy
+* python-six
 
+.. note::
 
+    You can skip installation of these packages. If they are missing they will be installed automatically.
 
-Troubleshooting
----------------
+Another key component that have to be installed is C and C++ compilers. You can simply install gcc-g++ and gcc-fortran packages as a first choice.
 
-If you encounter any problems with installation do not hesitate to contact us at `<info@aquaduct.pl>`_. We are REALLY willing to help!
+Once Cygwin is installed with all required libraries you can perform following steps::
+
+    # install pip
+    easy_install-2.7 pip
+
+Cygwin does not provides xlocale.h header file and current NumPy version assumes it is available. o workaround this bug try following::
+
+    # prepare fake xlocale.h
+    ln -s /usr/include/locale.h xlocale.h
+    export CFLAGS="I"$( pwd )
+
+    # install SciPy
+    pip install scipy
+
+.. note::
+
+    This bug is already fixed in the development version of NumPy.
+
+Now, install scikit-learn and then Aqua-Duct::
+
+    # install scikit-learn
+    pip install scikit-learn
+
+    # finally, install aquaduct
+    pip install aquaduct
