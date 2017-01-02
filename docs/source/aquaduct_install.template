@@ -12,8 +12,14 @@ Aqua-Duct software is software written in Python (CPython) and comprises of two 
 Troubleshooting
 ---------------
 
-If you encounter any problems with installation do not hesitate to contact us at `<info@aquaduct.pl>`_. We are **REALLY** willing to help!
+If you encounter any problems with installation do not hesitate to contact us at `info@aquaduct.pl <info@aquaduct.pl>`_. We are **REALLY** willing to help!
 
+Please, provide us with us much info as you can. In particular try to include following information:
+
+* Operating system's name and version, and CPU architecture (if relevant).
+* Python version.
+* Command(s) you have used for installation.
+* Any error/warning/info message(s) that emerged during or after installation.
 
 Requirements
 ------------
@@ -21,18 +27,15 @@ Requirements
 Software-wise requirements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-* Python 2.7 (CPython implementation)
-    * numpy > 1.7
-    * scipy > 0.13
-*
+.. include:: aquaduct_install_requires.rst
 
 Hardware-wise requirements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Aqua-Duct should work on every machine on which you can install the above mentioned software. On computers older then 10 years it may work very slow though. We recommend 64bit SMP architecture, with at least 4GB RAM (32 GB RAM is recommended).
 
-Install
--------
+Installation
+------------
 
 Generic Python installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^

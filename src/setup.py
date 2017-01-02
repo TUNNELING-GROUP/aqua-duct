@@ -22,6 +22,18 @@ from setuptools import find_packages, setup
 
 version = __import__('aquaduct').version_nice()  # version str
 
+install_requires =['numpy>=1.7.0',
+                  'scipy>=0.13.0',
+                  'scikit-learn>=0.16.0',
+                  'MDAnalysis[amber]>=0.15.0',
+                  'roman>=2.0.0',
+                  ]
+
+def install_requires_nice(level=0):
+      import re
+      for ir in install_requires:
+            print ("    "*level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)',ir))
+
 setup(name='aquaduct',
       version=version,
       description='Tracing residues in MD simulation',
@@ -29,12 +41,7 @@ setup(name='aquaduct',
       author_email='info@aquaduct.pl',
       url='http://aquaduct.pl',
       packages=find_packages(include=['aquaduct*']),
-      install_requires=['numpy>=1.7.0',
-                        'scipy>=0.13.0',
-                        'scikit-learn>=0.16.0',
-                        'MDAnalysis[amber]>=0.15.0',
-                        'roman>=2.0.0',
-                        ],
+      install_requires=install_requires,
       extras_require={'full_pymol': ["pymol>=1.4"],
                       'graphs': ['matplotlib'],
                       },
