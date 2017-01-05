@@ -33,6 +33,9 @@ rm -rf source/aquaduct*.tar.gz
 mv ../aquaduct*.tar.gz source/
 AQUADUCT=$( basename $( ls source/aquaduct*.tar.gz ) )
 sed 's/AQUADUCT/'$AQUADUCT'/' source/aquaduct_install.template > source/aquaduct_install.rst
+AQPIP="pip install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
+#AQPIP="pip install aquaduct"
+sed -i -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.rst
 echo "* Python 2.7 (CPython implementation)" > source/aquaduct_install_requires.rst
 printf 'install_requires_nice(1)' | python -i ../src/setup.py -n --name | sed '1d' 2>&1 >> source/aquaduct_install_requires.rst | cat > /dev/null
 

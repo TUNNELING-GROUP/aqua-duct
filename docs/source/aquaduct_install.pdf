@@ -1,0 +1,1489 @@
+%PDF-1.4
+%“Œ‹ž ReportLab Generated PDF document http://www.reportlab.com
+1 0 obj
+<< /F1 2 0 R /F2 3 0 R /F3 5 0 R /F4 6 0 R /F5 8 0 R >>
+endobj
+2 0 obj
+<< /BaseFont /Helvetica /Encoding /WinAnsiEncoding /Name /F1 /Subtype /Type1 /Type /Font >>
+endobj
+3 0 obj
+<< /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding /Name /F2 /Subtype /Type1 /Type /Font >>
+endobj
+4 0 obj
+<< /A << /S /URI /Type /Action /URI (mailto:info@aquaduct.pl) >> /Border [ 0 0 0 ] /Rect [ 415.9127 603.0236 493.8827 615.0236 ] /Subtype /Link /Type /Annot >>
+endobj
+5 0 obj
+<< /BaseFont /Courier /Encoding /WinAnsiEncoding /Name /F3 /Subtype /Type1 /Type /Font >>
+endobj
+6 0 obj
+<< /BaseFont /Helvetica-Oblique /Encoding /WinAnsiEncoding /Name /F4 /Subtype /Type1 /Type /Font >>
+endobj
+7 0 obj
+<< /Annots [ 4 0 R ] /Contents 34 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 33 0 R /Resources << /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ] >> /Rotate 0 
+  /Trans <<  >> /Type /Page >>
+endobj
+8 0 obj
+<< /BaseFont /Helvetica-BoldOblique /Encoding /WinAnsiEncoding /Name /F5 /Subtype /Type1 /Type /Font >>
+endobj
+9 0 obj
+<< /A << /S /URI /Type /Action /URI (http://pymol.org) >> /Border [ 0 0 0 ] /Rect [ 408.3629 456.4236 481.1629 468.4236 ] /Subtype /Link /Type /Annot >>
+endobj
+10 0 obj
+<< /Annots [ 9 0 R ] /Contents 35 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 33 0 R /Resources << /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ] >> /Rotate 0 
+  /Trans <<  >> /Type /Page >>
+endobj
+11 0 obj
+<< /A << /S /URI /Type /Action /URI (http://brew.sh/) >> /Border [ 0 0 0 ] /Rect [ 400.4402 393.4236 447.1202 405.4236 ] /Subtype /Link /Type /Annot >>
+endobj
+12 0 obj
+<< /Annots [ 11 0 R ] /Contents 36 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 33 0 R /Resources << /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ] >> /Rotate 0 
+  /Trans <<  >> /Type /Page >>
+endobj
+13 0 obj
+<< /A << /S /URI /Type /Action /URI (https://cygwin.com/) >> /Border [ 0 0 0 ] /Rect [ 130.4829 753.0236 213.2829 765.0236 ] /Subtype /Link /Type /Annot >>
+endobj
+14 0 obj
+<< /Annots [ 13 0 R ] /Contents 37 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 33 0 R /Resources << /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ] >> /Rotate 0 
+  /Trans <<  >> /Type /Page >>
+endobj
+15 0 obj
+<< /A << /S /URI /Type /Action /URI (https://www.scipy.org/) >> /Border [ 0 0 0 ] /Rect [ 89.81291 698.0236 161.5129 710.0236 ] /Subtype /Link /Type /Annot >>
+endobj
+16 0 obj
+<< /Annots [ 15 0 R ] /Contents 38 0 R /MediaBox [ 0 0 595.2756 841.8898 ] /Parent 33 0 R /Resources << /Font 1 0 R /ProcSet [ /PDF /Text /ImageB /ImageC /ImageI ] >> /Rotate 0 
+  /Trans <<  >> /Type /Page >>
+endobj
+17 0 obj
+<< /Outlines 19 0 R /PageLabels 39 0 R /PageMode /UseNone /Pages 33 0 R /Type /Catalog >>
+endobj
+18 0 obj
+<< /Author () /CreationDate (D:20170105122124-01'00') /Creator (\(unspecified\)) /Keywords () /ModDate (D:20170105122124-01'00') /Producer (ReportLab PDF Library - www.reportlab.com) 
+  /Subject (\(unspecified\)) /Title (Aqua-Duct installation guide) /Trapped /False >>
+endobj
+19 0 obj
+<< /Count 17 /First 20 0 R /Last 25 0 R /Type /Outlines >>
+endobj
+20 0 obj
+<< /Dest [ 7 0 R /XYZ 62.69291 729.0236 0 ] /Next 21 0 R /Parent 19 0 R /Title (Overview) >>
+endobj
+21 0 obj
+<< /Dest [ 7 0 R /XYZ 62.69291 642.0236 0 ] /Next 22 0 R /Parent 19 0 R /Prev 20 0 R /Title (Troubleshooting) >>
+endobj
+22 0 obj
+<< /Count 2 /Dest [ 7 0 R /XYZ 62.69291 489.0236 0 ] /First 23 0 R /Last 24 0 R /Next 25 0 R /Parent 19 0 R 
+  /Prev 21 0 R /Title (Requirements) >>
+endobj
+23 0 obj
+<< /Dest [ 7 0 R /XYZ 62.69291 456.0236 0 ] /Next 24 0 R /Parent 22 0 R /Title (Software-wise requirements) >>
+endobj
+24 0 obj
+<< /Dest [ 7 0 R /XYZ 62.69291 309.0236 0 ] /Parent 22 0 R /Prev 23 0 R /Title (Hardware-wise requirements) >>
+endobj
+25 0 obj
+<< /Count 7 /Dest [ 7 0 R /XYZ 62.69291 237.0236 0 ] /First 26 0 R /Last 32 0 R /Parent 19 0 R /Prev 22 0 R 
+  /Title (Installation) >>
+endobj
+26 0 obj
+<< /Count 1 /Dest [ 7 0 R /XYZ 62.69291 204.0236 0 ] /First 27 0 R /Last 27 0 R /Next 28 0 R /Parent 25 0 R 
+  /Title (Generic Python installation) >>
+endobj
+27 0 obj
+<< /Dest [ 10 0 R /XYZ 62.69291 554.6236 0 ] /Parent 26 0 R /Title (Installation of PyMOL) >>
+endobj
+28 0 obj
+<< /Dest [ 10 0 R /XYZ 62.69291 426.4236 0 ] /Next 29 0 R /Parent 25 0 R /Prev 26 0 R /Title (GNU/Linux) >>
+endobj
+29 0 obj
+<< /Count 2 /Dest [ 12 0 R /XYZ 62.69291 614.6236 0 ] /First 30 0 R /Last 31 0 R /Next 32 0 R /Parent 25 0 R 
+  /Prev 28 0 R /Title (MacOS) >>
+endobj
+30 0 obj
+<< /Dest [ 12 0 R /XYZ 62.69291 542.6236 0 ] /Next 31 0 R /Parent 29 0 R /Title (System native Python) >>
+endobj
+31 0 obj
+<< /Dest [ 12 0 R /XYZ 62.69291 438.4236 0 ] /Parent 29 0 R /Prev 30 0 R /Title (Custom Python) >>
+endobj
+32 0 obj
+<< /Dest [ 12 0 R /XYZ 62.69291 149.8236 0 ] /Parent 25 0 R /Prev 29 0 R /Title (Windows) >>
+endobj
+33 0 obj
+<< /Count 5 /Kids [ 7 0 R 10 0 R 12 0 R 14 0 R 16 0 R ] /Type /Pages >>
+endobj
+34 0 obj
+<< /Length 7373 >>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 741.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4 Tm /F2 20 Tf 24 TL 99.37488 0 Td (Aqua-Duct installation guide) Tj T* -99.37488 0 Td ET
+Q
+Q
+q
+1 0 0 1 62.69291 708.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Overview) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 690.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Aqua-Duct software is software written in Python \(CPython\) and comprises of two elements:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 684.0236 cm
+Q
+q
+1 0 0 1 62.69291 684.0236 cm
+Q
+q
+1 0 0 1 62.69291 672.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 5.66 0 Td (1.) Tj T* -5.66 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (aquaduct - a Python package ,) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 666.0236 cm
+Q
+q
+1 0 0 1 62.69291 654.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 5.66 0 Td (2.) Tj T* -5.66 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (valve - a script that uses ) Tj 1 0 0 rg (:mod:`aquaduct` ) Tj 0 0 0 rg (to perform calculations.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 654.0236 cm
+Q
+q
+1 0 0 1 62.69291 621.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Troubleshooting) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 591.0236 cm
+q
+BT 1 0 0 1 0 14 Tm .454985 Tw 12 TL /F1 10 Tf 0 0 0 rg (If you encounter any problems with installation do not hesitate to contact us at ) Tj 0 0 .501961 rg (info@aquaduct.pl) Tj 0 0 0 rg (. We are) Tj T* 0 Tw /F2 10 Tf (REALLY ) Tj /F1 10 Tf (willing to help!) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 573.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Please, provide us with us much info as you can. In particular try to include following information:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 567.0236 cm
+Q
+q
+1 0 0 1 62.69291 567.0236 cm
+Q
+q
+1 0 0 1 62.69291 555.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Operating system's name and version, and CPU architecture \(if relevant\).) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 549.0236 cm
+Q
+q
+1 0 0 1 62.69291 537.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Python version.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 531.0236 cm
+Q
+q
+1 0 0 1 62.69291 519.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Command\(s\) you have used for installation.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 513.0236 cm
+Q
+q
+1 0 0 1 62.69291 501.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Any error/warning/info message\(s\) that emerged during or after installation.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 501.0236 cm
+Q
+q
+1 0 0 1 62.69291 468.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Requirements) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 438.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Software-wise requirements) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 426.0236 cm
+Q
+q
+1 0 0 1 62.69291 426.0236 cm
+Q
+q
+1 0 0 1 62.69291 321.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 90 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 90 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F2 10 Tf 12 TL (Python 2.7 \(CPython implementation\)) Tj T* ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 0 80 Tm  T* ET
+q
+1 0 0 1 20 84 cm
+Q
+q
+1 0 0 1 20 84 cm
+Q
+q
+1 0 0 1 20 72 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (numpy >) Tj (= 1.7.0) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 20 66 cm
+Q
+q
+1 0 0 1 20 54 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (scipy >) Tj (= 0.13.0) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 20 48 cm
+Q
+q
+1 0 0 1 20 36 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (scikit-learn >) Tj (= 0.16.0) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 20 30 cm
+Q
+q
+1 0 0 1 20 18 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (MDAnalysis[amber] >) Tj (= 0.15.0) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 20 12 cm
+Q
+q
+1 0 0 1 20 0 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (roman >) Tj (= 2.0.0) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 20 0 cm
+Q
+q
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 321.0236 cm
+Q
+q
+1 0 0 1 62.69291 291.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Hardware-wise requirements) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 249.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 26 Tm /F1 10 Tf 12 TL 1.386651 Tw (Aqua-Duct should work on every machine on which you can install the above mentioned software. On) Tj T* 0 Tw .017485 Tw (computers older then 10 years it may work very slow though. We recommend 64bit SMP architecture, with) Tj T* 0 Tw (at least 4GB RAM \(32 GB RAM is recommended\).) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 216.0236 cm
+q
+BT 1 0 0 1 0 3.5 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Installation) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 186.0236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Generic Python installation) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 168.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (The easiest way to install Aqua-Duct you have to install Python and use following command:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 134.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F3 10 Tf 12 TL (pip install aquaduct) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 102.8236 cm
+q
+BT 1 0 0 1 0 14 Tm .474431 Tw 12 TL /F1 10 Tf 0 0 0 rg (Depending on the settings of your system you can prepend the above command with ) Tj /F4 10 Tf 0 0 0 rg (sudo ) Tj /F1 10 Tf 0 0 0 rg (or ) Tj /F4 10 Tf 0 0 0 rg (doas ) Tj /F1 10 Tf 0 0 0 rg (or do) Tj T* 0 Tw /F4 10 Tf (user ) Tj /F1 10 Tf (instalation:) Tj T* ET
+Q
+Q
+ 
+endstream
+endobj
+35 0 obj
+<< /Length 4040 >>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 655.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 108 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 86 Tm /F3 10 Tf 12 TL (# sudo) Tj T* (sudo pip install aquaduct) Tj T*  T* (# doas) Tj T* (doas pip install aquaduct) Tj T*  T* (# 'user' installation) Tj T* (pip install aquaduct --user) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 635.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (It is also good idea to try to install Aqua-Duct using virtualenv:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 566.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 60 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 38 Tm /F3 10 Tf 12 TL (virtualenv aquaduct_installation) Tj T* (cd aquaduct_installation) Tj T* (. bin/activate) Tj T* (pip install aquaduct) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 539.6236 cm
+q
+BT 1 0 0 1 0 2.5 Tm 15 TL /F5 12.5 Tf 0 0 0 rg (Installation of PyMOL) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 509.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 2.886136 Tw (Under most modern GNU/Linux distributions PyMOL is available as a package in repositories. For) Tj T* 0 Tw (example if you are under Ubuntu/Debian you can install it by following command:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 476.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F3 10 Tf 12 TL (sudo apt-get install pymol) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 456.4236 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (Under Windows there are several ways to install PyMOL, for more details see ) Tj 0 0 .501961 rg (PyMOL web site) Tj 0 0 0 rg (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 438.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Instructions for macOS are below.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 408.4236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (GNU/Linux) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 378.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL .350651 Tw (Installation was tested on limited number of GNU/Linux systems. On the most of modern installations you) Tj T* 0 Tw (can simply follow generic instructions, for example under Ubuntu 16.04 you can type:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 345.2236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F3 10 Tf 12 TL (sudo pip install aquaduct) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 313.2236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 4.703314 Tw (Other systems may require additional work, in particular installation of NetCDF4 is sometimes) Tj T* 0 Tw (cumbersome. Following is an example how to install all required packages under Ubuntu 14.04:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 88.02362 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 654 216 re B*
+Q
+q
+BT 1 0 0 1 0 194 Tm 12 TL /F3 10 Tf 0 0 0 rg (# install required python packages) Tj T* (sudo apt-get install python-dev python-pip python-numpy python-scipy python-matplotlib python-scikits-learn) Tj T*  T* (# install necessary libraries and git -  all required to compile netCDF4) Tj T* (sudo apt-get -y install libnetcdf-dev libhdf5-dev git) Tj T*  T* (# clone netcdf4 python repository) Tj T* (git clone https://github.com/Unidata/netcdf4-python.git) Tj T* (# cd to cloned repository) Tj T* (cd netcdf4-python) Tj T* (# modify setup.cfg to add paths of hdf5 and netcdf4 libraries) Tj T* (sed -i '/\\[directories\\]/a \\) Tj T* (HDF5_dir = /usr/lib \\) Tj T* (HDF5_libdir = /usr/lib \\) Tj T* (HDF5_incdir = /usr/include \\) Tj T* (netCDF4_dir = /usr/lib \\) Tj T* (netCDF4_libdir = /usr/lib \\) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+ 
+endstream
+endobj
+36 0 obj
+<< /Length 4816 >>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 679.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 84 re B*
+Q
+q
+BT 1 0 0 1 0 62 Tm 12 TL /F3 10 Tf 0 0 0 rg (netCDF4_incdir = /usr/include' setup.cfg) Tj T* (# run setup.py) Tj T* (sudo python setup.py install) Tj T*  T* (# install MDAnalysis) Tj T* (sudo pip install "MDAnalysis[amber]) Tj (>) Tj (=0.15") Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 659.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (If everything went fine you can follow generic instructions, type:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 626.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F3 10 Tf 12 TL (sudo pip install aquaduct) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 596.6236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (MacOS) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 554.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 26 Tm /F1 10 Tf 12 TL .571984 Tw (Aqua-Duct installation was tested on MacOS Sierra and is quite straightforward. It can be installed either) Tj T* 0 Tw .111751 Tw (with existing system Python or with custom Python installation. In both cases one have to install Xcode for) Tj T* 0 Tw (the App Store.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 527.6236 cm
+q
+BT 1 0 0 1 0 2.5 Tm 15 TL /F5 12.5 Tf 0 0 0 rg (System native Python) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 482.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F3 10 Tf 12 TL (sudo easy_install pip) Tj T* (sudo pip install aquaduct) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 450.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL .84936 Tw (The drawback of using system Python installation is a lack of PyMOL. It should be, however, realatively) Tj T* 0 Tw (easy to compile PyMOL by yourown. Try to follow compilation instruction under BSD systems.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 423.4236 cm
+q
+BT 1 0 0 1 0 2.5 Tm 15 TL /F5 12.5 Tf 0 0 0 rg (Custom Python) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 381.4236 cm
+q
+BT 1 0 0 1 0 26 Tm .951235 Tw 12 TL /F1 10 Tf 0 0 0 rg (This is recomended way of aquaduct installation. If you do not have custom Python instalaltion you can) Tj T* 0 Tw .327485 Tw (get it by using one of package managers available for macOS, for example ) Tj 0 0 .501961 rg (homebrew) Tj 0 0 0 rg (. With this package) Tj T* 0 Tw (manager you can do following:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 324.2236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 48 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 26 Tm /F3 10 Tf 12 TL (brew install python) Tj T* (sudo easy_install pip) Tj T* (sudo pip install aquaduct) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 304.2236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Next, you can install PyMOL:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 259.0236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F3 10 Tf 12 TL (brew install pymol) Tj T* (brew cask install xquartz) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 227.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F1 10 Tf 12 TL 1.729213 Tw (Once XQuartz is installed you should reboot. The above procedure installs PyMOL, however, PyMOL) Tj T* 0 Tw (Python modules are not visible. To fix it you can issue following commands:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 181.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 474 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F3 10 Tf 12 TL (cd /usr/local/lib/python2.7/site-packages) Tj T* (sudo ln -s /usr/local/Cellar/pymol/*/libexec/lib/python2.7/site-packages/* ./) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 161.8236 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (The above instruction assumes that you are using ) Tj /F4 10 Tf 0 0 0 rg (brew ) Tj /F1 10 Tf 0 0 0 rg (and you have only one PyMOL installation.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 131.8236 cm
+q
+BT 1 0 0 1 0 3 Tm 18 TL /F2 15 Tf 0 0 0 rg (Windows) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 89.82362 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 26 Tm /F1 10 Tf 12 TL 2.602126 Tw (Installation under Windows is also possible. The limiting factor is MDAnalysis which is not officially) Tj T* 0 Tw 1.345366 Tw (available under Windows yet. You can, however, install Cygwin and perofrom Aqua-Duct installation in) Tj T* 0 Tw (Cygwin.) Tj T* ET
+Q
+Q
+ 
+endstream
+endobj
+37 0 obj
+<< /Length 6741 >>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 753.0236 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (First, start with ) Tj 0 0 .501961 rg (Cygwin installation) Tj 0 0 0 rg (. During the setup select following packages:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 747.0236 cm
+Q
+q
+1 0 0 1 62.69291 747.0236 cm
+Q
+q
+1 0 0 1 62.69291 735.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (python \(2.7\)) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 729.0236 cm
+Q
+q
+1 0 0 1 62.69291 717.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (python-devel \(2.7\)) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 711.0236 cm
+Q
+q
+1 0 0 1 62.69291 699.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (python-cython) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 693.0236 cm
+Q
+q
+1 0 0 1 62.69291 681.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (libnetcdf-devel) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 675.0236 cm
+Q
+q
+1 0 0 1 62.69291 663.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (libhdf5-devel) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 657.0236 cm
+Q
+q
+1 0 0 1 62.69291 645.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (liblapack-devel) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 639.0236 cm
+Q
+q
+1 0 0 1 62.69291 627.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (libopenblas) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 627.0236 cm
+Q
+q
+1 0 0 1 62.69291 609.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (You can also select following packages:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 603.0236 cm
+Q
+q
+1 0 0 1 62.69291 603.0236 cm
+Q
+q
+1 0 0 1 62.69291 591.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (python-numpy) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 585.0236 cm
+Q
+q
+1 0 0 1 62.69291 573.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (python-six) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 573.0236 cm
+Q
+q
+1 0 0 1 62.69291 561.0236 cm
+Q
+q
+1 0 0 1 62.69291 490.0236 cm
+.960784 .960784 .862745 rg
+n 0 71 469.8898 -71 re f*
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 6 45 Tm  T* ET
+q
+1 0 0 1 16 40 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2.5 Tm /F5 12.5 Tf 15 TL (Note) Tj T* ET
+Q
+Q
+q
+1 0 0 1 16 16 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (You can skip installation of these packages. If they are missing they will be installed automatically.) Tj T* ET
+Q
+Q
+q
+1 J
+1 j
+.662745 .662745 .662745 RG
+.5 w
+n 0 71 m 469.8898 71 l S
+n 0 0 m 469.8898 0 l S
+n 0 0 m 0 71 l S
+n 469.8898 0 m 469.8898 71 l S
+Q
+Q
+q
+1 0 0 1 62.69291 484.0236 cm
+Q
+q
+1 0 0 1 62.69291 454.0236 cm
+q
+BT 1 0 0 1 0 14 Tm .569986 Tw 12 TL /F1 10 Tf 0 0 0 rg (Another key component that have to be installed is C, C++ and Fortran compilers. You can simply install) Tj T* 0 Tw /F2 10 Tf (gcc-g++ ) Tj /F1 10 Tf (and ) Tj /F2 10 Tf (gcc-fortran ) Tj /F1 10 Tf (packages as a first choice, select following packages:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 448.0236 cm
+Q
+q
+1 0 0 1 62.69291 448.0236 cm
+Q
+q
+1 0 0 1 62.69291 436.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (gcc-g++) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 430.0236 cm
+Q
+q
+1 0 0 1 62.69291 418.0236 cm
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+q
+1 0 0 1 6 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 -3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (gcc-fortran) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 418.0236 cm
+Q
+q
+1 0 0 1 62.69291 400.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (Once Cygwin is installed with all required libraries you can perform following steps:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 354.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F3 10 Tf 12 TL (# install pip) Tj T* (easy_install-2.7 pip) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 334.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2 Tm /F1 10 Tf 12 TL (First, try to install SciPy:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 289.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 14 Tm /F3 10 Tf 12 TL (# install SciPy) Tj T* (pip install scipy) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 269.6236 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (If you encounter any problems related to missing ) Tj /F2 10 Tf (xlocale.h ) Tj /F1 10 Tf (header file try the following workaround:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 176.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 84 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 62 Tm /F3 10 Tf 12 TL (# prepare fake xlocale.h) Tj T* (ln -s /usr/include/locale.h xlocale.h) Tj T* (export CFLAGS="I"$\( pwd \)) Tj T*  T* (# install SciPy) Tj T* (pip install scipy) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 156.4236 cm
+Q
+ 
+endstream
+endobj
+38 0 obj
+<< /Length 1286 >>
+stream
+1 0 0 1 0 0 cm  BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 682.0236 cm
+.960784 .960784 .862745 rg
+n 0 83 469.8898 -83 re f*
+0 0 0 rg
+BT /F1 10 Tf 12 TL ET
+BT 1 0 0 1 6 57 Tm  T* ET
+q
+1 0 0 1 16 52 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 2.5 Tm /F5 12.5 Tf 15 TL (Note) Tj T* ET
+Q
+Q
+q
+1 0 0 1 16 16 cm
+q
+BT 1 0 0 1 0 14 Tm .709269 Tw 12 TL /F1 10 Tf 0 0 0 rg (The above procedure for SciPy installation might not be optimal. For more information please got) Tj T* 0 Tw (to ) Tj 0 0 .501961 rg (SciPy web page) Tj 0 0 0 rg (.) Tj T* ET
+Q
+Q
+q
+1 J
+1 j
+.662745 .662745 .662745 RG
+.5 w
+n 0 83 m 469.8898 83 l S
+n 0 0 m 469.8898 0 l S
+n 0 0 m 0 83 l S
+n 469.8898 0 m 469.8898 83 l S
+Q
+Q
+q
+1 0 0 1 62.69291 676.0236 cm
+Q
+q
+1 0 0 1 62.69291 658.0236 cm
+q
+BT 1 0 0 1 0 2 Tm 12 TL /F1 10 Tf 0 0 0 rg (Now, install ) Tj /F2 10 Tf (scikit-learn ) Tj /F1 10 Tf (and then Aqua-Duct:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 576.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 72 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 50 Tm /F3 10 Tf 12 TL (# install scikit-learn) Tj T* (pip install scikit-learn) Tj T*  T* (# finally, install aquaduct) Tj T* (pip install aquaduct) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+ 
+endstream
+endobj
+39 0 obj
+<< /Nums [ 0 40 0 R 1 41 0 R 2 42 0 R 3 43 0 R 4 44 0 R ] >>
+endobj
+40 0 obj
+<< /S /D /St 1 >>
+endobj
+41 0 obj
+<< /S /D /St 2 >>
+endobj
+42 0 obj
+<< /S /D /St 3 >>
+endobj
+43 0 obj
+<< /S /D /St 4 >>
+endobj
+44 0 obj
+<< /S /D /St 5 >>
+endobj
+xref
+0 45
+0000000000 65535 f
+0000000075 00000 n
+0000000149 00000 n
+0000000259 00000 n
+0000000374 00000 n
+0000000552 00000 n
+0000000660 00000 n
+0000000778 00000 n
+0000001005 00000 n
+0000001127 00000 n
+0000001298 00000 n
+0000001526 00000 n
+0000001697 00000 n
+0000001926 00000 n
+0000002101 00000 n
+0000002330 00000 n
+0000002508 00000 n
+0000002737 00000 n
+0000002846 00000 n
+0000003136 00000 n
+0000003214 00000 n
+0000003326 00000 n
+0000003458 00000 n
+0000003627 00000 n
+0000003757 00000 n
+0000003887 00000 n
+0000004043 00000 n
+0000004214 00000 n
+0000004327 00000 n
+0000004454 00000 n
+0000004617 00000 n
+0000004742 00000 n
+0000004860 00000 n
+0000004972 00000 n
+0000005063 00000 n
+0000012493 00000 n
+0000016590 00000 n
+0000021463 00000 n
+0000028261 00000 n
+0000029604 00000 n
+0000029684 00000 n
+0000029721 00000 n
+0000029758 00000 n
+0000029795 00000 n
+0000029832 00000 n
+trailer
+<< /ID 
+ % ReportLab generated PDF document -- digest (http://www.reportlab.com)
+ [(\326\370\244\256\326Zk\002\2308\350\203\(\216\035M) (\326\370\244\256\326Zk\002\2308\350\203\(\216\035M)]
+ /Info 18 0 R /Root 17 0 R /Size 45 >>
+startxref
+29869
+%%EOF

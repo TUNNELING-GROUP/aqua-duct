@@ -6,8 +6,6 @@
 Welcome to Aqua-Duct's documentation!
 =====================================
 
-Contents:
-
 .. toctree::
     :maxdepth: 1
     :titlesonly:
@@ -19,9 +17,10 @@ Contents:
     Aqua-Duct API documentation <modules>
 
 
-Indices and tables
-==================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+..  Indices and tables
+    ==================
+    * :ref:`genindex`
+    * :ref:`modindex`
+    * :ref:`search`
+
