@@ -16,6 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+from aquaduct.utils import clui
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
 from aquaduct.geom import traces
@@ -29,10 +34,19 @@ from aquaduct.utils.maths import make_default_array
 # paths/list manipulations
 # following part of code comes directly from the very initial tcl/vmd implementation
 # all following functions should return list
+# functions union_numeric and xor_numeric were added later in python implementation to speed up calculations
 
-def union(a, b):
+def union_full(a, b):
     return [aa for aa in a if aa in b]
 
+def union_numeric(a, b):
+    b_ = SmartRange(b)
+    return [aa for aa in a if b_.isin(aa)]
+
+def union(a,b,numeric=True):
+    if numeric:
+        return union_numeric(a,b)
+    return union_full(a,b)
 
 def glue(a, b):
     if a[-1] >= b[0]:
@@ -43,19 +57,31 @@ def glue(a, b):
 
 
 @listify
-def xor(a, b):
+def xor_full(a, b):
     ab = union(a, b)
     for e in glue(a, b):
         if e not in ab:
             yield e
 
+@listify
+def xor_numeric(a, b):
+    ab = SmartRange(union_numeric(a, b))
+    for e in glue(a, b):
+        if not ab.isin(e):
 
-def left(a, b):
-    return union(a, xor(a, b))
+            yield e
+
+def xor(a,b,numeric=True):
+    if numeric:
+        return xor_numeric(a,b)
+    return xor_full(a,b)
+
+def left(a, b, numeric=True):
+    return union(a, xor(a, b, numeric=numeric),numeric=numeric)
 
 
-def right(a, b):
-    return union(b, xor(a, b))
+def right(a, b,numeric=True):
+    return union(b, xor(a, b,numeric=numeric),numeric=numeric)
 
 
 ########################################################################################################################
@@ -68,23 +94,41 @@ class SmartRangeFunction(object):
         return "%s(%r,%d)" % (self.__class__.__name__,self.element,self.times)
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
+    def rev(self):
+        raise NotImplementedError('This method should be implemented in a child class.')
+    def isin(self,element):
+        raise NotImplementedError('This method should be implemented in a child class.')
 
 class SmartRangeEqual(SmartRangeFunction):
     def get(self):
         return [self.element] * self.times
+    def rev(self):
+        return self
+    def isin(self,element):
+        return element == self.element
 
 class SmartRangeIncrement(SmartRangeFunction):
     def get(self):
         return (self.element+i for i in xrange(self.times))
+    def rev(self):
+        return SmartRangeDecrement(self.element+self.times-1,self.times)
+    def isin(self,element):
+        return (element >= self.element) and (element <= self.element + self.times - 1)
 
 class SmartRangeDecrement(SmartRangeFunction):
     def get(self):
         return (self.element-i for i in xrange(self.times))
+    def rev(self):
+        return SmartRangeIncrement(self.element-self.times+1,self.times)
+    def isin(self,element):
+        return (element <= self.element) and (element >= self.element - self.times + 1)
 
 class SmartRange(object):
     def __init__(self,iterable=None):
         self.__elements = []
         self.__len = 0
+        self.__min = None
+        self.__max = None
         
         if iterable is not None:
             map(self.append,iterable)
@@ -116,6 +160,8 @@ class SmartRange(object):
         assert not isinstance(element, SmartRangeFunction)
         if len(self.__elements) == 0:
             self.__elements.append(element)
+            self.__min = element
+            self.__max = element
         else:
             if element == self.last_element():
                 if isinstance(self.__elements[-1],SmartRangeEqual) or (not isinstance(self.__elements[-1],SmartRangeFunction)):
@@ -135,6 +181,10 @@ class SmartRange(object):
                         else: self.__elements.append(element)
                     else:
                         self.__elements.append(element)
+            if element > self.__max:
+                self. __max = element
+            if element < self.__min:
+                self. __min = element
         self.__len += 1
         
     def get(self):
@@ -156,9 +206,31 @@ class SmartRange(object):
                         yield e
                         e -= 1
                 '''
+
+    def rev(self):
+        elements = []
+        for e in self.__elements[::-1]:
+            if isinstance(e, SmartRangeFunction):
+                elements.append(e.rev())
+            else:
+                elements.append(e)
+        self.__elements = elements
+
     def __len__(self):
         return self.__len
-        
+
+    def min(self):
+        return self.__min
+
+    def max(self):
+        return self.__max
+
+    def isin(self,element):
+        for block in self.raw:
+            if block.isin(element):
+                return True
+        return False
+
 ########################################################################################################################
 
 class PathTypesCodes():
@@ -202,10 +274,10 @@ class GenericPaths(object, GenericPathTypeCodes):
         return list(self.__frames.get())
     @property
     def max_frame(self):
-        return max(self.frames)
+        return self.__frames.max()
     @property
     def min_frame(self):
-        return min(self.frames)
+        return self.__frames.min()
 
     # add methods
 
@@ -250,18 +322,118 @@ class GenericPaths(object, GenericPathTypeCodes):
         if len(current_path) > 0:
             yield current_path
 
+    def _gpo(self):
+        n = len(self.__frames)
+        types = self.types
+        begin = 0
+        for block in self.__frames.raw:
+            end = begin + block.times
+            # get types of this block
+            block_frames = list(block.get())
+            block_types = types[begin:end]
+            begin = end
+            # now iterate over block_types in a search of out_name
+            if self.out_name in block_types:
+                while self.out_name in block_types:
+                    to_yield = block_frames[:block_types.index(self.out_name)]
+                    to_yield_types = block_types[:block_types.index(self.out_name)]
+                    if len(to_yield) > 0:
+                        while to_yield_types[0] != self.object_name:
+                            to_yield.pop(0)
+                            to_yield_types.pop(0)
+                            if len(to_yield) == 0:
+                                break
+                        if len(to_yield) > 0:
+                            yield to_yield
+                    block_types = block_types[block_types.index(self.out_name):]
+                    block_frames = block_frames[block_types.index(self.out_name):]
+            if len(block_frames) > 0:
+                while block_types[0] != self.object_name:
+                    block_frames.pop(0)
+                    block_types.pop(0)
+                    if len(block_frames) == 0:
+                        break
+                if len(block_frames) > 0:
+                    yield block_frames
+    '''
+    def _gpi(self):
+        n = len(self.__frames)
+        types = self.types[::-1]
+        begin = 0
+        for block in self.__frames.raw[::-1]:
+            end = begin + block.times
+            # get types of this block
+            block_frames = list(block.rev().get())
+            block_types = types[begin:end]
+            begin = end
+            # now iterate over block_types in a search of out_name
+            if self.out_name in block_types:
+                while self.out_name in block_types:
+                    to_yield = block_frames[:block_types.index(self.out_name)]
+                    to_yield_types = block_types[:block_types.index(self.out_name)]
+                    if len(to_yield) > 0:
+                        while to_yield_types[0] != self.object_name:
+                            to_yield.pop(0)
+                            to_yield_types.pop(0)
+                            if len(to_yield) == 0:
+                                break
+                        if len(to_yield) > 0:
+                            to_yield.sort()
+                            yield to_yield
+                    block_types = block_types[block_types.index(self.out_name):]
+                    block_frames = block_frames[block_types.index(self.out_name):]
+            if len(block_frames) > 0:
+                while block_types[0] != self.object_name:
+                    block_frames.pop(0)
+                    block_types.pop(0)
+                    if len(block_frames) == 0:
+                        break
+                if len(block_frames) > 0:
+                    block_frames.sort()
+                    yield block_frames
+    '''
     def _gpi(self):
         n = len(self.__frames)
         types = self.types
         begin = 0
         for block in self.__frames.raw:
+            end = begin + block.times
             # get types of this block
-            block_types = types[begin:begin+block.times]
-            # find out_name
-            
-            
-            
+            block_frames = list(block.get())
+            block_types = types[begin:end]
+            begin = end
+            # now iterate over block_types in a search of out_name
+            if self.out_name in block_types:
+                while self.out_name in block_types:
+                    to_yield = block_frames[:block_types.index(self.out_name)]
+                    to_yield_types = block_types[:block_types.index(self.out_name)]
+                    if len(to_yield) > 0:
+                        while to_yield_types[-1] != self.object_name:
+                            to_yield.pop(-1)
+                            to_yield_types.pop(-1)
+                            if len(to_yield) == 0:
+                                break
+                        if len(to_yield) > 0:
+                            yield to_yield
+                    block_types = block_types[block_types.index(self.out_name):]
+                    block_frames = block_frames[block_types.index(self.out_name):]
+            if len(block_frames) > 0:
+                while block_types[-1] != self.object_name:
+                    block_frames.pop(-1)
+                    block_types.pop(-1)
+                    if len(block_frames) == 0:
+                        break
+                if len(block_frames) > 0:
+                    yield block_frames
 
+
+    def get_paths_in(self):
+        return self._gpi()
+
+    def get_paths_out(self):
+        return self._gpo()
+
+    '''
     def get_paths_in(self):
         frames_range = xrange(self.max_frame, self.min_frame - 1, -1)
         for path in self.get_paths_for_frames_range(frames_range):
@@ -273,9 +445,9 @@ class GenericPaths(object, GenericPathTypeCodes):
         for path in self.get_paths_for_frames_range(frames_range):
             path.sort()
             yield path
+    '''
 
-
-    def find_paths(self, fullonly=False):
+    def find_paths(self, fullonly=False,numeric=True):
         paths_out = list(self.get_paths_out())
         paths_in = list(self.get_paths_in())
 
@@ -284,9 +456,9 @@ class GenericPaths(object, GenericPathTypeCodes):
             path_glue = glue(path_in, path_out)
             if len(path_glue) > 0:
                 path_out = paths_out.pop(0)
-                path_core = union(path_in, path_out)
-                path_in = left(path_in, path_out)
-                path_out = right(path_core, path_out)
+                path_core = union(path_in, path_out,numeric=numeric)
+                path_in = left(path_in, path_out,numeric=numeric)
+                path_out = right(path_core, path_out,numeric=numeric)
             else:
                 path_core = []
                 path_out = []
@@ -328,7 +500,71 @@ class GenericPaths(object, GenericPathTypeCodes):
 
     def find_paths_coords_types(self, fullonly=False):
         for path in self.find_paths(fullonly=fullonly):
-            yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
+            #yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
+            coords,types = self.get_single_path_coords_types(path)
+            yield path, coords, types
+
+    def get_single_path_coords_types(self,spath):
+        # returns typess for single path
+        # single path comprises of in,scope,out parts
+
+        # TODO: join it with get_single_path_coords
+
+        p_in, p_object, p_out = spath
+
+        frames = self.frames
+        types = self.types
+
+        def get_be(p_):
+            if len(p_) == 1:
+                return 0,None
+            return frames.index(p_[0]),frames.index(p_[-1])
+
+        in_t = []
+        object_t = []
+        out_t = []
+        in_c = []
+        object_c = []
+        out_c = []
+
+        if len(frames) == len(types):
+            # not full trajectory
+            # p_in
+            if len(p_in) > 0:
+                b,e = get_be(p_in)
+                in_t = types[b:e]
+                in_c = self.coords[b:e]
+            # p_object
+            if len(p_object) > 0:
+                b,e = get_be(p_object)
+                object_t = types[b:e]
+                object_c = self.coords[b:e]
+            # p_out
+            if len(p_out) > 0:
+                b,e = get_be(p_out)
+                out_t = types[b:e]
+                out_c = self.coords[b:e]
+        else:
+            # full trajectory
+            # p_in
+            if len(p_in) > 0:
+                b,e = p_in[0],p_in[-1]
+                in_t = types[b:e]
+                in_c = self.coords[b:e]
+            # p_object
+            if len(p_object) > 0:
+                b,e = p_object[0],p_object[-1]
+                object_t = types[b:e]
+                object_c = self.coords[b:e]
+            # p_out
+            if len(p_out) > 0:
+                b,e = p_out[0],p_out[-1]
+                out_t = types[b:e]
+                out_c = self.coords[b:e]
+
+        return (in_c, object_c, out_c),(in_t, object_t, out_t)
+
+
 
     def get_single_path_coords(self, spath):
         # returns coordinates for single path
@@ -336,17 +572,19 @@ class GenericPaths(object, GenericPathTypeCodes):
 
         p_in, p_object, p_out = spath
 
-        if len(self.frames) == len(self.coords):
+        frames = self.frames
+
+        if len(frames) == len(self.coords):
             # not full trajectory
             in_ = []
             for f in p_in:
-                in_.append(self.coords[self.frames.index(f)])
+                in_.append(self.coords[frames.index(f)])
             object_ = []
             for f in p_object:
-                object_.append(self.coords[self.frames.index(f)])
+                object_.append(self.coords[frames.index(f)])
             out_ = []
             for f in p_out:
-                out_.append(self.coords[self.frames.index(f)])
+                out_.append(self.coords[frames.index(f)])
         else:
             # full trajectory
             in_ = []
@@ -369,28 +607,31 @@ class GenericPaths(object, GenericPathTypeCodes):
 
         p_in, p_object, p_out = spath
 
-        if len(self.frames) == len(self.types):
+        frames = self.frames
+        types = self.types
+
+        if len(frames) == len(types):
             # not full trajectory
             in_ = []
             for f in p_in:
-                in_.append(self.types[self.frames.index(f)])
+                in_.append(types[frames.index(f)])
             object_ = []
             for f in p_object:
-                object_.append(self.types[self.frames.index(f)])
+                object_.append(types[frames.index(f)])
             out_ = []
             for f in p_out:
-                out_.append(self.types[self.frames.index(f)])
+                out_.append(types[frames.index(f)])
         else:
             # full trajectory
             in_ = []
             for f in p_in:
-                in_.append(self.types[f])
+                in_.append(types[f])
             object_ = []
             for f in p_object:
-                object_.append(self.types[f])
+                object_.append(types[f])
             out_ = []
             for f in p_out:
-                out_.append(self.types[f])
+                out_.append(types[f])
 
         return in_, object_, out_
 
@@ -418,15 +659,16 @@ def yield_single_paths(gps, fullonly=False, progress=False):
     nr_dict = {}
     for nr, gp in enumerate(gps):
         path_id = gp.id
-        for paths, coords, types in gp.find_paths_coords_types(fullonly=fullonly):
-            if path_id in nr_dict:
-                nr_dict.update({path_id: (nr_dict[path_id] + 1)})
-            else:
-                nr_dict.update({path_id: 0})
-            if progress:
-                yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id]), paths, coords, types), nr
-            else:
-                yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id]), paths, coords, types)
+        with clui.tictoc('Processing path %d' % path_id):
+            for paths, coords, types in gp.find_paths_coords_types(fullonly=fullonly):
+                if path_id in nr_dict:
+                    nr_dict.update({path_id: (nr_dict[path_id] + 1)})
+                else:
+                    nr_dict.update({path_id: 0})
+                if progress:
+                    yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id]), paths, coords, types), nr
+                else:
+                    yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id]), paths, coords, types)
 
 
 class SinglePath(object, PathTypesCodes, InletTypeCodes):

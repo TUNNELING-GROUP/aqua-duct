@@ -569,7 +569,10 @@ class LoadDumpWrapper(object):
         self.fh = filehandle
 
     def convert(self,s):
-        return s.replace('aquaduct.','aquaduct.')
+        new_s = s
+        new_s = new_s.replace('aqueduct.','aquaduct.')
+        new_s = new_s.replace('aqueduct_version', 'aquaduct_version')
+        return new_s
 
     def read(self,*args,**kwargs):
         return self.convert(self.fh.read(*args,**kwargs))
@@ -878,43 +881,46 @@ def valve_begin_stage(stage, config):
 
 def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_status=None,
                      **kwargs):
-    # This function runs stages in a smart way, checks execution logic, and loads/saves dumps if required.
-    options = valve_begin_stage(stage, config)
 
-    run_status.update({stage: False})
+    with clui.tictoc('Stage %s (%s)' % (roman.toRoman(stage + 1), config.stage_names(stage))):
 
-    # TODO: Consider to create traj_reader object here instead of doing it in stage_run or in load...
-    # execute?
-    can_be_loaded = False
-    if (not no_io) and options.dump:
-        if os.path.isfile(options.dump) or os.path.islink(options.dump):
-            can_be_loaded = True
-    # has to be run?
-    if options.execute in ['runonce'] and can_be_loaded and stage > 0:
-        if run_status[stage-1]:
-             can_be_loaded = False
+        # This function runs stages in a smart way, checks execution logic, and loads/saves dumps if required.
+        options = valve_begin_stage(stage, config)
 
-    if options.execute in ['run'] or (options.execute in ['runonce'] and not can_be_loaded):
-        result = stage_run(config, options, reader=reader, **kwargs)
-        run_status.update({stage:True})
+        run_status.update({stage: False})
+
+        # TODO: Consider to create traj_reader object here instead of doing it in stage_run or in load...
+        # execute?
+        can_be_loaded = False
+        if (not no_io) and options.dump:
+            if os.path.isfile(options.dump) or os.path.islink(options.dump):
+                can_be_loaded = True
+        # has to be run?
+        if options.execute in ['runonce'] and can_be_loaded and stage > 0:
+            if run_status[stage-1]:
+                 can_be_loaded = False
+
+        if options.execute in ['run'] or (options.execute in ['runonce'] and not can_be_loaded):
+            result = stage_run(config, options, reader=reader, **kwargs)
+            run_status.update({stage:True})
+            if not no_io:
+                ###########
+                # S A V E #
+                ###########
+                save_stage_dump(options.dump, **result)
+        elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
+            if not no_io:
+                ###########
+                # L O A D #
+                ###########
+                if options.dump:
+                    result = load_stage_dump(options.dump, reader=reader)
+        else:
+            raise NotImplementedError('exec mode %s not implemented' % options.execute)
+        # remove options stuff
         if not no_io:
-            ###########
-            # S A V E #
-            ###########
-            save_stage_dump(options.dump, **result)
-    elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
-        if not no_io:
-            ###########
-            # L O A D #
-            ###########
-            if options.dump:
-                result = load_stage_dump(options.dump, reader=reader)
-    else:
-        raise NotImplementedError('exec mode %s not implemented' % options.execute)
-    # remove options stuff
-    if not no_io:
-        if result is not None:
-            return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
+            if result is not None:
+                return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
 
 
 ################################################################################
@@ -1924,7 +1930,7 @@ def stage_VI_run(config, options,
                 for frame in frames_to_show:
                     traj_reader.set_current_frame(frame)
                     chull = object_shape.get_convexhull_of_atom_positions()
-                    spp.convexhull(chull, name='object_shape', color='c', state=frame + 1)
+                    spp.convexhull(chull, name='object_shape', color=np.array([255,153,0])/255., state=frame + 1)
 
     if options.inlets_clusters:
         with clui.fbm("Clusters"):
