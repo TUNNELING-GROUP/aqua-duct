@@ -181,7 +181,7 @@ Once Cygwin is installed with all required libraries you can perform following s
     easy_install-2.7 pip
 
 First, try to install SciPy::
-    
+
     # install SciPy
     pip install scipy
 
@@ -197,7 +197,7 @@ If you encounter any problems related to missing **xlocale.h** header file try t
 .. note::
 
 	The above procedure for SciPy installation might not be optimal. For more information please got to `SciPy web page <https://www.scipy.org/>`_.
-    
+
 Now, install **scikit-learn** and then Aqua-Duct::
 
     # install scikit-learn

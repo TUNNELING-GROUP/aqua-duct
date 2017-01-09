@@ -517,8 +517,8 @@ class GenericPaths(object, GenericPathTypeCodes):
 
         def get_be(p_):
             if len(p_) == 1:
-                return 0,None
-            return frames.index(p_[0]),frames.index(p_[-1])
+                return 0,1
+            return frames.index(p_[0]),frames.index(p_[-1])+1
 
         in_t = []
         object_t = []
