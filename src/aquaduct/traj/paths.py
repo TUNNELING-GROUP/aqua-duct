@@ -129,10 +129,10 @@ class SmartRange(object):
         self.__len = 0
         self.__min = None
         self.__max = None
-        
+
         if iterable is not None:
             map(self.append,iterable)
-        
+
     def last_element(self):
         if len(self.__elements) == 0:
             return None
@@ -155,7 +155,7 @@ class SmartRange(object):
                 yield SmartRangeEqual(element,1)
             else:
                 yield element
-    
+
     def append(self,element):
         assert not isinstance(element, SmartRangeFunction)
         if len(self.__elements) == 0:
@@ -186,7 +186,7 @@ class SmartRange(object):
             if element < self.__min:
                 self. __min = element
         self.__len += 1
-        
+
     def get(self):
         for element in self.__elements:
             if not isinstance(element, SmartRangeFunction):
@@ -194,18 +194,6 @@ class SmartRange(object):
             else:
                 for e in element.get():
                     yield e
-                '''
-                e = element.element
-                for t in xrange(element.times):
-                    if isinstance(element, SmartRangeEqual):
-                        yield e
-                    elif isinstance(element, SmartRangeIncrement):
-                        yield e
-                        e += 1
-                    elif isinstance(element, SmartRangeDecrement):
-                        yield e
-                        e -= 1
-                '''
 
     def rev(self):
         elements = []
@@ -265,7 +253,7 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.min_possible_frame = min_pf
 
     # info methods
-    
+
     @property
     def types(self):
         return list(self.__types.get())
@@ -296,7 +284,7 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.__frames.append(frame)
 
 
-    
+
     @sortify
     def get_paths_for_frames_range(self, frames_range):
         paths = []
@@ -686,7 +674,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         #self.path_in, self.path_object, self.path_out = paths
         self.__types_in, self.__types_object, self.__types_out = map(SmartRange,types)
         #self.types_in, self.types_object, self.types_out = types
-        
+
         self.coords_in, self.coords_object, self.coords_out = map(make_default_array, coords)
 
         self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = None, None, None

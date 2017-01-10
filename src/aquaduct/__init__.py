@@ -42,8 +42,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 2, 25
-    # default dtype
+    return 0, 3, 0
+    # different way of creating paths ans separate paths
 
 
 def version_nice():
