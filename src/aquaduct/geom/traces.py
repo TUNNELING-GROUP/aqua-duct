@@ -374,7 +374,11 @@ class LinearizeRecursive(object):
             return range(size)
         sp = 0
         ep = size - 1
-        mp = int(np.argwhere(lengths > max(lengths) / 2)[0])
+        mp = np.argwhere(lengths > max(lengths) / 2)
+        if len(mp): # in case lenghs are zeros
+            mp = int(mp[0])
+        else:
+            mp = (sp + ep) / 2
 
         if mp == sp:
             mp += 1
