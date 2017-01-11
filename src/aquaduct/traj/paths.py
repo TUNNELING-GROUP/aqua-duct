@@ -504,8 +504,8 @@ class GenericPaths(object, GenericPathTypeCodes):
         types = self.types
 
         def get_be(p_):
-            if len(p_) == 1:
-                return 0,1
+            #if len(p_) == 1:
+            #quit    return 0,1
             return frames.index(p_[0]),frames.index(p_[-1])+1
 
         in_t = []
@@ -536,17 +536,17 @@ class GenericPaths(object, GenericPathTypeCodes):
             # full trajectory
             # p_in
             if len(p_in) > 0:
-                b,e = p_in[0],p_in[-1]
+                b,e = p_in[0],p_in[-1]+1
                 in_t = types[b:e]
                 in_c = self.coords[b:e]
             # p_object
             if len(p_object) > 0:
-                b,e = p_object[0],p_object[-1]
+                b,e = p_object[0],p_object[-1]+1
                 object_t = types[b:e]
                 object_c = self.coords[b:e]
             # p_out
             if len(p_out) > 0:
-                b,e = p_out[0],p_out[-1]
+                b,e = p_out[0],p_out[-1]+1
                 out_t = types[b:e]
                 out_c = self.coords[b:e]
 
@@ -627,9 +627,10 @@ class GenericPaths(object, GenericPathTypeCodes):
         for center, radius in spheres:
             if len(self.coords) > 0:
                 distances = cdist(np.matrix(center), self.coords, metric='euclidean').flatten()
-                self.coords = lind(self.coords, np.argwhere(distances > radius).flatten().tolist())
-                self.__types = SmartRange(lind(self.types, np.argwhere(distances > radius).flatten().tolist()))
-                self.__frames = SmartRange(lind(self.frames, np.argwhere(distances > radius).flatten().tolist()))
+                toremove = np.argwhere(distances > radius).flatten().tolist()
+                self.coords = lind(self.coords, toremove)
+                self.__types = SmartRange(lind(self.types, toremove))
+                self.__frames = SmartRange(lind(self.frames, toremove))
 
 
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
