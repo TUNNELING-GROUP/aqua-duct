@@ -1372,7 +1372,6 @@ def stage_IV_run(config, options,
                     master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
                     del ctspc
                 pbar.finish()
-                # TODO: issue warning if creation of master path failed
 
     else:
         clui.message("No inlets found. Clusterization skipped.")
@@ -1930,7 +1929,7 @@ def stage_VI_run(config, options,
                 for frame in frames_to_show:
                     traj_reader.set_current_frame(frame)
                     chull = object_shape.get_convexhull_of_atom_positions()
-                    spp.convexhull(chull, name='object_shape', color=np.array([255,153,0])/255., state=frame + 1)
+                    spp.convexhull(chull, name='object_shape', color=np.array([255,153,0])/255., state=frame + 1) # orange
 
     if options.inlets_clusters:
         with clui.fbm("Clusters"):
