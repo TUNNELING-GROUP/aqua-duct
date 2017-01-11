@@ -34,19 +34,22 @@ from aquaduct.utils.maths import make_default_array
 # paths/list manipulations
 # following part of code comes directly from the very initial tcl/vmd implementation
 # all following functions should return list
-# functions union_numeric and xor_numeric were added later in python implementation to speed up calculations
+# functions union_smartr and xor_smartr were added later in python implementation to speed up calculations
 
 def union_full(a, b):
     return [aa for aa in a if aa in b]
 
-def union_numeric(a, b):
+
+def union_smartr(a, b):
     b_ = SmartRange(b)
     return [aa for aa in a if b_.isin(aa)]
 
-def union(a,b,numeric=True):
-    if numeric:
-        return union_numeric(a,b)
-    return union_full(a,b)
+
+def union(a, b, smartr=True):
+    if smartr:
+        return union_smartr(a, b)
+    return union_full(a, b)
+
 
 def glue(a, b):
     if a[-1] >= b[0]:
@@ -63,100 +66,118 @@ def xor_full(a, b):
         if e not in ab:
             yield e
 
+
 @listify
-def xor_numeric(a, b):
-    ab = SmartRange(union_numeric(a, b))
+def xor_smartr(a, b):
+    ab = SmartRange(union_smartr(a, b))
     for e in glue(a, b):
         if not ab.isin(e):
-
             yield e
 
-def xor(a,b,numeric=True):
-    if numeric:
-        return xor_numeric(a,b)
-    return xor_full(a,b)
 
-def left(a, b, numeric=True):
-    return union(a, xor(a, b, numeric=numeric),numeric=numeric)
+def xor(a, b, smartr=True):
+    if smartr:
+        return xor_smartr(a, b)
+    return xor_full(a, b)
 
 
-def right(a, b,numeric=True):
-    return union(b, xor(a, b,numeric=numeric),numeric=numeric)
+def left(a, b, smartr=True):
+    return union(a, xor(a, b, smartr=smartr), smartr=smartr)
+
+
+def right(a, b, smartr=True):
+    return union(b, xor(a, b, smartr=smartr), smartr=smartr)
 
 
 ########################################################################################################################
 
 class SmartRangeFunction(object):
-    def __init__(self,element,times):
+    def __init__(self, element, times):
         self.element = element
         self.times = times
+
     def __repr__(self):
-        return "%s(%r,%d)" % (self.__class__.__name__,self.element,self.times)
+        return "%s(%r,%d)" % (self.__class__.__name__, self.element, self.times)
+
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
+
     def rev(self):
         raise NotImplementedError('This method should be implemented in a child class.')
-    def isin(self,element):
+
+    def isin(self, element):
         raise NotImplementedError('This method should be implemented in a child class.')
+
 
 class SmartRangeEqual(SmartRangeFunction):
     def get(self):
         return [self.element] * self.times
+
     def rev(self):
         return self
-    def isin(self,element):
+
+    def isin(self, element):
         return element == self.element
+
 
 class SmartRangeIncrement(SmartRangeFunction):
     def get(self):
-        return (self.element+i for i in xrange(self.times))
+        return (self.element + i for i in xrange(self.times))
+
     def rev(self):
-        return SmartRangeDecrement(self.element+self.times-1,self.times)
-    def isin(self,element):
+        return SmartRangeDecrement(self.element + self.times - 1, self.times)
+
+    def isin(self, element):
         return (element >= self.element) and (element <= self.element + self.times - 1)
+
 
 class SmartRangeDecrement(SmartRangeFunction):
     def get(self):
-        return (self.element-i for i in xrange(self.times))
+        return (self.element - i for i in xrange(self.times))
+
     def rev(self):
-        return SmartRangeIncrement(self.element-self.times+1,self.times)
-    def isin(self,element):
+        return SmartRangeIncrement(self.element - self.times + 1, self.times)
+
+    def isin(self, element):
         return (element <= self.element) and (element >= self.element - self.times + 1)
 
+
 class SmartRange(object):
-    def __init__(self,iterable=None):
+    def __init__(self, iterable=None):
         self.__elements = []
         self.__len = 0
         self.__min = None
         self.__max = None
 
         if iterable is not None:
-            map(self.append,iterable)
+            map(self.append, iterable)
 
     def last_element(self):
         if len(self.__elements) == 0:
             return None
         element = self.__elements[-1]
-        if isinstance(element,SmartRangeFunction):
+        if isinstance(element, SmartRangeFunction):
             return element.element
         return element
+
     def last_times(self):
         if len(self.__elements) == 0:
             return 0
         element = self.__elements[-1]
-        if isinstance(element,SmartRangeFunction):
+        if isinstance(element, SmartRangeFunction):
             return element.times
         return 1
+
     @property
     @listify
     def raw(self):
         for element in self.__elements:
             if not isinstance(element, SmartRangeFunction):
-                yield SmartRangeEqual(element,1)
+                yield SmartRangeEqual(element, 1)
             else:
                 yield element
 
-    def append(self,element):
+    def append(self, element):
         assert not isinstance(element, SmartRangeFunction)
         if len(self.__elements) == 0:
             self.__elements.append(element)
@@ -164,27 +185,33 @@ class SmartRange(object):
             self.__max = element
         else:
             if element == self.last_element():
-                if isinstance(self.__elements[-1],SmartRangeEqual) or (not isinstance(self.__elements[-1],SmartRangeFunction)):
-                    self.__elements[-1] = SmartRangeEqual(element,self.last_times()+1)
-                else: self.__elements.append(element)
+                if isinstance(self.__elements[-1], SmartRangeEqual) or (
+                        not isinstance(self.__elements[-1], SmartRangeFunction)):
+                    self.__elements[-1] = SmartRangeEqual(element, self.last_times() + 1)
+                else:
+                    self.__elements.append(element)
             else:
                 if not is_number(element):
                     self.__elements.append(element)
                 else:
                     if element - self.last_times() == self.last_element():
-                        if isinstance(self.__elements[-1],SmartRangeIncrement) or (not isinstance(self.__elements[-1],SmartRangeFunction)):
-                            self.__elements[-1] = SmartRangeIncrement(self.last_element(),self.last_times()+1)
-                        else: self.__elements.append(element)
+                        if isinstance(self.__elements[-1], SmartRangeIncrement) or (
+                                not isinstance(self.__elements[-1], SmartRangeFunction)):
+                            self.__elements[-1] = SmartRangeIncrement(self.last_element(), self.last_times() + 1)
+                        else:
+                            self.__elements.append(element)
                     elif element + self.last_times() == self.last_element():
-                        if isinstance(self.__elements[-1],SmartRangeDecrement) or (not isinstance(self.__elements[-1],SmartRangeFunction)):
-                            self.__elements[-1] = SmartRangeDecrement(self.last_element(),self.last_times()+1)
-                        else: self.__elements.append(element)
+                        if isinstance(self.__elements[-1], SmartRangeDecrement) or (
+                                not isinstance(self.__elements[-1], SmartRangeFunction)):
+                            self.__elements[-1] = SmartRangeDecrement(self.last_element(), self.last_times() + 1)
+                        else:
+                            self.__elements.append(element)
                     else:
                         self.__elements.append(element)
             if element > self.__max:
-                self. __max = element
+                self.__max = element
             if element < self.__min:
-                self. __min = element
+                self.__min = element
         self.__len += 1
 
     def get(self):
@@ -213,11 +240,12 @@ class SmartRange(object):
     def max(self):
         return self.__max
 
-    def isin(self,element):
+    def isin(self, element):
         for block in self.raw:
             if block.isin(element):
                 return True
         return False
+
 
 ########################################################################################################################
 
@@ -235,7 +263,6 @@ class GenericPathTypeCodes():
 
 class GenericPaths(object, GenericPathTypeCodes):
     # object to store paths... is it required?
-
 
     def __init__(self, id_of_res, min_pf=None, max_pf=None):
 
@@ -257,12 +284,15 @@ class GenericPaths(object, GenericPathTypeCodes):
     @property
     def types(self):
         return list(self.__types.get())
+
     @property
     def frames(self):
         return list(self.__frames.get())
+
     @property
     def max_frame(self):
         return self.__frames.max()
+
     @property
     def min_frame(self):
         return self.__frames.min()
@@ -282,33 +312,6 @@ class GenericPaths(object, GenericPathTypeCodes):
     def add_type(self, frame, ftype):
         self.__types.append(ftype)
         self.__frames.append(frame)
-
-
-
-    @sortify
-    def get_paths_for_frames_range(self, frames_range):
-        paths = []
-        current_path = []
-        # reverse
-        for f in frames_range:
-            # detect type
-            if f in self.frames:
-                t = self.types[self.frames.index(f)]
-            else:
-                t = self.out_name
-            # use type to do something
-            if t == self.out_name:
-                if len(current_path) > 0:
-                    yield current_path
-                    current_path = []
-            else:
-                if len(current_path) > 0:
-                    current_path.append(f)
-                else:
-                    if t == self.object_name:
-                        current_path.append(f)
-        if len(current_path) > 0:
-            yield current_path
 
     def _gpo(self):
         n = len(self.__frames)
@@ -343,43 +346,7 @@ class GenericPaths(object, GenericPathTypeCodes):
                         break
                 if len(block_frames) > 0:
                     yield block_frames
-    '''
-    def _gpi(self):
-        n = len(self.__frames)
-        types = self.types[::-1]
-        begin = 0
-        for block in self.__frames.raw[::-1]:
-            end = begin + block.times
-            # get types of this block
-            block_frames = list(block.rev().get())
-            block_types = types[begin:end]
-            begin = end
-            # now iterate over block_types in a search of out_name
-            if self.out_name in block_types:
-                while self.out_name in block_types:
-                    to_yield = block_frames[:block_types.index(self.out_name)]
-                    to_yield_types = block_types[:block_types.index(self.out_name)]
-                    if len(to_yield) > 0:
-                        while to_yield_types[0] != self.object_name:
-                            to_yield.pop(0)
-                            to_yield_types.pop(0)
-                            if len(to_yield) == 0:
-                                break
-                        if len(to_yield) > 0:
-                            to_yield.sort()
-                            yield to_yield
-                    block_types = block_types[block_types.index(self.out_name):]
-                    block_frames = block_frames[block_types.index(self.out_name):]
-            if len(block_frames) > 0:
-                while block_types[0] != self.object_name:
-                    block_frames.pop(0)
-                    block_types.pop(0)
-                    if len(block_frames) == 0:
-                        break
-                if len(block_frames) > 0:
-                    block_frames.sort()
-                    yield block_frames
-    '''
+
     def _gpi(self):
         n = len(self.__frames)
         types = self.types
@@ -414,28 +381,13 @@ class GenericPaths(object, GenericPathTypeCodes):
                 if len(block_frames) > 0:
                     yield block_frames
 
-
     def get_paths_in(self):
         return self._gpi()
 
     def get_paths_out(self):
         return self._gpo()
 
-    '''
-    def get_paths_in(self):
-        frames_range = xrange(self.max_frame, self.min_frame - 1, -1)
-        for path in self.get_paths_for_frames_range(frames_range):
-            path.sort()
-            yield path
-
-    def get_paths_out(self):
-        frames_range = xrange(self.min_frame, self.max_frame + 1, 1)
-        for path in self.get_paths_for_frames_range(frames_range):
-            path.sort()
-            yield path
-    '''
-
-    def find_paths(self, fullonly=False,numeric=True):
+    def find_paths(self, fullonly=False, smartr=True):
         paths_out = list(self.get_paths_out())
         paths_in = list(self.get_paths_in())
 
@@ -444,9 +396,9 @@ class GenericPaths(object, GenericPathTypeCodes):
             path_glue = glue(path_in, path_out)
             if len(path_glue) > 0:
                 path_out = paths_out.pop(0)
-                path_core = union(path_in, path_out,numeric=numeric)
-                path_in = left(path_in, path_out,numeric=numeric)
-                path_out = right(path_core, path_out,numeric=numeric)
+                path_core = union(path_in, path_out, smartr=smartr)
+                path_in = left(path_in, path_out, smartr=smartr)
+                path_out = right(path_core, path_out, smartr=smartr)
             else:
                 path_core = []
                 path_out = []
@@ -478,21 +430,13 @@ class GenericPaths(object, GenericPathTypeCodes):
                             path_out = []
                 yield path_in, path_core, path_out
 
-    def find_paths_coords(self, fullonly=False):
-        for path in self.find_paths(fullonly=fullonly):
-            yield self.get_single_path_coords(path)
-
-    def find_paths_types(self, fullonly=False):
-        for path in self.find_paths(fullonly=fullonly):
-            yield self.get_single_path_types(path)
-
     def find_paths_coords_types(self, fullonly=False):
         for path in self.find_paths(fullonly=fullonly):
-            #yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
-            coords,types = self.get_single_path_coords_types(path)
+            # yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
+            coords, types = self.get_single_path_coords_types(path)
             yield path, coords, types
 
-    def get_single_path_coords_types(self,spath):
+    def get_single_path_coords_types(self, spath):
         # returns typess for single path
         # single path comprises of in,scope,out parts
 
@@ -504,9 +448,9 @@ class GenericPaths(object, GenericPathTypeCodes):
         types = self.types
 
         def get_be(p_):
-            #if len(p_) == 1:
-            #quit    return 0,1
-            return frames.index(p_[0]),frames.index(p_[-1])+1
+            # if len(p_) == 1:
+            # quit    return 0,1
+            return frames.index(p_[0]), frames.index(p_[-1]) + 1
 
         in_t = []
         object_t = []
@@ -519,109 +463,38 @@ class GenericPaths(object, GenericPathTypeCodes):
             # not full trajectory
             # p_in
             if len(p_in) > 0:
-                b,e = get_be(p_in)
+                b, e = get_be(p_in)
                 in_t = types[b:e]
                 in_c = self.coords[b:e]
             # p_object
             if len(p_object) > 0:
-                b,e = get_be(p_object)
+                b, e = get_be(p_object)
                 object_t = types[b:e]
                 object_c = self.coords[b:e]
             # p_out
             if len(p_out) > 0:
-                b,e = get_be(p_out)
+                b, e = get_be(p_out)
                 out_t = types[b:e]
                 out_c = self.coords[b:e]
         else:
             # full trajectory
             # p_in
             if len(p_in) > 0:
-                b,e = p_in[0],p_in[-1]+1
+                b, e = p_in[0], p_in[-1] + 1
                 in_t = types[b:e]
                 in_c = self.coords[b:e]
             # p_object
             if len(p_object) > 0:
-                b,e = p_object[0],p_object[-1]+1
+                b, e = p_object[0], p_object[-1] + 1
                 object_t = types[b:e]
                 object_c = self.coords[b:e]
             # p_out
             if len(p_out) > 0:
-                b,e = p_out[0],p_out[-1]+1
+                b, e = p_out[0], p_out[-1] + 1
                 out_t = types[b:e]
                 out_c = self.coords[b:e]
 
-        return (in_c, object_c, out_c),(in_t, object_t, out_t)
-
-
-
-    def get_single_path_coords(self, spath):
-        # returns coordinates for single path
-        # single path comprises of in,scope,out parts
-
-        p_in, p_object, p_out = spath
-
-        frames = self.frames
-
-        if len(frames) == len(self.coords):
-            # not full trajectory
-            in_ = []
-            for f in p_in:
-                in_.append(self.coords[frames.index(f)])
-            object_ = []
-            for f in p_object:
-                object_.append(self.coords[frames.index(f)])
-            out_ = []
-            for f in p_out:
-                out_.append(self.coords[frames.index(f)])
-        else:
-            # full trajectory
-            in_ = []
-            for f in p_in:
-                in_.append(self.coords[f])
-            object_ = []
-            for f in p_object:
-                object_.append(self.coords[f])
-            out_ = []
-            for f in p_out:
-                out_.append(self.coords[f])
-
-        return in_, object_, out_
-
-    def get_single_path_types(self, spath):
-        # returns typess for single path
-        # single path comprises of in,scope,out parts
-
-        # TODO: join it with get_single_path_coords
-
-        p_in, p_object, p_out = spath
-
-        frames = self.frames
-        types = self.types
-
-        if len(frames) == len(types):
-            # not full trajectory
-            in_ = []
-            for f in p_in:
-                in_.append(types[frames.index(f)])
-            object_ = []
-            for f in p_object:
-                object_.append(types[frames.index(f)])
-            out_ = []
-            for f in p_out:
-                out_.append(types[frames.index(f)])
-        else:
-            # full trajectory
-            in_ = []
-            for f in p_in:
-                in_.append(types[f])
-            object_ = []
-            for f in p_object:
-                object_.append(types[f])
-            out_ = []
-            for f in p_out:
-                out_.append(types[f])
-
-        return in_, object_, out_
+        return (in_c, object_c, out_c), (in_t, object_t, out_t)
 
     def barber_with_spheres(self, spheres):
         for center, radius in spheres:
@@ -670,11 +543,11 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
         self.id = path_id
         # for paths use SmartRanges and then provide methods to read them
-        self.__path_in, self.__path_object, self.__path_out = map(SmartRange,paths)
+        self.__path_in, self.__path_object, self.__path_out = map(SmartRange, paths)
         # similarly, do it with types
-        #self.path_in, self.path_object, self.path_out = paths
-        self.__types_in, self.__types_object, self.__types_out = map(SmartRange,types)
-        #self.types_in, self.types_object, self.types_out = types
+        # self.path_in, self.path_object, self.path_out = paths
+        self.__types_in, self.__types_object, self.__types_out = map(SmartRange, types)
+        # self.types_in, self.types_object, self.types_out = types
 
         self.coords_in, self.coords_object, self.coords_out = map(make_default_array, coords)
 
@@ -686,22 +559,26 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     @property
     def path_in(self):
         return list(self.__path_in.get())
+
     @property
     def path_object(self):
         return list(self.__path_object.get())
+
     @property
     def path_out(self):
         return list(self.__path_out.get())
+
     @property
     def types_in(self):
         return list(self.__types_in.get())
+
     @property
     def types_object(self):
         return list(self.__types_object.get())
+
     @property
     def types_out(self):
         return list(self.__types_out.get())
-
 
     # ---------------------------------------------------------------------------------------------------------------- #
     # DEPRECATED
@@ -876,7 +753,8 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     ####################################################################################################################
 
     def get_distance_cont(self, smooth=None, normalize=False):
-        length = make_default_array(np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth))))))
+        length = make_default_array(
+            np.hstack((np.array([0]), np.cumsum(traces.diff(self.get_coords_cont(smooth=smooth))))))
         if normalize:
             if is_number(normalize):
                 norm_factor = float(normalize)
