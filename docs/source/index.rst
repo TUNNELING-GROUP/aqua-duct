@@ -11,6 +11,7 @@ Welcome to Aqua-Duct's documentation!
     :titlesonly:
 
     Aqua-Duct installation <aquaduct_install>
+    Aqua-Duct download <aquaduct_download>
     Valve manual <valve/valve_manual>
     Valve configuration <valve/valve_config>
     Valve tutorial <valve/valve_tutorial>
@@ -23,4 +24,3 @@ Welcome to Aqua-Duct's documentation!
     * :ref:`genindex`
     * :ref:`modindex`
     * :ref:`search`
-

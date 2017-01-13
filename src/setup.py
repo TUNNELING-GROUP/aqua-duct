@@ -20,7 +20,9 @@
 import sys
 from setuptools import find_packages, setup
 
-version = __import__('aquaduct').version_nice()  # version str
+@property
+def version():
+      return __import__('aquaduct').version_nice()  # version str
 
 install_requires =['numpy>=1.7.0',
                   'scipy>=0.13.0',
