@@ -2043,6 +2043,7 @@ Valve driver version %s''' % (aquaduct_version_nice(), version_nice())
     parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
                         help="Limit Aqua-Duct calculations to given number of threads.")
     parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
+    parser.add_argument("--sps", action="store_true", dest="sps", required=False, help="Use single precision to store data.")
     parser.add_argument("--max-frame", action="store", dest="max_frame", required=False, help="Limit number of frames.")
     parser.add_argument("--version", action="store_true", dest="print_version", required=False,
                         help="Prints versions and exits.")
@@ -2069,6 +2070,14 @@ Valve driver version %s''' % (aquaduct_version_nice(), version_nice())
     # finally, get valve logger
     logger = logging.getLogger(logger_name + '.valve')
     logger.info('Initialization of Valve logging done.')
+
+    ############################################################################
+    # single precision storage
+    if args.sps:
+        logger.info('Single precision data storage activated.')
+        from aquaduct.utils.maths import defaults
+        defaults.float_default = np.float32
+        defaults.int_default = np.int32
 
     ############################################################################
     # special option for dumping template config

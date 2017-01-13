@@ -28,7 +28,7 @@ from scipy.spatial.distance import cdist, pdist
 from aquaduct.traj.paths import GenericPathTypeCodes, GenericPaths, yield_single_paths, MasterPath
 from aquaduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip, xzip_xzip
 from aquaduct.utils import clui
-from aquaduct.utils.maths import make_default_array, float_default
+from aquaduct.utils.maths import make_default_array, defaults
 from aquaduct.traj.inlets import InletClusterGenericType, InletClusterExtendedType
 
 from multiprocessing import Queue, Manager, Lock, Value, Process
@@ -469,7 +469,7 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
             beat()
     # get proper types
     # make median distribuitions
-    types_dist_orig = np.matrix(np.median([CTypeSpathsCollection.simple_types_distribution(sp.gtypes_cont) for sp in spaths], axis=0),dtype=float_default)
+    types_dist_orig = np.matrix(np.median([CTypeSpathsCollection.simple_types_distribution(sp.gtypes_cont) for sp in spaths], axis=0),dtype=defaults.float_default)
     types_dist_range = list(set(types))
     types_thresholds = []
     for t in types_dist_range:
