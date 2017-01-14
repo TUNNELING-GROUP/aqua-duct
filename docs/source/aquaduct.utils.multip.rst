@@ -1,6 +1,6 @@
-aqueduct.visual.cmaps module
+aquaduct.utils.multip module
 ============================
 
-.. automodule:: aqueduct.visual.cmaps
+.. automodule:: aquaduct.utils.multip
     :members:
     :show-inheritance:

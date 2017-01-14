@@ -1,6 +1,6 @@
-aqueduct.geom.traces module
+aquaduct.geom.traces module
 ===========================
 
-.. automodule:: aqueduct.geom.traces
+.. automodule:: aquaduct.geom.traces
     :members:
     :show-inheritance:

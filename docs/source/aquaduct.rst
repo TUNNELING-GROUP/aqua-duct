@@ -1,4 +1,4 @@
-aqueduct package
+aquaduct package
 ================
 
 Subpackages
@@ -6,15 +6,15 @@ Subpackages
 
 .. toctree::
 
-    aqueduct.geom
-    aqueduct.traj
-    aqueduct.utils
-    aqueduct.visual
+    aquaduct.geom
+    aquaduct.traj
+    aquaduct.utils
+    aquaduct.visual
 
 Module contents
 ---------------
 
-.. automodule:: aqueduct
+.. automodule:: aquaduct
     :members:
     :undoc-members:
     :show-inheritance:

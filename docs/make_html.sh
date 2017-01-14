@@ -20,7 +20,7 @@ fi
 PYTHONPATH_CACHE=$PYTHONPATH
 export PYTHONPATH=`pwd`/../src
 
-$SPHINX_APIDOC -f -e -o source/ ../src/aqueduct/
+$SPHINX_APIDOC -f -e -o source/ ../src/aquaduct/
 sed -i '/undoc/d' source/*.*.rst
 
 # ubuntu 14.04 helper

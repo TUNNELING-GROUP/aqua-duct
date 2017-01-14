@@ -1,6 +1,6 @@
-aqueduct.utils.clui module
+aquaduct.utils.clui module
 ==========================
 
-.. automodule:: aqueduct.utils.clui
+.. automodule:: aquaduct.utils.clui
     :members:
     :show-inheritance:

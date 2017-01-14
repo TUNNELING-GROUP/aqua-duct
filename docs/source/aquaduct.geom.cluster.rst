@@ -1,6 +1,6 @@
-aqueduct.geom.cluster module
+aquaduct.geom.cluster module
 ============================
 
-.. automodule:: aqueduct.geom.cluster
+.. automodule:: aquaduct.geom.cluster
     :members:
     :show-inheritance:

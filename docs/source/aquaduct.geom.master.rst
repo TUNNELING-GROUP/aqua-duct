@@ -1,6 +1,6 @@
-aqueduct.geom.smooth module
+aquaduct.geom.master module
 ===========================
 
-.. automodule:: aqueduct.geom.smooth
+.. automodule:: aquaduct.geom.master
     :members:
     :show-inheritance:
