@@ -24,6 +24,8 @@ function make_docs {
 cd $RDIR
 git clone $CWD aqua-duct
 cd aqua-duct
+git config user.email "tljm@wp.pl"
+git config user.name "TM"
 
 # make current
 VERSION=current
@@ -33,8 +35,9 @@ mv docs/build/html $PDIR/$VERSION
 # make for each tag
 for tag in $( git tag )
 do
-    git checkout tags/$tag
+    git checkout tags/$tag -b branch_$tag
     VERSION=`make_version`
+    echo $tag $VERSION
     make_docs
     mv docs/build/html $PDIR/$tag
 done
