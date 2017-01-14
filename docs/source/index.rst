@@ -18,6 +18,7 @@ Welcome to Aqua-Duct's documentation!
     Aqua-Duct API documentation <modules>
 
 
+.. include:: other_versions.rst
 
 ..  Indices and tables
     ==================

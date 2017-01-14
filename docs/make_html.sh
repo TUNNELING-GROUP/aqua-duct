@@ -37,6 +37,14 @@ cd source
 ls -1 aquaduct*.tar.gz | sort -r | awk '{print "* :download:`"$1"`"}' > aquaduct_download_list.rst
 cd ..
 
+# other versions docs
+echo 'Documentation for other versions of Aqua-Duct:\n' > source/other_versions.rst
+echo '* `current <../current>`_' >> source/other_versions.rst
+for tag in $( git tag )
+do
+    echo '* `'$tag' <../'$tag'>`_' >> source/other_versions.rst
+done
+
 # AQ pip command
 AQPIP="install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
 #AQPIP="install aquaduct"

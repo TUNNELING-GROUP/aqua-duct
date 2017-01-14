@@ -42,9 +42,11 @@ done
 #/home/tljm/dropbox_uploader.sh -p upload $CWD/*.tar.gz AQUADUCT/AQ_pkgs/
 
 cd $TDIR
-tar cvjf $CWD/AQ_full_help.tar.gz aquaduct
+tar cvzf $CWD/AQ_full_help.tar.gz aquaduct
 
 cd $CWD
+
+
 
 rm -rf -- $TDIR
 rm -rf -- $RDIR
