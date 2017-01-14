@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# this builds current
+
 SPHINX_APIDOC=sphinx-apidoc
 if [ -x ~/.local/bin/sphinx-apidoc ]
 then
@@ -28,7 +30,7 @@ cp ../src/ubuntu_mdanalysis_install_helper.sh source/
 
 # installation pkg & RST file!
 rm -rf ../aquaduct*.tar.gz
-$( cd .. ; ./make_all_pkgs.sh )
+$( cd .. ; bash ./make_all_pkgs.sh )
 rm -rf source/aquaduct*.tar.gz
 mv ../aquaduct*.tar.gz source/
 cd source
@@ -36,9 +38,9 @@ ls -1 aquaduct*.tar.gz | sort -r | awk '{print "* :download:`"$1"`"}' > aquaduct
 cd ..
 
 # AQ pip command
-AQPIP="pip install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
-#AQPIP="pip install aquaduct"
-sed -i -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.rst
+AQPIP="install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
+#AQPIP="install aquaduct"
+sed -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.template > source/aquaduct_install.rst
 
 # AQ installation requirements
 echo "* Python 2.7 (CPython implementation)" > source/aquaduct_install_requires.rst

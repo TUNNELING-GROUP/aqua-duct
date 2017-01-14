@@ -40,27 +40,31 @@ Installation
 Generic Python installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The easiest way to install Aqua-Duct you have to install Python and use following command::
+The easiest way to install Aqua-Duct is to install Python 2.7 and use following command::
 
-    AQPIP
+    pip AQPIP
+
+If *pip* is not available try to install it by typing::
+
+    easy_install pip
 
 Depending on the settings of your system you can prepend the above command with `sudo` or `doas` or do *user* instalation::
 
     # sudo
-    sudo AQPIP
+    sudo pip AQPIP
 
     # doas
-    doas AQPIP
+    doas pip AQPIP
 
     # 'user' installation
-    AQPIP --user
+    pip AQPIP --user
 
 It is also good idea to try to install Aqua-Duct using virtualenv::
 
     virtualenv aquaduct_installation
     cd aquaduct_installation
     . bin/activate
-    AQPIP
+    pip AQPIP
 
 Installation of PyMOL
 #####################
@@ -71,14 +75,14 @@ Under most modern GNU/Linux distributions PyMOL is available as a package in rep
 
 Under Windows there are several ways to install PyMOL, for more details see `PyMOL web site <http://pymol.org>`_.
 
-Instructions for macOS are below.
+Instructions for macOS and OpenBSD are in appropriate sections below.
 
 GNU/Linux
 ^^^^^^^^^
 
 Installation was tested on limited number of GNU/Linux systems. On the most of modern installations you can simply follow generic instructions, for example under Ubuntu 16.04 you can type::
 
-    sudo AQPIP
+    sudo pip AQPIP
 
 Other systems may require additional work, in particular installation of NetCDF4 is sometimes cumbersome. Following is an example how to install all required packages under Ubuntu 14.04::
 
@@ -108,7 +112,7 @@ Other systems may require additional work, in particular installation of NetCDF4
 
 If everything went fine you can follow generic instructions, type::
 
-    sudo AQPIP
+    sudo pip AQPIP
 
 MacOS
 ^^^^^
@@ -121,9 +125,9 @@ System native Python
 ::
 
     sudo easy_install pip
-    sudo AQPIP
+    sudo pip AQPIP
 
-The drawback of using system Python installation is a lack of PyMOL. It should be, however, realatively easy to compile PyMOL on your own. Try to follow compilation instruction under BSD systems.
+The drawback of using system Python installation is a lack of PyMOL. It should be, however, relatively easy to compile PyMOL on your own. Try to follow compilation instruction under BSD systems.
 
 Custom Python
 #############
@@ -132,7 +136,7 @@ This is recomended way of aquaduct installation. If you do not have custom Pytho
 
     brew install python
     sudo easy_install pip
-    sudo AQPIP
+    sudo pip AQPIP
 
 Next, you can install PyMOL::
 
@@ -160,15 +164,8 @@ First, start with `Cygwin installation <https://cygwin.com/>`_. During the setup
 * libhdf5-devel
 * liblapack-devel
 * libopenblas
-
-You can also select following packages:
-
 * python-numpy
 * python-six
-
-.. note::
-
-    You can skip installation of these packages. If they are missing they will be installed automatically.
 
 Another key component that have to be installed is C, C++ and Fortran compilers. You can simply install **gcc-g++** and **gcc-fortran** packages as a first choice, select following packages:
 
@@ -204,4 +201,77 @@ Now, install **scikit-learn** and then Aqua-Duct::
     pip install scikit-learn
 
     # finally, install aquaduct
-    AQPIP
+    pip AQPIP
+
+OpenBSD
+^^^^^^^
+
+Aqua-Duct can be also installed under OpenBSD (5.9 and 6.0 amd64).
+First, netCDF-c version 4 has to be installed as OpenBSD ships only netCDF in version 3::
+
+    # install hdf5 and GNU make
+    pkg_add hdf5 gmake
+
+Next, download netCDF sources. Version 4.2.1.1 works out of the box but is a bit outdated. Visit `NetCDF web page <https://www.unidata.ucar.edu/software/netcdf/>`_ and select version of your choice. Older versions are available in the `FTP archive <ftp://ftp.unidata.ucar.edu/pub/netcdf/old/>`_. Once netCDF is downloaded and extracted go to the source directory and try following procedure::
+
+    # set LD and CPP flags
+    export LDFLAGS=-L/usr/local/lib
+    export CPPFLAGS=-I/usr/local/include
+
+    # configure project
+    ./configure --enable-shared --enable-dap --disable-doxygen --enable-netcdf-4 --prefix=/path/to/netCDF4/lib
+
+    # make and install
+    gmake
+    gmake install
+
+You may now install py-scipy package::
+
+    pkg_add py-scipy
+
+Install pip if it is missing::
+
+    pkg_add py-pip
+
+Install netCDF4 Python::
+
+    # define netcdf-4 installation directory
+    export NETCDF4_DIR=/path/to/netCDF4/lib
+    pip2.7 install netCDF4
+
+At this point you can follow generic Python instructions, type::
+
+    pip2.7 AQPIP
+
+PyMOL at OpenBSD
+################
+
+According to our knowledge it is possible to install PyMOL 1.4.1 and it is sufficient to work with Aqua-Duct. Go to `SourceForge PyMOL download page <https://sourceforge.net/projects/pymol/files/pymol/>`_ and download, save, and extract sources.
+
+PyMOL requires Python Mega Widgets. Download, for example Pmw 1.3.3b from `SourceForge Pmw download page <https://sourceforge.net/projects/pmw/files/Pmw/>`_. Extract it and install by::
+
+    python2.7 setup.py install
+
+TKinter (2.7) and several other packages are also required::
+
+    pkg_add python-tkinter freeglut glew png
+
+Next, go to the extracted PyMOL sources open setup.py and modify inc_dirs variable at line 129 by adding following paths::
+
+    "/usr/X11R6/include/freetype2",
+    "/usr/X11R6/include",
+    "/usr/local/include",
+
+Now, you can build and install PyMOL by typing following commands::
+
+    python2.7 setup.py build
+    python2.7 setup.py install
+    python2.7 setup2.py install
+    cp pymol /usr/local/bin
+
+PyMOL can be run by typing `pymol` or can be used as Python module.
+
+Other BSDs
+##########
+
+Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD.
