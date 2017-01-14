@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 CWD=`pwd`
 
@@ -36,7 +36,7 @@ do
     git checkout tags/$tag
     VERSION=`make_version`
     make_docs
-    mv docs/build/html $PDIR/$VERSION
+    mv docs/build/html $PDIR/$tag
 done
 
 #/home/tljm/dropbox_uploader.sh -p upload $CWD/*.tar.gz AQUADUCT/AQ_pkgs/
@@ -45,8 +45,11 @@ cd $TDIR
 tar cvzf $CWD/AQ_full_help.tar.gz aquaduct
 
 cd $CWD
-
-
+mkdir -p docs/build/full
+cd docs/build/full
+rm -rf -- *
+tar xvzf ../../../AQ_full_help.tar.gz
+cd $CWD
 
 rm -rf -- $TDIR
 rm -rf -- $RDIR

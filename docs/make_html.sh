@@ -39,10 +39,10 @@ cd ..
 
 # other versions docs
 echo 'Documentation for other versions of Aqua-Duct:\n' > source/other_versions.rst
-echo '* `current <../current>`_' >> source/other_versions.rst
+echo '* `current <../current/index.html>`_' >> source/other_versions.rst
 for tag in $( git tag )
 do
-    echo '* `'$tag' <../'$tag'>`_' >> source/other_versions.rst
+    echo '* `'$tag' <../'$tag'/index.html>`_' >> source/other_versions.rst
 done
 
 # AQ pip command
