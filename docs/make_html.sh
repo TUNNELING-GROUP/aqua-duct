@@ -42,7 +42,7 @@ echo 'Documentation for other versions of Aqua-Duct:\n' > source/other_versions.
 CURRENT='None'
 for tag in $( git tag | sort -r )
 do
-    if [ $CURRENT == 'None' ]
+    if [ $CURRENT = 'None' ]
     then
         CURRENT=$tag
         echo '* `'$tag' <../'$tag'/index.html>`_ (current version)' >> source/other_versions.rst
