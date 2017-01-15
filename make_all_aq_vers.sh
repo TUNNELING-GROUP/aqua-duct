@@ -28,7 +28,7 @@ git config user.email "tljm@wp.pl"
 git config user.name "TM"
 
 # make current
-VERSION=current
+VERSION=devel
 make_docs
 mv docs/build/html $PDIR/$VERSION
 

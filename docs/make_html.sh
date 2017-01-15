@@ -39,7 +39,7 @@ cd ..
 
 # other versions docs
 echo 'Documentation for other versions of Aqua-Duct:\n' > source/other_versions.rst
-echo '* `current <../current/index.html>`_' >> source/other_versions.rst
+echo '* `development <../devel/index.html>`_' >> source/other_versions.rst
 for tag in $( git tag )
 do
     echo '* `'$tag' <../'$tag'/index.html>`_' >> source/other_versions.rst
