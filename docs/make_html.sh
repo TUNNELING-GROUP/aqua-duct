@@ -39,11 +39,18 @@ cd ..
 
 # other versions docs
 echo 'Documentation for other versions of Aqua-Duct:\n' > source/other_versions.rst
-echo '* `development <../devel/index.html>`_' >> source/other_versions.rst
-for tag in $( git tag )
+CURRENT='None'
+for tag in $( git tag | sort -r )
 do
-    echo '* `'$tag' <../'$tag'/index.html>`_' >> source/other_versions.rst
+    if [ $CURRENT == 'None' ]
+    then
+        CURRENT=$tag
+        echo '* `'$tag' <../'$tag'/index.html>`_ (current version)' >> source/other_versions.rst
+    else
+        echo '* `'$tag' <../'$tag'/index.html>`_' >> source/other_versions.rst
+    fi
 done
+echo '* `development version <../devel/index.html>`_ (use with care)' >> source/other_versions.rst
 
 # AQ pip command
 AQPIP="install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
