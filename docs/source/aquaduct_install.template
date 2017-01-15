@@ -207,7 +207,7 @@ OpenBSD
 ^^^^^^^
 
 Aqua-Duct can be also installed under OpenBSD (5.9 and 6.0 amd64).
-First, netCDF-c version 4 has to be installed as OpenBSD ships only netCDF in version 3::
+NetCDF-c version 4 has to be installed as OpenBSD ships only netCDF in version 3. First, install hdf5 library and GNU make::
 
     # install hdf5 and GNU make
     pkg_add hdf5 gmake
@@ -274,4 +274,6 @@ PyMOL can be run by typing `pymol` or can be used as Python module.
 Other BSDs
 ##########
 
-Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD.
+Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD. Try to install it and SciPy, then proceed to generic Python installation instructions.
+
+If you are using NetBSD or other BSD try to follow OpenBSD instructions.
