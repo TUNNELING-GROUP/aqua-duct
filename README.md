@@ -22,13 +22,13 @@ Source code is available at [aquaduct.pl](http://aquaduct.pl).
 Installation
 ============
 
-*Aqua-Duct* can be easily installed via PyPi::
+*Aqua-Duct* can be easily installed via PyPi:
 
     pip install aquaduct
 
 Detailed instructions on *Aqua-Duct* installation are available at [aquaduct.pl](http://aquaduct.pl).
 
-To start using Aqua-Duct type::
+To start using Aqua-Duct type:
 
     valve.py --help
 
