@@ -20,7 +20,19 @@
 import sys
 from setuptools import find_packages, setup
 
-version = __import__('aqueduct').version_nice()  # version str
+version = __import__('aquaduct').version_nice()  # version str
+
+install_requires =['numpy>=1.7.0',
+                  'scipy>=0.13.0',
+                  'scikit-learn>=0.16.0',
+                  'MDAnalysis[amber]>=0.15.0',
+                  'roman>=2.0.0',
+                  ]
+
+def install_requires_nice(level=0):
+      import re
+      for ir in install_requires:
+            print ("    "*level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)',ir))
 
 setup(name='aquaduct',
       version=version,
@@ -28,13 +40,8 @@ setup(name='aquaduct',
       author='Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk',
       author_email='info@aquaduct.pl',
       url='http://aquaduct.pl',
-      packages=find_packages(include=['aqueduct*']),
-      install_requires=['numpy>=1.7.0',
-                        'scipy>=0.13.0',
-                        'scikit-learn>=0.16.0',
-                        'MDAnalysis[amber]>=0.15.0',
-                        'roman>=2.0.0',
-                        ],
+      packages=find_packages(include=['aquaduct*']),
+      install_requires=install_requires,
       extras_require={'full_pymol': ["pymol>=1.4"],
                       'graphs': ['matplotlib'],
                       },

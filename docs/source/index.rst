@@ -15,6 +15,3 @@ Welcome to Aqua-Duct's documentation!
     Valve configuration <valve/valve_config>
     Valve tutorial <valve/valve_tutorial>
     Aqua-Duct API documentation <modules>
-
-
-.. include:: other_versions.rst
