@@ -4,7 +4,6 @@ TDIR=`mktemp -d`
 PDIR=$TDIR/aquaduct
 mkdir -p $PDIR
 
-cp -r src/README $PDIR
 cp -r src/apps $PDIR
 cp -r src/aquaduct $PDIR
 cp -r src/LICENSE.txt $PDIR

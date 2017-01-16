@@ -8,7 +8,6 @@ PDIR=$TDIR/aquaduct
 mkdir -p $PDIR
 
 function copy2dir {
-    cp -r src/README $PDIR
     cp -r src/apps $PDIR
     cp -r src/aquaduct $PDIR
     cp -r src/LICENSE.txt $PDIR
