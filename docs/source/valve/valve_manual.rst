@@ -1,13 +1,13 @@
 *Valve* manual
 ==============
 
-*Valve* application is a driver that uses :mod:`aqueduct` module to perform analysis of trajectories of selected residues in MD simulation.
+*Valve* application is a driver that uses :mod:`aquaduct` module to perform analysis of trajectories of selected residues in MD simulation.
 
 
 *Valve* invocation
 ------------------
 
-Once :mod:`aqueduct` module is installed (see :doc:`../aqueduct_install`) properly on the machine *Valve* is available as ``valve.py`` command line tool.
+Once :mod:`aquaduct` module is installed (see :doc:`../aquaduct_install`) properly on the machine *Valve* is available as ``valve.py`` command line tool.
 
 Usage
 ^^^^^
@@ -21,14 +21,14 @@ It should display following information::
     usage: valve.py [-h] [--dump-template-config] [-t THREADS] [-c CONFIG_FILE]
                     [--max-frame MAX_FRAME]
 
-    Valve, Aqueduct driver
+    Valve, Aqua-Duct driver
 
     optional arguments:
       -h, --help            show this help message and exit
       --dump-template-config
                             Dumps template config file. Suppress all other output
                             or actions. (default: False)
-      -t THREADS            Limit Aqueduct calculations to given number of
+      -t THREADS            Limit Aqua-Duct calculations to given number of
                             threads. (default: None)
       -c CONFIG_FILE        Config file filename. (default: None)
       --max-frame MAX_FRAME
@@ -95,7 +95,7 @@ The search of the residues is done according to user provided definitions.. Two 
 
 The *Object* definition encompasses usually the active site of the protein. The *Scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
 
-Since :mod:`aqueduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *Object* and *Scope* have to be given as its *Selection Commands*.
+Since :mod:`aquaduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *Object* and *Scope* have to be given as its *Selection Commands*.
 
 .. _object_definition:
 
@@ -268,4 +268,3 @@ Inlets clusters are colored automatically. Outliers are gray.
 Incoming parts of paths are red, Outgoing parts are blue. Object parts in case of smooth paths are green and in case of raw paths are green if residue is precisely in the object area or yellow if is leaved object area but it is not in the Outgoing part yet.
 
 Arrows are colored in accordance to paths colors.
-

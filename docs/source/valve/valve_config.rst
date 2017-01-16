@@ -27,8 +27,8 @@ This section allows settings of trajectory data and some other future global opt
 ======  =============   ==========================================================================
 Option  Default value   Description
 ======  =============   ==========================================================================
-top     None            Path to topology file. Aqueduct supports PDB, PRMTOP, PFS topology files.
-trj     None            Path to trajectory file. Aqueduct supports NC and DCD trajectory files.
+top     None            Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.
+trj     None            Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.
 ======  =============   ==========================================================================
 
 .. note::
@@ -148,7 +148,7 @@ discard_short_paths     1               This option allows to discard paths that
                                         threshold.
 auto_barber             None            This option allows to select molecular entity used in Auto
                                         Barber procedure. See also :ref:`auto_barber_procedure` and
-                                        :meth:`~aqueduct.traj.paths.GenericPaths.barber_with_spheres`.
+                                        :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
 =====================   ==============  ================================================================
 
 
@@ -195,12 +195,12 @@ simply_smooths          RecursiveVector     Option indicates linear simplificati
                                             not (or almost do not) change the shape of smooth path.
                                             Possible choices are:
 
-                                            * ``RecursiveVector`` (see :class:`~aqueduct.geom.traces.LinearizeRecursiveVector`),
-                                            * ``HobbitVector`` (see :class:`~aqueduct.geom.traces.LinearizeHobbitVector`),
-                                            * ``OneWayVector`` (see :class:`~aqueduct.geom.traces.LinearizeOneWayVector`),
-                                            * ``RecursiveTriangle`` (see :class:`~aqueduct.geom.traces.LinearizeRecursiveTriangle`),
-                                            * ``HobbitTriangle`` (see :class:`~aqueduct.geom.traces.LinearizeHobbitTriangle`),
-                                            * ``OneWayTriangle`` (see :class:`~aqueduct.geom.traces.LinearizeOneWayTriangle`).
+                                            * ``RecursiveVector`` (see :class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
+                                            * ``HobbitVector`` (see :class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
+                                            * ``OneWayVector`` (see :class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
+                                            * ``RecursiveTriangle`` (see :class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
+                                            * ``HobbitTriangle`` (see :class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
+                                            * ``OneWayTriangle`` (see :class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
 
                                             Optionally name of the method can be followed by a threshold
                                             value in parentheses, ie ``RecursiveVector(0.05)``. For sane
@@ -268,7 +268,7 @@ show_object_frames      0                   Allows to indicate for which frames 
 
 .. note::
 
-    Possibly due to limitations of :mod:`MDAnalysis` only whole molecules can be displayed. If **show_molecule** is set to ``backbone`` complete protein will be displayed any way. This may change in future version of :mod:`MDAnalysis` and or :mod:`aqueduct`.
+    Possibly due to limitations of :mod:`MDAnalysis` only whole molecules can be displayed. If **show_molecule** is set to ``backbone`` complete protein will be displayed any way. This may change in future version of :mod:`MDAnalysis` and or :mod:`aquaduct`.
 
 .. note::
 
@@ -420,13 +420,13 @@ Option                      Value type      Description
 =========================   =============== ================================================================
 method                      str             Smoothing method. Can be one of the following:
 
-                                            * ``window``, (see :class:`~aqueduct.geom.smooth.WindowSmooth`)
-                                            * ``mss``, (see :class:`~aqueduct.geom.smooth.MaxStepSmooth`)
-                                            * ``window_mss``, (see :class:`~aqueduct.geom.smooth.WindowOverMaxStepSmooth`)
-                                            * ``awin``, (see :class:`~aqueduct.geom.smooth.ActiveWindowSmooth`)
-                                            * ``awin_mss``, (see :class:`~aqueduct.geom.smooth.ActiveWindowOverMaxStepSmooth`)
-                                            * ``dwin``, (see :class:`~aqueduct.geom.smooth.DistanceWindowSmooth`)
-                                            * ``dwin_mss``. (see :class:`~aqueduct.geom.smooth.DistanceWindowOverMaxStepSmooth`)
+                                            * ``window``, (see :class:`~aquaduct.geom.smooth.WindowSmooth`)
+                                            * ``mss``, (see :class:`~aquaduct.geom.smooth.MaxStepSmooth`)
+                                            * ``window_mss``, (see :class:`~aquaduct.geom.smooth.WindowOverMaxStepSmooth`)
+                                            * ``awin``, (see :class:`~aquaduct.geom.smooth.ActiveWindowSmooth`)
+                                            * ``awin_mss``, (see :class:`~aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth`)
+                                            * ``dwin``, (see :class:`~aquaduct.geom.smooth.DistanceWindowSmooth`)
+                                            * ``dwin_mss``. (see :class:`~aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth`)
 recursive                   int             Number of recursive runs of smoothing method.
 window                      int or float    In window based method defines window size. In plain ``window``
                                             it has to be int number.
