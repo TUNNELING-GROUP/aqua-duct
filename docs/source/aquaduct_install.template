@@ -7,7 +7,14 @@ Overview
 Aqua-Duct software is software written in Python (CPython) and comprises of two elements:
 
 #. aquaduct - a Python package,
-#. valve - a script that uses  :mod:`aquaduct` to perform calculations.
+#. valve - a script that uses :mod:`aquaduct` to perform calculations.
+
+**Download**
+
+You can download Aqua-Duct packages directly from `Aqua-Duct homepage <http://aquaduct.pl>`_. This page includes also older versions of Aqua-Duct.
+
+If you follow this installation guide you will install current release.
+
 
 Troubleshooting
 ---------------

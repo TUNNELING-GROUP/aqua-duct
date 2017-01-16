@@ -11,17 +11,7 @@ Welcome to Aqua-Duct's documentation!
     :titlesonly:
 
     Aqua-Duct installation <aquaduct_install>
-    Aqua-Duct download <aquaduct_download>
     Valve manual <valve/valve_manual>
     Valve configuration <valve/valve_config>
     Valve tutorial <valve/valve_tutorial>
     Aqua-Duct API documentation <modules>
-
-
-.. include:: other_versions.rst
-
-..  Indices and tables
-    ==================
-    * :ref:`genindex`
-    * :ref:`modindex`
-    * :ref:`search`
