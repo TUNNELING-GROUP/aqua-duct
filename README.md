@@ -18,7 +18,7 @@ Overview
 Availability
 ============
 
-*Aqua-Duct* is licensed under [GNU GPL v3 license](https://www.gnu.org/licenses/gpl-3.0.en.html).
+*Aqua-Duct* is licensed under [GNU GPL v3 license](https://www.gnu.org/licenses/gpl-3.0.en.html "GNU GPL v3 license").
 Source code is available at [aquaduct.pl] [aqhp].
 
 Installation
