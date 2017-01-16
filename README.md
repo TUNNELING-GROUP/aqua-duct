@@ -28,6 +28,10 @@ Installation
 
 Detailed instructions on *Aqua-Duct* installation are available at [aquaduct.pl](http://aquaduct.pl).
 
+To start using Aqua-Duct type::
+
+    valve.py --help
+
 Troubleshooting
 ===============
 
