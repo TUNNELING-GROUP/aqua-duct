@@ -1,6 +1,8 @@
 *Aqua-Duct* a new tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations.
 
-Homepage: [aquaduct.pl](http://aquaduct.pl)
+Homepage: [aqhp][]
+
+[aqhp]: http://aquaduct.pl "Aqua-Duct homepage"
 
 Overview
 ========
