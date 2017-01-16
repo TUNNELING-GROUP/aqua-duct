@@ -26,11 +26,10 @@ Installation
 
     pip install aquaduct
 
-Detailed instructions on *Aqua-Duct* installation ar available at [aquaduct.pl](http://aquaduct.pl).
-pip install aquaduct
+Detailed instructions on *Aqua-Duct* installation are available at [aquaduct.pl](http://aquaduct.pl).
 
 Troubleshooting
 ===============
 
 If you encounter any problems with installation do not hesitate to contact us at info@aquaduct.pl. We are **REALLY** willing to help!
-Please, visit also *Aqua-Duct* home page [aquaduct.pl](http://aquaduct.pl).
+Please, visit also *Aqua-Duct* homepage [aquaduct.pl](http://aquaduct.pl).
