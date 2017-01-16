@@ -7,7 +7,8 @@ mkdir -p $PDIR
 cp -r src/README $PDIR
 cp -r src/apps $PDIR
 cp -r src/aquaduct $PDIR
-cp -r src/license.txt $PDIR
+cp -r src/LICENSE.txt $PDIR
+cp -r README.md $PDIR
 cp -r src/setup.py $PDIR
 cp -r src/ubuntu_mdanalysis_install_helper.sh $PDIR
 
