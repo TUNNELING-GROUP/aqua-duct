@@ -48,7 +48,7 @@ If *pip* is not available try to install it by typing::
 
     easy_install pip
 
-Depending on the settings of your system you can prepend the above command with `sudo` or `doas` or do *user* instalation::
+Depending on the settings of your system you can prepend the above command with `sudo` or `doas` or do *user* installation::
 
     # sudo
     sudo pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
@@ -132,7 +132,7 @@ The drawback of using system Python installation is a lack of PyMOL. It should b
 Custom Python
 #############
 
-This is recomended way of aquaduct installation. If you do not have custom Python instalaltion you can get it by using one of package managers available for macOS, for example `homebrew <http://brew.sh/>`_. With this package manager you can do following::
+This is recommended way of Aqua-Duct installation. If you do not have custom Python installation you can get it by using one of package managers available for macOS, for example `homebrew <http://brew.sh/>`_. With this package manager you can do following::
 
     brew install python
     sudo easy_install pip
@@ -153,7 +153,7 @@ The above instruction assumes that you are using `brew` and you have only one Py
 Windows
 ^^^^^^^
 
-Installation under Windows is also possible. The limiting factor is MDAnalysis which is not officially available under Windows yet. You can, however, install Cygwin and perofrom Aqua-Duct installation in Cygwin.
+Installation under Windows is also possible. The limiting factor is MDAnalysis which is not officially available under Windows yet. You can, however, install Cygwin and perform Aqua-Duct installation in Cygwin.
 
 First, start with `Cygwin installation <https://cygwin.com/>`_. During the setup select following packages:
 
@@ -178,7 +178,7 @@ Once Cygwin is installed with all required libraries you can perform following s
     easy_install-2.7 pip
 
 First, try to install SciPy::
-    
+
     # install SciPy
     pip install scipy
 
@@ -194,7 +194,7 @@ If you encounter any problems related to missing **xlocale.h** header file try t
 .. note::
 
 	The above procedure for SciPy installation might not be optimal. For more information please got to `SciPy web page <https://www.scipy.org/>`_.
-    
+
 Now, install **scikit-learn** and then Aqua-Duct::
 
     # install scikit-learn
@@ -207,7 +207,7 @@ OpenBSD
 ^^^^^^^
 
 Aqua-Duct can be also installed under OpenBSD (5.9 and 6.0 amd64).
-First, netCDF-c version 4 has to be installed as OpenBSD ships only netCDF in version 3::
+NetCDF-c version 4 has to be installed as OpenBSD ships only netCDF in version 3. First, install hdf5 library and GNU make::
 
     # install hdf5 and GNU make
     pkg_add hdf5 gmake
@@ -274,4 +274,6 @@ PyMOL can be run by typing `pymol` or can be used as Python module.
 Other BSDs
 ##########
 
-Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD.
+Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD. Try to install it and SciPy, then proceed to generic Python installation instructions.
+
+If you are using NetBSD or other BSD try to follow OpenBSD instructions.
