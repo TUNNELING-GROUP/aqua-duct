@@ -19,7 +19,7 @@ Availability
 ============
 
 *Aqua-Duct* is licensed under [GNU GPL v3 license](https://www.gnu.org/licenses/gpl-3.0.en.html).
-Source code is available at [aquaduct.pl](http://aquaduct.pl).
+Source code is available at [aquaduct.pl] [aqhp].
 
 Installation
 ============
@@ -28,7 +28,7 @@ Installation
 
     pip install aquaduct
 
-Detailed instructions on *Aqua-Duct* installation are available at [aquaduct.pl](http://aquaduct.pl).
+Detailed instructions on *Aqua-Duct* installation are available at [aquaduct.pl] [aqhp].
 
 To start using Aqua-Duct type:
 
@@ -37,5 +37,5 @@ To start using Aqua-Duct type:
 Troubleshooting
 ===============
 
-If you encounter any problems with installation do not hesitate to contact us at info@aquaduct.pl. We are **REALLY** willing to help!
-Please, visit also *Aqua-Duct* homepage [aquaduct.pl](http://aquaduct.pl).
+If you encounter any problems with installation do not hesitate to contact us at <info@aquaduct.pl>. We are **REALLY** willing to help!
+Please, visit also *Aqua-Duct* homepage [aquaduct.pl] [aqhp].
