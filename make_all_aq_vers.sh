@@ -33,13 +33,13 @@ make_docs
 mv docs/build/html $PDIR/$VERSION
 
 # make for each tag
-for tag in $( git tag )
+for tag in $( git tag | sort -r | head -1 )
 do
     git checkout tags/$tag -b branch_$tag
-    VERSION=`make_version`
-    echo $tag $VERSION
+    VERSION=current
+    #echo $tag $VERSION
     make_docs
-    mv docs/build/html $PDIR/$tag
+    mv docs/build/html $PDIR/$VERSION
 done
 
 #/home/tljm/dropbox_uploader.sh -p upload $CWD/*.tar.gz AQUADUCT/AQ_pkgs/
@@ -56,4 +56,3 @@ cd $CWD
 
 rm -rf -- $TDIR
 rm -rf -- $RDIR
-
