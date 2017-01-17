@@ -5,7 +5,7 @@ CWD=`pwd`
 RDIR=`mktemp -d`
 TDIR=`mktemp -d`
 PDIR=$TDIR/aquaduct
-mkdir -p $PDIR
+#mkdir -p $PDIR
 
 function make_version {
     VER=`echo '__version__' | python -i src/aquaduct/__init__.py 2>/dev/null | head -1 | cut -b 2- | rev | cut -b 2- | rev`
@@ -27,10 +27,6 @@ cd aqua-duct
 git config user.email "tljm@wp.pl"
 git config user.name "TM"
 
-# make current
-VERSION=devel
-make_docs
-mv docs/build/html $PDIR/$VERSION
 
 # make for each tag
 for tag in $( git tag | sort -r | head -1 )
@@ -41,6 +37,13 @@ do
     make_docs
     mv docs/build/html $PDIR
 done
+
+# make current
+git checkout master
+VERSION=devel
+make_docs
+mv docs/build/html $PDIR/$VERSION
+
 
 #/home/tljm/dropbox_uploader.sh -p upload $CWD/*.tar.gz AQUADUCT/AQ_pkgs/
 
