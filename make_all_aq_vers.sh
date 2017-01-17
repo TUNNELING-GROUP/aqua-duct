@@ -31,7 +31,7 @@ git config user.name "TM"
 # make for each tag
 for tag in $( git tag | sort -r | head -1 )
 do
-    git checkout tags/$tag -b branch_$tag
+    git checkout tags/$tag # -b branch_$tag
     VERSION=current
     #echo $tag $VERSION
     make_docs
