@@ -53,8 +53,8 @@ done
 echo '* `development version <../devel/index.html>`_ (use with care)' >> source/other_versions.rst
 
 # AQ pip command
-AQPIP="install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
-#AQPIP="install aquaduct"
+#AQPIP="install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
+AQPIP="install aquaduct"
 sed -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.template > source/aquaduct_install.rst
 
 # AQ installation requirements
