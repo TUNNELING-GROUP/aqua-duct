@@ -39,7 +39,7 @@ do
     VERSION=current
     #echo $tag $VERSION
     make_docs
-    mv docs/build/html $PDIR/$VERSION
+    mv docs/build/html $PDIR
 done
 
 #/home/tljm/dropbox_uploader.sh -p upload $CWD/*.tar.gz AQUADUCT/AQ_pkgs/
