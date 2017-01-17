@@ -11,7 +11,7 @@ Aqua-Duct software is software written in Python (CPython) and comprises of two 
 
 **Download**
 
-You can download Aqua-Duct packages directly from `Aqua-Duct homepage <http://aquaduct.pl>`_. This page includes also older versions of Aqua-Duct.
+You can download Aqua-Duct packages directly from `Aqua-Duct homepage <http://aquaduct.pl>`_. This page includes older versions of Aqua-Duct as well as development version.
 
 If you follow this installation guide you will install current release.
 
@@ -49,7 +49,7 @@ Generic Python installation
 
 The easiest way to install Aqua-Duct is to install Python 2.7 and use following command::
 
-    pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    pip install aquaduct
 
 If *pip* is not available try to install it by typing::
 
@@ -58,20 +58,20 @@ If *pip* is not available try to install it by typing::
 Depending on the settings of your system you can prepend the above command with `sudo` or `doas` or do *user* installation::
 
     # sudo
-    sudo pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    sudo pip install aquaduct
 
     # doas
-    doas pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    doas pip install aquaduct
 
     # 'user' installation
-    pip install --extra-index-url https://testpypi.python.org/pypi aqueduct --user
+    pip install aquaduct --user
 
 It is also good idea to try to install Aqua-Duct using virtualenv::
 
     virtualenv aquaduct_installation
     cd aquaduct_installation
     . bin/activate
-    pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    pip install aquaduct
 
 Installation of PyMOL
 #####################
@@ -89,7 +89,7 @@ GNU/Linux
 
 Installation was tested on limited number of GNU/Linux systems. On the most of modern installations you can simply follow generic instructions, for example under Ubuntu 16.04 you can type::
 
-    sudo pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    sudo pip install aquaduct
 
 Other systems may require additional work, in particular installation of NetCDF4 is sometimes cumbersome. Following is an example how to install all required packages under Ubuntu 14.04::
 
@@ -119,7 +119,7 @@ Other systems may require additional work, in particular installation of NetCDF4
 
 If everything went fine you can follow generic instructions, type::
 
-    sudo pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    sudo pip install aquaduct
 
 MacOS
 ^^^^^
@@ -132,7 +132,7 @@ System native Python
 ::
 
     sudo easy_install pip
-    sudo pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    sudo pip install aquaduct
 
 The drawback of using system Python installation is a lack of PyMOL. It should be, however, relatively easy to compile PyMOL on your own. Try to follow compilation instruction under BSD systems.
 
@@ -143,7 +143,7 @@ This is recommended way of Aqua-Duct installation. If you do not have custom Pyt
 
     brew install python
     sudo easy_install pip
-    sudo pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    sudo pip install aquaduct
 
 Next, you can install PyMOL::
 
@@ -208,7 +208,7 @@ Now, install **scikit-learn** and then Aqua-Duct::
     pip install scikit-learn
 
     # finally, install aquaduct
-    pip install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    pip install aquaduct
 
 OpenBSD
 ^^^^^^^
@@ -248,7 +248,7 @@ Install netCDF4 Python::
 
 At this point you can follow generic Python instructions, type::
 
-    pip2.7 install --extra-index-url https://testpypi.python.org/pypi aqueduct
+    pip2.7 install aquaduct
 
 PyMOL at OpenBSD
 ################
