@@ -88,3 +88,4 @@ def check_versions(version_dict):
     assert 'aquaduct_version' in version_dict, "File is corrupted, cannot read version data."
     check_version_compliance(aquaduct_version(), version_dict['aquaduct_version'], 'Aqua-Duct')
     check_version_compliance(version(), version_dict['version'], 'Valve')
+#testowy komentarz
