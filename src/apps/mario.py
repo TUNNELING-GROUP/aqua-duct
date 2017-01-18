@@ -19,7 +19,7 @@ from collections import namedtuple, OrderedDict  # TODO: check if OrderedDict is
 # load_dump functions&firends will be replaced by imports
 
 def version():
-    return 0, 10, 0
+    return 0, 10, 1
 
 
 class LoadDumpWrapper(object):
