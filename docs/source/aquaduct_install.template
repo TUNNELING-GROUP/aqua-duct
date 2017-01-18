@@ -91,6 +91,9 @@ Installation was tested on limited number of GNU/Linux systems. On the most of m
 
     sudo pip AQPIP
 
+NetCDF4 & MDAnalysis installation Ubuntu 14.04
+##############################################
+
 Other systems may require additional work, in particular installation of NetCDF4 is sometimes cumbersome. Following is an example how to install all required packages under Ubuntu 14.04::
 
     # install required python packages
@@ -117,9 +120,32 @@ Other systems may require additional work, in particular installation of NetCDF4
     # install MDAnalysis
     sudo pip install "MDAnalysis[amber]>=0.15"
 
-If everything went fine you can follow generic instructions, type::
+If everything went fine you can follow generic instructions.
 
-    sudo pip AQPIP
+SciPy update and Ubuntu/Debian
+##############################
+
+Newer version of SciPy (if required) can be installed by following procedure::
+
+    # install libraries required for SciPy compilation
+    apt-get build-dep python-scipy
+
+    # install SciPy, say version 0.14.1
+    pip install scipy==0.14.1
+
+Debian (and Ubuntu) uses strange approach to Python installation. Update of system-installed Python modules with `pip` is possible but not visible by default. To circumvent this problem you can set `PYTHONSTARTUP` variable pointing to Python startup script which would alter Python path in appropriate way.
+
+If you are using bash as you shell you can add following lines to `~/.bashrc`::
+
+    export PYTHONSTARTUP=~/.pythonstartup.py
+
+Next, you can create `~/.pythonstartup.py` and add folowing lines to it::
+
+    import sys
+    sys.path.insert(1,'/usr/local/lib/python2.7/dist-packages')
+    del sys
+
+With these changes, each time Python is running, it will execute startup script and `/usr/local/lib/python2.7/dist-packages` path will be added at position 1 in to Python path.
 
 MacOS
 ^^^^^

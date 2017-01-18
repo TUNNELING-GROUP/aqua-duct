@@ -28,7 +28,7 @@ class Smooth(object):
         self.recursive = recursive
 
     def smooth(self, coords):
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+        raise NotImplementedError("This is an abstract method.")
 
     def __call__(self, coords):
         if len(coords) < 3:
@@ -46,6 +46,9 @@ class Smooth(object):
 
 
 class GeneralWindow(object):
+    def __init__(self,function=np.mean):
+        self.function = function
+
     @staticmethod
     def max_window_at_pos(pos, size):
         # size is length
@@ -72,12 +75,20 @@ class GeneralWindow(object):
             hi = ub
         return lo, hi
 
-
-class WindowSmooth(Smooth, GeneralWindow):
-    def __init__(self, window=5, function=np.mean, **kwargs):
-        super(WindowSmooth,self).__init__(**kwargs)
+class IntWindow(GeneralWindow):
+    def __init__(self,window=5,**kwargs):
+        super(IntWindow,self).__init__(**kwargs)
         self.window = int(window)
-        self.function = function
+
+class FloatWindow(GeneralWindow):
+    def __init__(self,window=5.,**kwargs):
+        super(FloatWindow,self).__init__(**kwargs)
+        self.window = float(window)
+
+
+class WindowSmooth(Smooth, IntWindow):
+    def __init__(self, **kwargs):
+        super(WindowSmooth,self).__init__(**kwargs)
 
     @arrayify
     def smooth(self, coords):
@@ -92,11 +103,9 @@ class WindowSmooth(Smooth, GeneralWindow):
             yield self.function(coords[slice(lo, hi, None)], 0).tolist()
 
 
-class DistanceWindowSmooth(Smooth, GeneralWindow):
-    def __init__(self, window=5, function=np.mean, **kwargs):
+class DistanceWindowSmooth(Smooth, FloatWindow):
+    def __init__(self, **kwargs):
         super(DistanceWindowSmooth,self).__init__(**kwargs)
-        self.window = float(window)
-        self.function = function
 
     @arrayify
     def smooth(self, coords):
@@ -119,11 +128,9 @@ class DistanceWindowSmooth(Smooth, GeneralWindow):
             yield self.function(coords[slice(lo, hi, None)], 0).tolist()
 
 
-class ActiveWindowSmooth(Smooth, GeneralWindow):
-    def __init__(self, window=5, function=np.mean, **kwargs):
+class ActiveWindowSmooth(Smooth, FloatWindow):
+    def __init__(self, **kwargs):
         super(ActiveWindowSmooth,self).__init__(**kwargs)
-        self.window = float(window)
-        self.function = function
 
     @arrayify
     def smooth(self, coords):
