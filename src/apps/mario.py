@@ -16,6 +16,8 @@ from aquaduct import version as aquaduct_version
 from collections import namedtuple, OrderedDict  # TODO: check if OrderedDict is REALLY used
 
 
+# load_dump functions&firends will be replaced by imports
+
 def version():
     return 0, 10, 0
 
