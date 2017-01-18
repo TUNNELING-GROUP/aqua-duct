@@ -49,6 +49,8 @@ mv docs/build/html $PDIR/$VERSION
 
 cd $TDIR
 tar cvzf $CWD/AQ_full_help.tar.gz aquaduct
+cd aquaduct
+zip -r -9 $CWD/aquaduct_docs.zip *
 
 cd $CWD
 mkdir -p docs/build/full
@@ -56,6 +58,7 @@ cd docs/build/full
 rm -rf -- *
 tar xvzf ../../../AQ_full_help.tar.gz
 cd $CWD
+
 
 rm -rf -- $TDIR
 rm -rf -- $RDIR

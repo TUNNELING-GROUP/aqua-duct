@@ -72,6 +72,6 @@ rm -rf source/aquaduct*.tar.gz
 export PYTHONPATH=$PYTHONPATH_CACHE
 
 rm -rf aquaduct_docs.zip
-( cd build/html ; zip -r -9 ../../aquaduct_docs.zip * )
+#( cd build/html ; zip -r -9 ../../aquaduct_docs.zip * )
 
 #rsync -avz -P --delete build/html/ 192.168.1.15:/home/tljm/public_html/aq/
