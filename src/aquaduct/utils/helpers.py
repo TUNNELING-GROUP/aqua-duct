@@ -26,6 +26,8 @@ from functools import wraps
 from os import close
 from tempfile import mkstemp
 
+from aquaduct.utils.math import defaults
+
 
 ########################################################################
 #  aliens
@@ -371,8 +373,8 @@ def arrayify(gen):
     def patched(*args, **kwargs):
         obj = gen(*args, **kwargs)
         if isinstance(obj, Iterable):
-            return np.matrix(list(obj)).A
-        return np.matrix([obj]).A
+            return np.matrix(list(obj),dtype=defaults.float_default).A
+        return np.matrix([obj],dtype=defaults.float_default).A
 
     return patched
 
@@ -392,8 +394,8 @@ def arrayify1(gen):
     def patched(*args, **kwargs):
         obj = gen(*args, **kwargs)
         if isinstance(obj, Iterable):
-            return np.matrix(list(obj)).A1
-        return np.matrix([obj]).A1
+            return np.matrix(list(obj),dtype=defaults.float_default).A1
+        return np.matrix([obj],dtype=defaults.float_default).A1
 
     return patched
 
@@ -437,7 +439,7 @@ def split_list(l,s):
             b = i+1
             n -= 1
         yield l[b:]
-            
+
 
 
 @tupleify

@@ -72,7 +72,7 @@ from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation
 from aquaduct.geom.convexhull import is_point_within_convexhull
 from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
-    ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth
+    ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
 from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths
@@ -661,7 +661,7 @@ def load_stage_dump(name, reader=None):
 
 def get_smooth_method(soptions):
     assert soptions.method in ['window', 'mss', 'window_mss', 'awin',
-                               'awin_mss', 'dwin', 'dwin_mss'], 'Unknown smoothing method %s.' % soptions.method
+                               'awin_mss', 'dwin', 'dwin_mss', 'savgol'], 'Unknown smoothing method %s.' % soptions.method
 
     opts = {}
     if 'recursive' in soptions._asdict():
@@ -689,6 +689,41 @@ def get_smooth_method(soptions):
         if 'step' in soptions._asdict():
             opts.update({'step': float(soptions.step)})
 
+    def savgol_opts():
+        window_length = 5 # TODO: magic constant (default value)
+        if 'window' in soptions._asdict():
+            window_length = int(float(soptions.window))
+            assert window_length%2 == 1, 'Window in Savgol method must be positive odd number, %d given instead.' % iwindow_length
+            opts.update({'window_length': window_length})
+        polyorder = 2 # TODO: magic constant (default value)
+        if 'polyorder' in soptions._asdict():
+            polyorder = int(float(soptions.polyorder))
+            assert polyorder > 0, 'Polynomial order should be greater then 0, %d given instead.' % polyorder
+            opts.update({'polyorder': window_length})
+        assert polyorder < window_length , 'Polynomial order (%d) should be less then window (%d).' (polyorder,window_length)
+        if 'deriv' in soptions._asdict():
+            deriv = int(float(soptions.deriv))
+            assert deriv >= 0, 'Order of derrivative should be integer greater or equal 0, %d given instead.' % deriv
+            opts.update({'deriv': deriv})
+        if 'delta' in soptions._asdict():
+            delta = float(soptions.delta)
+            assert delta >= 0, 'Delta should be greater or equal 0, %f given instead.' % delta
+            if 'deriv' in soptions._asdict():
+                if derriv == 0:
+                    logger.warning('Delta %f make no sense if deriv is 0.' % delta)
+            opts.update({'delta': delta})
+        mode = 'interp' # TODO: magic constant (default value)
+        if 'mode' in soptions._asdict():
+            mode = str(soptions.mode)
+            assert mode in ['mirror', 'constant', 'nearest', 'wrap', 'interp'], 'Unknown mode %s.' % mode
+            opts.update({'mode': mode})
+        if 'cval' in soptions._asdict():
+            cval = float(soptions.cval)
+            if mode != 'constant':
+                logger.warning('Cval make no sense if mode is %s.' % mode)
+            opts.update({'cval': cval})
+
+
     if soptions.method == 'window':
         window_opts()
         smooth = WindowSmooth(**opts)
@@ -713,6 +748,9 @@ def get_smooth_method(soptions):
         awin_dwin_opts()
         mss_opts()
         smooth = DistanceWindowOverMaxStepSmooth(**opts)
+    elif soptions.method == 'savgol':
+        savgol_opts()
+        smooth = SavgolSmooth(**opts)
 
     return smooth
 

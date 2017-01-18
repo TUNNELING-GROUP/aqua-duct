@@ -17,7 +17,10 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
+from scipy.signal import savgol_filter
+from functools import partial
 
+from aquaduct.utils.math import make_default_array
 from aquaduct.geom import traces
 from aquaduct.utils.helpers import arrayify
 
@@ -79,6 +82,7 @@ class IntWindow(GeneralWindow):
     def __init__(self,window=5,**kwargs):
         super(IntWindow,self).__init__(**kwargs)
         self.window = int(window)
+
 
 class FloatWindow(GeneralWindow):
     def __init__(self,window=5.,**kwargs):
@@ -198,6 +202,22 @@ class MaxStepSmooth(Smooth):
                         # update to yield count
                         to_yield_count += 1
 
+
+
+class SavgolSmooth(Smooth):
+    def __init__(self, **kwargs):
+        super(SavgolSmooth,self).__init__(window=5,polyorder=2,**kwargs)
+        self.savgol = partial(savgol_filter,window=5,polyorder=2,axis=0,**kwargs)
+
+    @arrayify
+    def smooth(self, coords):
+        '''
+        coords_ = []
+        for coord in make_default_array(coords).T:
+            coords_.append(self.savgol(coord)
+        return make_default_array(coords_).T
+        '''
+        return make_default_array(self.savgol(make_default_array(coords)))
 
 class WindowOverMaxStepSmooth(Smooth):
     def __init__(self, **kwargs):
