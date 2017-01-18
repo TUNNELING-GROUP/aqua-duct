@@ -125,27 +125,17 @@ If everything went fine you can follow generic instructions.
 SciPy update and Ubuntu/Debian
 ##############################
 
-Newer version of SciPy (if required) can be installed by following procedure::
+Debian (and Ubuntu) uses strange approach to Python installation. To install newer version of SciPy (if required) try following procedure::
 
     # install libraries required for SciPy compilation
     apt-get build-dep python-scipy
 
-    # install SciPy, say version 0.14.1
-    pip install scipy==0.14.1
+    # install SciPy
+    easy_install --upgrade scipy
 
-Debian (and Ubuntu) uses strange approach to Python installation. Update of system-installed Python modules with `pip` is possible but not visible by default. To circumvent this problem you can set `PYTHONSTARTUP` variable pointing to Python startup script which would alter Python path in appropriate way.
+.. warning::
 
-If you are using bash as you shell you can add following lines to `~/.bashrc`::
-
-    export PYTHONSTARTUP=~/.pythonstartup.py
-
-Next, you can create `~/.pythonstartup.py` and add folowing lines to it::
-
-    import sys
-    sys.path.insert(1,'/usr/local/lib/python2.7/dist-packages')
-    del sys
-
-With these changes, each time Python is running, it will execute startup script and `/usr/local/lib/python2.7/dist-packages` path will be added at position 1 in to Python path.
+    The above procedure will remove current SciPy from `easy-install.pth` file.
 
 MacOS
 ^^^^^
