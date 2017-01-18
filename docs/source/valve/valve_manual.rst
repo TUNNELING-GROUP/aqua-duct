@@ -18,22 +18,26 @@ Basic help of *Valve* usage can be displayed by following command::
 
 It should display following information::
 
-    usage: valve.py [-h] [--dump-template-config] [-t THREADS] [-c CONFIG_FILE]
-                    [--max-frame MAX_FRAME]
-
-    Valve, Aqua-Duct driver
-
+    usage: valve.py [-h] [--debug] [--debug-file DEBUG_FILE]
+                    [--dump-template-config] [-t THREADS] [-c CONFIG_FILE] [--sps]
+                    [--max-frame MAX_FRAME] [--version] [--license]
+    Valve, Aquaduct driver
     optional arguments:
       -h, --help            show this help message and exit
+      --debug               Prints debug info. (default: False)
+      --debug-file DEBUG_FILE
+                            Debug log file. (default: None)
       --dump-template-config
                             Dumps template config file. Suppress all other output
                             or actions. (default: False)
       -t THREADS            Limit Aqua-Duct calculations to given number of
                             threads. (default: None)
       -c CONFIG_FILE        Config file filename. (default: None)
+      --sps                 Use single precision to store data. (default: False)
       --max-frame MAX_FRAME
                             Limit number of frames. (default: None)
-      --version             Prints versions and exits.. (default: False)
+      --version             Prints versions and exits. (default: False)
+      --license             Prints short license info and exits. (default: False)
 
 Configuration file template
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -49,7 +53,6 @@ Configuration file template can also be easily saved in to a file with::
 Where config.txt is a configuration file template.
 
 For detailed description of configuration file and available options see :doc:`valve_config`
-
 
 *Valve* calculation run
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,6 +74,16 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
     Option ``--max-frame`` can be used for testing or debugging purposes. It allows to limit number of frames processed by *Valve*.
     If it set, for example, to ``1000`` only first 1000 frames will be processed making all calculations very fast.
 
+Single precision storage
+########################
+
+Most of the calculation is *Valve* is performed by NumPy. By default, NumPy uses double precision floats.
+*Valve* does not change this behaviour but has special option ``--sps`` which forces to store all data (both internal data stored in RAM and on the disk) in single precision. This spare a lot of RAM and is recommended what you perform calculation for long trajectories and you have limited amount of RAM.
+
+Debuging
+########
+
+*Valve* can output some debug information. Use ``--debug`` to see all debug information on the screen or use ``--debug-file`` with some file name to dump all debug messages to the given file. Beside debug messages standard messages will be saved in the file as well.
 
 How does *Valve* work
 ---------------------

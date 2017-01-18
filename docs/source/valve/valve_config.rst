@@ -426,11 +426,13 @@ method                      str             Smoothing method. Can be one of the 
                                             * ``awin``, (see :class:`~aquaduct.geom.smooth.ActiveWindowSmooth`)
                                             * ``awin_mss``, (see :class:`~aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth`)
                                             * ``dwin``, (see :class:`~aquaduct.geom.smooth.DistanceWindowSmooth`)
-                                            * ``dwin_mss``. (see :class:`~aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth`)
+                                            * ``dwin_mss``, (see :class:`~aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth`)
+                                            * ``savgol``. (see :class:`~aquaduct.geom.smooth.SavgolSmooth`)
 recursive                   int             Number of recursive runs of smoothing method.
 window                      int or float    In window based method defines window size. In plain ``window``
-                                            it has to be int number.
+                                            it has to be int number. In ``savgol`` it has to be odd integer.
 step                        int             In step based method defines size of the step.
 function                    str             In window based methods defines averaging function. Can be
                                             ``mean`` or ``median``.
+polyorder                   int             In ``savgol`` is polynomial order.
 =========================   =============== ================================================================

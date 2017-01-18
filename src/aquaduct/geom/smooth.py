@@ -20,7 +20,7 @@ import numpy as np
 from scipy.signal import savgol_filter
 from functools import partial
 
-from aquaduct.utils.math import make_default_array
+from aquaduct.utils.maths import make_default_array
 from aquaduct.geom import traces
 from aquaduct.utils.helpers import arrayify
 
@@ -206,8 +206,8 @@ class MaxStepSmooth(Smooth):
 
 class SavgolSmooth(Smooth):
     def __init__(self, **kwargs):
-        super(SavgolSmooth,self).__init__(window=5,polyorder=2,**kwargs)
-        self.savgol = partial(savgol_filter,window=5,polyorder=2,axis=0,**kwargs)
+        super(SavgolSmooth,self).__init__(**kwargs)
+        self.savgol = partial(savgol_filter,axis=0,**kwargs)
 
     @arrayify
     def smooth(self, coords):

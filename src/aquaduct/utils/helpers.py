@@ -26,7 +26,7 @@ from functools import wraps
 from os import close
 from tempfile import mkstemp
 
-from aquaduct.utils.math import defaults
+from aquaduct.utils.maths import defaults
 
 
 ########################################################################

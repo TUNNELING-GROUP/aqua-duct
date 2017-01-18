@@ -693,23 +693,24 @@ def get_smooth_method(soptions):
         window_length = 5 # TODO: magic constant (default value)
         if 'window' in soptions._asdict():
             window_length = int(float(soptions.window))
-            assert window_length%2 == 1, 'Window in Savgol method must be positive odd number, %d given instead.' % iwindow_length
+            assert window_length%2 == 1, 'Window in Savgol method must be positive odd number, %d given instead.' % window_length
             opts.update({'window_length': window_length})
         polyorder = 2 # TODO: magic constant (default value)
         if 'polyorder' in soptions._asdict():
             polyorder = int(float(soptions.polyorder))
             assert polyorder > 0, 'Polynomial order should be greater then 0, %d given instead.' % polyorder
-            opts.update({'polyorder': window_length})
-        assert polyorder < window_length , 'Polynomial order (%d) should be less then window (%d).' (polyorder,window_length)
+            opts.update({'polyorder': polyorder})
+        assert polyorder < window_length, 'Polynomial order (%d) should be less then window (%d).' % (polyorder, window_length)
+        '''
         if 'deriv' in soptions._asdict():
             deriv = int(float(soptions.deriv))
-            assert deriv >= 0, 'Order of derrivative should be integer greater or equal 0, %d given instead.' % deriv
+            assert deriv >= 0 and deriv <= polyorder, 'Order of derrivative should be integer greater or equal 0 and less then or equal to Polynomial order (%d), %d given instead.' % (polyorder,deriv)
             opts.update({'deriv': deriv})
         if 'delta' in soptions._asdict():
             delta = float(soptions.delta)
             assert delta >= 0, 'Delta should be greater or equal 0, %f given instead.' % delta
             if 'deriv' in soptions._asdict():
-                if derriv == 0:
+                if deriv == 0:
                     logger.warning('Delta %f make no sense if deriv is 0.' % delta)
             opts.update({'delta': delta})
         mode = 'interp' # TODO: magic constant (default value)
@@ -722,7 +723,7 @@ def get_smooth_method(soptions):
             if mode != 'constant':
                 logger.warning('Cval make no sense if mode is %s.' % mode)
             opts.update({'cval': cval})
-
+        '''
 
     if soptions.method == 'window':
         window_opts()
