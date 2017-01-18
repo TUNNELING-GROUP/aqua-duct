@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-Aqueduct - a collection of tools to trace residues in MD simulation.
+Aqua-Duct - a collection of tools to trace residues in MD simulation.
 """
 
 import logging
