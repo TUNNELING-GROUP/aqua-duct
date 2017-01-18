@@ -37,20 +37,20 @@ cp ../src/ubuntu_mdanalysis_install_helper.sh source/
 #~ ls -1 aquaduct*.tar.gz | sort -r | awk '{print "* :download:`"$1"`"}' > aquaduct_download_list.rst
 #~ cd ..
 
-# other versions docs
-echo 'Documentation for other versions of Aqua-Duct:\n' > source/other_versions.rst
-CURRENT='None'
-for tag in $( git tag | sort -r | head -1 )
-do
-    if [ $CURRENT = 'None' ]
-    then
-        CURRENT=$tag
-        echo '* `'$tag' <../current/index.html>`_ (current version)' >> source/other_versions.rst
-    else
-        echo '* `'$tag' <../'$tag'/index.html>`_' >> source/other_versions.rst
-    fi
-done
-echo '* `development version <../devel/index.html>`_ (use with care)' >> source/other_versions.rst
+#~ # other versions docs
+#~ echo 'Documentation for other versions of Aqua-Duct:\n' > source/other_versions.rst
+#~ CURRENT='None'
+#~ for tag in $( git tag | sort -r | head -1 )
+#~ do
+    #~ if [ $CURRENT = 'None' ]
+    #~ then
+        #~ CURRENT=$tag
+        #~ echo '* `'$tag' <../current/index.html>`_ (current version)' >> source/other_versions.rst
+    #~ else
+        #~ echo '* `'$tag' <../'$tag'/index.html>`_' >> source/other_versions.rst
+    #~ fi
+#~ done
+#~ echo '* `development version <../devel/index.html>`_ (use with care)' >> source/other_versions.rst
 
 # AQ pip command
 #AQPIP="install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
