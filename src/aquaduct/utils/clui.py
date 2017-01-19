@@ -226,7 +226,7 @@ class SimpleProgressBar(object):
     :cvar int barlenght: Length of progress bar.
     :ivar int maxval: maximal number of iterations
     :ivar int current: current number of iterations
-    :ivar bool overrun_notice: if True, overrun above :ivar:`maxval` iterations causes insert of newline
+    :ivar bool overrun_notice: if True, overrun above :attr:`maxval` iterations causes insert of newline
     :ivar bool overrun: flag of overrun
     :ivar int begin: time in seconds at the initialization of the :class:`SimpleProgressBar` class.
     :ivar int tcurrent: time in seconds of current iteration

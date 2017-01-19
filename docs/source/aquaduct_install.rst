@@ -91,6 +91,9 @@ Installation was tested on limited number of GNU/Linux systems. On the most of m
 
     sudo pip install aquaduct
 
+NetCDF4 & MDAnalysis installation Ubuntu 14.04
+##############################################
+
 Other systems may require additional work, in particular installation of NetCDF4 is sometimes cumbersome. Following is an example how to install all required packages under Ubuntu 14.04::
 
     # install required python packages
@@ -117,9 +120,22 @@ Other systems may require additional work, in particular installation of NetCDF4
     # install MDAnalysis
     sudo pip install "MDAnalysis[amber]>=0.15"
 
-If everything went fine you can follow generic instructions, type::
+If everything went fine you can follow generic instructions.
 
-    sudo pip install aquaduct
+SciPy update and Ubuntu/Debian
+##############################
+
+Debian (and Ubuntu) uses strange approach to Python installation. To install newer version of SciPy (if required) try following procedure::
+
+    # install libraries required for SciPy compilation
+    apt-get build-dep python-scipy
+
+    # install SciPy
+    easy_install --upgrade scipy
+
+.. warning::
+
+    The above procedure will remove current SciPy from `easy-install.pth` file.
 
 MacOS
 ^^^^^

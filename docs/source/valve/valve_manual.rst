@@ -75,13 +75,13 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
     If it set, for example, to ``1000`` only first 1000 frames will be processed making all calculations very fast.
 
 Single precision storage
-########################
+""""""""""""""""""""""""
 
 Most of the calculation is *Valve* is performed by NumPy. By default, NumPy uses double precision floats.
-*Valve* does not change this behaviour but has special option ``--sps`` which forces to store all data (both internal data stored in RAM and on the disk) in single precision. This spare a lot of RAM and is recommended what you perform calculation for long trajectories and you have limited amount of RAM.
+*Valve* does not change this behavior but has special option ``--sps`` which forces to store all data (both internal data stored in RAM and on the disk) in single precision. This spare a lot of RAM and is recommended what you perform calculation for long trajectories and you have limited amount of RAM.
 
 Debuging
-########
+""""""""
 
 *Valve* can output some debug information. Use ``--debug`` to see all debug information on the screen or use ``--debug-file`` with some file name to dump all debug messages to the given file. Beside debug messages standard messages will be saved in the file as well.
 
