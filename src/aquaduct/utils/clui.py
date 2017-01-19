@@ -101,7 +101,8 @@ class tictoc(object):
     def __exit__(self, typ, value, traceback):
         self.__toc = time.time()
         if typ is None:
-            logger.debug('Execution time of [%s] %s', self.__mess, smart_time_string(self.__toc - self.__tic))
+            #logger.debug('Execution time of [%s] %s', self.__mess, smart_time_string(self.__toc - self.__tic))
+            logger.debug('Execution time of [%s] %f', self.__mess, (self.__toc - self.__tic))
 
 
 gregorian_year_in_days = 365.2425

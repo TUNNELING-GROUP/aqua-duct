@@ -27,7 +27,7 @@ from aquaduct.utils.helpers import arrayify
 
 class Smooth(object):
     def __init__(self, recursive=None, **kwargs):
-
+        super(Smooth, self).__init__()
         self.recursive = recursive
 
     def smooth(self, coords):
@@ -49,7 +49,8 @@ class Smooth(object):
 
 
 class GeneralWindow(object):
-    def __init__(self,function=np.mean):
+    def __init__(self,function=np.mean,**kwargs):
+        super(GeneralWindow, self).__init__()
         self.function = function
 
     @staticmethod
