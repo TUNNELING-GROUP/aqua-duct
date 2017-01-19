@@ -26,14 +26,36 @@ from aquaduct.utils.helpers import arrayify
 
 
 class Smooth(object):
+    '''
+    Base class for all smoothing methods.
+    '''
     def __init__(self, recursive=None, **kwargs):
+        '''
+        :param int recursive: Number of recursions of the method, everything evaluated to ``False`` is equivalent to 1.
+        '''
         super(Smooth, self).__init__()
         self.recursive = recursive
 
     def smooth(self, coords):
+        '''
+        Abstract method for smoothing method implementation.
+
+        :param Iterable coords: Input coordinates to be smoothed.
+        '''
         raise NotImplementedError("This is an abstract method.")
 
     def __call__(self, coords):
+        '''
+        Call method for all smoothing methods.
+
+        Input coordinates should be iterable and each element should be numpy.ndarray. If length of :attr:`coords` is less then 3 smoothing method is not run and coordinates are returned unchanged.
+
+        If :attr:`recursive` is set smoothing method is applied appropriate number of times.
+
+        :param Iterable coords: Input coordinates to be smoothed.
+        :rtype: numpy.ndarray
+        :return: Smoothed coordinates.
+        '''
         if len(coords) < 3:
             # this make no sense if coords length is less than 3
             return coords
@@ -49,12 +71,26 @@ class Smooth(object):
 
 
 class GeneralWindow(object):
+    '''
+    Base class for window based smoothing methods.
+    '''
     def __init__(self, function=np.mean, **kwargs):
+        '''
+        :param function function: Function to be used for averaging coordinates within a window.
+        '''
         super(GeneralWindow, self).__init__()
         self.function = function
 
     @staticmethod
     def max_window_at_pos(pos, size):
+        '''
+        Method returns maximal possible window at given position of the list with given size of the list. Returned window fits in to the list of given size and is symmetrical.
+
+        :param int pos: Position in question.
+        :param int size: Length of the list.
+        :rtype: 2 element tuple of int
+        :return: Lowest possible bound and highest possible bound of the window.
+        '''
         # size is length
         # pos is zero based
         min_dist_to_edge = min((pos - 0, size - pos - 1))
@@ -68,6 +104,16 @@ class GeneralWindow(object):
         return lo, hi
 
     def check_bounds_at_max_window_at_pos(self, lb, ub, pos, size):
+        '''
+        Method checks if window fits in to maximal possible window calculated according to :meth:`max_window_at_pos`. If not window is corrected.
+
+        :param int lb: Lower bound of the window in question.
+        :param int ub: Upper bound of the window in question.
+        :param int pos: Position in question.
+        :param int size: Length of the list.
+        :rtype: 2 element tuple of int
+        :return: Lowest possible bound and highest possible bound of the window corrected to maximal possible window.
+        '''
         assert ub > pos
         lo, hi = self.max_window_at_pos(pos, size)
         if (pos - 0) <= (size - pos - 1):
@@ -81,13 +127,25 @@ class GeneralWindow(object):
 
 
 class IntWindow(GeneralWindow):
+    '''
+    Base class for all window smoothing methods that require integer window.
+    '''
     def __init__(self, window=5, **kwargs):
+        '''
+        :param int window: Size of the window.
+        '''
         super(IntWindow, self).__init__(**kwargs)
         self.window = int(window)
 
 
 class FloatWindow(GeneralWindow):
+    '''
+    Base class for all window smoothing methods that require float window.
+    '''
     def __init__(self, window=5., **kwargs):
+        '''
+        :param float window: Size of the window.
+        '''
         super(FloatWindow, self).__init__(**kwargs)
         self.window = float(window)
 
