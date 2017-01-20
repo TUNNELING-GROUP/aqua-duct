@@ -72,7 +72,7 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
 .. note::
 
     Option ``--max-frame`` can be used for testing or debugging purposes. It allows to limit number of frames processed by *Valve*.
-    If it set, for example, to ``1000`` only first 1000 frames will be processed making all calculations very fast.
+    If it set, for example, to ``999`` only first 1000 frames will be processed making all calculations very fast.
 
 Single precision storage
 """"""""""""""""""""""""
