@@ -1,0 +1,516 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aquaduct.utils.clui &#8212; Aqua-Duct 0.2.25 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="shortcut icon" href="../../../_static/ficon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aquaduct.html" accesskey="U">aquaduct</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/AQUADUCT_LOGO.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for aquaduct.utils.clui</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations</span>
+<span class="c1"># Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk &lt;info@aquaduct.pl&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module comprises convieniences functions and definitios for different operations related to command line user interface.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">aquaduct</span> <span class="k">import</span> <span class="n">logger</span> <span class="k">as</span> <span class="n">root_logger</span>
+<span class="kn">from</span> <span class="nn">aquaduct</span> <span class="k">import</span> <span class="n">__mail__</span> <span class="k">as</span> <span class="n">mail</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">linesep</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="k">import</span> <span class="n">stderr</span>
+
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Queue</span><span class="p">,</span> <span class="n">Manager</span><span class="p">,</span> <span class="n">Lock</span><span class="p">,</span> <span class="n">Value</span><span class="p">,</span> <span class="n">Process</span>
+
+
+<div class="viewcode-block" id="emit_message_to_file_in_root_logger"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.emit_message_to_file_in_root_logger">[docs]</a><span class="k">def</span> <span class="nf">emit_message_to_file_in_root_logger</span><span class="p">(</span><span class="n">mess</span><span class="p">):</span>
+    <span class="c1"># emits message to the file used by file handler in the root logger</span>
+    <span class="c1"># assumes there is only one file handler</span>
+    <span class="k">if</span> <span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span> <span class="ow">in</span> <span class="nb">map</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">):</span>
+        <span class="n">fh</span> <span class="o">=</span> <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">[</span><span class="nb">map</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">root_logger</span><span class="o">.</span><span class="n">handlers</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">FileHandler</span><span class="p">)]</span>
+        <span class="k">with</span> <span class="n">fh</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fh</span><span class="o">.</span><span class="n">baseFilename</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logfile</span><span class="p">:</span>
+                <span class="n">logfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mess</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="message_special"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.message_special">[docs]</a><span class="k">def</span> <span class="nf">message_special</span><span class="p">(</span><span class="n">mess</span><span class="p">):</span>
+    <span class="n">emit_message_to_file_in_root_logger</span><span class="p">(</span><span class="n">mess</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="message"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.message">[docs]</a><span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="n">mess</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prints message to standard error.</span>
+<span class="sd">    If FileHandler is present in the :class:`root_logger` the same message is appended to the log file.</span>
+
+<span class="sd">    :param str mess: message to print</span>
+<span class="sd">    :param bool cont: if set True no new line is printed</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">cont</span><span class="p">:</span>
+        <span class="n">mess</span> <span class="o">=</span> <span class="n">mess</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mess</span> <span class="o">=</span> <span class="n">mess</span> <span class="o">+</span> <span class="n">linesep</span>
+    <span class="n">emit_message_to_file_in_root_logger</span><span class="p">(</span><span class="n">mess</span><span class="p">)</span>
+    <span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mess</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="fbm"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.fbm">[docs]</a><span class="k">class</span> <span class="nc">fbm</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># feedback message</span>
+<div class="viewcode-block" id="fbm.__init__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.fbm.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__cont</span> <span class="o">=</span> <span class="n">cont</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__info</span> <span class="o">=</span> <span class="n">info</span>
+        <span class="n">message</span><span class="p">(</span><span class="n">info</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__cont</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="fbm.__enter__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.fbm.__enter__">[docs]</a>    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="fbm.__exit__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.fbm.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">typ</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cont</span><span class="p">:</span>
+                <span class="n">message</span><span class="p">(</span><span class="s2">&quot;OK.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">message</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__info</span> <span class="o">+</span> <span class="s2">&quot;: DONE.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="fbm.__call__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.fbm.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">info</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cont</span><span class="p">:</span>
+            <span class="n">message</span><span class="p">(</span><span class="n">linesep</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">info</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">message</span><span class="p">(</span><span class="n">info</span> <span class="o">+</span> <span class="s1">&#39;...&#39;</span><span class="p">,</span> <span class="n">cont</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="tictoc"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.tictoc">[docs]</a><span class="k">class</span> <span class="nc">tictoc</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="tictoc.__init__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.tictoc.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mess</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__tic</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__toc</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__mess</span> <span class="o">=</span> <span class="n">mess</span></div>
+
+<div class="viewcode-block" id="tictoc.__enter__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.tictoc.__enter__">[docs]</a>    <span class="k">def</span> <span class="nf">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__tic</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="tictoc.__exit__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.tictoc.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__toc</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">typ</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Execution time of [</span><span class="si">%s</span><span class="s1">] </span><span class="si">%0.2f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__toc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tic</span><span class="p">)</span></div></div>
+
+
+<span class="n">gregorian_year_in_days</span> <span class="o">=</span> <span class="mf">365.2425</span>
+<span class="sd">&#39;&#39;&#39;Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year&#39;&#39;&#39;</span>
+
+
+<div class="viewcode-block" id="smart_time_string"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.smart_time_string">[docs]</a><span class="k">def</span> <span class="nf">smart_time_string</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">rl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">maximal_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maximal_units</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function transforms time in seconds to nicely formatted string of</span>
+<span class="sd">    length defined by :attr:`maximal_length`. Depending on number of seconds time is represented with</span>
+<span class="sd">    one or more of the following units:</span>
+
+<span class="sd">    ========= =================</span>
+<span class="sd">    Unit name Unit abbreviation</span>
+<span class="sd">    ========= =================</span>
+<span class="sd">    seconds   s</span>
+<span class="sd">    minutes   m</span>
+<span class="sd">    hours     h</span>
+<span class="sd">    days      d</span>
+<span class="sd">    years     y</span>
+<span class="sd">    ========= =================</span>
+
+<span class="sd">    Maximal number of units used in time string can be set with :attr:`maximal_units`.</span>
+
+<span class="sd">    :param int s: Input time in seconds.</span>
+<span class="sd">    :param int rl: Number of units already used for representing time.</span>
+<span class="sd">    :param float t: Exces above standard number of current time units.</span>
+<span class="sd">    :param int maximal_length: Maximal length of the output string. Must be greater then 0.</span>
+<span class="sd">    :param int maximal_units: Maximal number of units used in the output string. Must be greater then 0 and lower then 6.</span>
+
+<span class="sd">    :return: string of nicely formated time</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># assert isinstance(maximal_length, (int, long))</span>
+    <span class="c1"># assert maximal_length &gt; 0</span>
+    <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">maximal_units</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">long</span><span class="p">))</span>
+    <span class="k">assert</span> <span class="n">maximal_units</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="n">maximal_units</span> <span class="o">&lt;</span> <span class="mi">6</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">rl</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">rl</span> <span class="o">&gt;</span> <span class="n">maximal_units</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># seconds</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">t</span> <span class="o">*</span> <span class="mi">60</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%2.2d</span><span class="s2"> s&quot;</span> <span class="o">%</span> <span class="n">s</span>
+        <span class="k">elif</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">t</span> <span class="o">*</span> <span class="mi">3600</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%2.2d</span><span class="s2"> m&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="mi">60</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">smart_time_string</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">%</span> <span class="mi">60</span><span class="p">,</span> <span class="n">rl</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">t</span> <span class="o">*</span> <span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%2.2d</span><span class="s2"> h&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">smart_time_string</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3600</span><span class="p">,</span> <span class="n">rl</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">s</span> <span class="o">&lt;</span> <span class="n">t</span> <span class="o">*</span> <span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">gregorian_year_in_days</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> d&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span><span class="p">)))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">smart_time_string</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span><span class="p">),</span> <span class="n">rl</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> y&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">gregorian_year_in_days</span><span class="p">)))</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">smart_time_string</span><span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mi">3600</span> <span class="o">*</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">gregorian_year_in_days</span><span class="p">),</span> <span class="n">rl</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">maximal_length</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">output</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">maximal_length</span><span class="p">)[:</span><span class="n">maximal_length</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<span class="c1">###################################</span>
+<span class="c1"># vis separators</span>
+
+<div class="viewcode-block" id="gsep"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.gsep">[docs]</a><span class="k">def</span> <span class="nf">gsep</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="mi">72</span><span class="p">,</span> <span class="n">length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generic separator.</span>
+
+<span class="sd">    :param str sep: Element(s) of separator.</span>
+<span class="sd">    :param int times: Number of times :attr:`sep` is printed.</span>
+<span class="sd">    :param int length: Optional maximal length of output.</span>
+<span class="sd">    :return: String separator.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">sep</span> <span class="o">*</span> <span class="n">times</span><span class="p">)[:</span><span class="n">length</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="tsep"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.tsep">[docs]</a><span class="k">def</span> <span class="nf">tsep</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param str line: Input line.</span>
+<span class="sd">    :return: Returns default :func:`gsep` of length of :attr:`line`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">gsep</span><span class="p">(</span><span class="n">sep</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="underline"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.underline">[docs]</a><span class="k">def</span> <span class="nf">underline</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param str line: Input line.</span>
+<span class="sd">    :return: String made by concatenation of :attr:`line`, :mod:`os.linesep`, and output of :func:`tsep` called with :attr:`line`.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">uline</span> <span class="o">=</span> <span class="n">line</span>
+    <span class="n">uline</span> <span class="o">+=</span> <span class="n">linesep</span>
+    <span class="n">uline</span> <span class="o">+=</span> <span class="n">tsep</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">uline</span></div>
+
+
+<div class="viewcode-block" id="thead"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.thead">[docs]</a><span class="k">def</span> <span class="nf">thead</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    :param str line: Input line.</span>
+<span class="sd">    :return: String made by concatenation of output of :func:`tsep` called with :attr:`line`, :attr:`line`, :mod:`os.linesep`, and again output of :func:`tsep` called with :attr:`line`.</span>
+<span class="sd">    :rtype: str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">tsep</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="n">header</span> <span class="o">+=</span> <span class="n">linesep</span>
+    <span class="n">header</span> <span class="o">+=</span> <span class="n">line</span>
+    <span class="n">header</span> <span class="o">+=</span> <span class="n">linesep</span>
+    <span class="n">header</span> <span class="o">+=</span> <span class="n">tsep</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">header</span></div>
+
+
+<span class="c1">###################################</span>
+
+
+<div class="viewcode-block" id="SimpleProgressBar"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar">[docs]</a><span class="k">class</span> <span class="nc">SimpleProgressBar</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Simple progress bar displaying progress with percent indicator, progress bar and ETA.</span>
+<span class="sd">    Progress is measured by iterations.</span>
+
+<span class="sd">    :cvar str rotate: String comprising characters with frames of a rotating toy.</span>
+<span class="sd">    :cvar int barlenght: Length of progress bar.</span>
+<span class="sd">    :ivar int maxval: maximal number of iterations</span>
+<span class="sd">    :ivar int current: current number of iterations</span>
+<span class="sd">    :ivar bool overrun_notice: if True, overrun above :ivar:`maxval` iterations causes insert of newline</span>
+<span class="sd">    :ivar bool overrun: flag of overrun</span>
+<span class="sd">    :ivar int begin: time in seconds at the initialization of the :class:`SimpleProgressBar` class.</span>
+<span class="sd">    :ivar int tcurrent: time in seconds of current iteration</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">rotate</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">|/-&#39;</span>
+    <span class="c1"># rotate = &#39;&lt;^&gt;v&#39;</span>
+    <span class="c1"># rotate = &#39;.:|:.&#39;</span>
+    <span class="c1"># rotate = &#39;x+&#39;</span>
+
+    <span class="n">barlenght</span> <span class="o">=</span> <span class="mi">24</span>
+
+<div class="viewcode-block" id="SimpleProgressBar.__init__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mess</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param int maxval: Maximal number of iterations stored to :attr:`maxval`.</span>
+<span class="sd">        :param str mess: Optional message displayed at progress bar initialization.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">Manager</span><span class="p">()</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">maxval</span><span class="p">,</span>
+                          <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">long</span><span class="p">)),</span> <span class="s1">&#39;Parameter maxval should be of int or long type, </span><span class="si">%r</span><span class="s1"> given instead.&#39;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span>
+            <span class="n">maxval</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">maxval</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maxval</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maxval</span> <span class="o">=</span> <span class="n">maxval</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tens</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">current</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">overrun_notice</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">overrun</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">begin</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">begin</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">begin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_idx</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">mess</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">message</span><span class="p">(</span><span class="n">mess</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SimpleProgressBar.bar"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.bar">[docs]</a>    <span class="k">def</span> <span class="nf">bar</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">barval</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">percent</span><span class="p">()</span> <span class="o">/</span> <span class="mi">100</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">barlenght</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">barval</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">barlenght</span><span class="p">:</span>
+            <span class="n">barval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">barlenght</span>
+        <span class="n">bar</span> <span class="o">=</span> <span class="s1">&#39;#&#39;</span> <span class="o">*</span> <span class="n">barval</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_time</span> <span class="o">&gt;</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># FIXME: magic constant, remove it!</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_idx</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotate</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_idx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">bar</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotate</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_idx</span><span class="p">]</span>
+        <span class="n">bar</span> <span class="o">+=</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">barlenght</span>
+        <span class="k">return</span> <span class="s1">&#39;[</span><span class="si">%s</span><span class="s1">]&#39;</span> <span class="o">%</span> <span class="n">bar</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">barlenght</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SimpleProgressBar.ETA"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.ETA">[docs]</a>    <span class="k">def</span> <span class="nf">ETA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns ETA calculated on the basis of current number of iterations</span>
+<span class="sd">        :attr:`current` and current time :attr:`tcurrent`. If number of</span>
+<span class="sd">        iterations is 0 returns ``?``.</span>
+<span class="sd">        Time is formated wiht :func:`smart_time_string`.</span>
+
+<span class="sd">        :return: ETA as string.</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;?&#39;</span>
+        <span class="n">diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">begin</span>
+        <span class="n">periteration</span> <span class="o">=</span> <span class="n">diff</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">current</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="n">periteration</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxval</span>
+        <span class="n">eta</span> <span class="o">=</span> <span class="n">periteration</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxval</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">current</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">smart_time_string</span><span class="p">(</span><span class="n">eta</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimpleProgressBar.percent"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.percent">[docs]</a>    <span class="k">def</span> <span class="nf">percent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns float number of precent progress calculated in the basis</span>
+<span class="sd">        of current number of iterations :attr:`current`. Should return</span>
+<span class="sd">        number between 0 and 100.</span>
+
+<span class="sd">        :returns: percent progress number</span>
+<span class="sd">        :rtype: float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">percent</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxval</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+        <span class="k">return</span> <span class="n">percent</span></div>
+
+<div class="viewcode-block" id="SimpleProgressBar.show"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Shows current progress.</span>
+
+<span class="sd">        If value returned by :meth:`percent` is =&lt; 100 then progres is printed as</span>
+<span class="sd">        percent indicator leaded by ETA calculated by :meth:`ETA`.</span>
+
+<span class="sd">        If value returned by :meth:`percent` is &gt; 100 then progress is printed as</span>
+<span class="sd">        number of iterations and total time.</span>
+
+<span class="sd">        Progress bar is writen to standard error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">percent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">percent</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">percent</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">overrun_notice</span><span class="p">:</span>
+                <span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">linesep</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">overrun_notice</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">overrun</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">mess_spec</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> iterations out of </span><span class="si">%d</span><span class="s2">. Total time: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxval</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttime</span><span class="p">())</span>
+            <span class="n">mess</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">mess_spec</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">overrun</span><span class="p">:</span>
+            <span class="n">mess_spec</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%3d%%</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> ETA: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">percent</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">bar</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">ETA</span><span class="p">())</span>
+            <span class="n">mess</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\r</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">mess_spec</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\033</span><span class="s2">[K&quot;</span>  <span class="c1"># FIXME: magic constant!</span>
+
+        <span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mess</span><span class="p">)</span>
+        <span class="c1"># TODO: do not use last_rotate_time here, use separate marker, last_rotate_time can be used in over run notice</span>
+        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">percent</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tens</span><span class="p">:</span>  <span class="c1"># FIXME: magic constant!</span>
+            <span class="k">if</span> <span class="n">percent</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_time</span> <span class="o">&gt;</span> <span class="mf">60.</span><span class="p">:</span>  <span class="c1"># FIXME: magic constant, remove it!</span>
+                    <span class="n">message_special</span><span class="p">(</span><span class="n">mess_spec</span> <span class="o">+</span> <span class="n">linesep</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">percent</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">message_special</span><span class="p">(</span><span class="n">mess_spec</span> <span class="o">+</span> <span class="n">linesep</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">percent</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimpleProgressBar.heartbeat"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.heartbeat">[docs]</a>    <span class="k">def</span> <span class="nf">heartbeat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_time</span> <span class="o">&gt;</span> <span class="mf">2.</span><span class="p">:</span>  <span class="c1"># FIXME: magic constant, remove it!</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SimpleProgressBar.update"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Updates number of current iterations :obj:`current` by one if :obj:`step` is &gt; 0.</span>
+<span class="sd">        Otherwise number of current iterations is not updated.</span>
+<span class="sd">        In boths cases time of current iteration :obj:`tcurrent` is updated and</span>
+<span class="sd">        :meth:`show` is called.</span>
+
+<span class="sd">        :param int step: update step</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: change logic of step == 1 vs step &gt; 1 - add or set?</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current</span> <span class="o">=</span> <span class="n">step</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">step</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxval</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_rotate_time</span> <span class="o">&gt;</span> <span class="mf">1.</span> <span class="o">/</span> <span class="mi">4</span><span class="p">):</span>  <span class="c1"># FIXME: magic constant, remove it!</span>
+                <span class="c1"># TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="SimpleProgressBar.ttime"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.ttime">[docs]</a>    <span class="k">def</span> <span class="nf">ttime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculates and returns total time string formated with :func:`smart_time_string`.</span>
+
+<span class="sd">        :return: string of total time</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">smart_time_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tcurrent</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">begin</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SimpleProgressBar.finish"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.SimpleProgressBar.finish">[docs]</a>    <span class="k">def</span> <span class="nf">finish</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Finishes progress bar. First, :meth:`update` is called with :obj:`step` = 0. Next message of total time</span>
+<span class="sd">        is writen to standard error.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">current</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxval</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxval</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">linesep</span><span class="p">)</span>
+        <span class="n">message</span><span class="p">(</span><span class="s2">&quot;Total time: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttime</span><span class="p">())</span></div></div>
+        <span class="c1"># stderr.write(linesep)</span>
+
+
+<span class="n">pbar</span> <span class="o">=</span> <span class="n">SimpleProgressBar</span>  <span class="c1"># default progress bar</span>
+
+
+<div class="viewcode-block" id="get_str_timestamp"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.get_str_timestamp">[docs]</a><span class="k">def</span> <span class="nf">get_str_timestamp</span><span class="p">():</span>
+    <span class="c1"># returns time stamp as string</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="o">*</span><span class="nb">tuple</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">localtime</span><span class="p">())[:</span><span class="mi">6</span><span class="p">]))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aquaduct.html" >aquaduct</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>
