@@ -2033,7 +2033,7 @@ if __name__ == "__main__":
         import argparse
 
         description_version = '''Aquaduct library version %s
-    Valve driver version %s''' % (aquaduct_version_nice(), version_nice())
+    Valve driver version %s''' % (aqueduct_version_nice(), version_nice())
         description = '''Valve, Aquaduct driver'''
 
         parser = argparse.ArgumentParser(description=description,
