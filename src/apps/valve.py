@@ -2121,9 +2121,9 @@ if __name__ == "__main__":
     '''
             exit(0)
 
-    # get global options
-    goptions = config.get_global_options()
-    # pbar_name = goptions.pbar
+        # get global options
+        goptions = config.get_global_options()
+        # pbar_name = goptions.pbar
 
         ############################################################################
         # begin!
