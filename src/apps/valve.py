@@ -2022,11 +2022,8 @@ def stage_VI_run(config, options,
 
 
 if __name__ == "__main__":
-    ############################################################################
-    # argument parsing
-    import argparse
 
-    with clui.tictoc('Aqua-Duct calculations'):
+    with clui.tictoc("Aquaduct calculations"):
 
         ############################################################################
         # argument parsing
@@ -2044,9 +2041,8 @@ if __name__ == "__main__":
         parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
                             help="Dumps template config file. Suppress all other output or actions.")
         parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
-                            help="Limit Aqua-Duct calculations to given number of threads.")
+                            help="Limit Aqueduct calculations to given number of threads.")
         parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
-        parser.add_argument("--sps", action="store_true", dest="sps", required=False, help="Use single precision to store data.")
         parser.add_argument("--max-frame", action="store", dest="max_frame", required=False, help="Limit number of frames.")
         parser.add_argument("--version", action="store_true", dest="print_version", required=False,
                             help="Prints versions and exits.")
@@ -2073,14 +2069,6 @@ if __name__ == "__main__":
         # finally, get valve logger
         logger = logging.getLogger(logger_name + '.valve')
         logger.info('Initialization of Valve logging done.')
-
-        ############################################################################
-        # single precision storage
-        if args.sps:
-            logger.info('Single precision data storage activated.')
-            from aquaduct.utils.maths import defaults
-            defaults.float_default = np.float32
-            defaults.int_default = np.int32
 
         ############################################################################
         # special option for dumping template config
@@ -2121,9 +2109,6 @@ if __name__ == "__main__":
     '''
             exit(0)
 
-        # get global options
-        goptions = config.get_global_options()
-        # pbar_name = goptions.pbar
 
         ############################################################################
         # begin!
