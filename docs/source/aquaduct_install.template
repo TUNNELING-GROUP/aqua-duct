@@ -300,3 +300,4 @@ Other BSDs
 Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD. Try to install it and SciPy, then proceed to generic Python installation instructions.
 
 If you are using NetBSD or other BSD try to follow OpenBSD instructions.
+
