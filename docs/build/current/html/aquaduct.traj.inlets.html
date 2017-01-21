@@ -1,0 +1,492 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aquaduct.traj.inlets module &#8212; Aqua-Duct 0.2.25 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="shortcut icon" href="_static/ficon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="aquaduct.traj.paths module" href="aquaduct.traj.paths.html" />
+    <link rel="prev" title="aquaduct.traj.dumps module" href="aquaduct.traj.dumps.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.traj.paths.html" title="aquaduct.traj.paths module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.traj.dumps.html" title="aquaduct.traj.dumps module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >aquaduct</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="aquaduct.html" >aquaduct package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="aquaduct.traj.html" accesskey="U">aquaduct.traj package</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/AQUADUCT_LOGO.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="aquaduct.traj.dumps.html"
+                        title="previous chapter">aquaduct.traj.dumps module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="aquaduct.traj.paths.html"
+                        title="next chapter">aquaduct.traj.paths module</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-aquaduct.traj.inlets">
+<span id="aquaduct-traj-inlets-module"></span><h1>aquaduct.traj.inlets module<a class="headerlink" href="#module-aquaduct.traj.inlets" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="aquaduct.traj.inlets.ProtoInletTypeCodes">
+<em class="property">class </em><code class="descname">ProtoInletTypeCodes</code><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#ProtoInletTypeCodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.ProtoInletTypeCodes" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="aquaduct.traj.inlets.ProtoInletTypeCodes.surface">
+<code class="descname">surface</code><em class="property"> = 'surface'</em><a class="headerlink" href="#aquaduct.traj.inlets.ProtoInletTypeCodes.surface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.ProtoInletTypeCodes.internal">
+<code class="descname">internal</code><em class="property"> = 'internal'</em><a class="headerlink" href="#aquaduct.traj.inlets.ProtoInletTypeCodes.internal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.ProtoInletTypeCodes.incoming">
+<code class="descname">incoming</code><em class="property"> = 'inin'</em><a class="headerlink" href="#aquaduct.traj.inlets.ProtoInletTypeCodes.incoming" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.ProtoInletTypeCodes.outgoing">
+<code class="descname">outgoing</code><em class="property"> = 'inout'</em><a class="headerlink" href="#aquaduct.traj.inlets.ProtoInletTypeCodes.outgoing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.traj.inlets.InletTypeCodes">
+<em class="property">class </em><code class="descname">InletTypeCodes</code><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletTypeCodes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.traj.inlets.ProtoInletTypeCodes" title="aquaduct.traj.inlets.ProtoInletTypeCodes"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.traj.inlets.ProtoInletTypeCodes</span></code></a></p>
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.all_surface">
+<code class="descname">all_surface</code><em class="property"> = [('surface', 'inin'), ('surface', 'inout')]</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.all_surface" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.all_internal">
+<code class="descname">all_internal</code><em class="property"> = [('internal', 'inin'), ('internal', 'inout')]</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.all_internal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.all_incoming">
+<code class="descname">all_incoming</code><em class="property"> = [('surface', 'inin'), ('internal', 'inin')]</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.all_incoming" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.all_outgoing">
+<code class="descname">all_outgoing</code><em class="property"> = [('surface', 'inout'), ('internal', 'inout')]</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.all_outgoing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.surface_incoming">
+<code class="descname">surface_incoming</code><em class="property"> = ('surface', 'inin')</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.surface_incoming" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.internal_incoming">
+<code class="descname">internal_incoming</code><em class="property"> = ('internal', 'inin')</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.internal_incoming" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.internal_outgoing">
+<code class="descname">internal_outgoing</code><em class="property"> = ('internal', 'inout')</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.internal_outgoing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.surface_outgoing">
+<code class="descname">surface_outgoing</code><em class="property"> = ('surface', 'inout')</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.surface_outgoing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletTypeCodes.itype">
+<code class="descname">itype</code><em class="property"> = 'internal'</em><a class="headerlink" href="#aquaduct.traj.inlets.InletTypeCodes.itype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType">
+<em class="property">class </em><code class="descname">InletClusterGenericType</code><span class="sig-paren">(</span><em>inp</em>, <em>out</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inp</em>, <em>out</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.input">
+<code class="descname">input</code><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.output">
+<code class="descname">output</code><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.cluster2str">
+<em class="property">static </em><code class="descname">cluster2str</code><span class="sig-paren">(</span><em>cl</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.cluster2str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.cluster2str" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.__getitem__">
+<code class="descname">__getitem__</code><span class="sig-paren">(</span><em>item</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.__getitem__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.__getitem__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.__len__">
+<code class="descname">__len__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.__len__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.__len__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.__str__">
+<code class="descname">__str__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.__str__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.__str__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.__repr__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.make_val">
+<code class="descname">make_val</code><span class="sig-paren">(</span><em>base</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.make_val"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.make_val" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.__cmp__">
+<code class="descname">__cmp__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.__cmp__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.__cmp__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterGenericType.__hash__">
+<code class="descname">__hash__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterGenericType.__hash__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterGenericType.__hash__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.traj.inlets.make_spherical">
+<code class="descname">make_spherical</code><span class="sig-paren">(</span><em>xyz</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#make_spherical"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.make_spherical" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.traj.inlets.InletClusterExtendedType">
+<em class="property">class </em><code class="descname">InletClusterExtendedType</code><span class="sig-paren">(</span><em>surfin</em>, <em>interin</em>, <em>interout</em>, <em>surfout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterExtendedType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterExtendedType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.traj.inlets.InletClusterGenericType" title="aquaduct.traj.inlets.InletClusterGenericType"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.traj.inlets.InletClusterGenericType</span></code></a></p>
+<dl class="method">
+<dt id="aquaduct.traj.inlets.InletClusterExtendedType.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>surfin</em>, <em>interin</em>, <em>interout</em>, <em>surfout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#InletClusterExtendedType.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterExtendedType.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.InletClusterExtendedType.generic">
+<code class="descname">generic</code><a class="headerlink" href="#aquaduct.traj.inlets.InletClusterExtendedType.generic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.traj.inlets.Inlet">
+<em class="property">class </em><code class="descname">Inlet</code><span class="sig-paren">(</span><em>coords</em>, <em>type</em>, <em>reference</em><span class="sig-paren">)</span><a class="headerlink" href="#aquaduct.traj.inlets.Inlet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlet.__getnewargs__">
+<code class="descname">__getnewargs__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#aquaduct.traj.inlets.Inlet.__getnewargs__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return self as a plain tuple.  Used by copy and pickle.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlet.__getstate__">
+<code class="descname">__getstate__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#aquaduct.traj.inlets.Inlet.__getstate__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exclude the OrderedDict from pickling</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="aquaduct.traj.inlets.Inlet.__new__">
+<em class="property">static </em><code class="descname">__new__</code><span class="sig-paren">(</span><em>_cls</em>, <em>coords</em>, <em>type</em>, <em>reference</em><span class="sig-paren">)</span><a class="headerlink" href="#aquaduct.traj.inlets.Inlet.__new__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create new instance of Inlet(coords, type, reference)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlet.__repr__">
+<code class="descname">__repr__</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#aquaduct.traj.inlets.Inlet.__repr__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a nicely formatted representation string</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlet.__slots__">
+<code class="descname">__slots__</code><em class="property"> = ()</em><a class="headerlink" href="#aquaduct.traj.inlets.Inlet.__slots__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlet._asdict">
+<code class="descname">_asdict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#aquaduct.traj.inlets.Inlet._asdict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new OrderedDict which maps field names to their values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlet._fields">
+<code class="descname">_fields</code><em class="property"> = ('coords', 'type', 'reference')</em><a class="headerlink" href="#aquaduct.traj.inlets.Inlet._fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="classmethod">
+<dt id="aquaduct.traj.inlets.Inlet._make">
+<em class="property">classmethod </em><code class="descname">_make</code><span class="sig-paren">(</span><em>iterable</em>, <em>new=&lt;built-in method __new__ of type object&gt;</em>, <em>len=&lt;built-in function len&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#aquaduct.traj.inlets.Inlet._make" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a new Inlet object from a sequence or iterable</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlet._replace">
+<code class="descname">_replace</code><span class="sig-paren">(</span><em>_self</em>, <em>**kwds</em><span class="sig-paren">)</span><a class="headerlink" href="#aquaduct.traj.inlets.Inlet._replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new Inlet object replacing specified fields with new values</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlet.coords">
+<code class="descname">coords</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlet.coords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlet.reference">
+<code class="descname">reference</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlet.reference" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlet.type">
+<code class="descname">type</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlet.type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.traj.inlets.Inlets">
+<em class="property">class </em><code class="descname">Inlets</code><span class="sig-paren">(</span><em>spaths, center_of_system=None, onlytype=[('surface', 'inin'), ('surface', 'inout')]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>spaths, center_of_system=None, onlytype=[('surface', 'inin'), ('surface', 'inout')]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.extend_inlets">
+<code class="descname">extend_inlets</code><span class="sig-paren">(</span><em>spath</em>, <em>onlytype=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.extend_inlets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.extend_inlets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.add_cluster_annotations">
+<code class="descname">add_cluster_annotations</code><span class="sig-paren">(</span><em>clusters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.add_cluster_annotations"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.add_cluster_annotations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlets.size">
+<code class="descname">size</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlets.coords">
+<code class="descname">coords</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.coords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlets.types">
+<code class="descname">types</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlets.refs">
+<code class="descname">refs</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.refs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.call_clusterization_method">
+<code class="descname">call_clusterization_method</code><span class="sig-paren">(</span><em>method</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.call_clusterization_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.call_clusterization_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.perform_clustering">
+<code class="descname">perform_clustering</code><span class="sig-paren">(</span><em>method</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.perform_clustering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.perform_clustering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.perform_reclustering">
+<code class="descname">perform_reclustering</code><span class="sig-paren">(</span><em>method</em>, <em>skip_outliers=False</em>, <em>skip_size=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.perform_reclustering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.perform_reclustering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.recluster_cluster">
+<code class="descname">recluster_cluster</code><span class="sig-paren">(</span><em>method</em>, <em>cluster</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.recluster_cluster"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.recluster_cluster" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.recluster_outliers">
+<code class="descname">recluster_outliers</code><span class="sig-paren">(</span><em>method</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.recluster_outliers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.recluster_outliers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.small_clusters_to_outliers">
+<code class="descname">small_clusters_to_outliers</code><span class="sig-paren">(</span><em>maxsize</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.small_clusters_to_outliers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.small_clusters_to_outliers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.renumber_clusters">
+<code class="descname">renumber_clusters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.renumber_clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.renumber_clusters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.sort_clusters">
+<code class="descname">sort_clusters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.sort_clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.sort_clusters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlets.clusters_list">
+<code class="descname">clusters_list</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.clusters_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlets.clusters_centers">
+<code class="descname">clusters_centers</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.clusters_centers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlets.clusters_size">
+<code class="descname">clusters_size</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.clusters_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="aquaduct.traj.inlets.Inlets.clusters_std">
+<code class="descname">clusters_std</code><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.clusters_std" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.spaths2ctypes">
+<code class="descname">spaths2ctypes</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.spaths2ctypes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.spaths2ctypes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.lim_to">
+<code class="descname">lim_to</code><span class="sig-paren">(</span><em>what</em>, <em>towhat</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.lim_to"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.lim_to" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.lim2spaths">
+<code class="descname">lim2spaths</code><span class="sig-paren">(</span><em>spaths</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.lim2spaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.lim2spaths" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.lim2types">
+<code class="descname">lim2types</code><span class="sig-paren">(</span><em>types</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.lim2types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.lim2types" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.lim2clusters">
+<code class="descname">lim2clusters</code><span class="sig-paren">(</span><em>clusters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.lim2clusters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.lim2clusters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.inlets.Inlets.limspaths2">
+<code class="descname">limspaths2</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/inlets.html#Inlets.limspaths2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.inlets.Inlets.limspaths2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.traj.paths.html" title="aquaduct.traj.paths module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.traj.dumps.html" title="aquaduct.traj.dumps module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >aquaduct</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="aquaduct.html" >aquaduct package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="aquaduct.traj.html" >aquaduct.traj package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

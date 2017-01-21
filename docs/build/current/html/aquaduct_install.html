@@ -1,0 +1,433 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Aqua-Duct installation guide &#8212; Aqua-Duct 0.2.25 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="shortcut icon" href="_static/ficon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Valve manual" href="valve/valve_manual.html" />
+    <link rel="prev" title="Welcome to Aqua-Duct’s documentation!" href="index.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="valve/valve_manual.html" title="Valve manual"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Aqua-Duct’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/AQUADUCT_LOGO.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Aqua-Duct installation guide</a><ul>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+<li><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li><a class="reference internal" href="#requirements">Requirements</a><ul>
+<li><a class="reference internal" href="#software-wise-requirements">Software-wise requirements</a></li>
+<li><a class="reference internal" href="#hardware-wise-requirements">Hardware-wise requirements</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#installation">Installation</a><ul>
+<li><a class="reference internal" href="#generic-python-installation">Generic Python installation</a><ul>
+<li><a class="reference internal" href="#installation-of-pymol">Installation of PyMOL</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#gnu-linux">GNU/Linux</a></li>
+<li><a class="reference internal" href="#macos">MacOS</a><ul>
+<li><a class="reference internal" href="#system-native-python">System native Python</a></li>
+<li><a class="reference internal" href="#custom-python">Custom Python</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#windows">Windows</a></li>
+<li><a class="reference internal" href="#openbsd">OpenBSD</a><ul>
+<li><a class="reference internal" href="#pymol-at-openbsd">PyMOL at OpenBSD</a></li>
+<li><a class="reference internal" href="#other-bsds">Other BSDs</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to Aqua-Duct&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="valve/valve_manual.html"
+                        title="next chapter"><em>Valve</em> manual</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="aqua-duct-installation-guide">
+<h1>Aqua-Duct installation guide<a class="headerlink" href="#aqua-duct-installation-guide" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>Aqua-Duct software is software written in Python (CPython) and comprises of two elements:</p>
+<ol class="arabic simple">
+<li>aquaduct - a Python package,</li>
+<li>valve - a script that uses <a class="reference internal" href="aquaduct.html#module-aquaduct" title="aquaduct"><code class="xref py py-mod docutils literal"><span class="pre">aquaduct</span></code></a> to perform calculations.</li>
+</ol>
+<p><strong>Download</strong></p>
+<p>You can download Aqua-Duct packages directly from <a class="reference external" href="http://aquaduct.pl">Aqua-Duct homepage</a>. This page includes older versions of Aqua-Duct as well as development version.</p>
+<p>If you follow this installation guide you will install current release.</p>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<p>If you encounter any problems with installation do not hesitate to contact us at <a class="reference external" href="mailto:info&#37;&#52;&#48;aquaduct&#46;pl">info<span>&#64;</span>aquaduct<span>&#46;</span>pl</a>. We are <strong>REALLY</strong> willing to help!</p>
+<p>Please, provide us with us much info as you can. In particular try to include following information:</p>
+<ul class="simple">
+<li>Operating system&#8217;s name and version, and CPU architecture (if relevant).</li>
+<li>Python version.</li>
+<li>Command(s) you have used for installation.</li>
+<li>Any error/warning/info message(s) that emerged during or after installation.</li>
+</ul>
+</div>
+<div class="section" id="requirements">
+<h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="software-wise-requirements">
+<h3>Software-wise requirements<a class="headerlink" href="#software-wise-requirements" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>Python 2.7 (CPython implementation)</dt>
+<dd><ul class="first last">
+<li>numpy &gt;= 1.7.0</li>
+<li>scipy &gt;= 0.13.0</li>
+<li>scikit-learn &gt;= 0.16.0</li>
+<li>MDAnalysis[amber] &gt;= 0.15.0</li>
+<li>roman &gt;= 2.0.0</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="hardware-wise-requirements">
+<h3>Hardware-wise requirements<a class="headerlink" href="#hardware-wise-requirements" title="Permalink to this headline">¶</a></h3>
+<p>Aqua-Duct should work on every machine on which you can install the above mentioned software. On computers older then 10 years it may work very slow though. We recommend 64bit SMP architecture, with at least 4GB RAM (32 GB RAM is recommended).</p>
+</div>
+</div>
+<div class="section" id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="generic-python-installation">
+<h3>Generic Python installation<a class="headerlink" href="#generic-python-installation" title="Permalink to this headline">¶</a></h3>
+<p>The easiest way to install Aqua-Duct is to install Python 2.7 and use following command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+</pre></div>
+</div>
+<p>If <em>pip</em> is not available try to install it by typing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">easy_install</span> <span class="n">pip</span>
+</pre></div>
+</div>
+<p>Depending on the settings of your system you can prepend the above command with <cite>sudo</cite> or <cite>doas</cite> or do <em>user</em> installation:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># sudo</span>
+<span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+
+<span class="c1"># doas</span>
+<span class="n">doas</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+
+<span class="c1"># &#39;user&#39; installation</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span> <span class="o">--</span><span class="n">user</span>
+</pre></div>
+</div>
+<p>It is also good idea to try to install Aqua-Duct using virtualenv:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">virtualenv</span> <span class="n">aquaduct_installation</span>
+<span class="n">cd</span> <span class="n">aquaduct_installation</span>
+<span class="o">.</span> <span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+</pre></div>
+</div>
+<div class="section" id="installation-of-pymol">
+<h4>Installation of PyMOL<a class="headerlink" href="#installation-of-pymol" title="Permalink to this headline">¶</a></h4>
+<p>Under most modern GNU/Linux distributions PyMOL is available as a package in repositories. For example if you are under Ubuntu/Debian you can install it by following command:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">pymol</span>
+</pre></div>
+</div>
+<p>Under Windows there are several ways to install PyMOL, for more details see <a class="reference external" href="http://pymol.org">PyMOL web site</a>.</p>
+<p>Instructions for macOS and OpenBSD are in appropriate sections below.</p>
+</div>
+</div>
+<div class="section" id="gnu-linux">
+<h3>GNU/Linux<a class="headerlink" href="#gnu-linux" title="Permalink to this headline">¶</a></h3>
+<p>Installation was tested on limited number of GNU/Linux systems. On the most of modern installations you can simply follow generic instructions, for example under Ubuntu 16.04 you can type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+</pre></div>
+</div>
+<p>Other systems may require additional work, in particular installation of NetCDF4 is sometimes cumbersome. Following is an example how to install all required packages under Ubuntu 14.04:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># install required python packages</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">dev</span> <span class="n">python</span><span class="o">-</span><span class="n">pip</span> <span class="n">python</span><span class="o">-</span><span class="n">numpy</span> <span class="n">python</span><span class="o">-</span><span class="n">scipy</span> <span class="n">python</span><span class="o">-</span><span class="n">matplotlib</span> <span class="n">python</span><span class="o">-</span><span class="n">scikits</span><span class="o">-</span><span class="n">learn</span>
+
+<span class="c1"># install necessary libraries and git -  all required to compile netCDF4</span>
+<span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="o">-</span><span class="n">y</span> <span class="n">install</span> <span class="n">libnetcdf</span><span class="o">-</span><span class="n">dev</span> <span class="n">libhdf5</span><span class="o">-</span><span class="n">dev</span> <span class="n">git</span>
+
+<span class="c1"># clone netcdf4 python repository</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">Unidata</span><span class="o">/</span><span class="n">netcdf4</span><span class="o">-</span><span class="n">python</span><span class="o">.</span><span class="n">git</span>
+<span class="c1"># cd to cloned repository</span>
+<span class="n">cd</span> <span class="n">netcdf4</span><span class="o">-</span><span class="n">python</span>
+<span class="c1"># modify setup.cfg to add paths of hdf5 and netcdf4 libraries</span>
+<span class="n">sed</span> <span class="o">-</span><span class="n">i</span> <span class="s1">&#39;/\[directories\]/a </span><span class="se">\</span>
+<span class="s1">HDF5_dir = /usr/lib </span><span class="se">\</span>
+<span class="s1">HDF5_libdir = /usr/lib </span><span class="se">\</span>
+<span class="s1">HDF5_incdir = /usr/include </span><span class="se">\</span>
+<span class="s1">netCDF4_dir = /usr/lib </span><span class="se">\</span>
+<span class="s1">netCDF4_libdir = /usr/lib </span><span class="se">\</span>
+<span class="s1">netCDF4_incdir = /usr/include&#39;</span> <span class="n">setup</span><span class="o">.</span><span class="n">cfg</span>
+<span class="c1"># run setup.py</span>
+<span class="n">sudo</span> <span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+
+<span class="c1"># install MDAnalysis</span>
+<span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;MDAnalysis[amber]&gt;=0.15&quot;</span>
+</pre></div>
+</div>
+<p>If everything went fine you can follow generic instructions, type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="macos">
+<h3>MacOS<a class="headerlink" href="#macos" title="Permalink to this headline">¶</a></h3>
+<p>Aqua-Duct installation was tested on MacOS Sierra and is quite straightforward. It can be installed either with existing system Python or with custom Python installation. In both cases one have to install Xcode for the App Store.</p>
+<div class="section" id="system-native-python">
+<h4>System native Python<a class="headerlink" href="#system-native-python" title="Permalink to this headline">¶</a></h4>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">easy_install</span> <span class="n">pip</span>
+<span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+</pre></div>
+</div>
+<p>The drawback of using system Python installation is a lack of PyMOL. It should be, however, relatively easy to compile PyMOL on your own. Try to follow compilation instruction under BSD systems.</p>
+</div>
+<div class="section" id="custom-python">
+<h4>Custom Python<a class="headerlink" href="#custom-python" title="Permalink to this headline">¶</a></h4>
+<p>This is recommended way of Aqua-Duct installation. If you do not have custom Python installation you can get it by using one of package managers available for macOS, for example <a class="reference external" href="http://brew.sh/">homebrew</a>. With this package manager you can do following:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">brew</span> <span class="n">install</span> <span class="n">python</span>
+<span class="n">sudo</span> <span class="n">easy_install</span> <span class="n">pip</span>
+<span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+</pre></div>
+</div>
+<p>Next, you can install PyMOL:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">brew</span> <span class="n">install</span> <span class="n">pymol</span>
+<span class="n">brew</span> <span class="n">cask</span> <span class="n">install</span> <span class="n">xquartz</span>
+</pre></div>
+</div>
+<p>Once XQuartz is installed you should reboot. The above procedure installs PyMOL, however, PyMOL Python modules are not visible. To fix it you can issue following commands:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span>
+<span class="n">sudo</span> <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">Cellar</span><span class="o">/</span><span class="n">pymol</span><span class="o">/*/</span><span class="n">libexec</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/*</span> <span class="o">./</span>
+</pre></div>
+</div>
+<p>The above instruction assumes that you are using <cite>brew</cite> and you have only one PyMOL installation.</p>
+</div>
+</div>
+<div class="section" id="windows">
+<h3>Windows<a class="headerlink" href="#windows" title="Permalink to this headline">¶</a></h3>
+<p>Installation under Windows is also possible. The limiting factor is MDAnalysis which is not officially available under Windows yet. You can, however, install Cygwin and perform Aqua-Duct installation in Cygwin.</p>
+<p>First, start with <a class="reference external" href="https://cygwin.com/">Cygwin installation</a>. During the setup select following packages:</p>
+<ul class="simple">
+<li>python (2.7)</li>
+<li>python-devel (2.7)</li>
+<li>python-cython</li>
+<li>libnetcdf-devel</li>
+<li>libhdf5-devel</li>
+<li>liblapack-devel</li>
+<li>libopenblas</li>
+<li>python-numpy</li>
+<li>python-six</li>
+</ul>
+<p>Another key component that have to be installed is C, C++ and Fortran compilers. You can simply install <strong>gcc-g++</strong> and <strong>gcc-fortran</strong> packages as a first choice, select following packages:</p>
+<ul class="simple">
+<li>gcc-g++</li>
+<li>gcc-fortran</li>
+</ul>
+<p>Once Cygwin is installed with all required libraries you can perform following steps:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># install pip</span>
+<span class="n">easy_install</span><span class="o">-</span><span class="mf">2.7</span> <span class="n">pip</span>
+</pre></div>
+</div>
+<p>First, try to install SciPy:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># install SciPy</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">scipy</span>
+</pre></div>
+</div>
+<p>If you encounter any problems related to missing <strong>xlocale.h</strong> header file try the following workaround:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span># prepare fake xlocale.h
+ln -s /usr/include/locale.h xlocale.h
+export CFLAGS=&quot;I&quot;$( pwd )
+
+# install SciPy
+pip install scipy
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The above procedure for SciPy installation might not be optimal. For more information please got to <a class="reference external" href="https://www.scipy.org/">SciPy web page</a>.</p>
+</div>
+<p>Now, install <strong>scikit-learn</strong> and then Aqua-Duct:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># install scikit-learn</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">scikit</span><span class="o">-</span><span class="n">learn</span>
+
+<span class="c1"># finally, install aquaduct</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="openbsd">
+<h3>OpenBSD<a class="headerlink" href="#openbsd" title="Permalink to this headline">¶</a></h3>
+<p>Aqua-Duct can be also installed under OpenBSD (5.9 and 6.0 amd64).
+NetCDF-c version 4 has to be installed as OpenBSD ships only netCDF in version 3. First, install hdf5 library and GNU make:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># install hdf5 and GNU make</span>
+<span class="n">pkg_add</span> <span class="n">hdf5</span> <span class="n">gmake</span>
+</pre></div>
+</div>
+<p>Next, download netCDF sources. Version 4.2.1.1 works out of the box but is a bit outdated. Visit <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF web page</a> and select version of your choice. Older versions are available in the <a class="reference external" href="ftp://ftp.unidata.ucar.edu/pub/netcdf/old/">FTP archive</a>. Once netCDF is downloaded and extracted go to the source directory and try following procedure:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># set LD and CPP flags</span>
+<span class="n">export</span> <span class="n">LDFLAGS</span><span class="o">=-</span><span class="n">L</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span>
+<span class="n">export</span> <span class="n">CPPFLAGS</span><span class="o">=-</span><span class="n">I</span><span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="n">include</span>
+
+<span class="c1"># configure project</span>
+<span class="o">./</span><span class="n">configure</span> <span class="o">--</span><span class="n">enable</span><span class="o">-</span><span class="n">shared</span> <span class="o">--</span><span class="n">enable</span><span class="o">-</span><span class="n">dap</span> <span class="o">--</span><span class="n">disable</span><span class="o">-</span><span class="n">doxygen</span> <span class="o">--</span><span class="n">enable</span><span class="o">-</span><span class="n">netcdf</span><span class="o">-</span><span class="mi">4</span> <span class="o">--</span><span class="n">prefix</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">netCDF4</span><span class="o">/</span><span class="n">lib</span>
+
+<span class="c1"># make and install</span>
+<span class="n">gmake</span>
+<span class="n">gmake</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>You may now install py-scipy package:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pkg_add</span> <span class="n">py</span><span class="o">-</span><span class="n">scipy</span>
+</pre></div>
+</div>
+<p>Install pip if it is missing:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pkg_add</span> <span class="n">py</span><span class="o">-</span><span class="n">pip</span>
+</pre></div>
+</div>
+<p>Install netCDF4 Python:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># define netcdf-4 installation directory</span>
+<span class="n">export</span> <span class="n">NETCDF4_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">netCDF4</span><span class="o">/</span><span class="n">lib</span>
+<span class="n">pip2</span><span class="o">.</span><span class="mi">7</span> <span class="n">install</span> <span class="n">netCDF4</span>
+</pre></div>
+</div>
+<p>At this point you can follow generic Python instructions, type:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip2</span><span class="o">.</span><span class="mi">7</span> <span class="n">install</span> <span class="n">aquaduct</span>
+</pre></div>
+</div>
+<div class="section" id="pymol-at-openbsd">
+<h4>PyMOL at OpenBSD<a class="headerlink" href="#pymol-at-openbsd" title="Permalink to this headline">¶</a></h4>
+<p>According to our knowledge it is possible to install PyMOL 1.4.1 and it is sufficient to work with Aqua-Duct. Go to <a class="reference external" href="https://sourceforge.net/projects/pymol/files/pymol/">SourceForge PyMOL download page</a> and download, save, and extract sources.</p>
+<p>PyMOL requires Python Mega Widgets. Download, for example Pmw 1.3.3b from <a class="reference external" href="https://sourceforge.net/projects/pmw/files/Pmw/">SourceForge Pmw download page</a>. Extract it and install by:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+</pre></div>
+</div>
+<p>TKinter (2.7) and several other packages are also required:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pkg_add</span> <span class="n">python</span><span class="o">-</span><span class="n">tkinter</span> <span class="n">freeglut</span> <span class="n">glew</span> <span class="n">png</span>
+</pre></div>
+</div>
+<p>Next, go to the extracted PyMOL sources open setup.py and modify inc_dirs variable at line 129 by adding following paths:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;/usr/X11R6/include/freetype2&quot;</span><span class="p">,</span>
+<span class="s2">&quot;/usr/X11R6/include&quot;</span><span class="p">,</span>
+<span class="s2">&quot;/usr/local/include&quot;</span><span class="p">,</span>
+</pre></div>
+</div>
+<p>Now, you can build and install PyMOL by typing following commands:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python2</span><span class="o">.</span><span class="mi">7</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">build</span>
+<span class="n">python2</span><span class="o">.</span><span class="mi">7</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+<span class="n">python2</span><span class="o">.</span><span class="mi">7</span> <span class="n">setup2</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+<span class="n">cp</span> <span class="n">pymol</span> <span class="o">/</span><span class="n">usr</span><span class="o">/</span><span class="n">local</span><span class="o">/</span><span class="nb">bin</span>
+</pre></div>
+</div>
+<p>PyMOL can be run by typing <cite>pymol</cite> or can be used as Python module.</p>
+</div>
+<div class="section" id="other-bsds">
+<h4>Other BSDs<a class="headerlink" href="#other-bsds" title="Permalink to this headline">¶</a></h4>
+<p>Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD. Try to install it and SciPy, then proceed to generic Python installation instructions.</p>
+<p>If you are using NetBSD or other BSD try to follow OpenBSD instructions.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="valve/valve_manual.html" title="Valve manual"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Aqua-Duct’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

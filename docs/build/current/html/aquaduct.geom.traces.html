@@ -1,0 +1,580 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aquaduct.geom.traces module &#8212; Aqua-Duct 0.2.25 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="shortcut icon" href="_static/ficon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="aquaduct.traj package" href="aquaduct.traj.html" />
+    <link rel="prev" title="aquaduct.geom.smooth module" href="aquaduct.geom.smooth.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.traj.html" title="aquaduct.traj package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.geom.smooth.html" title="aquaduct.geom.smooth module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >aquaduct</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="aquaduct.html" >aquaduct package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="aquaduct.geom.html" accesskey="U">aquaduct.geom package</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/AQUADUCT_LOGO.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="aquaduct.geom.smooth.html"
+                        title="previous chapter">aquaduct.geom.smooth module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="aquaduct.traj.html"
+                        title="next chapter">aquaduct.traj package</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-aquaduct.geom.traces">
+<span id="aquaduct-geom-traces-module"></span><h1>aquaduct.geom.traces module<a class="headerlink" href="#module-aquaduct.geom.traces" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="aquaduct.geom.traces.diff">
+<code class="descname">diff</code><span class="sig-paren">(</span><em>trace</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the distance between 2 given points.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>trace</strong> &#8211; coordinates in numpy array object</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">distance between points</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.tracepoints">
+<code class="descname">tracepoints</code><span class="sig-paren">(</span><em>start</em>, <em>stop</em>, <em>nr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#tracepoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.tracepoints" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>start</strong> &#8211; coordinates of the first point as a numpy array object</li>
+<li><strong>stop</strong> &#8211; coordinates of the second point as a numpy array object</li>
+<li><strong>nr</strong> &#8211; number of elements between the first and second point</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">two-dimentional numpy array; number of dimentions depends on nr parameter</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.midpoints">
+<code class="descname">midpoints</code><span class="sig-paren">(</span><em>paths</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#midpoints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.midpoints" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>The function returns a tuple of numpy arrays extended with mid point spanning last and first element(column)</dt>
+<dd>of these arrays.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>paths</strong> &#8211; a tuple of 2-dimentional np.arrays that hold 3D coordinates; each element holds one trace, all elements are supposed to make one path divided in to sections</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">paths elements with additional mid points as a generator object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.length_step_std">
+<code class="descname">length_step_std</code><span class="sig-paren">(</span><em>trace</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#length_step_std"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.length_step_std" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates sum, mean and standard deviation from all segments of a trace.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>trace</strong> &#8211; coordinates of points as numpy array</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">a tuple with basics statistics of a trace</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.derrivative">
+<code class="descname">derrivative</code><span class="sig-paren">(</span><em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#derrivative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.derrivative" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.vector_norm">
+<code class="descname">vector_norm</code><span class="sig-paren">(</span><em>V</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#vector_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.vector_norm" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>V</strong> &#8211; a vector in a form of array-like object, tuple or a list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">normalized length of a vector</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.triangle_angles">
+<code class="descname">triangle_angles</code><span class="sig-paren">(</span><em>A</em>, <em>B</em>, <em>C</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#triangle_angles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.triangle_angles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters are coordinates of points which are tops of triangle. The function calculates angles in a triangle formed by given coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> &#8211; coordinates of the first point</li>
+<li><strong>B</strong> &#8211; coordinates of the second point</li>
+<li><strong>C</strong> &#8211; coordinates of the third point</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.triangle_angles_last">
+<code class="descname">triangle_angles_last</code><span class="sig-paren">(</span><em>A</em>, <em>B</em>, <em>C</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#triangle_angles_last"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.triangle_angles_last" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters are coordinates of points which are tops of triangle. The function calculates the [ABC] angle.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> &#8211; coordinates of the first point [A top]</li>
+<li><strong>B</strong> &#8211; coordinates of the second point [B top]</li>
+<li><strong>C</strong> &#8211; coordinates of the third point [C top]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">list with one value of ABC angle in radians</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.triangle_height">
+<code class="descname">triangle_height</code><span class="sig-paren">(</span><em>A</em>, <em>B</em>, <em>C</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#triangle_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.triangle_height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters are coordinates of points which are tops of triangle. The function calculates the ABC triangle height.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> &#8211; coordinates of the first point [A top]</li>
+<li><strong>B</strong> &#8211; coordinates of the second point [B top]</li>
+<li><strong>C</strong> &#8211; coordinates of the third point [C top]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">one value of ABC triangle height</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.vectors_angle">
+<code class="descname">vectors_angle</code><span class="sig-paren">(</span><em>A</em>, <em>B</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#vectors_angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.vectors_angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> &#8211; coordinates of the first point which is the end of the vector</li>
+<li><strong>B</strong> &#8211; coordinates of the second point which is the end of the vector</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the angle between vectors in question (in radians)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.vectors_angle_alt">
+<code class="descname">vectors_angle_alt</code><span class="sig-paren">(</span><em>A</em>, <em>B</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#vectors_angle_alt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.vectors_angle_alt" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates</dt>
+<dd><ul class="first last simple">
+<li>alternative method.</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> &#8211; coordinates of the first point which is the end of the vector</li>
+<li><strong>B</strong> &#8211; coordinates of the second point which is the end of the vector</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the angle between vectors in question (in radians)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.vectors_angle_alt_anorm">
+<code class="descname">vectors_angle_alt_anorm</code><span class="sig-paren">(</span><em>A</em>, <em>B</em>, <em>A_norm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#vectors_angle_alt_anorm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.vectors_angle_alt_anorm" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates</dt>
+<dd><ul class="first last simple">
+<li>alternative method with additional A_norm holding norm of A.</li>
+</ul>
+</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> &#8211; coordinates of the first point which is the end of the vector</li>
+<li><strong>B</strong> &#8211; coordinates of the second point which is the end of the vector</li>
+<li><strong>A_norm</strong> &#8211; additional parameter holding normalized of vector A</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the angle between vectors in question (in radians)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.geom.traces.vectors_angle_anorm">
+<code class="descname">vectors_angle_anorm</code><span class="sig-paren">(</span><em>A</em>, <em>B</em>, <em>A_norm</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#vectors_angle_anorm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.vectors_angle_anorm" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates</dt>
+<dd>using additional A_norm holding norm of A.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>A</strong> &#8211; coordinates of the first point which is the end of the vector</li>
+<li><strong>B</strong> &#8211; coordinates of the second point which is the end of the vector</li>
+<li><strong>A_norm</strong> &#8211; additional parameter holding normalized of vector A</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">the angle between vectors in question (in radians)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeOneWay">
+<em class="property">class </em><code class="descname">LinearizeOneWay</code><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeOneWay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeOneWay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="aquaduct.geom.traces.LinearizeOneWay.here">
+<code class="descname">here</code><span class="sig-paren">(</span><em>coords</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeOneWay.here"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeOneWay.here" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function simplifies the trace by removing the redundant, linear points
+:param coords: 3D coordinates of a trace as an array-like object
+:return: indices of coordinates which are a staring and ending points of linear fragments and other non-linear
+points of the trace</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeHobbit">
+<em class="property">class </em><code class="descname">LinearizeHobbit</code><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeHobbit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeHobbit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.geom.traces.LinearizeOneWay" title="aquaduct.geom.traces.LinearizeOneWay"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.LinearizeOneWay</span></code></a></p>
+<dl class="method">
+<dt id="aquaduct.geom.traces.LinearizeHobbit.and_back_again">
+<code class="descname">and_back_again</code><span class="sig-paren">(</span><em>coords</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeHobbit.and_back_again"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeHobbit.and_back_again" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.geom.traces.LinearizeHobbit.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>coords</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeHobbit.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeHobbit.__call__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeRecursive">
+<em class="property">class </em><code class="descname">LinearizeRecursive</code><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeRecursive"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeRecursive" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Base class for linearization methods classes.</p>
+<p>It implements recursive algorithm.</p>
+<dl class="method">
+<dt id="aquaduct.geom.traces.LinearizeRecursive.here">
+<code class="descname">here</code><span class="sig-paren">(</span><em>coords</em>, <em>depth=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeRecursive.here"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeRecursive.here" title="Permalink to this definition">¶</a></dt>
+<dd><p>Core of recursive linearization argorithm.</p>
+<p>It checks if the first, the last and the middle point are linear according to the criterion. The middle point is a selected point that is in the middle of length of the paths made by input coordinates.</p>
+<p>If these points are linear their indices are returned. Otherwise, coordinates are split into two parts. First part spans points from the first point to the middle point (inclusive) and the second part spans points from the middle (inclusive) to the last point. Next, these two parts are submitted recursively to <a class="reference internal" href="#aquaduct.geom.traces.LinearizeRecursive.here" title="aquaduct.geom.traces.LinearizeRecursive.here"><code class="xref py py-meth docutils literal"><span class="pre">here()</span></code></a>.</p>
+<p>Results of these recursive calls are joined, redundant indices are removed and sorted result is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coords</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><em>numpy.ndarray</em></a>) &#8211; Input coordinates.</li>
+<li><strong>depth</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Depth of recurence.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Indices of <code class="docutils literal"><span class="pre">coords</span></code> points that can be used instead of all points in visulatization.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list of int</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.geom.traces.LinearizeRecursive.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>coords</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeRecursive.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeRecursive.__call__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.TriangleLinearize">
+<em class="property">class </em><code class="descname">TriangleLinearize</code><span class="sig-paren">(</span><em>threshold=0.01</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#TriangleLinearize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.TriangleLinearize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="aquaduct.geom.traces.TriangleLinearize.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>threshold=0.01</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#TriangleLinearize.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.TriangleLinearize.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.geom.traces.TriangleLinearize.is_linear">
+<code class="descname">is_linear</code><span class="sig-paren">(</span><em>coords</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#TriangleLinearize.is_linear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.TriangleLinearize.is_linear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.VectorLinearize">
+<em class="property">class </em><code class="descname">VectorLinearize</code><span class="sig-paren">(</span><em>treshold=0.05236</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#VectorLinearize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.VectorLinearize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>Base class for linearization methods classes.</p>
+<p>It implements vector linearization criterion.</p>
+<dl class="method">
+<dt id="aquaduct.geom.traces.VectorLinearize.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>treshold=0.05236</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#VectorLinearize.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.VectorLinearize.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.geom.traces.VectorLinearize.is_linear_core">
+<code class="descname">is_linear_core</code><span class="sig-paren">(</span><em>coords</em>, <em>depth=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#VectorLinearize.is_linear_core"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.VectorLinearize.is_linear_core" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method checks if input coordinates are linear according to the threshold and depth.</p>
+<p>It begins with calculation of the threshold. If <cite>depth</cite> is None it is set to 1. Current threshold is calculated with following simple equation:</p>
+<div class="math">
+\[threshold_{current} = threshold_{initial} * (2 - 0.9^{depth})\]</div>
+<p>Next, in a loop over all points but the first and the last the angle is calculated between two vectors. The first one made by the point and the first point, and the second vector made by the last and the first point. If any of the calculated angles is bigger the the treshold methods returns False; otherwise method returns True.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coords</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><em>numpy.ndarray</em></a>) &#8211; Coordinates for which linearization criterion is checked.</li>
+<li><strong>depth</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Depth of recurence.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if input coordinates are linear and False otherwise.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.geom.traces.VectorLinearize.is_linear">
+<code class="descname">is_linear</code><span class="sig-paren">(</span><em>coords</em>, <em>depth=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#VectorLinearize.is_linear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.VectorLinearize.is_linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>For more detail see <a class="reference internal" href="#aquaduct.geom.traces.VectorLinearize.is_linear_core" title="aquaduct.geom.traces.VectorLinearize.is_linear_core"><code class="xref py py-meth docutils literal"><span class="pre">is_linear_core()</span></code></a> which is used as the criterion of linearity in this method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>coords</strong> (<a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.12)"><em>numpy.ndarray</em></a>) &#8211; Coordinates for which linearization criterion is checked.</li>
+<li><strong>depth</strong> (<a class="reference external" href="https://docs.python.org/2/library/functions.html#int" title="(in Python v2.7)"><em>int</em></a>) &#8211; Depth of recurence.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">True if input coordinates are linear and False otherwise. Criterion is checked for coordinates in normal and reverse order.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference external" href="https://docs.python.org/2/library/functions.html#bool" title="(in Python v2.7)">bool</a></p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeRecursiveVector">
+<em class="property">class </em><code class="descname">LinearizeRecursiveVector</code><span class="sig-paren">(</span><em>treshold=0.05236</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeRecursiveVector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeRecursiveVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.geom.traces.LinearizeRecursive" title="aquaduct.geom.traces.LinearizeRecursive"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.LinearizeRecursive</span></code></a>, <a class="reference internal" href="#aquaduct.geom.traces.VectorLinearize" title="aquaduct.geom.traces.VectorLinearize"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.VectorLinearize</span></code></a></p>
+<p id="simply-smooths-details">Class provides recursive linearization of coordinates with <a class="reference internal" href="#aquaduct.geom.traces.LinearizeRecursive" title="aquaduct.geom.traces.LinearizeRecursive"><code class="xref py py-class docutils literal"><span class="pre">LinearizeRecursive</span></code></a> algorithm and the criterion of linearity implemented by <a class="reference internal" href="#aquaduct.geom.traces.VectorLinearize" title="aquaduct.geom.traces.VectorLinearize"><code class="xref py py-class docutils literal"><span class="pre">VectorLinearize</span></code></a>. This is default method.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeRecursiveTriangle">
+<em class="property">class </em><code class="descname">LinearizeRecursiveTriangle</code><span class="sig-paren">(</span><em>threshold=0.01</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeRecursiveTriangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeRecursiveTriangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.geom.traces.LinearizeRecursive" title="aquaduct.geom.traces.LinearizeRecursive"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.LinearizeRecursive</span></code></a>, <a class="reference internal" href="#aquaduct.geom.traces.TriangleLinearize" title="aquaduct.geom.traces.TriangleLinearize"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.TriangleLinearize</span></code></a></p>
+<p>Class provides recursive linearization of coordinates with <a class="reference internal" href="#aquaduct.geom.traces.LinearizeRecursive" title="aquaduct.geom.traces.LinearizeRecursive"><code class="xref py py-class docutils literal"><span class="pre">LinearizeRecursive</span></code></a> algorithm and the criterion of linearity implemented by <a class="reference internal" href="#aquaduct.geom.traces.TriangleLinearize" title="aquaduct.geom.traces.TriangleLinearize"><code class="xref py py-class docutils literal"><span class="pre">TriangleLinearize</span></code></a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeHobbitVector">
+<em class="property">class </em><code class="descname">LinearizeHobbitVector</code><span class="sig-paren">(</span><em>treshold=0.05236</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeHobbitVector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeHobbitVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.geom.traces.LinearizeHobbit" title="aquaduct.geom.traces.LinearizeHobbit"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.LinearizeHobbit</span></code></a>, <a class="reference internal" href="#aquaduct.geom.traces.VectorLinearize" title="aquaduct.geom.traces.VectorLinearize"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.VectorLinearize</span></code></a></p>
+<p>Class provides recursive linearization of coordinates with <a class="reference internal" href="#aquaduct.geom.traces.LinearizeHobbit" title="aquaduct.geom.traces.LinearizeHobbit"><code class="xref py py-class docutils literal"><span class="pre">LinearizeHobbit</span></code></a> algorithm and the criterion of linearity implemented by <a class="reference internal" href="#aquaduct.geom.traces.VectorLinearize" title="aquaduct.geom.traces.VectorLinearize"><code class="xref py py-class docutils literal"><span class="pre">VectorLinearize</span></code></a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeHobbitTriangle">
+<em class="property">class </em><code class="descname">LinearizeHobbitTriangle</code><span class="sig-paren">(</span><em>threshold=0.01</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeHobbitTriangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeHobbitTriangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.geom.traces.LinearizeHobbit" title="aquaduct.geom.traces.LinearizeHobbit"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.LinearizeHobbit</span></code></a>, <a class="reference internal" href="#aquaduct.geom.traces.TriangleLinearize" title="aquaduct.geom.traces.TriangleLinearize"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.TriangleLinearize</span></code></a></p>
+<p>Class provides recursive linearization of coordinates with <a class="reference internal" href="#aquaduct.geom.traces.LinearizeHobbit" title="aquaduct.geom.traces.LinearizeHobbit"><code class="xref py py-class docutils literal"><span class="pre">LinearizeHobbit</span></code></a> algorithm and the criterion of linearity implemented by <a class="reference internal" href="#aquaduct.geom.traces.TriangleLinearize" title="aquaduct.geom.traces.TriangleLinearize"><code class="xref py py-class docutils literal"><span class="pre">TriangleLinearize</span></code></a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeOneWayVector">
+<em class="property">class </em><code class="descname">LinearizeOneWayVector</code><span class="sig-paren">(</span><em>treshold=0.05236</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeOneWayVector"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeOneWayVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.geom.traces.LinearizeOneWay" title="aquaduct.geom.traces.LinearizeOneWay"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.LinearizeOneWay</span></code></a>, <a class="reference internal" href="#aquaduct.geom.traces.VectorLinearize" title="aquaduct.geom.traces.VectorLinearize"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.VectorLinearize</span></code></a></p>
+<p>Class provides recursive linearization of coordinates with <a class="reference internal" href="#aquaduct.geom.traces.LinearizeOneWay" title="aquaduct.geom.traces.LinearizeOneWay"><code class="xref py py-class docutils literal"><span class="pre">LinearizeOneWay</span></code></a> algorithm and the criterion of linearity implemented by <a class="reference internal" href="#aquaduct.geom.traces.VectorLinearize" title="aquaduct.geom.traces.VectorLinearize"><code class="xref py py-class docutils literal"><span class="pre">VectorLinearize</span></code></a>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.geom.traces.LinearizeOneWayTriangle">
+<em class="property">class </em><code class="descname">LinearizeOneWayTriangle</code><span class="sig-paren">(</span><em>threshold=0.01</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/geom/traces.html#LinearizeOneWayTriangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.geom.traces.LinearizeOneWayTriangle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#aquaduct.geom.traces.LinearizeOneWay" title="aquaduct.geom.traces.LinearizeOneWay"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.LinearizeOneWay</span></code></a>, <a class="reference internal" href="#aquaduct.geom.traces.TriangleLinearize" title="aquaduct.geom.traces.TriangleLinearize"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.geom.traces.TriangleLinearize</span></code></a></p>
+<p>Class provides recursive linearization of coordinates with <a class="reference internal" href="#aquaduct.geom.traces.LinearizeOneWay" title="aquaduct.geom.traces.LinearizeOneWay"><code class="xref py py-class docutils literal"><span class="pre">LinearizeOneWay</span></code></a> algorithm and the criterion of linearity implemented by <a class="reference internal" href="#aquaduct.geom.traces.TriangleLinearize" title="aquaduct.geom.traces.TriangleLinearize"><code class="xref py py-class docutils literal"><span class="pre">TriangleLinearize</span></code></a>.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.traj.html" title="aquaduct.traj package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.geom.smooth.html" title="aquaduct.geom.smooth module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >aquaduct</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="aquaduct.html" >aquaduct package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="aquaduct.geom.html" >aquaduct.geom package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,244 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aquaduct.traj.selections module &#8212; Aqua-Duct 0.2.25 documentation</title>
+    
+    <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="_static/bizstyle.js"></script>
+    <link rel="shortcut icon" href="_static/ficon.ico"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="aquaduct.utils package" href="aquaduct.utils.html" />
+    <link rel="prev" title="aquaduct.traj.reader module" href="aquaduct.traj.reader.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.utils.html" title="aquaduct.utils package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.traj.reader.html" title="aquaduct.traj.reader module"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >aquaduct</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="aquaduct.html" >aquaduct package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="aquaduct.traj.html" accesskey="U">aquaduct.traj package</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/AQUADUCT_LOGO.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="aquaduct.traj.reader.html"
+                        title="previous chapter">aquaduct.traj.reader module</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="aquaduct.utils.html"
+                        title="next chapter">aquaduct.utils package</a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-aquaduct.traj.selections">
+<span id="aquaduct-traj-selections-module"></span><h1>aquaduct.traj.selections module<a class="headerlink" href="#module-aquaduct.traj.selections" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="aquaduct.traj.selections.Selection">
+<em class="property">class </em><code class="descname">Selection</code><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<p>def __init__(self,selection,selection_string=None):</p>
+<blockquote>
+<div>self.selection_object = selection
+self.selection_string = selection_string</div></blockquote>
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.center_of_mass">
+<code class="descname">center_of_mass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.center_of_mass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.center_of_mass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.iterate_over_residues">
+<code class="descname">iterate_over_residues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.iterate_over_residues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.iterate_over_residues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.unique_resids">
+<code class="descname">unique_resids</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.unique_resids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.unique_resids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.unique_resids_number">
+<code class="descname">unique_resids_number</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.unique_resids_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.unique_resids_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.atom_positions">
+<code class="descname">atom_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.atom_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.atom_positions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.center_of_mass_of_residues">
+<code class="descname">center_of_mass_of_residues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.center_of_mass_of_residues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.center_of_mass_of_residues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.get_convexhull_of_atom_positions">
+<code class="descname">get_convexhull_of_atom_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.get_convexhull_of_atom_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.get_convexhull_of_atom_positions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.contains_residues">
+<code class="descname">contains_residues</code><span class="sig-paren">(</span><em>other</em>, <em>convex_hull=False</em>, <em>map_fun=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.contains_residues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.contains_residues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.containing_residues">
+<code class="descname">containing_residues</code><span class="sig-paren">(</span><em>other</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.containing_residues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.containing_residues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.uniquify">
+<code class="descname">uniquify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.uniquify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.uniquify" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.__add__">
+<code class="descname">__add__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.__add__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.__add__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.Selection.first_resid">
+<code class="descname">first_resid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#Selection.first_resid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.Selection.first_resid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.traj.selections.SelectionMDA">
+<em class="property">class </em><code class="descname">SelectionMDA</code><span class="sig-paren">(</span><em>atoms</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#SelectionMDA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.SelectionMDA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">MDAnalysis.core.AtomGroup.AtomGroup</span></code>, <a class="reference internal" href="#aquaduct.traj.selections.Selection" title="aquaduct.traj.selections.Selection"><code class="xref py py-class docutils literal"><span class="pre">aquaduct.traj.selections.Selection</span></code></a></p>
+<dl class="method">
+<dt id="aquaduct.traj.selections.SelectionMDA.iterate_over_residues">
+<code class="descname">iterate_over_residues</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#SelectionMDA.iterate_over_residues"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.SelectionMDA.iterate_over_residues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.SelectionMDA.unique_resids">
+<code class="descname">unique_resids</code><span class="sig-paren">(</span><em>ikwid=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#SelectionMDA.unique_resids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.SelectionMDA.unique_resids" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.SelectionMDA.atom_positions">
+<code class="descname">atom_positions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#SelectionMDA.atom_positions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.SelectionMDA.atom_positions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.SelectionMDA.__add__">
+<code class="descname">__add__</code><span class="sig-paren">(</span><em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#SelectionMDA.__add__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.SelectionMDA.__add__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.SelectionMDA.uniquify">
+<code class="descname">uniquify</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#SelectionMDA.uniquify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.SelectionMDA.uniquify" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="aquaduct.traj.selections.CompactSelectionMDA">
+<em class="property">class </em><code class="descname">CompactSelectionMDA</code><span class="sig-paren">(</span><em>sMDA</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#CompactSelectionMDA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.CompactSelectionMDA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/2/library/functions.html#object" title="(in Python v2.7)"><code class="xref py py-class docutils literal"><span class="pre">object</span></code></a></p>
+<dl class="method">
+<dt id="aquaduct.traj.selections.CompactSelectionMDA.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>sMDA</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#CompactSelectionMDA.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.CompactSelectionMDA.__init__" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="aquaduct.traj.selections.CompactSelectionMDA.toSelectionMDA">
+<code class="descname">toSelectionMDA</code><span class="sig-paren">(</span><em>reader</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/selections.html#CompactSelectionMDA.toSelectionMDA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.selections.CompactSelectionMDA.toSelectionMDA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.utils.html" title="aquaduct.utils package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="aquaduct.traj.reader.html" title="aquaduct.traj.reader module"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="modules.html" >aquaduct</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="aquaduct.html" >aquaduct package</a> &#187;</li>
+          <li class="nav-item nav-item-3"><a href="aquaduct.traj.html" >aquaduct.traj package</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

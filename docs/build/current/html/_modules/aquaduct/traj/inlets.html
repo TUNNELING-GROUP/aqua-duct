@@ -1,0 +1,512 @@
+
+
+<!doctype html>
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>aquaduct.traj.inlets &#8212; Aqua-Duct 0.2.25 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.2.25',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../../_static/bizstyle.js"></script>
+    <link rel="shortcut icon" href="../../../_static/ficon.ico"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aquaduct.html" accesskey="U">aquaduct</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/AQUADUCT_LOGO.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for aquaduct.traj.inlets</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+
+<span class="c1"># Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations</span>
+<span class="c1"># Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk &lt;info@aquaduct.pl&gt;</span>
+<span class="c1">#</span>
+<span class="c1"># This program is free software: you can redistribute it and/or modify</span>
+<span class="c1"># it under the terms of the GNU General Public License as published by</span>
+<span class="c1"># the Free Software Foundation, either version 3 of the License, or</span>
+<span class="c1"># (at your option) any later version.</span>
+<span class="c1">#</span>
+<span class="c1"># This program is distributed in the hope that it will be useful,</span>
+<span class="c1"># but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="c1"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="c1"># GNU General Public License for more details.</span>
+<span class="c1">#</span>
+<span class="c1"># You should have received a copy of the GNU General Public License</span>
+<span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial.distance</span> <span class="k">import</span> <span class="n">pdist</span><span class="p">,</span> <span class="n">squareform</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">aquaduct.utils.helpers</span> <span class="k">import</span> <span class="n">is_iterable</span><span class="p">,</span> <span class="n">listify</span><span class="p">,</span> <span class="n">lind</span>
+<span class="kn">from</span> <span class="nn">aquaduct.utils</span> <span class="k">import</span> <span class="n">clui</span>
+
+
+<div class="viewcode-block" id="ProtoInletTypeCodes"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.ProtoInletTypeCodes">[docs]</a><span class="k">class</span> <span class="nc">ProtoInletTypeCodes</span><span class="p">:</span>
+    <span class="n">surface</span> <span class="o">=</span> <span class="s1">&#39;surface&#39;</span>
+    <span class="n">internal</span> <span class="o">=</span> <span class="s1">&#39;internal&#39;</span>
+
+    <span class="n">incoming</span> <span class="o">=</span> <span class="s1">&#39;inin&#39;</span>
+    <span class="n">outgoing</span> <span class="o">=</span> <span class="s1">&#39;inout&#39;</span></div>
+
+
+<div class="viewcode-block" id="InletTypeCodes"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletTypeCodes">[docs]</a><span class="k">class</span> <span class="nc">InletTypeCodes</span><span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="p">):</span>
+    <span class="c1"># TODO: write it in a more smart way</span>
+
+    <span class="n">all_surface</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">surface</span><span class="p">,</span> <span class="n">itype</span><span class="p">)</span> <span class="k">for</span> <span class="n">itype</span> <span class="ow">in</span>
+                   <span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">incoming</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">outgoing</span><span class="p">)]</span>
+    <span class="n">all_internal</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">internal</span><span class="p">,</span> <span class="n">itype</span><span class="p">)</span> <span class="k">for</span> <span class="n">itype</span> <span class="ow">in</span>
+                    <span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">incoming</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">outgoing</span><span class="p">)]</span>
+    <span class="n">all_incoming</span> <span class="o">=</span> <span class="p">[(</span><span class="n">itype</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">incoming</span><span class="p">)</span> <span class="k">for</span> <span class="n">itype</span> <span class="ow">in</span>
+                    <span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">surface</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">internal</span><span class="p">)]</span>
+    <span class="n">all_outgoing</span> <span class="o">=</span> <span class="p">[(</span><span class="n">itype</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">outgoing</span><span class="p">)</span> <span class="k">for</span> <span class="n">itype</span> <span class="ow">in</span>
+                    <span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">surface</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">internal</span><span class="p">)]</span>
+
+    <span class="n">surface_incoming</span> <span class="o">=</span> <span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">surface</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">incoming</span><span class="p">)</span>
+    <span class="n">internal_incoming</span> <span class="o">=</span> <span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">internal</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">incoming</span><span class="p">)</span>
+    <span class="n">internal_outgoing</span> <span class="o">=</span> <span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">internal</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">outgoing</span><span class="p">)</span>
+    <span class="n">surface_outgoing</span> <span class="o">=</span> <span class="p">(</span><span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">surface</span><span class="p">,</span> <span class="n">ProtoInletTypeCodes</span><span class="o">.</span><span class="n">outgoing</span><span class="p">)</span></div>
+
+
+<span class="c1"># clusers can be:</span>
+<span class="c1"># None  - no such cluster</span>
+<span class="c1"># nr - 0 means outliers</span>
+
+
+<div class="viewcode-block" id="InletClusterGenericType"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType">[docs]</a><span class="k">class</span> <span class="nc">InletClusterGenericType</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="InletClusterGenericType.__init__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="p">[</span><span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">]</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">input</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">output</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="InletClusterGenericType.cluster2str"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.cluster2str">[docs]</a>    <span class="k">def</span> <span class="nf">cluster2str</span><span class="p">(</span><span class="n">cl</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cl</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;N&#39;</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">cl</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InletClusterGenericType.__getitem__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__getitem__">[docs]</a>    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">item</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="InletClusterGenericType.__len__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__len__">[docs]</a>    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InletClusterGenericType.__str__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__str__">[docs]</a>    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cluster2str</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="p">)[::</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="p">)[::</span><span class="o">-</span><span class="mi">2</span><span class="p">]))</span></div>
+
+<div class="viewcode-block" id="InletClusterGenericType.__repr__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__repr__">[docs]</a>    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="InletClusterGenericType.make_val"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.make_val">[docs]</a>    <span class="k">def</span> <span class="nf">make_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">**</span> <span class="p">(</span><span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">e</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">for</span> <span class="n">dummy_iter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nr</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">e</span> <span class="o">/=</span> <span class="nb">float</span><span class="p">(</span><span class="n">base</span><span class="p">)</span>
+            <span class="n">val</span> <span class="o">+=</span> <span class="n">e</span>
+        <span class="k">return</span> <span class="n">val</span></div>
+
+<div class="viewcode-block" id="InletClusterGenericType.__cmp__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__cmp__">[docs]</a>    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">1</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">base</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">other</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="p">))</span> <span class="o">+</span> <span class="mf">2.</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_val</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">make_val</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_val</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">make_val</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="InletClusterGenericType.__hash__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__hash__">[docs]</a>    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div></div>
+
+
+<span class="c1"># alien</span>
+<div class="viewcode-block" id="make_spherical"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.make_spherical">[docs]</a><span class="k">def</span> <span class="nf">make_spherical</span><span class="p">(</span><span class="n">xyz</span><span class="p">):</span>
+    <span class="c1">#http://stackoverflow.com/questions/4116658/faster-numpy-cartesian-to-spherical-coordinate-conversion#4116899</span>
+    <span class="k">assert</span> <span class="n">xyz</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span>
+    <span class="n">sph</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">xyz</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">xy</span> <span class="o">=</span> <span class="n">xyz</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">xyz</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span>
+    <span class="n">sph</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xy</span> <span class="o">+</span> <span class="n">xyz</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">sph</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">xy</span><span class="p">),</span> <span class="n">xyz</span><span class="p">[:,</span><span class="mi">2</span><span class="p">])</span> <span class="c1"># for elevation angle defined from Z-axis down</span>
+    <span class="c1">#sph[1] = np.arctan2(xyz[2], np.sqrt(xy)) # for elevation angle defined from XY-plane up</span>
+    <span class="n">sph</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">xyz</span><span class="p">[:,</span><span class="mi">1</span><span class="p">],</span> <span class="n">xyz</span><span class="p">[:,</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">sph</span></div>
+
+
+<div class="viewcode-block" id="InletClusterExtendedType"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterExtendedType">[docs]</a><span class="k">class</span> <span class="nc">InletClusterExtendedType</span><span class="p">(</span><span class="n">InletClusterGenericType</span><span class="p">):</span>
+<div class="viewcode-block" id="InletClusterExtendedType.__init__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterExtendedType.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">surfin</span><span class="p">,</span> <span class="n">interin</span><span class="p">,</span> <span class="n">interout</span><span class="p">,</span> <span class="n">surfout</span><span class="p">):</span>
+        <span class="n">InletClusterGenericType</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">surfin</span><span class="p">,</span> <span class="n">surfout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">interin</span><span class="p">,</span> <span class="n">interout</span><span class="p">])</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">generic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">InletClusterGenericType</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">[:</span><span class="mi">2</span><span class="p">])</span></div>
+
+
+<span class="n">Inlet</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;Inlet&#39;</span><span class="p">,</span> <span class="s1">&#39;coords type reference&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Inlets"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets">[docs]</a><span class="k">class</span> <span class="nc">Inlets</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># class for list of inlets</span>
+<div class="viewcode-block" id="Inlets.__init__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spaths</span><span class="p">,</span> <span class="n">center_of_system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">onlytype</span><span class="o">=</span><span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_surface</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">center_of_system</span> <span class="o">=</span> <span class="n">center_of_system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">onlytype</span> <span class="o">=</span> <span class="n">onlytype</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inlets_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_clustered_inlets</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">spath</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extend_inlets</span><span class="p">(</span><span class="n">spath</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Inlets.extend_inlets"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.extend_inlets">[docs]</a>    <span class="k">def</span> <span class="nf">extend_inlets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spath</span><span class="p">,</span> <span class="n">onlytype</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">onlytype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">onlytype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">onlytype</span>
+
+        <span class="n">nr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">inlet</span> <span class="ow">in</span> <span class="n">spath</span><span class="o">.</span><span class="n">get_inlets</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">onlytype</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">inlet</span><span class="o">.</span><span class="n">type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">onlytype</span><span class="p">:</span>
+                    <span class="k">continue</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inlet</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inlets_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nr</span><span class="p">)</span>
+            <span class="n">nr</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Inlets.add_cluster_annotations"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.add_cluster_annotations">[docs]</a>    <span class="k">def</span> <span class="nf">add_cluster_annotations</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clusters</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">clusters</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="n">clusters</span></div>
+
+    <span class="c1"># basic properites</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">coords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">inlet</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">inlet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">types</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">inlet</span><span class="o">.</span><span class="n">type</span> <span class="k">for</span> <span class="n">inlet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="p">]</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">refs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">inlet</span><span class="o">.</span><span class="n">reference</span> <span class="k">for</span> <span class="n">inlet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Inlets.call_clusterization_method"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.call_clusterization_method">[docs]</a>    <span class="k">def</span> <span class="nf">call_clusterization_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="c1"># this method runs clusterization method against provided data</span>
+        <span class="c1"># if center_of_system was set then use distance matrix...</span>
+        <span class="c1">#if self.center_of_system is not None:</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+            <span class="k">pass</span>
+            <span class="c1">#D = squareform(pdist(make_spherical(np.array(data)-self.center_of_system),&#39;cosine&#39;))</span>
+            <span class="c1">#logger.debug(&quot;Inlets&#39; coordinates changed to cosine distance of %d variables&quot; % D.shape[0])</span>
+            <span class="c1">#return method(D)</span>
+            <span class="c1">#return method(np.array(data) - self.center_of_system)</span>
+            <span class="c1">#sph = make_spherical(np.array(data)-self.center_of_system)</span>
+            <span class="c1">#sph /= np.std(sph)</span>
+            <span class="c1">#D = squareform(pdist(np.array(data)-self.center_of_system,&#39;cosine&#39;))</span>
+            <span class="c1">#logger.debug(&quot;Inlets&#39; coordinates changed to cosine distance of %d variables&quot; % D.shape[0])</span>
+            <span class="c1">#return method(sph)</span>
+            <span class="c1">#return method(D)</span>
+        <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="Inlets.perform_clustering"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.perform_clustering">[docs]</a>    <span class="k">def</span> <span class="nf">perform_clustering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="c1"># this do clean clustering, all previous clusters are discarded</span>
+        <span class="c1"># 0 means outliers</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_cluster_annotations</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">call_clusterization_method</span><span class="p">(</span><span class="n">method</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_clustered_inlets</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span>
+        <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s2">&quot;New clusters created: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">))))))</span></div>
+        <span class="c1"># renumber clusters</span>
+        <span class="c1"># self.renumber_clusters()</span>
+
+<div class="viewcode-block" id="Inlets.perform_reclustering"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.perform_reclustering">[docs]</a>    <span class="k">def</span> <span class="nf">perform_reclustering</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">skip_outliers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">skip_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># this do reclusterization of all clusters, if no cluster exists perform_clustering is called</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">perform_clustering</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">skip_outliers</span> <span class="ow">and</span> <span class="n">cluster</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;Skipping outliers.&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c1"># check cluster size and skip if does not fit to skip_thershold function</span>
+            <span class="n">cluster_size</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">cluster</span><span class="p">))</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
+            <span class="k">if</span> <span class="n">skip_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">skip_size</span><span class="p">(</span><span class="n">cluster_size</span><span class="p">):</span>
+                    <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;Cluster </span><span class="si">%d</span><span class="s1"> of size </span><span class="si">%0.3f</span><span class="s1"> skipped.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">cluster_size</span><span class="p">))</span>
+                    <span class="k">continue</span>
+            <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;Cluster </span><span class="si">%d</span><span class="s1"> of size </span><span class="si">%0.3f</span><span class="s1"> submitted to reclusterization.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">cluster_size</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">recluster_cluster</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">cluster</span><span class="p">)</span>
+        <span class="c1"># number of cluster</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_clustered_inlets</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span></div>
+        <span class="c1"># renumber clusters</span>
+        <span class="c1"># self.renumber_clusters()</span>
+
+    <span class="c1">#CLUSTER</span>
+<div class="viewcode-block" id="Inlets.recluster_cluster"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.recluster_cluster">[docs]</a>    <span class="k">def</span> <span class="nf">recluster_cluster</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">cluster</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">cluster</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reclustering </span><span class="si">%d</span><span class="s1"> cluster: initial number of clusters </span><span class="si">%d</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">)))</span>
+            <span class="n">reclust</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">call_clusterization_method</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lim2clusters</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">reclust</span><span class="p">))</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;No new clusters found.&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># how many clusters? what aboout outliers?</span>
+                <span class="n">n_reclust</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">reclust</span><span class="p">))</span>
+                <span class="n">out_reclust</span> <span class="o">=</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">reclust</span>
+                <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;Cluster </span><span class="si">%d</span><span class="s1"> was split into </span><span class="si">%d</span><span class="s1"> clusters.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="n">n_reclust</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">out_reclust</span><span class="p">:</span>
+                    <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;Outliers were detected and will have annotation of the old cluster </span><span class="si">%d</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="n">cluster</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;No outliers were detected, the old cluster </span><span class="si">%d</span><span class="s1"> will be removed.&#39;</span> <span class="o">%</span> <span class="n">cluster</span><span class="p">)</span>
+                <span class="c1"># change numbers of reclust</span>
+                <span class="n">max_cluster</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">reclust</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">r</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">reclust</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">max_cluster</span>
+                <span class="k">if</span> <span class="n">out_reclust</span><span class="p">:</span>
+                    <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;The old cluster </span><span class="si">%d</span><span class="s1"> will be split into new clusters: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">cluster</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">reclust</span><span class="p">))[</span><span class="mi">1</span><span class="p">:])))))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">clui</span><span class="o">.</span><span class="n">message</span><span class="p">(</span><span class="s1">&#39;The old cluster </span><span class="si">%d</span><span class="s1"> will be split into new clusters: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                        <span class="n">cluster</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">reclust</span><span class="p">)))))))</span>
+                <span class="c1"># add new clusters</span>
+                <span class="n">nrr</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="n">cluster</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span> <span class="o">=</span> <span class="n">reclust</span><span class="p">[</span><span class="n">nrr</span><span class="p">]</span>
+                        <span class="n">nrr</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Reclustering </span><span class="si">%d</span><span class="s1"> cluster: final number of clusters </span><span class="si">%d</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cluster</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">)))</span>
+        <span class="c1"># number of cluster</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">number_of_clustered_inlets</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Inlets.recluster_outliers"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.recluster_outliers">[docs]</a>    <span class="k">def</span> <span class="nf">recluster_outliers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">recluster_cluster</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+        <span class="c1"># renumber clusters</span>
+        <span class="c1"># self.renumber_clusters()</span>
+
+<div class="viewcode-block" id="Inlets.small_clusters_to_outliers"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.small_clusters_to_outliers">[docs]</a>    <span class="k">def</span> <span class="nf">small_clusters_to_outliers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">maxsize</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">cc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">cc</span> <span class="o">==</span> <span class="n">c</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div>
+                        <span class="c1"># renumber clusters</span>
+                        <span class="c1"># self.renumber_clusters()</span>
+
+<div class="viewcode-block" id="Inlets.renumber_clusters"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.renumber_clusters">[docs]</a>    <span class="k">def</span> <span class="nf">renumber_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">:</span>
+            <span class="n">new_numbers</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_numbers</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">old_numbers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span>
+        <span class="k">if</span> <span class="n">old_numbers</span> <span class="o">!=</span> <span class="n">new_numbers</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">nr</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">[</span><span class="n">nr</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_numbers</span><span class="p">[</span><span class="n">old_numbers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">c</span><span class="p">)]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sort_clusters</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Inlets.sort_clusters"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.sort_clusters">[docs]</a>    <span class="k">def</span> <span class="nf">sort_clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">old_numbers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span>
+        <span class="n">old_sizes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_size</span>
+        <span class="c1"># now sort according to sizes but put 0, if present, at the begining</span>
+        <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="n">old_numbers</span><span class="p">:</span>
+            <span class="n">zero_size</span> <span class="o">=</span> <span class="n">old_sizes</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">old_numbers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">zero_number</span> <span class="o">=</span> <span class="n">old_numbers</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">old_numbers</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>  <span class="c1"># which is zero!</span>
+            <span class="n">new_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="n">zero_number</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">old_numbers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">old_sizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">new_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">zero_size</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">old_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">old_sizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">old_numbers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span>
+            <span class="c1"># old_sizes = self.clusters_size</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_numbers</span> <span class="o">=</span> <span class="p">[</span><span class="n">old_numbers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">old_sizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">new_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">old_sizes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">old_sizes</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+        <span class="c1">#trans_dict = {n: o for o, n in zip(old_numbers, new_numbers)}</span>
+        <span class="n">trans_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">o</span><span class="p">)</span> <span class="k">for</span> <span class="n">o</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">old_numbers</span><span class="p">,</span> <span class="n">new_numbers</span><span class="p">))</span> <span class="c1"># more universal as dict comprehension may not work in &lt;2.7</span>
+        <span class="n">new_clusters</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">:</span>
+            <span class="n">new_clusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trans_dict</span><span class="p">[</span><span class="n">c</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span> <span class="o">=</span> <span class="n">new_clusters</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_size</span> <span class="o">==</span> <span class="n">new_sizes</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">clusters_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">)))</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@listify</span>
+    <span class="k">def</span> <span class="nf">clusters_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">:</span>
+            <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lim2clusters</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">clusters_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="o">.</span><span class="n">count</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="nd">@listify</span>
+    <span class="k">def</span> <span class="nf">clusters_std</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters_size</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="mf">0.</span>
+            <span class="k">elif</span> <span class="n">s</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">pdist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lim2clusters</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;euclidean&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">s</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">pdist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lim2clusters</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">coords</span><span class="p">,</span> <span class="s1">&#39;euclidean&#39;</span><span class="p">))</span>
+
+    <span class="nd">@listify</span>
+<div class="viewcode-block" id="Inlets.spaths2ctypes"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.spaths2ctypes">[docs]</a>    <span class="k">def</span> <span class="nf">spaths2ctypes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spaths</span><span class="p">):</span>
+        <span class="c1"># surfin interin interout surfout</span>
+        <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">:</span>
+            <span class="n">ctypes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lim2spaths</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="o">.</span><span class="n">types</span>
+            <span class="n">clusters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lim2spaths</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="o">.</span><span class="n">clusters</span>
+            <span class="n">surfin</span><span class="p">,</span> <span class="n">interin</span><span class="p">,</span> <span class="n">interout</span><span class="p">,</span> <span class="n">surfout</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">ct</span><span class="p">,</span> <span class="n">cl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ctypes</span><span class="p">,</span> <span class="n">clusters</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_surface</span> <span class="ow">and</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_incoming</span><span class="p">:</span>
+                    <span class="n">surfin</span> <span class="o">=</span> <span class="n">cl</span>
+                <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_internal</span> <span class="ow">and</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_incoming</span><span class="p">:</span>
+                    <span class="n">interin</span> <span class="o">=</span> <span class="n">cl</span>
+                <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_internal</span> <span class="ow">and</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_outgoing</span><span class="p">:</span>
+                    <span class="n">interout</span> <span class="o">=</span> <span class="n">cl</span>
+                <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_surface</span> <span class="ow">and</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">InletTypeCodes</span><span class="o">.</span><span class="n">all_outgoing</span><span class="p">:</span>
+                    <span class="n">surfout</span> <span class="o">=</span> <span class="n">cl</span>
+            <span class="k">yield</span> <span class="n">InletClusterExtendedType</span><span class="p">(</span><span class="n">surfin</span><span class="p">,</span> <span class="n">interin</span><span class="p">,</span> <span class="n">interout</span><span class="p">,</span> <span class="n">surfout</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Inlets.lim_to"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.lim_to">[docs]</a>    <span class="k">def</span> <span class="nf">lim_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">what</span><span class="p">,</span> <span class="n">towhat</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">towhat</span><span class="p">):</span>
+            <span class="n">towhat</span> <span class="o">=</span> <span class="p">[</span><span class="n">towhat</span><span class="p">]</span>
+        <span class="n">new_inlets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">([],</span> <span class="n">onlytype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">onlytype</span><span class="p">)</span>
+        <span class="n">new_inlets</span><span class="o">.</span><span class="n">number_of_clustered_inlets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">number_of_clustered_inlets</span>
+
+        <span class="k">for</span> <span class="n">inlet</span><span class="p">,</span> <span class="n">ids</span><span class="p">,</span> <span class="n">cluster</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inlets_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inlets_ids</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">,</span> <span class="n">what</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">towhat</span><span class="p">:</span>
+                <span class="n">new_inlets</span><span class="o">.</span><span class="n">inlets_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inlet</span><span class="p">)</span>
+                <span class="n">new_inlets</span><span class="o">.</span><span class="n">inlets_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+                <span class="n">new_inlets</span><span class="o">.</span><span class="n">clusters</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cluster</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_inlets</span></div>
+
+<div class="viewcode-block" id="Inlets.lim2spaths"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.lim2spaths">[docs]</a>    <span class="k">def</span> <span class="nf">lim2spaths</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spaths</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">spaths</span><span class="p">):</span>
+            <span class="n">spaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">spaths</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lim_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refs</span><span class="p">,</span> <span class="p">[</span><span class="n">sp</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Inlets.lim2types"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.lim2types">[docs]</a>    <span class="k">def</span> <span class="nf">lim2types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">types</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lim_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">,</span> <span class="n">types</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Inlets.lim2clusters"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.lim2clusters">[docs]</a>    <span class="k">def</span> <span class="nf">lim2clusters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clusters</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lim_to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusters</span><span class="p">,</span> <span class="n">clusters</span><span class="p">)</span></div>
+
+    <span class="nd">@listify</span>
+<div class="viewcode-block" id="Inlets.limspaths2"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.limspaths2">[docs]</a>    <span class="k">def</span> <span class="nf">limspaths2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spaths</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_iterable</span><span class="p">(</span><span class="n">spaths</span><span class="p">):</span>
+            <span class="n">spaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">spaths</span><span class="p">]</span>
+        <span class="n">refs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">refs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">spaths</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">refs</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">sp</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.25 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="../../aquaduct.html" >aquaduct</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>
