@@ -131,7 +131,7 @@ Debian (and Ubuntu) uses strange approach to Python installation. To install new
     apt-get build-dep python-scipy
 
     # install SciPy
-    easy_install --upgrade scipy
+    easy_install-2.7 --upgrade scipy
 
 .. warning::
 
