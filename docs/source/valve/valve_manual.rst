@@ -189,28 +189,15 @@ Available methods
 Aqua-Duct implements several smoothing methods:
 
 #. 1D Savitzky-Golay filter - :class:`~aquaduct.geom.smooth.SavgolSmooth`
-
-    Method uses 1D filter available in SciPy, see  :func:`~scipy.signal.savgol_filter`.
-    For each dimension filter is applied separately. Only :attr:`window_length` and :attr:`polyorder` attributes are used.
-
 #. Window smoothing - :class:`~aquaduct.geom.smooth.WindowSmooth`
-
-    For each coordinate a symmetrical (if possible) window of size defined by :attr:`window` is created.
-    In case of coordinates at the edges created window is truncated to the edges. Next, all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.
-
 #. Distance Window smoothing - :class:`~aquaduct.geom.smooth.DistanceWindowSmooth`
-
-    This is modification of :class:`~aquaduct.geom.smooth.WindowSmooth` method.
-    The difference is in the definition of the window size. Here, it is an average distance between points of input coordinates. Thus, before smoothing average distance between all points is calculated and this value is used to calculate actual window size.
-
 #. Active Window smoothing - :class:`~aquaduct.geom.smooth.ActiveWindowSmooth`
-
-    Similarly to :class:`~aquaduct.geom.smooth.DistanceWindowSmooth` method the window size is defined as a distance. The difference is that the actual window size is calculated for each point separately. Thus, for each coordinate the window is calculated by examining the distance differences between points. In this method window is not necessarily symmetrical. Once window is calculated all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.
-
 #. Max Step smoothing - :class:`~aquaduct.geom.smooth.MaxStepSmooth`
 #. Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.WindowOverMaxStepSmooth`
 #. Distance Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth`
 #. Active Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth`
+
+For more information on available configuration options see :ref:
 
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
