@@ -174,6 +174,44 @@ After the initial search of *Separate Path* objects it is possible to run proced
 
 .. _clusterization_of_inlets:
 
+Smoothing
+"""""""""
+
+Separate paths can be optionally smoothed. This can be done in two modes: `soft` and `hard`. In the former mode smoothed paths are used only for visualization purposes. In the latter, raw paths are replaced by smoothed.
+
+.. note::
+
+    If `hard` mode is used all further calculations are performed for smoothed paths.
+
+Available methods
+#################
+
+Aqua-Duct implements several smoothing methods:
+
+#. 1D Savitzky-Golay filter - :class:`~aquaduct.geom.smooth.SavgolSmooth`
+
+    Method uses 1D filter available in SciPy, see  :func:`~scipy.signal.savgol_filter`.
+    For each dimension filter is applied separately. Only :attr:`window_length` and :attr:`polyorder` attributes are used.
+
+#. Window smoothing - :class:`~aquaduct.geom.smooth.WindowSmooth`
+
+    For each coordinate a symmetrical (if possible) window of size defined by :attr:`window` is created.
+    In case of coordinates at the edges created window is truncated to the edges. Next, all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.
+
+#. Distance Window smoothing - :class:`~aquaduct.geom.smooth.DistanceWindowSmooth`
+
+    This is modification of :class:`~aquaduct.geom.smooth.WindowSmooth` method.
+    The difference is in the definition of the window size. Here, it is an average distance between points of input coordinates. Thus, before smoothing average distance between all points is calculated and this value is used to calculate actual window size.
+
+#. Active Window smoothing - :class:`~aquaduct.geom.smooth.ActiveWindowSmooth`
+
+    Similarly to :class:`~aquaduct.geom.smooth.DistanceWindowSmooth` method the window size is defined as a distance. The difference is that the actual window size is calculated for each point separately. Thus, for each coordinate the window is calculated by examining the distance differences between points. In this method window is not necessarily symmetrical. Once window is calculated all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.
+
+#. Max Step smoothing - :class:`~aquaduct.geom.smooth.MaxStepSmooth`
+#. Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.WindowOverMaxStepSmooth`
+#. Distance Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth`
+#. Active Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth`
+
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -181,18 +219,18 @@ Each of the separate paths has beginning and end. If they are at the boundaries 
 
 Clusterization of inlets is performed in following steps:
 
-#. **Initial Clusterization**: All inlets are submitted to selected clusterization method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
-#. [Optional] **Outliers Detection**: Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
+#. `Initial clusterization`: All inlets are submitted to selected clusterization method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
+#. [Optional] `Outliers detection`: Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
 
-    #. **Automatic mode**: Inlet is considered to be an outlier if its distance from the centroid is greater then mean distance + 4 * standard deviation of all distances within the cluster.
-    #. **Defined threshold**: Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the threshold.
+    #. `Automatic mode`: Inlet is considered to be an outlier if its distance from the centroid is greater then mean distance + 4 * standard deviation of all distances within the cluster.
+    #. `Defined threshold`: Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the threshold.
 
-#. [Optional] **Reclusterization of outliers**: It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
+#. [Optional] `Reclusterization of outliers`: It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
 
 Potentially recursive clusterization
 """"""""""""""""""""""""""""""""""""
 
-Both `Initial clusterization` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clusterization methods option *recursive_clusterization* is used appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clusterization (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*. For additional information see :ref:`clusterization_options`.
+Both `Initial clusterization` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clusterization methods option *recursive_clusterization* is used appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clusterization (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*. For additional information and the list of available methods see :ref:`clusterization sections <clusterization_options>` options.
 
 Analysis
 ^^^^^^^^
