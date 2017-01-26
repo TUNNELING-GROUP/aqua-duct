@@ -99,12 +99,12 @@ If config file is provided *Valve* parse it quickly and regular calculations sta
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-The first stage finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list.
+In the first stage of calculation Valve finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list.
 
-The search of the residues is done according to user provided definitions.. Two requirements have to be met to append residue to the list:
+The search of the residues is done according to user provided definitions. Two requirements have to be met to append residue to the list:
 
-#. The residue have to be found according to the *Object* definition.
-#. The residues have to be within the *Scope* of interest.
+#. The residue has to be found according to the *Object* definition.
+#. The residue has to be within the *Scope* of interest.
 
 The *Object* definition encompasses usually the active site of the protein. The *Scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
 
@@ -115,10 +115,10 @@ Since :mod:`aquaduct` in its current version uses `MDAnalysis <http://www.mdanal
 Object definition
 """""""""""""""""
 
-*Object* definition have to comprise of two elements:
+*Object* definition has to comprise of two elements:
 
-#. It have to define residues to trace.
-#. It have to define spatial boundaries of the *Object* site.
+#. It has to define residues to trace.
+#. It has to define spatial boundaries of the *Object* site.
 
 For example, proper Object definition could be following::
 
@@ -133,11 +133,11 @@ Scope definition
 
 *Scope* can be defined in two ways: as *Object* but with broader boundaries or as the convex hull of selected molecular object.
 
-In the first case definition is very similar to *Object* and it have to follow the same limitations. For example, proper *Scope* definition could be following::
+In the first case definition is very similar to *Object* and it has to follow the same limitations. For example, proper *Scope* definition could be following::
 
     resname WAT around 2.0 protein
 
-It consequently have to define ``WAT`` as residues of interest and defines spatial constrains as all ``WAT`` residues that are within 2 Angstroms of the protein.
+It consequently has to define ``WAT`` as residues of interest and defines spatial constrains: all ``WAT`` residues that are within 2 Angstroms of the protein.
 
 If the *Scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
 
@@ -147,7 +147,7 @@ Raw paths
 The second stage of calculations uses the list of all traceable residues from the first stage and finds coordinates of center of masses for each residue in each frame. As in the first stage, it is done in a loop over all frames. For each residue in each frame *Valve* calculates or checks two things:
 
 #. Is the residue in the *Scope* (this is always calculated according to the Scope definition).
-#. Is the residue in the *Object*. This information is calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *Object* definition.
+#. Is the residue in the *Object*. This information is partially calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *Object* definition.
 
 For each of the *traceable residues* a special *Path* object is created. If the residue is in the *Scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *Object* or not.
 
@@ -163,13 +163,14 @@ Each *separate path* comprises of three parts:
 #. *Object* - Defined as a path that leads from the point in which residue enters the *Object* for the first time and leaves it for the last time.
 #. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *Object* for the last lime and leaves the *Scope*.
 
+It is also possible that incoming and/or outgoing part of the separate path is empty.
+
 .. _auto_barber_procedure:
 
 Auto Barber
 """""""""""
 
-After the initial search of *Separate Path* objects it is possible to run procedure which trims paths down to the surface of macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of `Scope`. Recreation of separate paths is run automatically after Auto Barber procedure.
-
+After the initial search of *Separate Path* objects it is possible to run procedure which trims paths down to the approximated  surface of the macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of `Scope`. Recreation of separate paths is run automatically after Auto Barber procedure.
 
 .. _clusterization_of_inlets:
 
