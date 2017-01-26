@@ -177,17 +177,17 @@ After the initial search of *Separate Path* objects it is possible to run proced
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each of the separate paths has beginning and end. If either of them are at the boundaries of the *Scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *Scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
+Each of the separate paths has beginning and end. If they are at the boundaries of the *Scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *Scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
 
 Clusterization of inlets is performed in following steps:
 
-#. Initial clusterization. Depending on the method, some of the inlets might not be arranged to any cluster and are considered as outliers.
-#. [Optional] Outliers detection. Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
+#. **Initial Clusterization**: All inlets are submitted to selected clusterization method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
+#. [Optional] **Outliers Detection**: Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
 
-    #. Automatic mode. Inlet is considered to be an outlier if its distance from the centroid is greater then mean distance + 4 * standard deviation of all distances within the cluster.
-    #. Defined threshold. Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the threshold.
+    #. **Automatic mode**: Inlet is considered to be an outlier if its distance from the centroid is greater then mean distance + 4 * standard deviation of all distances within the cluster.
+    #. **Defined threshold**: Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the threshold.
 
-#. [Optional] Reclusterization of outliers. It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
+#. [Optional] **Reclusterization of outliers**: It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
 
 Potentially recursive clusterization
 """"""""""""""""""""""""""""""""""""
