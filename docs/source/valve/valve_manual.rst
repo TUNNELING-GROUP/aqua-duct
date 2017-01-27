@@ -217,14 +217,22 @@ Clusterization of inlets is performed in following steps:
 Potentially recursive clusterization
 """"""""""""""""""""""""""""""""""""
 
-Both `Initial clusterization` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clusterization methods option *recursive_clusterization* is used appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clusterization (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*. For additional information and the list of available methods see :ref:`clusterization sections <clusterization_options>` options.
+Both `Initial clusterization` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clusterization methods option *recursive_clusterization* is used appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clusterization (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*.
+
+For additional information see :ref:`clusterization sections <clusterization_options>` options.
 
 Available methods
 """""""""""""""""
 
 Aqua-Duct implements several clustering methods:
 
-#. MeanShift - :class:`~sklearn.cluster.MeanShift` - default for `Initial clusterization`, see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
+#. :class:`~sklearn.cluster.MeanShift` - default for `Initial clusterization`, see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
+#. :class:`~sklearn.cluster.DBSCAN` - default for `Reclusterization of outliers`, see also original publication `A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise <https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf>`_
+#. :class:`~sklearn.cluster.AffinityPropagation`
+#. :class:`~sklearn.cluster.KMeans`
+#. :class:`~sklearn.cluster.Birch`
+
+For additional information see :ref:`clusterization sections <clusterization_options>` options.
 
 Analysis
 ^^^^^^^^
