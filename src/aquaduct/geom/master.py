@@ -179,11 +179,17 @@ class CTypeSpathsCollectionWorker(object):
 
 
 class CTypeSpathsCollection(object):
+    '''
+    Object for grouping separate paths that belong to the same CType.
+    Method :meth:`get_master_path` allows for calculation of average paths.
+    '''
     parts = (0, 1, 2)  # spath parts
 
     # takes group of paths belonging to one ctype and allows to get MasterPath
     def __init__(self, spaths=None, ctype=None, bias_long=5, pbar=None, threads=1):
-
+        '''
+        :param list spaths: List of separate paths.
+        '''
         self.pbar = pbar
         self.threads = threads
         logger.debug("Threads passed %d", threads)
@@ -287,7 +293,9 @@ class CTypeSpathsCollection(object):
         return types
 
     def get_master_path(self, smooth=None, resid=0):
-
+        '''
+        :param Smooth smooth: Smoothing method.
+        '''
         worker = CTypeSpathsCollectionWorker(spaths=self.spaths, ctype=self.ctype, bias_long=self.bias_long,
                                              smooth=smooth)
         # add some spaths properties to worker
