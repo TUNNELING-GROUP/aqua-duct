@@ -303,11 +303,17 @@ def load_pdb(filename,name,state):
             state = 1
         if self.connection_type == self.ct_pymol:
             self.cmd.load(filename, state=state, object=name)
+            self.cmd.show_as('cartoon',name)
+            self.cmd.color('silver',name)
         elif self.connection_type == self.ct_file:
             # save pdblile as string
             filename_new = '%s_%d.pdb' % (name, state)
             self.data_fh.save_file2tar(filename, filename_new)
             self.script_fh.write('''load_pdb("%s","%s",%d)''' % (filename_new, name, state))
+            self.script_fh.write(os.linesep)
+            self.script_fh.write('''cmd.show_as('cartoon','%s')''' % (name,))
+            self.script_fh.write(os.linesep)
+            self.script_fh.write('''cmd.color('silver','%s')''' % (name,))
             self.script_fh.write(os.linesep)
 
     def orient_on(self, name):
