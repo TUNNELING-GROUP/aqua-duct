@@ -11,6 +11,13 @@ Subpackages
     aquaduct.utils
     aquaduct.visual
 
+Submodules
+----------
+
+.. toctree::
+
+   aquaduct.valve
+
 Module contents
 ---------------
 

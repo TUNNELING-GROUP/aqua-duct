@@ -188,7 +188,7 @@ Available methods
 
 Aqua-Duct implements several smoothing methods:
 
-#. 1D Savitzky-Golay filter - :class:`~aquaduct.geom.smooth.SavgolSmooth`
+#. Savitzky-Golay filter - :class:`~aquaduct.geom.smooth.SavgolSmooth` - see also original publication `Smoothing and Differentiation of Data by Simplified Least Squares Procedures <http://dx.doi.org/10.1021/ac60214a047>`_ (doi:10.1021/ac60214a047).
 #. Window smoothing - :class:`~aquaduct.geom.smooth.WindowSmooth`
 #. Distance Window smoothing - :class:`~aquaduct.geom.smooth.DistanceWindowSmooth`
 #. Active Window smoothing - :class:`~aquaduct.geom.smooth.ActiveWindowSmooth`
@@ -197,7 +197,7 @@ Aqua-Duct implements several smoothing methods:
 #. Distance Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth`
 #. Active Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth`
 
-For more information on available configuration options see :ref:
+For detailed information on available configuration options see configuration file :ref:`smooth section <smoothing_options>` description.
 
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -218,6 +218,13 @@ Potentially recursive clusterization
 """"""""""""""""""""""""""""""""""""
 
 Both `Initial clusterization` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clusterization methods option *recursive_clusterization* is used appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clusterization (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*. For additional information and the list of available methods see :ref:`clusterization sections <clusterization_options>` options.
+
+Available methods
+"""""""""""""""""
+
+Aqua-Duct implements several clustering methods:
+
+#. MeanShift - :class:`~sklearn.cluster.MeanShift` - default for `Initial clusterization`, see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
 
 Analysis
 ^^^^^^^^

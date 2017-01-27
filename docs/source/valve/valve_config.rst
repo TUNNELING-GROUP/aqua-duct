@@ -303,6 +303,8 @@ recursive_threshold         None            Allows to set threshold of that excl
                                             it have to be in the range of 0 to 1.
 =========================   =============== ================================================================
 
+.. _clusterization_methods:
+
 dbscan
 ^^^^^^
 
@@ -409,6 +411,8 @@ init                        str             Method for initialization, defaults 
 tol                         float           Relative tolerance with regards to inertia to declare
                                             convergence.
 =========================   =============== ================================================================
+
+.. _smoothing_options:
 
 Smooth section
 --------------
