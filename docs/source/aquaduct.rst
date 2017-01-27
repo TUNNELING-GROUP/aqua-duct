@@ -6,17 +6,11 @@ Subpackages
 
 .. toctree::
 
+    aquaduct.apps
     aquaduct.geom
     aquaduct.traj
     aquaduct.utils
     aquaduct.visual
-
-Submodules
-----------
-
-.. toctree::
-
-   aquaduct.valve
 
 Module contents
 ---------------
