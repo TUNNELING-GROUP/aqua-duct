@@ -71,6 +71,7 @@ optimal_threads = None
 
 
 def version():
+    # TODO: remove it
     return 0, 10, 0
 
 
@@ -297,6 +298,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+        config.set(section, 'auto_barber_mincut', '1.4')
         config.set(section, 'auto_barber', 'False')
         config.set(section, 'discard_empty_paths', 'True')
         config.set(section, 'sort_by_id', 'True')
@@ -869,7 +871,7 @@ def get_linearize_method(loption):
 def valve_begin():
     clui.message(greetings_aquaduct())  # nice greetings
     clui.message('Aqua-Duct version %s' % aquaduct_version_nice())
-    clui.message('Valve driver version %s' % version_nice())
+    #clui.message('Valve driver version %s' % version_nice())
     clui.message(sep())
 
 
@@ -1137,6 +1139,9 @@ def stage_III_run(config, options,
             spaths = [sp for sp in spaths if sp.size > shorter_then]
 
     if options.auto_barber:
+        mincut = False
+        if options.auto_barber_mincut is not None:
+            mincut_val = float(options.auto_barber_mincut)
         spheres = []
         with reader.get() as traj_reader:
             clui.message("Auto Barber is looking where to cut:")
@@ -1148,12 +1153,16 @@ def stage_III_run(config, options,
                     frame = sp.path_in[0]
                     traj_reader.set_current_frame(frame)
                     radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
+                    if mincut and radius < mincut_val:
+                        continue
                     spheres.append(ABSphere(center, radius))
                 if sp.has_out:
                     center = sp.coords_out[-1]
                     frame = sp.path_out[-1]
                     traj_reader.set_current_frame(frame)
                     radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
+                    if mincut and radius < mincut_val:
+                        continue
                     spheres.append(ABSphere(center, radius))
                 pbar.update(1)
             pbar.finish()

@@ -149,6 +149,9 @@ discard_short_paths     1               This option allows to discard paths that
 auto_barber             None            This option allows to select molecular entity used in Auto
                                         Barber procedure. See also :ref:`auto_barber_procedure` and
                                         :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
+auto_barber_mincut      1.4             Minimal radius of spheres used in Auto Barber. If a sphere has
+                                        radius smaller then this value it is not used to cut. This
+                                        option can be switched off by setting it to `None`.
 =====================   ==============  ================================================================
 
 

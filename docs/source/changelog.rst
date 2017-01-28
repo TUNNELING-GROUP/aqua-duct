@@ -2,6 +2,7 @@ Aqua-Duct changelog
 ===================
 
 * 0.3.1
+    * AutoBarber minimal cut option.
     * Documentation improvements.
     * Valve driver simplified. Most of the functionality moved to separate module.
     * Option for single precision storage.
