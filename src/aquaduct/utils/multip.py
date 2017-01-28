@@ -17,3 +17,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # mulitprocessing helpers
+
+import multiprocessing as mp
+
+class CpuThreadsCount(object):
+    cpu_count = mp.cpu_count()
+    threads_count = None
+
+optimal_threads = CpuThreadsCount()
+

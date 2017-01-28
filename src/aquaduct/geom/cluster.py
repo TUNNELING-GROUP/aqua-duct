@@ -38,7 +38,7 @@ from aquaduct.utils import clui
 def MeanShiftBandwidth(X, **kwargs):
     if 'bandwidth' in kwargs:
         if kwargs['bandwidth'] is Auto:
-            bandwidth = estimate_bandwidth(np.array(X), quantile=0.5)  # TODO: change it to the default value of 0.3 or use it as option?
+            bandwidth = estimate_bandwidth(np.array(X), quantile=0.45)  # TODO: change it to the default value of 0.3 or use it as option?
             kwargs.update({'bandwidth': bandwidth})
             clui.message("Meanshift automatic bandwidth calculation: bandwidth = %f" % float(
                 bandwidth))  # TODO: make it properly

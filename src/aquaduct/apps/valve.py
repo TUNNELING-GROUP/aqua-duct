@@ -63,11 +63,7 @@ from aquaduct.traj.reader import ReadViaMDA
 from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind
-
-# TODO: Move it to separate module
-cpu_count = mp.cpu_count()
-# global optimal_threads
-optimal_threads = None
+from aquaduct.utils.multip import optimal_threads
 
 
 def version():
@@ -475,11 +471,11 @@ def CHullCheck_init(args):
     CHullCheck.chull = copy.deepcopy(args[0])
 
 
-def CHullCheck_pool(chull, threads=optimal_threads):
+def CHullCheck_pool(chull, threads=optimal_threads.threads_count):
     return mp.Pool(threads, CHullCheck_init, [(chull,)])
 
 
-def CHullCheck_exec(chull, points, threads=optimal_threads):
+def CHullCheck_exec(chull, points, threads=optimal_threads.threads_count):
     pool = CHullCheck_pool(chull, threads=threads)
     out = pool.map(CHullCheck, points)
     pool.close()
@@ -498,7 +494,7 @@ def check_res_in_scope(options, scope, res, res_coords):
             return []
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
-        is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=optimal_threads)
+        is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=optimal_threads.threads_count)
     else:
         if res.unique_resids_number() == 0:
             return []
@@ -966,8 +962,8 @@ def stage_I_run(config, options,
 
     # create pool of workers - mapping function
     map_fun = map
-    if optimal_threads > 1:
-        pool = mp.Pool(optimal_threads)
+    if optimal_threads.threads_count > 1:
+        pool = mp.Pool(optimal_threads.threads_count)
         map_fun = pool.map
 
     with reader.get() as traj_reader:
@@ -1004,7 +1000,7 @@ def stage_I_run(config, options,
             pbar.update(frame)
 
     # destroy pool of workers
-    if optimal_threads > 1:
+    if optimal_threads.threads_count > 1:
         pool.close()
         pool.join()
         del pool
@@ -1054,8 +1050,8 @@ def stage_II_run(config, options,
 
         # create pool of workers - mapping function
         map_fun = map
-        if optimal_threads > 1:
-            pool = mp.Pool(optimal_threads)
+        if optimal_threads.threads_count > 1:
+            pool = mp.Pool(optimal_threads.threads_count)
             map_fun = pool.map
 
         for frame in traj_reader.iterate_over_frames():
@@ -1098,7 +1094,7 @@ def stage_II_run(config, options,
             pbar.update(frame)
 
     # destroy pool of workers
-    if optimal_threads > 1:
+    if optimal_threads.threads_count > 1:
         pool.close()
         pool.join()
         del pool
@@ -1409,7 +1405,7 @@ def stage_IV_run(config, options,
                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
                     logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
                     # print len(sps),ct
-                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads)
+                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads.threads_count)
                     master_paths.update({ct: ctspc.get_master_path(resid=nr)})
                     master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
                     del ctspc
@@ -2068,12 +2064,12 @@ def stage_VI_run(config, options,
 
 
 __all__ = '''clui
+optimal_threads
 aquaduct_version_nice
 version_nice
 ValveConfig
 valve_begin
 valve_load_config
-cpu_count
 valve_read_trajectory
 valve_exec_stage
 stage_I_run

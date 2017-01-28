@@ -154,17 +154,17 @@ if __name__ == "__main__":
         # pbar_name = goptions.pbar
 
         if args.threads is None:
-            optimal_threads = cpu_count + 1
+            optimal_threads.threads_count = optimal_threads.cpu_count + 1
         else:
-            optimal_threads = int(args.threads)
-        clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
-        if (1 < optimal_threads < 3) or (optimal_threads - 1 > cpu_count):
-            clui.message("Number of threads is not optimal; CPU count reported by system: %d" % cpu_count)
+            optimal_threads.threads_count = int(args.threads)
+        clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads.threads_count)
+        if (1 < optimal_threads.threads_count < 3) or (optimal_threads.threads_count - 1 > optimal_threads.cpu_count):
+            clui.message("Number of threads is not optimal; CPU count reported by system: %d" % optimal_threads.cpu_count)
         # because it is used by mp.Pool it should be -1???
-        if optimal_threads > 1:
-            optimal_threads -= 1
+        if optimal_threads.threads_count > 1:
+            optimal_threads.threads_count -= 1
             clui.message("Main process would use 1 thread.")
-            clui.message("Concurent calculations would use %d threads." % optimal_threads)
+            clui.message("Concurent calculations would use %d threads." % optimal_threads.threads_count)
 
         # At this point calculations starts. All options are read.
         # Options:
