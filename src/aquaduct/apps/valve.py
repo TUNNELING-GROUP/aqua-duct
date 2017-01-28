@@ -78,8 +78,10 @@ def version():
 def version_nice():
     return '.'.join(map(str, version()))
 
+
 def version_onenumber():
     return ''.join(map(str, version()))
+
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = version_nice()
@@ -542,6 +544,7 @@ def save_dump(filename, data_to_save, **kwargs):
             # then other kwargs
             pickle.dump(kwargs, f)
 
+
 class LoadDumpWrapper(object):
     """This is wrapper for pickled data that provides compatibility
     with earlier versions of Aqua-Duct.
@@ -552,20 +555,20 @@ class LoadDumpWrapper(object):
 
     """
 
-    def __init__(self,filehandle):
+    def __init__(self, filehandle):
         self.fh = filehandle
 
-    def convert(self,s):
+    def convert(self, s):
         new_s = s
-        new_s = new_s.replace('aqueduct.','aquaduct.')
+        new_s = new_s.replace('aqueduct.', 'aquaduct.')
         new_s = new_s.replace('aqueduct_version', 'aquaduct_version')
         return new_s
 
-    def read(self,*args,**kwargs):
-        return self.convert(self.fh.read(*args,**kwargs))
+    def read(self, *args, **kwargs):
+        return self.convert(self.fh.read(*args, **kwargs))
 
-    def readline(self,*args,**kwargs):
-        return self.convert(self.fh.readline(*args,**kwargs))
+    def readline(self, *args, **kwargs):
+        return self.convert(self.fh.readline(*args, **kwargs))
 
 
 def load_dump(filename):
@@ -648,7 +651,8 @@ def load_stage_dump(name, reader=None):
 
 def get_smooth_method(soptions):
     assert soptions.method in ['window', 'mss', 'window_mss', 'awin',
-                               'awin_mss', 'dwin', 'dwin_mss', 'savgol'], 'Unknown smoothing method %s.' % soptions.method
+                               'awin_mss', 'dwin', 'dwin_mss',
+                               'savgol'], 'Unknown smoothing method %s.' % soptions.method
 
     opts = {}
     if 'recursive' in soptions._asdict():
@@ -677,17 +681,18 @@ def get_smooth_method(soptions):
             opts.update({'step': float(soptions.step)})
 
     def savgol_opts():
-        window_length = 5 # TODO: magic constant (default value)
+        window_length = 5  # TODO: magic constant (default value)
         if 'window' in soptions._asdict():
             window_length = int(float(soptions.window))
-            assert window_length%2 == 1, 'Window in Savgol method must be positive odd number, %d given instead.' % window_length
+            assert window_length % 2 == 1, 'Window in Savgol method must be positive odd number, %d given instead.' % window_length
             opts.update({'window_length': window_length})
-        polyorder = 2 # TODO: magic constant (default value)
+        polyorder = 2  # TODO: magic constant (default value)
         if 'polyorder' in soptions._asdict():
             polyorder = int(float(soptions.polyorder))
             assert polyorder > 0, 'Polynomial order should be greater then 0, %d given instead.' % polyorder
             opts.update({'polyorder': polyorder})
-        assert polyorder < window_length, 'Polynomial order (%d) should be less then window (%d).' % (polyorder, window_length)
+        assert polyorder < window_length, 'Polynomial order (%d) should be less then window (%d).' % (
+            polyorder, window_length)
         '''
         if 'deriv' in soptions._asdict():
             deriv = int(float(soptions.deriv))
@@ -871,7 +876,7 @@ def get_linearize_method(loption):
 def valve_begin():
     clui.message(greetings_aquaduct())  # nice greetings
     clui.message('Aqua-Duct version %s' % aquaduct_version_nice())
-    #clui.message('Valve driver version %s' % version_nice())
+    # clui.message('Valve driver version %s' % version_nice())
     clui.message(sep())
 
 
@@ -907,7 +912,6 @@ def valve_begin_stage(stage, config):
 
 def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_status=None,
                      **kwargs):
-
     with clui.tictoc('Stage %s (%s)' % (roman.toRoman(stage + 1), config.stage_names(stage))):
 
         # This function runs stages in a smart way, checks execution logic, and loads/saves dumps if required.
@@ -923,12 +927,12 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 can_be_loaded = True
         # has to be run?
         if options.execute in ['runonce'] and can_be_loaded and stage > 0:
-            if run_status[stage-1]:
-                 can_be_loaded = False
+            if run_status[stage - 1]:
+                can_be_loaded = False
 
         if options.execute in ['run'] or (options.execute in ['runonce'] and not can_be_loaded):
             result = stage_run(config, options, reader=reader, **kwargs)
-            run_status.update({stage:True})
+            run_status.update({stage: True})
             if not no_io:
                 ###########
                 # S A V E #
@@ -970,7 +974,7 @@ def stage_I_run(config, options,
 
         scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
-        center_of_system = np.array([0.,0.,0.])
+        center_of_system = np.array([0., 0., 0.])
 
         # create some containers
         res_ids_in_object_over_frames = {}
@@ -985,7 +989,7 @@ def stage_I_run(config, options,
             # current res selection
             res = traj_reader.parse_selection(options.object)
             # find matching residues:
-            res_new = scope.containing_residues(res,convex_hull=options.scope_convexhull,map_fun=map_fun)
+            res_new = scope.containing_residues(res, convex_hull=options.scope_convexhull, map_fun=map_fun)
             # adds them to all_res
             if all_res:
                 all_res += res_new
@@ -1006,7 +1010,7 @@ def stage_I_run(config, options,
         del pool
 
     pbar.finish()
-    center_of_system /= (frame+1)
+    center_of_system /= (frame + 1)
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
 
     if all_res is None:
@@ -1061,7 +1065,7 @@ def stage_II_run(config, options,
             all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
             all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
             # check if is res are in scope
-            is_res_in_scope = scope.contains_residues(all_res,convex_hull=options.scope_convexhull,map_fun=map_fun)
+            is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun)
 
             # loop over coord, is  in scope, and resid
             for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
@@ -1109,9 +1113,8 @@ def stage_II_run(config, options,
 
 ################################################################################
 
-class ABSphere(namedtuple('ABSphere','center radius')):
+class ABSphere(namedtuple('ABSphere', 'center radius')):
     pass
-
 
 
 # separate_paths
@@ -1141,7 +1144,9 @@ def stage_III_run(config, options,
     if options.auto_barber:
         mincut = False
         if options.auto_barber_mincut is not None:
+            mincut = True
             mincut_val = float(options.auto_barber_mincut)
+            logger.debug('mincut set to %0.2f', mincut_val)
         spheres = []
         with reader.get() as traj_reader:
             clui.message("Auto Barber is looking where to cut:")
@@ -1154,6 +1159,7 @@ def stage_III_run(config, options,
                     traj_reader.set_current_frame(frame)
                     radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
                     if mincut and radius < mincut_val:
+                        logger.debug('Sphere readius %0.2f is less then mincut %0.2f', radius, mincut_val)
                         continue
                     spheres.append(ABSphere(center, radius))
                 if sp.has_out:
@@ -1162,6 +1168,7 @@ def stage_III_run(config, options,
                     traj_reader.set_current_frame(frame)
                     radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
                     if mincut and radius < mincut_val:
+                        logger.debug('Sphere readius %0.2f is less then mincut %0.2f', radius, mincut_val)
                         continue
                     spheres.append(ABSphere(center, radius))
                 pbar.update(1)
@@ -1191,19 +1198,20 @@ def stage_III_run(config, options,
                 # add radii
                 distances += spheres_radii[1:]
                 # remove if distance <= radius
-                to_keep = distances <= radius
+                to_keep = distances > radius
                 # do keep
                 spheres_coords = spheres_coords[1:][to_keep]
                 spheres_radii = spheres_radii[1:][to_keep]
                 # do keep spheres
                 np.argwhere(to_keep).flatten()
                 to_keep_ids = np.argwhere(to_keep).flatten().tolist()
-                spheres = lind(spheres,to_keep_ids)
+                spheres = lind(spheres, to_keep_ids)
                 # add big to non redundant
                 noredundat_spheres.append(big)
                 pbar.update(sum(to_keep == False))
                 logger.debug("PBar update by %d" % sum(to_keep == False))
-                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (len(noredundat_spheres), len(spheres)))
+                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
+                    len(noredundat_spheres), len(spheres)))
 
             if len(noredundat_spheres) == noredundat_spheres_count:
                 logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(
@@ -1224,8 +1232,9 @@ def stage_III_run(config, options,
             pbar.update(1)
         pbar.finish()
         # now, it might be that some of paths are empty
-        #paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
-        paths = dict((k,v) for k, v in paths.iteritems() if len(v.coords) > 0) # more universal as dict comprehension may not work in <2.7
+        # paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
+        paths = dict((k, v) for k, v in paths.iteritems() if
+                     len(v.coords) > 0)  # more universal as dict comprehension may not work in <2.7
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
@@ -1322,7 +1331,7 @@ def stage_IV_run(config, options,
     # new style clustering
     with clui.fbm("Create inlets"):
         # here we can check center of system
-        inls = Inlets(spaths,center_of_system=center_of_system)
+        inls = Inlets(spaths, center_of_system=center_of_system)
     clui.message("Number of inlets: %d" % inls.size)
 
     def noo():
@@ -1962,7 +1971,8 @@ def stage_VI_run(config, options,
                 for frame in frames_to_show:
                     traj_reader.set_current_frame(frame)
                     chull = object_shape.get_convexhull_of_atom_positions()
-                    spp.convexhull(chull, name='object_shape', color=np.array([255,153,0])/255., state=frame + 1) # orange
+                    spp.convexhull(chull, name='object_shape', color=np.array([255, 153, 0]) / 255.,
+                                   state=frame + 1)  # orange
 
     if options.inlets_clusters:
         with clui.fbm("Clusters"):
