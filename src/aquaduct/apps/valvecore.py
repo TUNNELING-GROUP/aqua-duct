@@ -59,7 +59,7 @@ from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepS
 from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths
-from aquaduct.traj.reader import ReadViaMDA
+from aquaduct.traj.reader import ReadViaMDA,atom2vdw_radius
 from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind
@@ -296,6 +296,8 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+        config.set(section, 'auto_barber_tovdw', 'False')
+        config.set(section, 'auto_barber_maxcut', '2.8')
         config.set(section, 'auto_barber_mincut', '1.4')
         config.set(section, 'auto_barber', 'False')
         config.set(section, 'discard_empty_paths', 'True')
@@ -1143,28 +1145,43 @@ def stage_III_run(config, options,
             mincut = True
             mincut_val = float(options.auto_barber_mincut)
             logger.debug('mincut set to %0.2f', mincut_val)
+        maxcut = False
+        if options.auto_barber_maxcut is not None:
+            maxcut = True
+            maxcut_val = float(options.auto_barber_maxcut)
+            logger.debug('maxcut set to %0.2f', maxcut_val)
+        if mincut and maxcut:
+            if maxcut_val < mincut_val:
+                logger.warning('Values of mincut %0.2f and maxcut %0.2f are mutually exclusive. No spheres will be used in Auto Barber.',mincut_val,maxcut_val)
         spheres = []
         with reader.get() as traj_reader:
             clui.message("Auto Barber is looking where to cut:")
             pbar = clui.pbar(len(spaths))
             barber = traj_reader.parse_selection(options.auto_barber)
+            vdwradius = 0
             for sp in spaths:
+                centers = []
+                frames = []
                 if sp.has_in:
-                    center = sp.coords_in[0]
-                    frame = sp.path_in[0]
-                    traj_reader.set_current_frame(frame)
-                    radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
-                    if mincut and radius < mincut_val:
-                        logger.debug('Sphere readius %0.2f is less then mincut %0.2f', radius, mincut_val)
-                        continue
-                    spheres.append(ABSphere(center, radius))
+                    centers.append(sp.coords_in[0])
+                    frames.append(sp.path_in[0])
                 if sp.has_out:
-                    center = sp.coords_out[-1]
-                    frame = sp.path_out[-1]
+                    centers.append(sp.coords_out[-1])
+                    frames.append(sp.path_out[-1])
+                for center, frame in zip(centers, frames):
                     traj_reader.set_current_frame(frame)
-                    radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
+                    distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
+                    if options.auto_barber_tovdw:
+                        vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
+                    radius = min(distances) - vdwradius
+                    if radius <= 0:
+                        logger.debug('VdW correction resulted in <= 0 radius.')
+                        continue
                     if mincut and radius < mincut_val:
-                        logger.debug('Sphere readius %0.2f is less then mincut %0.2f', radius, mincut_val)
+                        logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
+                        continue
+                    if maxcut and radius > maxcut_val:
+                        logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
                         continue
                     spheres.append(ABSphere(center, radius))
                 pbar.update(1)

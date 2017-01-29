@@ -501,12 +501,13 @@ class GenericPaths(object, GenericPathTypeCodes):
         # distances = cdist(self.coords, [s.center for s in spheres],metric='euclidean')
         # compare with radii
         # tokeep = distances > np.matrix([[s.radius for s in spheres]])
-        tokeep = np.argwhere((cdist(self.coords, [s.center for s in spheres], metric='euclidean') > np.matrix(
-            [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
-        #tokeep = np.argwhere(tokeep).flatten().tolist()
-        self.coords = lind(self.coords, tokeep)
-        self.__types = SmartRange(lind(self.types, tokeep))
-        self.__frames = SmartRange(lind(self.frames, tokeep))
+        if len(spheres):
+            tokeep = np.argwhere((cdist(self.coords, [s.center for s in spheres], metric='euclidean') > np.matrix(
+                [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
+            #tokeep = np.argwhere(tokeep).flatten().tolist()
+            self.coords = lind(self.coords, tokeep)
+            self.__types = SmartRange(lind(self.types, tokeep))
+            self.__frames = SmartRange(lind(self.frames, tokeep))
 
 
 # SinglePathID = namedtuple('SinglePathID', 'id nr')

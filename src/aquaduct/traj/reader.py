@@ -20,6 +20,7 @@ import re
 from os.path import splitext
 
 import MDAnalysis as mda
+from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.traj.selections import SelectionMDA
 
@@ -154,3 +155,134 @@ class ReadDCDviaMDA(ReadViaMDA):
         return mda.Universe(self.topology_file_name,
                             self.trajectory_file_name,
                             topology_format="psf", format="dcd")
+
+
+
+VdW_radii = {'ac': 2.47,
+             'ag': 2.11,
+             'al': 1.84,
+             'am': 2.44,
+             'ar': 1.88,
+             'as': 1.85,
+             'at': 2.02,
+             'au': 2.14,
+             'b': 1.92,
+             'ba': 2.68,
+             'be': 1.53,
+             'bi': 2.07,
+             'bk': 2.44,
+             'br': 1.85,
+             'c': 1.7,
+             'ca': 2.31,
+             'cd': 2.18,
+             'ce': 2.42,
+             'cf': 2.45,
+             'cl': 1.75,
+             'cm': 2.45,
+             'co': 2.0,
+             'cr': 2.06,
+             'cs': 3.43,
+             'cu': 1.96,
+             'dy': 2.31,
+             'er': 2.29,
+             'es': 2.45,
+             'eu': 2.35,
+             'f': 1.47,
+             'fe': 2.04,
+             'fm': 2.45,
+             'fr': 3.48,
+             'ga': 1.87,
+             'gd': 2.34,
+             'ge': 2.11,
+             'h': 1.1,
+             'he': 1.4,
+             'hf': 2.23,
+             'hg': 2.23,
+             'ho': 2.3,
+             'i': 1.98,
+             'in': 1.93,
+             'ir': 2.13,
+             'k': 2.75,
+             'kr': 2.02,
+             'la': 2.43,
+             'li': 1.82,
+             'lr': 2.46,
+             'lu': 2.24,
+             'md': 2.46,
+             'mg': 1.73,
+             'mn': 2.05,
+             'mo': 2.17,
+             'n': 1.55,
+             'na': 2.27,
+             'nb': 2.18,
+             'nd': 2.39,
+             'ne': 1.54,
+             'ni': 1.97,
+             'no': 2.46,
+             'np': 2.39,
+             'o': 1.52,
+             'os': 2.16,
+             'p': 1.8,
+             'pa': 2.43,
+             'pb': 2.02,
+             'pd': 2.1,
+             'pm': 2.38,
+             'po': 1.97,
+             'pr': 2.4,
+             'pt': 2.13,
+             'pu': 2.43,
+             'ra': 2.83,
+             'rb': 3.03,
+             're': 2.16,
+             'rh': 2.1,
+             'rn': 2.2,
+             'ru': 2.13,
+             's': 1.8,
+             'sb': 2.06,
+             'sc': 2.15,
+             'se': 1.9,
+             'si': 2.1,
+             'sm': 2.36,
+             'sn': 2.17,
+             'sr': 2.49,
+             'ta': 2.22,
+             'tb': 2.33,
+             'tc': 2.16,
+             'te': 2.06,
+             'th': 2.45,
+             'ti': 2.11,
+             'tl': 1.96,
+             'tm': 2.27,
+             'u': 2.41,
+             'v': 2.07,
+             'w': 2.18,
+             'xe': 2.16,
+             'y': 2.32,
+             'yb': 2.26,
+             'zn': 2.01,
+             'zr': 2.23}
+'''
+Distrionary of VdW radii.
+Data taken from L. M. Mentel, mendeleev, 2014. Available at: https://bitbucket.org/lukaszmentel/mendeleev.
+'''
+
+def atom2vdw_radius(atom):
+    '''
+    Function tries to guess atom element and checks if it is in :attr:`VdW_radii` dictionary. If it fails 1.4 is returned.
+    Guessing is done twice:
+
+    #. Function :func:`MDAnalysis.topology.core.guess_atom_element` is used.
+    #. :attr:` MDAnalysis.core.AtomGroup.Atom.element` is used.
+
+    :param MDAnalysis.core.AtomGroup.Atom atom: Atom of interest.
+    :rtype: float
+    :return: VdW radius.
+    '''
+    element = str(guess_atom_element(atom.name)).lower()
+    if element in VdW_radii:
+        return VdW_radii[element]
+    element = str(atom.element).lower()
+    if element in VdW_radii:
+        return VdW_radii[element]
+    return 1.4
+
