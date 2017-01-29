@@ -262,9 +262,10 @@ VdW_radii = {'ac': 2.47,
              'zn': 2.01,
              'zr': 2.23}
 '''
-Distrionary of VdW radii.
+Dictionary of VdW radii.
+
 Data taken from L. M. Mentel, mendeleev, 2014. Available at: https://bitbucket.org/lukaszmentel/mendeleev.
-Package mendeleev is not used because it depends on too many other libraries.
+Package **mendeleev** is not used because it depends on too many other libraries.
 '''
 
 def atom2vdw_radius(atom):
@@ -273,7 +274,7 @@ def atom2vdw_radius(atom):
     Guessing is done twice:
 
     #. Function :func:`MDAnalysis.topology.core.guess_atom_element` is used.
-    #. :attr:` MDAnalysis.core.AtomGroup.Atom.element` is used.
+    #. :attr:`MDAnalysis.core.AtomGroup.Atom.element` is used.
 
     :param MDAnalysis.core.AtomGroup.Atom atom: Atom of interest.
     :rtype: float

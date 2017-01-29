@@ -52,7 +52,7 @@ intersphinx_mapping = {'python': ('http://docs.python.org/2', None),
 autoclass_content = 'class'
 #autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'special-members', 'show-inheritance']
 autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance','undoc-members']
-autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance']
+#autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance']
 autodoc_member_order = 'bysource'
 
 def skip(app, what, name, obj, skip, options):
