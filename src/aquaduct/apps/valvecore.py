@@ -296,9 +296,9 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
-        config.set(section, 'auto_barber_tovdw', 'False')
+        config.set(section, 'auto_barber_tovdw', 'True')
         config.set(section, 'auto_barber_maxcut', '2.8')
-        config.set(section, 'auto_barber_mincut', '1.4')
+        config.set(section, 'auto_barber_mincut', 'None')
         config.set(section, 'auto_barber', 'False')
         config.set(section, 'discard_empty_paths', 'True')
         config.set(section, 'sort_by_id', 'True')

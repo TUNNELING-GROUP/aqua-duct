@@ -264,6 +264,7 @@ VdW_radii = {'ac': 2.47,
 '''
 Distrionary of VdW radii.
 Data taken from L. M. Mentel, mendeleev, 2014. Available at: https://bitbucket.org/lukaszmentel/mendeleev.
+Package mendeleev is not used because it depends on too many other libraries.
 '''
 
 def atom2vdw_radius(atom):
