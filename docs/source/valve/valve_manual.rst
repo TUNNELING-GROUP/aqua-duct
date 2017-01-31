@@ -172,7 +172,6 @@ Auto Barber
 
 After the initial search of *Separate Path* objects it is possible to run procedure which trims paths down to the approximated  surface of the macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of `Scope`. Recreation of separate paths is run automatically after Auto Barber procedure.
 
-.. _clusterization_of_inlets:
 
 Smoothing
 """""""""
@@ -198,6 +197,8 @@ Aqua-Duct implements several smoothing methods:
 #. Active Window over Max Step smoothing - :class:`~aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth`
 
 For detailed information on available configuration options see configuration file :ref:`smooth section <smoothing_options>` description.
+
+.. _clusterization_of_inlets:
 
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^

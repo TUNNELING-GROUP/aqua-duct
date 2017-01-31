@@ -53,8 +53,7 @@ if __name__ == "__main__":
         # argument parsing
         import argparse
 
-        description_version = '''Aquaduct library version %s
-    Valve driver version %s''' % (aquaduct_version_nice(), version_nice())
+        description_version = '''Aquaduct library version %s''' % (aquaduct_version_nice(), )
         description = '''Valve, Aquaduct driver'''
 
         parser = argparse.ArgumentParser(description=description,
@@ -100,14 +99,15 @@ if __name__ == "__main__":
         if args.sps:
             logger.info('Single precision data storage activated.')
             from aquaduct.utils.maths import defaults
-            defaults.float_default = np.float32
-            defaults.int_default = np.int32
+            from numpy import float32, int32
+            defaults.float_default = float32
+            defaults.int_default = int32
 
         ############################################################################
         # special option for dumping template config
         config = ValveConfig()  # config template
         if args.dump_template_conf:
-
+            import cStringIO as StringIO
             config_dump = StringIO.StringIO()
             config.save_config_stream(config_dump)
             print config_dump.getvalue()
