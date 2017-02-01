@@ -170,8 +170,14 @@ It is also possible that incoming and/or outgoing part of the separate path is e
 Auto Barber
 """""""""""
 
-After the initial search of *Separate Path* objects it is possible to run procedure which trims paths down to the approximated  surface of the macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of `Scope`. Recreation of separate paths is run automatically after Auto Barber procedure.
+After the initial search of *Separate Path* objects it is possible to run procedure which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of `Scope`. Each of the spheres has radius calculated as minimal distance to atoms of the macromolecule. Recreation of separate paths is run automatically after Auto Barber procedure.
 
+Auto Barber procedure has several options:
+
+* `auto_barber` allows to define molecular entity which is used to calculate radii of spheres used for trimming raw paths.
+* `auto_barber_mincut` defines minimal radius length of spheres. Spheres of radius smaller then this value are not used in trimming.
+* `auto_barber_maxcut` defines maximal radius length of spheres. Spheres of radius greater then this value are not used in trimming.
+* `auto_barber_tovdw` if set to `True` radii of spheres are corrected to Van der Waals radii of closest atom.
 
 Smoothing
 """""""""
