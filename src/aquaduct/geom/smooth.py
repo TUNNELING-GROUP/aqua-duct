@@ -16,6 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+'''
+Smooth module defines methods for smoothing of trajectories.
+
+Available methods:
+
+.. autosummary::
+    :nosignatures:
+
+    SavgolSmooth
+    WindowSmooth
+    DistanceWindowSmooth
+    ActiveWindowSmooth
+    MaxStepSmooth
+    WindowOverMaxStepSmooth
+    DistanceWindowOverMaxStepSmooth
+    ActiveWindowOverMaxStepSmooth
+'''
+
 import numpy as np
 from scipy.signal import savgol_filter
 from functools import partial

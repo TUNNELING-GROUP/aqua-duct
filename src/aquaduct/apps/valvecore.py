@@ -1103,7 +1103,6 @@ def stage_II_run(config, options,
 
     pbar.finish()
 
-    clui.message("Number of residues to trace: %d" % len(all_res))
     clui.message("Number of paths: %d" % len(paths))
 
     return {'all_res': all_res, 'paths': paths, 'options': options}
