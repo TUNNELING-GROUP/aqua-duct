@@ -249,13 +249,14 @@ For additional information see :ref:`clusterization sections <clusterization_opt
 Available methods
 """""""""""""""""
 
-Aqua-Duct implements several clustering methods:
+Aqua-Duct implements several clustering methods with :mod:`sklearn.cluster` module:
 
 #. :class:`~sklearn.cluster.MeanShift` - default for `Initial clusterization`, see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
 #. :class:`~sklearn.cluster.DBSCAN` - default for `Reclusterization of outliers`, see also original publication `A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise <https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf>`_
 #. :class:`~sklearn.cluster.AffinityPropagation` - see also original publication `Clustering by Passing Messages Between Data Points <http://dx.doi.org/10.1126/science.1136800>`_ (doi:10.1126/science.1136800)
-#. :class:`~sklearn.cluster.KMeans` - see also `"k-means++: The advantages of careful seeding" Arthur, David, and Sergei Vassilvitskii <http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf>`_ in Proceedings of the eighteenth annual ACM-SIAM symposium on Discrete algorithms, Society for Industrial and Applied Mathematics (2007), pages 1027-1035.
-#. :class:`~sklearn.cluster.Birch`
+#. :class:`~sklearn.cluster.KMeans` - see also `k-means++: The advantages of careful seeding, Arthur, David, and Sergei Vassilvitskii <http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf>`_ in Proceedings of the eighteenth annual ACM-SIAM symposium on Discrete algorithms, Society for Industrial and Applied Mathematics (2007), pages 1027-1035.
+#. :class:`~sklearn.cluster.Birch` - see also `Tian Zhang, Raghu Ramakrishnan, Maron Livny BIRCH: An efficient data clustering method for large databases <http://www.cs.sfu.ca/CourseCentral/459/han/papers/zhang96.pdf>`_ and `Roberto Perdisci JBirch - Java implementation of BIRCH clustering algorithm <https://code.google.com/archive/p/jbirch>`_.
+
 
 For additional information see :ref:`clusterization sections <clusterization_options>` options.
 
