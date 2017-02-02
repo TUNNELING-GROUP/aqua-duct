@@ -129,6 +129,7 @@ clear_in_object_info    False           If it is set to ``True`` information on 
                                         definition of *Object* was changed.
 =====================   ==============  ================================================================
 
+.. _separate_paths_options:
 
 Stage **separate_paths**
 ------------------------

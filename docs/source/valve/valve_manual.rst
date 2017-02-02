@@ -141,6 +141,20 @@ It consequently has to define ``WAT`` as residues of interest and defines spatia
 
 If the *Scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
 
+Convex hulls of macromolecule atoms
+###################################
+
+AQ uses quickhull algorithm for convex hulls calculations (via SciPy class :class:`scipy.spatial.ConvexHull`, see also `<http://www.qhull.org/>`_ and original publication `The quickhull algorithm for convex hulls <http://dx.doi.org/10.1145/235815.235821>`_).
+
+Convex hull concept is used to check if traced molecules are inside of the macromolecule. Convex hull can be considered as rough approximation of molecular surface. Following picture shows schematic comparison of convex hull and solvent excluded surface:
+
+.. figure:: ch_vs_ses.png
+   :align:  center
+
+Convex hull (red shape) of atoms (blue dots with VdW spheres) and SES (blue line): a) Convex hull and SES cover roughly the same area, Convex hull approximates SES; b) movement of one atom dramatically changes SES, however, interior of the molecule as approximated by Convex hull remains stable.
+
+No doubts, Convex hull is a very rough approximation of SES. It has, however, one very important property when it is used to approximate interior of molecules: its interior does not considerably depend on the molecular conformation of a molecule (or molecular entity) in question.
+
 Raw paths
 ^^^^^^^^^
 
@@ -170,14 +184,16 @@ It is also possible that incoming and/or outgoing part of the separate path is e
 Auto Barber
 """""""""""
 
-After the initial search of *Separate Path* objects it is possible to run procedure which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of `Scope`. Each of the spheres has radius calculated as minimal distance to atoms of the macromolecule. Recreation of separate paths is run automatically after Auto Barber procedure.
+After the initial search of *Separate Path* objects it is possible to run procedure, Auto Barber, which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This trimming is done by creating collection of spheres that have centers at the ends of paths and radii equal to the distance for the center to the nearest atom of user defined molecular entity. Next, parts of raw paths that are inside these spheres are removed and separate paths are recreated.
 
 Auto Barber procedure has several options:
 
-* `auto_barber` allows to define molecular entity which is used to calculate radii of spheres used for trimming raw paths.
-* `auto_barber_mincut` defines minimal radius length of spheres. Spheres of radius smaller then this value are not used in trimming.
-* `auto_barber_maxcut` defines maximal radius length of spheres. Spheres of radius greater then this value are not used in trimming.
-* `auto_barber_tovdw` if set to `True` radii of spheres are corrected to Van der Waals radii of closest atom.
+* **auto_barber** allows to define molecular entity which is used to calculate radii of spheres used for trimming raw paths.
+* **auto_barber_mincut** allows to define minimal radius of spheres. Spheres of radius smaller then this value are not used in trimming.
+* **auto_barber_maxcut** allows to define maximal radius of spheres. Spheres of radius greater then this value are not used in trimming.
+* **auto_barber_tovdw** if set to `True` radii of spheres are corrected (decreased) by Van der Waals radius of the closest atom.
+
+See also :ref:`options of separate_paths <separate_paths_options>` stage.
 
 Smoothing
 """""""""
@@ -209,6 +225,8 @@ For detailed information on available configuration options see configuration fi
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. _inlets_def:
+
 Each of the separate paths has beginning and end. If they are at the boundaries of the *Scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *Scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
 
 Clusterization of inlets is performed in following steps:
@@ -235,8 +253,8 @@ Aqua-Duct implements several clustering methods:
 
 #. :class:`~sklearn.cluster.MeanShift` - default for `Initial clusterization`, see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
 #. :class:`~sklearn.cluster.DBSCAN` - default for `Reclusterization of outliers`, see also original publication `A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise <https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf>`_
-#. :class:`~sklearn.cluster.AffinityPropagation`
-#. :class:`~sklearn.cluster.KMeans`
+#. :class:`~sklearn.cluster.AffinityPropagation` - see also original publication `Clustering by Passing Messages Between Data Points <http://dx.doi.org/10.1126/science.1136800>`_ (doi:10.1126/science.1136800)
+#. :class:`~sklearn.cluster.KMeans` - see also `"k-means++: The advantages of careful seeding" Arthur, David, and Sergei Vassilvitskii <http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf>`_ in Proceedings of the eighteenth annual ACM-SIAM symposium on Discrete algorithms, Society for Industrial and Applied Mathematics (2007), pages 1027-1035.
 #. :class:`~sklearn.cluster.Birch`
 
 For additional information see :ref:`clusterization sections <clusterization_options>` options.
