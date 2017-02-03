@@ -544,6 +544,10 @@ def xzip_xzip(*args, **kwargs):
         yield tuple(this_yield)
         position = next_position
 
+def concatenate(*args):
+    for a in args:
+        for e in a:
+            yield e
 
 class Bunch(object):
     """
