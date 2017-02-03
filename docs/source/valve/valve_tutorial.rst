@@ -3,9 +3,6 @@
 
 This tutorial assumes :mod:`aquaduct` and *Valve* is already installed - see :doc:`../aquaduct_install`. It is also assumed that user is acquainted with :doc:`valve_manual` and *Valve* :doc:`valve_config`.
 
-The purpose of this tutorial
-
-
 *Valve* invocation
 ------------------
 

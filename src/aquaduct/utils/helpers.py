@@ -545,6 +545,9 @@ def xzip_xzip(*args, **kwargs):
         position = next_position
 
 def concatenate(*args):
+    '''
+    Concatenates input iterable arguments in to one generator.
+    '''
     for a in args:
         for e in a:
             yield e
