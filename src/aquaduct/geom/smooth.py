@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+# Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,6 +15,24 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+'''
+Smooth module defines methods for smoothing of trajectories.
+
+Available methods:
+
+.. autosummary::
+    :nosignatures:
+
+    SavgolSmooth
+    WindowSmooth
+    DistanceWindowSmooth
+    ActiveWindowSmooth
+    MaxStepSmooth
+    WindowOverMaxStepSmooth
+    DistanceWindowOverMaxStepSmooth
+    ActiveWindowOverMaxStepSmooth
+'''
 
 import numpy as np
 from scipy.signal import savgol_filter

@@ -1,8 +1,7 @@
-#!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+# Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,23 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-"""
-This is a driver for Aqua-Duct.
-"""
-
-################################################################################
-# reuse AQ logger
-
-import logging
 from aquaduct import logger, logger_name
-
-formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
-# create and add console handler with WARNING level to the AQ logger
-formatter = logging.Formatter(formatter_string)
-ch = logging.StreamHandler()
-ch.setFormatter(formatter)
-ch.setLevel(logging.WARNING) # default level is WARNING
-logger.addHandler(ch)
 
 ################################################################################
 
@@ -76,26 +59,25 @@ from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepS
 from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths
-from aquaduct.traj.reader import ReadViaMDA
+from aquaduct.traj.reader import ReadViaMDA,atom2vdw_radius
 from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind
-
-# TODO: Move it to separate module
-cpu_count = mp.cpu_count()
-# global optimal_threads
-optimal_threads = None
+from aquaduct.utils.multip import optimal_threads
 
 
 def version():
+    # TODO: remove it
     return 0, 10, 0
 
 
 def version_nice():
     return '.'.join(map(str, version()))
 
+
 def version_onenumber():
     return ''.join(map(str, version()))
+
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = version_nice()
@@ -124,6 +106,7 @@ class ConfigSpecialNames:
 class ValveConfig(object, ConfigSpecialNames):
     def __init__(self):
         self.config = self.get_default_config()
+        self.config_filename = ''
 
     def __make_options_nt(self, input_options):
         # options = {opt: self.special_name(input_options[opt]) for opt in input_options}
@@ -313,6 +296,9 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+        config.set(section, 'auto_barber_tovdw', 'True')
+        config.set(section, 'auto_barber_maxcut', '2.8')
+        config.set(section, 'auto_barber_mincut', 'None')
         config.set(section, 'auto_barber', 'False')
         config.set(section, 'discard_empty_paths', 'True')
         config.set(section, 'sort_by_id', 'True')
@@ -412,6 +398,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
     def load_config(self, filename):
         self.config.read(filename)
+        self.config_filename = filename
 
     def save_config_stream(self, fs):
         self.config.write(fs)
@@ -486,11 +473,11 @@ def CHullCheck_init(args):
     CHullCheck.chull = copy.deepcopy(args[0])
 
 
-def CHullCheck_pool(chull, threads=optimal_threads):
+def CHullCheck_pool(chull, threads=optimal_threads.threads_count):
     return mp.Pool(threads, CHullCheck_init, [(chull,)])
 
 
-def CHullCheck_exec(chull, points, threads=optimal_threads):
+def CHullCheck_exec(chull, points, threads=optimal_threads.threads_count):
     pool = CHullCheck_pool(chull, threads=threads)
     out = pool.map(CHullCheck, points)
     pool.close()
@@ -509,7 +496,7 @@ def check_res_in_scope(options, scope, res, res_coords):
             return []
         # find convex hull of protein
         chull = scope.get_convexhull_of_atom_positions()
-        is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=optimal_threads)
+        is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=optimal_threads.threads_count)
     else:
         if res.unique_resids_number() == 0:
             return []
@@ -555,6 +542,7 @@ def save_dump(filename, data_to_save, **kwargs):
             # then other kwargs
             pickle.dump(kwargs, f)
 
+
 class LoadDumpWrapper(object):
     """This is wrapper for pickled data that provides compatibility
     with earlier versions of Aqua-Duct.
@@ -565,20 +553,20 @@ class LoadDumpWrapper(object):
 
     """
 
-    def __init__(self,filehandle):
+    def __init__(self, filehandle):
         self.fh = filehandle
 
-    def convert(self,s):
+    def convert(self, s):
         new_s = s
-        new_s = new_s.replace('aqueduct.','aquaduct.')
+        new_s = new_s.replace('aqueduct.', 'aquaduct.')
         new_s = new_s.replace('aqueduct_version', 'aquaduct_version')
         return new_s
 
-    def read(self,*args,**kwargs):
-        return self.convert(self.fh.read(*args,**kwargs))
+    def read(self, *args, **kwargs):
+        return self.convert(self.fh.read(*args, **kwargs))
 
-    def readline(self,*args,**kwargs):
-        return self.convert(self.fh.readline(*args,**kwargs))
+    def readline(self, *args, **kwargs):
+        return self.convert(self.fh.readline(*args, **kwargs))
 
 
 def load_dump(filename):
@@ -661,7 +649,8 @@ def load_stage_dump(name, reader=None):
 
 def get_smooth_method(soptions):
     assert soptions.method in ['window', 'mss', 'window_mss', 'awin',
-                               'awin_mss', 'dwin', 'dwin_mss', 'savgol'], 'Unknown smoothing method %s.' % soptions.method
+                               'awin_mss', 'dwin', 'dwin_mss',
+                               'savgol'], 'Unknown smoothing method %s.' % soptions.method
 
     opts = {}
     if 'recursive' in soptions._asdict():
@@ -690,17 +679,18 @@ def get_smooth_method(soptions):
             opts.update({'step': float(soptions.step)})
 
     def savgol_opts():
-        window_length = 5 # TODO: magic constant (default value)
+        window_length = 5  # TODO: magic constant (default value)
         if 'window' in soptions._asdict():
             window_length = int(float(soptions.window))
-            assert window_length%2 == 1, 'Window in Savgol method must be positive odd number, %d given instead.' % window_length
+            assert window_length % 2 == 1, 'Window in Savgol method must be positive odd number, %d given instead.' % window_length
             opts.update({'window_length': window_length})
-        polyorder = 2 # TODO: magic constant (default value)
+        polyorder = 2  # TODO: magic constant (default value)
         if 'polyorder' in soptions._asdict():
             polyorder = int(float(soptions.polyorder))
             assert polyorder > 0, 'Polynomial order should be greater then 0, %d given instead.' % polyorder
             opts.update({'polyorder': polyorder})
-        assert polyorder < window_length, 'Polynomial order (%d) should be less then window (%d).' % (polyorder, window_length)
+        assert polyorder < window_length, 'Polynomial order (%d) should be less then window (%d).' % (
+            polyorder, window_length)
         '''
         if 'deriv' in soptions._asdict():
             deriv = int(float(soptions.deriv))
@@ -884,7 +874,7 @@ def get_linearize_method(loption):
 def valve_begin():
     clui.message(greetings_aquaduct())  # nice greetings
     clui.message('Aqua-Duct version %s' % aquaduct_version_nice())
-    clui.message('Valve driver version %s' % version_nice())
+    # clui.message('Valve driver version %s' % version_nice())
     clui.message(sep())
 
 
@@ -920,7 +910,6 @@ def valve_begin_stage(stage, config):
 
 def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_status=None,
                      **kwargs):
-
     with clui.tictoc('Stage %s (%s)' % (roman.toRoman(stage + 1), config.stage_names(stage))):
 
         # This function runs stages in a smart way, checks execution logic, and loads/saves dumps if required.
@@ -936,12 +925,12 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 can_be_loaded = True
         # has to be run?
         if options.execute in ['runonce'] and can_be_loaded and stage > 0:
-            if run_status[stage-1]:
-                 can_be_loaded = False
+            if run_status[stage - 1]:
+                can_be_loaded = False
 
         if options.execute in ['run'] or (options.execute in ['runonce'] and not can_be_loaded):
             result = stage_run(config, options, reader=reader, **kwargs)
-            run_status.update({stage:True})
+            run_status.update({stage: True})
             if not no_io:
                 ###########
                 # S A V E #
@@ -975,15 +964,15 @@ def stage_I_run(config, options,
 
     # create pool of workers - mapping function
     map_fun = map
-    if optimal_threads > 1:
-        pool = mp.Pool(optimal_threads)
+    if optimal_threads.threads_count > 1:
+        pool = mp.Pool(optimal_threads.threads_count)
         map_fun = pool.map
 
     with reader.get() as traj_reader:
 
         scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
-        center_of_system = np.array([0.,0.,0.])
+        center_of_system = np.array([0., 0., 0.])
 
         # create some containers
         res_ids_in_object_over_frames = {}
@@ -998,7 +987,7 @@ def stage_I_run(config, options,
             # current res selection
             res = traj_reader.parse_selection(options.object)
             # find matching residues:
-            res_new = scope.containing_residues(res,convex_hull=options.scope_convexhull,map_fun=map_fun)
+            res_new = scope.containing_residues(res, convex_hull=options.scope_convexhull, map_fun=map_fun)
             # adds them to all_res
             if all_res:
                 all_res += res_new
@@ -1013,13 +1002,13 @@ def stage_I_run(config, options,
             pbar.update(frame)
 
     # destroy pool of workers
-    if optimal_threads > 1:
+    if optimal_threads.threads_count > 1:
         pool.close()
         pool.join()
         del pool
 
     pbar.finish()
-    center_of_system /= (frame+1)
+    center_of_system /= (frame + 1)
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
 
     if all_res is None:
@@ -1063,8 +1052,8 @@ def stage_II_run(config, options,
 
         # create pool of workers - mapping function
         map_fun = map
-        if optimal_threads > 1:
-            pool = mp.Pool(optimal_threads)
+        if optimal_threads.threads_count > 1:
+            pool = mp.Pool(optimal_threads.threads_count)
             map_fun = pool.map
 
         for frame in traj_reader.iterate_over_frames():
@@ -1074,7 +1063,7 @@ def stage_II_run(config, options,
             all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
             all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
             # check if is res are in scope
-            is_res_in_scope = scope.contains_residues(all_res,convex_hull=options.scope_convexhull,map_fun=map_fun)
+            is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun)
 
             # loop over coord, is  in scope, and resid
             for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
@@ -1107,14 +1096,13 @@ def stage_II_run(config, options,
             pbar.update(frame)
 
     # destroy pool of workers
-    if optimal_threads > 1:
+    if optimal_threads.threads_count > 1:
         pool.close()
         pool.join()
         del pool
 
     pbar.finish()
 
-    clui.message("Number of residues to trace: %d" % len(all_res))
     clui.message("Number of paths: %d" % len(paths))
 
     return {'all_res': all_res, 'paths': paths, 'options': options}
@@ -1122,9 +1110,8 @@ def stage_II_run(config, options,
 
 ################################################################################
 
-class ABSphere(namedtuple('ABSphere','center radius')):
+class ABSphere(namedtuple('ABSphere', 'center radius')):
     pass
-
 
 
 # separate_paths
@@ -1152,23 +1139,49 @@ def stage_III_run(config, options,
             spaths = [sp for sp in spaths if sp.size > shorter_then]
 
     if options.auto_barber:
+        mincut = False
+        if options.auto_barber_mincut is not None:
+            mincut = True
+            mincut_val = float(options.auto_barber_mincut)
+            logger.debug('mincut set to %0.2f', mincut_val)
+        maxcut = False
+        if options.auto_barber_maxcut is not None:
+            maxcut = True
+            maxcut_val = float(options.auto_barber_maxcut)
+            logger.debug('maxcut set to %0.2f', maxcut_val)
+        if mincut and maxcut:
+            if maxcut_val < mincut_val:
+                logger.warning('Values of mincut %0.2f and maxcut %0.2f are mutually exclusive. No spheres will be used in Auto Barber.',mincut_val,maxcut_val)
         spheres = []
         with reader.get() as traj_reader:
             clui.message("Auto Barber is looking where to cut:")
             pbar = clui.pbar(len(spaths))
             barber = traj_reader.parse_selection(options.auto_barber)
+            vdwradius = 0
             for sp in spaths:
+                centers = []
+                frames = []
                 if sp.has_in:
-                    center = sp.coords_in[0]
-                    frame = sp.path_in[0]
-                    traj_reader.set_current_frame(frame)
-                    radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
-                    spheres.append(ABSphere(center, radius))
+                    centers.append(sp.coords_in[0])
+                    frames.append(sp.path_in[0])
                 if sp.has_out:
-                    center = sp.coords_out[-1]
-                    frame = sp.path_out[-1]
+                    centers.append(sp.coords_out[-1])
+                    frames.append(sp.path_out[-1])
+                for center, frame in zip(centers, frames):
                     traj_reader.set_current_frame(frame)
-                    radius = min(cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten())
+                    distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
+                    if options.auto_barber_tovdw:
+                        vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
+                    radius = min(distances) - vdwradius
+                    if radius <= 0:
+                        logger.debug('VdW correction resulted in <= 0 radius.')
+                        continue
+                    if mincut and radius < mincut_val:
+                        logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
+                        continue
+                    if maxcut and radius > maxcut_val:
+                        logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
+                        continue
                     spheres.append(ABSphere(center, radius))
                 pbar.update(1)
             pbar.finish()
@@ -1197,19 +1210,20 @@ def stage_III_run(config, options,
                 # add radii
                 distances += spheres_radii[1:]
                 # remove if distance <= radius
-                to_keep = distances <= radius
+                to_keep = distances > radius
                 # do keep
                 spheres_coords = spheres_coords[1:][to_keep]
                 spheres_radii = spheres_radii[1:][to_keep]
                 # do keep spheres
                 np.argwhere(to_keep).flatten()
                 to_keep_ids = np.argwhere(to_keep).flatten().tolist()
-                spheres = lind(spheres,to_keep_ids)
+                spheres = lind(spheres, to_keep_ids)
                 # add big to non redundant
                 noredundat_spheres.append(big)
                 pbar.update(sum(to_keep == False))
                 logger.debug("PBar update by %d" % sum(to_keep == False))
-                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (len(noredundat_spheres), len(spheres)))
+                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
+                    len(noredundat_spheres), len(spheres)))
 
             if len(noredundat_spheres) == noredundat_spheres_count:
                 logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(
@@ -1230,8 +1244,9 @@ def stage_III_run(config, options,
             pbar.update(1)
         pbar.finish()
         # now, it might be that some of paths are empty
-        #paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
-        paths = dict((k,v) for k, v in paths.iteritems() if len(v.coords) > 0) # more universal as dict comprehension may not work in <2.7
+        # paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
+        paths = dict((k, v) for k, v in paths.iteritems() if
+                     len(v.coords) > 0)  # more universal as dict comprehension may not work in <2.7
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
@@ -1328,7 +1343,7 @@ def stage_IV_run(config, options,
     # new style clustering
     with clui.fbm("Create inlets"):
         # here we can check center of system
-        inls = Inlets(spaths,center_of_system=center_of_system)
+        inls = Inlets(spaths, center_of_system=center_of_system)
     clui.message("Number of inlets: %d" % inls.size)
 
     def noo():
@@ -1406,7 +1421,7 @@ def stage_IV_run(config, options,
                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
                     logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
                     # print len(sps),ct
-                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads)
+                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads.threads_count)
                     master_paths.update({ct: ctspc.get_master_path(resid=nr)})
                     master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
                     del ctspc
@@ -1780,7 +1795,7 @@ def stage_V_run(config, options,
     ############
     if options.dump_config:
         pa.sep()
-        pa.under('Configuration file name: %s' % args.config_file)
+        pa.under('Configuration file name: %s' % config.config_filename)
         pa(os.linesep.join(config.dump_config()))
 
     ############
@@ -1968,7 +1983,8 @@ def stage_VI_run(config, options,
                 for frame in frames_to_show:
                     traj_reader.set_current_frame(frame)
                     chull = object_shape.get_convexhull_of_atom_positions()
-                    spp.convexhull(chull, name='object_shape', color=np.array([255,153,0])/255., state=frame + 1) # orange
+                    spp.convexhull(chull, name='object_shape', color=np.array([255, 153, 0]) / 255.,
+                                   state=frame + 1)  # orange
 
     if options.inlets_clusters:
         with clui.fbm("Clusters"):
@@ -2063,198 +2079,20 @@ def stage_VI_run(config, options,
 ################################################################################
 
 
-if __name__ == "__main__":
-
-    with clui.tictoc('Aqua-Duct calculations'):
-
-        ############################################################################
-        # argument parsing
-        import argparse
-
-        description_version = '''Aquaduct library version %s
-    Valve driver version %s''' % (aquaduct_version_nice(), version_nice())
-        description = '''Valve, Aquaduct driver'''
-
-        parser = argparse.ArgumentParser(description=description,
-                                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-
-        parser.add_argument("--debug", action="store_true", dest="debug", required=False, help="Prints debug info.")
-        parser.add_argument("--debug-file", action="store", dest="debug_file", required=False, help="Debug log file.")
-        parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
-                            help="Dumps template config file. Suppress all other output or actions.")
-        parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
-                            help="Limit Aqua-Duct calculations to given number of threads.")
-        parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
-        parser.add_argument("--sps", action="store_true", dest="sps", required=False, help="Use single precision to store data.")
-        parser.add_argument("--max-frame", action="store", dest="max_frame", required=False, help="Limit number of frames.")
-        parser.add_argument("--version", action="store_true", dest="print_version", required=False,
-                            help="Prints versions and exits.")
-        parser.add_argument("--license", action="store_true", dest="print_license", required=False,
-                            help="Prints short license info and exits.")
-
-        args = parser.parse_args()
-
-        ############################################################################
-        # debug
-        # at this stage logger is the AQ root logger
-        if args.debug:
-            logger.removeHandler(ch)  # remove old ch handlers
-            ch = logging.StreamHandler()
-            ch.setFormatter(formatter)
-            ch.setLevel(logging.DEBUG)
-            logger.addHandler(ch)
-        if args.debug_file:
-            formatter = logging.Formatter('%(asctime)s: ' + formatter_string)
-            fh = logging.FileHandler(args.debug_file)
-            fh.setFormatter(formatter)
-            fh.setLevel(logging.DEBUG)
-            logger.addHandler(fh)
-        # finally, get valve logger
-        logger = logging.getLogger(logger_name + '.valve')
-        logger.info('Initialization of Valve logging done.')
-
-        ############################################################################
-        # single precision storage
-        if args.sps:
-            logger.info('Single precision data storage activated.')
-            from aquaduct.utils.maths import defaults
-            defaults.float_default = np.float32
-            defaults.int_default = np.int32
-
-        ############################################################################
-        # special option for dumping template config
-        config = ValveConfig()  # config template
-        if args.dump_template_conf:
-
-            config_dump = StringIO.StringIO()
-            config.save_config_stream(config_dump)
-            print config_dump.getvalue()
-            exit(0)
-        # special case of version
-        if args.print_version:
-            print description
-            print description_version
-            exit(0)
-        # special case of license
-        if args.print_license:
-            valve_begin()
-            print "Licensed under GNU GPL v3. Full text of the license is distributed"
-            print "with installation package and is also available at"
-            print "https://www.gnu.org/licenses/gpl-3.0.txt"
-            print ""
-            print '''Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-    Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-    '''
-            exit(0)
-
-
-        ############################################################################
-        # begin!
-
-        valve_begin()
-        valve_load_config(args.config_file, config)
-
-        # get global options
-        goptions = config.get_global_options()
-        # pbar_name = goptions.pbar
-
-        if args.threads is None:
-            optimal_threads = cpu_count + 1
-        else:
-            optimal_threads = int(args.threads)
-        clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
-        if (1 < optimal_threads < 3) or (optimal_threads - 1 > cpu_count):
-            clui.message("Number of threads is not optimal; CPU count reported by system: %d" % cpu_count)
-        # because it is used by mp.Pool it should be -1???
-        if optimal_threads > 1:
-            optimal_threads -= 1
-            clui.message("Main process would use 1 thread.")
-            clui.message("Concurent calculations would use %d threads." % optimal_threads)
-
-        # At this point calculations starts. All options are read.
-        # Options:
-        # goptions - global options
-        # config - configuration file object
-
-        ############################################################################
-        # STAGE 0
-
-        # TODO: Is it always required?
-        reader = valve_read_trajectory(goptions.top, goptions.trj) # trajectory reader
-
-        # Maximal frame checks
-        if args.max_frame:
-            max_frame = int(args.max_frame)
-            if max_frame > reader.max_frame:
-                logger.warning("Desired --max-frame %d setting exceeds number of available frames (%d)." % (
-                    max_frame + 1, reader.max_frame + 1))
-        else:
-            max_frame = reader.max_frame
-        # TODO: Is it reported correctly?
-        clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
-
-        # container for collecting whether particular stage was executed
-        run_status = {}
-
-        # STAGE I
-        result1 = valve_exec_stage(0, config, stage_I_run,
-                                   run_status=run_status,
-                                   reader=reader,
-                                   max_frame=max_frame)
-
-        # STAGE II
-        result2 = valve_exec_stage(1, config, stage_II_run,
-                                   run_status=run_status,
-                                   reader=reader,
-                                   max_frame=max_frame,
-                                   **result1)
-
-        # STAGE III
-        result3 = valve_exec_stage(2, config, stage_III_run,
-                                   run_status=run_status,
-                                   reader=reader,
-                                   **result2)
-
-        # STAGE IV
-        result4 = valve_exec_stage(3, config, stage_IV_run,
-                                   run_status=run_status,
-                                   **result3)
-
-        # STAGE V
-        results = {}
-        for result in (result2, result3, result4):
-            results.update(result)
-
-        result5 = valve_exec_stage(4, config, stage_V_run,
-                                   run_status=run_status,
-                                   no_io=True,
-                                   **results)
-
-        # STAGE VI
-        results = {}
-        for result in (result3, result4):
-            results.update(result)
-
-        result6 = valve_exec_stage(5, config, stage_VI_run,
-                                   run_status=run_status,
-                                   no_io=True,
-                                   reader=reader,
-                                   **results)
-        ############################################################################
-        # end!
-
-        valve_end()
-        logger.info('Valve calulations finished.')
+__all__ = '''clui
+optimal_threads
+aquaduct_version_nice
+version_nice
+ValveConfig
+valve_begin
+valve_load_config
+valve_read_trajectory
+valve_exec_stage
+stage_I_run
+stage_II_run
+stage_III_run
+stage_IV_run
+stage_V_run
+stage_VI_run
+valve_end
+'''.split()

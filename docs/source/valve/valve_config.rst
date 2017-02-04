@@ -41,6 +41,8 @@ Common settings of stage sections
 
 Stages 1-4 which perform calsulations have some common options allowig for execution control and saving/loading data.
 
+.. tabularcolumns:: |p{1.5cm}|p{3cm}|p{10cm}|
+
 ========    =================   ===================================================================
 Option      Default value       Description
 ========    =================   ===================================================================
@@ -64,6 +66,8 @@ dump        [dump file name]    File name of dump data. It is used to save resul
 ========    =================   ===================================================================
 
 Stages 5-6 also uses **execute** option, however, since they do not perform calculations `per se` in stead of **dump** option they use **save**.
+
+.. tabularcolumns:: |p{1.5cm}|p{3cm}|p{10cm}|
 
 ========    =================   ===================================================================
 Option      Default value       Description
@@ -112,6 +116,8 @@ Stage **raw_paths**
 
 This stage also requires definition of the *Scope* and *Object*. If appropriate settings are not given, settings from the previous stage are used.
 
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+
 =====================   ==============  ================================================================
 Option                  Default value   Description
 =====================   ==============  ================================================================
@@ -129,9 +135,12 @@ clear_in_object_info    False           If it is set to ``True`` information on 
                                         definition of *Object* was changed.
 =====================   ==============  ================================================================
 
+.. _separate_paths_options:
 
 Stage **separate_paths**
 ------------------------
+
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
 
 =====================   ==============  ================================================================
 Option                  Default value   Description
@@ -149,6 +158,14 @@ discard_short_paths     1               This option allows to discard paths that
 auto_barber             None            This option allows to select molecular entity used in Auto
                                         Barber procedure. See also :ref:`auto_barber_procedure` and
                                         :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
+auto_barber_mincut      None            Minimal radius of spheres used in Auto Barber. If a sphere has
+                                        radius smaller then this value it is not used to cut. This
+                                        option can be switched off by setting it to `None`.
+auto_barber_maxcut      2.8             Maximal radius of spheres used in Auto Barber. If a sphere has
+                                        radius greater then this value it is not used to cut. This
+                                        option can be switched off by setting it to `None`.
+auto_barber_tovdw       True            Correct cutting sphere by decreasing its radius by VdW radius
+                                        of the closest atom.
 =====================   ==============  ================================================================
 
 
@@ -186,6 +203,8 @@ dump_config             True            If set to ``True`` configuration options
 
 Stage **visualize**
 -------------------
+
+.. tabularcolumns:: |p{3.0cm}|p{2.5cm}|p{9.0cm}|
 
 =====================   ================    ========================================================================================
 Option                  Default value       Description

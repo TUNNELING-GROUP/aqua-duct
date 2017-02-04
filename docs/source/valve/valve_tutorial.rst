@@ -1,10 +1,7 @@
 *Valve* tutorial
 ================
 
-This is a tentative *Valve* manual. Created for the sake of Aqua-Duct training we have today. Eventually, it will be rewritten to the official version.
-
 This tutorial assumes :mod:`aquaduct` and *Valve* is already installed - see :doc:`../aquaduct_install`. It is also assumed that user is acquainted with :doc:`valve_manual` and *Valve* :doc:`valve_config`.
-
 
 *Valve* invocation
 ------------------
@@ -13,11 +10,10 @@ Usually *Valve* is run by::
 
     valve.py
 
-To check is *Valve* is installed and works properly try to issue following commands::
+To check if *Valve* is installed and works properly try to issue following commands::
 
     valve.py --help
     valve.py --version
-
 
 .. _test_data:
 
@@ -26,32 +22,30 @@ Test data
 
 **Mouse!**
 
-We will use 10ns Amber MD simulation data of sEH protein (PDBID **1cqz**). Necessary files can be found `here <http://aquaduct.pl>`_, see Download section:
+We will use 1ns MD simulation data of sEH protein (PDBID **1cqz**). This simulation was performed in Amber 14. Necessary files can be found  at `Aqua-Duct home page <http://aquaduct.pl/>`_ in section `download <http://aquaduct.pl/download>`_. Required data is in the `sample data` file.
 
-* Go to download server.
-* Download sample data zip and extract it.
 
 Inspect your system
 -------------------
 
 Before we start any calculations lets have a look at the protein of interest. Start *PyMOL* and get ``1cqz`` PDB structure (for example by typing in *PyMOL* command prompt ``fetch 1cqz``).
 
-To setup *Valve* calculations we need to know active site of the protein. More precisely we need to know IDs or residues that are in the active site. This would allow us to create :ref:`object_definition`.
+To setup *Valve* calculations we need to know the active site of the protein. More precisely we need to know IDs of residues that are in the active site. This would allow us to create :ref:`object_definition`.
 
-But wait. Is it really the correct structure? How many chains there are? What is the numeration of residues?
+But wait. Is it really the correct structure? How many chains there are? What is the numeration of residues? How does it compare with the topology file from `sample data`?
 
 Create *Object definition*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Lets load another structure. Open file ``1cqz_sample_topology.pdb`` (see :ref:`Test data<test_data>`). It is a first frame of the MD simulation and it is en example of how the frame of MD looks like. In order to create :ref:`object_definition` you have to discover following things:
 
-#. What is the name of water residue?
+#. What is the name of water molecules?
 #. What are numbers of residues in the active site?
-#. What size the active site is?
+#. What size the active site is of?
 
 .. note::
 
-    It is also good idea to open ``.pdb`` file in your favorite text editor and look at residue numbers and names.
+    It is also a good idea to open ``.pdb`` file in your favorite text editor and look at residue numbers and names.
 
 Create *Scope definition*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,8 +65,7 @@ Things to remember:
 
 #. Provide correct paths to topology and trajectory data.
 #. Enter correct :ref:`Object <object_definition>` and :ref:`Scope <scope_definition>` definitions.
-#. Provide file name of result in analysis section, for example ``results.txt`` (for future reference).
-#. Make sure visualization is switched on and ``save`` option points to session file name (``.pse``)
+#. Make sure visualization is switched on.
 
 Run *Valve*
 -----------

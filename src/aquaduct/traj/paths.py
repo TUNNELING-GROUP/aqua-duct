@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+# Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -497,13 +497,17 @@ class GenericPaths(object, GenericPathTypeCodes):
         return (in_c, object_c, out_c), (in_t, object_t, out_t)
 
     def barber_with_spheres(self, spheres):
-        for center, radius in spheres:
-            if len(self.coords) > 0:
-                distances = cdist(np.matrix(center), self.coords, metric='euclidean').flatten()
-                toremove = np.argwhere(distances > radius).flatten().tolist()
-                self.coords = lind(self.coords, toremove)
-                self.__types = SmartRange(lind(self.types, toremove))
-                self.__frames = SmartRange(lind(self.frames, toremove))
+        # calculate big distance matrix
+        # distances = cdist(self.coords, [s.center for s in spheres],metric='euclidean')
+        # compare with radii
+        # tokeep = distances > np.matrix([[s.radius for s in spheres]])
+        if len(spheres):
+            tokeep = np.argwhere((cdist(self.coords, [s.center for s in spheres], metric='euclidean') > np.matrix(
+                [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
+            #tokeep = np.argwhere(tokeep).flatten().tolist()
+            self.coords = lind(self.coords, tokeep)
+            self.__types = SmartRange(lind(self.types, tokeep))
+            self.__frames = SmartRange(lind(self.frames, tokeep))
 
 
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
