@@ -40,7 +40,7 @@ part2type_dict = {0: GenericPathTypeCodes.scope_name,
                   1: GenericPathTypeCodes.object_name,
                   2: GenericPathTypeCodes.scope_name}
 '''
-Part number to :class:`GenericPathTypeCodes` dictionary.
+Part number to :class:`~aquaduct.traj.paths.GenericPathTypeCodes` dictionary.
 '''
 
 parts = (0, 1, 2)
@@ -102,7 +102,7 @@ class CTypeSpathsCollectionWorker(object):
                 Function :func:`numpy.average` is called with flatten coordinates and lengths.
 
         #. Width of average path is calculated as mean value of flatten coordinates mutual distances.
-        #. Type of average paths is calculated as probability (frequency) of :attr:`GenericPathTypeCodes.scope_name`.
+        #. Type of average paths is calculated as probability (frequency) of :attr:`~aquaduct.traj.paths.GenericPathTypeCodes.scope_name`.
 
         :param tuple sp_slices_: Slices that cut chunks from all paths.
         :rtype: 3 element tuple
@@ -306,10 +306,21 @@ class CTypeSpathsCollection(object):
         return map(lambda x: float(x) / len(types), (td_in, td_obj, td_out))
 
     def types_distribution(self):
+        '''
+        :rtype: numpy.matrix
+        :return: median values of :meth:`simple_types_distribution` for all spaths.
+        '''
         # make median distribuitions
         return np.matrix(make_default_array(np.median([self.simple_types_distribution(sp.gtypes_cont) for sp in self.spaths], axis=0)))
 
     def types_prob_to_types(self, types_prob):
+        '''
+        Changes types probabilities as returned by :meth:`CTypeSpathsCollectionWorker.coords_types_prob_widths` to types.
+
+        :param list types_prob: List of types probabilities.
+        :rtype: list
+        :return: List of :class:`~aquaduct.traj.paths.GenericPathTypeCodes`.
+        '''
         # get proper types
         types_dist_orig = self.types_distribution()
         types_dist_range = list(set(types_prob))
@@ -328,8 +339,21 @@ class CTypeSpathsCollection(object):
 
     def get_master_path(self, smooth=None, resid=0):
         '''
+        .. _master_path_generation:
+
+        Averages spaths into one master path.
+
+        This is done in steps:
+
+        #. Master path is an average of bunch of spaths. Its length is determined by :meth:`full_size` method.
+        #. All spaths are then divided in to chunks according to :func:`~aquaduct.utils.helpers.xzip_xzip` function with :attr:`N` set to lenght of master path. This results in list of length equal to the length of master path. Elements of this lists are slice objects that can be used to slice spaths in appropriate chunks.
+        #. Next, for each element of this list :meth:`CTypeSpathsCollectionWorker.coords_types_prob_widths` method is called. Types probabilities are changed to types wiht :meth:`types_prob_to_types`.
+        #. Finally, all data are used to create appropriate :class:`MasterPath`. If this fails `None` is returned.
+
         :param Smooth smooth: Smoothing method.
         :param int resid: Residue ID of master path.
+        :rtype: :class:`~aquaduct.traj.paths.MasterPath`
+        :return: Average path as :class:`~aquaduct.traj.paths.MasterPath` object or `None` if creation of master path failed.
         '''
         # prepare worker
         worker = CTypeSpathsCollectionWorker(spaths=self.spaths, ctype=self.ctype, bias_long=self.bias_long,

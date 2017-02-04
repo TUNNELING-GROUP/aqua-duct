@@ -260,6 +260,25 @@ Aqua-Duct implements several clustering methods with :mod:`sklearn.cluster` modu
 
 For additional information see :ref:`clusterization sections <clusterization_options>` options.
 
+Master paths
+""""""""""""
+
+At the end of clusterization stage it is possible to run procedure for `master path` generation. First, separate paths are grouped according to clusters. Paths that begin and end in particular clusters are grouped together. Next, for each group a `master path` (i.e., average path) is generated in following steps:
+
+#. First, length of `master path` is determined. Lengths of each parts (incoming, object, outgoing) for each separate paths are normalized with bias towards longest paths. These normalized lengths are then used for as weights in averaging not normalized lengths. Values for all parts are summed and resulting value is the desired length of `master path`.
+#. All separate paths are divided into chunks. Number of chunks is equal to the desired length of `master path` calculated in the previous step. Lengths of separate paths can be quite diverse, therefore, for different paths chunks are of different lengths.
+#. For each chunk averaging procedure is run:
+
+    #. Coordinates for all separate paths for given chunk are collected.
+    #. Normalized lengths with bias toward longest paths for all separate paths for given chunk are collected.
+    #. New coordinates are calculated as weighted average of collected coordinates. As weights collected normalized lengths are used.
+    #. In addition width of chunk is calculated as a mean value of collected coordinates mutual distances.
+    #. Type of chunk is calculated as probability (frequency) of being in the `scope`.
+
+#. Results for all chunks are collected, types probability are changed to types. All data is then used to create Master Path. If this fails no path is created.
+
+More technical details on master path generation can be found in :meth:`aquaduct.geom.master.CTypeSpathsCollection.get_master_path` method documentation.
+
 Analysis
 ^^^^^^^^
 
