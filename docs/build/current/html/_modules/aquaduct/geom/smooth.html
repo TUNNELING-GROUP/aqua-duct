@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aquaduct.geom.smooth &#8212; Aqua-Duct 0.2.26 documentation</title>
+    <title>aquaduct.geom.smooth &#8212; Aqua-Duct 0.3.1 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.26',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="../../aquaduct.html" accesskey="U">aquaduct</a> &#187;</li> 
       </ul>
@@ -77,7 +77,7 @@
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations</span>
-<span class="c1"># Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk &lt;info@aquaduct.pl&gt;</span>
+<span class="c1"># Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk &lt;info@aquaduct.pl&gt;</span>
 <span class="c1">#</span>
 <span class="c1"># This program is free software: you can redistribute it and/or modify</span>
 <span class="c1"># it under the terms of the GNU General Public License as published by</span>
@@ -92,21 +92,64 @@
 <span class="c1"># You should have received a copy of the GNU General Public License</span>
 <span class="c1"># along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Smooth module defines methods for smoothing of trajectories.</span>
 
+<span class="sd">Available methods:</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">    :nosignatures:</span>
+
+<span class="sd">    SavgolSmooth</span>
+<span class="sd">    WindowSmooth</span>
+<span class="sd">    DistanceWindowSmooth</span>
+<span class="sd">    ActiveWindowSmooth</span>
+<span class="sd">    MaxStepSmooth</span>
+<span class="sd">    WindowOverMaxStepSmooth</span>
+<span class="sd">    DistanceWindowOverMaxStepSmooth</span>
+<span class="sd">    ActiveWindowOverMaxStepSmooth</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.signal</span> <span class="k">import</span> <span class="n">savgol_filter</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">aquaduct.utils.maths</span> <span class="k">import</span> <span class="n">make_default_array</span>
 <span class="kn">from</span> <span class="nn">aquaduct.geom</span> <span class="k">import</span> <span class="n">traces</span>
 <span class="kn">from</span> <span class="nn">aquaduct.utils.helpers</span> <span class="k">import</span> <span class="n">arrayify</span>
 
 
 <div class="viewcode-block" id="Smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.Smooth">[docs]</a><span class="k">class</span> <span class="nc">Smooth</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Base class for all smoothing methods.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 <div class="viewcode-block" id="Smooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.Smooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param int recursive: Number of recursions of the method, everything evaluated to ``False`` is equivalent to 1.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Smooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">recursive</span> <span class="o">=</span> <span class="n">recursive</span></div>
 
 <div class="viewcode-block" id="Smooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.Smooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This is abstract class. Missing implementation in a child class.&quot;</span><span class="p">)</span></div>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Abstract method for smoothing method implementation.</span>
+
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This is an abstract method.&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Smooth.__call__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.Smooth.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Call method for all smoothing methods.</span>
+
+<span class="sd">        Input coordinates should be iterable and each element should be numpy.ndarray. If length of :attr:`coords` is less then 3 smoothing method is not run and coordinates are returned unchanged.</span>
+
+<span class="sd">        If :attr:`recursive` is set smoothing method is applied appropriate number of times.</span>
+
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        :rtype: numpy.ndarray</span>
+<span class="sd">        :return: Smoothed coordinates.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
             <span class="c1"># this make no sense if coords length is less than 3</span>
             <span class="k">return</span> <span class="n">coords</span>
@@ -121,9 +164,27 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="GeneralWindow"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.GeneralWindow">[docs]</a><span class="k">class</span> <span class="nc">GeneralWindow</span><span class="p">:</span>
+<div class="viewcode-block" id="GeneralWindow"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.GeneralWindow">[docs]</a><span class="k">class</span> <span class="nc">GeneralWindow</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Base class for window based smoothing methods.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="GeneralWindow.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.GeneralWindow.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param function function: Function to be used for averaging coordinates within a window.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">GeneralWindow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span></div>
+
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="GeneralWindow.max_window_at_pos"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.GeneralWindow.max_window_at_pos">[docs]</a>    <span class="k">def</span> <span class="nf">max_window_at_pos</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Method returns maximal possible window at given position of the list with given size of the list. Returned window fits in to the list of given size and is symmetrical.</span>
+
+<span class="sd">        :param int pos: Position in question.</span>
+<span class="sd">        :param int size: Length of the list.</span>
+<span class="sd">        :rtype: 2 element tuple of int</span>
+<span class="sd">        :return: Lowest possible bound and highest possible bound of the window.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="c1"># size is length</span>
         <span class="c1"># pos is zero based</span>
         <span class="n">min_dist_to_edge</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="n">pos</span> <span class="o">-</span> <span class="mi">0</span><span class="p">,</span> <span class="n">size</span> <span class="o">-</span> <span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
@@ -137,6 +198,16 @@
         <span class="k">return</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span></div>
 
 <div class="viewcode-block" id="GeneralWindow.check_bounds_at_max_window_at_pos"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.GeneralWindow.check_bounds_at_max_window_at_pos">[docs]</a>    <span class="k">def</span> <span class="nf">check_bounds_at_max_window_at_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Method checks if window fits in to maximal possible window calculated according to :meth:`max_window_at_pos`. If not window is corrected.</span>
+
+<span class="sd">        :param int lb: Lower bound of the window in question.</span>
+<span class="sd">        :param int ub: Upper bound of the window in question.</span>
+<span class="sd">        :param int pos: Position in question.</span>
+<span class="sd">        :param int size: Length of the list.</span>
+<span class="sd">        :rtype: 2 element tuple of int</span>
+<span class="sd">        :return: Lowest possible bound and highest possible bound of the window corrected to maximal possible window.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">assert</span> <span class="n">ub</span> <span class="o">&gt;</span> <span class="n">pos</span>
         <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_window_at_pos</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">pos</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="n">size</span> <span class="o">-</span> <span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
@@ -149,16 +220,47 @@
         <span class="k">return</span> <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span></div></div>
 
 
-<div class="viewcode-block" id="WindowSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowSmooth">[docs]</a><span class="k">class</span> <span class="nc">WindowSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">,</span> <span class="n">GeneralWindow</span><span class="p">):</span>
-<div class="viewcode-block" id="WindowSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Smooth</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span></div>
+<div class="viewcode-block" id="IntWindow"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.IntWindow">[docs]</a><span class="k">class</span> <span class="nc">IntWindow</span><span class="p">(</span><span class="n">GeneralWindow</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Base class for all window smoothing methods that require integer window.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="IntWindow.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.IntWindow.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param int window: One side size of the window.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">IntWindow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">window</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="FloatWindow"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.FloatWindow">[docs]</a><span class="k">class</span> <span class="nc">FloatWindow</span><span class="p">(</span><span class="n">GeneralWindow</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Base class for all window smoothing methods that require float window.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="FloatWindow.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.FloatWindow.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param float window: Size of the window.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">FloatWindow</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">window</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="WindowSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowSmooth">[docs]</a><span class="k">class</span> <span class="nc">WindowSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">,</span> <span class="n">IntWindow</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Defined size window smoothing.</span>
+
+<span class="sd">    For each coordinate a symmetrical (if possible) window of size defined by :attr:`window` is created.</span>
+<span class="sd">    In case of coordinates at the edges created window is truncated to the edges. Next, all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="WindowSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">WindowSmooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="nd">@arrayify</span>
 <div class="viewcode-block" id="WindowSmooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowSmooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
-
         <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
             <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_window_at_pos</span><span class="p">(</span><span class="n">pos</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
             <span class="n">lo</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">pos</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="p">,</span> <span class="n">lo</span><span class="p">)</span>
@@ -168,15 +270,27 @@
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="DistanceWindowSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowSmooth">[docs]</a><span class="k">class</span> <span class="nc">DistanceWindowSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">,</span> <span class="n">GeneralWindow</span><span class="p">):</span>
-<div class="viewcode-block" id="DistanceWindowSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Smooth</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span></div>
+<div class="viewcode-block" id="DistanceWindowSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowSmooth">[docs]</a><span class="k">class</span> <span class="nc">DistanceWindowSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">,</span> <span class="n">FloatWindow</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Distance defined size window smoothing.</span>
+
+<span class="sd">    This is modification of :class:`WindowSmooth` method.</span>
+<span class="sd">    The difference is in the definition of the window size. Here, it is an average distance between points of input coordinates. Thus, before smoothing average distance between all points is calculated and this value is used to calculate actual window size.</span>
+
+<span class="sd">    Next, for each coordinate a symmetrical (if possible) window of size calculated in the first step is created.</span>
+<span class="sd">    In case of coordinates at the edges created window is truncated to the edges. Next, all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="DistanceWindowSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DistanceWindowSmooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="nd">@arrayify</span>
 <div class="viewcode-block" id="DistanceWindowSmooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowSmooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
+
         <span class="n">cdiff</span> <span class="o">=</span> <span class="n">traces</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
         <span class="n">avgw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">cdiff</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">avgw</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
@@ -195,15 +309,20 @@
             <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">function</span><span class="p">(</span><span class="n">coords</span><span class="p">[</span><span class="nb">slice</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="kc">None</span><span class="p">)],</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span></div></div>
 
 
-<div class="viewcode-block" id="ActiveWindowSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowSmooth">[docs]</a><span class="k">class</span> <span class="nc">ActiveWindowSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">,</span> <span class="n">GeneralWindow</span><span class="p">):</span>
-<div class="viewcode-block" id="ActiveWindowSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">function</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Smooth</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">window</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">function</span> <span class="o">=</span> <span class="n">function</span></div>
+<div class="viewcode-block" id="ActiveWindowSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowSmooth">[docs]</a><span class="k">class</span> <span class="nc">ActiveWindowSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">,</span> <span class="n">FloatWindow</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Active size window smoothing.</span>
+
+<span class="sd">    Similarly to :class:`DistanceWindowSmooth` method the window size is defined as a distance. The difference is that the actual window size is calculated for each point separately. Thus, for each coordinate the window is calculated by examining the distance differences between points. In this method window is not necessarily symmetrical. Once window is calculated all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="ActiveWindowSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ActiveWindowSmooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
     <span class="nd">@arrayify</span>
 <div class="viewcode-block" id="ActiveWindowSmooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowSmooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
-
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">traces</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
 
@@ -228,13 +347,20 @@
 
 
 <div class="viewcode-block" id="MaxStepSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.MaxStepSmooth">[docs]</a><span class="k">class</span> <span class="nc">MaxStepSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Maximal step smoothing.</span>
+
+<span class="sd">    This method moves thorough coordinates and calculates distance over the traversed path. If it is then :attr:`step` the coordinate is used as a &quot;cardinal point&quot;. The beginning and the end of the path are also added to the list of cardinal points. Next, all cardinal points and points of linear interpolation between cardinal points are returned as smoothed coordinates. Number of interpolated points is in accordance to points skipped between cardinal points.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 <div class="viewcode-block" id="MaxStepSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.MaxStepSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Smooth</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">MaxStepSmooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">step</span></div>
 
     <span class="nd">@arrayify</span>
 <div class="viewcode-block" id="MaxStepSmooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.MaxStepSmooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
-
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">pos</span> <span class="ow">in</span> <span class="n">xrange</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
@@ -268,36 +394,80 @@
                         <span class="n">to_yield_count</span> <span class="o">+=</span> <span class="mi">1</span></div></div>
 
 
-<div class="viewcode-block" id="WindowOverMaxStepSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowOverMaxStepSmooth">[docs]</a><span class="k">class</span> <span class="nc">WindowOverMaxStepSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">):</span>
-<div class="viewcode-block" id="WindowOverMaxStepSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowOverMaxStepSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Smooth</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<div class="viewcode-block" id="SavgolSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.SavgolSmooth">[docs]</a><span class="k">class</span> <span class="nc">SavgolSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Savitzky-Golay based smoothing.</span>
 
+<span class="sd">    Method uses 1D filter available in SciPy, see  :func:`~scipy.signal.savgol_filter`.</span>
+<span class="sd">    For each dimension filter is applied separately. Only :attr:`window_length` and :attr:`polyorder` attributes are used.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="SavgolSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.SavgolSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">window_length</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">polyorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param: int window_length: Size of the window, odd number.</span>
+<span class="sd">        :param: int polyorder: Polynomial order.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SavgolSmooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">savgol</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">savgol_filter</span><span class="p">,</span> <span class="n">window_length</span><span class="o">=</span><span class="n">window_length</span><span class="p">,</span><span class="n">polyorder</span><span class="o">=</span><span class="n">polyorder</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+    <span class="nd">@arrayify</span>
+<div class="viewcode-block" id="SavgolSmooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.SavgolSmooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="n">make_default_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">savgol</span><span class="p">(</span><span class="n">make_default_array</span><span class="p">(</span><span class="n">coords</span><span class="p">)))</span></div></div>
+
+
+<div class="viewcode-block" id="WindowOverMaxStepSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowOverMaxStepSmooth">[docs]</a><span class="k">class</span> <span class="nc">WindowOverMaxStepSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Window smoothing over maximal step smoothing.</span>
+
+<span class="sd">    First, :class:`MaxStepSmooth` is applied, and then :class:`WindowSmooth`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="WindowOverMaxStepSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowOverMaxStepSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">WindowOverMaxStepSmooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">WindowSmooth</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mss</span> <span class="o">=</span> <span class="n">MaxStepSmooth</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="WindowOverMaxStepSmooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.WindowOverMaxStepSmooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mss</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="ActiveWindowOverMaxStepSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth">[docs]</a><span class="k">class</span> <span class="nc">ActiveWindowOverMaxStepSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">):</span>
-<div class="viewcode-block" id="ActiveWindowOverMaxStepSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Smooth</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Active window smoothing over maximal step smoothing.</span>
 
+<span class="sd">    First, :class:`MaxStepSmooth` is applied, and then :class:`ActiveWindowSmooth`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="ActiveWindowOverMaxStepSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ActiveWindowOverMaxStepSmooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">ActiveWindowSmooth</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mss</span> <span class="o">=</span> <span class="n">MaxStepSmooth</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ActiveWindowOverMaxStepSmooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mss</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="DistanceWindowOverMaxStepSmooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth">[docs]</a><span class="k">class</span> <span class="nc">DistanceWindowOverMaxStepSmooth</span><span class="p">(</span><span class="n">Smooth</span><span class="p">):</span>
-<div class="viewcode-block" id="DistanceWindowOverMaxStepSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Smooth</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Distance window smoothing over maximal step smoothing.</span>
 
+<span class="sd">    First, :class:`MaxStepSmooth` is applied, and then :class:`DistanceWindowSmooth`.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+<div class="viewcode-block" id="DistanceWindowOverMaxStepSmooth.__init__"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth.__init__">[docs]</a>    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DistanceWindowOverMaxStepSmooth</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">window</span> <span class="o">=</span> <span class="n">DistanceWindowSmooth</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mss</span> <span class="o">=</span> <span class="n">MaxStepSmooth</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DistanceWindowOverMaxStepSmooth.smooth"><a class="viewcode-back" href="../../../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth.smooth">[docs]</a>    <span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        :param Iterable coords: Input coordinates to be smoothed.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">window</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mss</span><span class="o">.</span><span class="n">smooth</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span></div></div>
 </pre></div>
 
@@ -315,13 +485,13 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="../../aquaduct.html" >aquaduct</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
     </div>
   </body>

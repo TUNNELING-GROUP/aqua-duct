@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Aqua-Duct installation guide &#8212; Aqua-Duct 0.2.26 documentation</title>
+    <title>Aqua-Duct installation guide &#8212; Aqua-Duct 0.3.1 documentation</title>
     
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.26',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -53,7 +53,7 @@
         <li class="right" >
           <a href="index.html" title="Welcome to Aqua-Duct’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -76,7 +76,11 @@
 <li><a class="reference internal" href="#installation-of-pymol">Installation of PyMOL</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#gnu-linux">GNU/Linux</a></li>
+<li><a class="reference internal" href="#gnu-linux">GNU/Linux</a><ul>
+<li><a class="reference internal" href="#netcdf4-mdanalysis-installation-ubuntu-14-04">NetCDF4 &amp; MDAnalysis installation Ubuntu 14.04</a></li>
+<li><a class="reference internal" href="#scipy-update-and-ubuntu-debian">SciPy update and Ubuntu/Debian</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#macos">MacOS</a><ul>
 <li><a class="reference internal" href="#system-native-python">System native Python</a></li>
 <li><a class="reference internal" href="#custom-python">Custom Python</a></li>
@@ -151,7 +155,7 @@
 <dt>Python 2.7 (CPython implementation)</dt>
 <dd><ul class="first last">
 <li>numpy &gt;= 1.7.0</li>
-<li>scipy &gt;= 0.13.0</li>
+<li>scipy &gt;= 0.14.0</li>
 <li>scikit-learn &gt;= 0.16.0</li>
 <li>MDAnalysis[amber] &gt;= 0.15.0</li>
 <li>roman &gt;= 2.0.0</li>
@@ -212,6 +216,8 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
 </pre></div>
 </div>
+<div class="section" id="netcdf4-mdanalysis-installation-ubuntu-14-04">
+<h4>NetCDF4 &amp; MDAnalysis installation Ubuntu 14.04<a class="headerlink" href="#netcdf4-mdanalysis-installation-ubuntu-14-04" title="Permalink to this headline">¶</a></h4>
 <p>Other systems may require additional work, in particular installation of NetCDF4 is sometimes cumbersome. Following is an example how to install all required packages under Ubuntu 14.04:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># install required python packages</span>
 <span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">python</span><span class="o">-</span><span class="n">dev</span> <span class="n">python</span><span class="o">-</span><span class="n">pip</span> <span class="n">python</span><span class="o">-</span><span class="n">numpy</span> <span class="n">python</span><span class="o">-</span><span class="n">scipy</span> <span class="n">python</span><span class="o">-</span><span class="n">matplotlib</span> <span class="n">python</span><span class="o">-</span><span class="n">scikits</span><span class="o">-</span><span class="n">learn</span>
@@ -238,9 +244,22 @@
 <span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="s2">&quot;MDAnalysis[amber]&gt;=0.15&quot;</span>
 </pre></div>
 </div>
-<p>If everything went fine you can follow generic instructions, type:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">pip</span> <span class="n">install</span> <span class="n">aquaduct</span>
+<p>If everything went fine you can follow generic instructions.</p>
+</div>
+<div class="section" id="scipy-update-and-ubuntu-debian">
+<h4>SciPy update and Ubuntu/Debian<a class="headerlink" href="#scipy-update-and-ubuntu-debian" title="Permalink to this headline">¶</a></h4>
+<p>Debian (and Ubuntu) uses strange approach to Python installation. To install newer version of SciPy (if required) try following procedure:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="c1"># install libraries required for SciPy compilation</span>
+<span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">build</span><span class="o">-</span><span class="n">dep</span> <span class="n">python</span><span class="o">-</span><span class="n">scipy</span>
+
+<span class="c1"># install SciPy</span>
+<span class="n">easy_install</span><span class="o">-</span><span class="mf">2.7</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">scipy</span>
 </pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">The above procedure will remove current SciPy from <cite>easy-install.pth</cite> file.</p>
+</div>
 </div>
 </div>
 <div class="section" id="macos">
@@ -422,11 +441,11 @@ NetCDF-c version 4 has to be installed as OpenBSD ships only netCDF in version 3
         <li class="right" >
           <a href="index.html" title="Welcome to Aqua-Duct’s documentation!"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
     </div>
   </body>

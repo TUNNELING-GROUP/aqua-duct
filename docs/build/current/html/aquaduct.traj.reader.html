@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aquaduct.traj.reader module &#8212; Aqua-Duct 0.2.26 documentation</title>
+    <title>aquaduct.traj.reader module &#8212; Aqua-Duct 0.3.1 documentation</title>
     
     <link rel="stylesheet" href="_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '0.2.26',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -53,7 +53,7 @@
         <li class="right" >
           <a href="aquaduct.traj.paths.html" title="aquaduct.traj.paths module"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >aquaduct</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="aquaduct.html" >aquaduct package</a> &#187;</li>
           <li class="nav-item nav-item-3"><a href="aquaduct.traj.html" accesskey="U">aquaduct.traj package</a> &#187;</li> 
@@ -214,6 +214,37 @@
 
 </dd></dl>
 
+<dl class="data">
+<dt id="aquaduct.traj.reader.VdW_radii">
+<code class="descname">VdW_radii</code><em class="property"> = {'ge': 2.11, 'gd': 2.34, 'ga': 1.87, 'la': 2.43, 'li': 1.82, 'tl': 1.96, 'lu': 2.24, 'lr': 2.46, 'th': 2.45, 'ti': 2.11, 'te': 2.06, 'tb': 2.33, 'tc': 2.16, 'ta': 2.22, 'yb': 2.26, 'dy': 2.31, 'xe': 2.16, 'h': 1.1, 'p': 1.8, 'tm': 2.27, 'zn': 2.01, 'eu': 2.35, 'es': 2.45, 'er': 2.29, 'ru': 2.13, 're': 2.16, 'ra': 2.83, 'rb': 3.03, 'rn': 2.2, 'rh': 2.1, 'be': 1.53, 'ba': 2.68, 'bi': 2.07, 'bk': 2.44, 'br': 1.85, 'c': 1.7, 'k': 2.75, 'o': 1.52, 's': 1.8, 'w': 2.18, 'os': 2.16, 'co': 2.0, 'cm': 2.45, 'cl': 1.75, 'ca': 2.31, 'cf': 2.45, 'ce': 2.42, 'cd': 2.18, 'cs': 3.43, 'cr': 2.06, 'cu': 1.96, 'pr': 2.4, 'pt': 2.13, 'pu': 2.43, 'pb': 2.02, 'pa': 2.43, 'pd': 2.1, 'po': 1.97, 'pm': 2.38, 'ho': 2.3, 'hf': 2.23, 'hg': 2.23, 'he': 1.4, 'md': 2.46, 'mg': 1.73, 'b': 1.92, 'f': 1.47, 'mo': 2.17, 'mn': 2.05, 'n': 1.55, 'v': 2.07, 'ac': 2.47, 'ag': 2.11, 'ir': 2.13, 'am': 2.44, 'al': 1.84, 'as': 1.85, 'ar': 1.88, 'au': 2.14, 'at': 2.02, 'in': 1.93, 'ni': 1.97, 'no': 2.46, 'na': 2.27, 'nb': 2.18, 'nd': 2.39, 'ne': 1.54, 'zr': 2.23, 'np': 2.39, 'fr': 3.48, 'y': 2.32, 'fe': 2.04, 'fm': 2.45, 'i': 1.98, 'sr': 2.49, 'kr': 2.02, 'si': 2.1, 'u': 2.41, 'sn': 2.17, 'sm': 2.36, 'sc': 2.15, 'sb': 2.06, 'se': 1.9}</em><a class="headerlink" href="#aquaduct.traj.reader.VdW_radii" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of VdW radii.</p>
+<p>Data taken from L. M. Mentel, mendeleev, 2014. Available at: <a class="reference external" href="https://bitbucket.org/lukaszmentel/mendeleev">https://bitbucket.org/lukaszmentel/mendeleev</a>.
+Package <strong>mendeleev</strong> is not used because it depends on too many other libraries.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="aquaduct.traj.reader.atom2vdw_radius">
+<code class="descname">atom2vdw_radius</code><span class="sig-paren">(</span><em>atom</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/aquaduct/traj/reader.html#atom2vdw_radius"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#aquaduct.traj.reader.atom2vdw_radius" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function tries to guess atom element and checks if it is in <a class="reference internal" href="#aquaduct.traj.reader.VdW_radii" title="aquaduct.traj.reader.VdW_radii"><code class="xref py py-attr docutils literal"><span class="pre">VdW_radii</span></code></a> dictionary. If it fails 1.4 is returned.
+Guessing is done twice:</p>
+<ol class="arabic simple">
+<li>Function <code class="xref py py-func docutils literal"><span class="pre">MDAnalysis.topology.core.guess_atom_element()</span></code> is used.</li>
+<li><code class="xref py py-attr docutils literal"><span class="pre">MDAnalysis.core.AtomGroup.Atom.element</span></code> is used.</li>
+</ol>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>atom</strong> (<em>MDAnalysis.core.AtomGroup.Atom</em>) &#8211; Atom of interest.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference external" href="https://docs.python.org/2/library/functions.html#float" title="(in Python v2.7)">float</a></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">VdW radius.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 
 
@@ -237,14 +268,14 @@
         <li class="right" >
           <a href="aquaduct.traj.paths.html" title="aquaduct.traj.paths module"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="modules.html" >aquaduct</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="aquaduct.html" >aquaduct package</a> &#187;</li>
           <li class="nav-item nav-item-3"><a href="aquaduct.traj.html" >aquaduct.traj package</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
     </div>
   </body>

@@ -6,6 +6,7 @@ Subpackages
 
 .. toctree::
 
+    aquaduct.apps
     aquaduct.geom
     aquaduct.traj
     aquaduct.utils

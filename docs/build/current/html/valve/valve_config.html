@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Configuration file options &#8212; Aqua-Duct 0.2.26 documentation</title>
+    <title>Configuration file options &#8212; Aqua-Duct 0.3.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.26',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -53,7 +53,7 @@
         <li class="right" >
           <a href="valve_manual.html" title="Valve manual"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -341,7 +341,7 @@ definition of <em>Object</em> was changed.</td>
 </table>
 </div>
 <div class="section" id="stage-separate-paths">
-<h2>Stage <strong>separate_paths</strong><a class="headerlink" href="#stage-separate-paths" title="Permalink to this headline">¶</a></h2>
+<span id="separate-paths-options"></span><h2>Stage <strong>separate_paths</strong><a class="headerlink" href="#stage-separate-paths" title="Permalink to this headline">¶</a></h2>
 <table border="1" class="docutils">
 <colgroup>
 <col width="21%" />
@@ -385,6 +385,23 @@ threshold.</td>
 <td>This option allows to select molecular entity used in Auto
 Barber procedure. See also <a class="reference internal" href="valve_manual.html#auto-barber-procedure"><span class="std std-ref">Auto Barber</span></a> and
 <a class="reference internal" href="../aquaduct.traj.paths.html#aquaduct.traj.paths.GenericPaths.barber_with_spheres" title="aquaduct.traj.paths.GenericPaths.barber_with_spheres"><code class="xref py py-meth docutils literal"><span class="pre">barber_with_spheres()</span></code></a>.</td>
+</tr>
+<tr class="row-even"><td>auto_barber_mincut</td>
+<td>None</td>
+<td>Minimal radius of spheres used in Auto Barber. If a sphere has
+radius smaller then this value it is not used to cut. This
+option can be switched off by setting it to <cite>None</cite>.</td>
+</tr>
+<tr class="row-odd"><td>auto_barber_maxcut</td>
+<td>2.8</td>
+<td>Maximal radius of spheres used in Auto Barber. If a sphere has
+radius greater then this value it is not used to cut. This
+option can be switched off by setting it to <cite>None</cite>.</td>
+</tr>
+<tr class="row-even"><td>auto_barber_tovdw</td>
+<td>True</td>
+<td>Correct cutting sphere by decreasing its radius by VdW radius
+of the closest atom.</td>
 </tr>
 </tbody>
 </table>
@@ -662,7 +679,7 @@ it have to be in the range of 0 to 1.</td>
 </tbody>
 </table>
 <div class="section" id="dbscan">
-<h3>dbscan<a class="headerlink" href="#dbscan" title="Permalink to this headline">¶</a></h3>
+<span id="clusterization-methods"></span><h3>dbscan<a class="headerlink" href="#dbscan" title="Permalink to this headline">¶</a></h3>
 <p>For detailed description look at <a class="reference external" href="http://scikit-learn.org/stable/modules/generated/sklearn.cluster.DBSCAN.html#sklearn.cluster.DBSCAN" title="(in scikit-learn v0.18.1)"><code class="xref py py-class docutils literal"><span class="pre">sklearn.cluster.DBSCAN</span></code></a> documentation. Following table summarized options available in <cite>Valve</cite> and is a copy of original documentation.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -882,7 +899,7 @@ convergence.</td>
 </div>
 </div>
 <div class="section" id="smooth-section">
-<h2>Smooth section<a class="headerlink" href="#smooth-section" title="Permalink to this headline">¶</a></h2>
+<span id="smoothing-options"></span><h2>Smooth section<a class="headerlink" href="#smooth-section" title="Permalink to this headline">¶</a></h2>
 <p>Section <strong>smooth</strong> supports following options:</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -907,7 +924,8 @@ convergence.</td>
 <li><code class="docutils literal"><span class="pre">awin</span></code>, (see <a class="reference internal" href="../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowSmooth" title="aquaduct.geom.smooth.ActiveWindowSmooth"><code class="xref py py-class docutils literal"><span class="pre">ActiveWindowSmooth</span></code></a>)</li>
 <li><code class="docutils literal"><span class="pre">awin_mss</span></code>, (see <a class="reference internal" href="../aquaduct.geom.smooth.html#aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth" title="aquaduct.geom.smooth.ActiveWindowOverMaxStepSmooth"><code class="xref py py-class docutils literal"><span class="pre">ActiveWindowOverMaxStepSmooth</span></code></a>)</li>
 <li><code class="docutils literal"><span class="pre">dwin</span></code>, (see <a class="reference internal" href="../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowSmooth" title="aquaduct.geom.smooth.DistanceWindowSmooth"><code class="xref py py-class docutils literal"><span class="pre">DistanceWindowSmooth</span></code></a>)</li>
-<li><code class="docutils literal"><span class="pre">dwin_mss</span></code>. (see <a class="reference internal" href="../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth" title="aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth"><code class="xref py py-class docutils literal"><span class="pre">DistanceWindowOverMaxStepSmooth</span></code></a>)</li>
+<li><code class="docutils literal"><span class="pre">dwin_mss</span></code>, (see <a class="reference internal" href="../aquaduct.geom.smooth.html#aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth" title="aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth"><code class="xref py py-class docutils literal"><span class="pre">DistanceWindowOverMaxStepSmooth</span></code></a>)</li>
+<li><code class="docutils literal"><span class="pre">savgol</span></code>. (see <a class="reference internal" href="../aquaduct.geom.smooth.html#aquaduct.geom.smooth.SavgolSmooth" title="aquaduct.geom.smooth.SavgolSmooth"><code class="xref py py-class docutils literal"><span class="pre">SavgolSmooth</span></code></a>)</li>
 </ul>
 </td>
 </tr>
@@ -918,7 +936,7 @@ convergence.</td>
 <tr class="row-even"><td>window</td>
 <td>int or float</td>
 <td>In window based method defines window size. In plain <code class="docutils literal"><span class="pre">window</span></code>
-it has to be int number.</td>
+it has to be int number. In <code class="docutils literal"><span class="pre">savgol</span></code> it has to be odd integer.</td>
 </tr>
 <tr class="row-odd"><td>step</td>
 <td>int</td>
@@ -928,6 +946,10 @@ it has to be int number.</td>
 <td>str</td>
 <td>In window based methods defines averaging function. Can be
 <code class="docutils literal"><span class="pre">mean</span></code> or <code class="docutils literal"><span class="pre">median</span></code>.</td>
+</tr>
+<tr class="row-odd"><td>polyorder</td>
+<td>int</td>
+<td>In <code class="docutils literal"><span class="pre">savgol</span></code> is polynomial order.</td>
 </tr>
 </tbody>
 </table>
@@ -955,11 +977,11 @@ it has to be int number.</td>
         <li class="right" >
           <a href="valve_manual.html" title="Valve manual"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
     </div>
   </body>

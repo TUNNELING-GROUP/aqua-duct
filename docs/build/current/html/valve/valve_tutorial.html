@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Valve tutorial &#8212; Aqua-Duct 0.2.26 documentation</title>
+    <title>Valve tutorial &#8212; Aqua-Duct 0.3.1 documentation</title>
     
     <link rel="stylesheet" href="../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.2.26',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -53,7 +53,7 @@
         <li class="right" >
           <a href="valve_config.html" title="Configuration file options"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -109,7 +109,6 @@
             
   <div class="section" id="valve-tutorial">
 <h1><em>Valve</em> tutorial<a class="headerlink" href="#valve-tutorial" title="Permalink to this headline">¶</a></h1>
-<p>This is a tentative <em>Valve</em> manual. Created for the sake of Aqua-Duct training we have today. Eventually, it will be rewritten to the official version.</p>
 <p>This tutorial assumes <a class="reference internal" href="../aquaduct.html#module-aquaduct" title="aquaduct"><code class="xref py py-mod docutils literal"><span class="pre">aquaduct</span></code></a> and <em>Valve</em> is already installed - see <a class="reference internal" href="../aquaduct_install.html"><span class="doc">Aqua-Duct installation guide</span></a>. It is also assumed that user is acquainted with <a class="reference internal" href="valve_manual.html"><span class="doc">Valve manual</span></a> and <em>Valve</em> <a class="reference internal" href="valve_config.html"><span class="doc">Configuration file options</span></a>.</p>
 <div class="section" id="valve-invocation">
 <h2><em>Valve</em> invocation<a class="headerlink" href="#valve-invocation" title="Permalink to this headline">¶</a></h2>
@@ -117,7 +116,7 @@
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
-<p>To check is <em>Valve</em> is installed and works properly try to issue following commands:</p>
+<p>To check if <em>Valve</em> is installed and works properly try to issue following commands:</p>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">help</span>
 <span class="n">valve</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">version</span>
 </pre></div>
@@ -126,28 +125,24 @@
 <div class="section" id="test-data">
 <span id="id1"></span><h2>Test data<a class="headerlink" href="#test-data" title="Permalink to this headline">¶</a></h2>
 <p><strong>Mouse!</strong></p>
-<p>We will use 10ns Amber MD simulation data of sEH protein (PDBID <strong>1cqz</strong>). Necessary files can be found <a class="reference external" href="http://aquaduct.pl">here</a>, see Download section:</p>
-<ul class="simple">
-<li>Go to download server.</li>
-<li>Download sample data zip and extract it.</li>
-</ul>
+<p>We will use 1ns MD simulation data of sEH protein (PDBID <strong>1cqz</strong>). This simulation was performed in Amber 14. Necessary files can be found  at <a class="reference external" href="http://aquaduct.pl/">Aqua-Duct home page</a> in section <a class="reference external" href="http://aquaduct.pl/download">download</a>. Required data is in the <cite>sample data</cite> file.</p>
 </div>
 <div class="section" id="inspect-your-system">
 <h2>Inspect your system<a class="headerlink" href="#inspect-your-system" title="Permalink to this headline">¶</a></h2>
 <p>Before we start any calculations lets have a look at the protein of interest. Start <em>PyMOL</em> and get <code class="docutils literal"><span class="pre">1cqz</span></code> PDB structure (for example by typing in <em>PyMOL</em> command prompt <code class="docutils literal"><span class="pre">fetch</span> <span class="pre">1cqz</span></code>).</p>
-<p>To setup <em>Valve</em> calculations we need to know active site of the protein. More precisely we need to know IDs or residues that are in the active site. This would allow us to create <a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object definition</span></a>.</p>
-<p>But wait. Is it really the correct structure? How many chains there are? What is the numeration of residues?</p>
+<p>To setup <em>Valve</em> calculations we need to know the active site of the protein. More precisely we need to know IDs of residues that are in the active site. This would allow us to create <a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object definition</span></a>.</p>
+<p>But wait. Is it really the correct structure? How many chains there are? What is the numeration of residues? How does it compare with the topology file from <cite>sample data</cite>?</p>
 <div class="section" id="create-object-definition">
 <h3>Create <em>Object definition</em><a class="headerlink" href="#create-object-definition" title="Permalink to this headline">¶</a></h3>
 <p>Lets load another structure. Open file <code class="docutils literal"><span class="pre">1cqz_sample_topology.pdb</span></code> (see <a class="reference internal" href="#test-data"><span class="std std-ref">Test data</span></a>). It is a first frame of the MD simulation and it is en example of how the frame of MD looks like. In order to create <a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object definition</span></a> you have to discover following things:</p>
 <ol class="arabic simple">
-<li>What is the name of water residue?</li>
+<li>What is the name of water molecules?</li>
 <li>What are numbers of residues in the active site?</li>
-<li>What size the active site is?</li>
+<li>What size the active site is of?</li>
 </ol>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">It is also good idea to open <code class="docutils literal"><span class="pre">.pdb</span></code> file in your favorite text editor and look at residue numbers and names.</p>
+<p class="last">It is also a good idea to open <code class="docutils literal"><span class="pre">.pdb</span></code> file in your favorite text editor and look at residue numbers and names.</p>
 </div>
 </div>
 <div class="section" id="create-scope-definition">
@@ -164,8 +159,7 @@ If you have troubles look at <a class="reference internal" href="valve_config.ht
 <ol class="arabic simple">
 <li>Provide correct paths to topology and trajectory data.</li>
 <li>Enter correct <a class="reference internal" href="valve_manual.html#object-definition"><span class="std std-ref">Object</span></a> and <a class="reference internal" href="valve_manual.html#scope-definition"><span class="std std-ref">Scope</span></a> definitions.</li>
-<li>Provide file name of result in analysis section, for example <code class="docutils literal"><span class="pre">results.txt</span></code> (for future reference).</li>
-<li>Make sure visualization is switched on and <code class="docutils literal"><span class="pre">save</span></code> option points to session file name (<code class="docutils literal"><span class="pre">.pse</span></code>)</li>
+<li>Make sure visualization is switched on.</li>
 </ol>
 </div>
 <div class="section" id="run-valve">
@@ -222,11 +216,11 @@ This are couple of questions that might be useful to form your opinion.</p>
         <li class="right" >
           <a href="valve_config.html" title="Configuration file options"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
     </div>
   </body>

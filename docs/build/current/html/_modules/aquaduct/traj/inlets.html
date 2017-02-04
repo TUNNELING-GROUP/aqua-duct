@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aquaduct.traj.inlets &#8212; Aqua-Duct 0.2.26 documentation</title>
+    <title>aquaduct.traj.inlets &#8212; Aqua-Duct 0.3.1 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.26',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="../../aquaduct.html" accesskey="U">aquaduct</a> &#187;</li> 
       </ul>
@@ -77,7 +77,7 @@
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations</span>
-<span class="c1"># Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk &lt;info@aquaduct.pl&gt;</span>
+<span class="c1"># Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Sandra Gołdowska &lt;info@aquaduct.pl&gt;</span>
 <span class="c1">#</span>
 <span class="c1"># This program is free software: you can redistribute it and/or modify</span>
 <span class="c1"># it under the terms of the GNU General Public License as published by</span>
@@ -177,20 +177,57 @@
             <span class="n">val</span> <span class="o">+=</span> <span class="n">e</span>
         <span class="k">return</span> <span class="n">val</span></div>
 
+    <span class="c1"># def __cmp__(self, other):</span>
+    <span class="c1">#     if other is None:</span>
+    <span class="c1">#         return 1</span>
+    <span class="c1">#     if not isinstance(other, self.__class__):</span>
+    <span class="c1">#         return 1</span>
+    <span class="c1">#</span>
+    <span class="c1">#     result = 0</span>
+    <span class="c1">#     base = max(max(self), max(other), len(self), len(other)) + 2.</span>
+    <span class="c1">#</span>
+    <span class="c1">#     if self.make_val(base) - other.make_val(base) &gt; 0:</span>
+    <span class="c1">#         return 1</span>
+    <span class="c1">#     elif self.make_val(base) - other.make_val(base) &lt; 0:</span>
+    <span class="c1">#         return -1</span>
+    <span class="c1">#     return 0</span>
+
 <div class="viewcode-block" id="InletClusterGenericType.__cmp__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__cmp__">[docs]</a>    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">other</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">):</span>
-            <span class="k">return</span> <span class="mi">1</span>
 
-        <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">base</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">other</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">other</span><span class="p">))</span> <span class="o">+</span> <span class="mf">2.</span>
+        <span class="k">def</span> <span class="nf">sort_for_cmp</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_val</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">make_val</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_val</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">make_val</span><span class="p">(</span><span class="n">base</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
-        <span class="k">return</span> <span class="mi">0</span></div>
+            <span class="c1"># this function compares two elements and returns 0 for a == b, 1 for a &gt; b , -1 for a &lt; b</span>
+
+            <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="n">b</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">elif</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">b</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">a</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">b</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">b</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">a</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">:</span>
+                <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+            <span class="c1"># firstly only inputs are sorted, in case of self.input == other.input the outputs are sorted</span>
+
+        <span class="n">value</span> <span class="o">=</span> <span class="n">sort_for_cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">input</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sort_for_cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">value</span></div>
 
 <div class="viewcode-block" id="InletClusterGenericType.__hash__"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.InletClusterGenericType.__hash__">[docs]</a>    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div></div>
@@ -275,19 +312,8 @@
 <div class="viewcode-block" id="Inlets.call_clusterization_method"><a class="viewcode-back" href="../../../aquaduct.traj.inlets.html#aquaduct.traj.inlets.Inlets.call_clusterization_method">[docs]</a>    <span class="k">def</span> <span class="nf">call_clusterization_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="c1"># this method runs clusterization method against provided data</span>
         <span class="c1"># if center_of_system was set then use distance matrix...</span>
-        <span class="c1">#if self.center_of_system is not None:</span>
-        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
-            <span class="k">pass</span>
-            <span class="c1">#D = squareform(pdist(make_spherical(np.array(data)-self.center_of_system),&#39;cosine&#39;))</span>
-            <span class="c1">#logger.debug(&quot;Inlets&#39; coordinates changed to cosine distance of %d variables&quot; % D.shape[0])</span>
-            <span class="c1">#return method(D)</span>
-            <span class="c1">#return method(np.array(data) - self.center_of_system)</span>
-            <span class="c1">#sph = make_spherical(np.array(data)-self.center_of_system)</span>
-            <span class="c1">#sph /= np.std(sph)</span>
-            <span class="c1">#D = squareform(pdist(np.array(data)-self.center_of_system,&#39;cosine&#39;))</span>
-            <span class="c1">#logger.debug(&quot;Inlets&#39; coordinates changed to cosine distance of %d variables&quot; % D.shape[0])</span>
-            <span class="c1">#return method(sph)</span>
-            <span class="c1">#return method(D)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">center_of_system</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">)</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">center_of_system</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">method</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">))</span></div>
 
 
@@ -499,13 +525,13 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="../../aquaduct.html" >aquaduct</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
     </div>
   </body>

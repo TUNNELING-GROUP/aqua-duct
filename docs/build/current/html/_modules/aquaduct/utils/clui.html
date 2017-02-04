@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>aquaduct.utils.clui &#8212; Aqua-Duct 0.2.26 documentation</title>
+    <title>aquaduct.utils.clui &#8212; Aqua-Duct 0.3.1 documentation</title>
     
     <link rel="stylesheet" href="../../../_static/bizstyle.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../../',
-        VERSION:     '0.2.26',
+        VERSION:     '0.3.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="../../aquaduct.html" accesskey="U">aquaduct</a> &#187;</li> 
       </ul>
@@ -77,7 +77,7 @@
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 
 <span class="c1"># Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations</span>
-<span class="c1"># Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk &lt;info@aquaduct.pl&gt;</span>
+<span class="c1"># Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk &lt;info@aquaduct.pl&gt;</span>
 <span class="c1">#</span>
 <span class="c1"># This program is free software: you can redistribute it and/or modify</span>
 <span class="c1"># it under the terms of the GNU General Public License as published by</span>
@@ -177,7 +177,8 @@
 <div class="viewcode-block" id="tictoc.__exit__"><a class="viewcode-back" href="../../../aquaduct.utils.clui.html#aquaduct.utils.clui.tictoc.__exit__">[docs]</a>    <span class="k">def</span> <span class="nf">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">typ</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__toc</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">typ</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Execution time of [</span><span class="si">%s</span><span class="s1">] </span><span class="si">%0.2f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__toc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tic</span><span class="p">)</span></div></div>
+            <span class="c1">#logger.debug(&#39;Execution time of [%s] %s&#39;, self.__mess, smart_time_string(self.__toc - self.__tic))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Execution time of [</span><span class="si">%s</span><span class="s1">] </span><span class="si">%f</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">__mess</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__toc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">__tic</span><span class="p">))</span></div></div>
 
 
 <span class="n">gregorian_year_in_days</span> <span class="o">=</span> <span class="mf">365.2425</span>
@@ -301,7 +302,7 @@
 <span class="sd">    :cvar int barlenght: Length of progress bar.</span>
 <span class="sd">    :ivar int maxval: maximal number of iterations</span>
 <span class="sd">    :ivar int current: current number of iterations</span>
-<span class="sd">    :ivar bool overrun_notice: if True, overrun above :ivar:`maxval` iterations causes insert of newline</span>
+<span class="sd">    :ivar bool overrun_notice: if True, overrun above :attr:`maxval` iterations causes insert of newline</span>
 <span class="sd">    :ivar bool overrun: flag of overrun</span>
 <span class="sd">    :ivar int begin: time in seconds at the initialization of the :class:`SimpleProgressBar` class.</span>
 <span class="sd">    :ivar int tcurrent: time in seconds of current iteration</span>
@@ -503,13 +504,13 @@
         <li class="right" >
           <a href="../../../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.2.26 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Aqua-Duct 0.3.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li>
           <li class="nav-item nav-item-2"><a href="../../aquaduct.html" >aquaduct</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2016, 2017, Tomasz Magdziarz.
+        &#169; Copyright 2016, 2017, Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
     </div>
   </body>
