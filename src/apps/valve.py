@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+# Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -125,7 +125,7 @@ if __name__ == "__main__":
             print "https://www.gnu.org/licenses/gpl-3.0.txt"
             print ""
             print '''Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-    Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+    Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
