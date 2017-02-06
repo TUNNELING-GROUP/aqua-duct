@@ -2,6 +2,7 @@
 
 CWD=`pwd`
 
+gmake clean
 ./make_current.sh
 ./make_pdf.sh
 

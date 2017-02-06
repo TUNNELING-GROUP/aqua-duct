@@ -1,7 +1,7 @@
 *Valve* manual
 ==============
 
-*Valve* application is a driver that uses :mod:`aquaduct` module to perform analysis of trajectories of selected residues in MD simulation.
+*Valve* application is a driver that uses :mod:`aquaduct` module to perform analysis of trajectories of selected residues in Molecular Dynamics simulation.
 
 
 *Valve* invocation
@@ -52,7 +52,7 @@ Configuration file template can also be easily saved in to a file with::
 
 Where config.txt is a configuration file template.
 
-For detailed description of configuration file and available options see :doc:`valve_config`
+For detailed description of configuration file and available options see :doc:`valve_config`.
 
 *Valve* calculation run
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -103,12 +103,12 @@ In the first stage of calculation Valve finds all residues that should be traced
 
 The search of the residues is done according to user provided definitions. Two requirements have to be met to append residue to the list:
 
-#. The residue has to be found according to the *Object* definition.
-#. The residue has to be within the *Scope* of interest.
+#. The residue has to be found according to the *object* definition.
+#. The residue has to be within the *scope* of interest.
 
-The *Object* definition encompasses usually the active site of the protein. The *Scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
+The *object* definition encompasses usually the active site of the protein. The *scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
 
-Since :mod:`aquaduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *Object* and *Scope* have to be given as its *Selection Commands*.
+Since :mod:`aquaduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *object* and *scope* have to be given as its *Selection Commands*.
 
 .. _object_definition:
 
@@ -118,28 +118,28 @@ Object definition
 *Object* definition has to comprise of two elements:
 
 #. It has to define residues to trace.
-#. It has to define spatial boundaries of the *Object* site.
+#. It has to define spatial boundaries of the *object* site.
 
-For example, proper Object definition could be following::
+For example, proper *object* definition could be following::
 
     (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147))
 
-It defines ``WAT`` as residues that should be traced and defines spatial constrains of the *Object* site as spherical zone within 6 Angstroms of the center of masses of residues with number 99 and 147.
+It defines ``WAT`` as residues that should be traced and defines spatial constrains of the *object* site as spherical zone within 6 Angstroms of the center of masses of residues with number 99 and 147.
 
 .. _scope_definition:
 
 Scope definition
 """"""""""""""""
 
-*Scope* can be defined in two ways: as *Object* but with broader boundaries or as the convex hull of selected molecular object.
+*Scope* can be defined in two ways: as *object* but with broader boundaries or as the convex hull of selected molecular object.
 
-In the first case definition is very similar to *Object* and it has to follow the same limitations. For example, proper *Scope* definition could be following::
+In the first case definition is very similar to *object* and it has to follow the same limitations. For example, proper *scope* definition could be following::
 
     resname WAT around 2.0 protein
 
 It consequently has to define ``WAT`` as residues of interest and defines spatial constrains: all ``WAT`` residues that are within 2 Angstroms of the protein.
 
-If the *Scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
+If the *scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
 
 Convex hulls of macromolecule atoms
 ###################################
@@ -160,22 +160,22 @@ Raw paths
 
 The second stage of calculations uses the list of all traceable residues from the first stage and finds coordinates of center of masses for each residue in each frame. As in the first stage, it is done in a loop over all frames. For each residue in each frame *Valve* calculates or checks two things:
 
-#. Is the residue in the *Scope* (this is always calculated according to the Scope definition).
-#. Is the residue in the *Object*. This information is partially calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *Object* definition.
+#. Is the residue in the *scope* (this is always calculated according to the scope definition).
+#. Is the residue in the *object*. This information is partially calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *object* definition.
 
-For each of the *traceable residues* a special *Path* object is created. If the residue is in the *Scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *Object* or not.
+For each of the *traceable residues* a special *Path* object is created. If the residue is in the *scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *object* or not.
 
 
 Separate paths
 ^^^^^^^^^^^^^^
 
-The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *Scope* and the *Object* many times over the entire MD. Each such an event is considered by *Valve* as a separate path.
+The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *scope* and the *object* many times over the entire MD. Each such an event is considered by *Valve* as a separate path.
 
 Each *separate path* comprises of three parts:
 
-#. *Incoming* - Defined as a path that leads from the point in which residue enters the *Scope* and enters the object for the firs time.
-#. *Object* - Defined as a path that leads from the point in which residue enters the *Object* for the first time and leaves it for the last time.
-#. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *Object* for the last lime and leaves the *Scope*.
+#. *Incoming* - Defined as a path that leads from the point in which residue enters the *scope* and enters the object for the firs time.
+#. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time.
+#. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *object* for the last lime and leaves the *scope*.
 
 It is also possible that incoming and/or outgoing part of the separate path is empty.
 
@@ -227,7 +227,7 @@ Clusterization of inlets
 
 .. _inlets_def:
 
-Each of the separate paths has beginning and end. If they are at the boundaries of the *Scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *Scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
+Each of the separate paths has beginning and end. If they are at the boundaries of the *scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
 
 Clusterization of inlets is performed in following steps:
 
