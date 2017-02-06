@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 
 from aquaduct import logger
-from aquaduct.apps.valve import load_stage_dump
+from aquaduct.apps.valvecore import load_stage_dump
 
 formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
 # create and add console handler with WARNING level to the AQ logger
@@ -54,6 +54,3 @@ if __name__ == "__main__":
 
         plt.plot(distance,velocity)
         plt.show()
-
-
-

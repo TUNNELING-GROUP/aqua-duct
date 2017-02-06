@@ -1,6 +1,6 @@
 #!/bin/sh
 
-./make_html.sh
+#./make_html.sh
 
 SPHINX_APIDOC=sphinx-apidoc
 if [ -x ~/.local/bin/sphinx-apidoc ]

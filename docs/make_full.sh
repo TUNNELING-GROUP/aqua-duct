@@ -2,7 +2,8 @@
 
 CWD=`pwd`
 
-./make_html.sh
+./make_current.sh
+./make_pdf.sh
 
 TDIR=`mktemp -d`
 PDIR=$TDIR/aquaduct
