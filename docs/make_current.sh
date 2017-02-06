@@ -24,7 +24,7 @@ git config user.name "TM"
 
 
 # make for highest tag
-for tag in 'v0.2.26' #$( git tag | sort -r | head -1 )
+for tag in $( git tag | sort -r | head -1 )
 do
     git checkout tags/$tag # -b branch_$tag
     VERSION=current
