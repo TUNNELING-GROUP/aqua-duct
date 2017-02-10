@@ -55,19 +55,26 @@ if __name__ == "__main__":
         assert (len(plots) > 0), "Oops!  Invalid name(s) of plots provided."
 
         # Plotting
-
         divided_paths = map(len, loaded_data['spaths'][args.path_number].paths)
         print divided_paths
-        if 0 not in divided_paths:
-            indices_incoming = range(divided_paths[0])
-            indices_incoming.append(indices_incoming[-1]+1)
-            indices_inside = range(divided_paths[0], divided_paths[1]+divided_paths[0])
+        indices_incoming = range(divided_paths[0])
+        indices_inside = range(divided_paths[0], divided_paths[1] + divided_paths[0])
+        indices_outgoing = range(divided_paths[1] + divided_paths[0], divided_paths[0] + divided_paths[1] + divided_paths[2])
+
+        if divided_paths.count(0) == 0:
+            indices_incoming.append(indices_incoming[-1] + 1)
             indices_inside.append(indices_inside[-1] + 1)
-            indices_outgoing = range(divided_paths[1]+divided_paths[0], divided_paths[0]+divided_paths[1]+divided_paths[2])
         else:
-            indices_incoming = range(divided_paths[0])
-            indices_inside = range(divided_paths[0], divided_paths[1] + divided_paths[0])
-            indices_outgoing = range(divided_paths[1] + divided_paths[0], divided_paths[0] + divided_paths[1] + divided_paths[2])
+            if divided_paths.count(0) == 1:
+                if divided_paths[0] == 0:
+                    indices_inside.append(indices_inside[-1] + 1)
+                elif divided_paths[1] == 0:
+                    indices_incoming.append(indices_incoming[-1] + 1)
+                else:
+                    indices_incoming.append(indices_incoming[-1] + 1)
+            else:
+                pass
+
 
         if 'velocity' in plots:
             velocity = loaded_data['spaths'][args.path_number].get_velocity_cont() #Getting velocity for each frame the path with ID = args.num was detected
