@@ -21,7 +21,7 @@ Troubleshooting
 
 If you encounter any problems with installation do not hesitate to contact us at `info@aquaduct.pl <info@aquaduct.pl>`_. We are **REALLY** willing to help!
 
-Please, provide us with us as much info as you can. In particular try to include following information:
+Please, provide us with us much info as you can. In particular try to include following information:
 
 * Operating system's name and version, and CPU architecture (if relevant).
 * Python version.
@@ -137,7 +137,7 @@ Debian (and Ubuntu) uses strange approach to Python installation. To install new
 
     The above procedure will remove current SciPy from `easy-install.pth` file.
 
-macOS
+MacOS
 ^^^^^
 
 Aqua-Duct installation was tested on MacOS Sierra and is quite straightforward. It can be installed either with existing system Python or with custom Python installation. In both cases one have to install Xcode for the App Store.
@@ -230,19 +230,19 @@ OpenBSD
 ^^^^^^^
 
 Aqua-Duct can be also installed under OpenBSD (5.9 and 6.0 amd64).
-NetCDF-c version 4 has to be installed as OpenBSD ships only NetCDF in version 3. First, install hdf5 library and GNU make::
+NetCDF-c version 4 has to be installed as OpenBSD ships only netCDF in version 3. First, install hdf5 library and GNU make::
 
     # install hdf5 and GNU make
     pkg_add hdf5 gmake
 
-Next, download NetCDF sources. Version 4.2.1.1 works out of the box but is a bit outdated. Visit `NetCDF web page <https://www.unidata.ucar.edu/software/netcdf/>`_ and select version of your choice. Older versions are available in the `FTP archive <ftp://ftp.unidata.ucar.edu/pub/netcdf/old/>`_. Once NetCDF is downloaded and extracted go to the source directory and try following procedure::
+Next, download netCDF sources. Version 4.2.1.1 works out of the box but is a bit outdated. Visit `NetCDF web page <https://www.unidata.ucar.edu/software/netcdf/>`_ and select version of your choice. Older versions are available in the `FTP archive <ftp://ftp.unidata.ucar.edu/pub/netcdf/old/>`_. Once netCDF is downloaded and extracted go to the source directory and try following procedure::
 
     # set LD and CPP flags
     export LDFLAGS=-L/usr/local/lib
     export CPPFLAGS=-I/usr/local/include
 
     # configure project
-    ./configure --enable-shared --enable-dap --disable-doxygen --enable-netcdf-4 --prefix=/path/to/NetCDF4/lib
+    ./configure --enable-shared --enable-dap --disable-doxygen --enable-netcdf-4 --prefix=/path/to/netCDF4/lib
 
     # make and install
     gmake
@@ -256,10 +256,10 @@ Install pip if it is missing::
 
     pkg_add py-pip
 
-Install NetCDF4 Python::
+Install netCDF4 Python::
 
     # define netcdf-4 installation directory
-    export NETCDF4_DIR=/path/to/NetCDF4/lib
+    export NETCDF4_DIR=/path/to/netCDF4/lib
     pip2.7 install netCDF4
 
 At this point you can follow generic Python instructions, type::
@@ -300,3 +300,4 @@ Other BSDs
 Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD. Try to install it and SciPy, then proceed to generic Python installation instructions.
 
 If you are using NetBSD or other BSD try to follow OpenBSD instructions.
+

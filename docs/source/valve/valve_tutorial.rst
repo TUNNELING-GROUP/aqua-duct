@@ -28,7 +28,7 @@ We will use 1ns MD simulation data of sEH protein (PDBID **1cqz**). This simulat
 Inspect your system
 -------------------
 
-Before we start any calculations lets have a look at the protein of interest. Start *PyMOL* and get ``1cqz`` PDB structure (for example by typing in *PyMOL* command prompt ``fetch 1cqz``).
+Before we start any calculations lets have a look at the protein of interest. Start PyMOL and get ``1cqz`` PDB structure (for example by typing in PyMOL command prompt ``fetch 1cqz``).
 
 To setup *Valve* calculations we need to know the active site of the protein. More precisely we need to know IDs of residues that are in the active site. This would allow us to create :ref:`object_definition`.
 
@@ -79,7 +79,7 @@ Depending on your machine and current load it may take a while (matter of minute
 Visual inspection
 ^^^^^^^^^^^^^^^^^
 
-In the last stage *PyMOL* should pop up and *Valve* should start to feed it with visualization data. This would take a moment and if you set up ``save`` option a *PyMOL* session would be saved. Once it is done *Valve* quits and switches off *PyMOL*. Now, you can restart it and read saved session.
+In the last stage PyMOL should pop up and *Valve* should start to feed it with visualization data. This would take a moment and if you set up ``save`` option a PyMOL session would be saved. Once it is done *Valve* quits and switches off PyMOL. Now, you can restart it and read saved session.
 
 Clusterization
 ^^^^^^^^^^^^^^
@@ -89,12 +89,12 @@ Improve clusterization of Inlets. See :doc:`valve_config` for more hints on avai
 Analysis tables
 ^^^^^^^^^^^^^^^
 
-Open ``5_analysys_results.txt`` file and look at summaries and tables. See also :doc:`valve_manual`.
+Open ``5_analysis_results.txt`` file and look at summaries and tables. See also :doc:`valve_manual`.
 
 Feedback
 --------
 
-Give us your opinion. Send your questions, inquires, anything to developer(s): `<info@aquaduct.pl>`_.
+Give us your opinion. Send your questions, inquires, anything to developer(s): `info@aquaduct.pl <info@aquaduct.pl>`_.
 This are couple of questions that might be useful to form your opinion.
 
 #. What do you like in *Valve* and *Aqua-Duct*?

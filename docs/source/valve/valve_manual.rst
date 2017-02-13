@@ -169,13 +169,13 @@ For each of the *traceable residues* a special *Path* object is created. If the 
 Separate paths
 ^^^^^^^^^^^^^^
 
-The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *scope* and the *object* many times over the entire MD. Each such an event is considered by *Valve* as a separate path.
+The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *scope* and the *object* many times over the entire MD. Each such event is considered by *Valve* as a separate path.
 
 Each *separate path* comprises of three parts:
 
-#. *Incoming* - Defined as a path that leads from the point in which residue enters the *scope* and enters the object for the firs time.
+#. *Incoming* - Defined as a path that leads from the point in which residue enters the *scope* and enters the object for the first time.
 #. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time.
-#. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *object* for the last lime and leaves the *scope*.
+#. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *object* for the last time and leaves the *scope*.
 
 It is also possible that incoming and/or outgoing part of the separate path is empty.
 
