@@ -282,7 +282,7 @@ More technical details on master path generation can be found in :meth:`aquaduct
 Analysis
 ^^^^^^^^
 
-Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4. Results of the analysis is displayed on the screen or can be save to text file and comprise of following parts:
+Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4. Results of the analysis are displayed on the screen or can be save to text file and comprise of following parts:
 
 * Tile and data stamp.
 * [Optional] Dump of configuration options.
