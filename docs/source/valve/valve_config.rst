@@ -244,7 +244,7 @@ Stage **visualize**
                                                 one object with states corresponding to number of path.
     paths_smooth            False               If set True smooth paths are displayed as separate objects or
                                                 as one object with states corresponding to number of path.
-    paths_raw_io            False               If set True arrows indicating beginning and and of paths,
+    paths_raw_io            False               If set True arrows indicating beginning and end of paths,
                                                 oriented accordingly to raw paths, are displayed as separate
                                                 objects or as one object with states corresponding to number
                                                 of paths.
