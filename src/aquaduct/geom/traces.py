@@ -253,14 +253,15 @@ def vectors_angle(A, B):
 
 
 def vectors_angle_alt(A, B):
-    """
+    '''
     This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates
-     - alternative method.
+
+    * alternative method.
 
     :param A: coordinates of the first point which is the end of the vector
     :param B: coordinates of the second point which is the end of the vector
     :return: the angle between vectors in question (in radians)
-    """
+    '''
     return np.arccos(np.clip(np.dot(A / vector_norm(A), B / vector_norm(B)), -1.0, 1.0))
 
 
