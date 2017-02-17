@@ -34,6 +34,10 @@ from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShif
 from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
 
+class BarberCluster(object):
+
+    def __call__(self, *args, **kwargs):
+        pass
 
 def MeanShiftBandwidth(X, **kwargs):
     if 'bandwidth' in kwargs:

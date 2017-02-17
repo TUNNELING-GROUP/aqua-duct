@@ -1,6 +1,11 @@
 Aqua-Duct changelog
 ===================
 
+* devel
+    * Added mario script, WIP.
+    * Fixed bug in visualization script; if no molecule is kept do not set style and color.
+    * Barber moved to separate module.
+    * Fixed bug in reclusterization; use potentially recursive procedure.
 * 0.3.1
     * AutoBarber tovdw option.
     * AutoBarber minimal and maximal cut options.

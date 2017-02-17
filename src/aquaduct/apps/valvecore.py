@@ -51,7 +51,7 @@ from aquaduct import greetings as greetings_aquaduct
 from aquaduct import version as aquaduct_version
 from aquaduct import version_nice as aquaduct_version_nice
 from aquaduct.geom import traces
-from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch
+from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, BarberCluster
 from aquaduct.geom.convexhull import is_point_within_convexhull
 from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
@@ -64,7 +64,7 @@ from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind
 from aquaduct.utils.multip import optimal_threads
-
+from aquaduct.traj.barber import WhereToCut
 
 def version():
     # TODO: remove it
@@ -746,9 +746,9 @@ def get_smooth_method(soptions):
     return smooth
 
 
-def get_clustering_method(coptions):
+def get_clustering_method(coptions,config):
     assert coptions.method in ['dbscan', 'affprop', 'meanshift', 'birch',
-                               'kmeans'], 'Unknown clusterization method %s.' % coptions.method
+                               'kmeans','barber'], 'Unknown clusterization method %s.' % coptions.method
 
     opts = {}
 
@@ -812,6 +812,22 @@ def get_clustering_method(coptions):
         if 'n_clusters' in coptions._asdict():
             opts.update({'n_clusters': int(coptions.n_clusters)})
 
+    def barber_opts():
+        abo = config.get_stage_options(2)
+        if abo.auto_barber:
+            opts.update({'barber': str(abo.auto_barber)})
+            opts.update({'mincut': float(abo.auto_barber_mincut)})
+            opts.update({'maxcut': float(abo.auto_barber_maxcut)})
+            opts.update({'tovdw': bool(abo.auto_barber_tovdw)})
+        if 'barber' in coptions._asdict():
+            opts.update({'barber': str(coptions.barber)})
+        if 'mincut' in coptions._asdict():
+            opts.update({'mincut': float(coptions.mincut)})
+        if 'maxcut' in coptions._asdict():
+            opts.update({'maxcut': float(coptions.maxcut)})
+        if 'tovdw' in coptions._asdict():
+            opts.update({'tovdw': bool(coptions.tovdw)})
+
     if coptions.method == 'dbscan':
         dbscan_opts()
         method = DBSCAN
@@ -827,6 +843,9 @@ def get_clustering_method(coptions):
     elif coptions.method == 'birch':
         birch_opts()
         method = Birch
+    elif coptions.method == 'barber':
+        barber_opts()
+        method = BarberCluster
 
     return PerformClustering(method, **opts)
 
@@ -1139,108 +1158,19 @@ def stage_III_run(config, options,
             spaths = [sp for sp in spaths if sp.size > shorter_then]
 
     if options.auto_barber:
-        mincut = False
-        if options.auto_barber_mincut is not None:
-            mincut = True
-            mincut_val = float(options.auto_barber_mincut)
-            logger.debug('mincut set to %0.2f', mincut_val)
-        maxcut = False
-        if options.auto_barber_maxcut is not None:
-            maxcut = True
-            maxcut_val = float(options.auto_barber_maxcut)
-            logger.debug('maxcut set to %0.2f', maxcut_val)
-        if mincut and maxcut:
-            if maxcut_val < mincut_val:
-                logger.warning('Values of mincut %0.2f and maxcut %0.2f are mutually exclusive. No spheres will be used in Auto Barber.',mincut_val,maxcut_val)
-        spheres = []
         with reader.get() as traj_reader:
-            clui.message("Auto Barber is looking where to cut:")
-            pbar = clui.pbar(len(spaths))
-            barber = traj_reader.parse_selection(options.auto_barber)
-            vdwradius = 0
-            for sp in spaths:
-                centers = []
-                frames = []
-                if sp.has_in:
-                    centers.append(sp.coords_in[0])
-                    frames.append(sp.path_in[0])
-                if sp.has_out:
-                    centers.append(sp.coords_out[-1])
-                    frames.append(sp.path_out[-1])
-                for center, frame in zip(centers, frames):
-                    traj_reader.set_current_frame(frame)
-                    distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
-                    if options.auto_barber_tovdw:
-                        vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
-                    radius = min(distances) - vdwradius
-                    if radius <= 0:
-                        logger.debug('VdW correction resulted in <= 0 radius.')
-                        continue
-                    if mincut and radius < mincut_val:
-                        logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
-                        continue
-                    if maxcut and radius > maxcut_val:
-                        logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
-                        continue
-                    spheres.append(ABSphere(center, radius))
-                pbar.update(1)
-            pbar.finish()
-
-        # remove redundant spheres
-        clui.message("Barber, cat thyself:")
-        pbar = clui.pbar(len(spheres))
-
-        there_is_something_to_cut = True
-
-        noredundat_spheres_count = 0
-
-        while True:
-            spheres.sort(key=lambda s: s.radius, reverse=True)
-            # create matrix of coords and vector of radii
-            spheres_coords = np.array([sphe.center for sphe in spheres])
-            spheres_radii = np.array([sphe.radius for sphe in spheres])
-            noredundat_spheres = []
-
-            while spheres:
-                # topmost is the biggest one
-                big = spheres.pop(0)
-                center, radius = big
-                # calculate distances of all to big but big
-                distances = cdist(np.matrix(center), spheres_coords[1:], metric='euclidean').flatten()
-                # add radii
-                distances += spheres_radii[1:]
-                # remove if distance <= radius
-                to_keep = distances > radius
-                # do keep
-                spheres_coords = spheres_coords[1:][to_keep]
-                spheres_radii = spheres_radii[1:][to_keep]
-                # do keep spheres
-                np.argwhere(to_keep).flatten()
-                to_keep_ids = np.argwhere(to_keep).flatten().tolist()
-                spheres = lind(spheres, to_keep_ids)
-                # add big to non redundant
-                noredundat_spheres.append(big)
-                pbar.update(sum(to_keep == False))
-                logger.debug("PBar update by %d" % sum(to_keep == False))
-                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
-                    len(noredundat_spheres), len(spheres)))
-
-            if len(noredundat_spheres) == noredundat_spheres_count:
-                logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(
-                    noredundat_spheres))
-                break
-            else:
-                noredundat_spheres_count = len(noredundat_spheres)
-                spheres = noredundat_spheres
-
-        pbar.finish()
-
-        spheres = noredundat_spheres
+            wtc = WhereToCut(spaths,traj_reader,
+                             selection=options.auto_barber,
+                             mincut=options.auto_barber_mincut,
+                             maxcut=options.auto_barber_mincut,
+                             tovdw=options.auto_barber_mincut)
+            # cut thyself!
+            wtc.cut_thyself()
 
         clui.message("Auto Barber in action:")
         pbar = clui.pbar(len(paths))
         for p in paths.values():
-            p.barber_with_spheres(spheres)
+            p.barber_with_spheres(wtc.spheres)
             pbar.update(1)
         pbar.finish()
         # now, it might be that some of paths are empty
@@ -1315,7 +1245,7 @@ def potentially_recursive_clusterization(config,
         for k, v in cluster_options._asdict().iteritems():
             clui.message("%s = %s" % (str(k), str(v)))
         # TODO: Print clusterization options in a nice way!
-        clustering_function = get_clustering_method(cluster_options)
+        clustering_function = get_clustering_method(cluster_options,config)
         # get skip_size function according to recursive_treshold
         skip_size = get_skip_size_function(cluster_options.recursive_threshold)
         inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
@@ -1388,10 +1318,14 @@ def stage_IV_run(config, options,
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
             with clui.fbm("Performing reclusterization of outliers", cont=False):
-                clustering_function = get_clustering_method(rcoptions)
+                potentially_recursive_clusterization(config, config.recluster_name(), inls,
+                                                     message='reclusterization',
+                                                     max_level=max_level)
+
+                # clustering_function = get_clustering_method(rcoptions)
                 # perform reclusterization
                 # inls.recluster_outliers(clustering_function)
-                inls.recluster_cluster(clustering_function, 0)
+                # inls.recluster_cluster(clustering_function, 0)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
         # ***** SINGLETONS REMOVAL *****
