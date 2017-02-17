@@ -52,7 +52,7 @@ intersphinx_mapping = {'python': ('http://docs.python.org/2', None),
 autoclass_content = 'class'
 #autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'special-members', 'show-inheritance']
 autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance','undoc-members']
-autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance']
+#autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance']
 autodoc_member_order = 'bysource'
 
 def skip(app, what, name, obj, skip, options):
@@ -81,15 +81,16 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
+import aquaduct
 project = u'Aqua-Duct'
-copyright = u'2016, 2017, Tomasz Magdziarz'
+author = aquaduct.__author_doc__
+copyright = u'2016, 2017, ' + unicode(author)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
 # The short X.Y version.
-import aquaduct
 version = aquaduct.version_nice()
 # The full version, including alpha/beta/rc tags.
 release = version
@@ -230,7 +231,7 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-#'preamble': '',
+'preamble': '\usepackage{longtable}',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
@@ -238,7 +239,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'Aqua-Duct.tex', u'Aqua-Duct Documentation',
-   u'Tomasz Magdziarz', 'manual'),
+   unicode(' \\and '.join(map(unicode.strip,author.split(',')))), 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -268,7 +269,7 @@ latex_use_parts = False
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'aquaduct', u'Aqua-Duct Documentation',
-     [u'Tomasz Magdziarz'], 1)
+     [unicode(author)], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -282,7 +283,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'Aqua-Duct', u'Aqua-Duct Documentation',
-   u'Tomasz Magdziarz', 'Aqua-Duct', 'One line description of project.',
+   unicode(author), 'Aqua-Duct', 'One line description of project.',
    'Miscellaneous'),
 ]
 

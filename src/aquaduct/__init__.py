@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+# Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 3, 1
+    return 0, 3, 99
     # code cleanup and bugs fixes
     # different way of creating paths ans separate paths
 
@@ -60,6 +60,8 @@ def version_nice():
 __version__ = version_nice()
 __mail__ = 'info@aquaduct.pl'
 
+__author__ = u'Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk'
+__author_doc__ = u'Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra'
 
 def greetings():
     """

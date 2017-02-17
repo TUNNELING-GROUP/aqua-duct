@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+# Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -544,6 +544,13 @@ def xzip_xzip(*args, **kwargs):
         yield tuple(this_yield)
         position = next_position
 
+def concatenate(*args):
+    '''
+    Concatenates input iterable arguments in to one generator.
+    '''
+    for a in args:
+        for e in a:
+            yield e
 
 class Bunch(object):
     """

@@ -6,10 +6,6 @@
 Welcome to Aqua-Duct's documentation!
 =====================================
 
-.. warning::
-
-    This is documentation for the development version of Aqua-Duct.
-
 .. toctree::
     :maxdepth: 1
     :titlesonly:
@@ -19,5 +15,6 @@ Welcome to Aqua-Duct's documentation!
     Valve configuration <valve/valve_config>
     Valve tutorial <valve/valve_tutorial>
     Aqua-Duct API documentation <modules>
+    Changelog <changelog>
 
 .. include:: other_versions.rst

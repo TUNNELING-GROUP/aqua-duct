@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+# Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ logger.addHandler(ch)
 ################################################################################
 
 
-from aquaduct.apps.valve import *
+from aquaduct.apps.valvecore import *
 
 
 ################################################################################
@@ -53,8 +53,7 @@ if __name__ == "__main__":
         # argument parsing
         import argparse
 
-        description_version = '''Aquaduct library version %s
-    Valve driver version %s''' % (aquaduct_version_nice(), version_nice())
+        description_version = '''Aquaduct library version %s''' % (aquaduct_version_nice(), )
         description = '''Valve, Aquaduct driver'''
 
         parser = argparse.ArgumentParser(description=description,
@@ -100,14 +99,15 @@ if __name__ == "__main__":
         if args.sps:
             logger.info('Single precision data storage activated.')
             from aquaduct.utils.maths import defaults
-            defaults.float_default = np.float32
-            defaults.int_default = np.int32
+            from numpy import float32, int32
+            defaults.float_default = float32
+            defaults.int_default = int32
 
         ############################################################################
         # special option for dumping template config
         config = ValveConfig()  # config template
         if args.dump_template_conf:
-
+            import cStringIO as StringIO
             config_dump = StringIO.StringIO()
             config.save_config_stream(config_dump)
             print config_dump.getvalue()
@@ -125,7 +125,7 @@ if __name__ == "__main__":
             print "https://www.gnu.org/licenses/gpl-3.0.txt"
             print ""
             print '''Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-    Copyright (C) 2016  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+    Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -154,17 +154,17 @@ if __name__ == "__main__":
         # pbar_name = goptions.pbar
 
         if args.threads is None:
-            optimal_threads = cpu_count + 1
+            optimal_threads.threads_count = optimal_threads.cpu_count + 1
         else:
-            optimal_threads = int(args.threads)
-        clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads)
-        if (1 < optimal_threads < 3) or (optimal_threads - 1 > cpu_count):
-            clui.message("Number of threads is not optimal; CPU count reported by system: %d" % cpu_count)
+            optimal_threads.threads_count = int(args.threads)
+        clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads.threads_count)
+        if (1 < optimal_threads.threads_count < 3) or (optimal_threads.threads_count - 1 > optimal_threads.cpu_count):
+            clui.message("Number of threads is not optimal; CPU count reported by system: %d" % optimal_threads.cpu_count)
         # because it is used by mp.Pool it should be -1???
-        if optimal_threads > 1:
-            optimal_threads -= 1
+        if optimal_threads.threads_count > 1:
+            optimal_threads.threads_count -= 1
             clui.message("Main process would use 1 thread.")
-            clui.message("Concurent calculations would use %d threads." % optimal_threads)
+            clui.message("Concurent calculations would use %d threads." % optimal_threads.threads_count)
 
         # At this point calculations starts. All options are read.
         # Options:

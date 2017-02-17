@@ -1,7 +1,7 @@
 *Valve* manual
 ==============
 
-*Valve* application is a driver that uses :mod:`aquaduct` module to perform analysis of trajectories of selected residues in MD simulation.
+*Valve* application is a driver that uses :mod:`aquaduct` module to perform analysis of trajectories of selected residues in Molecular Dynamics simulation.
 
 
 *Valve* invocation
@@ -52,7 +52,7 @@ Configuration file template can also be easily saved in to a file with::
 
 Where config.txt is a configuration file template.
 
-For detailed description of configuration file and available options see :doc:`valve_config`
+For detailed description of configuration file and available options see :doc:`valve_config`.
 
 *Valve* calculation run
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -103,12 +103,12 @@ In the first stage of calculation Valve finds all residues that should be traced
 
 The search of the residues is done according to user provided definitions. Two requirements have to be met to append residue to the list:
 
-#. The residue has to be found according to the *Object* definition.
-#. The residue has to be within the *Scope* of interest.
+#. The residue has to be found according to the *object* definition.
+#. The residue has to be within the *scope* of interest.
 
-The *Object* definition encompasses usually the active site of the protein. The *Scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
+The *object* definition encompasses usually the active site of the protein. The *scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
 
-Since :mod:`aquaduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *Object* and *Scope* have to be given as its *Selection Commands*.
+Since :mod:`aquaduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *object* and *scope* have to be given as its *Selection Commands*.
 
 .. _object_definition:
 
@@ -118,50 +118,64 @@ Object definition
 *Object* definition has to comprise of two elements:
 
 #. It has to define residues to trace.
-#. It has to define spatial boundaries of the *Object* site.
+#. It has to define spatial boundaries of the *object* site.
 
-For example, proper Object definition could be following::
+For example, proper *object* definition could be following::
 
     (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147))
 
-It defines ``WAT`` as residues that should be traced and defines spatial constrains of the *Object* site as spherical zone within 6 Angstroms of the center of masses of residues with number 99 and 147.
+It defines ``WAT`` as residues that should be traced and defines spatial constrains of the *object* site as spherical zone within 6 Angstroms of the center of masses of residues with number 99 and 147.
 
 .. _scope_definition:
 
 Scope definition
 """"""""""""""""
 
-*Scope* can be defined in two ways: as *Object* but with broader boundaries or as the convex hull of selected molecular object.
+*Scope* can be defined in two ways: as *object* but with broader boundaries or as the convex hull of selected molecular object.
 
-In the first case definition is very similar to *Object* and it has to follow the same limitations. For example, proper *Scope* definition could be following::
+In the first case definition is very similar to *object* and it has to follow the same limitations. For example, proper *scope* definition could be following::
 
     resname WAT around 2.0 protein
 
 It consequently has to define ``WAT`` as residues of interest and defines spatial constrains: all ``WAT`` residues that are within 2 Angstroms of the protein.
 
-If the *Scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
+If the *scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
+
+Convex hulls of macromolecule atoms
+###################################
+
+AQ uses quickhull algorithm for convex hulls calculations (via SciPy class :class:`scipy.spatial.ConvexHull`, see also `<http://www.qhull.org/>`_ and original publication `The quickhull algorithm for convex hulls <http://dx.doi.org/10.1145/235815.235821>`_).
+
+Convex hull concept is used to check if traced molecules are inside of the macromolecule. Convex hull can be considered as rough approximation of molecular surface. Following picture shows schematic comparison of convex hull and solvent excluded surface:
+
+.. figure:: ch_vs_ses.png
+   :align:  center
+
+Convex hull (red shape) of atoms (blue dots with VdW spheres) and SES (blue line): a) Convex hull and SES cover roughly the same area, Convex hull approximates SES; b) movement of one atom dramatically changes SES, however, interior of the molecule as approximated by Convex hull remains stable.
+
+No doubts, Convex hull is a very rough approximation of SES. It has, however, one very important property when it is used to approximate interior of molecules: its interior does not considerably depend on the molecular conformation of a molecule (or molecular entity) in question.
 
 Raw paths
 ^^^^^^^^^
 
 The second stage of calculations uses the list of all traceable residues from the first stage and finds coordinates of center of masses for each residue in each frame. As in the first stage, it is done in a loop over all frames. For each residue in each frame *Valve* calculates or checks two things:
 
-#. Is the residue in the *Scope* (this is always calculated according to the Scope definition).
-#. Is the residue in the *Object*. This information is partially calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *Object* definition.
+#. Is the residue in the *scope* (this is always calculated according to the scope definition).
+#. Is the residue in the *object*. This information is partially calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *object* definition.
 
-For each of the *traceable residues* a special *Path* object is created. If the residue is in the *Scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *Object* or not.
+For each of the *traceable residues* a special *Path* object is created. If the residue is in the *scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *object* or not.
 
 
 Separate paths
 ^^^^^^^^^^^^^^
 
-The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *Scope* and the *Object* many times over the entire MD. Each such an event is considered by *Valve* as a separate path.
+The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *scope* and the *object* many times over the entire MD. Each such event is considered by *Valve* as a separate path.
 
 Each *separate path* comprises of three parts:
 
-#. *Incoming* - Defined as a path that leads from the point in which residue enters the *Scope* and enters the object for the firs time.
-#. *Object* - Defined as a path that leads from the point in which residue enters the *Object* for the first time and leaves it for the last time.
-#. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *Object* for the last lime and leaves the *Scope*.
+#. *Incoming* - Defined as a path that leads from the point in which residue enters the *scope* and enters the object for the first time.
+#. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time.
+#. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *object* for the last time and leaves the *scope*.
 
 It is also possible that incoming and/or outgoing part of the separate path is empty.
 
@@ -170,9 +184,16 @@ It is also possible that incoming and/or outgoing part of the separate path is e
 Auto Barber
 """""""""""
 
-After the initial search of *Separate Path* objects it is possible to run procedure which trims paths down to the approximated  surface of the macromolecule or other molecular entity defined by the user. This is done by removing parts of raw paths that are inside spheres that originate in the points marking these ends of separate paths that end at the boundary of `Scope`. Recreation of separate paths is run automatically after Auto Barber procedure.
+After the initial search of *Separate Path* objects it is possible to run procedure, Auto Barber, which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This trimming is done by creating collection of spheres that have centers at the ends of paths and radii equal to the distance for the center to the nearest atom of user defined molecular entity. Next, parts of raw paths that are inside these spheres are removed and separate paths are recreated.
 
-.. _clusterization_of_inlets:
+Auto Barber procedure has several options:
+
+* **auto_barber** allows to define molecular entity which is used to calculate radii of spheres used for trimming raw paths.
+* **auto_barber_mincut** allows to define minimal radius of spheres. Spheres of radius smaller then this value are not used in trimming.
+* **auto_barber_maxcut** allows to define maximal radius of spheres. Spheres of radius greater then this value are not used in trimming.
+* **auto_barber_tovdw** if set to `True` radii of spheres are corrected (decreased) by Van der Waals radius of the closest atom.
+
+See also :ref:`options of separate_paths <separate_paths_options>` stage.
 
 Smoothing
 """""""""
@@ -199,10 +220,14 @@ Aqua-Duct implements several smoothing methods:
 
 For detailed information on available configuration options see configuration file :ref:`smooth section <smoothing_options>` description.
 
+.. _clusterization_of_inlets:
+
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-Each of the separate paths has beginning and end. If they are at the boundaries of the *Scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *Scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
+.. _inlets_def:
+
+Each of the separate paths has beginning and end. If they are at the boundaries of the *scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
 
 Clusterization of inlets is performed in following steps:
 
@@ -224,15 +249,35 @@ For additional information see :ref:`clusterization sections <clusterization_opt
 Available methods
 """""""""""""""""
 
-Aqua-Duct implements several clustering methods:
+Aqua-Duct implements several clustering methods with :mod:`sklearn.cluster` module:
 
 #. :class:`~sklearn.cluster.MeanShift` - default for `Initial clusterization`, see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
 #. :class:`~sklearn.cluster.DBSCAN` - default for `Reclusterization of outliers`, see also original publication `A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise <https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf>`_
-#. :class:`~sklearn.cluster.AffinityPropagation`
-#. :class:`~sklearn.cluster.KMeans`
-#. :class:`~sklearn.cluster.Birch`
+#. :class:`~sklearn.cluster.AffinityPropagation` - see also original publication `Clustering by Passing Messages Between Data Points <http://dx.doi.org/10.1126/science.1136800>`_ (doi:10.1126/science.1136800)
+#. :class:`~sklearn.cluster.KMeans` - see also `k-means++: The advantages of careful seeding, Arthur, David, and Sergei Vassilvitskii <http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf>`_ in Proceedings of the eighteenth annual ACM-SIAM symposium on Discrete algorithms, Society for Industrial and Applied Mathematics (2007), pages 1027-1035.
+#. :class:`~sklearn.cluster.Birch` - see also `Tian Zhang, Raghu Ramakrishnan, Maron Livny BIRCH: An efficient data clustering method for large databases <http://www.cs.sfu.ca/CourseCentral/459/han/papers/zhang96.pdf>`_ and `Roberto Perdisci JBirch - Java implementation of BIRCH clustering algorithm <https://code.google.com/archive/p/jbirch>`_.
+
 
 For additional information see :ref:`clusterization sections <clusterization_options>` options.
+
+Master paths
+""""""""""""
+
+At the end of clusterization stage it is possible to run procedure for `master path` generation. First, separate paths are grouped according to clusters. Paths that begin and end in particular clusters are grouped together. Next, for each group a `master path` (i.e., average path) is generated in following steps:
+
+#. First, length of `master path` is determined. Lengths of each parts (incoming, object, outgoing) for each separate paths are normalized with bias towards longest paths. These normalized lengths are then used for as weights in averaging not normalized lengths. Values for all parts are summed and resulting value is the desired length of `master path`.
+#. All separate paths are divided into chunks. Number of chunks is equal to the desired length of `master path` calculated in the previous step. Lengths of separate paths can be quite diverse, therefore, for different paths chunks are of different lengths.
+#. For each chunk averaging procedure is run:
+
+    #. Coordinates for all separate paths for given chunk are collected.
+    #. Normalized lengths with bias toward longest paths for all separate paths for given chunk are collected.
+    #. New coordinates are calculated as weighted average of collected coordinates. As weights collected normalized lengths are used.
+    #. In addition width of chunk is calculated as a mean value of collected coordinates mutual distances.
+    #. Type of chunk is calculated as probability (frequency) of being in the `scope`.
+
+#. Results for all chunks are collected, types probability are changed to types. All data is then used to create Master Path. If this fails no path is created.
+
+More technical details on master path generation can be found in :meth:`aquaduct.geom.master.CTypeSpathsCollection.get_master_path` method documentation.
 
 Analysis
 ^^^^^^^^

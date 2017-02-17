@@ -41,6 +41,8 @@ Common settings of stage sections
 
 Stages 1-4 which perform calsulations have some common options allowig for execution control and saving/loading data.
 
+.. tabularcolumns:: |p{1.5cm}|p{3cm}|p{10cm}|
+
 ========    =================   ===================================================================
 Option      Default value       Description
 ========    =================   ===================================================================
@@ -64,6 +66,8 @@ dump        [dump file name]    File name of dump data. It is used to save resul
 ========    =================   ===================================================================
 
 Stages 5-6 also uses **execute** option, however, since they do not perform calculations `per se` in stead of **dump** option they use **save**.
+
+.. tabularcolumns:: |p{1.5cm}|p{3cm}|p{10cm}|
 
 ========    =================   ===================================================================
 Option      Default value       Description
@@ -112,6 +116,8 @@ Stage **raw_paths**
 
 This stage also requires definition of the *Scope* and *Object*. If appropriate settings are not given, settings from the previous stage are used.
 
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+
 =====================   ==============  ================================================================
 Option                  Default value   Description
 =====================   ==============  ================================================================
@@ -129,9 +135,12 @@ clear_in_object_info    False           If it is set to ``True`` information on 
                                         definition of *Object* was changed.
 =====================   ==============  ================================================================
 
+.. _separate_paths_options:
 
 Stage **separate_paths**
 ------------------------
+
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
 
 =====================   ==============  ================================================================
 Option                  Default value   Description
@@ -149,6 +158,14 @@ discard_short_paths     1               This option allows to discard paths that
 auto_barber             None            This option allows to select molecular entity used in Auto
                                         Barber procedure. See also :ref:`auto_barber_procedure` and
                                         :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
+auto_barber_mincut      None            Minimal radius of spheres used in Auto Barber. If a sphere has
+                                        radius smaller then this value it is not used to cut. This
+                                        option can be switched off by setting it to `None`.
+auto_barber_maxcut      2.8             Maximal radius of spheres used in Auto Barber. If a sphere has
+                                        radius greater then this value it is not used to cut. This
+                                        option can be switched off by setting it to `None`.
+auto_barber_tovdw       True            Correct cutting sphere by decreasing its radius by VdW radius
+                                        of the closest atom.
 =====================   ==============  ================================================================
 
 
@@ -187,83 +204,88 @@ dump_config             True            If set to ``True`` configuration options
 Stage **visualize**
 -------------------
 
-=====================   ================    ========================================================================================
-Option                  Default value       Description
-=====================   ================    ========================================================================================
-simply_smooths          RecursiveVector     Option indicates linear simplification method to be used in
-                                            plotting smooth paths. Simplification removes points which do
-                                            not (or almost do not) change the shape of smooth path.
-                                            Possible choices are:
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+.. table::
+    :class: longtable
 
-                                            * ``RecursiveVector`` (see :class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
-                                            * ``HobbitVector`` (see :class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
-                                            * ``OneWayVector`` (see :class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
-                                            * ``RecursiveTriangle`` (see :class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
-                                            * ``HobbitTriangle`` (see :class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
-                                            * ``OneWayTriangle`` (see :class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
+    =====================   ================    ==========================================================================================
+    Option                  Default value       Description
+    =====================   ================    ==========================================================================================
+    simply_smooths          RecursiveVector     Option indicates linear simplification method to be used in
+                                                plotting smooth paths. Simplification removes points which do
+                                                not (or almost do not) change the shape of smooth path.
+                                                Possible choices are:
 
-                                            Optionally name of the method can be followed by a threshold
-                                            value in parentheses, ie ``RecursiveVector(0.05)``. For sane
-                                            values of thresholds see appropriate documentation of each method.
-                                            Default values works well. This option is not case sensitive.
-                                            It is recommended to use default method or ``HobbitVector`` method.
-all_paths_raw           False               If True produces one object in PyMOL that holds all paths
-                                            visualized by raw coordinates.
-all_paths_smooth        False               If True produces one object in PyMOL that holds all paths
-                                            visualized by smooth coordinates.
-all_paths_split         False               If is set True objects produced by **all_paths_raw** and
-                                            **all_paths_smooth** are split into Incoming, Object, and
-                                            Outgoing parts and visualized as three different objects.
-all_paths_raw_io        False               If set True arrows pointing beginning and end of paths are
-                                            displayed oriented accordingly to raw paths orientation.
-all_paths_smooth_io     False               If set True arrows pointing beginning and end of paths are
-                                            displayed oriented accordingly to smooth paths orientation.
-paths_raw               False               If set True raw paths are displayed as separate objects or as
-                                            one object with states corresponding to number of path.
-paths_smooth            False               If set True smooth paths are displayed as separate objects or
-                                            as one object with states corresponding to number of path.
-paths_raw_io            False               If set True arrows indicating beginning and and of paths,
-                                            oriented accordingly to raw paths, are displayed as separate
-                                            objects or as one object with states corresponding to number
-                                            of paths.
-paths_smooth_io         False               If set True arrows indicating beginning and and of paths,
-                                            oriented accordingly to smooth paths, are displayed as separate
-                                            objects or as one object with states corresponding to number
-                                            of paths.
-paths_states            False               If True objects displayed by **paths_raw**, **paths_smooth**,
-                                            **paths_raw_io**, and **paths_smooth_io** are displayed as one
-                                            object with with states corresponding to number of paths.
-                                            Otherwise they are displayed as separate objects.
-ctypes_raw              False               Displays raw paths in a similar manner as non split
-                                            **all_paths_raw** but each cluster type is displayed in
-                                            separate object.
-ctypes_smooth           False               Displays smooth paths in a similar manner as non split
-                                            **all_paths_smooth** but each cluster type is displayed in
-                                            separate object.
-show_molecule           False               If is set to selection of some molecular object in the system,
-                                            for example to ``protein``, this object is displayed.
-show_molecule_frames    0                   Allows to indicate which frames of object defined by
-                                            **show_molecule** should be displayed. It is possible to set
-                                            several frames. In that case frames would be displayed as
-                                            states.
-show_chull              False               If is set to selection of some molecular object in the system,
-                                            for example to ``protein``, convex hull of this object is
-                                            displayed.
-show_chull_frames       0                   Allows to indicate for which frames of object defined by
-                                            **show_chull** convex hull should be displayed. It is possible
-                                            to set several frames. In that case frames would be displayed
-                                            as states.
-show_object             False               If is set to selection of some molecular object in the system
-                                            convex hull of this object is displayed. This works exacly the
-                                            same way as **show_chull** but is meant to mark object shape.
-                                            It can be achevied by using `name * and` molecular object
-                                            definition plus some spatial constrains, for example those
-                                            used in object definition.
-show_object_frames      0                   Allows to indicate for which frames of object defined by
-                                            **show_object** convex hull should be displayed. It is possible
-                                            to set several frames. In that case frames would be displayed
-                                            as states.
-=====================   ================    ========================================================================================
+                                                * ``RecursiveVector``
+                                                  (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
+                                                * ``HobbitVector`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
+                                                * ``OneWayVector`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
+                                                * ``RecursiveTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
+                                                * ``HobbitTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
+                                                * ``OneWayTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
+
+                                                Optionally name of the method can be followed by a threshold
+                                                value in parentheses, ie ``RecursiveVector(0.05)``. For sane
+                                                values of thresholds see appropriate documentation of each method.
+                                                Default values works well. This option is not case sensitive.
+                                                It is recommended to use default method or ``HobbitVector`` method.
+    all_paths_raw           False               If True produces one object in PyMOL that holds all paths
+                                                visualized by raw coordinates.
+    all_paths_smooth        False               If True produces one object in PyMOL that holds all paths
+                                                visualized by smooth coordinates.
+    all_paths_split         False               If is set True objects produced by **all_paths_raw** and
+                                                **all_paths_smooth** are split into Incoming, Object, and
+                                                Outgoing parts and visualized as three different objects.
+    all_paths_raw_io        False               If set True arrows pointing beginning and end of paths are
+                                                displayed oriented accordingly to raw paths orientation.
+    all_paths_smooth_io     False               If set True arrows pointing beginning and end of paths are
+                                                displayed oriented accordingly to smooth paths orientation.
+    paths_raw               False               If set True raw paths are displayed as separate objects or as
+                                                one object with states corresponding to number of path.
+    paths_smooth            False               If set True smooth paths are displayed as separate objects or
+                                                as one object with states corresponding to number of path.
+    paths_raw_io            False               If set True arrows indicating beginning and end of paths,
+                                                oriented accordingly to raw paths, are displayed as separate
+                                                objects or as one object with states corresponding to number
+                                                of paths.
+    paths_smooth_io         False               If set True arrows indicating beginning and and of paths,
+                                                oriented accordingly to smooth paths, are displayed as separate
+                                                objects or as one object with states corresponding to number
+                                                of paths.
+    paths_states            False               If True objects displayed by **paths_raw**, **paths_smooth**,
+                                                **paths_raw_io**, and **paths_smooth_io** are displayed as one
+                                                object with with states corresponding to number of paths.
+                                                Otherwise they are displayed as separate objects.
+    ctypes_raw              False               Displays raw paths in a similar manner as non split
+                                                **all_paths_raw** but each cluster type is displayed in
+                                                separate object.
+    ctypes_smooth           False               Displays smooth paths in a similar manner as non split
+                                                **all_paths_smooth** but each cluster type is displayed in
+                                                separate object.
+    show_molecule           False               If is set to selection of some molecular object in the system,
+                                                for example to ``protein``, this object is displayed.
+    show_molecule_frames    0                   Allows to indicate which frames of object defined by
+                                                **show_molecule** should be displayed. It is possible to set
+                                                several frames. In that case frames would be displayed as
+                                                states.
+    show_chull              False               If is set to selection of some molecular object in the system,
+                                                for example to ``protein``, convex hull of this object is
+                                                displayed.
+    show_chull_frames       0                   Allows to indicate for which frames of object defined by
+                                                **show_chull** convex hull should be displayed. It is possible
+                                                to set several frames. In that case frames would be displayed
+                                                as states.
+    show_object             False               If is set to selection of some molecular object in the system
+                                                convex hull of this object is displayed. This works exacly the
+                                                same way as **show_chull** but is meant to mark object shape.
+                                                It can be achevied by using `name * and` molecular object
+                                                definition plus some spatial constrains, for example those
+                                                used in object definition.
+    show_object_frames      0                   Allows to indicate for which frames of object defined by
+                                                **show_object** convex hull should be displayed. It is possible
+                                                to set several frames. In that case frames would be displayed
+                                                as states.
+    =====================   ================    ==========================================================================================
 
 
 .. note::
@@ -284,6 +306,8 @@ Clusterization sections
 -----------------------
 
 Default section for definition of clusterization method is named **clusterization** and default section for reclusterization method definition is named **reclusterization**. All clusterization sections shares some common options. Other options depends on the method.
+
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
 
 =========================   =============== ================================================================
 Option                      Default value   Description
@@ -309,6 +333,8 @@ dbscan
 ^^^^^^
 
 For detailed description look at :class:`sklearn.cluster.DBSCAN` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -341,6 +367,8 @@ affprop
 
 For detailed description look at :class:`~sklearn.cluster.AffinityPropagation` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+
 =========================   =============== ================================================================
 Option                      Value type      Description
 =========================   =============== ================================================================
@@ -356,6 +384,8 @@ meanshift
 ^^^^^^^^^
 
 For detailed description look at :class:`~sklearn.cluster.MeanShift` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -378,6 +408,8 @@ birch
 
 For detailed description look at :class:`~sklearn.cluster.Birch` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+
 =========================   =============== ================================================================
 Option                      Value type      Description
 =========================   =============== ================================================================
@@ -395,6 +427,8 @@ kmeans
 ^^^^^^
 
 For detailed description look at :class:`~sklearn.cluster.KMeans` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -418,6 +452,8 @@ Smooth section
 --------------
 
 Section **smooth** supports following options:
+
+.. tabularcolumns:: |p{2.0cm}|p{2.0cm}|p{10.5cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
