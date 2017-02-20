@@ -23,7 +23,8 @@ import numpy as np
 from collections import namedtuple
 from scipy.spatial.distance import pdist, squareform
 import copy
-
+from itertools import izip_longest
+    
 from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
 
@@ -193,6 +194,7 @@ class Inlets(object):
         self.inlets_ids = []
         self.clusters = []
         self.number_of_clustered_inlets = None
+        self.radii = []
 
         for spath in spaths:
             self.extend_inlets(spath)
@@ -215,6 +217,13 @@ class Inlets(object):
         assert len(clusters) == len(self.inlets_list)
         self.clusters = clusters
 
+    def add_radii(self, radii):
+        assert len(radii) == len(self.inlets_list)
+        self.radii = radii
+
+    def get_inlets_references(self):
+        return [inl.reference for inl in self.inlets_list]
+
     # basic properites
 
     @property
@@ -233,18 +242,18 @@ class Inlets(object):
     def refs(self):
         return [inlet.reference for inlet in self.inlets_list]
 
-    def call_clusterization_method(self, method, data):
+    def call_clusterization_method(self, method, data, radii=None):
         # this method runs clusterization method against provided data
         # if center_of_system was set then use distance matrix...
         if self.center_of_system is not None:
-            return method(np.array(data)-self.center_of_system)
-        return method(np.array(data))
+            return method(np.array(data)-self.center_of_system, radii=radii)
+        return method(np.array(data),radii=radii)
 
 
     def perform_clustering(self, method):
         # this do clean clustering, all previous clusters are discarded
         # 0 means outliers
-        self.add_cluster_annotations(self.call_clusterization_method(method,self.coords))
+        self.add_cluster_annotations(self.call_clusterization_method(method,self.coords,radii=self.radii))
         self.number_of_clustered_inlets = len(self.clusters)
         clui.message("New clusters created: %s" % (' '.join(map(str, sorted(set(self.clusters))))))
         # renumber clusters
@@ -406,11 +415,12 @@ class Inlets(object):
         new_inlets = self.__class__([], onlytype=self.onlytype)
         new_inlets.number_of_clustered_inlets = self.number_of_clustered_inlets
 
-        for inlet, ids, cluster, w in zip(self.inlets_list, self.inlets_ids, self.clusters, what):
+        for inlet, ids, cluster, radius, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters, self.radii, what):
             if w in towhat:
                 new_inlets.inlets_list.append(inlet)
                 new_inlets.inlets_ids.append(ids)
                 new_inlets.clusters.append(cluster)
+                new_inlets.radii.append(radius)
 
         return new_inlets
 

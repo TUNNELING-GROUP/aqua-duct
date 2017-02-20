@@ -35,7 +35,9 @@ class Sphere(namedtuple('ABSphere', 'center radius')):
 
 class WhereToCut(object):
     # creates collection of Spheres
-    def __init__(self,spaths,traj_reader,selection=None,mincut=None,maxcut=None,tovdw=False):
+    def __init__(self,spaths,traj_reader,selection=None,mincut=None,maxcut=None,tovdw=False,forceempty=False):
+        # force empty means that empty spheres are also returned with radius 0
+        self.forceempty = forceempty
         self.selection = selection
         self.mincut = mincut
         self.maxcut = maxcut
@@ -47,11 +49,13 @@ class WhereToCut(object):
 
     def check_minmaxcuts(self):
         mincut = False
+        mincut_val = None
         if self.mincut is not None:
             mincut = True
             mincut_val = float(self.mincut)
             logger.debug('mincut set to %0.2f', mincut_val)
         maxcut = False
+        maxcut_val = None
         if self.maxcut is not None:
             maxcut = True
             maxcut_val = float(self.maxcut)
@@ -82,16 +86,20 @@ class WhereToCut(object):
                 if self.tovdw:
                     vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
                 radius = min(distances) - vdwradius
+                make_sphere = True
                 if radius <= 0:
                     logger.debug('VdW correction resulted in <= 0 radius.')
-                    continue
+                    make_sphere = False
                 if mincut and radius < mincut_val:
                     logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
-                    continue
+                    make_sphere = False
                 if maxcut and radius > maxcut_val:
                     logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
-                    continue
-                self.spheres.append(Sphere(center, radius))
+                    make_sphere = False
+                if make_sphere:
+                    self.spheres.append(Sphere(center, radius))
+                elif self.forceempty:
+                    self.spheres.append(Sphere(center, 0))
             pbar.update(1)
         pbar.finish()
 

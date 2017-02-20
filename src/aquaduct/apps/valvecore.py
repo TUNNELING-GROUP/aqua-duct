@@ -62,7 +62,7 @@ from aquaduct.traj.paths import GenericPaths, yield_single_paths
 from aquaduct.traj.reader import ReadViaMDA,atom2vdw_radius
 from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
-from aquaduct.utils.helpers import range2int, Auto, what2what, lind
+from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.traj.barber import WhereToCut
 
@@ -815,16 +815,28 @@ def get_clustering_method(coptions,config):
     def barber_opts():
         abo = config.get_stage_options(2)
         if abo.auto_barber:
-            opts.update({'barber': str(abo.auto_barber)})
-            opts.update({'mincut': float(abo.auto_barber_mincut)})
-            opts.update({'maxcut': float(abo.auto_barber_maxcut)})
+            opts.update({'selection': str(abo.auto_barber)})
+            if is_number(abo.auto_barber_mincut):
+                opts.update({'mincut': float(abo.auto_barber_mincut)})
+            else:
+                opts.update({'mincut': None})
+            if is_number(abo.auto_barber_maxcut):
+                opts.update({'maxcut': float(abo.auto_barber_maxcut)})
+            else:
+                opts.update({'maxcut': None})
             opts.update({'tovdw': bool(abo.auto_barber_tovdw)})
-        if 'barber' in coptions._asdict():
-            opts.update({'barber': str(coptions.barber)})
+        if 'selection' in coptions._asdict():
+            opts.update({'selection': str(coptions.barber)})
         if 'mincut' in coptions._asdict():
-            opts.update({'mincut': float(coptions.mincut)})
+            if is_number(coptions.mincut):
+                opts.update({'mincut': float(coptions.mincut)})
+            else:
+                opts.update({'mincut': None})
         if 'maxcut' in coptions._asdict():
-            opts.update({'maxcut': float(coptions.maxcut)})
+            if is_number(coptions.maxcut):
+                opts.update({'maxcut': float(coptions.maxcut)})
+            else:
+                opts.update({'maxcut': None})
         if 'tovdw' in coptions._asdict():
             opts.update({'tovdw': bool(coptions.tovdw)})
 
@@ -1232,9 +1244,11 @@ def get_skip_size_function(rt=None):
     return lambda size_of_cluster: operator_dict[op](vl, size_of_cluster)
 
 
-def potentially_recursive_clusterization(config,
-                                         clusterization_name,
-                                         inlets_object,
+def potentially_recursive_clusterization(config=None,
+                                         clusterization_name=None,
+                                         inlets_object=None,
+                                         spaths=None,
+                                         traj_reader=None,
                                          message='clusterization',
                                          deep=0,
                                          max_level=5):
@@ -1246,6 +1260,15 @@ def potentially_recursive_clusterization(config,
             clui.message("%s = %s" % (str(k), str(v)))
         # TODO: Print clusterization options in a nice way!
         clustering_function = get_clustering_method(cluster_options,config)
+        # special case of barber!!!
+        if cluster_options.method == 'barber':
+            inlets_refs = inlets_object.get_inlets_references()
+            wtc = WhereToCut([sp for sp in spaths if sp.id in inlets_refs],
+                             traj_reader,
+                             forceempty=True,
+                             **clustering_function.method_kwargs)
+            radii = [sphe.radius for sphe in wtc.spheres]
+            inlets_object.add_radii(radii)
         # get skip_size function according to recursive_treshold
         skip_size = get_skip_size_function(cluster_options.recursive_threshold)
         inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
@@ -1254,14 +1277,20 @@ def potentially_recursive_clusterization(config,
         deep += 1
         if deep > max_level:
             return
-        return potentially_recursive_clusterization(config, cluster_options.recursive_clusterization, inlets_object,
-                                                    deep=deep, max_level=max_level)
+        return potentially_recursive_clusterization(config=config,
+                                                    clusterization_name=cluster_options.recursive_clusterization,
+                                                    inlets_object=inlets_object,
+                                                    spaths=spaths,
+                                                    traj_reader=traj_reader,
+                                                    deep=deep,
+                                                    max_level=max_level)
 
 
 # inlets_clusterization
 def stage_IV_run(config, options,
                  spaths=None,
                  center_of_system=None,
+                 reader=None,
                  **kwargs):
     coptions = config.get_cluster_options()
     rcoptions = config.get_recluster_options()
@@ -1284,9 +1313,15 @@ def stage_IV_run(config, options,
 
     if inls.size > 0:
         # ***** CLUSTERIZATION *****
-        potentially_recursive_clusterization(config, config.cluster_name(), inls,
-                                             message='clusterization',
-                                             max_level=max_level)
+        with clui.fbm("Performing clusterization", cont=False):
+            with reader.get() as traj_reader:
+                potentially_recursive_clusterization(config=config,
+                                                     clusterization_name=config.cluster_name(),
+                                                     inlets_object=inls,
+                                                     spaths=spaths,
+                                                     traj_reader=traj_reader,
+                                                     message='clusterization',
+                                                     max_level=max_level)
         # with log.fbm("Performing clusterization"):
         #    clustering_function = get_clustering_method(coptions)
         #    inls.perform_clustering(clustering_function)
@@ -1318,14 +1353,20 @@ def stage_IV_run(config, options,
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
             with clui.fbm("Performing reclusterization of outliers", cont=False):
-                potentially_recursive_clusterization(config, config.recluster_name(), inls,
+                with reader.get() as traj_reader:
+                    '''
+                    potentially_recursive_clusterization(config=config,
+                                                     clusterization_name=config.recluster_name(),
+                                                     inlets_object=inls,
+                                                     spaths=spaths,
+                                                     traj_reader=traj_reader,
                                                      message='reclusterization',
                                                      max_level=max_level)
-
-                # clustering_function = get_clustering_method(rcoptions)
-                # perform reclusterization
-                # inls.recluster_outliers(clustering_function)
-                # inls.recluster_cluster(clustering_function, 0)
+                    '''
+                    clustering_function = get_clustering_method(rcoptions,config)
+                    # perform reclusterization
+                    # inls.recluster_outliers(clustering_function)
+                    inls.recluster_cluster(clustering_function, 0)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
         # ***** SINGLETONS REMOVAL *****
