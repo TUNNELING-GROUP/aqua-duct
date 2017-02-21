@@ -1380,7 +1380,10 @@ def stage_IV_run(config, options,
             clui.message('Number of outliers: %d' % noo())
 
         clui.message('Clustering history:')
-        clui.message(clui.PrintSimpleTree(inls.tree).outstr.strip())
+        if len(inls.tree.message):
+            clui.message(' '.join(inls.tree.message))
+        clui.message(clui.PrintSimpleTree(inls.tree).outstr.strip('\n'))
+        print inls.tree
 
         with clui.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)

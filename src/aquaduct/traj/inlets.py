@@ -251,8 +251,8 @@ class Inlets(object):
             return method(np.array(data)-self.center_of_system, radii=radii)
         return method(np.array(data),radii=radii)
 
-    def get_flat_tree(self):
-        st = clui.SimpleTree()
+    def get_flat_tree(self,message=None):
+        st = clui.SimpleTree(message=message)
         [st.add_leaf(leaf) for leaf in self.clusters_list]
         return st
 
@@ -265,7 +265,7 @@ class Inlets(object):
         # renumber clusters
         # self.renumber_clusters()
         # return clusters as simple tree
-        self.tree = self.get_flat_tree()
+        self.tree = self.get_flat_tree(message=str(method))
 
     def perform_reclustering(self, method, skip_outliers=False, skip_size=None):
         # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
@@ -310,7 +310,7 @@ class Inlets(object):
                 for nr, r in enumerate(reclust):
                     if r != 0:
                         reclust[nr] = r + max_cluster
-                [self.tree.add_leaf(leaf,cluster) for leaf in sorted(list(set(reclust)))]
+                [self.tree.add_leaf(leaf,cluster,message=str(method)) for leaf in sorted(list(set(reclust)))]
                 if out_reclust:
                     clui.message('The old cluster %d will be split into new clusters: %s' % (
                         cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))
@@ -337,7 +337,7 @@ class Inlets(object):
             if c == 0:
                 continue
             if self.clusters.count(c) <= maxsize:
-                self.tree.add_leaf(0,c)
+                self.tree.add_leaf(0,c,message='|%d| to outliers' % maxsize)
                 for nr, cc in enumerate(self.clusters):
                     if cc == c:
                         self.clusters[nr] = 0

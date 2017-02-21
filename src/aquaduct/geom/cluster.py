@@ -94,6 +94,10 @@ class PerformClustering(object):
         self.method_results = None
         self.clusters = None
 
+    def __str__(self):
+        out = str(self.method.__name__)
+        return out
+
     def __call__(self, coords, radii=None):
         # compatibility
         return self.fit(coords, radii=radii)
@@ -139,3 +143,4 @@ class PerformClustering(object):
         if hasattr(self.method_results, 'cluster_centers_'):
             return self.method_results.cluster_centers_
         raise NotImplementedError('Cluster centers is not implemented for %r method yet.' % self.method)
+

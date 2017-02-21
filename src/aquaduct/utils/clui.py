@@ -414,34 +414,69 @@ def get_str_timestamp():
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
 
 
+from collections import OrderedDict
+
+
 class SimpleTree(object):
+    def __init__(self, tree=None, message=None):
+        if tree is None:
+            self.tree = OrderedDict()
+        else:
+            self.tree = tree
+        if message is not None:
+            self.message = [message]
+            print "    * init message", message
+        else:
+            self.message = []
 
-    def __init__(self,tree=OrderedDict()):
+    def __len__(self):
+        return len(self.tree)
 
-        self.tree_structure = tree
-    def add_leaf(self,leaf,toleaf=None):
+    def __getitem__(self, item):
+        return self.tree[item]
+
+    def iteritems(self, *args, **kwargs):
+        return self.tree.iteritems(*args, **kwargs)
+
+    def update(self, *args, **kwargs):
+        return self.tree.update(*args, **kwargs)
+
+    def keys(self, *args, **kwargs):
+        return self.tree.keys(*args, **kwargs)
+
+    def add_leaf(self, leaf, toleaf=None, message=None):
         if toleaf is None:
-            self.tree_structure.update({leaf:{}})
+            # self.tree.update({leaf:{}})
+            self.update({leaf: SimpleTree(message=message)})
             print "    * add new leaf", leaf
         else:
-            if toleaf in self.tree_structure.keys():
-                branch = self.tree_structure[toleaf]
-                branch.update({leaf:{}})
-                print "    * add new leaf", leaf,"to",toleaf
+            if toleaf in self.keys():
+                branch = self.tree[toleaf]
+                if message is not None and (not len(branch.message) or (branch.message[-1] != message)):
+                    branch.message += [message]
+                    print "    * added message", message
+                print "    *", branch
+                branch.update({leaf: SimpleTree(message=None)})
+                print "    * add new leaf", leaf, "to", toleaf,message
             else:
-                for keyleaf,branch in self.tree_structure.iteritems():
-                    st = SimpleTree(branch)
-                    print "    * try to add new leaf", leaf, "to",toleaf,"using", keyleaf,"branch"
-                    st.add_leaf(leaf,toleaf)
-                    self.tree_structure.update({keyleaf: st.tree_structure})
+                for keyleaf, branch in self.tree.iteritems():
+                    st = SimpleTree(branch, message=message)
+                    print "    * try to add new leaf", leaf, "to", toleaf, "using", keyleaf, "branch"
+                    st.add_leaf(leaf, toleaf)
+                    self.tree.update({keyleaf: st.tree})
 
+    def __repr__(self):
+        # return str(self.tree)
+        return str(self.tree) + '[' + str(self.message) + "]"
 
 class PrintSimpleTree(object):
     def __init__(self, simpletree, prefix="    "):
         if isinstance(simpletree, SimpleTree):
-            self.tree = simpletree.tree_structure
+            self.tree = simpletree.tree
+            self.message = simpletree.message
         else:
             self.tree = simpletree
+            self.message = None
         self.prefix = prefix
         self.outstr = ''
         self.leaf_name_lenght = 0
@@ -469,7 +504,10 @@ class PrintSimpleTree(object):
                     if nr + 1 == n:
                         self.outstr += self.prefix + '\n'
                 else:
-                    self.outstr += self.prefix + self.get_leaf_name(keyleaf) + '-+\n'
+                    self.outstr += self.prefix + self.get_leaf_name(keyleaf) + '-+'
+                    if len(branch.message):
+                        self.outstr += ' '+'; '.join(branch.message)
+                    self.outstr += '\n'
                     '''
                     if nr + 1 < n:
                         self.outstr += self.prefix+'|'+' |\n'
@@ -482,6 +520,4 @@ class PrintSimpleTree(object):
                     pst = PrintSimpleTree(branch, self.prefix + '|' + ' ' * (self.leaf_name_lenght))
                 self.outstr += pst.outstr
         #self.outstr = self.outstr.strip()
-
-
 
