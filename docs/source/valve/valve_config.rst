@@ -312,10 +312,10 @@ Default section for definition of clusterization method is named **clusterizatio
 =========================   =============== ================================================================
 Option                      Default value   Description
 =========================   =============== ================================================================
-method                      meanshift or    Name of clasteriation method. It have to be one of the
-                            dbscan          following: dbscan, affprop, meanshift, birch, kmeans. Default
-                                            value depends if it is **clusteriation** section (meanshift) or
-                                            **reclusterization** section (dbscan).
+method                      barber or       Name of clusterization method. It have to be one of the
+                            dbscan          following: barber, dbscan, affprop, meanshift, birch, kmeans.
+                                            Default value depends if it is **clusteriation** section
+                                            (barber) or **reclusterization** section (dbscan).
 recursive_clusterization    clusterization  If it is set to name of some section that holds clusterization
                             or None         method settings this method will be called in the next
                                             recursion of clusteriation. Default value for
@@ -328,6 +328,30 @@ recursive_threshold         None            Allows to set threshold of that excl
 =========================   =============== ================================================================
 
 .. _clusterization_methods:
+
+barber
+^^^^^^
+
+Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** Stage settings or according to parameters given in clausterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped in to clusters. Method **barber** supports the same settings as Auto Barber settings:
+
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+
+=====================   ==============  ================================================================
+Option                  Value type      Description
+=====================   ==============  ================================================================
+auto_barber             str             This option allows to select molecular entity used in Auto
+                                        Barber procedure. See also :ref:`auto_barber_procedure` and
+                                        :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
+auto_barber_mincut      float           Minimal radius of spheres used in Auto Barber. If a sphere has
+                                        radius smaller then this value it is not used to cut. This
+                                        option can be switched off by setting it to `None`.
+auto_barber_maxcut      float           Maximal radius of spheres used in Auto Barber. If a sphere has
+                                        radius greater then this value it is not used to cut. This
+                                        option can be switched off by setting it to `None`.
+auto_barber_tovdw       bool            Correct cutting sphere by decreasing its radius by VdW radius
+                                        of the closest atom.
+=====================   ==============  ================================================================
+
 
 dbscan
 ^^^^^^

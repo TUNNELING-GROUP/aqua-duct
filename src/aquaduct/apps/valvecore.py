@@ -331,7 +331,7 @@ class ValveConfig(object, ConfigSpecialNames):
         # clusterization
         section = self.cluster_name()
         config.add_section(section)
-        config.set(section, 'method', 'meanshift')
+        config.set(section, 'method', 'barber')
         config.set(section, self.recursive_clusterization_name(), self.cluster_name())
         config.set(section, self.recursive_threshold_name(), 'False')
 

@@ -5,7 +5,8 @@ Aqua-Duct changelog
     * Added mario script, WIP.
     * Fixed bug in visualization script; if no molecule is kept do not set style and color.
     * Barber moved to separate module.
-    * Fixed bug in reclusterization; use potentially recursive procedure.
+    * Bug identified, fix pending: reclusterization is not run in a recursive manner.
+    * Major improvement: new auto_barber based clustering method.
 * 0.3.1
     * AutoBarber tovdw option.
     * AutoBarber minimal and maximal cut options.

@@ -6,6 +6,7 @@ Submodules
 
 .. toctree::
 
+   aquaduct.traj.barber
    aquaduct.traj.dumps
    aquaduct.traj.inlets
    aquaduct.traj.paths
