@@ -8,6 +8,7 @@ Aqua-Duct changelog
     * Bug identified, fix pending: reclusterization is not run in a recursive manner.
     * Major improvement: new auto_barber based clustering method.
     * If barber is used for clusterization, apropriate radii are displayed.
+    * Clusterization history displayed as simple ascii tree.
 * 0.3.1
     * AutoBarber tovdw option.
     * AutoBarber minimal and maximal cut options.
