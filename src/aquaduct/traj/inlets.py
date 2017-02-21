@@ -20,7 +20,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 import numpy as np
-from collections import namedtuple
+from collections import namedtuple,OrderedDict
 from scipy.spatial.distance import pdist, squareform
 import copy
 from itertools import izip_longest
@@ -196,6 +196,8 @@ class Inlets(object):
         self.number_of_clustered_inlets = None
         self.radii = []
 
+        self.tree = clui.SimpleTree()
+
         for spath in spaths:
             self.extend_inlets(spath)
 
@@ -249,6 +251,10 @@ class Inlets(object):
             return method(np.array(data)-self.center_of_system, radii=radii)
         return method(np.array(data),radii=radii)
 
+    def get_flat_tree(self):
+        st = clui.SimpleTree()
+        [st.add_leaf(leaf) for leaf in self.clusters_list]
+        return st
 
     def perform_clustering(self, method):
         # this do clean clustering, all previous clusters are discarded
@@ -258,6 +264,8 @@ class Inlets(object):
         clui.message("New clusters created: %s" % (' '.join(map(str, sorted(set(self.clusters))))))
         # renumber clusters
         # self.renumber_clusters()
+        # return clusters as simple tree
+        self.tree = self.get_flat_tree()
 
     def perform_reclustering(self, method, skip_outliers=False, skip_size=None):
         # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
@@ -279,6 +287,7 @@ class Inlets(object):
         self.number_of_clustered_inlets = len(self.clusters)
         # renumber clusters
         # self.renumber_clusters()
+        # return clusters as simple tree
 
     #CLUSTER
     def recluster_cluster(self, method, cluster):
@@ -301,6 +310,7 @@ class Inlets(object):
                 for nr, r in enumerate(reclust):
                     if r != 0:
                         reclust[nr] = r + max_cluster
+                [self.tree.add_leaf(leaf,cluster) for leaf in sorted(list(set(reclust)))]
                 if out_reclust:
                     clui.message('The old cluster %d will be split into new clusters: %s' % (
                         cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))
@@ -327,6 +337,7 @@ class Inlets(object):
             if c == 0:
                 continue
             if self.clusters.count(c) <= maxsize:
+                self.tree.add_leaf(0,c)
                 for nr, cc in enumerate(self.clusters):
                     if cc == c:
                         self.clusters[nr] = 0

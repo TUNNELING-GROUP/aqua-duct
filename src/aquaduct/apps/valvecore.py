@@ -1273,6 +1273,9 @@ def potentially_recursive_clusterization(config=None,
         skip_size = get_skip_size_function(cluster_options.recursive_threshold)
         inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
     clui.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
+
+    print clui.PrintSimpleTree(inlets_object.tree).outstr
+
     if cluster_options.recursive_clusterization:
         deep += 1
         if deep > max_level:
@@ -1375,6 +1378,9 @@ def stage_IV_run(config, options,
                 inls.small_clusters_to_outliers(int(options.singletons_outliers))
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
+
+        clui.message('Clustering history:')
+        clui.message(clui.PrintSimpleTree(inls.tree).outstr.strip())
 
         with clui.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)

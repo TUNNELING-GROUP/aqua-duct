@@ -32,7 +32,7 @@ from os import linesep
 from sys import stderr
 
 from multiprocessing import Queue, Manager, Lock, Value, Process
-
+from collections import OrderedDict
 
 def emit_message_to_file_in_root_logger(mess):
     # emits message to the file used by file handler in the root logger
@@ -416,9 +416,72 @@ def get_str_timestamp():
 
 class SimpleTree(object):
 
-    def __init__(self):
-        self.tree_structure = {}
+    def __init__(self,tree=OrderedDict()):
 
+        self.tree_structure = tree
+    def add_leaf(self,leaf,toleaf=None):
+        if toleaf is None:
+            self.tree_structure.update({leaf:{}})
+            print "    * add new leaf", leaf
+        else:
+            if toleaf in self.tree_structure.keys():
+                branch = self.tree_structure[toleaf]
+                branch.update({leaf:{}})
+                print "    * add new leaf", leaf,"to",toleaf
+            else:
+                for keyleaf,branch in self.tree_structure.iteritems():
+                    st = SimpleTree(branch)
+                    print "    * try to add new leaf", leaf, "to",toleaf,"using", keyleaf,"branch"
+                    st.add_leaf(leaf,toleaf)
+                    self.tree_structure.update({keyleaf: st.tree_structure})
+
+
+class PrintSimpleTree(object):
+    def __init__(self, simpletree, prefix="    "):
+        if isinstance(simpletree, SimpleTree):
+            self.tree = simpletree.tree_structure
+        else:
+            self.tree = simpletree
+        self.prefix = prefix
+        self.outstr = ''
+        self.leaf_name_lenght = 0
+        for leaf in self.tree:
+            self.leaf_name_lenght = max(self.leaf_name_lenght,
+                                        len(self.get_leaf_name(leaf)))
+        self.print_tree()
+
+    def get_leaf_name(self, leaf):
+        name = str(leaf)
+        while len(name) < self.leaf_name_lenght:
+            name += '-'
+        return name
+
+    def print_tree(self):
+        # if is empty
+        if len(self.tree) == 0:
+            return
+        else:
+            # self.outstr += self.prefix+'|\n'
+            n = len(self.tree)
+            for nr, (keyleaf, branch) in enumerate(self.tree.iteritems()):
+                if len(branch) == 0:
+                    self.outstr += self.prefix + str(keyleaf) + '\n'
+                    if nr + 1 == n:
+                        self.outstr += self.prefix + '\n'
+                else:
+                    self.outstr += self.prefix + self.get_leaf_name(keyleaf) + '-+\n'
+                    '''
+                    if nr + 1 < n:
+                        self.outstr += self.prefix+'|'+' |\n'
+                    else:
+                        self.outstr += self.prefix+' '+' |\n'
+                    '''
+                if nr + 1 == n:
+                    pst = PrintSimpleTree(branch, self.prefix + ' ' + ' ' * (self.leaf_name_lenght))
+                else:
+                    pst = PrintSimpleTree(branch, self.prefix + '|' + ' ' * (self.leaf_name_lenght))
+                self.outstr += pst.outstr
+        #self.outstr = self.outstr.strip()
 
 
 
