@@ -97,8 +97,10 @@ class WhereToCut(object):
                     logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
                     make_sphere = False
                 if make_sphere:
+                    logger.debug('Added sphere of radius %0.2f' % radius)
                     self.spheres.append(Sphere(center, radius))
                 elif self.forceempty:
+                    logger.debug('Added sphere of radius 0')
                     self.spheres.append(Sphere(center, 0))
             pbar.update(1)
         pbar.finish()

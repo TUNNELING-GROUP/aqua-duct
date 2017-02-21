@@ -1974,6 +1974,9 @@ def stage_VI_run(config, options,
                 else:
                     c_name = str(int(c))
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
+                radii = inls.lim2clusters(c).radii
+                if len(radii)>0:
+                    spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
 
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):

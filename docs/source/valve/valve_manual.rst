@@ -347,7 +347,8 @@ Molecule is loaded as PDB file. Other objects like Inlets clusters or paths are 
 Following is a list of objects created in PyMOL (all of them are optional). PyMOL object names given in **bold** text or short explanation is given.
 
 * Selected frame of the simulated system. Object name: *molecule*.
-* Inlets clusters, each cluster is a separate object. Object name: **cluster_** followed by cluster annotation: otliers are annotated as Out; regular clusters by ID.
+* Inlets clusters, each cluster is a separate object. Object name: **cluster_** followed by cluster annotation: outliers are annotated as Out; regular clusters by ID.
+* Inlets clusters radii, each cluster is a separate object. Object name: **cluster_radii_** followed by cluster annotation: outliers are annotated as Out; regular clusters by ID. Displayed only if **barber** method was used for clusterization.
 * List of cluster types, raw paths. Each cluster type is a separate object. Object name composed of cluster type (colon replaced by underline) plus **_raw**.
 * List of cluster types, smooth paths. Each cluster type is a separate object. Object name composed of cluster type (colon replaced by underline) plus **_smooth**.
 * All raw paths. They can be displayed as one object or separated in to Incoming, Object and Outgoing part. Object name: **all_raw**, or **all_raw_in**, **all_raw_obj**, and **all_raw_out**.

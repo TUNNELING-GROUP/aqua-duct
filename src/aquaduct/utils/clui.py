@@ -412,3 +412,13 @@ pbar = SimpleProgressBar  # default progress bar
 def get_str_timestamp():
     # returns time stamp as string
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
+
+
+class SimpleTree(object):
+
+    def __init__(self):
+        self.tree_structure = {}
+
+
+
+
