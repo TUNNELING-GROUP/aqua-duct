@@ -24,7 +24,7 @@ from collections import namedtuple,OrderedDict
 from scipy.spatial.distance import pdist, squareform
 import copy
 from itertools import izip_longest
-    
+
 from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
 
@@ -252,8 +252,9 @@ class Inlets(object):
         return method(np.array(data),radii=radii)
 
     def get_flat_tree(self,message=None):
-        st = clui.SimpleTree(message=message)
-        [st.add_leaf(leaf) for leaf in self.clusters_list]
+        st = clui.SimpleTree(name='all inlets',message='size: %d' % self.size)
+        st.add_message(message)
+        [st.add_leaf(name=leaf,message='size: %d' % csize) for leaf,csize in zip(self.clusters_list,self.clusters_size)]
         return st
 
     def perform_clustering(self, method):
@@ -310,7 +311,7 @@ class Inlets(object):
                 for nr, r in enumerate(reclust):
                     if r != 0:
                         reclust[nr] = r + max_cluster
-                [self.tree.add_leaf(leaf,cluster,message=str(method)) for leaf in sorted(list(set(reclust)))]
+                [self.tree.add_leaf_to_leaf(name=leaf,toleaf=cluster,message=str(method)) for leaf in sorted(list(set(reclust)))]
                 if out_reclust:
                     clui.message('The old cluster %d will be split into new clusters: %s' % (
                         cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))
@@ -337,7 +338,8 @@ class Inlets(object):
             if c == 0:
                 continue
             if self.clusters.count(c) <= maxsize:
-                self.tree.add_leaf(0,c,message='|%d| to outliers' % maxsize)
+                self.tree.add_leaf_to_leaf(name=0,toleaf=c,message='size: %d' % self.clusters.count(c))
+                self.tree.add_message('|%d| to outliers' % maxsize,c)
                 for nr, cc in enumerate(self.clusters):
                     if cc == c:
                         self.clusters[nr] = 0
@@ -431,7 +433,8 @@ class Inlets(object):
                 new_inlets.inlets_list.append(inlet)
                 new_inlets.inlets_ids.append(ids)
                 new_inlets.clusters.append(cluster)
-                new_inlets.radii.append(radius)
+                if len(self.radii) and radius:
+                    new_inlets.radii.append(radius)
 
         return new_inlets
 

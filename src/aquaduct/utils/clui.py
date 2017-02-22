@@ -416,108 +416,103 @@ def get_str_timestamp():
 
 from collections import OrderedDict
 
-
 class SimpleTree(object):
-    def __init__(self, tree=None, message=None):
-        if tree is None:
-            self.tree = OrderedDict()
-        else:
-            self.tree = tree
+    def __init__(self,name=None,message=None):
+        self.name = name
+        self.message = []
         if message is not None:
-            self.message = [message]
-            print "    * init message", message
-        else:
-            self.message = []
-
-    def __len__(self):
-        return len(self.tree)
-
-    def __getitem__(self, item):
-        return self.tree[item]
-
-    def iteritems(self, *args, **kwargs):
-        return self.tree.iteritems(*args, **kwargs)
-
-    def update(self, *args, **kwargs):
-        return self.tree.update(*args, **kwargs)
-
-    def keys(self, *args, **kwargs):
-        return self.tree.keys(*args, **kwargs)
-
-    def add_leaf(self, leaf, toleaf=None, message=None):
-        if toleaf is None:
-            # self.tree.update({leaf:{}})
-            self.update({leaf: SimpleTree(message=message)})
-            print "    * add new leaf", leaf
-        else:
-            if toleaf in self.keys():
-                branch = self.tree[toleaf]
-                if message is not None and (not len(branch.message) or (branch.message[-1] != message)):
-                    branch.message += [message]
-                    print "    * added message", message
-                print "    *", branch
-                branch.update({leaf: SimpleTree(message=None)})
-                print "    * add new leaf", leaf, "to", toleaf,message
-            else:
-                for keyleaf, branch in self.tree.iteritems():
-                    st = SimpleTree(branch, message=message)
-                    print "    * try to add new leaf", leaf, "to", toleaf, "using", keyleaf, "branch"
-                    st.add_leaf(leaf, toleaf)
-                    self.tree.update({keyleaf: st.tree})
+            self.message += [message]
+        self.branches = []
 
     def __repr__(self):
-        # return str(self.tree)
-        return str(self.tree) + '[' + str(self.message) + "]"
+        return "%s {%s} %s" % (str(self.name), "; ".join(self.message),str(self.branches))
 
-class PrintSimpleTree(object):
-    def __init__(self, simpletree, prefix="    "):
-        if isinstance(simpletree, SimpleTree):
-            self.tree = simpletree.tree
-            self.message = simpletree.message
+    def is_leaf(self):
+        return len(self.branches)==0
+
+    @property
+    def leafs_names(self):
+        return [leaf.name for leaf in self.branches]
+
+    def get_leaf(self,name):
+        assert name in self.leafs_names
+        return [leaf for leaf in self.branches if name == leaf.name][0]
+
+    def add_message(self,message,toleaf=None):
+        if toleaf is not None:
+            return self.add_message_to_leaf(message,toleaf)
+        if message is not None:
+            self.message += [message]
+
+    def add_message_to_leaf(self,message,toleaf):
+        if toleaf in self.leafs_names:
+            leaf = self.get_leaf(toleaf)
+            return leaf.add_message(message)
         else:
-            self.tree = simpletree
-            self.message = None
-        self.prefix = prefix
-        self.outstr = ''
-        self.leaf_name_lenght = 0
-        for leaf in self.tree:
-            self.leaf_name_lenght = max(self.leaf_name_lenght,
-                                        len(self.get_leaf_name(leaf)))
-        self.print_tree()
+            for leaf in self.branches:
+                leaf.add_message_to_leaf(message,toleaf)
 
-    def get_leaf_name(self, leaf):
-        name = str(leaf)
-        while len(name) < self.leaf_name_lenght:
-            name += '-'
-        return name
 
-    def print_tree(self):
-        # if is empty
-        if len(self.tree) == 0:
-            return
+    def add_leaf(self,name=None,message=None,toleaf=None):
+        if toleaf is not None:
+            return self.add_leaf_to_leaf(name=name,message=message,toleaf=toleaf)
+        leaf = SimpleTree(name=name,message=message)
+        self.branches.append(leaf)
+
+    def add_leaf_to_leaf(self,name=None,message=None,toleaf=None):
+        if toleaf in self.leafs_names:
+            leaf = self.get_leaf(toleaf)
+            return leaf.add_leaf(name=name,message=message)
         else:
-            # self.outstr += self.prefix+'|\n'
-            n = len(self.tree)
-            for nr, (keyleaf, branch) in enumerate(self.tree.iteritems()):
-                if len(branch) == 0:
-                    self.outstr += self.prefix + str(keyleaf) + '\n'
-                    if nr + 1 == n:
-                        self.outstr += self.prefix + '\n'
-                else:
-                    self.outstr += self.prefix + self.get_leaf_name(keyleaf) + '-+'
-                    if len(branch.message):
-                        self.outstr += ' '+'; '.join(branch.message)
-                    self.outstr += '\n'
-                    '''
-                    if nr + 1 < n:
-                        self.outstr += self.prefix+'|'+' |\n'
-                    else:
-                        self.outstr += self.prefix+' '+' |\n'
-                    '''
-                if nr + 1 == n:
-                    pst = PrintSimpleTree(branch, self.prefix + ' ' + ' ' * (self.leaf_name_lenght))
-                else:
-                    pst = PrintSimpleTree(branch, self.prefix + '|' + ' ' * (self.leaf_name_lenght))
-                self.outstr += pst.outstr
-        #self.outstr = self.outstr.strip()
+            for leaf in self.branches:
+                leaf.add_leaf_to_leaf(name=name,message=message,toleaf=toleaf)
 
+from os import linesep
+from functools import partial
+
+def name_str(name):
+    if name is None:
+        return ''
+    return str(name)
+def name_len(name):
+    return len(name_str(name))
+
+def message_str(message):
+    if len(message):
+        return '{%s}' % '; '.join(message)
+    return ''
+
+def print_simple_tree(st,prefix=None,multiple=False):
+    _l = '|'
+    _t = ' '
+    _c = ':'+_t
+
+    prefix_ = ''
+    if prefix is not None:
+        prefix_ += prefix
+    out = ''
+    # name
+    out += prefix_
+    out += name_str(st.name)
+    if not st.is_leaf():
+        if name_len(st.name):
+            out += _c
+        out += message_str(st.message)
+        out += linesep
+        if multiple:
+            new_prefix = prefix_+_l+(_t*(name_len(st.name)-1))
+            if new_prefix[-1] != _t:
+                new_prefix += _t
+        else:
+            new_prefix = prefix_+(_t*(name_len(st.name)))
+        out_rec = []
+        for nr,branch in enumerate(st.branches):
+            out_rec.append(partial(print_simple_tree,prefix=new_prefix, multiple=len(st.branches) - nr > 1)(branch))
+        out += ''.join(out_rec)
+        if st.branches[-1].is_leaf():
+            out += new_prefix.rstrip(_t) + linesep
+    else:
+        out += _t
+        out += message_str(st.message)
+        out += linesep
+    return out
