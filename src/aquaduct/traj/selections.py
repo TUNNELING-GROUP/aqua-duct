@@ -16,6 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 from itertools import izip_longest
 
 import numpy as np
@@ -24,7 +28,8 @@ import MDAnalysis as mda
 
 from aquaduct.geom.convexhull import SciPyConvexHull
 from aquaduct.geom.convexhull import is_point_within_convexhull
-from aquaduct.utils.helpers import int2range
+from aquaduct.utils.helpers import int2range, are_rows_uniq
+from aquaduct.utils.maths import make_default_array
 
 class Selection(object):
     """
@@ -117,7 +122,14 @@ class SelectionMDA(mda.core.AtomGroup.AtomGroup,
         return np.unique(self.resids)
 
     def atom_positions(self):
-        return self.positions
+        # check if positions are correct
+        if len(self.atoms):
+            positions = self.positions
+            if not are_rows_uniq(positions):
+                logger.warning('Some atoms have the same positions, your data might me corrupted.')
+            return make_default_array(positions)
+        logger.warning('Selection comprises no atoms, check your settings.')
+        return make_default_array([])
 
     def __add__(self, other):
         if other is not None:

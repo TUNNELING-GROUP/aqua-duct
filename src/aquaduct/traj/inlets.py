@@ -252,7 +252,7 @@ class Inlets(object):
         return method(np.array(data),radii=radii)
 
     def get_flat_tree(self,message=None):
-        st = clui.SimpleTree(name='all inlets',message='size: %d' % self.size)
+        st = clui.SimpleTree(name='all',message='size: %d' % self.size)
         st.add_message(message)
         [st.add_leaf(name=leaf,message='size: %d' % csize) for leaf,csize in zip(self.clusters_list,self.clusters_size)]
         return st
@@ -311,7 +311,8 @@ class Inlets(object):
                 for nr, r in enumerate(reclust):
                     if r != 0:
                         reclust[nr] = r + max_cluster
-                [self.tree.add_leaf_to_leaf(name=leaf,toleaf=cluster,message=str(method)) for leaf in sorted(list(set(reclust)))]
+                self.tree.add_message_to_leaf(str(method),cluster)
+                [self.tree.add_leaf_to_leaf(name=leaf,toleaf=cluster,message=['size: %d' % reclust.count(leaf)]) for leaf in sorted(list(set(reclust)))]
                 if out_reclust:
                     clui.message('The old cluster %d will be split into new clusters: %s' % (
                         cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))

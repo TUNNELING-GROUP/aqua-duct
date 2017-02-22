@@ -420,8 +420,7 @@ class SimpleTree(object):
     def __init__(self,name=None,message=None):
         self.name = name
         self.message = []
-        if message is not None:
-            self.message += [message]
+        self.add_message(message)
         self.branches = []
 
     def __repr__(self):
@@ -442,7 +441,10 @@ class SimpleTree(object):
         if toleaf is not None:
             return self.add_message_to_leaf(message,toleaf)
         if message is not None:
-            self.message += [message]
+            if isinstance(message,list):
+                self.message += message
+            else:
+                self.message += [message]
 
     def add_message_to_leaf(self,message,toleaf):
         if toleaf in self.leafs_names:
@@ -501,10 +503,9 @@ def print_simple_tree(st,prefix=None,multiple=False):
         out += linesep
         if multiple:
             new_prefix = prefix_+_l+(_t*(name_len(st.name)-1))
-            if new_prefix[-1] != _t:
-                new_prefix += _t
         else:
             new_prefix = prefix_+(_t*(name_len(st.name)))
+        new_prefix += _t
         out_rec = []
         for nr,branch in enumerate(st.branches):
             out_rec.append(partial(print_simple_tree,prefix=new_prefix, multiple=len(st.branches) - nr > 1)(branch))
