@@ -438,7 +438,6 @@ class SimpleTree(object):
         assert name in self.leafs_names
         return [leaf for leaf in self.branches if name == leaf.name][0]
 
-
     def add_message(self,message=None,toleaf=None,replace=False):
         if toleaf is not None:
             return self.add_message_to_leaf(message=message,toleaf=toleaf,replace=replace)
