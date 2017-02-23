@@ -438,22 +438,29 @@ class SimpleTree(object):
         assert name in self.leafs_names
         return [leaf for leaf in self.branches if name == leaf.name][0]
 
-    def add_message(self,message=None,toleaf=None):
+
+    def add_message(self,message=None,toleaf=None,replace=False):
         if toleaf is not None:
-            return self.add_message_to_leaf(message=message,toleaf=toleaf)
+            return self.add_message_to_leaf(message=message,toleaf=toleaf,replace=replace)
         if message is not None:
             if isinstance(message,list):
-                self.message += message
+                if replace:
+                    self.message = message
+                else:
+                    self.message += message
             else:
-                self.message += [message]
+                if replace:
+                    self.message = [message]
+                else:
+                    self.message += [message]
 
-    def add_message_to_leaf(self,message=None,toleaf=None):
+    def add_message_to_leaf(self,message=None,toleaf=None,replace=False):
         if toleaf in self.leafs_names:
             leaf = self.get_leaf(toleaf)
-            return leaf.add_message(message)
+            return leaf.add_message(message,replace=replace)
         else:
             for leaf in self.branches:
-                leaf.add_message_to_leaf(message=message,toleaf=toleaf)
+                leaf.add_message_to_leaf(message=message,toleaf=toleaf,replace=replace)
 
     def add_leaf(self,name=None,message=None,toleaf=None):
         if toleaf is not None:
@@ -470,10 +477,10 @@ class SimpleTree(object):
                 leaf.add_leaf_to_leaf(name=name,message=message,toleaf=toleaf)
 
 
-def print_simple_tree(st,prefix=None,multiple=False):
+def print_simple_tree(st,prefix=None,multiple=False,concise=True):
     _l = '|'
     _t = ' '
-    _c = ':'+_t
+    _c = '-+'+_t
 
     def name_str(name):
         if name is None:
@@ -504,11 +511,13 @@ def print_simple_tree(st,prefix=None,multiple=False):
         else:
             new_prefix = prefix_+(_t*(name_len(st.name)))
         new_prefix += _t
+        if not concise:
+            out += new_prefix+_l+linesep
         out_rec = []
         for nr,branch in enumerate(st.branches):
             out_rec.append(partial(print_simple_tree,prefix=new_prefix, multiple=len(st.branches) - nr > 1)(branch))
         out += ''.join(out_rec)
-        if st.branches[-1].is_leaf():
+        if st.branches[-1].is_leaf() and not concise:
             out += new_prefix.rstrip(_t) + linesep
     else:
         out += _t

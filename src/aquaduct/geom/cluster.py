@@ -47,8 +47,8 @@ class BarberCluster(object):
         for nr,(coord,radius) in enumerate(zip(coords,radii)):
             distances = cdist([coord],coords,metric='euclidean').flatten() - np.array(radii) - radius
             # less then zero are intersecting
-            if (distances<0).any():
-                friends.update({nr:np.argwhere(distances<0).flatten().tolist()})
+            if (distances<=0).any():
+                friends.update({nr:np.argwhere(distances<=0).flatten().tolist()})
         # loop over friends' groups
         clustered = []
         clusters = []

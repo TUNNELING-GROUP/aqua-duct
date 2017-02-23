@@ -299,6 +299,8 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'auto_barber_tovdw', 'True')
         config.set(section, 'auto_barber_maxcut', '2.8')
         config.set(section, 'auto_barber_mincut', 'None')
+        config.set(section, 'auto_barber_maxcut_level', 'False')
+        config.set(section, 'auto_barber_mincut_level', 'False')
         config.set(section, 'auto_barber', 'False')
         config.set(section, 'discard_empty_paths', 'True')
         config.set(section, 'sort_by_id', 'True')
@@ -825,20 +827,24 @@ def get_clustering_method(coptions,config):
             else:
                 opts.update({'maxcut': None})
             opts.update({'tovdw': bool(abo.auto_barber_tovdw)})
-        if 'selection' in coptions._asdict():
-            opts.update({'selection': str(coptions.barber)})
-        if 'mincut' in coptions._asdict():
-            if is_number(coptions.mincut):
-                opts.update({'mincut': float(coptions.mincut)})
-            else:
-                opts.update({'mincut': None})
-        if 'maxcut' in coptions._asdict():
-            if is_number(coptions.maxcut):
-                opts.update({'maxcut': float(coptions.maxcut)})
+        if 'auto_barber' in coptions._asdict():
+            opts.update({'selection': str(coptions.auto_barber)})
+        if 'auto_barber_maxcut' in coptions._asdict():
+            if is_number(coptions.auto_barber_maxcut):
+                opts.update({'maxcut': float(coptions.auto_barber_maxcut)})
             else:
                 opts.update({'maxcut': None})
-        if 'tovdw' in coptions._asdict():
-            opts.update({'tovdw': bool(coptions.tovdw)})
+        if 'auto_barber_mincut' in coptions._asdict():
+            if is_number(coptions.auto_barber_mincut):
+                opts.update({'mincut': float(coptions.auto_barber_mincut)})
+            else:
+                opts.update({'mincut': None})
+        if 'auto_barber_mincut_level' in coptions._asdict():
+            opts.update({'mincut_level': bool(coptions.auto_barber_mincut_level)})
+        if 'auto_barber_maxcut_level' in coptions._asdict():
+            opts.update({'maxcut_level': bool(coptions.auto_barber_maxcut_level)})
+        if 'auto_barber_tovdw' in coptions._asdict():
+            opts.update({'tovdw': bool(coptions.auto_barber_tovdw)})
 
     if coptions.method == 'dbscan':
         dbscan_opts()
@@ -1174,7 +1180,9 @@ def stage_III_run(config, options,
             wtc = WhereToCut(spaths,traj_reader,
                              selection=options.auto_barber,
                              mincut=options.auto_barber_mincut,
+                             mincut_level=options.auto_barber_mincut_level,
                              maxcut=options.auto_barber_mincut,
+                             maxcut_level=options.auto_barber_mincut_level,
                              tovdw=options.auto_barber_mincut)
             # cut thyself!
             wtc.cut_thyself()
@@ -1329,10 +1337,11 @@ def stage_IV_run(config, options,
         clui.message('Number of outliers: %d' % noo())
         # ***** OUTLIERS DETECTION *****
         if options.detect_outliers:
-            with clui.fbm("Detecting outliers"):
+            with clui.fbm("Detecting outliers",cont=False):
                 if options.detect_outliers is not Auto:
                     threshold = float(options.detect_outliers)
-                clusters = inls.clusters
+                clusters = list(inls.clusters)
+                no_out_detected = 0
                 for cluster, center, std in zip(inls.clusters_list,
                                                 inls.clusters_centers,
                                                 inls.clusters_std):
@@ -1348,7 +1357,9 @@ def stage_IV_run(config, options,
                         # print d, threshold
                         if d > threshold:
                             clusters[ids] = 0
-                inls.add_cluster_annotations(clusters)
+                            no_out_detected += 1
+                clui.message('Detected %d outliers.' % no_out_detected)
+                inls.add_outliers_annotations(clusters)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
         # ***** RECLUSTERIZATION *****

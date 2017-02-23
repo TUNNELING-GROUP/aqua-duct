@@ -35,12 +35,21 @@ class Sphere(namedtuple('ABSphere', 'center radius')):
 
 class WhereToCut(object):
     # creates collection of Spheres
-    def __init__(self,spaths,traj_reader,selection=None,mincut=None,maxcut=None,tovdw=False,forceempty=False):
+    def __init__(self,spaths,traj_reader,
+                 selection=None,
+                 mincut=None,
+                 mincut_level=False,
+                 maxcut=None,
+                 maxcut_level=False,
+                 tovdw=False,
+                 forceempty=False):
         # force empty means that empty spheres are also returned with radius 0
         self.forceempty = forceempty
         self.selection = selection
         self.mincut = mincut
         self.maxcut = maxcut
+        self.mincut_level = mincut_level
+        self.maxcut_level = maxcut_level
         self.tovdw = tovdw
 
         self.spheres = []
@@ -63,6 +72,8 @@ class WhereToCut(object):
         if mincut and maxcut:
             if maxcut_val < mincut_val:
                 logger.warning('Values of mincut %0.2f and maxcut %0.2f are mutually exclusive. No spheres will be used in Auto Barber.',mincut_val,maxcut_val)
+                if self.maxcut_level or self.mincut_level:
+                    logger.warning('Options mincut_level and maxcut_level are set to %s and %s accordingly, some spheres might be retained.')
         return mincut,mincut_val,maxcut,maxcut_val
 
     def add_spheres(self, spaths, traj_reader):
@@ -91,11 +102,19 @@ class WhereToCut(object):
                     logger.debug('VdW correction resulted in <= 0 radius.')
                     make_sphere = False
                 if mincut and radius < mincut_val:
-                    logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
-                    make_sphere = False
+                    if not self.mincut_level:
+                        logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
+                        make_sphere = False
+                    else:
+                        logger.debug('Sphere radius %0.2f leveled to mincut %0.2f', radius, mincut_val)
+                        radius = mincut_val
                 if maxcut and radius > maxcut_val:
-                    logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
-                    make_sphere = False
+                    if not self.maxcut_level:
+                        logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
+                        make_sphere = False
+                    else:
+                        logger.debug('Sphere radius %0.2f leveled to maxcut %0.2f', radius, maxcut_val)
+                        radius = maxcut_val
                 if make_sphere:
                     logger.debug('Added sphere of radius %0.2f' % radius)
                     self.spheres.append(Sphere(center, radius))
