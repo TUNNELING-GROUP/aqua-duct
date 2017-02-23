@@ -253,7 +253,7 @@ class Inlets(object):
 
     def get_flat_tree(self,message=None):
         st = clui.SimpleTree(name='all',message='size: %d' % self.size)
-        st.add_message(message)
+        st.add_message(message=message)
         [st.add_leaf(name=leaf,message='size: %d' % csize) for leaf,csize in zip(self.clusters_list,self.clusters_size)]
         return st
 
@@ -311,8 +311,8 @@ class Inlets(object):
                 for nr, r in enumerate(reclust):
                     if r != 0:
                         reclust[nr] = r + max_cluster
-                self.tree.add_message_to_leaf(str(method),cluster)
-                [self.tree.add_leaf_to_leaf(name=leaf,toleaf=cluster,message=['size: %d' % reclust.count(leaf)]) for leaf in sorted(list(set(reclust)))]
+                self.tree.add_message(message=str(method),toleaf=cluster)
+                [self.tree.add_leaf(name=leaf,toleaf=cluster,message=['size: %d' % reclust.count(leaf)]) for leaf in sorted(list(set(reclust)))]
                 if out_reclust:
                     clui.message('The old cluster %d will be split into new clusters: %s' % (
                         cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))
@@ -339,8 +339,8 @@ class Inlets(object):
             if c == 0:
                 continue
             if self.clusters.count(c) <= maxsize:
-                self.tree.add_leaf_to_leaf(name=0,toleaf=c,message='size: %d' % self.clusters.count(c))
-                self.tree.add_message('|%d| to outliers' % maxsize,c)
+                self.tree.add_leaf(name=0,toleaf=c,message='size: %d' % self.clusters.count(c))
+                self.tree.add_message(message='|%d| to outliers' % maxsize,toleaf=c)
                 for nr, cc in enumerate(self.clusters):
                     if cc == c:
                         self.clusters[nr] = 0

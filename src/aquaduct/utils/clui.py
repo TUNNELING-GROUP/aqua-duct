@@ -21,15 +21,17 @@ Module comprises convieniences functions and definitios for different operations
 """
 
 import logging
-
 logger = logging.getLogger(__name__)
 
+from collections import OrderedDict
 from aquaduct import logger as root_logger
 from aquaduct import __mail__ as mail
 import datetime
 import time
 from os import linesep
 from sys import stderr
+from os import linesep
+from functools import partial
 
 from multiprocessing import Queue, Manager, Lock, Value, Process
 from collections import OrderedDict
@@ -414,7 +416,6 @@ def get_str_timestamp():
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
 
 
-from collections import OrderedDict
 
 class SimpleTree(object):
     def __init__(self,name=None,message=None):
@@ -437,23 +438,22 @@ class SimpleTree(object):
         assert name in self.leafs_names
         return [leaf for leaf in self.branches if name == leaf.name][0]
 
-    def add_message(self,message,toleaf=None):
+    def add_message(self,message=None,toleaf=None):
         if toleaf is not None:
-            return self.add_message_to_leaf(message,toleaf)
+            return self.add_message_to_leaf(message=message,toleaf=toleaf)
         if message is not None:
             if isinstance(message,list):
                 self.message += message
             else:
                 self.message += [message]
 
-    def add_message_to_leaf(self,message,toleaf):
+    def add_message_to_leaf(self,message=None,toleaf=None):
         if toleaf in self.leafs_names:
             leaf = self.get_leaf(toleaf)
             return leaf.add_message(message)
         else:
             for leaf in self.branches:
-                leaf.add_message_to_leaf(message,toleaf)
-
+                leaf.add_message_to_leaf(message=message,toleaf=toleaf)
 
     def add_leaf(self,name=None,message=None,toleaf=None):
         if toleaf is not None:
@@ -469,25 +469,23 @@ class SimpleTree(object):
             for leaf in self.branches:
                 leaf.add_leaf_to_leaf(name=name,message=message,toleaf=toleaf)
 
-from os import linesep
-from functools import partial
-
-def name_str(name):
-    if name is None:
-        return ''
-    return str(name)
-def name_len(name):
-    return len(name_str(name))
-
-def message_str(message):
-    if len(message):
-        return '{%s}' % '; '.join(message)
-    return ''
 
 def print_simple_tree(st,prefix=None,multiple=False):
     _l = '|'
     _t = ' '
     _c = ':'+_t
+
+    def name_str(name):
+        if name is None:
+            return ''
+        return str(name)
+    def name_len(name):
+        return len(name_str(name))
+
+    def message_str(message):
+        if len(message):
+            return '{%s}' % '; '.join(message)
+        return ''
 
     prefix_ = ''
     if prefix is not None:
