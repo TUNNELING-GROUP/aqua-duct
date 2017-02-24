@@ -20,9 +20,10 @@ import logging
 
 logger = logging.getLogger(__name__)
 import numpy as np
-from collections import namedtuple
+from collections import namedtuple,OrderedDict
 from scipy.spatial.distance import pdist, squareform
 import copy
+from itertools import izip_longest
 
 from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
@@ -193,9 +194,28 @@ class Inlets(object):
         self.inlets_ids = []
         self.clusters = []
         self.number_of_clustered_inlets = None
+        self.radii = []
+
+        self.tree = clui.SimpleTree()
 
         for spath in spaths:
             self.extend_inlets(spath)
+
+    def add_leaf_wrapper(self,name=None,message=None,toleaf=None):
+        if name == 0:
+            self.tree.add_leaf(name='(0)', message=message, toleaf=toleaf)
+        else:
+            self.tree.add_leaf(name=name,message=message,toleaf=toleaf)
+
+    def resize_leaf_0(self):
+        if 0 in self.clusters_list:
+            if 0 not in self.tree.leafs_names:
+                self.tree.add_leaf(name=0, message='size: %d' % self.clusters.count(0))
+            else:
+                self.tree.add_message(toleaf=0, message='size: %d' % self.clusters.count(0), replace=True)
+
+    def add_message_wrapper(self,message=None,toleaf=None):
+        self.tree.add_message(message=message,toleaf=toleaf)
 
     def extend_inlets(self, spath, onlytype=None):
 
@@ -212,8 +232,42 @@ class Inlets(object):
             nr += 1
 
     def add_cluster_annotations(self, clusters):
+        # this replaces clusters!
         assert len(clusters) == len(self.inlets_list)
         self.clusters = clusters
+        self.tree = clui.SimpleTree()
+
+    def add_outliers_annotations(self, new_clusters):
+        assert len(new_clusters) == len(self.inlets_list)
+        # this is meant for situation when some points from clusters are changed to outliers
+        # lets loop over current clusters list
+        for cluster,cluster_size in zip(self.clusters_list,self.clusters_size):
+            if cluster == 0: continue
+            # check if cluster was changed!
+            if cluster not in new_clusters:
+                # it was completly removed!
+                self.add_message_wrapper(message='outliers detection',toleaf=cluster)
+                self.add_leaf_wrapper(name=0,toleaf=cluster,message='size: %d' % cluster_size)
+            elif self.clusters.count(cluster) != new_clusters.count(cluster):
+                # some points were shifted to outliers
+                self.add_message_wrapper(message='outliers detection', toleaf=cluster)
+                self.add_leaf_wrapper(name=0, toleaf=cluster, message='size: %d' % (cluster_size - new_clusters.count(cluster)))
+                # we need new cluster!
+                new_cluster = max(new_clusters)+1
+                for nr,dummy in enumerate(new_clusters):
+                    if new_clusters[nr] == cluster:
+                        new_clusters[nr] = new_cluster
+                self.add_leaf_wrapper(name=new_cluster, toleaf=cluster, message='size: %d' % (new_clusters.count(new_cluster)))
+        self.clusters = new_clusters
+        self.resize_leaf_0()
+
+
+    def add_radii(self, radii):
+        assert len(radii) == len(self.inlets_list)
+        self.radii = radii
+
+    def get_inlets_references(self):
+        return [inl.reference for inl in self.inlets_list]
 
     # basic properites
 
@@ -233,22 +287,29 @@ class Inlets(object):
     def refs(self):
         return [inlet.reference for inlet in self.inlets_list]
 
-    def call_clusterization_method(self, method, data):
+    def call_clusterization_method(self, method, data, radii=None):
         # this method runs clusterization method against provided data
         # if center_of_system was set then use distance matrix...
         if self.center_of_system is not None:
-            return method(np.array(data)-self.center_of_system)
-        return method(np.array(data))
+            return method(np.array(data)-self.center_of_system, radii=radii)
+        return method(np.array(data),radii=radii)
 
+    def get_flat_tree(self,message=None):
+        st = clui.SimpleTree(name='all',message='size: %d' % self.size)
+        st.add_message(message=message)
+        [st.add_leaf(name=leaf,message='size: %d' % csize) for leaf,csize in zip(self.clusters_list,self.clusters_size)]
+        return st
 
     def perform_clustering(self, method):
         # this do clean clustering, all previous clusters are discarded
         # 0 means outliers
-        self.add_cluster_annotations(self.call_clusterization_method(method,self.coords))
+        self.add_cluster_annotations(self.call_clusterization_method(method,self.coords,radii=self.radii))
         self.number_of_clustered_inlets = len(self.clusters)
         clui.message("New clusters created: %s" % (' '.join(map(str, sorted(set(self.clusters))))))
         # renumber clusters
         # self.renumber_clusters()
+        # return clusters as simple tree
+        self.tree = self.get_flat_tree(message=str(method))
 
     def perform_reclustering(self, method, skip_outliers=False, skip_size=None):
         # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
@@ -270,12 +331,13 @@ class Inlets(object):
         self.number_of_clustered_inlets = len(self.clusters)
         # renumber clusters
         # self.renumber_clusters()
+        # return clusters as simple tree
 
     #CLUSTER
     def recluster_cluster(self, method, cluster):
         if cluster in self.clusters_list:
             logger.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
-            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords)
+            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords,radii=self.lim2clusters(cluster).radii)
             if len(set(reclust)) <= 1:
                 clui.message('No new clusters found.')
             else:
@@ -292,6 +354,11 @@ class Inlets(object):
                 for nr, r in enumerate(reclust):
                     if r != 0:
                         reclust[nr] = r + max_cluster
+                if cluster != 0:
+                    self.add_message_wrapper(message=str(method),toleaf=cluster)
+                [self.add_leaf_wrapper(name=leaf,toleaf=cluster,message=['size: %d' % reclust.count(leaf)]) for leaf in sorted(list(set(reclust)))]
+                if cluster == 0:
+                    self.add_message_wrapper(message=['[RE]',str(method)], toleaf=cluster)
                 if out_reclust:
                     clui.message('The old cluster %d will be split into new clusters: %s' % (
                         cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))
@@ -307,6 +374,8 @@ class Inlets(object):
             logger.debug('Reclustering %d cluster: final number of clusters %d.' % (cluster, len(self.clusters_list)))
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
+        if cluster != 0:
+            self.resize_leaf_0()
 
     def recluster_outliers(self, method):
         self.recluster_cluster(method, 0)
@@ -314,15 +383,24 @@ class Inlets(object):
         # self.renumber_clusters()
 
     def small_clusters_to_outliers(self, maxsize):
+        new_out = 0
         for c in self.clusters_list:
             if c == 0:
                 continue
             if self.clusters.count(c) <= maxsize:
+                self.add_leaf_wrapper(name=0,toleaf=c,message='size: %d' % self.clusters.count(c))
+                self.add_message_wrapper(message='|%d| to outliers' % maxsize,toleaf=c)
                 for nr, cc in enumerate(self.clusters):
                     if cc == c:
                         self.clusters[nr] = 0
+                        new_out += 1
                         # renumber clusters
                         # self.renumber_clusters()
+        if new_out:
+            if 0 not in self.tree.leafs_names:
+                self.tree.add_leaf(name=0)
+            self.add_message_wrapper(message=['|%d| to outliers' % maxsize,'new size %d' % self.clusters.count(0)], toleaf=0)
+        #self.resize_leaf_0()
 
     def renumber_clusters(self):
         if 0 in self.clusters_list:
@@ -406,11 +484,13 @@ class Inlets(object):
         new_inlets = self.__class__([], onlytype=self.onlytype)
         new_inlets.number_of_clustered_inlets = self.number_of_clustered_inlets
 
-        for inlet, ids, cluster, w in zip(self.inlets_list, self.inlets_ids, self.clusters, what):
+        for inlet, ids, cluster, radius, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters, self.radii, what):
             if w in towhat:
                 new_inlets.inlets_list.append(inlet)
                 new_inlets.inlets_ids.append(ids)
                 new_inlets.clusters.append(cluster)
+                if len(self.radii) and (radius or radius == 0):
+                    new_inlets.radii.append(radius)
 
         return new_inlets
 

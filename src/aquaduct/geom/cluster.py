@@ -23,6 +23,7 @@ Clusterization is done by :mod:`scikit-learn` module.
 
 import numpy as np
 from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShift, estimate_bandwidth
+from scipy.spatial.distance import cdist
 
 # problems with clustering methods and size of set
 # DBSCAN:              n > 0
@@ -33,6 +34,44 @@ from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShif
 
 from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
+
+class BarberClusterResult(object):
+
+    def __init__(self,labels_):
+        self.labels_ = np.array(labels_)
+
+class BarberCluster(object):
+
+    def fit(self,coords,radii=None):
+        friends = {}
+        for nr,(coord,radius) in enumerate(zip(coords,radii)):
+            distances = cdist([coord],coords,metric='euclidean').flatten() - np.array(radii) - radius
+            # less then zero are intersecting
+            if (distances<=0).any():
+                friends.update({nr:np.argwhere(distances<=0).flatten().tolist()})
+        # loop over friends' groups
+        clustered = []
+        clusters = []
+        for leader,group in friends.iteritems():
+            if leader in clustered: continue
+            cluster = [] + group
+            last_size = -1
+            while len(cluster) != last_size:
+                last_size = len(cluster)
+                for leader2,group2 in friends.iteritems():
+                    if leader2 in clustered: continue
+                    if set(cluster).intersection(set(group2)):
+                        cluster += group2
+                        cluster = list(set(cluster))
+            clustered += cluster
+            clusters.append(cluster)
+        clusters.sort(key=lambda x: len(x),reverse=True)
+        # make labels
+        labels = [None]*len(coords)
+        for nr,cluster in enumerate(clusters):
+            for c in cluster:
+                labels[c] = nr
+        return BarberClusterResult(labels)
 
 
 def MeanShiftBandwidth(X, **kwargs):
@@ -55,36 +94,46 @@ class PerformClustering(object):
         self.method_results = None
         self.clusters = None
 
-    def __call__(self, coords):
+    def __str__(self):
+        out = str(self.method.__name__)
+        return out
+
+    def __call__(self, coords, radii=None):
         # compatibility
-        return self.fit(coords)
+        return self.fit(coords, radii=radii)
 
     def _get_noclusters(self, n):
         return [0] * n
 
-    def fit(self, coords):
+    def fit(self, coords, radii=None):
+        # radii are used for Barber only
         if len(coords) < 2:
             self.clusters = self._get_noclusters(len(coords))
             return self.clusters
         # special cases
-        if self.method is MeanShift:
-            if len(coords) < 6:
-                self.clusters = self._get_noclusters(len(coords))
-                clui.message("Number of objects %d < 6 is too small for MeanShift method. Skipping." % (len(coords)))
-                return self.clusters
-            method = self.method(**MeanShiftBandwidth(coords, **self.method_kwargs))
+        if self.method is BarberCluster:
+            method = self.method()
+            self.method_results = method.fit(coords,radii)
+            self.clusters = map(int, self.method_results.labels_ + 1)
         else:
-            if self.method is KMeans:
-                if 'n_clusters' in self.method_kwargs:
-                    if len(coords) < self.method_kwargs['n_clusters']:
-                        self.clusters = self._get_noclusters(len(coords))
-                        clui.message(
-                            "Number of objects %d < %d is too small for KMeans method. Skipping." % (
-                                len(coords), self.method_kwargs['n_clusters']))
-                        return self.clusters
-            method = self.method(**self.method_kwargs)
-        self.method_results = method.fit(coords)
-        self.clusters = map(int, self.method_results.labels_ + 1)
+            if self.method is MeanShift:
+                if len(coords) < 6:
+                    self.clusters = self._get_noclusters(len(coords))
+                    clui.message("Number of objects %d < 6 is too small for MeanShift method. Skipping." % (len(coords)))
+                    return self.clusters
+                method = self.method(**MeanShiftBandwidth(coords, **self.method_kwargs))
+            else:
+                if self.method is KMeans:
+                    if 'n_clusters' in self.method_kwargs:
+                        if len(coords) < self.method_kwargs['n_clusters']:
+                            self.clusters = self._get_noclusters(len(coords))
+                            clui.message(
+                                "Number of objects %d < %d is too small for KMeans method. Skipping." % (
+                                    len(coords), self.method_kwargs['n_clusters']))
+                            return self.clusters
+                method = self.method(**self.method_kwargs)
+            self.method_results = method.fit(coords)
+            self.clusters = map(int, self.method_results.labels_ + 1)
         return self.clusters
 
     def centers(self):
@@ -94,3 +143,4 @@ class PerformClustering(object):
         if hasattr(self.method_results, 'cluster_centers_'):
             return self.method_results.cluster_centers_
         raise NotImplementedError('Cluster centers is not implemented for %r method yet.' % self.method)
+

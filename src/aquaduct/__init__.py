@@ -42,9 +42,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 3, 1
-    # code cleanup and bugs fixes
-    # different way of creating paths ans separate paths
+    return 0, 3, 2
+    # barber cluster and clusterization history
 
 
 def version_nice():

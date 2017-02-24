@@ -311,9 +311,9 @@ def load_pdb(filename,name,state):
             self.data_fh.save_file2tar(filename, filename_new)
             self.script_fh.write('''load_pdb("%s","%s",%d)''' % (filename_new, name, state))
             self.script_fh.write(os.linesep)
-            self.script_fh.write('''cmd.show_as('cartoon','%s')''' % (name,))
+            self.script_fh.write('''if proceed("%s"): cmd.show_as('cartoon','%s')''' % (name,name))
             self.script_fh.write(os.linesep)
-            self.script_fh.write('''cmd.color('silver','%s')''' % (name,))
+            self.script_fh.write('''if proceed("%s"): cmd.color('silver','%s')''' % (name,name))
             self.script_fh.write(os.linesep)
 
     def orient_on(self, name):

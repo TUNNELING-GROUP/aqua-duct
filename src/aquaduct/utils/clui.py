@@ -21,18 +21,20 @@ Module comprises convieniences functions and definitios for different operations
 """
 
 import logging
-
 logger = logging.getLogger(__name__)
 
+from collections import OrderedDict
 from aquaduct import logger as root_logger
 from aquaduct import __mail__ as mail
 import datetime
 import time
 from os import linesep
 from sys import stderr
+from os import linesep
+from functools import partial
 
 from multiprocessing import Queue, Manager, Lock, Value, Process
-
+from collections import OrderedDict
 
 def emit_message_to_file_in_root_logger(mess):
     # emits message to the file used by file handler in the root logger
@@ -412,3 +414,113 @@ pbar = SimpleProgressBar  # default progress bar
 def get_str_timestamp():
     # returns time stamp as string
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
+
+
+
+class SimpleTree(object):
+    def __init__(self,name=None,message=None):
+        self.name = name
+        self.message = []
+        self.add_message(message)
+        self.branches = []
+
+    def __repr__(self):
+        return "%s {%s} %s" % (str(self.name), "; ".join(self.message),str(self.branches))
+
+    def is_leaf(self):
+        return len(self.branches)==0
+
+    @property
+    def leafs_names(self):
+        return [leaf.name for leaf in self.branches]
+
+    def get_leaf(self,name):
+        assert name in self.leafs_names
+        return [leaf for leaf in self.branches if name == leaf.name][0]
+
+
+    def add_message(self,message=None,toleaf=None,replace=False):
+        if toleaf is not None:
+            return self.add_message_to_leaf(message=message,toleaf=toleaf,replace=replace)
+        if message is not None:
+            if isinstance(message,list):
+                if replace:
+                    self.message = message
+                else:
+                    self.message += message
+            else:
+                if replace:
+                    self.message = [message]
+                else:
+                    self.message += [message]
+
+    def add_message_to_leaf(self,message=None,toleaf=None,replace=False):
+        if toleaf in self.leafs_names:
+            leaf = self.get_leaf(toleaf)
+            return leaf.add_message(message,replace=replace)
+        else:
+            for leaf in self.branches:
+                leaf.add_message_to_leaf(message=message,toleaf=toleaf,replace=replace)
+
+    def add_leaf(self,name=None,message=None,toleaf=None):
+        if toleaf is not None:
+            return self.add_leaf_to_leaf(name=name,message=message,toleaf=toleaf)
+        leaf = SimpleTree(name=name,message=message)
+        self.branches.append(leaf)
+
+    def add_leaf_to_leaf(self,name=None,message=None,toleaf=None):
+        if toleaf in self.leafs_names:
+            leaf = self.get_leaf(toleaf)
+            return leaf.add_leaf(name=name,message=message)
+        else:
+            for leaf in self.branches:
+                leaf.add_leaf_to_leaf(name=name,message=message,toleaf=toleaf)
+
+
+def print_simple_tree(st,prefix=None,multiple=False,concise=True):
+    _l = '|'
+    _t = ' '
+    _c = '-+'+_t
+
+    def name_str(name):
+        if name is None:
+            return ''
+        return str(name)
+    def name_len(name):
+        return len(name_str(name))
+
+    def message_str(message):
+        if len(message):
+            return '{%s}' % '; '.join(message)
+        return ''
+
+    prefix_ = ''
+    if prefix is not None:
+        prefix_ += prefix
+    out = ''
+    # name
+    out += prefix_
+    out += name_str(st.name)
+    if not st.is_leaf():
+        if name_len(st.name):
+            out += _c
+        out += message_str(st.message)
+        out += linesep
+        if multiple:
+            new_prefix = prefix_+_l+(_t*(name_len(st.name)-1))
+        else:
+            new_prefix = prefix_+(_t*(name_len(st.name)))
+        new_prefix += _t
+        if not concise:
+            out += new_prefix+_l+linesep
+        out_rec = []
+        for nr,branch in enumerate(st.branches):
+            out_rec.append(partial(print_simple_tree,prefix=new_prefix, multiple=len(st.branches) - nr > 1)(branch))
+        out += ''.join(out_rec)
+        if st.branches[-1].is_leaf() and not concise:
+            out += new_prefix.rstrip(_t) + linesep
+    else:
+        out += _t
+        out += message_str(st.message)
+        out += linesep
+    return out

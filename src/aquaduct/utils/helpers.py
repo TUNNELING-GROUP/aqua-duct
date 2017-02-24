@@ -68,6 +68,12 @@ def combine(seqin):
     return listout
 
 
+def are_rows_uniq(some_array):
+    #http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+    ca = np.ascontiguousarray(some_array).view(np.dtype((np.void, some_array.dtype.itemsize * some_array.shape[1])))
+    return np.unique(ca).shape[0] == ca.shape[0]
+
+
 ########################################################################
 
 def is_number(s):
