@@ -18,3 +18,9 @@ cd $PDIR
 zip -r -9 $CWD/aquaduct_docs.zip *
 cd $CWD
 rm -rf -- $TDIR
+rm -rf -- build/full
+mkdir -p build/full
+cd build/full
+unzip $CWD/aquaduct_docs.zip
+cd $CWD
+

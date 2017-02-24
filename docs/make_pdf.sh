@@ -26,15 +26,3 @@ $MAKE SPHINXBUILD=$SPHINXBUILD latexpdf
 
 export PYTHONPATH=$PYTHONPATH_CACHE
 
-
-DROPBOX=`echo ~`/Dropbox/AQUADUCT/documentation_builds
-
-if [ -d $DROPBOX ]
-then
-    mkdir -p $DROPBOX/latex
-    rm -rf $DROPBOX/latex/*
-    cp -R build/latex/*.pdf $DROPBOX/latex
-    cp -R build/html $DROPBOX
-fi
-
-
