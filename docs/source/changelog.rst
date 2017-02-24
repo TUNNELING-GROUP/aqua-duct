@@ -4,7 +4,7 @@ Aqua-Duct changelog
 * 0.3.2
     * Major improvement: new auto_barber based clustering method.
     * Clusterization history displayed as simple ascii tree.
-    * AutoBraber min and max cut level options added.
+    * AutoBarber min and max cut level options added.
     * Barber moved to separate module.
     * Fixed bug in visualization script; if no molecule is kept do not set style and color.
 * 0.3.1
