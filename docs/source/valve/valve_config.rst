@@ -336,6 +336,9 @@ recursive_threshold         None            Allows to set threshold of that excl
 barber
 ^^^^^^
 
+.. _clusterization_barber:
+
+
 Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** Stage settings or according to parameters given in clausterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped in to clusters. Method **barber** supports the same settings as Auto Barber settings:
 
 
