@@ -249,7 +249,7 @@ For additional information see :ref:`clusterization sections <clusterization_opt
 Available methods
 """""""""""""""""
 
-Aqua-Duct implements several clustering methods with :mod:`sklearn.cluster` module:
+Aqua-Duct implements several clustering methods. The recommended method is **barber** method which bases on :ref:`auto_barber_procedure` procedure. Rest of the methods are implemented with :mod:`sklearn.cluster` module:
 
 #. :class:`aquaduct.geom.cluster.BarberCluster` - default for `Initial clusterization`. It gives excellent results. For more information see :ref:`barber clusterization method <clusterization_barber>` description.
 #. :class:`~sklearn.cluster.MeanShift` - see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
