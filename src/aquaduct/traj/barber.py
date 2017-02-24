@@ -16,8 +16,12 @@
 # You should have received a copy of the GNU General Public License
 #
 
-import logging
+'''
+Module implements AutoBarber generation of spheres.
+'''
 
+
+import logging
 logger = logging.getLogger(__name__)
 
 from collections import namedtuple
@@ -29,11 +33,17 @@ from aquaduct.utils import clui
 from aquaduct.traj.reader import atom2vdw_radius
 from aquaduct.utils.helpers import lind
 
-class Sphere(namedtuple('ABSphere', 'center radius')):
+class Sphere(namedtuple('Sphere', 'center radius')):
+    '''
+    Simple sphere class.
+    '''
     pass
 
 
 class WhereToCut(object):
+    '''
+    Class implements method for creating (optimal) set of AutoBarber spheres.
+    '''
     # creates collection of Spheres
     def __init__(self,spaths,traj_reader,
                  selection=None,
@@ -43,6 +53,17 @@ class WhereToCut(object):
                  maxcut_level=False,
                  tovdw=False,
                  forceempty=False):
+        '''
+        :param list spaths: List of :class:`aquaduct.traj.paths.SinglePath` objects.
+        :param traj_reader: :class:`aquaduct.traj.reader.Reader` object.
+        :param str selection: Selection string of molecular object used for spheres generation.
+        :param float mincut: Value of *mincut* parameter.
+        :param float maxcut: Value of *maxcut* parameter.
+        :param bool mincut_level: Flag of *mincut_level*.
+        :param bool maxcut_level: Flag of *maxcut_level*.
+        :param bool tovdw: Flag of to VdW radii correction parameter.
+        :param bool forceemtpy: If set *True* spheres of radius 0 are returned if no other sphere can be generated.
+        '''
         # force empty means that empty spheres are also returned with radius 0
         self.forceempty = forceempty
         self.selection = selection
