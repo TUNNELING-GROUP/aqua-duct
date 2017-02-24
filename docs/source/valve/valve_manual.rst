@@ -186,7 +186,7 @@ Auto Barber
 
 After the initial search of *Separate Path* objects it is possible to run procedure, Auto Barber, which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This trimming is done by creating collection of spheres that have centers at the ends of paths and radii equal to the distance for the center to the nearest atom of user defined molecular entity. Next, parts of raw paths that are inside these spheres are removed and separate paths are recreated.
 
-Auto Barber procedure has several options:
+Auto Barber procedure has several options, for example:
 
 * **auto_barber** allows to define molecular entity which is used to calculate radii of spheres used for trimming raw paths.
 * **auto_barber_mincut** allows to define minimal radius of spheres. Spheres of radius smaller then this value are not used in trimming.
@@ -251,7 +251,8 @@ Available methods
 
 Aqua-Duct implements several clustering methods with :mod:`sklearn.cluster` module:
 
-#. :class:`~sklearn.cluster.MeanShift` - default for `Initial clusterization`, see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
+#. :class:`aquaduct.geom.cluster.BarberCluster` - default for `Initial clusterization`. It gives excellent results. For more information see :ref:`barber clusterization method <clusterization_barber>` description.
+#. :class:`~sklearn.cluster.MeanShift` - see also original publication `Mean shift: a robust approach toward feature space analysis <http://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
 #. :class:`~sklearn.cluster.DBSCAN` - default for `Reclusterization of outliers`, see also original publication `A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise <https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf>`_
 #. :class:`~sklearn.cluster.AffinityPropagation` - see also original publication `Clustering by Passing Messages Between Data Points <http://dx.doi.org/10.1126/science.1136800>`_ (doi:10.1126/science.1136800)
 #. :class:`~sklearn.cluster.KMeans` - see also `k-means++: The advantages of careful seeding, Arthur, David, and Sergei Vassilvitskii <http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf>`_ in Proceedings of the eighteenth annual ACM-SIAM symposium on Discrete algorithms, Society for Industrial and Applied Mathematics (2007), pages 1027-1035.
