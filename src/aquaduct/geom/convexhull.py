@@ -68,31 +68,3 @@ def is_point_within_convexhull(point_chull):
     # This is helper function to check if point is within convex hull.
     # point_chull is a tuple where first element holds a point and the second is a ConvexHull object.
     return point_chull[-1].point_within(point_chull[0])
-
-
-'''
-class ConvexHull(object):
-    def __init__(self,points):
-        self.points = points
-
-        self.chulls = self.collection_of_chulls(self.points)
-
-    def get_normal_chull(self,points):
-        return SciPyConvexHull(points)
-
-    def find_vertices_connected_by_longest_edge(self,chull):
-        lengths = [float(pdist(chull.points[edge,:])) for edge in chull.edges]
-        return chull.edges[np.argmax(lengths)]
-
-    def split_chull(self,chull):
-        edges = self.find_vertices_connected_by_longest_edge(chull)
-        vertices = chull.vertices_ids
-        vertices.pop(vertices.index[edges[0]])
-        yield self.get_normal_chull(chull.points[vertices])
-        vertices = chull.vertices_ids
-        vertices.pop(vertices.index[edges[1]])
-        yield self.get_normal_chull(chull.points[vertices])
-
-    def collection_of_chulls(self,points):
-        return list(self.split_chull(self.get_normal_chull(points)))
-'''

@@ -31,18 +31,25 @@ from scipy.spatial.distance import cdist
 # KMeans:              n > clusters
 # MeanShift:           n > 6
 
-
 from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
 
 class BarberClusterResult(object):
-
+    '''
+    Helper class for results of barber clusterization.
+    '''
     def __init__(self,labels_):
         self.labels_ = np.array(labels_)
 
 class BarberCluster(object):
-
+    '''
+    Wrapper class that implements *barber* clusterization.
+    '''
     def fit(self,coords,radii=None):
+        '''
+        :param Iterable coords: Input coordinates of points to be clustered.
+        :param Iterable radii: Input radii for each point.
+        '''
         friends = {}
         for nr,(coord,radius) in enumerate(zip(coords,radii)):
             distances = cdist([coord],coords,metric='euclidean').flatten() - np.array(radii) - radius
@@ -75,6 +82,11 @@ class BarberCluster(object):
 
 
 def MeanShiftBandwidth(X, **kwargs):
+    '''
+    Helper function for automatic calculation of a bandwidth for MeanShift method.
+
+    :param Iterable X: Coordinates of points to be clustered.
+    '''
     if 'bandwidth' in kwargs:
         if kwargs['bandwidth'] is Auto:
             bandwidth = estimate_bandwidth(np.array(X), quantile=0.5)  # TODO: change it to the default value of 0.3 or use it as option?
@@ -85,9 +97,15 @@ def MeanShiftBandwidth(X, **kwargs):
 
 
 class PerformClustering(object):
+    '''
+    Helper class for clusterization.
+    '''
     # aqeuduct clustering helper class
 
     def __init__(self, method, **kwargs):
+        '''
+        :param object method: Class that implements cclusterization via *fit* method.
+        '''
 
         self.method = method
         self.method_kwargs = kwargs
@@ -106,6 +124,12 @@ class PerformClustering(object):
         return [0] * n
 
     def fit(self, coords, radii=None):
+        '''
+        :param Iterable coords: Input coordinates of points to be clustered.
+        :param Iterable radii: Input radii for each point. Optional, important only if :attr:`method` is :class:`BarberCluster`.
+        :return: Clusters numbers.
+        :rtype: list of int
+        '''
         # radii are used for Barber only
         if len(coords) < 2:
             self.clusters = self._get_noclusters(len(coords))
@@ -137,10 +161,12 @@ class PerformClustering(object):
         return self.clusters
 
     def centers(self):
+        '''
+        :return: Centers of clusters.
+        '''
         assert self.clusters is not None, "Perform clusterization first."
         assert self.method_results is not None, "Perform clusterization first."
 
         if hasattr(self.method_results, 'cluster_centers_'):
             return self.method_results.cluster_centers_
         raise NotImplementedError('Cluster centers is not implemented for %r method yet.' % self.method)
-
