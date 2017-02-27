@@ -531,6 +531,80 @@ def asep():
 
 
 ################################################################################
+# save as netCDF4!
+# first try to create a class that would wrap everything...
+# as for now, lets stick with pickle
+
+
+class ValveDataAccess(object):
+
+    def __init__(self,mode=None,data_file_name=None,reader=None):
+        # as for now. lets use dump files
+        self.data_file_name = data_file_name
+        self.data_file = None
+        self.data = None
+        assert mode in 'rw'
+        self.mode = mode # r, w
+        self.reader = reader
+        self.open(self.data_file_name,self.mode)
+
+    def open(self,data_file,mode):
+        # open file
+        self.data_file = gzip.open(self.data_file_name,mode=mode, compresslevel=9)
+        # if mode is w save header with version etc
+        if mode == 'w':
+            pickle.dump({'version': version(),
+                         'aquaduct_version': aquaduct_version()}, self.data_file)
+        elif mode == 'r':
+            data_file = LoadDumpWrapper(self.data_file)
+            versions = pickle.load(data_file)
+            check_versions(versions)
+            # loaded data!
+            self.data = {}
+            try:
+                while True:
+                    loaded_data = pickle.load(data_file)
+                    self.data.update(loaded_data)
+            except:
+                pass
+
+    def close(self):
+        self.data_file.close()
+
+    def __del__(self):
+        self.close()
+
+    def get_variable(self,name):
+        assert self.mode == "r"
+        value = self.data[name]
+        if isinstance(value, CompactSelectionMDA):
+            with self.reader.get() as traj_reader:
+                return value.toSelectionMDA(traj_reader)
+        return value
+
+    def load(self):
+        data = {}
+        for name,value in self.data.iteritems():
+            if isinstance(value, CompactSelectionMDA):
+                with self.reader.get() as traj_reader:
+                    value = value.toSelectionMDA(traj_reader)
+            data.update({name:value})
+        return data
+
+    def set_variable(self,name,value):
+        assert self.mode == "w"
+        if isinstance(value, SelectionMDA):
+            value = CompactSelectionMDA(value)
+        if 'options' in name:
+            value = value._asdict()
+        pickle.dump({name:value},self.data_file)
+
+    def dump(self,**kwargs):
+        for name,value in kwargs.iteritems():
+            self.set_variable(name,value)
+
+
+################################################################################
 # save - load helpers
 
 def save_dump(filename, data_to_save, **kwargs):
@@ -972,14 +1046,16 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 ###########
                 # S A V E #
                 ###########
-                save_stage_dump(options.dump, **result)
+                ValveDataAccess(mode='w',data_file_name=options.dump).dump(**result)
+                #save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
                 ###########
                 # L O A D #
                 ###########
                 if options.dump:
-                    result = load_stage_dump(options.dump, reader=reader)
+                    result = ValveDataAccess(mode='r',data_file_name=options.dump,reader=reader).load()
+                    #result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
         # remove options stuff
