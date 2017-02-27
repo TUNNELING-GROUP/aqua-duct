@@ -37,6 +37,8 @@ import numpy as np
 import MDAnalysis as mda
 import roman  # TODO: remove this dependency!
 
+from netCDF4 import Dataset
+
 from collections import namedtuple, OrderedDict  # TODO: check if OrderedDict is REALLY used
 from functools import wraps
 from itertools import izip_longest
@@ -556,9 +558,42 @@ class LoadDumpWrapper(object):
         return self.convert(self.fh.readline(*args, **kwargs))
 
 ################################################################################
-# save as netCDF4!
+# save & write as netCDF4!
 # first try to create a class that would wrap everything...
 # as for now, lets stick with pickle
+
+class ValveDataAccessRoots(object):
+    roots = []
+
+    def open(self,data_file_name,mode):
+        self.roots.append(Dataset(data_file_name,mode,format="NETCDF4"))
+        return self.roots[-1]
+
+    def close_all(self):
+        for root in self.roots:
+            root.close()
+
+    def __del__(self):
+        self.close_all()
+
+VDAR = ValveDataAccessRoots()
+
+class ValveDataAccess_nc(object):
+
+    def __init__(self,mode=None,data_file_name=None,reader=None):
+        # as for now. lets use dump files
+        self.data_file_name = data_file_name
+        self.data = None
+        assert mode in 'rw'
+        self.mode = mode # r, w
+        self.reader = reader
+        self.root = VDAR.open(self.data_file_name,self.mode)
+
+    def set_variable(self,name,value):
+        pass
+
+
+
 
 class ValveDataAccess(object):
 
@@ -572,9 +607,9 @@ class ValveDataAccess(object):
         self.reader = reader
         self.open(self.data_file_name,self.mode)
 
-    def open(self,data_file,mode):
+    def open(self,data_file_name,mode):
         # open file
-        self.data_file = gzip.open(self.data_file_name,mode=mode, compresslevel=9)
+        self.data_file = gzip.open(data_file_name,mode=mode, compresslevel=9)
         # if mode is w save header with version etc
         if mode == 'w':
             pickle.dump({'version': version(),
