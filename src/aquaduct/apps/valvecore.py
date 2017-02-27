@@ -530,11 +530,35 @@ def asep():
     return clui.gsep(sep='=', times=72)
 
 
+class LoadDumpWrapper(object):
+    """This is wrapper for pickled data that provides compatibility
+    with earlier versions of Aqua-Duct.
+
+    Conversions in use:
+
+    1) replace 'aquaduct.' by 'aquaduct.'
+
+    """
+
+    def __init__(self, filehandle):
+        self.fh = filehandle
+
+    def convert(self, s):
+        new_s = s
+        new_s = new_s.replace('aqueduct.', 'aquaduct.')
+        new_s = new_s.replace('aqueduct_version', 'aquaduct_version')
+        return new_s
+
+    def read(self, *args, **kwargs):
+        return self.convert(self.fh.read(*args, **kwargs))
+
+    def readline(self, *args, **kwargs):
+        return self.convert(self.fh.readline(*args, **kwargs))
+
 ################################################################################
 # save as netCDF4!
 # first try to create a class that would wrap everything...
 # as for now, lets stick with pickle
-
 
 class ValveDataAccess(object):
 
@@ -603,69 +627,6 @@ class ValveDataAccess(object):
         for name,value in kwargs.iteritems():
             self.set_variable(name,value)
 
-
-################################################################################
-# save - load helpers
-
-def save_dump(filename, data_to_save, **kwargs):
-    with clui.fbm('Saving data dump in %s file' % filename):
-        with gzip.open(filename, mode='w', compresslevel=9) as f:
-            # first version:
-            pickle.dump({'version': version(),
-                         'aquaduct_version': aquaduct_version()}, f)
-            # then data to save:
-            pickle.dump(data_to_save, f)
-            # then other kwargs
-            pickle.dump(kwargs, f)
-
-
-class LoadDumpWrapper(object):
-    """This is wrapper for pickled data that provides compatibility
-    with earlier versions of Aqua-Duct.
-
-    Conversions in use:
-
-    1) replace 'aquaduct.' by 'aquaduct.'
-
-    """
-
-    def __init__(self, filehandle):
-        self.fh = filehandle
-
-    def convert(self, s):
-        new_s = s
-        new_s = new_s.replace('aqueduct.', 'aquaduct.')
-        new_s = new_s.replace('aqueduct_version', 'aquaduct_version')
-        return new_s
-
-    def read(self, *args, **kwargs):
-        return self.convert(self.fh.read(*args, **kwargs))
-
-    def readline(self, *args, **kwargs):
-        return self.convert(self.fh.readline(*args, **kwargs))
-
-
-def load_dump(filename):
-    with clui.fbm('Loading data dump from %s file' % filename):
-        with gzip.open(filename, mode='r') as protof:
-            f = LoadDumpWrapper(protof)
-            # version!
-            loaded_data = pickle.load(f)
-            check_versions(loaded_data)
-
-            # loaded data!
-            loaded_data = pickle.load(f)
-            # enything else?
-            try:
-                other_data = pickle.load(f)
-                loaded_data.update({'other_data': other_data})
-            except:
-                pass
-        return loaded_data
-        # loaded_data_nt = namedtuple('LoadedData', loaded_data.keys())
-        # return loaded_data_nt(**loaded_data)
-
-
 def check_version_compliance(current, loaded, what):
     if current[0] > loaded[0]:
         logger.error('Loaded data has %s major version lower then the application.' % what)
@@ -680,46 +641,12 @@ def check_version_compliance(current, loaded, what):
     if current[1] != loaded[1]:
         logger.warning('Possible problems with API compliance.')
 
-
 def check_versions(version_dict):
     assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
     assert 'version' in version_dict, "File is corrupted, cannot read version data."
     assert 'aquaduct_version' in version_dict, "File is corrupted, cannot read version data."
     check_version_compliance(aquaduct_version(), version_dict['aquaduct_version'], 'Aqua-Duct')
     check_version_compliance(version(), version_dict['version'], 'Valve')
-
-
-################################################################################
-# save - load per stage
-
-def save_stage_dump(name, **kwargs):
-    # check if name is None
-    if name is not None:
-        # ok, check if some of kwargs have to be changed
-        data_to_save = {}
-        for key, value in kwargs.iteritems():
-            # SelectionMDA
-            if isinstance(value, SelectionMDA):
-                value = CompactSelectionMDA(value)
-            # options
-            if 'options' in key:
-                value = value._asdict()
-            data_to_save.update({key: value})
-            # now we are redy to save
-        save_dump(name, data_to_save)
-
-
-def load_stage_dump(name, reader=None):
-    if name is not None:
-        loaded_data = {}
-        for key, value in load_dump(name).iteritems():
-            # CompactSelectionMDA
-            if isinstance(value, CompactSelectionMDA):
-                with reader.get() as traj_reader:
-                    value = value.toSelectionMDA(traj_reader)
-            loaded_data.update({key: value})
-        return loaded_data
-
 
 ################################################################################
 

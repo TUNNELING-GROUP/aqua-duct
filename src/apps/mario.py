@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 import argparse
 from aquaduct import logger
-from aquaduct.apps.valvecore import load_stage_dump
+from aquaduct.apps.valvecore import ValveDataAccess
 
 formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
 # create and add console handler with WARNING level to the AQ logger
@@ -46,7 +46,7 @@ if __name__ == "__main__":
             logger.error("Oops!  That was not a valid window size. Integer required.")
             raise ValueError("Oops!  That was no valid window size. Integer required.")
 
-        loaded_data = load_stage_dump(args.filename)
+        loaded_data = ValveDataAccess(data_file_name=args.filename,mode='r').load()
         assert ((args.path_number >= 0) & (args.path_number <= len(loaded_data['spaths']))), "Path number should be in range 0 - " + str(len(loaded_data['spaths'])) #Check if path ID is accessible
         assert (len(loaded_data['spaths'][args.path_number].get_velocity_cont()) >= 3), "Path is too short to be visualized."
 
