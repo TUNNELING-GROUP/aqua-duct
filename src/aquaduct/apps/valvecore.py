@@ -580,6 +580,15 @@ VDAR = ValveDataAccessRoots()
 
 class ValveDataAccess_nc(object):
 
+    aqt_dict_base = {'np':1,'list':2,'dict':3,'SinglePath':4}
+
+    aqt_np = 'np'
+    aqt_list = 'list'
+
+    aqt_name = 'aqtype'
+    aqt_name_dict = 'aqtype_dict'
+    aqt_name_dim = 'aqtype_dim'
+
     def __init__(self,mode=None,data_file_name=None,reader=None):
         # as for now. lets use dump files
         self.data_file_name = data_file_name
@@ -588,9 +597,57 @@ class ValveDataAccess_nc(object):
         self.mode = mode # r, w
         self.reader = reader
         self.root = VDAR.open(self.data_file_name,self.mode)
+        self.aqt_dict = None
+        self.aqt_enum = None
+        if self.mode == 'w':
+            self.aqt_enum = self.root.createEnumType(np.int8,self.aqt_name_dict,self.aqt_dict_base)
+        elif self.mode == 'r':
+            self.aqt_enum = self.root.enumtypes[self.aqt_name]
+        self.aqt_dict = dict(self.aqt_enum.enum_dict)
 
-    def set_variable(self,name,value):
-        pass
+    def create_aqtype(self,gr,aqtype):
+        gr.createDimension(self.aqt_name_dim,1)
+        var = gr.createVariable(self.aqt_name,self.aqt_enum,(self.aqt_name_dim,))
+        var[0] = self.aqt_dict[aqtype]
+
+    def get_dimensions_names(self,name,shape):
+        for nr,d in enumerate(shape):
+            yield name+str(nr)
+
+    def create_dimensions(self,name,shape,gr):
+        for nr,d in enumerate(shape):
+            gr.createDimension(name+str(nr),d)
+
+    def create_variable_np(self,name,value,gr):
+        self.create_dimensions(name,value.shape,gr)
+        var = gr.createVariable(name,value.dtype,tuple(self.get_dimensions_names(name,value.shape)))
+        var[:] = value
+
+    def create_group(self,path,name=None):
+        if name is not None:
+            path += '/' + name
+        if not len(path):
+            return self.root
+        return self.root.createGroup(path)
+
+    def set_variable(self,name,value,path=None):
+        if path is None:
+            path = ""
+        if isinstance(value,np.ndarray):
+            # this is the end of recursive call, put the variable!
+            # create group
+            gr = self.create_group(path,name=name)
+            self.create_aqtype(gr,self.aqt_np)
+            # set variable
+            self.create_variable_np(name,value,gr)
+        elif isinstance(value,list):
+            # create group
+            gr = self.create_group(path,name=name)
+            self.create_aqtype(gr,self.aqt_list)
+            # iterate over the list
+            for nr,deep_value in enumerate(value):
+                deep_path = path + '/' + name + '/' + str(nr)
+                self.set_variable(name,deep_value,path=deep_path)
 
 
 
