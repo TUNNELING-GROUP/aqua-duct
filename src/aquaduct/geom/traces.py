@@ -68,7 +68,7 @@ def midpoints(paths):
     """
     # paths - a tuple of 2d np.arrays that hold 3D coordinates, each element holds one trace, all elements are supposed to make one path divided in to sections
     # yields paths elements with additional mid points
-    # if input paths is follwoing:
+    # if input paths is following:
     #   11111 33333 55555
     # function yields the same elements plus midpoints:
     #   111112 2333334 455555

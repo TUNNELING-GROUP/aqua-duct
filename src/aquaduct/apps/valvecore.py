@@ -580,10 +580,11 @@ VDAR = ValveDataAccessRoots()
 
 class ValveDataAccess_nc(object):
 
-    aqt_dict_base = {'np':1,'list':2,'dict':3,'SinglePath':4}
+    aqt_dict_base = OrderedDict({'np':1,'list':2,'dict':3,'SinglePath':4})
 
     aqt_np = 'np'
     aqt_list = 'list'
+    aqt_dictionary = 'dict'
 
     aqt_name = 'aqtype'
     aqt_name_dict = 'aqtype_dict'
@@ -610,6 +611,13 @@ class ValveDataAccess_nc(object):
         var = gr.createVariable(self.aqt_name,self.aqt_enum,(self.aqt_name_dim,))
         var[0] = self.aqt_dict[aqtype]
 
+    def get_aqtype(self,gr):
+        if self.aqt_name in gr.variables:
+            var = gr.variables[self.aqt_name]
+            return self.aqt_dict.keys()[self.aqt_dict.values().index(var[0])]
+        return self.aqt_dictionary
+        #raise ValueError('Wrong structure')
+
     def get_dimensions_names(self,name,shape):
         for nr,d in enumerate(shape):
             yield name+str(nr)
@@ -623,31 +631,62 @@ class ValveDataAccess_nc(object):
         var = gr.createVariable(name,value.dtype,tuple(self.get_dimensions_names(name,value.shape)))
         var[:] = value
 
-    def create_group(self,path,name=None):
-        if name is not None:
-            path += '/' + name
-        if not len(path):
-            return self.root
-        return self.root.createGroup(path)
-
-    def set_variable(self,name,value,path=None):
-        if path is None:
-            path = ""
+    def set_object(self,name,value,group=None):
+        if group is None:
+            group = self.root
+        # ndarray, create variable
         if isinstance(value,np.ndarray):
-            # this is the end of recursive call, put the variable!
-            # create group
-            gr = self.create_group(path,name=name)
-            self.create_aqtype(gr,self.aqt_np)
             # set variable
-            self.create_variable_np(name,value,gr)
+            self.create_variable_np(name,value,group)
         elif isinstance(value,list):
-            # create group
-            gr = self.create_group(path,name=name)
-            self.create_aqtype(gr,self.aqt_list)
+            # create new group
+            new_group = group.createGroup(name)
+            # make it group of list type
+            self.create_aqtype(new_group,self.aqt_list)
             # iterate over the list
             for nr,deep_value in enumerate(value):
-                deep_path = path + '/' + name + '/' + str(nr)
-                self.set_variable(name,deep_value,path=deep_path)
+                # recurence
+                new_name = str(nr)
+                self.set_object(new_name,deep_value,new_group)
+        elif isinstance(value,dict):
+            # create new group
+            new_group = group.createGroup(name)
+            # make it group of list type
+            self.create_aqtype(new_group,self.aqt_dictionary)
+            # iterate over the list
+            for key,deep_value in value.iteritems():
+                # recurence
+                new_name = str(key)
+                self.set_object(new_name,deep_value,new_group)
+
+
+    def get_object(self,group=None):
+        if group is None:
+            group = self.root
+        aqtype = self.get_aqtype(group)
+        if aqtype == self.aqt_dictionary:
+            out = {}
+            # iterate over groups
+            for name,new_group in group.groups.iteritems():
+                out.update({name:self.get_object(group=new_group)})
+            for name,var in group.variables.iteritems():
+                if name == self.aqt_name: continue
+                out.update({name:var})
+        elif aqtype == self.aqt_list:
+            ids = group.groups.keys()
+            ids += group.variables.keys()
+            ids.sort()
+            out = []
+            for idd in ids:
+                if idd == self.aqt_name: continue
+                if idd in group.groups:
+                    out.append(self.get_object(group=group.groups[idd]))
+                elif idd in group.variables:
+                    out.append(group.variables[idd])
+        return out
+
+
+
 
 
 
