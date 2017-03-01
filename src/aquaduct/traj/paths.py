@@ -108,6 +108,11 @@ class SmartRangeFunction(object):
     def isin(self, element):
         raise NotImplementedError('This method should be implemented in a child class.')
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state, **kwargs):
+        self.__dict__ = state
 
 class SmartRangeEqual(SmartRangeFunction):
     def get(self):
@@ -151,6 +156,13 @@ class SmartRange(object):
 
         if iterable is not None:
             map(self.append, iterable)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state, **kwargs):
+        self.__dict__ = state
+
 
     def last_element(self):
         if len(self.__elements) == 0:
@@ -279,8 +291,22 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.max_possible_frame = max_pf
         self.min_possible_frame = min_pf
 
-    # info methods
+    def __getstate__(self):
+        return {'id':self.id,
+                '__types':self.__types,
+                '__frames':self.__frames,
+                'coords':np.array(self.coords),
+                'max_possible_frame':self.max_possible_frame,
+                'min_possible_frame': self.min_possible_frame}
 
+    def __setstate__(self, state, **kwargs):
+        self.__dict__ = state
+        self.max_possible_frame = int(self.max_possible_frame)
+        self.min_possible_frame = int(self.min_possible_frame)
+        self.__frames = state['__frames']
+        self.__types = state['__types']
+
+    # info methods
     @property
     def types(self):
         return list(self.__types.get())
@@ -519,6 +545,12 @@ class SinglePathID(object):
     def __str__(self):
         return '%d:%d' % (self.id, self.nr)
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state, **kwargs):
+        self.__dict__ = state
+
 
 def yield_single_paths(gps, fullonly=False, progress=False):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
@@ -559,6 +591,32 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         self.smooth_method = None
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
+
+    def __getstate__(self):
+        return {'id':self.id,
+                '__path_in':self.__path_in,
+                '__path_object':self.__path_object,
+                '__path_out':self.__path_out,
+                '__types_in':self.__types_in,
+                '__types_object':self.__types_object,
+                '__types_out':self.__types_out,
+                'coords_in':self.coords_in,
+                'coords_object':self.coords_object,
+                'coords_out':self.coords_out,
+                'smooth_coords_in': self.smooth_coords_in,
+                'smooth_coords_object': self.smooth_coords_object,
+                'smooth_coords_out': self.smooth_coords_out,
+                'smooth_method':self.smooth_method}
+
+    def __setstate__(self, state, **kwargs):
+        self.__dict__ = state
+        self.__path_in = state['__path_in']
+        self.__path_object = state['__path_object']
+        self.__path_out = state['__path_out']
+        self.__types_in = state['__types_in']
+        self.__types_object = state['__types_object']
+        self.__types_out = state['__types_out']
+
 
     @property
     def path_in(self):

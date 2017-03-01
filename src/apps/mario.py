@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 import argparse
 from aquaduct import logger
-from aquaduct.apps.valvecore import ValveDataAccess
+from aquaduct.apps.data import ValveDataAccess
 
 formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
 # create and add console handler with WARNING level to the AQ logger

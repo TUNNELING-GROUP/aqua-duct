@@ -41,7 +41,7 @@ from functools import partial
 from aquaduct.utils.maths import make_default_array
 from aquaduct.geom import traces
 from aquaduct.utils.helpers import arrayify
-
+from aquaduct.apps.data import get_object_from_name, get_object_name
 
 class Smooth(object):
     '''
@@ -53,6 +53,12 @@ class Smooth(object):
         '''
         super(Smooth, self).__init__()
         self.recursive = recursive
+
+    def __getstate__(self):
+        return {'recursive':self.recursive}
+
+    def __setstate__(self,state,**kwargs):
+        self.recursive = state['recursive']
 
     def smooth(self, coords):
         '''
@@ -98,6 +104,15 @@ class GeneralWindow(object):
         '''
         super(GeneralWindow, self).__init__()
         self.function = function
+
+    def __getstate__(self):
+        #function =
+        return {'function':get_object_name(self.function)}
+
+    def __setstate__(self,state,**kwargs):
+        self.function = get_object_from_name(state['function'])
+
+
 
     @staticmethod
     def max_window_at_pos(pos, size):
@@ -155,6 +170,15 @@ class IntWindow(GeneralWindow):
         super(IntWindow, self).__init__(**kwargs)
         self.window = int(window)
 
+    def __getstate__(self):
+        super_dict = super(IntWindow, self).__getstate__()
+        super_dict.update({'window':self.window})
+        return super_dict
+
+    def __setstate__(self,state,**kwargs):
+        super(IntWindow, self).__setstate__(state,**kwargs)
+        self.window = get_object_from_name(state['window'])
+
 
 class FloatWindow(GeneralWindow):
     '''
@@ -167,6 +191,15 @@ class FloatWindow(GeneralWindow):
         super(FloatWindow, self).__init__(**kwargs)
         self.window = float(window)
 
+    def __getstate__(self):
+        super_dict = super(FloatWindow, self).__getstate__()
+        super_dict.update({'window':self.window})
+        return super_dict
+
+    def __setstate__(self,state,**kwargs):
+        super(FloatWindow, self).__setstate__(state,**kwargs)
+        self.window = get_object_from_name(state['window'])
+
 
 class WindowSmooth(Smooth, IntWindow):
     '''
@@ -178,6 +211,15 @@ class WindowSmooth(Smooth, IntWindow):
 
     def __init__(self, **kwargs):
         super(WindowSmooth, self).__init__(**kwargs)
+
+
+    def __getstate__(self):
+        super_dict = super(WindowSmooth, self).__getstate__()
+        return super_dict
+
+    def __setstate__(self,state,**kwargs):
+        super(WindowSmooth, self).__setstate__(state,**kwargs)
+
 
     @arrayify
     def smooth(self, coords):
@@ -207,6 +249,14 @@ class DistanceWindowSmooth(Smooth, FloatWindow):
 
     def __init__(self, **kwargs):
         super(DistanceWindowSmooth, self).__init__(**kwargs)
+
+    def __getstate__(self):
+        super_dict = super(DistanceWindowSmooth, self).__getstate__()
+        return super_dict
+
+    def __setstate__(self,state,**kwargs):
+        super(DistanceWindowSmooth, self).__setstate__(state,**kwargs)
+
 
     @arrayify
     def smooth(self, coords):
@@ -241,6 +291,15 @@ class ActiveWindowSmooth(Smooth, FloatWindow):
     '''
     def __init__(self, **kwargs):
         super(ActiveWindowSmooth, self).__init__(**kwargs)
+
+
+    def __getstate__(self):
+        super_dict = super(ActiveWindowSmooth, self).__getstate__()
+        return super_dict
+
+    def __setstate__(self,state,**kwargs):
+        super(ActiveWindowSmooth, self).__setstate__(state,**kwargs)
+
 
     @arrayify
     def smooth(self, coords):
@@ -279,6 +338,17 @@ class MaxStepSmooth(Smooth):
     def __init__(self, step=1., **kwargs):
         super(MaxStepSmooth, self).__init__(**kwargs)
         self.step = step
+
+    def __getstate__(self):
+        super_dict = super(MaxStepSmooth, self).__getstate__()
+        super_dict.update({'step':self.step})
+        return super_dict
+
+    def __setstate__(self,state,**kwargs):
+        super(MaxStepSmooth, self).__setstate__(state,**kwargs)
+        self.step = state['step']
+
+
 
     @arrayify
     def smooth(self, coords):
@@ -331,7 +401,27 @@ class SavgolSmooth(Smooth):
         :param: int polyorder: Polynomial order.
         '''
         super(SavgolSmooth, self).__init__(**kwargs)
-        self.savgol = partial(savgol_filter, window_length=window_length,polyorder=polyorder, axis=0, **kwargs)
+        self.window_length =  window_length
+        self.polyorder = polyorder
+        self.additional_kwargs = kwargs
+        self.savgol = self.set_savgol_function()
+
+    def __getstate__(self):
+        super_dict = super(SavgolSmooth, self).__getstate__()
+        super_dict.update({'window_length':self.window_length})
+        super_dict.update({'polyorder':self.polyorder})
+        super_dict.update({'additional_kwargs':self.additional_kwargs})
+        return super_dict
+
+    def __setstate__(self,state,**kwargs):
+        super(SavgolSmooth, self).__setstate__(state,**kwargs)
+        self.window_length = state['window_length']
+        self.polyorder = state['polyorder']
+        self.additional_kwargs = state['additional_kwargs']
+        self.savgol = self.set_savgol_function()
+
+    def set_savgol_function(self):
+        return partial(savgol_filter, window_length=self.window_length, polyorder=self.polyorder, axis=0, **self.additional_kwargs)
 
     @arrayify
     def smooth(self, coords):
@@ -352,6 +442,13 @@ class WindowOverMaxStepSmooth(Smooth):
         self.window = WindowSmooth(**kwargs)
         self.mss = MaxStepSmooth(**kwargs)
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self,state,**kwargs):
+        self.__dict__ = state
+
+
     def smooth(self, coords):
         '''
         :param Iterable coords: Input coordinates to be smoothed.
@@ -370,6 +467,12 @@ class ActiveWindowOverMaxStepSmooth(Smooth):
         self.window = ActiveWindowSmooth(**kwargs)
         self.mss = MaxStepSmooth(**kwargs)
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self,state,**kwargs):
+        self.__dict__ = state
+
     def smooth(self, coords):
         '''
         :param Iterable coords: Input coordinates to be smoothed.
@@ -387,6 +490,12 @@ class DistanceWindowOverMaxStepSmooth(Smooth):
         super(DistanceWindowOverMaxStepSmooth, self).__init__(**kwargs)
         self.window = DistanceWindowSmooth(**kwargs)
         self.mss = MaxStepSmooth(**kwargs)
+
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self,state,**kwargs):
+        self.__dict__ = state
 
     def smooth(self, coords):
         '''

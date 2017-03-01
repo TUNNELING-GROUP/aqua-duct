@@ -17,69 +17,42 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from aquaduct import logger, logger_name
-
-################################################################################
-
-import multiprocessing as mp
 import ConfigParser
-import cPickle as pickle
-import StringIO
 import copy
-import gzip
+import multiprocessing as mp
+import numpy as np
+import operator
 import os
 import re
-import operator
 import shlex
 import sys
-
-import numpy as np
-import MDAnalysis as mda
-import roman  # TODO: remove this dependency!
-
-from netCDF4 import Dataset
-
-from collections import namedtuple, OrderedDict  # TODO: check if OrderedDict is REALLY used
+from collections import namedtuple  # TODO: check if OrderedDict is REALLY used
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
-from distutils.version import LooseVersion
 
+import MDAnalysis as mda
+import roman  # TODO: remove this dependency!
 from scipy.spatial.distance import cdist
-# If scipy is relatively old and numpy is relatively new this triggers warning on oldnumeric module deprecation.
-# This warning emerges if MDAnalysis is imported and then scipy. Observed under Ubuntu 14.04.
 
 from aquaduct import greetings as greetings_aquaduct
-from aquaduct import version as aquaduct_version
+from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
+from aquaduct.apps.data import ValveDataAccess, version_nice
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, BarberCluster
-from aquaduct.geom.convexhull import is_point_within_convexhull
 from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
+from aquaduct.traj.barber import WhereToCut
 from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths
-from aquaduct.traj.reader import ReadViaMDA,atom2vdw_radius
-from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
+from aquaduct.traj.reader import ReadViaMDA
+from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
-from aquaduct.traj.barber import WhereToCut
-
-def version():
-    # TODO: remove it
-    return 0, 10, 0
-
-
-def version_nice():
-    return '.'.join(map(str, version()))
-
-
-def version_onenumber():
-    return ''.join(map(str, version()))
-
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = version_nice()
@@ -532,252 +505,12 @@ def asep():
     return clui.gsep(sep='=', times=72)
 
 
-class LoadDumpWrapper(object):
-    """This is wrapper for pickled data that provides compatibility
-    with earlier versions of Aqua-Duct.
-
-    Conversions in use:
-
-    1) replace 'aquaduct.' by 'aquaduct.'
-
-    """
-
-    def __init__(self, filehandle):
-        self.fh = filehandle
-
-    def convert(self, s):
-        new_s = s
-        new_s = new_s.replace('aqueduct.', 'aquaduct.')
-        new_s = new_s.replace('aqueduct_version', 'aquaduct_version')
-        return new_s
-
-    def read(self, *args, **kwargs):
-        return self.convert(self.fh.read(*args, **kwargs))
-
-    def readline(self, *args, **kwargs):
-        return self.convert(self.fh.readline(*args, **kwargs))
-
 ################################################################################
 # save & write as netCDF4!
 # first try to create a class that would wrap everything...
 # as for now, lets stick with pickle
 
-class ValveDataAccessRoots(object):
-    roots = []
 
-    def open(self,data_file_name,mode):
-        self.roots.append(Dataset(data_file_name,mode,format="NETCDF4"))
-        return self.roots[-1]
-
-    def close_all(self):
-        for root in self.roots:
-            root.close()
-
-    def __del__(self):
-        self.close_all()
-
-VDAR = ValveDataAccessRoots()
-
-class ValveDataAccess_nc(object):
-
-    aqt_dict_base = OrderedDict({'np':1,'list':2,'dict':3,'SinglePath':4})
-
-    aqt_np = 'np'
-    aqt_list = 'list'
-    aqt_dictionary = 'dict'
-
-    aqt_name = 'aqtype'
-    aqt_name_dict = 'aqtype_dict'
-    aqt_name_dim = 'aqtype_dim'
-
-    def __init__(self,mode=None,data_file_name=None,reader=None):
-        # as for now. lets use dump files
-        self.data_file_name = data_file_name
-        self.data = None
-        assert mode in 'rw'
-        self.mode = mode # r, w
-        self.reader = reader
-        self.root = VDAR.open(self.data_file_name,self.mode)
-        self.aqt_dict = None
-        self.aqt_enum = None
-        if self.mode == 'w':
-            self.aqt_enum = self.root.createEnumType(np.int8,self.aqt_name_dict,self.aqt_dict_base)
-        elif self.mode == 'r':
-            self.aqt_enum = self.root.enumtypes[self.aqt_name]
-        self.aqt_dict = dict(self.aqt_enum.enum_dict)
-
-    def create_aqtype(self,gr,aqtype):
-        gr.createDimension(self.aqt_name_dim,1)
-        var = gr.createVariable(self.aqt_name,self.aqt_enum,(self.aqt_name_dim,))
-        var[0] = self.aqt_dict[aqtype]
-
-    def get_aqtype(self,gr):
-        if self.aqt_name in gr.variables:
-            var = gr.variables[self.aqt_name]
-            return self.aqt_dict.keys()[self.aqt_dict.values().index(var[0])]
-        return self.aqt_dictionary
-        #raise ValueError('Wrong structure')
-
-    def get_dimensions_names(self,name,shape):
-        for nr,d in enumerate(shape):
-            yield name+str(nr)
-
-    def create_dimensions(self,name,shape,gr):
-        for nr,d in enumerate(shape):
-            gr.createDimension(name+str(nr),d)
-
-    def create_variable_np(self,name,value,gr):
-        self.create_dimensions(name,value.shape,gr)
-        var = gr.createVariable(name,value.dtype,tuple(self.get_dimensions_names(name,value.shape)))
-        var[:] = value
-
-    def set_object(self,name,value,group=None):
-        if group is None:
-            group = self.root
-        # ndarray, create variable
-        if isinstance(value,np.ndarray):
-            # set variable
-            self.create_variable_np(name,value,group)
-        elif isinstance(value,list):
-            # create new group
-            new_group = group.createGroup(name)
-            # make it group of list type
-            self.create_aqtype(new_group,self.aqt_list)
-            # iterate over the list
-            for nr,deep_value in enumerate(value):
-                # recurence
-                new_name = str(nr)
-                self.set_object(new_name,deep_value,new_group)
-        elif isinstance(value,dict):
-            # create new group
-            new_group = group.createGroup(name)
-            # make it group of list type
-            self.create_aqtype(new_group,self.aqt_dictionary)
-            # iterate over the list
-            for key,deep_value in value.iteritems():
-                # recurence
-                new_name = str(key)
-                self.set_object(new_name,deep_value,new_group)
-
-
-    def get_object(self,group=None):
-        if group is None:
-            group = self.root
-        aqtype = self.get_aqtype(group)
-        if aqtype == self.aqt_dictionary:
-            out = {}
-            # iterate over groups
-            for name,new_group in group.groups.iteritems():
-                out.update({name:self.get_object(group=new_group)})
-            for name,var in group.variables.iteritems():
-                if name == self.aqt_name: continue
-                out.update({name:var})
-        elif aqtype == self.aqt_list:
-            ids = group.groups.keys()
-            ids += group.variables.keys()
-            ids.sort()
-            out = []
-            for idd in ids:
-                if idd == self.aqt_name: continue
-                if idd in group.groups:
-                    out.append(self.get_object(group=group.groups[idd]))
-                elif idd in group.variables:
-                    out.append(group.variables[idd])
-        return out
-
-
-
-
-
-
-
-class ValveDataAccess(object):
-
-    def __init__(self,mode=None,data_file_name=None,reader=None):
-        # as for now. lets use dump files
-        self.data_file_name = data_file_name
-        self.data_file = None
-        self.data = None
-        assert mode in 'rw'
-        self.mode = mode # r, w
-        self.reader = reader
-        self.open(self.data_file_name,self.mode)
-
-    def open(self,data_file_name,mode):
-        # open file
-        self.data_file = gzip.open(data_file_name,mode=mode, compresslevel=9)
-        # if mode is w save header with version etc
-        if mode == 'w':
-            pickle.dump({'version': version(),
-                         'aquaduct_version': aquaduct_version()}, self.data_file)
-        elif mode == 'r':
-            data_file = LoadDumpWrapper(self.data_file)
-            versions = pickle.load(data_file)
-            check_versions(versions)
-            # loaded data!
-            self.data = {}
-            try:
-                while True:
-                    loaded_data = pickle.load(data_file)
-                    self.data.update(loaded_data)
-            except:
-                pass
-
-    def close(self):
-        self.data_file.close()
-
-    def __del__(self):
-        self.close()
-
-    def get_variable(self,name):
-        assert self.mode == "r"
-        value = self.data[name]
-        if isinstance(value, CompactSelectionMDA):
-            with self.reader.get() as traj_reader:
-                return value.toSelectionMDA(traj_reader)
-        return value
-
-    def load(self):
-        data = {}
-        for name,value in self.data.iteritems():
-            if isinstance(value, CompactSelectionMDA):
-                with self.reader.get() as traj_reader:
-                    value = value.toSelectionMDA(traj_reader)
-            data.update({name:value})
-        return data
-
-    def set_variable(self,name,value):
-        assert self.mode == "w"
-        if isinstance(value, SelectionMDA):
-            value = CompactSelectionMDA(value)
-        if 'options' in name:
-            value = value._asdict()
-        pickle.dump({name:value},self.data_file)
-
-    def dump(self,**kwargs):
-        for name,value in kwargs.iteritems():
-            self.set_variable(name,value)
-
-def check_version_compliance(current, loaded, what):
-    if current[0] > loaded[0]:
-        logger.error('Loaded data has %s major version lower then the application.' % what)
-    if current[0] < loaded[0]:
-        logger.error('Loaded data has %s major version higher then the application.' % what)
-    if current[0] != loaded[0]:
-        logger.error('Possible problems with API compliance.')
-    if current[1] > loaded[1]:
-        logger.warning('Loaded data has %s minor version lower then the application.' % what)
-    if current[1] < loaded[1]:
-        logger.warning('Loaded data has %s minor version higher then the application.' % what)
-    if current[1] != loaded[1]:
-        logger.warning('Possible problems with API compliance.')
-
-def check_versions(version_dict):
-    assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
-    assert 'version' in version_dict, "File is corrupted, cannot read version data."
-    assert 'aquaduct_version' in version_dict, "File is corrupted, cannot read version data."
-    check_version_compliance(aquaduct_version(), version_dict['aquaduct_version'], 'Aqua-Duct')
-    check_version_compliance(version(), version_dict['version'], 'Valve')
 
 ################################################################################
 
@@ -1104,7 +837,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 ###########
                 # S A V E #
                 ###########
-                ValveDataAccess(mode='w',data_file_name=options.dump).dump(**result)
+                ValveDataAccess(mode='w', data_file_name=options.dump).dump(**result)
                 #save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
@@ -1112,7 +845,8 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 # L O A D #
                 ###########
                 if options.dump:
-                    result = ValveDataAccess(mode='r',data_file_name=options.dump,reader=reader).load()
+                    with reader.get() as traj_reader:
+                        result = ValveDataAccess(mode='r', data_file_name=options.dump, reader=traj_reader).load()
                     #result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
@@ -1190,7 +924,7 @@ def stage_I_run(config, options,
     return {'all_res': all_res,
             'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
             'center_of_system': center_of_system,
-            'options': options}
+            'options': options._asdict()}
 
 
 ################################################################################
@@ -1276,7 +1010,7 @@ def stage_II_run(config, options,
 
     clui.message("Number of paths: %d" % len(paths))
 
-    return {'all_res': all_res, 'paths': paths, 'options': options}
+    return {'all_res': all_res, 'paths': paths, 'options': options._asdict()}
 
 
 ################################################################################
@@ -1366,7 +1100,7 @@ def stage_III_run(config, options,
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 
-    return {'paths': paths, 'spaths': spaths, 'options': options, 'soptions': soptions}
+    return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict()}
 
 
 ################################################################################
