@@ -1,6 +1,8 @@
 Aqua-Duct changelog
 ===================
 
+* 0.3.3
+    * AutoBarber default values of maxcut_level and mincut_level changed to True.
 * 0.3.2
     * Major improvement: new auto_barber based clustering method.
     * Clusterization history displayed as simple ascii tree.
