@@ -19,6 +19,7 @@
 import numpy as np
 from scipy.spatial.distance import pdist
 
+from aquaduct.utils.maths import make_default_array
 
 ################################################################################
 # traces utils and helpers
@@ -55,7 +56,7 @@ def tracepoints(start, stop, nr):
     """
     # returns points between start and stop as linear interpolations
     # if nr == 1 then midpoint is returned
-    return np.array([np.linspace(cb, ce, nr + 2)[1:-1] for cb, ce in zip(start, stop)]).T
+    return make_default_array([np.linspace(cb, ce, nr + 2)[1:-1] for cb, ce in zip(start[:], stop[:])]).T
 
 
 def midpoints(paths):
@@ -73,12 +74,13 @@ def midpoints(paths):
     # function yields the same elements plus midpoints:
     #   111112 2333334 455555
     assert isinstance(paths, tuple), "Paths should be of tuple type, %r submitted instead." % type(paths)
+    '''
     for nr, trace in enumerate(paths):
         assert isinstance(trace,
                           np.ndarray), "Traces should be of numpy.ndarray type, %r submited instead (trace no. %d)" % (
             type(trace), nr)
         # assert len(trace.shape) == 2, "Traces should be 2d, %dd submited instead (trace no. %d)" %(len(trace.shape),nr)
-
+    '''
     n = len(paths)
     last_trace = None
     if n > 1:
@@ -96,9 +98,9 @@ def midpoints(paths):
             if len(trace) > 0:
                 if len(past) > 0:
                     midp = tracepoints(past, trace[0], 1)
-                    trace = np.vstack((midp, trace))
+                    trace = np.vstack((midp, trace[:]))
                 if len(next_trace) > 0:
-                    midp = tracepoints(trace[-1], next_trace, 1)
+                    midp = tracepoints(trace[:][-1], next_trace, 1)
                     trace = np.vstack((trace, midp))
             yield trace
     else:

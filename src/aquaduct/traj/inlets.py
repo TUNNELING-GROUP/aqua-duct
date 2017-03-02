@@ -64,6 +64,12 @@ class InletClusterGenericType(object):
     def __init__(self, inp, out):
         self.clusters = [inp, out]
 
+    def __getstate__(self):
+        return {'clusters':self.clusters}
+
+    def __setstate__(self, state, **kwargs):
+        self.clusters = state['clusters']
+
     @property
     def input(self):
         return self.clusters[0]
@@ -181,8 +187,24 @@ class InletClusterExtendedType(InletClusterGenericType):
         return InletClusterGenericType(*self.clusters[:2])
 
 
-Inlet = namedtuple('Inlet', 'coords type reference')
+#Inlet = namedtuple('Inlet', 'coords type reference')
 
+class Inlet(object):
+
+    def __init__(self,coords=None,type=None,reference=None):
+        self.coords = coords
+        self.type = type
+        self.reference = reference
+
+    def __getstate__(self):
+        return {'coords':self.coords,
+                'type':self.type,
+                'reference':self.reference}
+
+    def __setstate__(self, state,**kwargs):
+        self.coords = state['coords']
+        self.type = state['type']
+        self.reference = state['reference']
 
 class Inlets(object):
     # class for list of inlets
@@ -200,6 +222,47 @@ class Inlets(object):
 
         for spath in spaths:
             self.extend_inlets(spath)
+
+    def __getstate__(self):
+        out = {}
+        if self.center_of_system is not None:
+            out.update({'center_of_system':self.center_of_system})
+        out.update({'onlytype':self.onlytype})
+        if len(self.inlets_list):
+            out.update({'inlets_list':self.inlets_list})
+        if len(self.inlets_ids):
+            out.update({'inlets_ids':self.inlets_ids})
+        if len(self.clusters):
+            out.update({'clusters':np.array(self.clusters)})
+        if self.number_of_clustered_inlets:
+            out.update({'number_of_clustered_inlets':np.array(self.number_of_clustered_inlets)})
+        if len(self.radii):
+            out.update({'radii':np.array(self.radii)})
+        out.update({'tree':self.tree})
+        return out
+
+    def __setstate__(self, state,**kwargs):
+        self.center_of_system = None
+        if 'center_of_system' in state:
+            self.center_of_system = state['center_of_system'][:]
+        self.onlytype = state['onlytype']
+        self.inlets_list = []
+        self.inlets_ids = []
+        self.clusters = []
+        if 'inlets_list' in state:
+            self.inlets_list = state['inlets_list']
+        if 'inlets_ids' in state:
+            self.inlets_ids = state['inlets_ids']
+        if 'clusters' in state:
+            self.clusters = state['clusters'][:].tolist()
+        self.number_of_clustered_inlets = None
+        if 'number_of_clustered_inlets' in state:
+            self.number_of_clustered_inlets = state['number_of_clustered_inlets'][:]
+        self.radii = []
+        if 'radii' in state:
+            self.radii = state['radii'][:].tolist()
+        self.tree = state['tree']
+
 
     def add_leaf_wrapper(self,name=None,message=None,toleaf=None):
         if name == 0:

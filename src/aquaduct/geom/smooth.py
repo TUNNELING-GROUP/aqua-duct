@@ -443,10 +443,10 @@ class WindowOverMaxStepSmooth(Smooth):
         self.mss = MaxStepSmooth(**kwargs)
 
     def __getstate__(self):
-        return self.__dict__
+        return super(WindowOverMaxStepSmooth, self).__getstate__()
 
     def __setstate__(self,state,**kwargs):
-        self.__dict__ = state
+        return super(WindowOverMaxStepSmooth, self).__setstate__(state,**kwargs)
 
 
     def smooth(self, coords):
@@ -468,10 +468,10 @@ class ActiveWindowOverMaxStepSmooth(Smooth):
         self.mss = MaxStepSmooth(**kwargs)
 
     def __getstate__(self):
-        return self.__dict__
+        return super(ActiveWindowOverMaxStepSmooth, self).__getstate__()
 
     def __setstate__(self,state,**kwargs):
-        self.__dict__ = state
+        return super(ActiveWindowOverMaxStepSmooth, self).__setstate__(state,**kwargs)
 
     def smooth(self, coords):
         '''
@@ -492,10 +492,10 @@ class DistanceWindowOverMaxStepSmooth(Smooth):
         self.mss = MaxStepSmooth(**kwargs)
 
     def __getstate__(self):
-        return self.__dict__
+        return super(DistanceWindowOverMaxStepSmooth, self).__getstate__()
 
     def __setstate__(self,state,**kwargs):
-        self.__dict__ = state
+        return super(DistanceWindowOverMaxStepSmooth, self).__setstate__(state,**kwargs)
 
     def smooth(self, coords):
         '''

@@ -178,14 +178,15 @@ def get_object_from_name(name):
     return getattr(module, object_name)
 
 class ValveDataAccess_nc(object):
-    aqt_dict_base = OrderedDict(
+    aqt_types_dict_base = OrderedDict(
         {'np': 1, 'list': 2, 'dict': 3, 'dict_int': 32, 'str': 4, 'object': 5, 'bool': 6, 'none': 7,
-         'int': 8, 'float': 9})
-
+         'int': 8, 'float': 9,'tuple':16})
+    # types names
     aqt_np = 'np'
     aqt_list = 'list'
-    aqt_dictionary = 'dict'
-    aqt_dictionary_int = 'dict_int'
+    aqt_tuple = 'tuple'
+    aqt_dict = 'dict'
+    aqt_dict_int = 'dict_int'
     aqt_object = 'object'
     aqt_str = 'str'
     aqt_bool = 'bool'
@@ -193,11 +194,12 @@ class ValveDataAccess_nc(object):
     aqt_int = 'int'
     aqt_float = 'float'
 
-    aqt_name = 'aqtype'
-    aqt_object_name = 'aqtype_obj_name'
-    aqt_object_state = 'aqtype_obj_state'
-    aqt_name_dict = 'aqtype_dict'
-    aqt_name_dim = 'aqtype_dim'
+    # metadata names
+    aqt_name = 'aqt'
+    aqt_object_name = 'aqt_obj_name'
+    aqt_object_state = 'aqt_obj_state'
+    aqt_types_dict_name = 'aqt_types_dict'
+    aqt_dim_name = 'aqt_dim'
 
     def __init__(self, mode=None, data_file_name=None, reader=None):
         self.data_file_name = data_file_name
@@ -206,24 +208,24 @@ class ValveDataAccess_nc(object):
         self.mode = mode  # r, w
         self.reader = reader
         self.root = VDAR.open(self.data_file_name, self.mode)
-        self.aqt_dict = None
-        self.aqt_enum = None
+        self.aqt_types_dict = None
+        self.aqt_types_enum = None
         if self.mode == 'w':
-            self.aqt_enum = self.root.createEnumType(np.int8, self.aqt_name_dict, self.aqt_dict_base)
+            self.aqt_types_enum = self.root.createEnumType(np.int8, self.aqt_types_dict_name, self.aqt_types_dict_base)
         elif self.mode == 'r':
-            self.aqt_enum = self.root.enumtypes[self.aqt_name_dict]
-        self.aqt_dict = dict(self.aqt_enum.enum_dict)
+            self.aqt_types_enum = self.root.enumtypes[self.aqt_types_dict_name]
+        self.aqt_types_dict = dict(self.aqt_types_enum.enum_dict)
 
     def create_aqtype(self, gr, aqtype):
-        gr.createDimension(self.aqt_name_dim, 1)
-        var = gr.createVariable(self.aqt_name, self.aqt_enum, (self.aqt_name_dim,))
-        var[0] = self.aqt_dict[aqtype]
+        gr.createDimension(self.aqt_dim_name, 1)
+        var = gr.createVariable(self.aqt_name, self.aqt_types_enum, (self.aqt_dim_name,))
+        var[0] = self.aqt_types_dict[aqtype]
 
     def get_aqtype(self, gr):
         if self.aqt_name in gr.variables:
             var = gr.variables[self.aqt_name]
-            return self.aqt_dict.keys()[self.aqt_dict.values().index(var[0])]
-        return self.aqt_dictionary
+            return self.aqt_types_dict.keys()[self.aqt_types_dict.values().index(var[0])]
+        return self.aqt_dict
         # raise ValueError('Wrong structure')
 
     def get_dimensions_names(self, name, shape):
@@ -232,21 +234,23 @@ class ValveDataAccess_nc(object):
 
     def create_dimensions(self, name, shape, gr):
         out = []
+        names = gr.dimensions.keys()
+        sizes = [gr.dimensions[dim].size for dim in names]
         for nr, d in enumerate(shape):
             # check if there is such dimension
-            are_we_happy = False
-            for dim in gr.dimensions.keys():
-                if gr.dimensions[dim].size == d:
-                    out.append(dim)
-                    are_we_happy = True
-            if not are_we_happy:
+            if d in sizes:
+                out.append(names[sizes.index(d)])
+            else:
                 gr.createDimension(name + str(nr), d)
                 out.append(name + str(nr))
+                names.append(name + str(nr))
+                sizes.append(d)
         return out
 
     def create_variable_np(self, name, value, gr):
         names = self.create_dimensions(name, value.shape, gr)
-        var = gr.createVariable(name, value.dtype, tuple(names))
+        print value.dtype
+        var = gr.createVariable(name, value.dtype, tuple(names))#,zlib=True,shuffle=True,complevel=9)
         var[:] = value
 
     def set_object(self, name, value, group=None):
@@ -289,6 +293,16 @@ class ValveDataAccess_nc(object):
                 # recurence
                 new_name = str(nr)
                 self.set_object(new_name, deep_value, new_group)
+        elif isinstance(value, tuple):
+            # create new group
+            new_group = group.createGroup(name)
+            # make it group of list type
+            self.create_aqtype(new_group, self.aqt_tuple)
+            # iterate over the tuple
+            for nr, deep_value in enumerate(value):
+                # recurence
+                new_name = str(nr)
+                self.set_object(new_name, deep_value, new_group)
         elif isinstance(value, dict):
             # create new group
             new_group = group.createGroup(name)
@@ -300,14 +314,16 @@ class ValveDataAccess_nc(object):
                     break
             # make it group of list type
             if int_keys:
-                self.create_aqtype(new_group, self.aqt_dictionary_int)
+                self.create_aqtype(new_group, self.aqt_dict_int)
             else:
-                self.create_aqtype(new_group, self.aqt_dictionary)
+                self.create_aqtype(new_group, self.aqt_dict)
             # iterate over the list
             for key, deep_value in value.iteritems():
                 # recurence
                 new_name = str(key)
                 self.set_object(new_name, deep_value, new_group)
+        elif isinstance(value,tuple):
+            pass
         elif isinstance(value, object):
             # create new group
             new_group = group.createGroup(name)
@@ -329,21 +345,22 @@ class ValveDataAccess_nc(object):
         if group is None:
             group = self.root
         aqtype = self.get_aqtype(group)
-        if aqtype == self.aqt_dictionary or aqtype == self.aqt_dictionary_int:
+        print group.path, aqtype
+        if aqtype == self.aqt_dict or aqtype == self.aqt_dict_int:
             out = {}
             # iterate over groups
             for name, new_group in group.groups.iteritems():
-                if aqtype == self.aqt_dictionary_int:
+                if aqtype == self.aqt_dict_int:
                     out.update({int(name): self.get_object(group=new_group)})
                 else:
                     out.update({str(name): self.get_object(group=new_group)})
             for name, var in group.variables.iteritems():
                 if name == self.aqt_name: continue
-                if aqtype == self.aqt_dictionary_int:
+                if aqtype == self.aqt_dict_int:
                     out.update({int(name): var})
                 else:
                     out.update({str(name): var})
-        elif aqtype == self.aqt_list:
+        elif aqtype in [self.aqt_list, self.aqt_tuple]:
             ids = group.groups.keys()
             ids += group.variables.keys()
             ids.sort()
@@ -354,6 +371,8 @@ class ValveDataAccess_nc(object):
                     out.append(self.get_object(group=group.groups[idd]))
                 elif idd in group.variables:
                     out.append(group.variables[idd])
+            if aqtype == self.aqt_tuple:
+                out = tuple(out)
         elif aqtype == self.aqt_str:
             var = group.variables['0']
             out = str(var[:])
@@ -371,10 +390,10 @@ class ValveDataAccess_nc(object):
         elif aqtype == self.aqt_object:
             object_name = group.variables[self.aqt_object_name][:]
             state = self.get_object(group=group.groups[self.aqt_object_state])
-            print object_name, state
+            #print object_name, state
             object_instance = get_object_from_name(object_name)
             object_instance = object_instance.__new__(object_instance)
-            print type(object_instance)
+            #print type(object_instance)
             object_instance.__setstate__(state, reader=self.reader)
             out = object_instance
 
