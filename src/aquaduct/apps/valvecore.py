@@ -902,8 +902,10 @@ def stage_I_run(config, options,
             # remeber ids of res in object in current frame
             if res_new is not None:
                 res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
+                #res_ids_in_object_over_frames.update({frame: np.array(res_new.unique_resids(ikwid=True))})
             else:
                 res_ids_in_object_over_frames.update({frame: []})
+                #res_ids_in_object_over_frames.update({frame: np.array([])})
             pbar.update(frame)
 
     # destroy pool of workers
@@ -987,9 +989,9 @@ def stage_II_run(config, options,
                         res_new = get_res_in_scope(is_res_in_scope, res)
                         # remeber ids of res in object in current frame
                         if res_new is not None:
-                            res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
+                            res_ids_in_object_over_frames.update({frame: np.array(res_new.unique_resids(ikwid=True))})
                         else:
-                            res_ids_in_object_over_frames.update({frame: []})
+                            res_ids_in_object_over_frames.update({frame: np.array([])})
 
                     # in scope
                     if resid not in res_ids_in_object_over_frames[frame]:

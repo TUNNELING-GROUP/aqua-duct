@@ -231,12 +231,22 @@ class ValveDataAccess_nc(object):
             yield name + str(nr)
 
     def create_dimensions(self, name, shape, gr):
+        out = []
         for nr, d in enumerate(shape):
-            gr.createDimension(name + str(nr), d)
+            # check if there is such dimension
+            are_we_happy = False
+            for dim in gr.dimensions.keys():
+                if gr.dimensions[dim].size == d:
+                    out.append(dim)
+                    are_we_happy = True
+            if not are_we_happy:
+                gr.createDimension(name + str(nr), d)
+                out.append(name + str(nr))
+        return out
 
     def create_variable_np(self, name, value, gr):
-        self.create_dimensions(name, value.shape, gr)
-        var = gr.createVariable(name, value.dtype, tuple(self.get_dimensions_names(name, value.shape)))
+        names = self.create_dimensions(name, value.shape, gr)
+        var = gr.createVariable(name, value.dtype, tuple(names))
         var[:] = value
 
     def set_object(self, name, value, group=None):
@@ -244,6 +254,7 @@ class ValveDataAccess_nc(object):
             group = self.root
         # ndarray, create variable
         #print name, type(value), isinstance(value, np.ndarray)
+        print group.path,name
         if isinstance(value, np.ndarray):
             # set variable
             self.create_variable_np(name, value, group)
