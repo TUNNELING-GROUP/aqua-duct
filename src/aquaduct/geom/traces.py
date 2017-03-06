@@ -102,9 +102,9 @@ def midpoints(paths):
                 if len(next_trace) > 0:
                     midp = tracepoints(trace[:][-1], next_trace, 1)
                     trace = np.vstack((trace, midp))
-            yield trace
+            yield make_default_array(trace)
     else:
-        yield paths[0]
+        yield make_default_array(paths[0])
 
 
 def length_step_std(trace):

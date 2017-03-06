@@ -856,6 +856,30 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
 
 
+
+class IdsOverIds(object):
+
+    @staticmethod
+    def dict2arrays(d):
+        values = []
+        keys_lens = []
+        for k,v in d.iteritems():
+            keys_lens.append((k,len(v)))
+            values.extend(v.tolist())
+        return {'values':np.array(values),'keys_lens':np.array(keys_lens)}
+
+    @staticmethod
+    def arrays2dict(values=None,keys_lens=None):
+        out = {}
+        ll = 0
+        for kl in keys_lens:
+            k = kl[0]
+            l = kl[1]
+            v = values[ll:ll+l]
+            ll += l
+            out.update({int(k):v.tolist()})
+        return out
+
 ################################################################################
 # stages run
 
@@ -924,7 +948,7 @@ def stage_I_run(config, options,
     clui.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
     return {'all_res': all_res,
-            'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
+            'res_ids_in_object_over_frames': IdsOverIds.dict2arrays(res_ids_in_object_over_frames),
             'center_of_system': center_of_system,
             'options': options._asdict()}
 
@@ -938,6 +962,9 @@ def stage_II_run(config, options,
                  res_ids_in_object_over_frames=None,
                  max_frame=None,
                  **kwargs):
+
+    res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
+
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
         clui.message('This will be recalculated on demand.')

@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
+logger = logging.getLogger(__name__)
 
 import cPickle as pickle
 import gzip
@@ -27,7 +29,7 @@ from netCDF4 import Dataset
 
 from aquaduct import version, version_nice, logger
 from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
-
+from aquaduct.utils import clui
 
 class LoadDumpWrapper(object):
     """This is wrapper for pickled data that provides compatibility
@@ -202,12 +204,14 @@ class ValveDataAccess_nc(object):
     aqt_dim_name = 'aqt_dim'
 
     def __init__(self, mode=None, data_file_name=None, reader=None):
+        logger.debug('Opening file %s in mode %s' % (data_file_name,mode))
         self.data_file_name = data_file_name
         self.data = None
         assert mode in 'rw'
         self.mode = mode  # r, w
         self.reader = reader
         self.root = VDAR.open(self.data_file_name, self.mode)
+        logger.debug('Dataset created')
         self.aqt_types_dict = None
         self.aqt_types_enum = None
         if self.mode == 'w':
@@ -220,10 +224,17 @@ class ValveDataAccess_nc(object):
         gr.createDimension(self.aqt_dim_name, 1)
         var = gr.createVariable(self.aqt_name, self.aqt_types_enum, (self.aqt_dim_name,))
         var[0] = self.aqt_types_dict[aqtype]
+        var = gr.variables[self.aqt_name]
+        if var[0] == 0:
+            pass
 
     def get_aqtype(self, gr):
         if self.aqt_name in gr.variables:
             var = gr.variables[self.aqt_name]
+            #print var
+            #print var[0],self.aqt_types_dict
+            if var[0] == 0:
+                pass
             return self.aqt_types_dict.keys()[self.aqt_types_dict.values().index(var[0])]
         return self.aqt_dict
         # raise ValueError('Wrong structure')
@@ -249,8 +260,11 @@ class ValveDataAccess_nc(object):
 
     def create_variable_np(self, name, value, gr):
         names = self.create_dimensions(name, value.shape, gr)
-        print value.dtype
-        var = gr.createVariable(name, value.dtype, tuple(names))#,zlib=True,shuffle=True,complevel=9)
+        #print value.dtype
+        if value.size > 100:
+            var = gr.createVariable(name, value.dtype, tuple(names),zlib=True,shuffle=True,complevel=9)
+        else:
+            var = gr.createVariable(name, value.dtype, tuple(names))#, zlib=True, shuffle=True, complevel=9)
         var[:] = value
 
     def set_object(self, name, value, group=None):
@@ -258,7 +272,7 @@ class ValveDataAccess_nc(object):
             group = self.root
         # ndarray, create variable
         #print name, type(value), isinstance(value, np.ndarray)
-        print group.path,name
+        logger.debug('%s/%s' % (group.path.rstrip('/'), name))
         if isinstance(value, np.ndarray):
             # set variable
             self.create_variable_np(name, value, group)
@@ -304,12 +318,15 @@ class ValveDataAccess_nc(object):
                 new_name = str(nr)
                 self.set_object(new_name, deep_value, new_group)
         elif isinstance(value, dict):
+            empty = False
+            if len(value) == 0:
+                empty = True
             # create new group
             new_group = group.createGroup(name)
             # are keys int?
             int_keys = True
-            for v in value.keys():
-                if not isinstance(v, int):
+            for k in value.keys():
+                if not isinstance(k, int):
                     int_keys = False
                     break
             # make it group of list type
@@ -319,11 +336,10 @@ class ValveDataAccess_nc(object):
                 self.create_aqtype(new_group, self.aqt_dict)
             # iterate over the list
             for key, deep_value in value.iteritems():
+                assert not empty
                 # recurence
                 new_name = str(key)
                 self.set_object(new_name, deep_value, new_group)
-        elif isinstance(value,tuple):
-            pass
         elif isinstance(value, object):
             # create new group
             new_group = group.createGroup(name)
@@ -345,7 +361,7 @@ class ValveDataAccess_nc(object):
         if group is None:
             group = self.root
         aqtype = self.get_aqtype(group)
-        print group.path, aqtype
+        logger.debug(group.path)
         if aqtype == self.aqt_dict or aqtype == self.aqt_dict_int:
             out = {}
             # iterate over groups
@@ -357,9 +373,9 @@ class ValveDataAccess_nc(object):
             for name, var in group.variables.iteritems():
                 if name == self.aqt_name: continue
                 if aqtype == self.aqt_dict_int:
-                    out.update({int(name): var})
+                    out.update({int(name): var[:]})
                 else:
-                    out.update({str(name): var})
+                    out.update({str(name): var[:]})
         elif aqtype in [self.aqt_list, self.aqt_tuple]:
             ids = group.groups.keys()
             ids += group.variables.keys()
@@ -370,7 +386,7 @@ class ValveDataAccess_nc(object):
                 if idd in group.groups:
                     out.append(self.get_object(group=group.groups[idd]))
                 elif idd in group.variables:
-                    out.append(group.variables[idd])
+                    out.append(group.variables[idd][:])
             if aqtype == self.aqt_tuple:
                 out = tuple(out)
         elif aqtype == self.aqt_str:

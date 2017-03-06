@@ -27,7 +27,7 @@ from itertools import izip_longest
 
 from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
-
+from aquaduct.utils.maths import make_default_array
 
 class ProtoInletTypeCodes:
     surface = 'surface'
@@ -192,7 +192,7 @@ class InletClusterExtendedType(InletClusterGenericType):
 class Inlet(object):
 
     def __init__(self,coords=None,type=None,reference=None):
-        self.coords = coords
+        self.coords = make_default_array(coords)
         self.type = type
         self.reference = reference
 
@@ -202,7 +202,7 @@ class Inlet(object):
                 'reference':self.reference}
 
     def __setstate__(self, state,**kwargs):
-        self.coords = state['coords']
+        self.coords = make_default_array(state['coords'])
         self.type = state['type']
         self.reference = state['reference']
 
@@ -231,7 +231,7 @@ class Inlets(object):
         if len(self.inlets_list):
             out.update({'inlets_list':self.inlets_list})
         if len(self.inlets_ids):
-            out.update({'inlets_ids':self.inlets_ids})
+            out.update({'inlets_ids':np.array(self.inlets_ids)})
         if len(self.clusters):
             out.update({'clusters':np.array(self.clusters)})
         if self.number_of_clustered_inlets:
@@ -252,7 +252,7 @@ class Inlets(object):
         if 'inlets_list' in state:
             self.inlets_list = state['inlets_list']
         if 'inlets_ids' in state:
-            self.inlets_ids = state['inlets_ids']
+            self.inlets_ids = state['inlets_ids'][:].tolist()
         if 'clusters' in state:
             self.clusters = state['clusters'][:].tolist()
         self.number_of_clustered_inlets = None

@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 from aquaduct.utils import clui
@@ -196,13 +195,15 @@ class SmartRange(object):
             if ty == 'i':
                 self.__elements.append(SmartRangeIncrement(el,ti))
 
-        self.__len = int(state['len'][:])
+        self.__len = 0
+        if state['len'].size:
+            self.__len = int(state['len'])
         self.__min = None
         self.__max = None
         if 'max' in state:
-            self.__max = state['max'][:].tolist()
+            self.__max = state['max'].tolist()
         if 'min' in state:
-            self.__min = state['min'][:].tolist()
+            self.__min = state['min'].tolist()
 
     def last_element(self):
         if len(self.__elements) == 0:
@@ -344,8 +345,8 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.__frames = state['frames']
         self.__types = state['types']
         self.coords = state['coords']
-        self.max_possible_frame = int(state['max_possible_frame'][:])
-        self.min_possible_frame = int(state['min_possible_frame'][:])
+        self.max_possible_frame = int(state['max_possible_frame'])
+        self.min_possible_frame = int(state['min_possible_frame'])
 
     # info methods
     @property
@@ -591,8 +592,8 @@ class SinglePathID(object):
                 'nr':np.array(self.nr)}
 
     def __setstate__(self, state, **kwargs):
-        self.id = int(state['id'][:])
-        self.nr = int(state['nr'][:])
+        self.id = int(state['id'])
+        self.nr = int(state['nr'])
 
 
 def yield_single_paths(gps, fullonly=False, progress=False):
