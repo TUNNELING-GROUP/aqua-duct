@@ -42,8 +42,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 3, 2
-    # barber cluster and clusterization history
+    return 0, 3, 3
+    # new barber defaults
 
 
 def version_nice():

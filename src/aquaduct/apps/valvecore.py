@@ -409,7 +409,8 @@ class ValveConfig(object, ConfigSpecialNames):
         with open(filename, 'w') as fs:
             self.save_config_stream(fs)
 
-    def dump_config(self):
+    def dump_config(self,concise=True,template=False):
+        skip_list = '''simply_smooths dump'''.split()
         output = []
         options = [self.get_global_options()] + \
                   [self.get_stage_options(stage) for stage in range(6)] + \
@@ -420,21 +421,30 @@ class ValveConfig(object, ConfigSpecialNames):
                 [self.cluster_name(), self.recluster_name(),
                  self.smooth_name()]
 
+        def value2str(val):
+            if val is Auto:
+                val = str(Auto())
+            else:
+                val = str(val)
+            return val
+
         for o, n in zip(options, names):
             output.append('[%s]' % n)
-            for k in o._asdict().keys():
-                v = o._asdict()[k]
-                if v is Auto:  # FIXME: do something with Auto class!
-                    v = str(Auto())
-                else:
-                    v = str(v)
+            #for k in o._asdict().keys():
+            for k in self.config.options(n):
+                if k in skip_list: continue
+                v = value2str(o._asdict()[k])
                 output.append('%s = %s' % (k, v))
+            if not concise: output.append('')
         # is something missing?
         for miss in self.config.sections():
             if miss in names: continue
             output.append('[%s]' % miss)
-            for option in self.config.options(miss):
-                output.append('%s = %s' % (option, str(self.config.get(miss, option))))
+            for k in self.config.options(miss):
+                if k in skip_list: continue
+                v = value2str(self.config.get(miss, k))
+                output.append('%s = %s' % (k, v))
+            if not concise: output.append('')
 
         return output
 
