@@ -164,9 +164,9 @@ auto_barber_mincut          None            Minimal radius of spheres used in Au
 auto_barber_maxcut          2.8             Maximal radius of spheres used in Auto Barber. If a sphere has
                                             radius greater then this value it is not used to cut. This
                                             option can be switched off by setting it to `None`.
-auto_barber_mincut_level    False           If set `True` spheres of radius less then **mincut** are
+auto_barber_mincut_level    True            If set `True` spheres of radius less then **mincut** are
                                             resized to **mincut** value.
-auto_barber_maxcut_level    False           If set `True` spheres of radius greater then **maxcut** are
+auto_barber_maxcut_level    True            If set `True` spheres of radius greater then **maxcut** are
                                             resized to **maxcut** value.
 auto_barber_tovdw           True            Correct cutting sphere by decreasing its radius by VdW radius
                                             of the closest atom.
