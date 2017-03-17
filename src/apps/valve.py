@@ -112,7 +112,7 @@ if __name__ == "__main__":
             #config.save_config_stream(config_dump)
             #print config_dump.getvalue()
             import os
-            print os.linesep.join(config.dump_config(concise=False))
+            print os.linesep.join(config.dump_config(dump_template=True))
             exit(0)
         # special case of version
         if args.print_version:

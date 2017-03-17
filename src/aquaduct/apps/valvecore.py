@@ -51,7 +51,9 @@ from aquaduct import greetings as greetings_aquaduct
 from aquaduct import version as aquaduct_version
 from aquaduct import version_nice as aquaduct_version_nice
 from aquaduct.geom import traces
-from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, BarberCluster
+from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, BarberCluster, get_required_params
+from aquaduct.geom.cluster import  AVAILABLE_METHODS as available_clusterization_methods
+
 from aquaduct.geom.convexhull import is_point_within_convexhull
 from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
@@ -115,8 +117,11 @@ class ValveConfig(object, ConfigSpecialNames):
             if iskeyword(opt):
                 logger.warning('Invalid keyword <%s> in config file skipped. Check configuration file.' % opt)
                 continue
-            options.append((opt, self.special_name(input_options[opt])))
-        options = dict(options)
+            if opt.replace('_','').isalnum():
+                options.append((opt, self.special_name(input_options[opt])))
+            else:
+                logger.debug('Keyword <%s> in config file skipped.' % opt)
+        options = OrderedDict(options)
         options_nt = namedtuple('Options', options.keys())
         return options_nt(**options)
 
@@ -179,12 +184,12 @@ class ValveConfig(object, ConfigSpecialNames):
     def get_common_traj_data(self, stage):
         assert isinstance(stage, int)
         # options = {name: None for name in self.common_traj_data_config_names()}
-        options = dict(((name, None) for name in self.common_traj_data_config_names()))
+        options = OrderedDict(((name, None) for name in self.common_traj_data_config_names()))
         for nr in range(stage + 1)[::-1]:
             section = self.stage_names(nr)
             for name in self.common_traj_data_config_names():
                 if self.config.has_option(section, name):
-                    value = self.config.get(section, name)
+                    value = self.special_name(self.config.get(section, name))
                     if (value is not None) and (options[name] is None):
                         options.update({name: value})
         return self.__make_options_nt(options)
@@ -193,7 +198,7 @@ class ValveConfig(object, ConfigSpecialNames):
         section = self.global_name()
         names = self.config.options(section)
         # options = {name: self.config.get(section, name) for name in names}
-        options = dict(((name, self.config.get(section, name)) for name in names))
+        options = OrderedDict(((name, self.config.get(section, name)) for name in names))
         return self.__make_options_nt(options)
 
     def get_stage_options(self, stage):
@@ -201,7 +206,7 @@ class ValveConfig(object, ConfigSpecialNames):
         stage_name = self.stage_names(stage)
         names = self.config.options(stage_name)
         # options = {name: self.config.get(stage_name, name) for name in names}
-        options = dict(((name, self.config.get(stage_name, name)) for name in names))
+        options = OrderedDict(((name, self.config.get(stage_name, name)) for name in names))
         if stage in [0, 1]:
             options.update(self.get_common_traj_data(stage)._asdict())
         return self.__make_options_nt(options)
@@ -213,7 +218,7 @@ class ValveConfig(object, ConfigSpecialNames):
             section = section_name
         names = self.config.options(section)
         # options = {name: self.config.get(section, name) for name in names}
-        options = dict(((name, self.config.get(section, name)) for name in names))
+        options = OrderedDict(((name, self.config.get(section, name)) for name in names))
         # special recursive_clusterization option
         if self.recursive_clusterization_name() not in options:
             options.update({self.recursive_clusterization_name(): None})
@@ -228,13 +233,14 @@ class ValveConfig(object, ConfigSpecialNames):
         section = self.smooth_name()
         names = self.config.options(section)
         # options = {name: self.config.get(section, name) for name in names}
-        options = dict(((name, self.config.get(section, name)) for name in names))
+        options = OrderedDict(((name, self.config.get(section, name)) for name in names))
         return self.__make_options_nt(options)
 
     def get_default_config(self):
         # snr = 0 # stage number
 
         config = ConfigParser.RawConfigParser()
+        #config = RawConfigParserWithComments()
 
         def common(section):
             for setting in self.common_config_names():
@@ -248,14 +254,18 @@ class ValveConfig(object, ConfigSpecialNames):
                 else:
                     config.set(section, setting, value=value)
 
-        def common_traj_data(section):
+        def common_traj_data(section,commented=False):
             for setting in self.common_traj_data_config_names():
-                config.set(section, setting)
+                if commented:
+                    setting = '#'+setting
+                config.set(section, setting, 'None')
 
         ################
         # global settings
         section = self.global_name()
         config.add_section(section)
+        #config.add_comment(section,'global settings')
+
 
         # top - top file name
         # nc - netcdf file name
@@ -317,7 +327,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
-        config.set(section, 'max_level', '5')
+        config.set(section, 'max_level', '0')
         config.set(section, 'recluster_outliers', 'False')
         config.set(section, 'detect_outliers', 'False')
         config.set(section, 'singletons_outliers', 'False')
@@ -409,9 +419,36 @@ class ValveConfig(object, ConfigSpecialNames):
         with open(filename, 'w') as fs:
             self.save_config_stream(fs)
 
-    def dump_config(self,concise=True,template=False):
-        skip_list = '''simply_smooths dump'''.split()
+    def get_general_comment(self,section):
+        if section == self.global_name():
+            return ['Global settings.']
+        if section == self.cluster_name():
+            out = ['Possible clusterization methods:']
+            # get default clusterization method
+            defmet = self.config.get(section,'method')
+            for method in available_clusterization_methods:
+                if method == defmet: continue
+                out.append('method = %s' %method)
+                params = get_required_params(method)
+                if params:
+                    sss = ''
+                    if len(params) > 1:
+                        sss = 's'
+                    out.append('Required parameter%s for %s method:' % (sss,method))
+                    for param in params:
+                        out.append('%s = None' % param)
+                    #out.append('')
+            return out
+
+
+    def dump_config(self,dump_template=False):
+        skip_list = '''simply_smooths'''.split() # these options are very optional!
+        concise = True
+        if dump_template:
+            concise = False
+
         output = []
+
         options = [self.get_global_options()] + \
                   [self.get_stage_options(stage) for stage in range(6)] + \
                   [self.get_cluster_options(), self.get_recluster_options(),
@@ -428,24 +465,34 @@ class ValveConfig(object, ConfigSpecialNames):
                 val = str(val)
             return val
 
-        for o, n in zip(options, names):
-            output.append('[%s]' % n)
-            #for k in o._asdict().keys():
-            for k in self.config.options(n):
-                if k in skip_list: continue
-                v = value2str(o._asdict()[k])
-                output.append('%s = %s' % (k, v))
-            if not concise: output.append('')
-        # is something missing?
-        for miss in self.config.sections():
-            if miss in names: continue
-            output.append('[%s]' % miss)
-            for k in self.config.options(miss):
-                if k in skip_list: continue
-                v = value2str(self.config.get(miss, k))
-                output.append('%s = %s' % (k, v))
+        # this loop ensures it is returned in particular order
+        for opts, name in zip(options, names):
+            output.append('[%s]' % name) # section name
+            # general comments
+            if dump_template:
+                comment = self.get_general_comment(name)
+                if comment:
+                    output.extend(['# %s' % line for line in comment])
+            for key,value in opts._asdict().iteritems(): # loop over options
+                if key in skip_list: continue
+                # comment scope etc. in stage II if dump_template
+                if dump_template and name == self.stage_names(1):
+                    if key in self.common_traj_data_config_names():
+                        key = '#' + key
+                output.append('%s = %s' % (key, value2str(value)))
             if not concise: output.append('')
 
+        # is something missing? another loop over all additional sections
+        for miss in self.config.sections():
+            if miss in names: continue # skip if it was already dumped in the loop above
+            output.append('[%s]' % miss)
+            for key in self.config.options(miss): # loop over options in section miss
+                if key in skip_list: continue
+                value = self.config.get(miss, key)
+                output.append('%s = %s' % (key, value2str(value)))
+            if not concise: output.append('')
+        while not len(output[-1].strip()):
+            output.pop()
         return output
 
 
@@ -759,8 +806,7 @@ def get_smooth_method(soptions):
 
 
 def get_clustering_method(coptions,config):
-    assert coptions.method in ['dbscan', 'affprop', 'meanshift', 'birch',
-                               'kmeans','barber'], 'Unknown clusterization method %s.' % coptions.method
+    assert coptions.method in available_clusterization_methods, 'Unknown clusterization method %s.' % coptions.method
 
     opts = {}
 
