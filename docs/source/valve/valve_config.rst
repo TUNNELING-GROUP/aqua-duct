@@ -3,7 +3,7 @@ Configuration file options
 
 Valve Configuration file is a simple and plain text file. It has similar structure as INI files commonly used in one of the popular operating systems and is compliant with Python module :mod:`ConfigParser`.
 
-Configuration file comprises of several *sections*. They can be grouped in to three categories. Names of sections given in **bold** text.
+Configuration file comprises of several *sections*. They can be grouped into three categories. Names of sections are in **bold** text.
 
 #. Global settings:
     * **global**
@@ -39,7 +39,7 @@ trj     None            Path to trajectory file. Aqua-Duct supports NC and DCD t
 Common settings of stage sections
 ---------------------------------
 
-Stages 1-4 which perform calsulations have some common options allowig for execution control and saving/loading data.
+Stages 1-4 which perform calculations have some common options allowing for execution control and saving/loading data.
 
 .. tabularcolumns:: |p{1.5cm}|p{3cm}|p{10cm}|
 
@@ -127,7 +127,7 @@ scope                   None            Definition of *Scope* of interest. See a
 scope_convexhull        None            Flag to set if the *Scope* is direct or convex hull definition.
                                         If ``None`` value form previous stage is used.
 object                  None            Definition of *Object* of interest. See also
-                                        :ref:`object_definition`. If ``None``, value form the previous
+                                        :ref:`object_definition`. If ``None`` value form the previous
                                         stage is used
 clear_in_object_info    False           If it is set to ``True`` information on occupation of *Object*
                                         site by traceable residues calculated in the previous stage is
@@ -149,24 +149,26 @@ discard_empty_paths         True            If set to ``True`` empty paths are d
 sort_by_id                  True            If set to ``True`` separate paths are sorted by ID. Otherwise
                                             they are sorted in order of apparance.
 apply_smoothing             False           If set to ``True`` smooth paths are precalculated according to
-                                            **smooth** setting. This speed up access to smooth paths in
+                                            **smooth** setting. This speeds up access to smooth paths in
                                             later stages but makes dump data much bigger.
 apply_soft_smoothing        True            If set to ``True`` raw paths are replaced by smooth paths
                                             calculated according to **smooth** section.
-discard_short_paths         1               This option allows to discard paths that are shorter then the
+discard_short_paths         1               This option allows to discard paths that are shorter than the
                                             threshold.
 auto_barber                 None            This option allows to select molecular entity used in Auto
                                             Barber procedure. See also :ref:`auto_barber_procedure` and
                                             :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
 auto_barber_mincut          None            Minimal radius of spheres used in Auto Barber. If a sphere has
-                                            radius smaller then this value it is not used to cut. This
-                                            option can be switched off by setting it to `None`.
+                                            radius smaller then this value it is not used in AutoBarber
+                                            procedure. This option can be switched off by setting it to
+                                            `None`.
 auto_barber_maxcut          2.8             Maximal radius of spheres used in Auto Barber. If a sphere has
-                                            radius greater then this value it is not used to cut. This
-                                            option can be switched off by setting it to `None`.
-auto_barber_mincut_level    False           If set `True` spheres of radius less then **mincut** are
+                                            radius greater then this value it is not used in AutoBarber
+                                            procedure. This option can be switched off by setting it to
+                                            `None`.
+auto_barber_mincut_level    True            If set `True` spheres of radius smaller than **mincut** are
                                             resized to **mincut** value.
-auto_barber_maxcut_level    False           If set `True` spheres of radius greater then **maxcut** are
+auto_barber_maxcut_level    True            If set `True` spheres of radius greater than **maxcut** are
                                             resized to **maxcut** value.
 auto_barber_tovdw           True            Correct cutting sphere by decreasing its radius by VdW radius
                                             of the closest atom.
@@ -231,7 +233,7 @@ Stage **visualize**
                                                 Optionally name of the method can be followed by a threshold
                                                 value in parentheses, ie ``RecursiveVector(0.05)``. For sane
                                                 values of thresholds see appropriate documentation of each method.
-                                                Default values works well. This option is not case sensitive.
+                                                Default values work well. This option is not case sensitive.
                                                 It is recommended to use default method or ``HobbitVector`` method.
     all_paths_raw           False               If True produces one object in PyMOL that holds all paths
                                                 visualized by raw coordinates.
@@ -252,13 +254,13 @@ Stage **visualize**
                                                 oriented accordingly to raw paths, are displayed as separate
                                                 objects or as one object with states corresponding to number
                                                 of paths.
-    paths_smooth_io         False               If set True arrows indicating beginning and and of paths,
+    paths_smooth_io         False               If set True arrows indicating beginning and end of paths,
                                                 oriented accordingly to smooth paths, are displayed as separate
                                                 objects or as one object with states corresponding to number
                                                 of paths.
     paths_states            False               If True objects displayed by **paths_raw**, **paths_smooth**,
                                                 **paths_raw_io**, and **paths_smooth_io** are displayed as one
-                                                object with with states corresponding to number of paths.
+                                                object with states corresponding to number of paths.
                                                 Otherwise they are displayed as separate objects.
     ctypes_raw              False               Displays raw paths in a similar manner as non split
                                                 **all_paths_raw** but each cluster type is displayed in
@@ -316,9 +318,9 @@ Default section for definition of clusterization method is named **clusterizatio
 =========================   =============== ================================================================
 Option                      Default value   Description
 =========================   =============== ================================================================
-method                      barber or       Name of clusterization method. It have to be one of the
+method                      barber or       Name of clusterization method. It has to be one of the
                             dbscan          following: barber, dbscan, affprop, meanshift, birch, kmeans.
-                                            Default value depends if it is **clusteriation** section
+                                            Default value depends whether it is **clusteriation** section
                                             (barber) or **reclusterization** section (dbscan).
 recursive_clusterization    clusterization  If it is set to name of some section that holds clusterization
                             or None         method settings this method will be called in the next
