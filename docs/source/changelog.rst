@@ -4,9 +4,13 @@ Aqua-Duct changelog
 * devel
     * Steady improvement of documentation (including API).
     * Added mario script, WIP.
-    * If barber is used for clusterization, apropriate radii are displayed. Buggy.
-    * Data dumps routines moved to separare class, will be in separate modeule soon.
+    * If barber is used for clusterization, appropriate radii are displayed. Buggy.
+    * Data dumps routines moved to separate module.
     * Tests with netcdf4 for dumping data, WIP.
+* 0.3.3
+    * AutoBarber default values of maxcut_level and mincut_level changed to True.
+    * Improved template configuration file.
+    * Number of small improvements in documentaion.
 * 0.3.2
     * Major improvement: new auto_barber based clustering method.
     * Clusterization history displayed as simple ascii tree.
