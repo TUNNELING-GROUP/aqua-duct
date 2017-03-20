@@ -6,6 +6,7 @@ Submodules
 
 .. toctree::
 
+   aquaduct.apps.data
    aquaduct.apps.valvecore
 
 Module contents
