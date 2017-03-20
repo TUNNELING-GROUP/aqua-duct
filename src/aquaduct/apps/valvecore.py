@@ -460,7 +460,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         def value2str(val):
             if val is Auto:
-                val = str(Auto())
+                val = "Auto"
             else:
                 val = str(val)
             return val

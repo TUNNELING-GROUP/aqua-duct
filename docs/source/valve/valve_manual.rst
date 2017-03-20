@@ -67,7 +67,7 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
 
     Specifying number of threads greater then available CPU cores is generally not optimal.
 
-    However, in order to maximize usage of available CPU power it is recommended to set it as number of cores + 1. The reason is that *Valve* uses one thread for the main process and the excess over one for processes for parallel calculations. When parallel calculations are executed the main threads waits for results.
+    However, in order to maximize usage of available CPU power it is recommended to set it as number of cores + 1. The reason is that *Valve* uses one thread for the main process and the excess over one for processes for parallel calculations. When parallel calculations are executed the main thread waits for results.
 
 .. note::
 
@@ -283,7 +283,7 @@ More technical details on master path generation can be found in :meth:`aquaduct
 Analysis
 ^^^^^^^^
 
-Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4. Results of the analysis is displayed on the screen or can be save to text file and comprise of following parts:
+Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4. Results of the analysis are displayed on the screen or can be saved to text file and comprise of following parts:
 
 * Tile and data stamp.
 * [Optional] Dump of configuration options.
@@ -304,11 +304,11 @@ Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4
     #. **Nr**: Row number, starting from 0.
     #. **CType**: Separate path Cluster Type.
     #. **Size**: Number of separate paths belonging to Cluster type.
-    #. **Inp**: Average length of incoming part of the path. If no incoming part is available it is nan.
+    #. **Inp**: Average length of incoming part of the path. If no incoming part is available it is NaN (not a number).
     #. **InpStd**: Standard deviation of length Inp.
-    #. **Obj**: Average length of object part of the path. If no incoming part is available it is nan.
+    #. **Obj**: Average length of object part of the path. If no incoming part is available it is NaN.
     #. **ObjStd**: Standard deviation of length Inp.
-    #. **Out**: Average length of outgoing part of the path. If no incoming part is available it is nan.
+    #. **Out**: Average length of outgoing part of the path. If no incoming part is available it is NaN.
     #. **OutStd**: Standard deviation of length Inp.
 * List of separate paths and their properties. Table with 17 columns.
     #. **Nr**: - Row number, starting from 0.
@@ -318,26 +318,26 @@ Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4
     #. **ObjF**: Number of frame in which path begins Object part.
     #. **OutF**: Number of frame in which path begins Outgoing part.
     #. **EndF**: Number of frame in which the path ends.
-    #. **InpL**: Length of Incoming part. If no incoming part nan is given.
+    #. **InpL**: Length of Incoming part. If no incoming part NaN is given.
     #. **ObjL**: Length of Object part.
-    #. **OutL**: Length of Outgoing part. If no outgoing part nan is given.
-    #. **InpS**: Average step of Incoming part. If no incoming part nan is given.
+    #. **OutL**: Length of Outgoing part. If no outgoing part NaN is given.
+    #. **InpS**: Average step of Incoming part. If no incoming part NaN is given.
     #. **InpStdS**: Standard deviation of InpS.
     #. **ObjS**: Average step of Object part.
     #. **ObjStdS**: Standard deviation of ObjS.
-    #. **OutS**: Average step of Outgoing part. If no outgoing part nan is given.
+    #. **OutS**: Average step of Outgoing part. If no outgoing part NaN is given.
     #. **OutStdS**: Standard deviation of OutS.
     #. **CType**: Cluster type of separate path.
 
 Separate path ID
 """"""""""""""""
 
-Separate Paths IDs are composed of two numbers separated by colon. First number is the residue number. Second number is consecutive number of the separate path made by the residue. Numeration starts with 0.
+Separate Path IDs are composed of two numbers separated by colon. First number is the residue number. Second number is consecutive number of the separate path made by the residue. Numeration starts with 0.
 
 Cluster Type of separate path
 """""""""""""""""""""""""""""
 
-Each separate paths has two ends: beginning and end. Both of them either belong to one of the inlets clusters, or are among outliers, or are inside the scope. If an end belongs to one of the clusters (including outliers) it has ID of the cluster. If it is inside the scope it has special ID of ``N``. Cluster type is an ID composed of IDs of both ends of separate path separated by colon charter.
+Each separate path has two ends: beginning and end. Both of them either belong to one of the clusters of inlets, or are among outliers, or are inside the scope. If an end belongs to one of the clusters (including outliers) it has ID of the cluster. If it is inside the scope it has special ID of ``N``. Cluster type is an ID composed of IDs of both ends of separate path separated by colon charter.
 
 Visualization
 ^^^^^^^^^^^^^
@@ -367,4 +367,4 @@ Inlets clusters are colored automatically. Outliers are gray.
 
 Incoming parts of paths are red, Outgoing parts are blue. Object parts in case of smooth paths are green and in case of raw paths are green if residue is precisely in the object area or yellow if is leaved object area but it is not in the Outgoing part yet.
 
-Arrows are colored in accordance to paths colors.
+Arrows are colored in accordance to the colors of paths.
