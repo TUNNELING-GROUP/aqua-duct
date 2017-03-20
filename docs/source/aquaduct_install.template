@@ -137,7 +137,7 @@ Debian (and Ubuntu) uses strange approach to Python installation. To install new
 
     The above procedure will remove current SciPy from `easy-install.pth` file.
 
-MacOS
+macOS
 ^^^^^
 
 Aqua-Duct installation was tested on MacOS Sierra and is quite straightforward. It can be installed either with existing system Python or with custom Python installation. In both cases one have to install Xcode for the App Store.
@@ -300,4 +300,3 @@ Other BSDs
 Installation on other BSDs might be easier. For example, Python netCDF4 is available in ports of FreeBSD and DragonFlyBSD. Try to install it and SciPy, then proceed to generic Python installation instructions.
 
 If you are using NetBSD or other BSD try to follow OpenBSD instructions.
-
