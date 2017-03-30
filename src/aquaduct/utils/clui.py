@@ -424,15 +424,6 @@ class SimpleTree(object):
         self.add_message(message)
         self.branches = []
 
-    def __getstate__(self):
-        return {'name':np.array(self.name),
-                'message':np.array(self.message),
-                'branches':self.branches}
-
-    def __setstate__(self, state, **kwargs):
-        self.name = str(state['name'][:])
-        self.message = state['message'][:].tolist()
-        self.branches = state['branches']
 
     def __repr__(self):
         return "%s {%s} %s" % (str(self.name), "; ".join(self.message),str(self.branches))

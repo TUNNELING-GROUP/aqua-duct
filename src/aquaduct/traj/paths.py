@@ -107,14 +107,6 @@ class SmartRangeFunction(object):
     def isin(self, element):
         raise NotImplementedError('This method should be implemented in a child class.')
 
-    def __getstate__(self):
-        return {'element':np.array(self.element),
-                'times':np.array(self.times),
-                'type':self.type}
-
-    def __setstate__(self, state, **kwargs):
-        self.element = state['element'][:].tolist()
-        self.times = int(state['times'][:])
 
 class SmartRangeEqual(SmartRangeFunction):
 
@@ -168,42 +160,6 @@ class SmartRange(object):
         if iterable is not None:
             map(self.append, iterable)
 
-    def __getstate__(self):
-        elems = [e.element for e in self.raw]
-        times = [e.times for e in self.raw]
-        types = [e.type for e in self.raw]
-        out = {'elements':np.array(elems),
-               'times':np.array(times),
-               'types':np.array(types)}
-        out.update({'len':np.array(self.__len)})
-        if self.__max:
-            out.update({'max':np.array(self.__max)})
-        if self.__min:
-            out.update({'min':np.array(self.__min)})
-        return out
-
-    def __setstate__(self, state, **kwargs):
-        self.__elements = []
-        for el,ti,ty in zip(state['elements'],state['times'],state['types']):
-            if ty == 'e':
-                if ti == 1:
-                    self.__elements.append(el)
-                else:
-                    self.__elements.append(SmartRangeEqual(el,ti))
-            if ty == 'd':
-                self.__elements.append(SmartRangeDecrement(el,ti))
-            if ty == 'i':
-                self.__elements.append(SmartRangeIncrement(el,ti))
-
-        self.__len = 0
-        if state['len'].size:
-            self.__len = int(state['len'])
-        self.__min = None
-        self.__max = None
-        if 'max' in state:
-            self.__max = state['max'].tolist()
-        if 'min' in state:
-            self.__min = state['min'].tolist()
 
     def last_element(self):
         if len(self.__elements) == 0:
@@ -332,21 +288,6 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.max_possible_frame = max_pf
         self.min_possible_frame = min_pf
 
-    def __getstate__(self):
-        return {'id':self.id,
-                'types':self.__types,
-                'frames':self.__frames,
-                'coords':make_default_array(self.coords),
-                'max_possible_frame':np.array(self.max_possible_frame),
-                'min_possible_frame':np.array(self.min_possible_frame)}
-
-    def __setstate__(self, state, **kwargs):
-        self.id = state['id']
-        self.__frames = state['frames']
-        self.__types = state['types']
-        self.coords = state['coords']
-        self.max_possible_frame = int(state['max_possible_frame'])
-        self.min_possible_frame = int(state['min_possible_frame'])
 
     # info methods
     @property
@@ -587,13 +528,6 @@ class SinglePathID(object):
     def __str__(self):
         return '%d:%d' % (self.id, self.nr)
 
-    def __getstate__(self):
-        return {'id':np.array(self.id),
-                'nr':np.array(self.nr)}
-
-    def __setstate__(self, state, **kwargs):
-        self.id = int(state['id'])
-        self.nr = int(state['nr'])
 
 
 def yield_single_paths(gps, fullonly=False, progress=False):
@@ -636,52 +570,6 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
-    def __getstate__(self):
-        out= {'id':self.id,
-              'path_in':self.__path_in,
-              'path_object':self.__path_object,
-              'path_out':self.__path_out,
-              'types_in':self.__types_in,
-              'types_object':self.__types_object,
-              'types_out':self.__types_out,
-              'smooth_method':self.smooth_method}
-        if len(self.coords_in):
-            out.update({'coords_in':self.coords_in})
-        if len(self.coords_object):
-            out.update({'coords_object': self.coords_object})
-        if len(self.coords_out):
-            out.update({'coords_out': self.coords_out})
-        if len(self.smooth_coords_in):
-            out.update({'smooth_coords_in':self.smooth_coords_in})
-        if len(self.smooth_coords_object):
-            out.update({'smooth_coords_object': self.smooth_coords_object})
-        if len(self.coords_out):
-            out.update({'smooth_coords_out': self.smooth_coords_out})
-        return out
-
-    def __setstate__(self, state, **kwargs):
-        self.id = state['id']
-        self.__path_in = state['path_in']
-        self.__path_object = state['path_object']
-        self.__path_out = state['path_out']
-        self.__types_in = state['types_in']
-        self.__types_object = state['types_object']
-        self.__types_out = state['types_out']
-        self.coords_in, self.coords_object, self.coords_out = map(make_default_array, ([],[],[]))
-        if 'coords_in' in state:
-            self.coords_in = state['coords_in']
-        if 'coords_object' in state:
-            self.coords_object = state['coords_object']
-        if 'coords_out' in state:
-            self.coords_out = state['coords_out']
-        self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = None, None, None
-        if 'smooth_coords_in' in state:
-            self.smooth_coords_in = state['smooth_coords_in']
-        if 'smooth_coords_object' in state:
-            self.smooth_coords_object = state['smooth_coords_object']
-        if 'smooth_coords_out' in state:
-            self.smooth_coords_out = state['smooth_coords_out']
-        self.smooth_method = state['smooth_method']
 
     @property
     def path_in(self):

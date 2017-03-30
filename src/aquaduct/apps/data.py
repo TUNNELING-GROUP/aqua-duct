@@ -138,8 +138,11 @@ class ValveDataAccess_pickle(object):
         assert self.mode == "w"
         if isinstance(value, SelectionMDA):
             value = CompactSelectionMDA(value)
+        # options are passed as dictionaries already
+        '''
         if 'options' in name:
             value = value._asdict()
+        '''
         pickle.dump({name: value}, self.data_file)
 
     def dump(self, **kwargs):
@@ -423,4 +426,5 @@ class ValveDataAccess_nc(object):
 
 
 # default
-ValveDataAccess = ValveDataAccess_nc
+ValveDataAccess = ValveDataAccess_pickle
+

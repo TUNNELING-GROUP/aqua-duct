@@ -140,20 +140,6 @@ class SelectionMDA(mda.core.AtomGroup.AtomGroup,
         self.__init__(mda.core.AtomGroup.AtomGroup(set(self._atoms)))
 
 
-    def __getstate__(self):
-        return {'indices':np.array(map(lambda x: x + 1, map(int, self.indices)))}
-
-
-    def __setstate__(self, state,reader=None):
-
-        sMDA = None
-        for pr in int2range(state['indices'][:].tolist()).split():
-            if sMDA is None:
-                sMDA = reader.parse_selection('bynum ' + pr)
-            else:
-                sMDA += reader.parse_selection('bynum ' + pr)
-
-        self.__dict__ = sMDA.__dict__
 
 
 class CompactSelectionMDA(object):
