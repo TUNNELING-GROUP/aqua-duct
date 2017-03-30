@@ -137,10 +137,10 @@ Debian (and Ubuntu) uses strange approach to Python installation. To install new
 
     The above procedure will remove current SciPy from `easy-install.pth` file.
 
-MacOS
+macOS
 ^^^^^
 
-Aqua-Duct installation was tested on MacOS Sierra and is quite straightforward. It can be installed either with existing system Python or with custom Python installation. In both cases one have to install Xcode for the App Store.
+Aqua-Duct installation was tested on macOS Sierra and is quite straightforward. It can be installed either with existing system Python or with custom Python installation. In both cases one have to install Xcode for the App Store.
 
 System native Python
 ####################
