@@ -7,6 +7,7 @@ Aqua-Duct changelog
     * If barber is used for clusterization, appropriate radii are displayed. Buggy.
     * Data dumps routines moved to separate module.
     * Tests with netcdf4 for dumping data, WIP.
+    * SmartRanges moved to helpers module.
 * 0.3.3
     * AutoBarber default values of maxcut_level and mincut_level changed to True.
     * Improved template configuration file.

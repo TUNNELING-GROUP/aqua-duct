@@ -47,7 +47,7 @@ class Selection(object):
         # should iterate over residues in the selection returning object of the same type
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def unique_resids(self):
+    def unique_resids(self,*args,**kwargs):
         # should return array of resids
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 

@@ -95,6 +95,7 @@ class PathTypesCodes():
     path_in_code = 'i'
     path_object_code = 'c'
     path_out_code = 'o'
+    path_walk_code = 'w'
 
 
 class GenericPathTypeCodes():

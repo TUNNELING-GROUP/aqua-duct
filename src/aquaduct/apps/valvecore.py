@@ -963,12 +963,13 @@ def stage_II_run(config, options,
                  max_frame=None,
                  **kwargs):
 
-    res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
         clui.message('This will be recalculated on demand.')
         res_ids_in_object_over_frames = {}
+    else:
+        res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
     with clui.fbm("Init paths container"):
         paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=max_frame)) for resid in
@@ -1362,10 +1363,14 @@ def get_header_line_and_line_template(header_line_and_line_template, head_nr=Fal
 def spath_id_header():
     return ['ID'], ['%9s']
 
+def spath_name_header():
+    return ['Name'], ['%4s']
+
 
 def add_path_id_head(gen):
-    sph, splt = spath_id_header()
-
+    sph, splt = zip(spath_id_header(),spath_name_header())
+    sph = [e[0] for e in sph]
+    splt = [e[0] for e in splt]
     @wraps(gen)
     def patched(*args, **kwargs):
         add_id = True
@@ -1387,7 +1392,7 @@ def add_path_id(gen):
             add_id = kwargs.pop('add_id')
         line = gen(spath, *args, **kwargs)
         if add_id:
-            line = [spath.id] + line
+            line = [spath.id,'NAM'] + line
         return line
 
     return patched

@@ -129,8 +129,9 @@ class ValveDataAccess_pickle(object):
         data = {}
         for name, value in self.data.iteritems():
             if isinstance(value, CompactSelectionMDA):
-                with self.reader.get() as traj_reader:
-                    value = value.toSelectionMDA(traj_reader)
+                value = value.toSelectionMDA(self.reader)
+                #with self.reader.get() as traj_reader:
+                #    value = value.toSelectionMDA(traj_reader)
             data.update({name: value})
         return data
 
