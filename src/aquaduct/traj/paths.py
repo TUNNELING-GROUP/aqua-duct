@@ -107,11 +107,12 @@ class GenericPathTypeCodes():
 class GenericPaths(object, GenericPathTypeCodes):
     # object to store paths... is it required?
 
-    def __init__(self, id_of_res, min_pf=None, max_pf=None):
+    def __init__(self, id_of_res, name_of_res=None, min_pf=None, max_pf=None):
 
         # id is any type of object; it is used as identifier
 
         self.id = id_of_res
+        self.name = name_of_res
         self.__types = SmartRange()
         self.__frames = SmartRange()
         self.coords = []
@@ -355,11 +356,13 @@ class GenericPaths(object, GenericPathTypeCodes):
 
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
 class SinglePathID(object):
-    def __init__(self, path_id=None, nr=None):
+    def __init__(self, path_id=None, nr=None, name=None):
         self.id = path_id
         self.nr = nr
+        self.name = name
 
     def __str__(self):
+        # by default name is not returned
         return '%d:%d' % (self.id, self.nr)
 
 
@@ -369,6 +372,7 @@ def yield_single_paths(gps, fullonly=False, progress=False):
     nr_dict = {}
     for nr, gp in enumerate(gps):
         path_id = gp.id
+        path_name = gp.name
         with clui.tictoc('Processing path %d' % path_id):
             for paths, coords, types in gp.find_paths_coords_types(fullonly=fullonly):
                 if path_id in nr_dict:
@@ -376,9 +380,9 @@ def yield_single_paths(gps, fullonly=False, progress=False):
                 else:
                     nr_dict.update({path_id: 0})
                 if progress:
-                    yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id]), paths, coords, types), nr
+                    yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id], name=path_name), paths, coords, types), nr
                 else:
-                    yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id]), paths, coords, types)
+                    yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id], name=path_name), paths, coords, types)
 
 
 class SinglePath(object, PathTypesCodes, InletTypeCodes):

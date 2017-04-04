@@ -313,6 +313,7 @@ Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4
 * List of separate paths and their properties. Table with 17 columns.
     #. **Nr**: - Row number, starting from 0.
     #. **ID**: - Separate path ID.
+    #. **RES**: - Residue name.
     #. **BeginF**: Number of frame in which the path begins.
     #. **InpF**: Number of frame in which path begins Incoming part.
     #. **ObjF**: Number of frame in which path begins Object part.

@@ -51,6 +51,10 @@ class Selection(object):
         # should return array of resids
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def unique_names(self):
+        # should return array of names of residues
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
     def unique_resids_number(self):
         return len(self.unique_resids(ikwid=True))
 
@@ -115,6 +119,10 @@ class SelectionMDA(mda.core.AtomGroup.AtomGroup,
                    Selection):
     def iterate_over_residues(self):
         return (self.__class__(R) for R in self.residues)
+
+    def unique_names(self):
+        resids = self.resids.tolist()
+        return [self.resnames[resids.index(resid)] for resid in self.unique_resids(ikwid=True)]
 
     def unique_resids(self, ikwid=False):
         # TODO: do something with this method!

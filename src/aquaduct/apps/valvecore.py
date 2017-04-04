@@ -972,8 +972,8 @@ def stage_II_run(config, options,
         res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
     with clui.fbm("Init paths container"):
-        paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=max_frame)) for resid in
-                      all_res.unique_resids(ikwid=True)))
+        paths = dict(((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=max_frame)) for resid,resname in
+                      zip(all_res.unique_resids(ikwid=True),all_res.unique_names())))
 
     with reader.get() as traj_reader:
 
@@ -1364,7 +1364,7 @@ def spath_id_header():
     return ['ID'], ['%9s']
 
 def spath_name_header():
-    return ['Name'], ['%4s']
+    return ['RES'], ['%4s']
 
 
 def add_path_id_head(gen):
@@ -1392,7 +1392,7 @@ def add_path_id(gen):
             add_id = kwargs.pop('add_id')
         line = gen(spath, *args, **kwargs)
         if add_id:
-            line = [spath.id,'NAM'] + line
+            line = [spath.id,spath.id.name] + line
         return line
 
     return patched
