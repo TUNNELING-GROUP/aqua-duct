@@ -157,6 +157,31 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.__types.append(ftype)
         self.__frames.append(frame)
 
+    def _gpt(self):
+        # get, I'm just passing through
+        n = len(self.__frames)
+        types = self.types
+        begin = 0
+        for block in self.__frames.raw:
+            end = begin + block.times
+            # get types of this block
+            block_frames = list(block.get())
+            block_types = types[begin:end]
+            begin = end
+            # now iterate over block_types in a search of out_name
+            if self.out_name in block_types:
+                while self.out_name in block_types:
+                    to_yield = block_frames[:block_types.index(self.out_name)]
+                    to_yield_types = block_types[:block_types.index(self.out_name)]
+                    if len(to_yield) > 0:
+                        yield to_yield
+                    block_types = block_types[block_types.index(self.out_name):]
+                    block_frames = block_frames[block_types.index(self.out_name):]
+            if len(block_frames) > 0:
+                if len(block_frames) > 0:
+                    yield block_frames
+
+
     def _gpo(self):
         n = len(self.__frames)
         types = self.types
@@ -279,6 +304,10 @@ class GenericPaths(object, GenericPathTypeCodes):
             # yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
             coords, types = self.get_single_path_coords_types(path)
             yield path, coords, types
+        else:
+            for path in self._gpt():
+                coords, types = self.get_single_path_coords_types((path,[],[]))
+                yield (path,[],[]), coords, types
 
     def get_single_path_coords_types(self, spath):
         # returns typess for single path
@@ -379,17 +408,49 @@ def yield_single_paths(gps, fullonly=False, progress=False):
                     nr_dict.update({path_id: (nr_dict[path_id] + 1)})
                 else:
                     nr_dict.update({path_id: 0})
-                if progress:
-                    yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id], name=path_name), paths, coords, types), nr
+
+                pid = SinglePathID(path_id=path_id, nr=nr_dict[path_id], name=path_name)
+
+                if len(paths[1]) > 0:
+                    # if everything is OK
+                    sp = SinglePath(pid, paths, coords, types)
                 else:
-                    yield SinglePath(SinglePathID(path_id=path_id, nr=nr_dict[path_id], name=path_name), paths, coords, types)
+                    # this is passing through
+                    sp = PassingPath(pid,paths[0],coords[0],types[0])
+
+                if progress:
+                    yield sp, nr
+                else:
+                    yield sp
 
 
-class SinglePath(object, PathTypesCodes, InletTypeCodes):
+class MacroMolPath(object,PathTypesCodes, InletTypeCodes):
+
+    empty_coords = make_default_array(np.zeros((0, 3)))
+
+    @tupleify
+    def _make_smooth_coords(self, coords, smooth=None):
+        # if smooth is not none applies smoothing
+        # smooth should be callable and should return an object of length equal to submitted one
+        # get continuous coords
+        if smooth:
+            coords_smooth = smooth(coords)
+        else:
+            coords_smooth = coords
+        # now lets return tupple of coords
+        nr = 0
+        for path in self._paths:
+            if len(path) > 0:
+                yield make_default_array(coords_smooth[nr:nr + len(path)])
+                nr += len(path)
+            else:
+                yield self.empty_coords
+
+
+class SinglePath(MacroMolPath):
     # special class
     # represents one path
 
-    empty_coords = make_default_array(np.zeros((0, 3)))
 
     def __init__(self, path_id, paths, coords, types):
 
@@ -434,16 +495,28 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         return list(self.__types_out.get())
 
     # ---------------------------------------------------------------------------------------------------------------- #
-    # DEPRECATED
+
     @property
     def coords_first_in(self):
         if len(self.__path_in) > 0:
             return self.coords_in[0]
 
     @property
+    def paths_first_in(self):
+        if len(self.__path_in) > 0:
+            return self.path_in[0]
+
+
+    @property
     def coords_last_out(self):
         if len(self.__path_out) > 0:
             return self.coords_out[-1]
+
+    @property
+    def paths_last_out(self):
+        if len(self.__path_out) > 0:
+            return self.path_out[-1]
+
 
     @property
     def coords_filo(self):
@@ -485,7 +558,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
     # paths
 
     @property
-    def __paths(self):
+    def _paths(self):
         return self.__path_in, self.__path_object, self.__path_out
 
     @property
@@ -535,7 +608,7 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
 
     @property
     def size(self):
-        return sum(map(len, self.__paths))
+        return sum(map(len, self._paths))
 
     @property
     def begins(self):
@@ -581,24 +654,6 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         # returns coords as one array
         return make_default_array(np.vstack([c for c in self.get_coords(smooth) if len(c) > 0]))
 
-    @tupleify
-    def _make_smooth_coords(self, coords, smooth=None):
-        # if smooth is not none applies smoothing
-        # smooth should be callable and should return an object of length equal to submitted one
-        # get continuous coords
-        if smooth:
-            coords_smooth = smooth(coords)
-        else:
-            coords_smooth = self.coords
-        # now lets return tupple of coords
-        nr = 0
-        for path in self.__paths:
-            if len(path) > 0:
-                yield make_default_array(coords_smooth[nr:nr + len(path)])
-                nr += len(path)
-            else:
-                yield self.empty_coords
-
     def apply_smoothing(self, smooth):
         # permament change!
         self.coords_in, self.coords_object, self.coords_out = self._make_smooth_coords(self.coords_cont, smooth)
@@ -635,7 +690,78 @@ class SinglePath(object, PathTypesCodes, InletTypeCodes):
         velocity = self.get_velocity_cont(smooth=smooth, normalize=normalize)
         return traces.derrivative(velocity)
 
-        ####################################################################################################################
+class PassingPath(SinglePath):
+
+    has_in = True
+    has_out = True
+
+    def __init__(self, path_id, path, coords, types):
+
+        self.id = path_id
+
+        self.__path = SmartRange(path)
+        self.__types = SmartRange(types)
+
+        self.__coords = make_default_array(coords)
+
+        self.smooth_coords = None
+        self.smooth_method = None
+
+    @property
+    def _paths(self):
+        return (self.__path,)
+
+    @property
+    def coords(self):
+        return (self.__coords,)
+
+    @property
+    def path(self):
+        return list(self.__path.get())
+
+    @property
+    def coords_first_in(self):
+        return self.__coords[0]
+
+    @property
+    def paths_first_in(self):
+        return self.path[0]
+
+    @property
+    def coords_last_out(self):
+        return self.__coords[-1]
+
+    @property
+    def paths_last_out(self):
+        return self.path[-1]
+
+    @tupleify
+    def get_coords(self, smooth=None):
+        # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
+        # if smooth is not none applies smoothing
+        if smooth is not None:
+            if smooth != self.smooth_method:
+                self.smooth_coords = self._make_smooth_coords(self.coords, smooth)
+                self.smooth_method = smooth
+            for nr, coords in enumerate((self.smooth_coords,)):
+                if coords is None:
+                    yield self.coords[nr]
+                else:
+                    yield coords
+        else:
+            for coords in self.coords:
+                yield coords
+
+    def get_inlets(self):
+        yield Inlet(coords=self.__coords[0],
+                    type=(InletTypeCodes.surface, InletTypeCodes.incoming),
+                    reference=self.id)
+        yield Inlet(coords=self.__coords[-1],
+                    type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
+                    reference=self.id)
+
+
+####################################################################################################################
 
 
 class MasterPath(SinglePath):

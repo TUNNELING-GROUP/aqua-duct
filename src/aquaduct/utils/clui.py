@@ -258,6 +258,7 @@ class SimpleProgressBar(object):
             self.maxval = maxval
 
         self.tens = []
+        self.hundreds = []
 
         self.current = 0
 
@@ -266,6 +267,7 @@ class SimpleProgressBar(object):
 
         self.begin = time.time()
         self.tcurrent = self.begin
+        self.tictoclist = []
 
         self.last_rotate_time = self.begin
         self.last_rotate_idx = 0
@@ -301,7 +303,10 @@ class SimpleProgressBar(object):
         """
         if self.current == 0:
             return '?'
-        diff = self.tcurrent - self.begin
+        if len(self.tictoclist) > 5:
+            diff = sum(self.tictoclist) / float(len(self.tictoclist))
+        else:
+            diff = self.tcurrent - self.begin
         periteration = diff / self.current
         expected = periteration * self.maxval
         eta = periteration * (self.maxval - self.current)
@@ -333,6 +338,16 @@ class SimpleProgressBar(object):
         Progress bar is writen to standard error.
         """
         percent = self.percent()
+        if int(percent) not in self.hundreds:
+            self.hundreds.append(int(percent))
+            if len(self.tictoclist):
+                self.tictoclist.append(self.current - self.tictoclist[-1])
+            else:
+                self.tictoclist.append(self.current - self.begin)
+
+            while len(self.tictoclist) > 10:
+                self.tictoclist.pop(0)
+
         if percent > 100:
             if self.overrun_notice:
                 stderr.write(linesep)

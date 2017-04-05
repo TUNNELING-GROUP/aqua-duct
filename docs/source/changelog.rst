@@ -8,7 +8,9 @@ Aqua-Duct changelog
     * Data dumps routines moved to separate module.
     * Tests with netcdf4 for dumping data, WIP.
     * SmartRanges moved to helpers module.
-    * Names of traced molecules are returned in the result file.
+    * Names of traced molecules are returned in the result file and tables.
+    * Small bug in reporting progress in AutoBarber preparation fixed.
+    * Passing through paths are being introduced, WIP.
 * 0.3.3
     * AutoBarber default values of maxcut_level and mincut_level changed to True.
     * Improved template configuration file.

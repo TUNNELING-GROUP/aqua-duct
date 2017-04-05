@@ -297,6 +297,11 @@ class Inlets(object):
     def refs(self):
         return [inlet.reference for inlet in self.inlets_list]
 
+    @property
+    def refs_names(self):
+        return [inlet.reference.name for inlet in self.inlets_list]
+
+
     def call_clusterization_method(self, method, data, radii=None):
         # this method runs clusterization method against provided data
         # if center_of_system was set then use distance matrix...
@@ -508,6 +513,11 @@ class Inlets(object):
         if not is_iterable(spaths):
             spaths = [spaths]
         return self.lim_to(self.refs, [sp.id for sp in spaths])
+
+    def lim2rnames(self, rnames):
+        if not is_iterable(rnames):
+            rnames = [rnames]
+        return self.lim_to(self.refs_names, rnames)
 
     def lim2types(self, types):
         return self.lim_to(self.types, types)

@@ -107,11 +107,11 @@ class WhereToCut(object):
             centers = []
             frames = []
             if sp.has_in:
-                centers.append(sp.coords_in[0])
-                frames.append(sp.path_in[0])
+                centers.append(sp.coords_first_in)
+                frames.append(sp.paths_first_in)
             if sp.has_out:
-                centers.append(sp.coords_out[-1])
-                frames.append(sp.path_out[-1])
+                centers.append(sp.coords_last_out)
+                frames.append(sp.paths_last_out)
             for center, frame in zip(centers, frames):
                 traj_reader.set_current_frame(frame)
                 distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
@@ -147,8 +147,8 @@ class WhereToCut(object):
 
     def cut_thyself(self):
         clui.message("Barber, cut thyself:")
-        pbar = clui.pbar(len(self.spheres))
-
+        N = len(self.spheres)
+        pbar = clui.pbar(N)
         noredundat_spheres_count = 0
         while True:
             self.spheres.sort(key=lambda s: s.radius, reverse=True)
@@ -175,7 +175,7 @@ class WhereToCut(object):
                 self.spheres = lind(self.spheres, to_keep_ids)
                 # add big to non redundant
                 noredundat_spheres.append(big)
-                pbar.update(sum(to_keep == False))
+                pbar.update(N-len(self.spheres))
                 logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
                     len(noredundat_spheres), len(self.spheres)))
             if len(noredundat_spheres) == noredundat_spheres_count:

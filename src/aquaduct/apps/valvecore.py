@@ -1501,6 +1501,9 @@ class PrintAnalysis(object):
     def thead(self, info2print):
         self(clui.thead(info2print))
 
+    def tend(self, info2print):
+        self(clui.tsep(info2print))
+
     def under(self, info2print):
         self(clui.underline(info2print))
 
@@ -1691,26 +1694,55 @@ def stage_V_run(config, options,
         pa(os.linesep.join(config.dump_config()))
 
     ############
+    traced_names = set([sp.id.name for sp in spaths])
+    pa.sep()
+    pa("Names of traced molecules: %s" % (' '.join(traced_names)))
+
+    ############
     pa.sep()
     pa("Number of traceable residues: %d" % len(paths))
+    if len(traced_names) > 1:
+        for tname in traced_names:
+            pa("Number of traceable residues of %s: %d" % (tname,len([None for p in paths.values() if p.name == tname])))
     pa("Number of separate paths: %d" % len(spaths))
+    if len(traced_names) > 1:
+        for tname in traced_names:
+            pa("Number of separate paths of %s: %d" % (tname,len([None for sp in spaths if sp.id.name == tname])))
 
     ############
     pa.sep()
     pa("Number of inlets: %d" % inls.size)
+    if len(traced_names) > 1:
+        for tname in traced_names:
+            pa("Number of inlets of %s: %d" % (tname,inls.lim2rnames(tname).size))
+
     no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]  # minus outliers, if any
     pa("Number of clusters: %d" % no_of_clusters)
     pa("Outliers: %s" % ({True: 'yes', False: 'no'}[0 in inls.clusters_list]))
 
     ############
     pa.sep()
+    pa('Clustering history:')
+    pa(clui.print_simple_tree(inls.tree, prefix='').rstrip())
+
+    ############
+    pa.sep()
     pa("Clusters summary - inlets")
     header_line, line_template = get_header_line_and_line_template(clusters_inlets_header(), head_nr=True)
     pa.thead(header_line)
-
     for nr, cl in enumerate(inls.clusters_list):
         inls_lim = inls.lim2clusters(cl)
         pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
+    pa.tend(header_line)
+
+    if len(traced_names) > 1:
+        for tname in traced_names:
+            pa("Clusters summary - inlets of %s" % tname)
+            pa.thead(header_line)
+            for nr, cl in enumerate(inls.lim2rnames(tname).clusters_list):
+                inls_lim = inls.lim2rnames(tname).lim2clusters(cl)
+                pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
+            pa.tend(header_line)
 
     ############
     pa.sep()
@@ -1736,8 +1768,22 @@ def stage_V_run(config, options,
 
     for nr, ct in enumerate(ctypes_generic_list):
         sps = lind(spaths, what2what(ctypes_generic, [ct]))
-        ctypes_size.append(len(sps))
-        pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+        #ctypes_size.append(len(sps))
+        if len(sps) > 0:
+            pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+    pa.tend(header_line)
+
+    if len(traced_names) > 1:
+        for tname in traced_names:
+            pa("Separate paths clusters types summary - mean lengths of paths of %s" % tname)
+            pa.thead(header_line)
+            for nr, ct in enumerate(ctypes_generic_list):
+                sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                sps = lind(sps, what2what([sp.id.name for sp in sps],[tname]))
+                #ctypes_size.append(len(sps))
+                if len(sps) > 0:
+                    pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+            pa.tend(header_line)
 
     ############
     pa.sep()
@@ -1748,6 +1794,8 @@ def stage_V_run(config, options,
         if ctype is not None:
             ctype = ctype.generic
         pa(make_line(line_template, spath_full_info(sp, ctype=ctype)), nr=nr)
+    pa.tend(header_line)
+
 
 
 ################################################################################
