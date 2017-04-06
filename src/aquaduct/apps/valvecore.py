@@ -47,7 +47,7 @@ from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepS
 from aquaduct.traj.barber import WhereToCut
 from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
-from aquaduct.traj.paths import GenericPaths, yield_single_paths
+from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath
 from aquaduct.traj.reader import ReadViaMDA
 from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
@@ -1307,6 +1307,11 @@ def stage_IV_run(config, options,
                 for nr, ct in enumerate(ctypes_generic_list):
                     logger.debug('CType %s (%d)' % (str(ct), nr))
                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    # no passing paths are allowed
+                    sps = [sp for sp in sps if not isinstance(sp,PassingPath)]
+                    if not len(sps):
+                        logger.debug('CType %s (%d), no single paths found, MasterPath calculation skipped.' % (str(ct), nr,))
+                        continue
                     logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
                     # print len(sps),ct
                     ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads.threads_count)
@@ -1331,6 +1336,15 @@ def stage_IV_run(config, options,
 ################################################################################
 
 def make_line(template, line):
+    if len(template) != len(line):
+        pass
+    # detect nan and int problem
+    for nr,(t,l) in enumerate(zip(template,line)):
+        if is_number(l):
+            if np.isnan(l):
+                if 'd' in t:
+                    template[nr] = t.replace('d','s')
+                    line[nr] = 'nan'
     return (' '.join(template)) % tuple(line)
 
 
@@ -1521,7 +1535,10 @@ def spath_basic_info_header():
 def spath_basic_info(spath):
     line = []
     line.append(spath.begins)
-    line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
+    if not isinstance(spath,PassingPath):
+        line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
+    else:
+        line += [float('nan')]*3
     line.append(spath.ends)
     return line
 
@@ -1529,41 +1546,71 @@ def spath_basic_info(spath):
 ################
 
 @add_path_id_head
-def spath_lenght_total_info_header():
+def spath_lenght_total_info_header(total=None):
     header = 'InpL ObjL OutL'.split()
+    if total:
+        header = ['TotL'] + header
     line_template = ['%9.1f'] * len(header)
     return header, line_template
 
 
 @add_path_id
-def spath_lenght_total_info(spath):
+def spath_lenght_total_info(spath,totalonly=False,total=False):
     line = []
-    for t in traces.midpoints(spath.coords):
-        if len(t) > 1:  # traces.length_step_std requires at least 2 points
-            line.append(traces.length_step_std(t)[0])
+    if not total:
+        if not totalonly:
+            for t in traces.midpoints(spath.coords):
+                if len(t) > 1:  # traces.length_step_std requires at least 2 points
+                    line.append(traces.length_step_std(t)[0])
+                else:
+                    line.append(float('nan'))
+            return line
         else:
-            line.append(float('nan'))
+            for t in traces.midpoints((spath.coords_cont,)):
+                if len(t) > 1:  # traces.length_step_std requires at least 2 points
+                    line.append(traces.length_step_std(t)[0])
+                else:
+                    line.append(float('nan'))
+            return line
+    line += spath_lenght_total_info(spath,add_id=False,total=False,totalonly=True)
+    if not isinstance(spath,PassingPath):
+        line += spath_lenght_total_info(spath,add_id=False,total=False,totalonly=False)
+    else:
+        line += [float('nan')]*3
     return line
-
 
 ################
 
 @add_path_id_head
-def spath_steps_info_header():
+def spath_steps_info_header(total=None):
     header = 'InpS InpStdS ObjS ObjStdS OutS OutStdS'.split()
+    if total:
+        header = ['TotS','TotStdS'] + header
     line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
     return header, line_template
 
 
 @add_path_id
-def spath_steps_info(spath):
+def spath_steps_info(spath,total=None):
     line = []
-    for t in traces.midpoints(spath.coords):
+    if not total:
+        for t in traces.midpoints(spath.coords):
+            if len(t) > 0:
+                line.extend(traces.length_step_std(t)[1:])
+            else:
+                line.extend([float('nan'), float('nan')])
+        return line
+    line += spath_steps_info(spath,add_id=False,total=False)
+    if not isinstance(spath,PassingPath):
+        t = traces.midpoints((spath.coords_cont,)).next()
         if len(t) > 0:
-            line.extend(traces.length_step_std(t)[1:])
+            line = list(traces.length_step_std(t)[1:]) + line
         else:
-            line.extend([float('nan'), float('nan')])
+            line = [float('nan'), float('nan')] + line
+    else:
+        line += [float('nan'), float('nan')]*3
     return line
+
 
 
 ################
@@ -1583,12 +1630,12 @@ def spath_ctype(spath, ctype=None):
 ################
 
 @add_path_id_head
-def spath_full_info_header():
+def spath_full_info_header(total=None):
     header = []
     line_template = []
     for h, lt in (spath_basic_info_header(add_id=False),
-                  spath_lenght_total_info_header(add_id=False),
-                  spath_steps_info_header(add_id=False),
+                  spath_lenght_total_info_header(add_id=False,total=total),
+                  spath_steps_info_header(add_id=False,total=total),
                   spath_ctype_header(add_id=False)):
         header += h
         line_template += lt
@@ -1596,11 +1643,11 @@ def spath_full_info_header():
 
 
 @add_path_id
-def spath_full_info(spath, ctype=None):
+def spath_full_info(spath, ctype=None, total=None):
     line = []
     for l in (spath_basic_info(spath, add_id=False),
-              spath_lenght_total_info(spath, add_id=False),
-              spath_steps_info(spath, add_id=False),
+              spath_lenght_total_info(spath, add_id=False,total=total),
+              spath_steps_info(spath, add_id=False,total=total),
               spath_ctype(spath, ctype=ctype, add_id=False)):
         line += l
     return line
@@ -1610,7 +1657,7 @@ def spath_full_info(spath, ctype=None):
 
 @add_size_head
 def spaths_lenght_total_header():
-    header = 'Inp InpStd Obj ObjStd Out OutStd'.split()
+    header = 'Tot TotStd Inp InpStd Obj ObjStd Out OutStd'.split()
     line_template = ['%8.1f', '%8.2f'] * (len(header) / 2)
     return header, line_template
 
@@ -1620,11 +1667,26 @@ def spaths_length_total(spaths):
     line = []
     d4s = []
     for sp in spaths:
-        d4s.append(spath_lenght_total_info(sp, add_id=False))
+        if not isinstance(sp,PassingPath):
+            d4s.append(spath_lenght_total_info(sp, add_id=False))
     d4s = np.array(d4s)
-    line.extend(np.mean(d4s, 0))
-    line.extend(np.std(d4s, 0))
-    return [line[0], line[3], line[1], line[4], line[2], line[5]]
+    if d4s.size:
+        line.extend(np.mean(d4s, 0))
+        line.extend(np.std(d4s, 0))
+    else:
+        line = [float('nan')]*6
+    # total
+    d4s = []
+    for sp in spaths:
+        d4s.append(spath_lenght_total_info(sp, totalonly=True, add_id=False))
+    d4s = np.array(d4s)
+    if d4s.size:
+        line.extend(np.mean(d4s, 0))
+        line.extend(np.std(d4s, 0))
+    else:
+        line += [float('nan')]*4
+
+    return [line[6], line[7], line[0], line[3], line[1], line[4], line[2], line[5]]
 
 
 ################################################################################
@@ -1788,12 +1850,12 @@ def stage_V_run(config, options,
     ############
     pa.sep()
     pa("List of separate paths and properties")
-    header_line, line_template = get_header_line_and_line_template(spath_full_info_header(), head_nr=True)
+    header_line, line_template = get_header_line_and_line_template(spath_full_info_header(total=True), head_nr=True)
     pa.thead(header_line)
     for nr, (sp, ctype) in enumerate(izip_longest(spaths, ctypes, fillvalue=None)):
         if ctype is not None:
             ctype = ctype.generic
-        pa(make_line(line_template, spath_full_info(sp, ctype=ctype)), nr=nr)
+        pa(make_line(line_template, spath_full_info(sp, ctype=ctype, total=True)), nr=nr)
     pa.tend(header_line)
 
 
@@ -1950,7 +2012,8 @@ def stage_VI_run(config, options,
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
                 plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
                 if ct in master_paths:
-                    plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
+                    if master_paths[ct] is not None:
+                        plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
 
     if options.ctypes_smooth:
         with clui.fbm("CTypes smooth"):

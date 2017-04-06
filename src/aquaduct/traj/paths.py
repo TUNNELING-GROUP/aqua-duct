@@ -174,12 +174,14 @@ class GenericPaths(object, GenericPathTypeCodes):
                     to_yield = block_frames[:block_types.index(self.out_name)]
                     to_yield_types = block_types[:block_types.index(self.out_name)]
                     if len(to_yield) > 0:
-                        yield to_yield
+                        if not self.object_name in to_yield_types:
+                            yield to_yield
                     block_types = block_types[block_types.index(self.out_name):]
                     block_frames = block_frames[block_types.index(self.out_name):]
             if len(block_frames) > 0:
                 if len(block_frames) > 0:
-                    yield block_frames
+                    if not self.object_name in block_types:
+                        yield block_frames
 
 
     def _gpo(self):
@@ -257,6 +259,7 @@ class GenericPaths(object, GenericPathTypeCodes):
         return self._gpo()
 
     def find_paths(self, fullonly=False, smartr=True):
+        # this looks for normal, ie containing 'core' paths
         paths_out = list(self.get_paths_out())
         paths_in = list(self.get_paths_in())
 
@@ -304,10 +307,9 @@ class GenericPaths(object, GenericPathTypeCodes):
             # yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
             coords, types = self.get_single_path_coords_types(path)
             yield path, coords, types
-        else:
-            for path in self._gpt():
-                coords, types = self.get_single_path_coords_types((path,[],[]))
-                yield (path,[],[]), coords, types
+        for path in self._gpt():
+            coords, types = self.get_single_path_coords_types((path,[],[]))
+            yield (path,[],[]), coords, types
 
     def get_single_path_coords_types(self, spath):
         # returns typess for single path
@@ -396,7 +398,7 @@ class SinglePathID(object):
 
 
 
-def yield_single_paths(gps, fullonly=False, progress=False):
+def yield_single_paths(gps, fullonly=False, progress=False,passing=True):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
     nr_dict = {}
     for nr, gp in enumerate(gps):
@@ -416,8 +418,10 @@ def yield_single_paths(gps, fullonly=False, progress=False):
                     sp = SinglePath(pid, paths, coords, types)
                 else:
                     # this is passing through
-                    sp = PassingPath(pid,paths[0],coords[0],types[0])
-
+                    if passing:
+                        sp = PassingPath(pid,paths[0],coords[0],types[0])
+                    else:
+                        continue
                 if progress:
                     yield sp, nr
                 else:
@@ -567,7 +571,10 @@ class SinglePath(MacroMolPath):
 
     @property
     def paths_cont(self):
-        return self.path_in + self.path_object + self.path_out
+        pathsc = []
+        for p in self.paths:
+            pathsc += p
+        return pathsc
 
     ####################################################################################################################
     # types
@@ -581,8 +588,10 @@ class SinglePath(MacroMolPath):
 
     @property
     def types_cont(self):
-        return ([self.path_in_code] * len(self.__path_in)) + ([self.path_object_code] * len(self.__path_object)) + (
-            [self.path_out_code] * len(self.__path_out))
+        typesc = []
+        for t in self.types:
+            typesc += t
+        return typesc
 
     @property
     def gtypes(self):
@@ -591,7 +600,10 @@ class SinglePath(MacroMolPath):
 
     @property
     def gtypes_cont(self):
-        return self.types_in + self.types_object + self.types_out
+        gtypesc = []
+        for t in self.gtypes:
+            gtypesc += t
+        return gtypesc
 
     @property
     @tupleify
@@ -712,6 +724,16 @@ class PassingPath(SinglePath):
         self.smooth_method = None
 
     @property
+    def types(self):
+        return ([self.path_walk_code]*self.size,)
+
+    @property
+    def gtypes(self):
+        # generic types
+        return (self.__types.get(),)
+
+
+    @property
     def sizes(self):
         return 0,len(self.__path),0
 
@@ -726,6 +748,10 @@ class PassingPath(SinglePath):
     @property
     def path(self):
         return list(self.__path.get())
+
+    @property
+    def paths(self):
+        return (self.path,)
 
     @property
     def coords_first_in(self):
@@ -749,7 +775,7 @@ class PassingPath(SinglePath):
         # if smooth is not none applies smoothing
         if smooth is not None:
             if smooth != self.smooth_method:
-                self.smooth_coords = self._make_smooth_coords(self.coords, smooth)
+                self.smooth_coords = self._make_smooth_coords(self.__coords, smooth)[0]
                 self.smooth_method = smooth
             for nr, coords in enumerate((self.smooth_coords,)):
                 if coords is None:

@@ -280,7 +280,7 @@ class CTypeSpathsCollection(object):
         sizes = []
         for part in self.parts:
             # lengths of all paths of part part
-            lens = make_default_array([float(len(sp.types[part])) for sp in self.spaths])
+            lens = make_default_array([float(sp.sizes[part]) for sp in self.spaths])
             if np.max(lens) > 0:
                 lens /= np.max(lens)  # normalization
                 lens = lens ** self.bias_long  # scale them by increasing weights of long paths
@@ -460,7 +460,7 @@ class CTypeSpathsCollection(object):
         # now try to get first SinglePath, if unable issue WARNING
         with clui.tictoc('separate paths in %s' % str(self.ctype)):
             try:
-                sp = list(yield_single_paths([gp]))[0]
+                sp = list(yield_single_paths([gp],passing=False))[0]
             except IndexError:
                 logger.warning('No master path found for ctype %s' % str(self.ctype))
                 return None

@@ -367,6 +367,7 @@ class SinglePathPlotter(object):
                                         plot_in=True,
                                         plot_object=True,
                                         plot_out=True,
+                                        plot_walk=True,
                                         **kwargs):
 
         self.cgo_lines.new()
@@ -394,7 +395,7 @@ class SinglePathPlotter(object):
                 # plot, if allowed
                 if (plot_in and t == PathTypesCodes.path_in_code) or (
                             plot_object and t == PathTypesCodes.path_object_code) or (
-                            plot_out and t == PathTypesCodes.path_out_code):
+                            plot_out and t == PathTypesCodes.path_out_code) or (plot_walk and t == PathTypesCodes.path_walk_code):
                     # get color
                     c = color_codes(et)
                     # now, it is possible to linearize!

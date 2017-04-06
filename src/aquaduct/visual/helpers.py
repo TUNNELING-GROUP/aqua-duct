@@ -33,7 +33,9 @@ _cl2rgba = {'b': (0.0, 0.0, 1.0, 1.0),
             'k': (0.0, 0.0, 0.0, 1.0),
             'm': (0.75, 0, 0.75, 1.0),
             'r': (1.0, 0.0, 0.0, 1.0),
-            'y': (0.75, 0.75, 0, 1.0)}
+            'y': (0.75, 0.75, 0, 1.0),
+            'w': (1.0, 1.0, 1.0, 1.0),
+            's': (0.33, 0.33, 0.33, 1.0)}
 
 
 def euclidean(A,B):
@@ -58,7 +60,7 @@ def cc_safe(c):
 
 def cc(c):
     # color converter faster
-    if c in 'rgbcmyk':
+    if c in 'rgbcmykws':
         c = _cl2rgba[c]
     return c[:3]
 
@@ -68,17 +70,22 @@ _dcc_cc = ptc.path_object_code + gptc.object_name
 _dcc_cs = ptc.path_object_code + gptc.scope_name
 _dcc_os = ptc.path_out_code + gptc.scope_name
 
+_dcc_ws = ptc.path_walk_code + gptc.scope_name
+
 _dcc_i = ptc.path_in_code
 _dcc_c = ptc.path_object_code
 _dcc_o = ptc.path_out_code
+_dcc_w = ptc.path_walk_code
 
 _default_color_codes = {_dcc_is: 'r',
                         _dcc_cc: 'g',
                         _dcc_cs: 'y',
                         _dcc_os: 'b',
+                        _dcc_ws: 's',
                         _dcc_i: 'r',
                         _dcc_c: 'g',
-                        _dcc_o: 'b'}
+                        _dcc_o: 'b',
+                        _dcc_w: 's'}
 
 default_color_codes = _default_color_codes
 
