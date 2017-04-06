@@ -19,6 +19,7 @@
 # this modlue is a prototype and have to be rewritten
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import multiprocessing
@@ -34,6 +35,7 @@ from aquaduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip, x
 from aquaduct.utils import clui
 from aquaduct.utils.maths import make_default_array, defaults
 from aquaduct.traj.inlets import InletClusterGenericType, InletClusterExtendedType
+from aquaduct.traj.paths import PassingPath
 
 ################################################################################
 part2type_dict = {0: GenericPathTypeCodes.scope_name,
@@ -48,6 +50,7 @@ parts = (0, 1, 2)
 Parts enumerate.
 '''
 
+
 ################################################################################
 
 
@@ -55,6 +58,7 @@ class CTypeSpathsCollectionWorker(object):
     '''
     Worker class for averaging spaths in points of master path.
     '''
+
     def __init__(self, spaths=None, ctype=None, bias_long=5, smooth=None):
         '''
         Core method for averaging spaths in to master path.
@@ -70,7 +74,7 @@ class CTypeSpathsCollectionWorker(object):
         self.spaths = spaths
         assert isinstance(ctype, InletClusterGenericType) or isinstance(ctype, InletClusterExtendedType)
         self.ctype = ctype
-        self.bias_long = bias_long # TODO: check if it is required here
+        self.bias_long = bias_long  # TODO: check if it is required here
         self.smooth = smooth
 
         self.lens_cache = None
@@ -225,10 +229,18 @@ class CTypeSpathsCollection(object):
         :return: Total (or `object` part) lengths of all paths.
         :rtype: numpy.ndarray
         '''
+
+        def lens_object_full():
+            for sp in self.spaths:
+                if isinstance(sp, PassingPath):
+                    yield float(sp.size)
+                else:
+                    yield float(len(sp.types_object))
+
         if self.ctype.input is not None:
             if self.ctype.input > 0:
                 if self.ctype.input == self.ctype.output:
-                    return make_default_array([float(len(sp.types_object)) for sp in self.spaths])
+                    return make_default_array(list(lens_object_full()))
         return make_default_array([float(sp.size) for sp in self.spaths])
 
     def lens_norm(self):
@@ -311,7 +323,8 @@ class CTypeSpathsCollection(object):
         :return: median values of :meth:`simple_types_distribution` for all spaths.
         '''
         # make median distribuitions
-        return np.matrix(make_default_array(np.median([self.simple_types_distribution(sp.gtypes_cont) for sp in self.spaths], axis=0)))
+        return np.matrix(make_default_array(
+            np.median([self.simple_types_distribution(sp.gtypes_cont) for sp in self.spaths], axis=0)))
 
     def types_prob_to_types(self, types_prob):
         '''
@@ -329,7 +342,7 @@ class CTypeSpathsCollection(object):
             new_pro_types = [{True: GenericPathTypeCodes.scope_name,
                               False: GenericPathTypeCodes.object_name}[typ >= t] for typ in types_prob]
             types_thresholds.append(make_default_array(cdist(np.matrix(self.simple_types_distribution(new_pro_types)),
-                                          types_dist_orig, metric='euclidean')))
+                                                             types_dist_orig, metric='euclidean')))
             self.beat()
         # get threshold for which value of types_thresholds is smallest
         types = [{True: GenericPathTypeCodes.scope_name,
@@ -384,7 +397,7 @@ class CTypeSpathsCollection(object):
             chunk_size = int(full_size / self.threads ** 2)
             if chunk_size == 0:
                 chunk_size = 1
-            map_fun = partial(pool.imap_unordered,chunksize=chunk_size)
+            map_fun = partial(pool.imap_unordered, chunksize=chunk_size)
 
         # TODO: it is possible to add pbar support here!
         # maximal number of spath

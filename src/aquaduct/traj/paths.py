@@ -608,7 +608,11 @@ class SinglePath(MacroMolPath):
 
     @property
     def size(self):
-        return sum(map(len, self._paths))
+        return sum(self.sizes)
+
+    @property
+    def sizes(self):
+        return map(len, self._paths)
 
     @property
     def begins(self):
@@ -706,6 +710,10 @@ class PassingPath(SinglePath):
 
         self.smooth_coords = None
         self.smooth_method = None
+
+    @property
+    def sizes(self):
+        return 0,len(self.__path),0
 
     @property
     def _paths(self):
