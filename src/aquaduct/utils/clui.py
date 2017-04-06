@@ -303,8 +303,8 @@ class SimpleProgressBar(object):
         """
         if self.current == 0:
             return '?'
-        if len(self.tictoclist) > 5:
-            diff = sum(self.tictoclist) / float(len(self.tictoclist))
+        if len(self.tictoclist)>2:
+            diff = np.mean(np.diff(self.tictoclist)) * self.current
         else:
             diff = self.tcurrent - self.begin
         periteration = diff / self.current
@@ -340,12 +340,9 @@ class SimpleProgressBar(object):
         percent = self.percent()
         if int(percent) not in self.hundreds:
             self.hundreds.append(int(percent))
-            if len(self.tictoclist):
-                self.tictoclist.append(self.current - self.tictoclist[-1])
-            else:
-                self.tictoclist.append(self.current - self.begin)
+            self.tictoclist.append(self.current)
 
-            while len(self.tictoclist) > 10:
+            while len(self.tictoclist) > 20:
                 self.tictoclist.pop(0)
 
         if percent > 100:

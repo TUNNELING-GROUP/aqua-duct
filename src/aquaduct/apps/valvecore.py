@@ -47,7 +47,7 @@ from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepS
 from aquaduct.traj.barber import WhereToCut
 from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
-from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath
+from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath, SinglePath
 from aquaduct.traj.reader import ReadViaMDA
 from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
@@ -1756,20 +1756,54 @@ def stage_V_run(config, options,
         pa(os.linesep.join(config.dump_config()))
 
     ############
-    traced_names = set([sp.id.name for sp in spaths])
+    traced_names = sorted(list(set([sp.id.name for sp in spaths])))
+    #traced_names = ['all'] + traced_names
+
     pa.sep()
     pa("Names of traced molecules: %s" % (' '.join(traced_names)))
 
+    #spaths_types = ['all']
+    spaths_types = []
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            if not PassingPath in spaths_types:
+                spaths_types.append(PassingPath)
+        else:
+            if not SinglePath in spaths_types:
+                spaths_types.append(SinglePath)
+
     ############
+
+    def iter_over_tn():
+        if len(traced_names) == 1:
+            yield 'all',''
+        else:
+            if len(traced_names) > 1:
+                yield 'all',''
+            for _tname in traced_names:
+                yield _tname," of %s" % _tname
+
+    def iter_over_tnspt():
+        for _tname,_message in iter_over_tn():
+            if len(spaths_types) == 1:
+                yield _tname,'all',_message
+            else:
+                if len(spaths_types) > 1:
+                    yield _tname,'all',_message
+                for _sptype in spaths_types:
+                    if _sptype == PassingPath:
+                        _sptype_name = 'passing paths'
+                    elif _sptype == SinglePath:
+                        _sptype_name = 'single path'
+                    yield _tname,_sptype,_message+ (" of %s" % _sptype_name)
+
     pa.sep()
-    pa("Number of traceable residues: %d" % len(paths))
-    if len(traced_names) > 1:
-        for tname in traced_names:
-            pa("Number of traceable residues of %s: %d" % (tname,len([None for p in paths.values() if p.name == tname])))
-    pa("Number of separate paths: %d" % len(spaths))
-    if len(traced_names) > 1:
-        for tname in traced_names:
-            pa("Number of separate paths of %s: %d" % (tname,len([None for sp in spaths if sp.id.name == tname])))
+
+    for tname,message in iter_over_tn():
+        pa("Number of traceable residues%s: %d" % (message,len([None for p in paths.values() if p.name == tname or tname == 'all'])))
+    print len(spaths)
+    for tname,sptype,message in iter_over_tnspt():
+        pa("Number of separate paths%s: %d" % (message,len([None for sp in spaths if (sp.id.name == tname or tname == 'all') and (sptype == 'all' or isinstance(sp,sptype))])))
 
     ############
     pa.sep()
@@ -1858,6 +1892,8 @@ def stage_V_run(config, options,
         pa(make_line(line_template, spath_full_info(sp, ctype=ctype, total=True)), nr=nr)
     pa.tend(header_line)
 
+    ############
+    # additional analysis
 
 
 ################################################################################
