@@ -1494,16 +1494,17 @@ class PrintAnalysis(object):
     nr_template = '%7d '
 
     # TODO: Change it in such a way that it cooperates well with debug-file option.
-    def __init__(self, fileoption):
+    def __init__(self, fileoption,line_nr=False):
         self.output2stderr = False
         if fileoption:
             self.filehandle = open(fileoption, 'w')
             # self.output2stderr = True
         else:
             self.filehandle = sys.stdout
+        self.line_nr = line_nr
 
     def __call__(self, info2print, nr=None):
-        if nr is not None:
+        if self.line_nr and nr is not None:
             info2print = (self.nr_template % nr) + info2print
         if self.output2stderr:
             clui.message(info2print)
@@ -1734,7 +1735,9 @@ def stage_V_run(config, options,
                 ctypes=None,
                 **kwargs):
     # file handle?
-    pa = PrintAnalysis(options.save)
+    head_nr = True
+    line_nr = head_nr
+    pa = PrintAnalysis(options.save,line_nr=line_nr)
     if options.save:
         clui.message('Using user provided file (%s).' % options.save)
         # clui.message(sep())
@@ -1782,7 +1785,7 @@ def stage_V_run(config, options,
             if len(traced_names) > 1:
                 yield traced_names,''
             for _tname in traced_names:
-                yield _tname," of %s" % _tname
+                yield (_tname,)," of %s" % _tname
 
     def iter_over_tnspt():
         for _tname,_message in iter_over_tn():
@@ -1796,7 +1799,7 @@ def stage_V_run(config, options,
                         _sptype_name = 'passing paths'
                     elif _sptype == SinglePath:
                         _sptype_name = 'object  paths'
-                    yield _tname,_sptype,_message+ (" of %s" % _sptype_name)
+                    yield _tname,(_sptype,),_message+ (" of %s" % _sptype_name)
 
     ############
 
@@ -1826,9 +1829,10 @@ def stage_V_run(config, options,
     pa('Clustering history:')
     pa(clui.print_simple_tree(inls.tree, prefix='').rstrip())
 
+
     ############
     pa.sep()
-    header_line, line_template = get_header_line_and_line_template(clusters_inlets_header(), head_nr=True)
+    header_line, line_template = get_header_line_and_line_template(clusters_inlets_header(), head_nr=head_nr)
     for tname,sptype,message in iter_over_tnspt():
         pa("Clusters summary - inlets%s" % message)
         pa.thead(header_line)
@@ -1839,9 +1843,7 @@ def stage_V_run(config, options,
 
     ############
     pa.sep()
-    pa("Separate paths clusters types summary - mean lengths of paths")
-    header_line, line_template = get_header_line_and_line_template(ctypes_spaths_info_header(), head_nr=True)
-    pa.thead(header_line)
+    header_line, line_template = get_header_line_and_line_template(ctypes_spaths_info_header(), head_nr=head_nr)
 
     ctypes_generic = [ct.generic for ct in ctypes]
     ctypes_generic_list = sorted(list(set(ctypes_generic)))
@@ -1853,35 +1855,22 @@ def stage_V_run(config, options,
         ctypes_size.append(len(sps))
         # pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
 
-    '''
-    # sorted by sizes:
-    ctypes_generic_list = sorted(ctypes_generic_list, key=lambda ctyp: ctypes_size[ctypes_generic_list.index(ctyp)],
-                                 reverse=True)
-    '''
+    for tname,sptype,message in iter_over_tnspt():
+        pa("Separate paths clusters types summary - mean lengths of paths%s" % message)
+        pa.thead(header_line)
 
-    for nr, ct in enumerate(ctypes_generic_list):
-        sps = lind(spaths, what2what(ctypes_generic, [ct]))
-        #ctypes_size.append(len(sps))
-        if len(sps) > 0:
-            pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
-    pa.tend(header_line)
-
-    if len(traced_names) > 1:
-        for tname in traced_names:
-            pa("Separate paths clusters types summary - mean lengths of paths of %s" % tname)
-            pa.thead(header_line)
-            for nr, ct in enumerate(ctypes_generic_list):
-                sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                sps = lind(sps, what2what([sp.id.name for sp in sps],[tname]))
-                #ctypes_size.append(len(sps))
-                if len(sps) > 0:
-                    pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
-            pa.tend(header_line)
+        for nr, ct in enumerate(ctypes_generic_list):
+            sps = lind(spaths, what2what(ctypes_generic, [ct]))
+            sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp,sptype)]
+            #ctypes_size.append(len(sps))
+            if len(sps) > 0:
+                pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+        pa.tend(header_line)
 
     ############
     pa.sep()
     pa("List of separate paths and properties")
-    header_line, line_template = get_header_line_and_line_template(spath_full_info_header(total=True), head_nr=True)
+    header_line, line_template = get_header_line_and_line_template(spath_full_info_header(total=True), head_nr=head_nr)
     pa.thead(header_line)
     for nr, (sp, ctype) in enumerate(izip_longest(spaths, ctypes, fillvalue=None)):
         if ctype is not None:
