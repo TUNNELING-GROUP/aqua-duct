@@ -453,6 +453,15 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
+    def is_frame_in(self,frame):
+        return self.__path_in.isin(frame)
+    def is_frame_object(self,frame):
+        return self.__path_object.isin(frame)
+    def is_frame_out(self,frame):
+        return self.__path_out.isin(frame)
+    def is_frame_walk(self,frame):
+        return self.is_frame_in(frame) or self.is_frame_object(frame) or self.is_frame_out(frame)
+
     @property
     def path_in(self):
         return list(self.__path_in.get())
@@ -721,6 +730,9 @@ class PassingPath(MacroMolPath):
 
         self.smooth_coords = None
         self.smooth_method = None
+
+    def is_frame_walk(self,frame):
+        return self.__path.isin(frame)
 
     @property
     def types(self):

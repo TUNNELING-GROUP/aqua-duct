@@ -1152,7 +1152,8 @@ def stage_III_run(config, options,
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
-        spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
+        spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True,
+                                                      passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
         pbar.finish()
 
         if options.discard_short_paths > 0:
@@ -1838,21 +1839,15 @@ def stage_V_run(config, options,
     ############
 
     def iter_over_tn():
-        if len(traced_names) == 1:
-            yield traced_names, ''
-        else:
-            if len(traced_names) > 1:
-                yield traced_names, ''
+        yield traced_names, ''
+        if len(traced_names) > 1:
             for _tname in traced_names:
                 yield (_tname,), " of %s" % _tname
 
     def iter_over_tnspt():
         for _tname, _message in iter_over_tn():
-            if len(spaths_types) == 1:
-                yield _tname, spaths_types, _message
-            else:
-                if len(spaths_types) > 1:
-                    yield _tname, spaths_types, _message
+            yield _tname, spaths_types, _message
+            if len(spaths_types) > 1:
                 for _sptype in spaths_types:
                     if _sptype == PassingPath:
                         _sptype_name = 'passing paths'
@@ -1940,14 +1935,61 @@ def stage_V_run(config, options,
 
     ############
     # additional analysis
+
+    def iter_over_tn():
+        yield traced_names, ''
+        if len(traced_names) > 1:
+            for _tname in traced_names:
+                yield (_tname,), "_%s" % _tname
+
+    def iter_over_tnspt():
+        for _tname, _message in iter_over_tn():
+            yield _tname, spaths_types, _message
+            if len(spaths_types) > 1:
+                for _sptype in spaths_types:
+                    if _sptype == PassingPath:
+                        _sptype_name = 'passing'
+                    elif _sptype == SinglePath:
+                        _sptype_name = 'object'
+                    yield _tname, (_sptype,), _message + ("_%s" % _sptype_name)
+
+    def iter_over_tnptc():
+        for _tname,_sptype,_message in iter_over_tnspt():
+            yield _tname, _sptype, inls.clusters_list, _message
+            if len(inls.clusters_list) > 1:
+                for _cluster in inls.clusters_list:
+                    yield _tname, _sptype, _cluster, _message+ ("_%s" % str(_cluster))
+
+    def iter_over_tnptct():
+        for _tname, _sptype, _message in iter_over_tnspt():
+            yield _tname, _sptype, ctypes_generic_list, _message
+            if len(ctypes_generic_list) > 1:
+                for _cluster in ctypes_generic_list:
+                    yield _tname, _sptype, _cluster, _message + ("_%s" % str(_cluster))
+
     # histograms
     # loop over frames is needed?
     hist = []
     for frame in range(max_frame+1):
-        sps = [sp for sp in spaths if frame in sp.paths_cont]
-        hist.append(len(sps))
+        column_seen = []
+        # counter
+        row = [frame]
+        for tname, sptype, cluster, message in iter_over_tnptc():
+            # limit...
+            message = 'C_'+message
+            if message in column_seen:
+                continue
+            column_seen.append(message)
+            counter = 0
+            for sp,ct in zip(spaths,ctypes):
+                if sp.id.name in tname:
+                    if isinstance(sp,sptype):
+                        if cluster in ct.clusters:
+                            counter += 1
+            row.append(counter)
+        hist.append(row)
 
-    return {'hist':hist}
+    return {'hist':hist,'header':column_seen}
 
 ################################################################################
 
