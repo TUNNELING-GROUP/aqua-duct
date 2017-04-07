@@ -31,6 +31,14 @@ from scipy.spatial.distance import cdist
 # KMeans:              n > clusters
 # MeanShift:           n > 6
 
+
+AVAILABLE_METHODS = ['dbscan','kmeans', 'affprop', 'meanshift', 'birch','barber']
+
+def get_required_params(method):
+    if method == 'kmeans':
+        return ['n_clusters']
+
+
 from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
@@ -106,10 +107,12 @@ if __name__ == "__main__":
         # special option for dumping template config
         config = ValveConfig()  # config template
         if args.dump_template_conf:
-            import cStringIO as StringIO
-            config_dump = StringIO.StringIO()
-            config.save_config_stream(config_dump)
-            print config_dump.getvalue()
+            #import cStringIO as StringIO
+            #config_dump = StringIO.StringIO()
+            #config.save_config_stream(config_dump)
+            #print config_dump.getvalue()
+            import os
+            print os.linesep.join(config.dump_config(dump_template=True))
             exit(0)
         # special case of version
         if args.print_version:
