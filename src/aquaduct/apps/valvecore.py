@@ -278,6 +278,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+        config.set(section, 'allow_passing_paths', 'False')
         config.set(section, 'auto_barber_tovdw', 'True')
         config.set(section, 'auto_barber_maxcut', '2.8')
         config.set(section, 'auto_barber_mincut', 'None')
@@ -904,7 +905,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
         # remove options stuff
-        if not no_io:
+        if True or not no_io:
             if result is not None:
                 return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
 
@@ -1116,7 +1117,9 @@ def stage_III_run(config, options,
     clui.message("Create separate paths:")
     pbar = clui.pbar(len(paths))
     # yield_single_paths requires a list of paths not a dictionary
-    spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True) if pbar.update(nr + 1) is None]
+    spaths = [sp for sp, nr in yield_single_paths(paths.values(),
+                                                  progress=True,
+                                                  passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
     pbar.finish()
 
     if options.discard_short_paths > 0:
@@ -1788,6 +1791,7 @@ def stage_V_run(config, options,
                 paths=None,
                 inls=None,
                 ctypes=None,
+                max_frame=None,
                 **kwargs):
     # file handle?
     head_nr = True
@@ -1938,6 +1942,12 @@ def stage_V_run(config, options,
     # additional analysis
     # histograms
     # loop over frames is needed?
+    hist = []
+    for frame in range(max_frame+1):
+        sps = [sp for sp in spaths if frame in sp.paths_cont]
+        hist.append(len(sps))
+
+    return {'hist':hist}
 
 ################################################################################
 

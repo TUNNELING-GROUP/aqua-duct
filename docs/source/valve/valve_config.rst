@@ -155,6 +155,7 @@ apply_soft_smoothing        True            If set to ``True`` raw paths are rep
                                             calculated according to **smooth** section.
 discard_short_paths         1               This option allows to discard paths that are shorter than the
                                             threshold.
+allow_passing_paths         False           If set to ``True`` Passing Paths are generated.
 auto_barber                 None            This option allows to select molecular entity used in Auto
                                             Barber procedure. See also :ref:`auto_barber_procedure` and
                                             :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.

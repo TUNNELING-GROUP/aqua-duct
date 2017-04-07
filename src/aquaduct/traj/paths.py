@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from aquaduct.utils import clui
@@ -123,7 +124,6 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.max_possible_frame = max_pf
         self.min_possible_frame = min_pf
 
-
     # info methods
     @property
     def types(self):
@@ -182,7 +182,6 @@ class GenericPaths(object, GenericPathTypeCodes):
                 if len(block_frames) > 0:
                     if not self.object_name in block_types:
                         yield block_frames
-
 
     def _gpo(self):
         n = len(self.__frames)
@@ -308,8 +307,8 @@ class GenericPaths(object, GenericPathTypeCodes):
             coords, types = self.get_single_path_coords_types(path)
             yield path, coords, types
         for path in self._gpt():
-            coords, types = self.get_single_path_coords_types((path,[],[]))
-            yield (path,[],[]), coords, types
+            coords, types = self.get_single_path_coords_types((path, [], []))
+            yield (path, [], []), coords, types
 
     def get_single_path_coords_types(self, spath):
         # returns typess for single path
@@ -379,7 +378,7 @@ class GenericPaths(object, GenericPathTypeCodes):
         if len(spheres):
             tokeep = np.argwhere((cdist(self.coords, [s.center for s in spheres], metric='euclidean') > np.matrix(
                 [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
-            #tokeep = np.argwhere(tokeep).flatten().tolist()
+            # tokeep = np.argwhere(tokeep).flatten().tolist()
             self.coords = lind(self.coords, tokeep)
             self.__types = SmartRange(lind(self.types, tokeep))
             self.__frames = SmartRange(lind(self.frames, tokeep))
@@ -397,10 +396,11 @@ class SinglePathID(object):
         return '%d:%d' % (self.id, self.nr)
 
     def __eq__(self, other):
-        assert isinstance(other,SinglePathID)
+        assert isinstance(other, SinglePathID)
         return self.id == other.id and self.nr == other.nr and self.name == other.name
 
-def yield_single_paths(gps, fullonly=False, progress=False,passing=True):
+
+def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
     nr_dict = {}
     for nr, gp in enumerate(gps):
@@ -421,7 +421,7 @@ def yield_single_paths(gps, fullonly=False, progress=False,passing=True):
                 else:
                     # this is passing through
                     if passing:
-                        sp = PassingPath(pid,paths[0],coords[0],types[0])
+                        sp = PassingPath(pid, paths[0], coords[0], types[0])
                     else:
                         continue
                 if progress:
@@ -430,7 +430,7 @@ def yield_single_paths(gps, fullonly=False, progress=False,passing=True):
                     yield sp
 
 
-class MacroMolPath(object,PathTypesCodes, InletTypeCodes):
+class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     # special class
     # represents one path
 
@@ -452,7 +452,6 @@ class MacroMolPath(object,PathTypesCodes, InletTypeCodes):
         self.smooth_method = None
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
-
 
     @property
     def path_in(self):
@@ -490,7 +489,6 @@ class MacroMolPath(object,PathTypesCodes, InletTypeCodes):
         if len(self.__path_in) > 0:
             return self.path_in[0]
 
-
     @property
     def coords_last_out(self):
         if len(self.__path_out) > 0:
@@ -500,7 +498,6 @@ class MacroMolPath(object,PathTypesCodes, InletTypeCodes):
     def paths_last_out(self):
         if len(self.__path_out) > 0:
             return self.path_out[-1]
-
 
     @property
     def coords_filo(self):
@@ -664,7 +661,6 @@ class MacroMolPath(object,PathTypesCodes, InletTypeCodes):
             else:
                 yield self.empty_coords
 
-
     def get_coords_cont(self, smooth=None):
         # returns coords as one array
         return make_default_array(np.vstack([c for c in self.get_coords(smooth) if len(c) > 0]))
@@ -711,7 +707,6 @@ class SinglePath(MacroMolPath):
 
 
 class PassingPath(MacroMolPath):
-
     has_in = True
     has_out = True
 
@@ -729,17 +724,16 @@ class PassingPath(MacroMolPath):
 
     @property
     def types(self):
-        return ([self.path_walk_code]*self.size,)
+        return ([self.path_walk_code] * self.size,)
 
     @property
     def gtypes(self):
         # generic types
         return (self.__types.get(),)
 
-
     @property
     def sizes(self):
-        return 0,len(self.__path),0
+        return 0, len(self.__path), 0
 
     @property
     def _paths(self):
@@ -804,7 +798,7 @@ class PassingPath(MacroMolPath):
 
 class MasterPath(MacroMolPath):
     def __init__(self, sp):
-        super(MasterPath,self).__init__(sp.id, sp.paths, sp.coords, sp.gtypes)
+        super(MasterPath, self).__init__(sp.id, sp.paths, sp.coords, sp.gtypes)
         self.width_cont = None
 
     def add_width(self, width):

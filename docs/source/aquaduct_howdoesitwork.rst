@@ -77,14 +77,21 @@ Separate paths
 
 The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *Scope* and the *Object* many times over the entire MD. Each such an event is considered by AQUA-DUCT as a separate path.
 
-Each *separate path* comprises of three parts:
+There are two types of *Separate Paths*:
+
+* *Object Paths*
+* *Passing Paths*
+
+*Object Paths* are traces of molecules that visited *Object* area. *Passing Paths* are traces of molecules that entered *Scope* but did not entered *Object* area.
+
+*Passing paths* comprises of one part only.
+Each *object path* comprises of three parts:
 
 #. *Incoming* - Defined as a path that leads from the point in which residue enters the *Scope* and enters the object for the firs time.
 #. *Object* - Defined as a path that leads from the point in which residue enters the *Object* for the first time and leaves it for the last time.
 #. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *Object* for the last lime and leaves the *Scope*.
 
 It is also possible that incoming and/or outgoing part of the separate path is empty.
-
 
 After the initial search of *Separate Path* objects it is possible to run special procedure, Auto Barber, which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user.
 

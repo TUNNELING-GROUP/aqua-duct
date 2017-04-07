@@ -304,7 +304,7 @@ class SimpleProgressBar(object):
         if self.current == 0:
             return '?'
         if len(self.tictoclist)>2:
-            diff = (np.mean(np.diff(self.tictoclist))/(self.maxval/100.)) * self.current
+            diff = (np.median(np.diff(self.tictoclist))/(self.maxval/100.)) * self.current
         else:
             diff = self.tcurrent - self.begin
         periteration = diff / self.current

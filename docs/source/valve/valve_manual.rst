@@ -171,13 +171,29 @@ Separate paths
 
 The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *scope* and the *object* many times over the entire MD. Each such event is considered by *Valve* as a separate path.
 
-Each *separate path* comprises of three parts:
+There are two types of *Separate Paths*:
+
+* *Object Paths*
+* *Passing Paths*
+
+*Object Paths* are traces of molecules that visited *Object* area. *Passing Paths* are traces of molecules that entered *Scope* but did not entered *Object* area.
+
+*Passing paths* comprises of one part only.
+Each *object path* comprises of three parts:
 
 #. *Incoming* - Defined as a path that leads from the point in which residue enters the *scope* and enters the object for the first time.
 #. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time.
 #. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *object* for the last time and leaves the *scope*.
 
 It is also possible that incoming and/or outgoing part of the separate path is empty.
+
+.. note::
+
+   Generation of *Passing paths* is optional and can be switched off.
+
+.. warning::
+
+   Generation of *Passing paths* without redefinition of *Object* area in stage I and II may lead to false results.
 
 .. _auto_barber_procedure:
 
@@ -304,6 +320,8 @@ Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4
     #. **Nr**: Row number, starting from 0.
     #. **CType**: Separate path Cluster Type.
     #. **Size**: Number of separate paths belonging to Cluster type.
+    #. **Tot**: Average total length of the path.
+    #. **TotStd**: Standard deviation of length Tot.
     #. **Inp**: Average length of incoming part of the path. If no incoming part is available it is NaN (not a number).
     #. **InpStd**: Standard deviation of length Inp.
     #. **Obj**: Average length of object part of the path. If no incoming part is available it is NaN.
@@ -319,9 +337,12 @@ Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4
     #. **ObjF**: Number of frame in which path begins Object part.
     #. **OutF**: Number of frame in which path begins Outgoing part.
     #. **EndF**: Number of frame in which the path ends.
+    #. **TotL**: Total length of path.
     #. **InpL**: Length of Incoming part. If no incoming part NaN is given.
     #. **ObjL**: Length of Object part.
     #. **OutL**: Length of Outgoing part. If no outgoing part NaN is given.
+    #. **TotS**: Average step of full path.
+    #. **TotStdS**: Standard deviation of TotS.
     #. **InpS**: Average step of Incoming part. If no incoming part NaN is given.
     #. **InpStdS**: Standard deviation of InpS.
     #. **ObjS**: Average step of Object part.
@@ -366,6 +387,6 @@ Color schemes
 
 Inlets clusters are colored automatically. Outliers are gray.
 
-Incoming parts of paths are red, Outgoing parts are blue. Object parts in case of smooth paths are green and in case of raw paths are green if residue is precisely in the object area or yellow if is leaved object area but it is not in the Outgoing part yet.
+Incoming parts of paths are red, Outgoing parts are blue. Object parts in case of smooth paths are green and in case of raw paths are green if residue is precisely in the object area or yellow if is leaved object area but it is not in the Outgoing part yet. *Passing paths* are displayed in grey.
 
 Arrows are colored in accordance to the colors of paths.
