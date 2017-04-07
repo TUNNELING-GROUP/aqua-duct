@@ -40,7 +40,8 @@ from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
 from aquaduct.apps.data import ValveDataAccess, version_nice
 from aquaduct.geom import traces
-from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, BarberCluster
+from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
+    BarberCluster
 from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
@@ -613,9 +614,9 @@ def get_smooth_method(soptions):
     return smooth
 
 
-def get_clustering_method(coptions,config):
+def get_clustering_method(coptions, config):
     assert coptions.method in ['dbscan', 'affprop', 'meanshift', 'birch',
-                               'kmeans','barber'], 'Unknown clusterization method %s.' % coptions.method
+                               'kmeans', 'barber'], 'Unknown clusterization method %s.' % coptions.method
 
     opts = {}
 
@@ -838,7 +839,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 # S A V E #
                 ###########
                 ValveDataAccess(mode='w', data_file_name=options.dump).dump(**result)
-                #save_stage_dump(options.dump, **result)
+                # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
                 ###########
@@ -847,7 +848,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 if options.dump:
                     with reader.get() as traj_reader:
                         result = ValveDataAccess(mode='r', data_file_name=options.dump, reader=traj_reader).load()
-                    #result = load_stage_dump(options.dump, reader=reader)
+                        # result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
         # remove options stuff
@@ -856,29 +857,28 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
 
 
-
 class IdsOverIds(object):
-
     @staticmethod
     def dict2arrays(d):
         values = []
         keys_lens = []
-        for k,v in d.iteritems():
-            keys_lens.append((k,len(v)))
+        for k, v in d.iteritems():
+            keys_lens.append((k, len(v)))
             values.extend(v.tolist())
-        return {'values':np.array(values),'keys_lens':np.array(keys_lens)}
+        return {'values': np.array(values), 'keys_lens': np.array(keys_lens)}
 
     @staticmethod
-    def arrays2dict(values=None,keys_lens=None):
+    def arrays2dict(values=None, keys_lens=None):
         out = {}
         ll = 0
         for kl in keys_lens:
             k = kl[0]
             l = kl[1]
-            v = values[ll:ll+l]
+            v = values[ll:ll + l]
             ll += l
-            out.update({int(k):v.tolist()})
+            out.update({int(k): v.tolist()})
         return out
+
 
 ################################################################################
 # stages run
@@ -926,10 +926,10 @@ def stage_I_run(config, options,
             # remeber ids of res in object in current frame
             if res_new is not None:
                 res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
-                #res_ids_in_object_over_frames.update({frame: np.array(res_new.unique_resids(ikwid=True))})
+                # res_ids_in_object_over_frames.update({frame: np.array(res_new.unique_resids(ikwid=True))})
             else:
                 res_ids_in_object_over_frames.update({frame: []})
-                #res_ids_in_object_over_frames.update({frame: np.array([])})
+                # res_ids_in_object_over_frames.update({frame: np.array([])})
             pbar.update(frame)
 
     # destroy pool of workers
@@ -962,8 +962,6 @@ def stage_II_run(config, options,
                  res_ids_in_object_over_frames=None,
                  max_frame=None,
                  **kwargs):
-
-
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
         clui.message('This will be recalculated on demand.')
@@ -972,8 +970,9 @@ def stage_II_run(config, options,
         res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
     with clui.fbm("Init paths container"):
-        paths = dict(((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=max_frame)) for resid,resname in
-                      zip(all_res.unique_resids(ikwid=True),all_res.unique_names())))
+        paths = dict(
+            ((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=max_frame)) for resid, resname in
+             zip(all_res.unique_resids(ikwid=True), all_res.unique_names())))
 
     with reader.get() as traj_reader:
 
@@ -1075,7 +1074,7 @@ def stage_III_run(config, options,
 
     if options.auto_barber:
         with reader.get() as traj_reader:
-            wtc = WhereToCut(spaths,traj_reader,
+            wtc = WhereToCut(spaths, traj_reader,
                              selection=options.auto_barber,
                              mincut=options.auto_barber_mincut,
                              mincut_level=options.auto_barber_mincut_level,
@@ -1165,7 +1164,7 @@ def potentially_recursive_clusterization(config=None,
         for k, v in cluster_options._asdict().iteritems():
             clui.message("%s = %s" % (str(k), str(v)))
         # TODO: Print clusterization options in a nice way!
-        clustering_function = get_clustering_method(cluster_options,config)
+        clustering_function = get_clustering_method(cluster_options, config)
         # special case of barber!!!
         if cluster_options.method == 'barber':
             inlets_refs = inlets_object.get_inlets_references()
@@ -1235,7 +1234,7 @@ def stage_IV_run(config, options,
         clui.message('Number of outliers: %d' % noo())
         # ***** OUTLIERS DETECTION *****
         if options.detect_outliers:
-            with clui.fbm("Detecting outliers",cont=False):
+            with clui.fbm("Detecting outliers", cont=False):
                 if options.detect_outliers is not Auto:
                     threshold = float(options.detect_outliers)
                 clusters = list(inls.clusters)
@@ -1273,7 +1272,7 @@ def stage_IV_run(config, options,
                                                      message='reclusterization',
                                                      max_level=max_level)
                     '''
-                    clustering_function = get_clustering_method(rcoptions,config)
+                    clustering_function = get_clustering_method(rcoptions, config)
                     # perform reclusterization
                     # inls.recluster_outliers(clustering_function)
                     inls.recluster_cluster(clustering_function, 0)
@@ -1287,7 +1286,7 @@ def stage_IV_run(config, options,
             clui.message('Number of outliers: %d' % noo())
 
         clui.message('Clustering history:')
-        clui.message(clui.print_simple_tree(inls.tree,prefix='').rstrip())
+        clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
 
         with clui.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)
@@ -1308,13 +1307,15 @@ def stage_IV_run(config, options,
                     logger.debug('CType %s (%d)' % (str(ct), nr))
                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
                     # no passing paths are allowed
-                    sps = [sp for sp in sps if not isinstance(sp,PassingPath)]
+                    sps = [sp for sp in sps if not isinstance(sp, PassingPath)]
                     if not len(sps):
-                        logger.debug('CType %s (%d), no single paths found, MasterPath calculation skipped.' % (str(ct), nr,))
+                        logger.debug(
+                            'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (str(ct), nr,))
                         continue
                     logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
                     # print len(sps),ct
-                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar, threads=optimal_threads.threads_count)
+                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
+                                                  threads=optimal_threads.threads_count)
                     master_paths.update({ct: ctspc.get_master_path(resid=nr)})
                     master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
                     del ctspc
@@ -1339,11 +1340,11 @@ def make_line(template, line):
     if len(template) != len(line):
         pass
     # detect nan and int problem
-    for nr,(t,l) in enumerate(zip(template,line)):
+    for nr, (t, l) in enumerate(zip(template, line)):
         if is_number(l):
             if np.isnan(l):
                 if 'd' in t:
-                    template[nr] = t.replace('d','s')
+                    template[nr] = t.replace('d', 's')
                     line[nr] = 'nan'
     return (' '.join(template)) % tuple(line)
 
@@ -1377,14 +1378,16 @@ def get_header_line_and_line_template(header_line_and_line_template, head_nr=Fal
 def spath_id_header():
     return ['ID'], ['%9s']
 
+
 def spath_name_header():
     return ['RES'], ['%4s']
 
 
 def add_path_id_head(gen):
-    sph, splt = zip(spath_id_header(),spath_name_header())
+    sph, splt = zip(spath_id_header(), spath_name_header())
     sph = [e[0] for e in sph]
     splt = [e[0] for e in splt]
+
     @wraps(gen)
     def patched(*args, **kwargs):
         add_id = True
@@ -1406,7 +1409,7 @@ def add_path_id(gen):
             add_id = kwargs.pop('add_id')
         line = gen(spath, *args, **kwargs)
         if add_id:
-            line = [spath.id,spath.id.name] + line
+            line = [spath.id, spath.id.name] + line
         return line
 
     return patched
@@ -1494,7 +1497,7 @@ class PrintAnalysis(object):
     nr_template = '%7d '
 
     # TODO: Change it in such a way that it cooperates well with debug-file option.
-    def __init__(self, fileoption,line_nr=False):
+    def __init__(self, fileoption, line_nr=False):
         self.output2stderr = False
         if fileoption:
             self.filehandle = open(fileoption, 'w')
@@ -1536,10 +1539,10 @@ def spath_basic_info_header():
 def spath_basic_info(spath):
     line = []
     line.append(spath.begins)
-    if not isinstance(spath,PassingPath):
+    if not isinstance(spath, PassingPath):
         line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
     else:
-        line += [float('nan')]*3
+        line += [float('nan')] * 3
     line.append(spath.ends)
     return line
 
@@ -1556,7 +1559,7 @@ def spath_lenght_total_info_header(total=None):
 
 
 @add_path_id
-def spath_lenght_total_info(spath,totalonly=False,total=False):
+def spath_lenght_total_info(spath, totalonly=False, total=False):
     line = []
     if not total:
         if not totalonly:
@@ -1573,12 +1576,13 @@ def spath_lenght_total_info(spath,totalonly=False,total=False):
                 else:
                     line.append(float('nan'))
             return line
-    line += spath_lenght_total_info(spath,add_id=False,total=False,totalonly=True)
-    if not isinstance(spath,PassingPath):
-        line += spath_lenght_total_info(spath,add_id=False,total=False,totalonly=False)
+    line += spath_lenght_total_info(spath, add_id=False, total=False, totalonly=True)
+    if not isinstance(spath, PassingPath):
+        line += spath_lenght_total_info(spath, add_id=False, total=False, totalonly=False)
     else:
-        line += [float('nan')]*3
+        line += [float('nan')] * 3
     return line
+
 
 ################
 
@@ -1586,13 +1590,13 @@ def spath_lenght_total_info(spath,totalonly=False,total=False):
 def spath_steps_info_header(total=None):
     header = 'InpS InpStdS ObjS ObjStdS OutS OutStdS'.split()
     if total:
-        header = ['TotS','TotStdS'] + header
+        header = ['TotS', 'TotStdS'] + header
     line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
     return header, line_template
 
 
 @add_path_id
-def spath_steps_info(spath,total=None):
+def spath_steps_info(spath, total=None):
     line = []
     if not total:
         for t in traces.midpoints(spath.coords):
@@ -1601,17 +1605,16 @@ def spath_steps_info(spath,total=None):
             else:
                 line.extend([float('nan'), float('nan')])
         return line
-    line += spath_steps_info(spath,add_id=False,total=False)
-    if not isinstance(spath,PassingPath):
+    line += spath_steps_info(spath, add_id=False, total=False)
+    if not isinstance(spath, PassingPath):
         t = traces.midpoints((spath.coords_cont,)).next()
         if len(t) > 0:
             line = list(traces.length_step_std(t)[1:]) + line
         else:
             line = [float('nan'), float('nan')] + line
     else:
-        line += [float('nan'), float('nan')]*3
+        line += [float('nan'), float('nan')] * 3
     return line
-
 
 
 ################
@@ -1635,8 +1638,8 @@ def spath_full_info_header(total=None):
     header = []
     line_template = []
     for h, lt in (spath_basic_info_header(add_id=False),
-                  spath_lenght_total_info_header(add_id=False,total=total),
-                  spath_steps_info_header(add_id=False,total=total),
+                  spath_lenght_total_info_header(add_id=False, total=total),
+                  spath_steps_info_header(add_id=False, total=total),
                   spath_ctype_header(add_id=False)):
         header += h
         line_template += lt
@@ -1647,8 +1650,8 @@ def spath_full_info_header(total=None):
 def spath_full_info(spath, ctype=None, total=None):
     line = []
     for l in (spath_basic_info(spath, add_id=False),
-              spath_lenght_total_info(spath, add_id=False,total=total),
-              spath_steps_info(spath, add_id=False,total=total),
+              spath_lenght_total_info(spath, add_id=False, total=total),
+              spath_steps_info(spath, add_id=False, total=total),
               spath_ctype(spath, ctype=ctype, add_id=False)):
         line += l
     return line
@@ -1668,14 +1671,14 @@ def spaths_length_total(spaths):
     line = []
     d4s = []
     for sp in spaths:
-        if not isinstance(sp,PassingPath):
+        if not isinstance(sp, PassingPath):
             d4s.append(spath_lenght_total_info(sp, add_id=False))
     d4s = np.array(d4s)
     if d4s.size:
         line.extend(np.mean(d4s, 0))
         line.extend(np.std(d4s, 0))
     else:
-        line = [float('nan')]*6
+        line = [float('nan')] * 6
     # total
     d4s = []
     for sp in spaths:
@@ -1685,7 +1688,7 @@ def spaths_length_total(spaths):
         line.extend(np.mean(d4s, 0))
         line.extend(np.std(d4s, 0))
     else:
-        line += [float('nan')]*4
+        line += [float('nan')] * 4
 
     return [line[6], line[7], line[0], line[3], line[1], line[4], line[2], line[5]]
 
@@ -1737,7 +1740,7 @@ def stage_V_run(config, options,
     # file handle?
     head_nr = True
     line_nr = head_nr
-    pa = PrintAnalysis(options.save,line_nr=line_nr)
+    pa = PrintAnalysis(options.save, line_nr=line_nr)
     if options.save:
         clui.message('Using user provided file (%s).' % options.save)
         # clui.message(sep())
@@ -1760,15 +1763,15 @@ def stage_V_run(config, options,
 
     ############
     traced_names = tuple(sorted(list(set([sp.id.name for sp in spaths]))))
-    #traced_names = ['all'] + traced_names
+    # traced_names = ['all'] + traced_names
 
     pa.sep()
     pa("Names of traced molecules: %s" % (' '.join(traced_names)))
 
-    #spaths_types = ['all']
+    # spaths_types = ['all']
     spaths_types = []
     for sp in spaths:
-        if isinstance(sp,PassingPath):
+        if isinstance(sp, PassingPath):
             if not PassingPath in spaths_types:
                 spaths_types.append(PassingPath)
         else:
@@ -1780,45 +1783,46 @@ def stage_V_run(config, options,
 
     def iter_over_tn():
         if len(traced_names) == 1:
-            yield traced_names,''
+            yield traced_names, ''
         else:
             if len(traced_names) > 1:
-                yield traced_names,''
+                yield traced_names, ''
             for _tname in traced_names:
-                yield (_tname,)," of %s" % _tname
+                yield (_tname,), " of %s" % _tname
 
     def iter_over_tnspt():
-        for _tname,_message in iter_over_tn():
+        for _tname, _message in iter_over_tn():
             if len(spaths_types) == 1:
-                yield _tname,spaths_types,_message
+                yield _tname, spaths_types, _message
             else:
                 if len(spaths_types) > 1:
-                    yield _tname,spaths_types,_message
+                    yield _tname, spaths_types, _message
                 for _sptype in spaths_types:
                     if _sptype == PassingPath:
                         _sptype_name = 'passing paths'
                     elif _sptype == SinglePath:
                         _sptype_name = 'object  paths'
-                    yield _tname,(_sptype,),_message+ (" of %s" % _sptype_name)
+                    yield _tname, (_sptype,), _message + (" of %s" % _sptype_name)
 
     ############
 
     pa.sep()
-    for tname,message in iter_over_tn():
+    for tname, message in iter_over_tn():
         pa("Number of traceable residues%s: %d" %
            (message,
             len([None for p in paths.values() if p.name in tname])))
 
-    for tname,sptype,message in iter_over_tnspt():
+    for tname, sptype, message in iter_over_tnspt():
         pa("Number of separate paths%s: %d" %
            (message,
             len([None for sp in spaths if (sp.id.name in tname) and
-                                          (isinstance(sp,sptype))])))
+                 (isinstance(sp, sptype))])))
 
     ############
     pa.sep()
-    for tname,sptype,message in iter_over_tnspt():
-        pa("Number of inlets%s: %d" % (message,inls.lim2spaths([sp for sp in spaths if isinstance(sp,sptype)]).lim2rnames(tname).size))
+    for tname, sptype, message in iter_over_tnspt():
+        pa("Number of inlets%s: %d" % (
+        message, inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype)]).lim2rnames(tname).size))
 
     no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]  # minus outliers, if any
     pa("Number of clusters: %d" % no_of_clusters)
@@ -1829,15 +1833,15 @@ def stage_V_run(config, options,
     pa('Clustering history:')
     pa(clui.print_simple_tree(inls.tree, prefix='').rstrip())
 
-
     ############
     pa.sep()
     header_line, line_template = get_header_line_and_line_template(clusters_inlets_header(), head_nr=head_nr)
-    for tname,sptype,message in iter_over_tnspt():
+    for tname, sptype, message in iter_over_tnspt():
         pa("Clusters summary - inlets%s" % message)
         pa.thead(header_line)
         for nr, cl in enumerate(inls.clusters_list):
-            inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp,sptype)]).lim2rnames(tname).lim2clusters(cl)
+            inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype)]).lim2rnames(tname).lim2clusters(
+                cl)
             pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
         pa.tend(header_line)
 
@@ -1855,14 +1859,14 @@ def stage_V_run(config, options,
         ctypes_size.append(len(sps))
         # pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
 
-    for tname,sptype,message in iter_over_tnspt():
+    for tname, sptype, message in iter_over_tnspt():
         pa("Separate paths clusters types summary - mean lengths of paths%s" % message)
         pa.thead(header_line)
 
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
-            sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp,sptype)]
-            #ctypes_size.append(len(sps))
+            sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp, sptype)]
+            # ctypes_size.append(len(sps))
             if len(sps) > 0:
                 pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
         pa.tend(header_line)
@@ -1880,7 +1884,8 @@ def stage_V_run(config, options,
 
     ############
     # additional analysis
-
+    # histograms
+    # loop over frames is needed?
 
 ################################################################################
 
@@ -2024,7 +2029,7 @@ def stage_VI_run(config, options,
                     c_name = str(int(c))
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
                 radii = inls.lim2clusters(c).radii
-                if len(radii)>0:
+                if len(radii) > 0:
                     spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
 
     if options.ctypes_raw:
