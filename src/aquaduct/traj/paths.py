@@ -396,7 +396,9 @@ class SinglePathID(object):
         # by default name is not returned
         return '%d:%d' % (self.id, self.nr)
 
-
+    def __eq__(self, other):
+        assert isinstance(other,SinglePathID)
+        return self.id == other.id and self.nr == other.nr and self.name == other.name
 
 def yield_single_paths(gps, fullonly=False, progress=False,passing=True):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
@@ -429,32 +431,10 @@ def yield_single_paths(gps, fullonly=False, progress=False,passing=True):
 
 
 class MacroMolPath(object,PathTypesCodes, InletTypeCodes):
-
-    empty_coords = make_default_array(np.zeros((0, 3)))
-
-    @tupleify
-    def _make_smooth_coords(self, coords, smooth=None):
-        # if smooth is not none applies smoothing
-        # smooth should be callable and should return an object of length equal to submitted one
-        # get continuous coords
-        if smooth:
-            coords_smooth = smooth(coords)
-        else:
-            coords_smooth = coords
-        # now lets return tupple of coords
-        nr = 0
-        for path in self._paths:
-            if len(path) > 0:
-                yield make_default_array(coords_smooth[nr:nr + len(path)])
-                nr += len(path)
-            else:
-                yield self.empty_coords
-
-
-class SinglePath(MacroMolPath):
     # special class
     # represents one path
 
+    empty_coords = make_default_array(np.zeros((0, 3)))
 
     def __init__(self, path_id, paths, coords, types):
 
@@ -666,6 +646,25 @@ class SinglePath(MacroMolPath):
             for coords in self.coords:
                 yield coords
 
+    @tupleify
+    def _make_smooth_coords(self, coords, smooth=None):
+        # if smooth is not none applies smoothing
+        # smooth should be callable and should return an object of length equal to submitted one
+        # get continuous coords
+        if smooth:
+            coords_smooth = smooth(coords)
+        else:
+            coords_smooth = coords
+        # now lets return tupple of coords
+        nr = 0
+        for path in self._paths:
+            if len(path) > 0:
+                yield make_default_array(coords_smooth[nr:nr + len(path)])
+                nr += len(path)
+            else:
+                yield self.empty_coords
+
+
     def get_coords_cont(self, smooth=None):
         # returns coords as one array
         return make_default_array(np.vstack([c for c in self.get_coords(smooth) if len(c) > 0]))
@@ -706,7 +705,12 @@ class SinglePath(MacroMolPath):
         velocity = self.get_velocity_cont(smooth=smooth, normalize=normalize)
         return traces.derrivative(velocity)
 
-class PassingPath(SinglePath):
+
+class SinglePath(MacroMolPath):
+    pass
+
+
+class PassingPath(MacroMolPath):
 
     has_in = True
     has_out = True
@@ -798,9 +802,9 @@ class PassingPath(SinglePath):
 ####################################################################################################################
 
 
-class MasterPath(SinglePath):
+class MasterPath(MacroMolPath):
     def __init__(self, sp):
-        SinglePath.__init__(self, sp.id, sp.paths, sp.coords, sp.gtypes)
+        super(MasterPath,self).__init__(sp.id, sp.paths, sp.coords, sp.gtypes)
         self.width_cont = None
 
     def add_width(self, width):

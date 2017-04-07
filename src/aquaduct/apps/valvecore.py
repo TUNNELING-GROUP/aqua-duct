@@ -1756,7 +1756,7 @@ def stage_V_run(config, options,
         pa(os.linesep.join(config.dump_config()))
 
     ############
-    traced_names = sorted(list(set([sp.id.name for sp in spaths])))
+    traced_names = tuple(sorted(list(set([sp.id.name for sp in spaths]))))
     #traced_names = ['all'] + traced_names
 
     pa.sep()
@@ -1771,46 +1771,51 @@ def stage_V_run(config, options,
         else:
             if not SinglePath in spaths_types:
                 spaths_types.append(SinglePath)
+    spaths_types = tuple(spaths_types)
 
     ############
 
     def iter_over_tn():
         if len(traced_names) == 1:
-            yield 'all',''
+            yield traced_names,''
         else:
             if len(traced_names) > 1:
-                yield 'all',''
+                yield traced_names,''
             for _tname in traced_names:
                 yield _tname," of %s" % _tname
 
     def iter_over_tnspt():
         for _tname,_message in iter_over_tn():
             if len(spaths_types) == 1:
-                yield _tname,'all',_message
+                yield _tname,spaths_types,_message
             else:
                 if len(spaths_types) > 1:
-                    yield _tname,'all',_message
+                    yield _tname,spaths_types,_message
                 for _sptype in spaths_types:
                     if _sptype == PassingPath:
                         _sptype_name = 'passing paths'
                     elif _sptype == SinglePath:
-                        _sptype_name = 'single path'
+                        _sptype_name = 'object  paths'
                     yield _tname,_sptype,_message+ (" of %s" % _sptype_name)
 
-    pa.sep()
+    ############
 
+    pa.sep()
     for tname,message in iter_over_tn():
-        pa("Number of traceable residues%s: %d" % (message,len([None for p in paths.values() if p.name == tname or tname == 'all'])))
-    print len(spaths)
+        pa("Number of traceable residues%s: %d" %
+           (message,
+            len([None for p in paths.values() if p.name in tname])))
+
     for tname,sptype,message in iter_over_tnspt():
-        pa("Number of separate paths%s: %d" % (message,len([None for sp in spaths if (sp.id.name == tname or tname == 'all') and (sptype == 'all' or isinstance(sp,sptype))])))
+        pa("Number of separate paths%s: %d" %
+           (message,
+            len([None for sp in spaths if (sp.id.name in tname) and
+                                          (isinstance(sp,sptype))])))
 
     ############
     pa.sep()
-    pa("Number of inlets: %d" % inls.size)
-    if len(traced_names) > 1:
-        for tname in traced_names:
-            pa("Number of inlets of %s: %d" % (tname,inls.lim2rnames(tname).size))
+    for tname,sptype,message in iter_over_tnspt():
+        pa("Number of inlets%s: %d" % (message,inls.lim2spaths([sp for sp in spaths if isinstance(sp,sptype)]).lim2rnames(tname).size))
 
     no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]  # minus outliers, if any
     pa("Number of clusters: %d" % no_of_clusters)
@@ -1823,22 +1828,14 @@ def stage_V_run(config, options,
 
     ############
     pa.sep()
-    pa("Clusters summary - inlets")
     header_line, line_template = get_header_line_and_line_template(clusters_inlets_header(), head_nr=True)
-    pa.thead(header_line)
-    for nr, cl in enumerate(inls.clusters_list):
-        inls_lim = inls.lim2clusters(cl)
-        pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
-    pa.tend(header_line)
-
-    if len(traced_names) > 1:
-        for tname in traced_names:
-            pa("Clusters summary - inlets of %s" % tname)
-            pa.thead(header_line)
-            for nr, cl in enumerate(inls.lim2rnames(tname).clusters_list):
-                inls_lim = inls.lim2rnames(tname).lim2clusters(cl)
-                pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
-            pa.tend(header_line)
+    for tname,sptype,message in iter_over_tnspt():
+        pa("Clusters summary - inlets%s" % message)
+        pa.thead(header_line)
+        for nr, cl in enumerate(inls.clusters_list):
+            inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp,sptype)]).lim2rnames(tname).lim2clusters(cl)
+            pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
+        pa.tend(header_line)
 
     ############
     pa.sep()
