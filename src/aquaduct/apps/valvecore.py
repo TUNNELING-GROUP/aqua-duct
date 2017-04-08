@@ -1943,6 +1943,10 @@ def stage_V_run(config, options,
             for _tname in traced_names:
                 yield (_tname,), "_%s" % _tname
 
+    def iter_over_part():
+        for _part in 'walk inout in object out'.split():
+            yield _part,"_%s" % _part
+
     def iter_over_tnspt():
         for _tname, _message in iter_over_tn():
             yield _tname, spaths_types, _message+'_apaths'
@@ -1971,20 +1975,22 @@ def stage_V_run(config, options,
     # histograms
     # loop over frames is needed?
     hist = []
+    pbar = clui.pbar(max_frame)
     for frame in range(max_frame+1):
         column_seen = []
         # counter
         row = [frame]
         for tname, sptype, cluster, message in iter_over_tnptc():
             message = 'C_' + message
-            for part in 'in out inout object walk'.split():
-                # limit...
-                message += '_'+part
-                if message in column_seen:
+            for part,message_part in iter_over_part():
+                column_name = message + message_part
+                if column_name in column_seen:
                     continue
-                column_seen.append(message)
+                column_seen.append(column_name)
+                # new column
                 counter = 0
                 for sp,ct in zip(spaths,ctypes):
+                    if not sp.is_frame_walk(frame): continue
                     if sp.id.name in tname:
                         if isinstance(sp,sptype):
                             if len(union_full(cluster,ct.clusters)):
@@ -1998,10 +2004,38 @@ def stage_V_run(config, options,
                                     counter += 1
                                 if part == 'object' and sp.is_frame_object(frame): # check in full path
                                     counter += 1
+                row.append(counter)
+        # ctypes
+        for tname, sptype, cluster, message in iter_over_tnptct():
+            message = 'C_' + message
+            for part,message_part in iter_over_part():
+                column_name = message + message_part
+                if column_name in column_seen:
+                    continue
+                column_seen.append(column_name)
+                # new column
+                counter = 0
+                for sp,ct in zip(spaths,ctypes):
+                    if not sp.is_frame_walk(frame): continue
+                    if sp.id.name in tname:
+                        if isinstance(sp,sptype):
+                            if ct.generic in cluster:
+                                # iterate over parts incoming, outgoing, both, object, walk
+                                if part == 'walk' and sp.is_frame_walk(frame): # check in full path
+                                    counter += 1
+                                if isinstance(sp,PassingPath): continue
+                                if part in ['in', 'inout'] and sp.is_frame_in(frame): # check in full path
+                                    counter += 1
+                                if part in ['out', 'inout'] and sp.is_frame_out(frame): # check in full path
+                                    counter += 1
+                                if part == 'object' and sp.is_frame_object(frame): # check in full path
+                                    counter += 1
+                row.append(counter)
 
-            row.append(counter)
+
         hist.append(row)
-
+        pbar.update(frame)
+    pbar.finish()
     return {'hist':hist,'header':column_seen}
 
 ################################################################################
