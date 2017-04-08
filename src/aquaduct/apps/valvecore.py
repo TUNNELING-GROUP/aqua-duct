@@ -55,6 +55,7 @@ from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
+from aquaduct.traj.paths import union_full
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = version_nice()
@@ -1937,14 +1938,14 @@ def stage_V_run(config, options,
     # additional analysis
 
     def iter_over_tn():
-        yield traced_names, ''
+        yield traced_names, 'amol'
         if len(traced_names) > 1:
             for _tname in traced_names:
                 yield (_tname,), "_%s" % _tname
 
     def iter_over_tnspt():
         for _tname, _message in iter_over_tn():
-            yield _tname, spaths_types, _message
+            yield _tname, spaths_types, _message+'_apaths'
             if len(spaths_types) > 1:
                 for _sptype in spaths_types:
                     if _sptype == PassingPath:
@@ -1955,17 +1956,17 @@ def stage_V_run(config, options,
 
     def iter_over_tnptc():
         for _tname,_sptype,_message in iter_over_tnspt():
-            yield _tname, _sptype, inls.clusters_list, _message
+            yield _tname, _sptype, inls.clusters_list, _message+'_aclusts'
             if len(inls.clusters_list) > 1:
                 for _cluster in inls.clusters_list:
-                    yield _tname, _sptype, _cluster, _message+ ("_%s" % str(_cluster))
+                    yield _tname, _sptype, [_cluster], _message+ ("_%s" % str(_cluster))
 
     def iter_over_tnptct():
         for _tname, _sptype, _message in iter_over_tnspt():
             yield _tname, _sptype, ctypes_generic_list, _message
             if len(ctypes_generic_list) > 1:
                 for _cluster in ctypes_generic_list:
-                    yield _tname, _sptype, _cluster, _message + ("_%s" % str(_cluster))
+                    yield _tname, _sptype, [_cluster], _message + ("_%s" % str(_cluster))
 
     # histograms
     # loop over frames is needed?
@@ -1975,17 +1976,29 @@ def stage_V_run(config, options,
         # counter
         row = [frame]
         for tname, sptype, cluster, message in iter_over_tnptc():
-            # limit...
-            message = 'C_'+message
-            if message in column_seen:
-                continue
-            column_seen.append(message)
-            counter = 0
-            for sp,ct in zip(spaths,ctypes):
-                if sp.id.name in tname:
-                    if isinstance(sp,sptype):
-                        if cluster in ct.clusters:
-                            counter += 1
+            message = 'C_' + message
+            for part in 'in out inout object walk'.split():
+                # limit...
+                message += '_'+part
+                if message in column_seen:
+                    continue
+                column_seen.append(message)
+                counter = 0
+                for sp,ct in zip(spaths,ctypes):
+                    if sp.id.name in tname:
+                        if isinstance(sp,sptype):
+                            if len(union_full(cluster,ct.clusters)):
+                                # iterate over parts incoming, outgoing, both, object, walk
+                                if part == 'walk' and sp.is_frame_walk(frame): # check in full path
+                                    counter += 1
+                                if isinstance(sp,PassingPath): continue
+                                if part in ['in', 'inout'] and sp.is_frame_in(frame): # check in full path
+                                    counter += 1
+                                if part in ['out', 'inout'] and sp.is_frame_out(frame): # check in full path
+                                    counter += 1
+                                if part == 'object' and sp.is_frame_object(frame): # check in full path
+                                    counter += 1
+
             row.append(counter)
         hist.append(row)
 
