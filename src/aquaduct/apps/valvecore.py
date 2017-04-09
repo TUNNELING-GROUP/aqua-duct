@@ -55,6 +55,7 @@ from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
+from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.paths import union_full
 
 __mail__ = 'info@aquaduct.pl'
@@ -906,7 +907,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
         # remove options stuff
-        if True or not no_io:
+        if not no_io:
             if result is not None:
                 return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
 
@@ -1799,6 +1800,7 @@ def stage_V_run(config, options,
     head_nr = True
     line_nr = head_nr
     pa = PrintAnalysis(options.save, line_nr=line_nr)
+
     if options.save:
         clui.message('Using user provided file (%s).' % options.save)
         # clui.message(sep())
@@ -1944,99 +1946,95 @@ def stage_V_run(config, options,
                 yield (_tname,), "_%s" % _tname
 
     def iter_over_part():
-        for _part in 'walk inout in object out'.split():
+        for _part in 'walk in object out'.split():
             yield _part,"_%s" % _part
 
-    def iter_over_tnspt():
-        for _tname, _message in iter_over_tn():
-            yield _tname, spaths_types, _message+'_apaths'
-            if len(spaths_types) > 1:
-                for _sptype in spaths_types:
-                    if _sptype == PassingPath:
-                        _sptype_name = 'passing'
-                    elif _sptype == SinglePath:
-                        _sptype_name = 'object'
-                    yield _tname, (_sptype,), _message + ("_%s" % _sptype_name)
+    def iter_over_spt():
+        yield spaths_types, 'apaths'
+        if len(spaths_types) > 1:
+            for _sptype in spaths_types:
+                if _sptype == PassingPath:
+                    _sptype_name = 'passing'
+                elif _sptype == SinglePath:
+                    _sptype_name = 'object'
+                yield (_sptype,), _sptype_name
 
-    def iter_over_tnptc():
-        for _tname,_sptype,_message in iter_over_tnspt():
-            yield _tname, _sptype, inls.clusters_list, _message+'_aclusts'
-            if len(inls.clusters_list) > 1:
-                for _cluster in inls.clusters_list:
-                    yield _tname, _sptype, [_cluster], _message+ ("_%s" % str(_cluster))
+    def iter_over_c():
+        yield inls.clusters_list, 'aclusts'
+        if len(inls.clusters_list) > 1:
+            for _cluster in inls.clusters_list:
+                yield [_cluster], str(_cluster)
 
-    def iter_over_tnptct():
-        for _tname, _sptype, _message in iter_over_tnspt():
-            yield _tname, _sptype, ctypes_generic_list, _message
-            if len(ctypes_generic_list) > 1:
-                for _cluster in ctypes_generic_list:
-                    yield _tname, _sptype, [_cluster], _message + ("_%s" % str(_cluster))
+    def iter_over_ct():
+        yield ctypes_generic_list, 'actypes'
+        if len(ctypes_generic_list) > 1:
+            for _cluster in ctypes_generic_list:
+                yield (_cluster,), str(_cluster)
+
+    def iter_over_all():
+        for _tname,_m_tname in iter_over_tn():
+            for _sptype,_m_sptype in iter_over_spt():
+                for _part, _m_part in iter_over_part():
+                    for _cluster,_m_cluster in iter_over_c():
+                        _message = '_'.join((_m_tname,
+                                             _m_sptype,
+                                             _m_cluster,
+                                             _m_part))
+                        yield _tname,_sptype,_cluster,_part,_message
+                    for _ctype,_m_ctype in iter_over_ct():
+                        _message = '_'.join((_m_tname,
+                                             _m_sptype,
+                                             _m_ctype,
+                                             _m_part))
+                        yield _tname,_sptype,_ctype,_part,_message
 
     # histograms
-    # loop over frames is needed?
-    hist = []
-    pbar = clui.pbar(max_frame)
-    for frame in range(max_frame+1):
-        column_seen = []
-        # counter
-        row = [frame]
-        for tname, sptype, cluster, message in iter_over_tnptc():
-            message = 'C_' + message
-            for part,message_part in iter_over_part():
-                column_name = message + message_part
-                if column_name in column_seen:
-                    continue
-                column_seen.append(column_name)
-                # new column
-                counter = 0
-                for sp,ct in zip(spaths,ctypes):
-                    if not sp.is_frame_walk(frame): continue
-                    if sp.id.name in tname:
-                        if isinstance(sp,sptype):
-                            if len(union_full(cluster,ct.clusters)):
-                                # iterate over parts incoming, outgoing, both, object, walk
-                                if part == 'walk' and sp.is_frame_walk(frame): # check in full path
-                                    counter += 1
-                                if isinstance(sp,PassingPath): continue
-                                if part in ['in', 'inout'] and sp.is_frame_in(frame): # check in full path
-                                    counter += 1
-                                if part in ['out', 'inout'] and sp.is_frame_out(frame): # check in full path
-                                    counter += 1
-                                if part == 'object' and sp.is_frame_object(frame): # check in full path
-                                    counter += 1
-                row.append(counter)
-        # ctypes
-        for tname, sptype, cluster, message in iter_over_tnptct():
-            message = 'C_' + message
-            for part,message_part in iter_over_part():
-                column_name = message + message_part
-                if column_name in column_seen:
-                    continue
-                column_seen.append(column_name)
-                # new column
-                counter = 0
-                for sp,ct in zip(spaths,ctypes):
-                    if not sp.is_frame_walk(frame): continue
-                    if sp.id.name in tname:
-                        if isinstance(sp,sptype):
-                            if ct.generic in cluster:
-                                # iterate over parts incoming, outgoing, both, object, walk
-                                if part == 'walk' and sp.is_frame_walk(frame): # check in full path
-                                    counter += 1
-                                if isinstance(sp,PassingPath): continue
-                                if part in ['in', 'inout'] and sp.is_frame_in(frame): # check in full path
-                                    counter += 1
-                                if part in ['out', 'inout'] and sp.is_frame_out(frame): # check in full path
-                                    counter += 1
-                                if part == 'object' and sp.is_frame_object(frame): # check in full path
-                                    counter += 1
-                row.append(counter)
+    header = [column[-1] for column in iter_over_all()]
+    h = np.zeros((max_frame+1,len(header)))
+    # loop over spaths            if isinstance(c_ct[0],InletClusterGenericType):
 
+    pbar = clui.pbar(maxval=len(spaths)*len(header),
+                     mess='Calculating histograms')               if isinstance(c_ct[0],InletClusterGenericType):
+         if isinstance(c_ct[0],InletClusterGenericType):
 
-        hist.append(row)
-        pbar.update(frame)
+    for sp,ct in zip(spaths,ctypes):
+        # loop over columns            if isinstance(c_ct[0],InletClusterGenericType):
+
+        for tname,sptype,c_ct,part,col_name in ite            if isinstance(c_ct[0],InletClusterGenericType):
+r_over_all():
+            pbar.update(1)            if isinstance(c_ct[0],InletClusterGenericType):
+
+            # check if column fits to the requirements
+            if not sp.id.name in tname: continue
+            if not isinstance(sp,sptype): continue
+            # c or ct
+            if isinstance(c_ct[0],InletClusterGenericType):
+                if not ct.generic in c_ct: continue
+            else:
+                if len(union_full(ct.generic.clusters,c_ct)) == 0: continue
+            col_index = header.index(col_name)
+            if part == 'walk':
+                h[sp.paths_cont,col_index] += 1
+            if isinstance(sp,PassingPath): continue
+            if part == 'in':
+                h[sp.path_in, col_index] += 1
+            if part == 'object':
+                h[sp.path_object, col_index] += 1
+            if part == 'out':
+                h[sp.path_out, col_index] += 1
     pbar.finish()
-    return {'hist':hist,'header':column_seen}
+    # add frame column?
+    frame_col = np.array([range(max_frame+1)]).T
+    h = np.hstack((frame_col,h))
+    header = ['frame'] + header
+    # save???
+    np.savetxt(options.save+'.csv',h,
+               fmt='%u',
+               delimiter=',',
+               header=','.join(header))
+
+
+    return {'hist':h,'header':header}
 
 ################################################################################
 
