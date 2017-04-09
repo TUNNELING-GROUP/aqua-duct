@@ -1974,14 +1974,15 @@ def stage_V_run(config, options,
     def iter_over_all():
         for _tname,_m_tname in iter_over_tn():
             for _sptype,_m_sptype in iter_over_spt():
-                for _part, _m_part in iter_over_part():
-                    for _cluster,_m_cluster in iter_over_c():
+                for _cluster,_m_cluster in iter_over_c():
+                    for _part, _m_part in iter_over_part():
                         _message = '_'.join((_m_tname,
                                              _m_sptype,
                                              _m_cluster,
                                              _m_part))
                         yield _tname,_sptype,_cluster,_part,_message
-                    for _ctype,_m_ctype in iter_over_ct():
+                for _ctype,_m_ctype in iter_over_ct():
+                    for _part, _m_part in iter_over_part():
                         _message = '_'.join((_m_tname,
                                              _m_sptype,
                                              _m_ctype,
@@ -1991,19 +1992,12 @@ def stage_V_run(config, options,
     # histograms
     header = [column[-1] for column in iter_over_all()]
     h = np.zeros((max_frame+1,len(header)))
-    # loop over spaths            if isinstance(c_ct[0],InletClusterGenericType):
-
-    pbar = clui.pbar(maxval=len(spaths)*len(header),
-                     mess='Calculating histograms')               if isinstance(c_ct[0],InletClusterGenericType):
-         if isinstance(c_ct[0],InletClusterGenericType):
-
+    # loop over spaths
+    pbar = clui.pbar(maxval=len(spaths),
+                     mess='Calculating histograms')
     for sp,ct in zip(spaths,ctypes):
-        # loop over columns            if isinstance(c_ct[0],InletClusterGenericType):
-
-        for tname,sptype,c_ct,part,col_name in ite            if isinstance(c_ct[0],InletClusterGenericType):
-r_over_all():
-            pbar.update(1)            if isinstance(c_ct[0],InletClusterGenericType):
-
+        # loop over columns
+        for tname,sptype,c_ct,part,col_name in iter_over_all():
             # check if column fits to the requirements
             if not sp.id.name in tname: continue
             if not isinstance(sp,sptype): continue
@@ -2022,6 +2016,7 @@ r_over_all():
                 h[sp.path_object, col_index] += 1
             if part == 'out':
                 h[sp.path_out, col_index] += 1
+        pbar.update(1)
     pbar.finish()
     # add frame column?
     frame_col = np.array([range(max_frame+1)]).T
