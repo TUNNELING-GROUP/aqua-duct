@@ -893,7 +893,8 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 ###########
                 # S A V E #
                 ###########
-                ValveDataAccess(mode='w', data_file_name=options.dump).dump(**result)
+                with clui.fbm('Saving data dump in %s file' % options.dump):
+                    ValveDataAccess(mode='w', data_file_name=options.dump).dump(**result)
                 # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
@@ -901,9 +902,10 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 # L O A D #
                 ###########
                 if options.dump:
-                    with reader.get() as traj_reader:
-                        result = ValveDataAccess(mode='r', data_file_name=options.dump, reader=traj_reader).load()
-                        # result = load_stage_dump(options.dump, reader=reader)
+                    with clui.fbm('Loading data dump from %s file' % options.dump):
+                        with reader.get() as traj_reader:
+                            result = ValveDataAccess(mode='r', data_file_name=options.dump, reader=traj_reader).load()
+                            # result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
         # remove options stuff
@@ -913,6 +915,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
 
 
 class IdsOverIds(object):
+    # use it for netcdf
     @staticmethod
     def dict2arrays(d):
         values = []
@@ -1002,8 +1005,9 @@ def stage_I_run(config, options,
 
     clui.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
+    #'res_ids_in_object_over_frames': IdsOverIds.dict2arrays(res_ids_in_object_over_frames),
     return {'all_res': all_res,
-            'res_ids_in_object_over_frames': IdsOverIds.dict2arrays(res_ids_in_object_over_frames),
+            'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
             'center_of_system': center_of_system,
             'options': options._asdict()}
 
@@ -1022,7 +1026,8 @@ def stage_II_run(config, options,
         clui.message('This will be recalculated on demand.')
         res_ids_in_object_over_frames = {}
     else:
-        res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
+        pass
+        #res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
     with clui.fbm("Init paths container"):
         paths = dict(

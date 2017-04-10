@@ -81,6 +81,9 @@ def check_versions(version_dict):
 
 
 class ValveDataAccess_pickle(object):
+
+    mimic_old_var_name = 'aq_data_to_save'
+
     def __init__(self, mode=None, data_file_name=None, reader=None):
         # as for now. lets use dump files
         self.data_file_name = data_file_name
@@ -127,12 +130,24 @@ class ValveDataAccess_pickle(object):
 
     def load(self):
         data = {}
-        for name, value in self.data.iteritems():
-            if isinstance(value, CompactSelectionMDA):
-                value = value.toSelectionMDA(self.reader)
-                #with self.reader.get() as traj_reader:
-                #    value = value.toSelectionMDA(traj_reader)
-            data.update({name: value})
+        # this is to mimic v0.3 behaviour
+        for _name, _value in self.data.iteritems():
+            if _name == self.mimic_old_var_name:
+                for name, value in _value.iteritems():
+                    if isinstance(value, CompactSelectionMDA):
+                        value = value.toSelectionMDA(self.reader)
+                        # with self.reader.get() as traj_reader:
+                        #    value = value.toSelectionMDA(traj_reader)
+                    data.update({name: value})
+                break
+            else:
+                for name, value in self.data.iteritems():
+                    if isinstance(value, CompactSelectionMDA):
+                        value = value.toSelectionMDA(self.reader)
+                        #with self.reader.get() as traj_reader:
+                        #    value = value.toSelectionMDA(traj_reader)
+                    data.update({name: value})
+                break
         return data
 
     def set_variable(self, name, value):
@@ -147,8 +162,14 @@ class ValveDataAccess_pickle(object):
         pickle.dump({name: value}, self.data_file)
 
     def dump(self, **kwargs):
-        for name, value in kwargs.iteritems():
-            self.set_variable(name, value)
+        # to mimic v0.3 behaviour do following:
+        for key, value in kwargs.iteritems():
+            if isinstance(value, SelectionMDA):
+                #value = CompactSelectionMDA(value)
+                kwargs.update({key:CompactSelectionMDA(value)})
+        self.set_variable(self.mimic_old_var_name, kwargs)
+        #for name, value in kwargs.iteritems():
+        #    self.set_variable(name, value)
 
 
 class ValveDataAccessRoots(object):
