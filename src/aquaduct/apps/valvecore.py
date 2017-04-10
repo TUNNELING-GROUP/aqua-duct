@@ -1943,11 +1943,11 @@ def stage_V_run(config, options,
         yield traced_names, 'amol'
         if len(traced_names) > 1:
             for _tname in traced_names:
-                yield (_tname,), "_%s" % _tname
+                yield (_tname,), "%s" % _tname
 
     def iter_over_part():
         for _part in 'walk in object out'.split():
-            yield _part,"_%s" % _part
+            yield _part,"%s" % _part
 
     def iter_over_spt():
         yield spaths_types, 'apaths'
