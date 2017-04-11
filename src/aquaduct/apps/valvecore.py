@@ -26,7 +26,7 @@ import os
 import re
 import shlex
 import sys
-from collections import namedtuple,OrderedDict  # TODO: check if OrderedDict is REALLY used
+from collections import namedtuple, OrderedDict  # TODO: check if OrderedDict is REALLY used
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
@@ -40,23 +40,23 @@ from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
 from aquaduct.apps.data import ValveDataAccess, version_nice
 from aquaduct.geom import traces
+from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
     BarberCluster, get_required_params
-from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
 from aquaduct.traj.barber import WhereToCut
 from aquaduct.traj.dumps import TmpDumpWriterOfMDA
+from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath, SinglePath
+from aquaduct.traj.paths import union_full
 from aquaduct.traj.reader import ReadViaMDA
 from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
-from aquaduct.traj.inlets import InletClusterGenericType
-from aquaduct.traj.paths import union_full
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = version_nice()
@@ -912,30 +912,6 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
         if not no_io:
             if result is not None:
                 return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
-
-
-class IdsOverIds(object):
-    # use it for netcdf
-    @staticmethod
-    def dict2arrays(d):
-        values = []
-        keys_lens = []
-        for k, v in d.iteritems():
-            keys_lens.append((k, len(v)))
-            values.extend(v.tolist())
-        return {'values': np.array(values), 'keys_lens': np.array(keys_lens)}
-
-    @staticmethod
-    def arrays2dict(values=None, keys_lens=None):
-        out = {}
-        ll = 0
-        for kl in keys_lens:
-            k = kl[0]
-            l = kl[1]
-            v = values[ll:ll + l]
-            ll += l
-            out.update({int(k): v.tolist()})
-        return out
 
 
 ################################################################################

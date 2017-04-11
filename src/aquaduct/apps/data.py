@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import cPickle as pickle
@@ -30,6 +31,36 @@ from netCDF4 import Dataset
 from aquaduct import version, version_nice, logger
 from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
+
+
+################################################################################
+# Version checking
+
+def check_version_compliance(current, loaded, what):
+    if current[0] > loaded[0]:
+        logger.error('Loaded data has %s major version lower then the application.' % what)
+    if current[0] < loaded[0]:
+        logger.error('Loaded data has %s major version higher then the application.' % what)
+    if current[0] != loaded[0]:
+        logger.error('Possible problems with API compliance.')
+    if current[1] > loaded[1]:
+        logger.warning('Loaded data has %s minor version lower then the application.' % what)
+    if current[1] < loaded[1]:
+        logger.warning('Loaded data has %s minor version higher then the application.' % what)
+    if current[1] != loaded[1]:
+        logger.warning('Possible problems with API compliance.')
+
+
+def check_versions(version_dict):
+    assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
+    assert 'version' in version_dict, "File is corrupted, cannot read version data."
+    assert 'aquaduct_version' in version_dict, "File is corrupted, cannot read version data."
+    check_version_compliance(version(), version_dict['aquaduct_version'], 'Aqua-Duct')
+    check_version_compliance(version(), version_dict['version'], 'Valve')
+
+
+################################################################################
+# Pickle compatibility with earlier versions
 
 class LoadDumpWrapper(object):
     """This is wrapper for pickled data that provides compatibility
@@ -57,31 +88,10 @@ class LoadDumpWrapper(object):
         return self.convert(self.fh.readline(*args, **kwargs))
 
 
-def check_version_compliance(current, loaded, what):
-    if current[0] > loaded[0]:
-        logger.error('Loaded data has %s major version lower then the application.' % what)
-    if current[0] < loaded[0]:
-        logger.error('Loaded data has %s major version higher then the application.' % what)
-    if current[0] != loaded[0]:
-        logger.error('Possible problems with API compliance.')
-    if current[1] > loaded[1]:
-        logger.warning('Loaded data has %s minor version lower then the application.' % what)
-    if current[1] < loaded[1]:
-        logger.warning('Loaded data has %s minor version higher then the application.' % what)
-    if current[1] != loaded[1]:
-        logger.warning('Possible problems with API compliance.')
-
-
-def check_versions(version_dict):
-    assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
-    assert 'version' in version_dict, "File is corrupted, cannot read version data."
-    assert 'aquaduct_version' in version_dict, "File is corrupted, cannot read version data."
-    check_version_compliance(version(), version_dict['aquaduct_version'], 'Aqua-Duct')
-    check_version_compliance(version(), version_dict['version'], 'Valve')
-
+################################################################################
+# Pickle way
 
 class ValveDataAccess_pickle(object):
-
     mimic_old_var_name = 'aq_data_to_save'
 
     def __init__(self, mode=None, data_file_name=None, reader=None):
@@ -144,7 +154,7 @@ class ValveDataAccess_pickle(object):
                 for name, value in self.data.iteritems():
                     if isinstance(value, CompactSelectionMDA):
                         value = value.toSelectionMDA(self.reader)
-                        #with self.reader.get() as traj_reader:
+                        # with self.reader.get() as traj_reader:
                         #    value = value.toSelectionMDA(traj_reader)
                     data.update({name: value})
                 break
@@ -165,12 +175,15 @@ class ValveDataAccess_pickle(object):
         # to mimic v0.3 behaviour do following:
         for key, value in kwargs.iteritems():
             if isinstance(value, SelectionMDA):
-                #value = CompactSelectionMDA(value)
-                kwargs.update({key:CompactSelectionMDA(value)})
+                # value = CompactSelectionMDA(value)
+                kwargs.update({key: CompactSelectionMDA(value)})
         self.set_variable(self.mimic_old_var_name, kwargs)
-        #for name, value in kwargs.iteritems():
+        # for name, value in kwargs.iteritems():
         #    self.set_variable(name, value)
 
+
+################################################################################
+# NetCDF helpers
 
 class ValveDataAccessRoots(object):
     roots = []
@@ -189,14 +202,16 @@ class ValveDataAccessRoots(object):
 
 VDAR = ValveDataAccessRoots()
 
+
 def get_object_name(something):
     name_ = something.__module__
-    if hasattr(something,'__name__'):
+    if hasattr(something, '__name__'):
         name_ += '.' + something.__name__
-    elif hasattr(something,'__class__'):
+    elif hasattr(something, '__class__'):
         if hasattr(something.__class__, '__name__'):
             name_ += '.' + something.__class__.__name__
     return name_
+
 
 def get_object_from_name(name):
     module_name = '.'.join(name.split('.')[:-1])
@@ -204,10 +219,42 @@ def get_object_from_name(name):
     module = import_module(module_name)
     return getattr(module, object_name)
 
+
+################################################################################
+# 2array2 objects' decoders
+
+class IdsOverIds(object):
+    # use it for netcdf
+    @staticmethod
+    def dict2arrays(d):
+        values = []
+        keys_lens = []
+        for k, v in d.iteritems():
+            keys_lens.append((k, len(v)))
+            values.extend(v.tolist())
+        return {'values': np.array(values), 'keys_lens': np.array(keys_lens)}
+
+    @staticmethod
+    def arrays2dict(values=None, keys_lens=None):
+        out = {}
+        ll = 0
+        for kl in keys_lens:
+            k = kl[0]
+            l = kl[1]
+            v = values[ll:ll + l]
+            ll += l
+            out.update({int(k): v.tolist()})
+        return out
+
+
+################################################################################
+# NetCDF way
+
+
 class ValveDataAccess_nc(object):
     aqt_types_dict_base = OrderedDict(
         {'np': 1, 'list': 2, 'dict': 3, 'dict_int': 32, 'str': 4, 'object': 5, 'bool': 6, 'none': 7,
-         'int': 8, 'float': 9,'tuple':16})
+         'int': 8, 'float': 9, 'tuple': 16})
     # types names
     aqt_np = 'np'
     aqt_list = 'list'
@@ -229,7 +276,7 @@ class ValveDataAccess_nc(object):
     aqt_dim_name = 'aqt_dim'
 
     def __init__(self, mode=None, data_file_name=None, reader=None):
-        logger.debug('Opening file %s in mode %s' % (data_file_name,mode))
+        logger.debug('Opening file %s in mode %s' % (data_file_name, mode))
         self.data_file_name = data_file_name
         self.data = None
         assert mode in 'rw'
@@ -256,8 +303,8 @@ class ValveDataAccess_nc(object):
     def get_aqtype(self, gr):
         if self.aqt_name in gr.variables:
             var = gr.variables[self.aqt_name]
-            #print var
-            #print var[0],self.aqt_types_dict
+            # print var
+            # print var[0],self.aqt_types_dict
             if var[0] == 0:
                 pass
             return self.aqt_types_dict.keys()[self.aqt_types_dict.values().index(var[0])]
@@ -285,18 +332,18 @@ class ValveDataAccess_nc(object):
 
     def create_variable_np(self, name, value, gr):
         names = self.create_dimensions(name, value.shape, gr)
-        #print value.dtype
+        # print value.dtype
         if value.size > 100:
-            var = gr.createVariable(name, value.dtype, tuple(names),zlib=True,shuffle=True,complevel=9)
+            var = gr.createVariable(name, value.dtype, tuple(names), zlib=True, shuffle=True, complevel=9)
         else:
-            var = gr.createVariable(name, value.dtype, tuple(names))#, zlib=True, shuffle=True, complevel=9)
+            var = gr.createVariable(name, value.dtype, tuple(names))  # , zlib=True, shuffle=True, complevel=9)
         var[:] = value
 
     def set_object(self, name, value, group=None):
         if group is None:
             group = self.root
         # ndarray, create variable
-        #print name, type(value), isinstance(value, np.ndarray)
+        # print name, type(value), isinstance(value, np.ndarray)
         logger.debug('%s/%s' % (group.path.rstrip('/'), name))
         if isinstance(value, np.ndarray):
             # set variable
@@ -431,10 +478,10 @@ class ValveDataAccess_nc(object):
         elif aqtype == self.aqt_object:
             object_name = group.variables[self.aqt_object_name][:]
             state = self.get_object(group=group.groups[self.aqt_object_state])
-            #print object_name, state
+            # print object_name, state
             object_instance = get_object_from_name(object_name)
             object_instance = object_instance.__new__(object_instance)
-            #print type(object_instance)
+            # print type(object_instance)
             object_instance.__setstate__(state, reader=self.reader)
             out = object_instance
 
@@ -447,6 +494,7 @@ class ValveDataAccess_nc(object):
         return self.get_object()['root']
 
 
-# default
-ValveDataAccess = ValveDataAccess_pickle
+################################################################################
+# default way
 
+ValveDataAccess = ValveDataAccess_pickle
