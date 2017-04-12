@@ -38,7 +38,7 @@ from scipy.spatial.distance import cdist
 from aquaduct import greetings as greetings_aquaduct
 from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
-from aquaduct.apps.data import ValveDataAccess, version_nice
+from aquaduct.apps.data import version_nice, get_vda_reader
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
@@ -894,7 +894,8 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 # S A V E #
                 ###########
                 with clui.fbm('Saving data dump in %s file' % options.dump):
-                    ValveDataAccess(mode='w', data_file_name=options.dump).dump(**result)
+                    vda = get_vda_reader(options.dump)
+                    vda(mode='w', data_file_name=options.dump).dump(**result)
                 # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
@@ -904,7 +905,8 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 if options.dump:
                     with clui.fbm('Loading data dump from %s file' % options.dump):
                         with reader.get() as traj_reader:
-                            result = ValveDataAccess(mode='r', data_file_name=options.dump, reader=traj_reader).load()
+                            vda = get_vda_reader(options.dump)
+                            result = vda(mode='r', data_file_name=options.dump, reader=traj_reader).load()
                             # result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
@@ -1932,7 +1934,8 @@ def stage_V_run(config, options,
                 _message = '_'.join(_part)
             else:
                 _message = _part
-            yield [_part],_message
+                _part = [_part]
+            yield _part,_message
 
     def iter_over_spt():
         yield spaths_types, 'apaths'
@@ -1945,9 +1948,9 @@ def stage_V_run(config, options,
                 yield (_sptype,), _sptype_name
 
     def iter_over_c():
-        yield inls.clusters_list, 'aclusts'
-        if len(inls.clusters_list) > 1:
-            for _cluster in inls.clusters_list:
+        yield inls.clusters_list+[None], 'aclusts'
+        if len(inls.clusters_list+[None]) > 1:
+            for _cluster in inls.clusters_list+[None]:
                 yield [_cluster], str(_cluster)
 
     def iter_over_ct():
