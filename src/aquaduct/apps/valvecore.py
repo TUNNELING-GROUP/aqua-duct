@@ -1927,8 +1927,8 @@ def stage_V_run(config, options,
                 yield (_tname,), "%s" % _tname
 
     def iter_over_part():
-        for _part in 'walk in object out'.split():
-            yield _part,"%s" % _part
+        for _part in 'walk in object out'.split() + ['in out'.split()]:
+            yield [_part],'_'.join(["%s" % p for p in _part])
 
     def iter_over_spt():
         yield spaths_types, 'apaths'
@@ -1983,19 +1983,31 @@ def stage_V_run(config, options,
             if not sp.id.name in tname: continue
             if not isinstance(sp,sptype): continue
             # c or ct
+            it_is_ct = False
             if isinstance(c_ct[0],InletClusterGenericType):
+                it_is_ct = True
                 if not ct.generic in c_ct: continue
             else:
                 if len(union_full(ct.generic.clusters,c_ct)) == 0: continue
+            # this is more than that...
+            # if c_ct is not InletClusterGenericType then:
+            # if 'in' in part only incoming paths in ct are used
+            # if 'out' in part only outgoing paths in ct are used
             col_index = header.index(col_name)
-            if part == 'walk':
+            if 'walk' in part:
                 h[sp.paths_cont,col_index] += 1
             if isinstance(sp,PassingPath): continue
-            if part == 'in':
+            if 'in' in part:
+                if not it_is_ct:
+                    if not ct.input in c_ct:
+                        continue
                 h[sp.path_in, col_index] += 1
-            if part == 'object':
+            if 'object' in part:
                 h[sp.path_object, col_index] += 1
-            if part == 'out':
+            if 'out' in part:
+                if not it_is_ct:
+                    if not ct.output in c_ct:
+                        continue
                 h[sp.path_out, col_index] += 1
         pbar.update(1)
     pbar.finish()
