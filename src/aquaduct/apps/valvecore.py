@@ -1928,7 +1928,7 @@ def stage_V_run(config, options,
 
     def iter_over_part():
         for _part in 'walk in object out'.split() + ['in out'.split()]:
-            yield [_part],'_'.join(["%s" % p for p in _part])
+            yield [_part],'_'.join(["%s" % p for p in [_part]])
 
     def iter_over_spt():
         yield spaths_types, 'apaths'
