@@ -42,8 +42,8 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 3, 3
-    # new barber defaults
+    return 0, 3, 4
+    # pbar bug fix
 
 
 def version_nice():
