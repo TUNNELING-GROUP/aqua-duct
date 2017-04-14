@@ -1247,7 +1247,7 @@ def stage_III_run(config, options,
         pbar = clui.pbar(len(paths))
         for p in paths.values():
             p.barber_with_spheres(wtc.spheres)
-            pbar.update(1)
+            pbar.next()
         pbar.finish()
         # now, it might be that some of paths are empty
         # paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}

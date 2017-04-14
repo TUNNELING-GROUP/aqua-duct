@@ -175,5 +175,5 @@ if False:
         pbar = clui.pbar(len(paths))
         for p in paths.values():
             p.barber_with_spheres(spheres)
-            pbar.update(1)
+            pbar.next()
         pbar.finish()

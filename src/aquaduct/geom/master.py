@@ -214,7 +214,7 @@ class CTypeSpathsCollection(object):
         Update progres bar by one, if any.
         '''
         if self.pbar is not None:
-            self.pbar.update(1)
+            self.pbar.next()
 
     def lens(self):
         '''
