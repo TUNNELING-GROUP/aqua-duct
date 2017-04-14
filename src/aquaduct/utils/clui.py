@@ -344,8 +344,10 @@ class SimpleProgressBar(object):
 
             while len(self.tictoclist) > 20:
                 self.tictoclist.pop(0)
-
-        if percent > 100:
+        # TODO: create some unittests for pbar
+        mess = ''
+        mess_spec = ''
+        if percent > 100 or self.overrun:
             if self.overrun_notice:
                 stderr.write(linesep)
                 self.overrun_notice = False
@@ -374,6 +376,9 @@ class SimpleProgressBar(object):
                 self.tcurrent = time.time()
                 self.show()
 
+    def next(self):
+        return self.update(self.current+1)
+
     def update(self, step):
         """
         Updates number of current iterations :obj:`current` by one if :obj:`step` is > 0.
@@ -386,10 +391,7 @@ class SimpleProgressBar(object):
         # TODO: change logic of step == 1 vs step > 1 - add or set?
         with self.lock:
             if step > 0:
-                if step == 1:
-                    self.current += 1
-                else:
-                    self.current = step
+                self.current = step
             self.tcurrent = time.time()
             if (step == self.maxval) or (
                             self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!

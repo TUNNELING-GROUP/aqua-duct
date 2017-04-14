@@ -218,7 +218,7 @@ class CTypeSpathsCollection(object):
         Update progres bar by one, if any.
         '''
         if self.pbar is not None:
-            self.pbar.update(1)
+            self.pbar.next()
 
     def lens(self):
         '''
@@ -478,7 +478,7 @@ def create_master_spath(spaths, smooth=None, resid=0, ctype=None, bias_long=5, p
 
     def update():
         if pbar is not None:
-            pbar.update(1)
+            pbar.next()
 
     # first check what is the size of paths in all parts and normalize and then scale them
     sizes = []

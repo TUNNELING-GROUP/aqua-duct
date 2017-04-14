@@ -12,6 +12,8 @@ Aqua-Duct changelog
     * Tables in the result file are split in regard to Object and Passing paths.
     * Small bug in reporting progress in AutoBarber preparation fixed.
     * Passing through paths are being introduced, WIP.
+* 0.3.4
+    * Fixed bug in progress bar updating method causing critical error in some specific circumstances.
 * 0.3.3
     * AutoBarber default values of maxcut_level and mincut_level changed to True.
     * Improved template configuration file.

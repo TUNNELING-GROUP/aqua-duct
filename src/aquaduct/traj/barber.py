@@ -142,7 +142,7 @@ class WhereToCut(object):
                 elif self.forceempty:
                     logger.debug('Added sphere of radius 0')
                     self.spheres.append(Sphere(center, 0))
-            pbar.update(1)
+            pbar.next()
         pbar.finish()
 
     def cut_thyself(self):
@@ -196,5 +196,5 @@ if False:
         pbar = clui.pbar(len(paths))
         for p in paths.values():
             p.barber_with_spheres(spheres)
-            pbar.update(1)
+            pbar.next()
         pbar.finish()
