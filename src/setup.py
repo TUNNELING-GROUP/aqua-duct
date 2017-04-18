@@ -25,7 +25,7 @@ version = __import__('aquaduct').version_nice()  # version str
 install_requires =['numpy>=1.7.0',
                   'scipy>=0.14.0',
                   'scikit-learn>=0.16.0',
-                  'MDAnalysis[amber]>=0.15.0',
+                  'MDAnalysis[amber]==0.15.0',
                   'roman>=2.0.0',
                   ]
 

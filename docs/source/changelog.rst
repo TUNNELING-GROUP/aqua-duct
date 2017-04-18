@@ -1,6 +1,8 @@
 Aqua-Duct changelog
 ===================
 
+* 0.3.5
+    * As for now, the only supported version of MDAnalysis is 0.15.
 * 0.3.4
     * Fixed bug in progress bar updating method causing critical error in some specific circumstances.
 * 0.3.3
