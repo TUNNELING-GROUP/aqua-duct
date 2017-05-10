@@ -62,8 +62,13 @@ class Reader(object):
         # should set next frame or raise StopIteration
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def set_current_frame(self, frame):
+        # should set current frame according to window
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
     ###########################################################################
     # window params
+
     def get_start_frame(self):
         if self.frames_window is None:
             return 0
@@ -88,14 +93,8 @@ class Reader(object):
     def get_window_frame_range(self):
         return xrange(self.get_start_frame(),self.get_stop_frame(),self.get_step_frame())
 
-    '''
-    def current_frame_2_real_frame(self,frame):
-        if self.frames_window is None:
-            return frame
-        return self.get_start_frame() + self.get_step_frame()*frame
-    '''
-
     ###########################################################################
+    # window dependent
 
     @property
     def number_of_frames(self):
@@ -105,10 +104,6 @@ class Reader(object):
         stop = self.get_stop_frame()
         step = self.get_step_frame()
         return abs(stop-start)/step
-
-    def set_current_frame(self, frame):
-        # should set current frame according to window
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def iterate_over_frames(self):
         # should return list of frames ids or generator returning such a list, and should set appropriate frame
