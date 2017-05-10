@@ -45,8 +45,9 @@ class Reader(object):
 
         # if window is set then behaviour of iteration over frames related methods is different
         self.frames_window = window
+        self.frames_window_list = None
 
-        self.set_current_frame(0)  # ensure that by default it starts from frame 0
+        self.set_real_frame(0)  # ensure that by default it starts from frame 0
 
 
     def open_trajectory(self):
@@ -62,7 +63,7 @@ class Reader(object):
         # should set next frame or raise StopIteration
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def set_current_frame(self, frame):
+    def set_real_frame(self, frame):
         # should set current frame according to window
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
@@ -103,15 +104,24 @@ class Reader(object):
         start = self.get_start_frame()
         stop = self.get_stop_frame()
         step = self.get_step_frame()
-        return abs(stop-start)/step
+        return (abs(stop-start)+1)/step
 
     def iterate_over_frames(self):
         # should return list of frames ids or generator returning such a list, and should set appropriate frame
         # appropriate frame means current frame that can be recalculated to real frame (window)
-        for current_farme,real_frame in enumerate(self.get_window_frame_range()):
-            self.set_current_frame(real_frame)
-            yield current_farme
+        for current_frame,real_frame in enumerate(self.get_window_frame_range()):
+            self.set_real_frame(real_frame)
+            yield current_frame
 
+    def cf2rf(self,cf):
+        # current frame to real frame
+        if self.frames_window_list is None:
+            self.frames_window_list = list(self.get_window_frame_range())
+        return self.frames_window_list[cf]
+
+    def set_current_frame(self, frame):
+        # frame is current frame, derrive real frame
+        return self.set_real_frame(self.cf2rf(frame))
 
     ###########################################################################
 
@@ -131,13 +141,20 @@ class Reader(object):
 
 
 class ReadViaMDA(Reader):
+
+    ############################################################################
+    # window dependent
+
+
+    ############################################################################
+
+    def set_real_frame(self, frame):
+        self.trajectory_object.trajectory[frame]
+
     @property
     def real_number_of_frames(self):
         # should return number of frames
         return len(self.trajectory_object.trajectory)
-
-    def set_current_frame(self, frame):
-        self.trajectory_object.trajectory[frame]
 
     def next_frame(self):
         try:

@@ -2014,7 +2014,7 @@ def stage_VI_run(config, options,
                 scope = traj_reader.parse_selection(options.show_chull)
                 frames_to_show = range2int(options.show_chull_frames)
                 for frame in frames_to_show:
-                    traj_reader.set_current_frame(frame)
+                    traj_reader.set_real_frame(frame)
                     chull = scope.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, state=frame + 1)
 
@@ -2024,7 +2024,7 @@ def stage_VI_run(config, options,
                 object_shape = traj_reader.parse_selection(options.show_object)
                 frames_to_show = range2int(options.show_object_frames)
                 for frame in frames_to_show:
-                    traj_reader.set_current_frame(frame)
+                    traj_reader.set_real_frame(frame)
                     chull = object_shape.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, name='object_shape', color=np.array([255, 153, 0]) / 255.,
                                    state=frame + 1)  # orange
