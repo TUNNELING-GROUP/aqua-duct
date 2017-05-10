@@ -475,14 +475,15 @@ class ValveConfig(object, ConfigSpecialNames):
 # reader helper class
 
 class TrajectoryReader(object):
-    def __init__(self, top, trj):
+    def __init__(self, top, trj,frames_window=None):
         assert isinstance(top, (str, unicode)), "Topology file name missing, %s given instead" % str(top)
         assert isinstance(trj, (str, unicode)), "Trajectory file(s) name(s) missing, %s given instead" % str(trj)
         self.top = top
         self.trj = shlex.split(trj)
+        self.frames_window = frames_window
 
     def get(self):
-        return ReadViaMDA(self.top, self.trj)
+        return ReadViaMDA(self.top, self.trj, window=self.frames_window)
 
     @property
     def max_frame(self):
@@ -849,9 +850,9 @@ def valve_load_config(filename, config):
         config.load_config(filename)
 
 
-def valve_read_trajectory(top, traj):
+def valve_read_trajectory(top, traj, frames_window=None):
     with clui.fbm('Read trajectory'):
-        return TrajectoryReader(top, traj)
+        return TrajectoryReader(top, traj, frames_window=frames_window)
         # read trajectory
         # traj_list = shlex.split(traj)
         # return ReadAmberNetCDFviaMDA(top, traj_list)
@@ -922,10 +923,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
 # traceable_residues
 def stage_I_run(config, options,
                 reader=None,
-                max_frame=None,
                 **kwargs):
-    clui.message("Loop over frames - search of residues in object:")
-    pbar = clui.pbar(max_frame)
 
     # create pool of workers - mapping function
     map_fun = map
@@ -934,6 +932,9 @@ def stage_I_run(config, options,
         map_fun = pool.map
 
     with reader.get() as traj_reader:
+
+        clui.message("Loop over frames - search of residues in object:")
+        pbar = clui.pbar(traj_reader.number_of_frames)
 
         scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
@@ -945,8 +946,6 @@ def stage_I_run(config, options,
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
-            if frame > max_frame:
-                break
             # center of system
             center_of_system += scope.center_of_mass()
             # current res selection
@@ -962,10 +961,8 @@ def stage_I_run(config, options,
             # remeber ids of res in object in current frame
             if res_new is not None:
                 res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
-                # res_ids_in_object_over_frames.update({frame: np.array(res_new.unique_resids(ikwid=True))})
             else:
                 res_ids_in_object_over_frames.update({frame: []})
-                # res_ids_in_object_over_frames.update({frame: np.array([])})
             pbar.update(frame)
 
     # destroy pool of workers
@@ -997,7 +994,6 @@ def stage_II_run(config, options,
                  reader=None,
                  all_res=None,
                  res_ids_in_object_over_frames=None,
-                 max_frame=None,
                  **kwargs):
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
@@ -1007,12 +1003,11 @@ def stage_II_run(config, options,
         pass
         #res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
-    with clui.fbm("Init paths container"):
-        paths = dict(
-            ((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=max_frame)) for resid, resname in
-             zip(all_res.unique_resids(ikwid=True), all_res.unique_names())))
-
     with reader.get() as traj_reader:
+
+        with clui.fbm("Init paths container"):
+            paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=traj_reader.number_of_frames-1)) for resid in
+                          all_res.unique_resids(ikwid=True)))
 
         scope = traj_reader.parse_selection(options.scope)
 
@@ -1020,7 +1015,7 @@ def stage_II_run(config, options,
             all_res = rebuild_selection(all_res, traj_reader)
 
         clui.message("Trajectory scan:")
-        pbar = clui.pbar(max_frame)
+        pbar = clui.pbar(traj_reader.number_of_frames)
 
         # create pool of workers - mapping function
         map_fun = map
@@ -1029,8 +1024,6 @@ def stage_II_run(config, options,
             map_fun = pool.map
 
         for frame in traj_reader.iterate_over_frames():
-            if frame > max_frame:
-                break
 
             all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
             all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
@@ -1777,7 +1770,6 @@ def stage_V_run(config, options,
                 paths=None,
                 inls=None,
                 ctypes=None,
-                max_frame=None,
                 **kwargs):
     # file handle?
     head_nr = True
@@ -2144,7 +2136,7 @@ def stage_VI_run(config, options,
                 scope = traj_reader.parse_selection(options.show_chull)
                 frames_to_show = range2int(options.show_chull_frames)
                 for frame in frames_to_show:
-                    traj_reader.set_current_frame(frame)
+                    traj_reader.set_real_frame(frame)
                     chull = scope.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, state=frame + 1)
 
@@ -2154,7 +2146,7 @@ def stage_VI_run(config, options,
                 object_shape = traj_reader.parse_selection(options.show_object)
                 frames_to_show = range2int(options.show_object_frames)
                 for frame in frames_to_show:
-                    traj_reader.set_current_frame(frame)
+                    traj_reader.set_real_frame(frame)
                     chull = object_shape.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, name='object_shape', color=np.array([255, 153, 0]) / 255.,
                                    state=frame + 1)  # orange
