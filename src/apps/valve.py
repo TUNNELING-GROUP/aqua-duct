@@ -67,7 +67,9 @@ if __name__ == "__main__":
                             help="Limit Aqua-Duct calculations to given number of threads.")
         parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
         parser.add_argument("--sps", action="store_true", dest="sps", required=False, help="Use single precision to store data.")
-        parser.add_argument("--max-frame", action="store", dest="max_frame", required=False, help="Limit number of frames.")
+        parser.add_argument("--max-frame", action="store", dest="max_frame", type=int, required=False, help="Maximal number of frame.")
+        parser.add_argument("--min-frame", action="store", dest="min_frame", type=int, required=False, help="Minimal number of frame.")
+        parser.add_argument("--step-frame", action="store", dest="step_frame", type=int, required=False, help="Frames step.")
         parser.add_argument("--version", action="store_true", dest="print_version", required=False,
                             help="Prints versions and exits.")
         parser.add_argument("--license", action="store_true", dest="print_license", required=False,
@@ -176,19 +178,19 @@ if __name__ == "__main__":
         ############################################################################
         # STAGE 0
 
-        # TODO: Is it always required?
-        reader = valve_read_trajectory(goptions.top, goptions.trj) # trajectory reader
-
         # Maximal frame checks
-        if args.max_frame:
-            max_frame = int(args.max_frame)
-            if max_frame > reader.max_frame:
-                logger.warning("Desired --max-frame %d setting exceeds number of available frames (%d)." % (
-                    max_frame + 1, reader.max_frame + 1))
-        else:
-            max_frame = reader.max_frame
-        # TODO: Is it reported correctly?
-        clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
+        frames_window = slice(args.min_frame,args.max_frame,args.step_frame)
+
+        # TODO: Is it always required?
+        reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window) # trajectory reader
+
+        with reader.get() as traj_reader:
+            clui.message("Frames window: %d:%d step %d" % (traj_reader.get_start_frame(),
+                                                           traj_reader.get_stop_frame(),
+                                                           traj_reader.get_step_frame()))
+
+        ## TODO: Is it reported correctly?
+        #clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
 
         # container for collecting whether particular stage was executed
         run_status = {}
@@ -196,14 +198,12 @@ if __name__ == "__main__":
         # STAGE I
         result1 = valve_exec_stage(0, config, stage_I_run,
                                    run_status=run_status,
-                                   reader=reader,
-                                   max_frame=max_frame)
+                                   reader=reader)
 
         # STAGE II
         result2 = valve_exec_stage(1, config, stage_II_run,
                                    run_status=run_status,
                                    reader=reader,
-                                   max_frame=max_frame,
                                    **result1)
 
         # STAGE III

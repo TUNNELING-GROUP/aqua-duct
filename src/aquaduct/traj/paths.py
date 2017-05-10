@@ -519,6 +519,11 @@ class SinglePathID(object):
     def __str__(self):
         return '%d:%d' % (self.id, self.nr)
 
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __ne__(self, other):
+        return str(self) != str(other)
 
 def yield_single_paths(gps, fullonly=False, progress=False):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
