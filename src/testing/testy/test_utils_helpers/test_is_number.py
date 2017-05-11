@@ -21,7 +21,7 @@ def is_number(s):
 class TestIs_number(TestCase):
 
     def test_is_number(self):
-        s= {1,"a","%","3.14"}
+        s= {1,"a","%","3.15"}
         Oczekiwany= {True, False, False, True}
         current =is_number(s)
 
