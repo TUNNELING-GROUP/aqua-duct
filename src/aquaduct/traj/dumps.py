@@ -41,7 +41,7 @@ class TmpDumpWriterOfMDA(object):
 
         for frame in frames:
             if frame < reader.number_of_frames:
-                reader.set_current_frame(frame)
+                reader.set_real_frame(frame)
                 self.mdawriter.write(to_dump)
             else:
                 logger.error(

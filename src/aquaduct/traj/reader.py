@@ -32,7 +32,7 @@ mda_available_formats = {re.compile('(nc|NC)'): 'nc',
 
 
 class Reader(object):
-    def __init__(self, topology, trajectory):
+    def __init__(self, topology, trajectory, window=None):
         assert isinstance(topology, str)
         if not isinstance(trajectory, str):
             for trj in trajectory:
@@ -42,36 +42,88 @@ class Reader(object):
         self.trajectory_file_name = trajectory
 
         self.trajectory_object = self.open_trajectory()
-        self.set_current_frame(0)  # ensure that by default it starts from frame 0
+
+        # if window is set then behaviour of iteration over frames related methods is different
+        self.frames_window = window
+        self.frames_window_list = None
+
+        self.set_real_frame(0)  # ensure that by default it starts from frame 0
+
 
     def open_trajectory(self):
         # should return any object that can be further used to parse trajectory
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     @property
-    def number_of_frames(self):
-        # should return number of frames
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-
-    def set_current_frame(self, frame):
-        # should set current frame
+    def real_number_of_frames(self):
+        # should return real number of frames
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def next_frame(self):
         # should set next frame or raise StopIteration
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def set_real_frame(self, frame):
+        # should set current frame according to window
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
+    ###########################################################################
+    # window params
+
+    def get_start_frame(self):
+        if self.frames_window is None:
+            return 0
+        if self.frames_window.start is None:
+            return 0
+        return self.frames_window.start
+
+    def get_step_frame(self):
+        if self.frames_window is None:
+            return 1
+        if self.frames_window.step is None:
+            return 1
+        return self.frames_window.step
+
+    def get_stop_frame(self):
+        if self.frames_window is None:
+            return self.real_number_of_frames - 1
+        if self.frames_window.stop is None:
+            return self.real_number_of_frames - 1
+        return self.frames_window.stop
+
+    def get_window_frame_range(self):
+        return xrange(self.get_start_frame(),self.get_stop_frame(),self.get_step_frame())
+
+    ###########################################################################
+    # window dependent
+
+    @property
+    def number_of_frames(self):
+        if self.frames_window is None:
+            return self.real_number_of_frames
+        start = self.get_start_frame()
+        stop = self.get_stop_frame()
+        step = self.get_step_frame()
+        return (abs(stop-start)+1)/step
+
     def iterate_over_frames(self):
         # should return list of frames ids or generator returning such a list, and should set appropriate frame
-        current_frame = 0
-        try:
-            self.set_current_frame(current_frame)
-            while True:
-                yield current_frame
-                current_frame += 1
-                self.next_frame()
-        except StopIteration:
-            pass
+        # appropriate frame means current frame that can be recalculated to real frame (window)
+        for current_frame,real_frame in enumerate(self.get_window_frame_range()):
+            self.set_real_frame(real_frame)
+            yield current_frame
+
+    def cf2rf(self,cf):
+        # current frame to real frame
+        if self.frames_window_list is None:
+            self.frames_window_list = list(self.get_window_frame_range())
+        return self.frames_window_list[cf]
+
+    def set_current_frame(self, frame):
+        # frame is current frame, derrive real frame
+        return self.set_real_frame(self.cf2rf(frame))
+
+    ###########################################################################
 
     def parse_selection(self, selection):
         # should parse and return selection object
@@ -89,13 +141,20 @@ class Reader(object):
 
 
 class ReadViaMDA(Reader):
+
+    ############################################################################
+    # window dependent
+
+
+    ############################################################################
+
+    def set_real_frame(self, frame):
+        self.trajectory_object.trajectory[frame]
+
     @property
-    def number_of_frames(self):
+    def real_number_of_frames(self):
         # should return number of frames
         return len(self.trajectory_object.trajectory)
-
-    def set_current_frame(self, frame):
-        self.trajectory_object.trajectory[frame]
 
     def next_frame(self):
         try:
