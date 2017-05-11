@@ -241,6 +241,7 @@ class SimpleProgressBar(object):
 
     barlenght = 24
 
+
     def __init__(self, maxval=None, mess=None):
         """
         :param int maxval: Maximal number of iterations stored to :attr:`maxval`.
