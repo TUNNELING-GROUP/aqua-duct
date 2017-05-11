@@ -239,7 +239,9 @@ class SimpleProgressBar(object):
     # rotate = '.:|:.'
     # rotate = 'x+'
 
+
     barlenght = 24
+
 
     def __init__(self, maxval=None, mess=None):
         """
