@@ -239,6 +239,7 @@ class SimpleProgressBar(object):
     # rotate = '.:|:.'
     # rotate = 'x+'
 
+
     barlenght = 24
 
 
