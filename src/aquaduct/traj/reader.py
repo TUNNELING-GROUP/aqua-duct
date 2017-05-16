@@ -111,7 +111,7 @@ class Reader(object):
         start = self.get_start_frame()
         stop = self.get_stop_frame()
         step = self.get_step_frame()
-        return (abs(stop-start)+1)/step
+        return (abs(stop-start)+1)/step + abs(stop-start)%step
 
     def iterate_over_frames(self):
         # should return list of frames ids or generator returning such a list, and should set appropriate frame

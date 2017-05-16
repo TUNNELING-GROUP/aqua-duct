@@ -226,6 +226,7 @@ if __name__ == "__main__":
         result5 = valve_exec_stage(4, config, stage_V_run,
                                    run_status=run_status,
                                    no_io=True,
+                                   reader=reader,
                                    **results)
 
         # STAGE VI

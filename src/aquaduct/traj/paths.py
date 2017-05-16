@@ -113,7 +113,10 @@ class GenericPaths(object, GenericPathTypeCodes):
         # id is any type of object; it is used as identifier
 
         self.id = id_of_res
-        self.name = name_of_res
+        if name_of_res is not None:
+            self.name = name_of_res
+        else:
+            self.name = 'UNK' #FIXME: magic constant
         self.__types = SmartRange()
         self.__frames = SmartRange()
         self.coords = []
@@ -387,8 +390,11 @@ class GenericPaths(object, GenericPathTypeCodes):
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
 class SinglePathID(object):
     def __init__(self, path_id=None, nr=None, name=None):
+        assert path_id is not None, "path_id connot be None."
         self.id = path_id
+        assert nr is not None, "nr connot be None."
         self.nr = nr
+        assert name is not None, "name connot be None."
         self.name = name
 
     def __str__(self):

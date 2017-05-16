@@ -1003,11 +1003,14 @@ def stage_II_run(config, options,
         pass
         #res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
+
     with reader.get() as traj_reader:
 
         with clui.fbm("Init paths container"):
-            paths = dict(((resid, GenericPaths(resid, min_pf=0, max_pf=traj_reader.number_of_frames-1)) for resid in
-                          all_res.unique_resids(ikwid=True)))
+            paths = dict(
+                ((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=traj_reader.number_of_frames - 1))
+                 for resid, resname in
+                 zip(all_res.unique_resids(ikwid=True), all_res.unique_names())))
 
         scope = traj_reader.parse_selection(options.scope)
 
@@ -1770,6 +1773,7 @@ def stage_V_run(config, options,
                 paths=None,
                 inls=None,
                 ctypes=None,
+                reader=None,
                 **kwargs):
     # file handle?
     head_nr = True
@@ -1795,6 +1799,13 @@ def stage_V_run(config, options,
         pa.sep()
         pa.under('Configuration file name: %s' % config.config_filename)
         pa(os.linesep.join(config.dump_config()))
+
+    ############
+    with reader.get() as traj_reader:
+        pa.sep()
+        pa("Frames window: %d:%d step %d" % (traj_reader.get_start_frame(),
+                                             traj_reader.get_stop_frame(),
+                                             traj_reader.get_step_frame()))
 
     ############
     traced_names = tuple(sorted(list(set([sp.id.name for sp in spaths]))))
@@ -1970,6 +1981,9 @@ def stage_V_run(config, options,
                         yield _tname,_sptype,_ctype,_part,_message
 
     # histograms
+    # calculate old max_frame
+    with reader.get() as traj_reader:
+        max_frame = traj_reader.number_of_frames - 1
     header = [column[-1] for column in iter_over_all()]
     h = np.zeros((max_frame+1,len(header)))
     # loop over spaths
