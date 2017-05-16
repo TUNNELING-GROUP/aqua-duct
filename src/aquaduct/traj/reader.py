@@ -47,6 +47,12 @@ class Reader(object):
         self.frames_window = window
         self.frames_window_list = None
 
+        # check window
+        lo = min(self.get_start_frame(),self.get_stop_frame())
+        hi = max(self.get_start_frame(), self.get_stop_frame())
+        assert lo >=0 , 'Wrong frames window definition, wrong low bound %d; should be >= 0' % lo
+        assert hi <= self.real_number_of_frames, 'Wrong frames window definition, wrong high bound %d; should be <= %d' % (hi,self.real_number_of_frames-1)
+
         self.set_real_frame(0)  # ensure that by default it starts from frame 0
 
 
@@ -92,7 +98,8 @@ class Reader(object):
         return self.frames_window.stop
 
     def get_window_frame_range(self):
-        return xrange(self.get_start_frame(),self.get_stop_frame(),self.get_step_frame())
+        return xrange(self.get_start_frame(),self.get_stop_frame()+1,self.get_step_frame())
+        #return xrange(self.get_start_frame(),self.get_stop_frame(),self.get_step_frame())
 
     ###########################################################################
     # window dependent
