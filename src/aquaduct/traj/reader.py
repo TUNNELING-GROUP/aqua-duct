@@ -287,4 +287,3 @@ def atom2vdw_radius(atom):
     if element in VdW_radii:
         return VdW_radii[element]
     return 1.4
-

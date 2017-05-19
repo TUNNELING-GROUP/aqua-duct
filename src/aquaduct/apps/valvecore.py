@@ -1629,7 +1629,6 @@ def add_ctype_id(gen):
 
     return patched
 
-
 class PrintAnalysis(object):
     nr_template = '%7d '
 
