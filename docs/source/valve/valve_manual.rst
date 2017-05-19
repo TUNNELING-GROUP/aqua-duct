@@ -18,26 +18,33 @@ Basic help of *Valve* usage can be displayed by following command::
 
 It should display following information::
 
-    usage: valve.py [-h] [--debug] [--debug-file DEBUG_FILE]
-                    [--dump-template-config] [-t THREADS] [-c CONFIG_FILE] [--sps]
-                    [--max-frame MAX_FRAME] [--version] [--license]
-    Valve, Aquaduct driver
-    optional arguments:
-      -h, --help            show this help message and exit
-      --debug               Prints debug info. (default: False)
-      --debug-file DEBUG_FILE
-                            Debug log file. (default: None)
-      --dump-template-config
-                            Dumps template config file. Suppress all other output
-                            or actions. (default: False)
-      -t THREADS            Limit Aqua-Duct calculations to given number of
-                            threads. (default: None)
-      -c CONFIG_FILE        Config file filename. (default: None)
-      --sps                 Use single precision to store data. (default: False)
-      --max-frame MAX_FRAME
-                            Limit number of frames. (default: None)
-      --version             Prints versions and exits. (default: False)
-      --license             Prints short license info and exits. (default: False)
+   usage: valve.py [-h] [--debug] [--debug-file DEBUG_FILE]
+                   [--dump-template-config] [-t THREADS] [-c CONFIG_FILE] [--sps]
+                   [--max-frame MAX_FRAME] [--min-frame MIN_FRAME]
+                   [--step-frame STEP_FRAME] [--version] [--license]
+
+   Valve, Aquaduct driver
+
+   optional arguments:
+     -h, --help            show this help message and exit
+     --debug               Prints debug info. (default: False)
+     --debug-file DEBUG_FILE
+                           Debug log file. (default: None)
+     --dump-template-config
+                           Dumps template config file. Suppress all other output
+                           or actions. (default: False)
+     -t THREADS            Limit Aqua-Duct calculations to given number of
+                           threads. (default: None)
+     -c CONFIG_FILE        Config file filename. (default: None)
+     --sps                 Use single precision to store data. (default: False)
+     --max-frame MAX_FRAME
+                           Maximal number of frame. (default: None)
+     --min-frame MIN_FRAME
+                           Minimal number of frame. (default: None)
+     --step-frame STEP_FRAME
+                           Frames step. (default: None)
+     --version             Prints versions and exits. (default: False)
+     --license             Prints short license info and exits. (default: False)
 
 Configuration file template
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -71,8 +78,7 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
 
 .. note::
 
-    Option ``--max-frame`` can be used for testing or debugging purposes. It allows to limit number of frames processed by *Valve*.
-    If it set, for example, to ``999`` only first 1000 frames will be processed making all calculations very fast.
+    Options ``--min-frame``, ``--max-frame``, and ``--step-frame`` can be used to limit calculations to specific part of trajectory. For example, to run calculations for 1000 frames starting from frame 5000 use following options: ``--min-frame 4999 --max-frame 5999``; to run calculations for every 5th frame use: ``--step-frame 5``.
 
 Single precision storage
 """"""""""""""""""""""""

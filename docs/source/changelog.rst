@@ -1,6 +1,8 @@
 Aqua-Duct changelog
 ===================
 
+* 0.3.6
+    * AQ can be run for given part of trajectory.
 * 0.3.5
     * As for now, the only supported version of MDAnalysis is 0.15.
 * 0.3.4

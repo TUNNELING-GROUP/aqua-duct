@@ -42,9 +42,10 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 3, 5
+    return 0, 3, 6
     # MDA == 0.15!
     # pbar bug fix
+    # window frames support
 
 
 def version_nice():
