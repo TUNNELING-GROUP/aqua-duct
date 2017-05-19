@@ -13,11 +13,20 @@
 
 *.orig
 
+*.*~
+
 .project
 .pydevproject
 .idea
 .settings
 _linux
+code.style.schemes.xml
+debugger.xml
+editor.codeinsight.xml
+filetypes.xml
+ide.general.xml
+vcs.xml
+
 
 valve_tests
 real_traj
