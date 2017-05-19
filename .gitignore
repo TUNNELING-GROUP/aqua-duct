@@ -17,6 +17,7 @@
 .pydevproject
 .idea
 .settings
+_linux
 
 valve_tests
 real_traj
