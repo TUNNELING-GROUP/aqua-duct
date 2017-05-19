@@ -1139,8 +1139,14 @@ def stage_III_run(config, options,
 
         if options.discard_short_paths > 0:
             shorter_then = int(options.discard_short_paths)
+            nr_of_spaths = len(spaths)
             with clui.fbm("Discard (again) paths shorter then %d" % shorter_then):
                 spaths = [sp for sp in spaths if sp.size > shorter_then]
+            new_nr_of_spaths = len(spaths)
+            if new_nr_of_spaths < nr_of_spaths:
+                clui.message("Discarded %d out of %d paths." % (nr_of_spaths-new_nr_of_spaths,nr_of_spaths))
+            else:
+                clui.message("No paths discarded.")
 
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):
@@ -1204,15 +1210,21 @@ def potentially_recursive_clusterization(config=None,
         clustering_function = get_clustering_method(cluster_options, config)
         # special case of barber!!!
         if cluster_options.method == 'barber':
+            logger.debug('Getting inltets refs...')
             inlets_refs = inlets_object.get_inlets_references()
-            wtc = WhereToCut([sp for sp in spaths if sp.id in inlets_refs],
+            logger.debug('Starting wtc...')
+            wtc = WhereToCut((sp for sp in spaths if sp.id in inlets_refs),
                              traj_reader,
+                             expected_nr_of_spaths=len(inlets_refs),
                              forceempty=True,
                              **clustering_function.method_kwargs)
+            logger.debug('Getting radii...')
             radii = [sphe.radius for sphe in wtc.spheres]
             inlets_object.add_radii(radii)
+        logger.debug('Proceed with clusterization, skip size...')
         # get skip_size function according to recursive_treshold
         skip_size = get_skip_size_function(cluster_options.recursive_threshold)
+        logger.debug('Proceed with clusterization, call method...')
         inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
     clui.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
 
