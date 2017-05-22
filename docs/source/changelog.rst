@@ -3,6 +3,7 @@ Aqua-Duct changelog
 
 * 0.3.6
     * AQ can be run for given part of trajectory.
+    * Fixed bug in passing options to Barber clusterization method.
 * 0.3.5
     * As for now, the only supported version of MDAnalysis is 0.15.
 * 0.3.4
