@@ -66,7 +66,7 @@ class WhereToCut(object):
         '''
         :param list spaths: List of :class:`aquaduct.traj.paths.SinglePath` objects.
         :param traj_reader: :class:`aquaduct.traj.reader.Reader` object.
-        :param int expected_nr_of_spaths: Number of spaths passed as :arg:`spaths`. Requilred when length of :arg:`spaths` cannod be calculated, eg when it is a generator.. 
+        :param int expected_nr_of_spaths: Number of spaths passed as :arg:`spaths`. Requilred when length of :arg:`spaths` cannod be calculated, eg when it is a generator..
         :param str selection: Selection string of molecular object used for spheres generation.
         :param float mincut: Value of *mincut* parameter.
         :param float maxcut: Value of *maxcut* parameter.
@@ -162,6 +162,35 @@ class WhereToCut(object):
                     self.spheres.append(Sphere(center, 0))
             pbar.next()
         pbar.finish()
+
+    def _cut_thyself(self,spheres):
+        if self.expected_nr_of_spaths:
+            N = self.expected_nr_of_spaths
+        else:
+            N = len(spaths)
+        # sort reverse
+        sortids = np.argsort([sphe.radius for sphe in self.spheres]).tolist()[::-1]
+        noredundat_spheres_count = 0
+        while True:
+            spheres_coords = np.array([sphe.center for sphe in spheres])
+            spheres_radii = np.array([sphe.radius for sphe in spheres])
+            noredundat_spheres = []
+            while sortids:
+                bigid = sortids.pop(0)
+                center, radius = spheres[bigid]
+                distances = cdist(np.matrix(center), spheres_coords, metric='euclidean').flatten()
+                # add radii
+                distances += spheres_radii
+                # remove if distance <= radius
+                to_keep = distances > radius
+                # do keep
+                spheres_coords = spheres_coords[to_keep]
+                spheres_radii = spheres_radii[to_keep]
+                # do keep spheres
+                to_keep_ids = np.argwhere(to_keep).flatten().tolist()
+                self.spheres = lind(self.spheres, to_keep_ids)
+
+
 
     def cut_thyself(self):
         # this changes order and removes some of the spheres!
