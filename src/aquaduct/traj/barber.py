@@ -163,32 +163,40 @@ class WhereToCut(object):
             pbar.next()
         pbar.finish()
 
-    def _cut_thyself(self,spheres):
+    def _cut_thyself(self,spheres_passed):
         if self.expected_nr_of_spaths:
             N = self.expected_nr_of_spaths
         else:
             N = len(spaths)
-        # sort reverse
-        sortids = np.argsort([sphe.radius for sphe in self.spheres]).tolist()[::-1]
+        # make a deep copy?
+        spheres =copy.copy(spheres_passed)
         noredundat_spheres_count = 0
         while True:
+            spehres.sort(key=lambda s: s.radius, reverse=True)
             spheres_coords = np.array([sphe.center for sphe in spheres])
             spheres_radii = np.array([sphe.radius for sphe in spheres])
             noredundat_spheres = []
-            while sortids:
-                bigid = sortids.pop(0)
-                center, radius = spheres[bigid]
-                distances = cdist(np.matrix(center), spheres_coords, metric='euclidean').flatten()
+            while spheres:
+                big = spheres.pop(0)
+                center, radius = big
+                distances = cdist(np.matrix(center), spheres_coords[1:], metric='euclidean').flatten()
                 # add radii
-                distances += spheres_radii
+                distances += spheres_radii[1:]
                 # remove if distance <= radius
                 to_keep = distances > radius
                 # do keep
-                spheres_coords = spheres_coords[to_keep]
-                spheres_radii = spheres_radii[to_keep]
+                spheres_coords = spheres_coords[1:][to_keep]
+                spheres_radii = spheres_radii[1:][to_keep]
                 # do keep spheres
                 to_keep_ids = np.argwhere(to_keep).flatten().tolist()
-                self.spheres = lind(self.spheres, to_keep_ids)
+                spheres = lind(spheres, to_keep_ids)
+                # add big to non redundant
+                noredundat_spheres.append(big)
+            if len(noredundat_spheres) == noredundat_spheres_count:
+                break
+            else:
+                noredundat_spheres_count = len(noredundat_spheres)
+                spheres = noredundat_spheres
 
 
 
