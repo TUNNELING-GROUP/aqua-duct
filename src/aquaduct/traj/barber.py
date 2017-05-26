@@ -25,7 +25,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from collections import namedtuple
-
+import copy
 from scipy.spatial.distance import cdist
 import numpy as np
 
@@ -164,15 +164,15 @@ class WhereToCut(object):
         pbar.finish()
 
     def _cut_thyself(self,spheres_passed):
-        if self.expected_nr_of_spaths:
-            N = self.expected_nr_of_spaths
-        else:
-            N = len(spaths)
+        # returns noredundant spheres
         # make a deep copy?
-        spheres =copy.copy(spheres_passed)
+        spheres = copy.copy(spheres_passed)
+        N = len(spheres)
+        clui.message("Barber, cut thyself:")
+        pbar = clui.pbar(N)
         noredundat_spheres_count = 0
         while True:
-            spehres.sort(key=lambda s: s.radius, reverse=True)
+            spheres.sort(key=lambda s: s.radius, reverse=True)
             spheres_coords = np.array([sphe.center for sphe in spheres])
             spheres_radii = np.array([sphe.radius for sphe in spheres])
             noredundat_spheres = []
@@ -192,11 +192,17 @@ class WhereToCut(object):
                 spheres = lind(spheres, to_keep_ids)
                 # add big to non redundant
                 noredundat_spheres.append(big)
+                pbar.update(N - len(spheres))
+                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (len(noredundat_spheres), len(spheres)))
             if len(noredundat_spheres) == noredundat_spheres_count:
+                logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(noredundat_spheres))
                 break
             else:
                 noredundat_spheres_count = len(noredundat_spheres)
                 spheres = noredundat_spheres
+        pbar.finish()
+
+        return spheres
 
 
 
