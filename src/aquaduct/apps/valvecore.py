@@ -1318,7 +1318,7 @@ class SkipSizeFunction(object):
 
     def __call__(self,size_of_cluster):
         for thd in self.thresholds:
-            if not thd(size_of_cluster):
+            if thd(size_of_cluster):
                 return False
         return True
 
