@@ -330,7 +330,10 @@ recursive_threshold         None            Allows to set threshold that exclude
                                             size from reclusterization. Value of this option comprises of
                                             `operator` and `value`. Operator can be one of the following:
                                             >, >=, <=, <. Value have to be expressed as floating number and
-                                            it have to be in the range of 0 to 1.
+                                            it have to be in the range of 0 to 1. One can use several
+                                            definitions separated by a space character.
+                                            Only clusters of size complying with all thresholds definitions
+                                            are submitted to reclusterization.
 =========================   =============== ================================================================
 
 .. _clusterization_methods:
