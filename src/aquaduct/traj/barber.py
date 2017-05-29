@@ -54,7 +54,9 @@ class WhereToCut(object):
     access to trajectory is also required to read VdW radii.
     '''
     # creates collection of Spheres
-    def __init__(self,spaths,traj_reader,
+    def __init__(self,
+                 spaths = None,
+                 traj_reader = None,
                  expected_nr_of_spaths=None,
                  selection=None,
                  mincut=None,
@@ -89,7 +91,8 @@ class WhereToCut(object):
 
         self.spheres = []
 
-        self.add_spheres(spaths, traj_reader)
+        if spaths is not None and traj_reader is not None:
+            self.add_spheres_from_spaths(spaths, traj_reader)
 
     def check_minmaxcuts(self):
         mincut = False
@@ -111,7 +114,7 @@ class WhereToCut(object):
                     logger.warning('Options mincut_level and maxcut_level are set to %s and %s accordingly, some spheres might be retained.')
         return mincut,mincut_val,maxcut,maxcut_val
 
-    def add_spheres(self, spaths, traj_reader):
+    def add_spheres_from_spaths(self, spaths, traj_reader):
         clui.message("Auto Barber is looking where to cut:")
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         if self.expected_nr_of_spaths:
@@ -166,12 +169,14 @@ class WhereToCut(object):
     def _cut_thyself(self,spheres_passed, progress=False):
         # returns noredundant spheres
         # make a deep copy?
+        # TODO: this is not memory efficient?
         spheres = copy.copy(spheres_passed)
+        N = len(spheres)
         if progress:
-            N = len(spheres)
             clui.message("Barber, cut thyself:")
             pbar = clui.pbar(N)
         noredundat_spheres_count = 0
+        redundat_spheres = []
         while True:
             spheres.sort(key=lambda s: s.radius, reverse=True)
             spheres_coords = np.array([sphe.center for sphe in spheres])
@@ -185,11 +190,14 @@ class WhereToCut(object):
                 distances += spheres_radii[1:]
                 # remove if distance <= radius
                 to_keep = distances > radius
+                to_remove = not to_keep
                 # do keep
                 spheres_coords = spheres_coords[1:][to_keep]
                 spheres_radii = spheres_radii[1:][to_keep]
                 # do keep spheres
                 to_keep_ids = np.argwhere(to_keep).flatten().tolist()
+                to_remove_ids = np.argwhere(to_remove).flatten().tolist()
+                redundat_spheres.extend(lind(spheres,to_remove_ids))
                 spheres = lind(spheres, to_keep_ids)
                 # add big to non redundant
                 noredundat_spheres.append(big)
@@ -203,14 +211,46 @@ class WhereToCut(object):
                 spheres = noredundat_spheres
         if progress: pbar.finish()
 
-        return spheres
+        assert len(spheres)+len(redundat_spheres) == N
+        return spheres,redundat_spheres
 
 
 
     def cut_thyself(self):
-        self.spheres = self._cut_thyself(self.spheres,progress=True)
+        self.spheres = self._cut_thyself(self.spheres,progress=True)[0]
 
     def cloud_groups(self):
+        # no redundant spheres
+        with clui.fbm("Barber, cut thyself"):
+            noredundant_spheres,redundant_spheres = self.cut_thyself(self.spheres)
+        noredundant_spheres_coords = np.array([sphe.center for sphe in noredundant_spheres])
+        noredundant_spheres_radii = np.array([sphe.radius for sphe in noredundant_spheres])
+        clouds = {}
+        for nrs in noredundant_spheres:
+            # calculate distance
+            center, radius = nrs
+            distances = cdist(np.matrix(center), noredundant_spheres_coords, metric='euclidean').flatten()
+            distances = distances - noredundant_spheres_radii - radius
+            current_cloud = set(np.argwhere(distances <= 0).flatten().tolist())
+            # check if cci overlaps with any of already found clouds
+            cloud_id_intersections = []
+            for cloud_id,cloud in clouds.iteritems():
+                if current_cloud.intersection(cloud):
+                    # current cloud intersects with cloud
+                    cloud_id_intersections.append(cloud_id)
+            # does it intersects?
+            if cloud_id_intersections:
+                for cii in cloud_id_intersections:
+                    current_cloud = current_cloud.union(clouds.pop(cii))
+                # current id?
+                current_id = clouds.keys()
+                if current_id:
+                    current_id = max(current_id)+1
+                else:
+                    current_id = 1
+                clouds.update({current_id:current_cloud})
+
+
         # sort reverse
         sortids = np.argsort([sphe.radius for sphe in self.spheres]).tolist()[::-1]
         # start from biggest one
@@ -219,3 +259,14 @@ class WhereToCut(object):
 
 
         pass
+
+
+if __name__ == "__main__":
+
+    wtc = WhereToCut()
+
+    coords = np.random.randn(100,3)
+    radii = np.random.randn(100,1)*2
+
+    wtc.spheres = [Sphere(c,float(r)) for c,r in zip(coords,radii)]
+    wtc.cut_thyself()
