@@ -163,13 +163,14 @@ class WhereToCut(object):
             pbar.next()
         pbar.finish()
 
-    def _cut_thyself(self,spheres_passed):
+    def _cut_thyself(self,spheres_passed, progress=False):
         # returns noredundant spheres
         # make a deep copy?
         spheres = copy.copy(spheres_passed)
-        N = len(spheres)
-        clui.message("Barber, cut thyself:")
-        pbar = clui.pbar(N)
+        if progress:
+            N = len(spheres)
+            clui.message("Barber, cut thyself:")
+            pbar = clui.pbar(N)
         noredundat_spheres_count = 0
         while True:
             spheres.sort(key=lambda s: s.radius, reverse=True)
@@ -192,7 +193,7 @@ class WhereToCut(object):
                 spheres = lind(spheres, to_keep_ids)
                 # add big to non redundant
                 noredundat_spheres.append(big)
-                pbar.update(N - len(spheres))
+                if progress: pbar.update(N - len(spheres))
                 logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (len(noredundat_spheres), len(spheres)))
             if len(noredundat_spheres) == noredundat_spheres_count:
                 logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(noredundat_spheres))
@@ -200,55 +201,14 @@ class WhereToCut(object):
             else:
                 noredundat_spheres_count = len(noredundat_spheres)
                 spheres = noredundat_spheres
-        pbar.finish()
+        if progress: pbar.finish()
 
         return spheres
 
 
 
     def cut_thyself(self):
-        # this changes order and removes some of the spheres!
-        clui.message("Barber, cut thyself:")
-        N = len(self.spheres)
-        pbar = clui.pbar(N)
-        noredundat_spheres_count = 0
-        while True:
-            self.spheres.sort(key=lambda s: s.radius, reverse=True)
-            # create matrix of coords and vector of radii
-            spheres_coords = np.array([sphe.center for sphe in self.spheres])
-            spheres_radii = np.array([sphe.radius for sphe in self.spheres])
-            noredundat_spheres = []
-            while self.spheres:
-                # topmost is the biggest one
-                big = self.spheres.pop(0)
-                center, radius = big
-                # calculate distances of all to big but big
-                distances = cdist(np.matrix(center), spheres_coords[1:], metric='euclidean').flatten()
-                # add radii
-                distances += spheres_radii[1:]
-                # remove if distance <= radius
-                to_keep = distances > radius
-                # do keep
-                spheres_coords = spheres_coords[1:][to_keep]
-                spheres_radii = spheres_radii[1:][to_keep]
-                # do keep spheres
-                np.argwhere(to_keep).flatten()
-                to_keep_ids = np.argwhere(to_keep).flatten().tolist()
-                self.spheres = lind(self.spheres, to_keep_ids)
-                # add big to non redundant
-                noredundat_spheres.append(big)
-                pbar.update(N-len(self.spheres))
-                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
-                    len(noredundat_spheres), len(self.spheres)))
-            if len(noredundat_spheres) == noredundat_spheres_count:
-                logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(
-                    noredundat_spheres))
-                break
-            else:
-                noredundat_spheres_count = len(noredundat_spheres)
-                self.spheres = noredundat_spheres
-        self.spheres = noredundat_spheres
-        pbar.finish()
+        self.spheres = self._cut_thyself(self.spheres,progress=True)
 
     def cloud_groups(self):
         # sort reverse
