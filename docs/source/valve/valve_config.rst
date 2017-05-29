@@ -326,7 +326,7 @@ recursive_clusterization    clusterization  If it is set to name of some section
                             or None         method settings this method will be called in the next
                                             recursion of clusteriation. Default value for
                                             **reclusterization** is None.
-recursive_threshold         None            Allows to set threshold of that excludes clusters of certain
+recursive_threshold         None            Allows to set threshold that excludes clusters of certain
                                             size from reclusterization. Value of this option comprises of
                                             `operator` and `value`. Operator can be one of the following:
                                             >, >=, <=, <. Value have to be expressed as floating number and

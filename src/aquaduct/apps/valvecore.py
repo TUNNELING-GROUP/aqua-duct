@@ -1307,6 +1307,20 @@ def get_skip_size_function(rt=None):
     return lambda size_of_cluster: operator_dict[op](vl, size_of_cluster)
 
 
+class SkipSizeFunction(object):
+
+    def __init__(self,ths_def):
+
+        self.thresholds = []
+        for thd in ths_def.split():
+            self.thresholds.append(get_skip_size_function(thd))
+
+    def __call__(self,size_of_cluster):
+        for thd in self.thresholds:
+            if not thd(size_of_cluster):
+                return False
+        return True
+
 def potentially_recursive_clusterization(config=None,
                                          clusterization_name=None,
                                          inlets_object=None,
@@ -1333,7 +1347,8 @@ def potentially_recursive_clusterization(config=None,
             radii = [sphe.radius for sphe in wtc.spheres]
             inlets_object.add_radii(radii)
         # get skip_size function according to recursive_treshold
-        skip_size = get_skip_size_function(cluster_options.recursive_threshold)
+        #skip_size = get_skip_size_function(cluster_options.recursive_threshold)
+        skip_size = SkipSizeFunction(cluster_options.recursive_threshold)
         inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
     clui.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
 
