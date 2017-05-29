@@ -1312,8 +1312,9 @@ class SkipSizeFunction(object):
     def __init__(self,ths_def):
 
         self.thresholds = []
-        for thd in ths_def.split():
-            self.thresholds.append(get_skip_size_function(thd))
+        if isinstance(ths_def,(str,unicode)):
+            for thd in ths_def.split():
+                self.thresholds.append(get_skip_size_function(thd))
 
     def __call__(self,size_of_cluster):
         for thd in self.thresholds:
