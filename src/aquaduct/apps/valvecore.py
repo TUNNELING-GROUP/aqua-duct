@@ -879,18 +879,12 @@ def get_clustering_method(coptions,config):
                 opts.update({'mincut': float(abo.auto_barber_mincut)})
             else:
                 opts.update({'mincut': None})
-            if abo.auto_barber_mincut_level:
-                opts.update({'mincut_level': True})
-            else:
-                opts.update({'mincut_level': False})
             if is_number(abo.auto_barber_maxcut):
                 opts.update({'maxcut': float(abo.auto_barber_maxcut)})
             else:
                 opts.update({'maxcut': None})
-            if abo.auto_barber_maxcut_level:
-                opts.update({'maxcut_level': True})
-            else:
-                opts.update({'maxcut_level': False})
+            opts.update({'mincut_level': bool(abo.auto_barber_mincut_level)})
+            opts.update({'maxcut_level': bool(abo.auto_barber_maxcut_level)})
             opts.update({'tovdw': bool(abo.auto_barber_tovdw)})
         if 'auto_barber' in coptions._asdict():
             opts.update({'selection': str(coptions.auto_barber)})
