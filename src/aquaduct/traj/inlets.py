@@ -202,7 +202,7 @@ class Inlets(object):
         self.inlets_ids = []
         self.clusters = []
         self.number_of_clustered_inlets = None
-        self.radii = []
+        self.spheres = []
 
         self.tree = clui.SimpleTree()
 
@@ -272,9 +272,9 @@ class Inlets(object):
         self.resize_leaf_0()
 
 
-    def add_radii(self, radii):
-        assert len(radii) == len(self.inlets_list)
-        self.radii = radii
+    def add_spheres(self, spheres):
+        assert len(spheres) == len(self.inlets_list)
+        self.spheres = spheres
 
     def get_inlets_references(self):
         return [inl.reference for inl in self.inlets_list]
@@ -302,12 +302,12 @@ class Inlets(object):
         return [inlet.reference.name for inlet in self.inlets_list]
 
 
-    def call_clusterization_method(self, method, data, radii=None):
+    def call_clusterization_method(self, method, data, spheres=None):
         # this method runs clusterization method against provided data
         # if center_of_system was set then use distance matrix...
         if self.center_of_system is not None:
-            return method(np.array(data)-self.center_of_system, radii=radii)
-        return method(np.array(data),radii=radii)
+            return method(np.array(data) - self.center_of_system, spheres=spheres)
+        return method(np.array(data), spheres=spheres)
 
     def get_flat_tree(self,message=None):
         st = clui.SimpleTree(name='all',message='size: %d' % self.size)
@@ -318,7 +318,7 @@ class Inlets(object):
     def perform_clustering(self, method):
         # this do clean clustering, all previous clusters are discarded
         # 0 means outliers
-        self.add_cluster_annotations(self.call_clusterization_method(method,self.coords,radii=self.radii))
+        self.add_cluster_annotations(self.call_clusterization_method(method, self.coords, spheres=self.spheres))
         self.number_of_clustered_inlets = len(self.clusters)
         clui.message("New clusters created: %s" % (' '.join(map(str, sorted(set(self.clusters))))))
         # renumber clusters
@@ -352,7 +352,7 @@ class Inlets(object):
     def recluster_cluster(self, method, cluster):
         if cluster in self.clusters_list:
             logger.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
-            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords,radii=self.lim2clusters(cluster).radii)
+            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords, spheres=self.lim2clusters(cluster).spheres)
             if len(set(reclust)) <= 1:
                 clui.message('No new clusters found.')
             else:
@@ -499,13 +499,13 @@ class Inlets(object):
         new_inlets = self.__class__([], onlytype=self.onlytype)
         new_inlets.number_of_clustered_inlets = self.number_of_clustered_inlets
 
-        for inlet, ids, cluster, radius, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters, self.radii, what):
+        for inlet, ids, cluster, sphere, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters, self.spheres, what):
             if w in towhat:
                 new_inlets.inlets_list.append(inlet)
                 new_inlets.inlets_ids.append(ids)
                 new_inlets.clusters.append(cluster)
-                if len(self.radii) and (radius or radius == 0):
-                    new_inlets.radii.append(radius)
+                if len(self.spheres) and (sphere or sphere == 0):
+                    new_inlets.spheres.append(sphere)
 
         return new_inlets
 

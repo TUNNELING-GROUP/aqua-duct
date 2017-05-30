@@ -1253,9 +1253,9 @@ def potentially_recursive_clusterization(config=None,
                              expected_nr_of_spaths=len(inlets_refs),
                              forceempty=True,
                              **clustering_function.method_kwargs)
-            logger.debug('Getting radii...')
-            radii = [sphe.radius for sphe in wtc.spheres]
-            inlets_object.add_radii(radii)
+            #clouds = wtc.cloud_groups(progress=True)
+            logger.debug('Getting spheres...')
+            inlets_object.add_spheres(wtc.spheres)
         logger.debug('Proceed with clusterization, skip size...')
         # get skip_size function according to recursive_treshold
         skip_size = SkipSizeFunction(cluster_options.recursive_threshold)

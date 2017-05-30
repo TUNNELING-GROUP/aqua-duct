@@ -41,6 +41,7 @@ def get_required_params(method):
 
 from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
+from aquaduct.traj.barber import WhereToCut
 
 class BarberClusterResult(object):
     '''
@@ -53,39 +54,19 @@ class BarberCluster(object):
     '''
     Wrapper class that implements *barber* clusterization.
     '''
-    def fit(self,coords,radii=None):
+    def fit(self, coords, spheres=None):
         '''
         :param Iterable coords: Input coordinates of points to be clustered.
-        :param Iterable radii: Input radii for each point.
+        :param Iterable spheres: Input spheres for each point.
         '''
-        friends = {}
-        for nr,(coord,radius) in enumerate(zip(coords,radii)):
-            distances = cdist([coord],coords,metric='euclidean').flatten() - np.array(radii) - radius
-            # less then zero are intersecting
-            if (distances<=0).any():
-                friends.update({nr:np.argwhere(distances<=0).flatten().tolist()})
-        # loop over friends' groups
-        clustered = []
-        clusters = []
-        for leader,group in friends.iteritems():
-            if leader in clustered: continue
-            cluster = [] + group
-            last_size = -1
-            while len(cluster) != last_size:
-                last_size = len(cluster)
-                for leader2,group2 in friends.iteritems():
-                    if leader2 in clustered: continue
-                    if set(cluster).intersection(set(group2)):
-                        cluster += group2
-                        cluster = list(set(cluster))
-            clustered += cluster
-            clusters.append(cluster)
-        clusters.sort(key=lambda x: len(x),reverse=True)
-        # make labels
-        labels = [None]*len(coords)
-        for nr,cluster in enumerate(clusters):
-            for c in cluster:
-                labels[c] = nr
+        wtc = WhereToCut()
+        wtc.spheres = spheres
+        clouds = wtc.cloud_groups(progress=True)
+        # clouds to labels!
+        labels = np.zeros(len(spheres))
+        for cloud_id,cloud in clouds.iteritems():
+            labels[cloud] = cloud_id
+
         return BarberClusterResult(labels)
 
 
@@ -124,28 +105,28 @@ class PerformClustering(object):
         out = str(self.method.__name__)
         return out
 
-    def __call__(self, coords, radii=None):
+    def __call__(self, coords, spheres=None):
         # compatibility
-        return self.fit(coords, radii=radii)
+        return self.fit(coords, spheres=spheres)
 
     def _get_noclusters(self, n):
         return [0] * n
 
-    def fit(self, coords, radii=None):
+    def fit(self, coords, spheres=None):
         '''
         :param Iterable coords: Input coordinates of points to be clustered.
-        :param Iterable radii: Input radii for each point. Optional, important only if :attr:`method` is :class:`BarberCluster`.
+        :param Iterable spheres: Input spheres for each point. Optional, important only if :attr:`method` is :class:`BarberCluster`.
         :return: Clusters numbers.
         :rtype: list of int
         '''
-        # radii are used for Barber only
+        # spheres are used for Barber only
         if len(coords) < 2:
             self.clusters = self._get_noclusters(len(coords))
             return self.clusters
         # special cases
         if self.method is BarberCluster:
             method = self.method()
-            self.method_results = method.fit(coords,radii)
+            self.method_results = method.fit(coords, spheres)
             self.clusters = map(int, self.method_results.labels_ + 1)
         else:
             if self.method is MeanShift:

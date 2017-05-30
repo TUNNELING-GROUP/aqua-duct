@@ -33,7 +33,9 @@ from aquaduct.utils import clui
 from aquaduct.traj.reader import atom2vdw_radius
 from aquaduct.utils.helpers import lind
 
-class Sphere(namedtuple('Sphere', 'center radius')):
+__mail__ = 'info@aquaduct.pl'
+
+class Sphere(namedtuple('Sphere', 'center radius nr')):
     '''
     Simple sphere class.
     '''
@@ -123,6 +125,7 @@ class WhereToCut(object):
             pbar = clui.pbar(len(spaths))
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0
+        nr = 0
         for sp in spaths:
             centers = []
             frames = []
@@ -159,10 +162,12 @@ class WhereToCut(object):
                             radius = maxcut_val
                 if make_sphere:
                     logger.debug('Added sphere of radius %0.2f' % radius)
-                    self.spheres.append(Sphere(center, radius))
+                    self.spheres.append(Sphere(center, radius, nr))
+                    nr += 1
                 elif self.forceempty:
                     logger.debug('Added sphere of radius 0')
-                    self.spheres.append(Sphere(center, 0))
+                    self.spheres.append(Sphere(center, 0, nr))
+                    nr += 1
             pbar.next()
         pbar.finish()
 
@@ -184,13 +189,13 @@ class WhereToCut(object):
             noredundat_spheres = []
             while spheres:
                 big = spheres.pop(0)
-                center, radius = big
+                center, radius, nr = big
                 distances = cdist(np.matrix(center), spheres_coords[1:], metric='euclidean').flatten()
                 # add radii
                 distances += spheres_radii[1:]
                 # remove if distance <= radius
                 to_keep = distances > radius
-                to_remove = not to_keep
+                to_remove = ~to_keep
                 # do keep
                 spheres_coords = spheres_coords[1:][to_keep]
                 spheres_radii = spheres_radii[1:][to_keep]
@@ -211,27 +216,31 @@ class WhereToCut(object):
                 spheres = noredundat_spheres
         if progress: pbar.finish()
 
-        assert len(spheres)+len(redundat_spheres) == N
-        return spheres,redundat_spheres
+        assert len(noredundat_spheres)+len(redundat_spheres) == N, "Inconsistent number of not and redundant spheres. Please send a bug report to the developer(s): %s" % __mail__
+        return noredundat_spheres,redundat_spheres
 
 
 
     def cut_thyself(self):
         self.spheres = self._cut_thyself(self.spheres,progress=True)[0]
 
-    def cloud_groups(self):
+    def cloud_groups(self,progress=False):
         # no redundant spheres
-        with clui.fbm("Barber, cut thyself"):
-            noredundant_spheres,redundant_spheres = self.cut_thyself(self.spheres)
+        noredundant_spheres,redundant_spheres = self._cut_thyself(self.spheres,progress=progress)
+        if progress:
+            clui.message("Barber, clouds clusters:")
+            pbar = clui.pbar(len(self.spheres))
+
         noredundant_spheres_coords = np.array([sphe.center for sphe in noredundant_spheres])
         noredundant_spheres_radii = np.array([sphe.radius for sphe in noredundant_spheres])
         clouds = {}
         for nrs in noredundant_spheres:
             # calculate distance
-            center, radius = nrs
+            center, radius, nr = nrs
             distances = cdist(np.matrix(center), noredundant_spheres_coords, metric='euclidean').flatten()
             distances = distances - noredundant_spheres_radii - radius
             current_cloud = set(np.argwhere(distances <= 0).flatten().tolist())
+            del distances
             # check if cci overlaps with any of already found clouds
             cloud_id_intersections = []
             for cloud_id,cloud in clouds.iteritems():
@@ -243,22 +252,45 @@ class WhereToCut(object):
                 for cii in cloud_id_intersections:
                     current_cloud = current_cloud.union(clouds.pop(cii))
                 # current id?
-                current_id = clouds.keys()
-                if current_id:
-                    current_id = max(current_id)+1
-                else:
-                    current_id = 1
-                clouds.update({current_id:current_cloud})
+            current_id = clouds.keys()
+            if current_id:
+                for cid in range(1,max(current_id)+3):
+                    if cid not in current_id:
+                        current_id = cid
+                        break
+            else:
+                current_id = 1
+            clouds.update({current_id:current_cloud})
+            if progress: pbar.next()
 
+        # chnage nrs id to global ids; add redundant spheres
+        nrs_gids = [nrs.nr for nrs in noredundant_spheres]
+        for cloud_id,cloud in clouds.iteritems():
 
-        # sort reverse
-        sortids = np.argsort([sphe.radius for sphe in self.spheres]).tolist()[::-1]
-        # start from biggest one
-        for spheid in sortids:
-            pass
+            cloud = sorted(list(cloud))
 
+            if len(redundant_spheres):
+                cloud_coords = noredundant_spheres_coords[cloud]
+                cloud_radii = noredundant_spheres_radii[cloud]
 
-        pass
+            cloud = sorted([nrs_gids[c] for c in cloud])
+            #clouds.update({cloud_id:cloud})
+
+            for rs_id in range(len(redundant_spheres))[::-1]:
+                center, radius, nr = redundant_spheres[rs_id]
+                distances = cdist(np.matrix(center), cloud_coords, metric='euclidean').flatten()
+                distances = distances - cloud_radii - radius
+                current_cloud = np.argwhere(distances <= 0).flatten().tolist()
+                if current_cloud:
+                    cloud.append(nr)
+                    redundant_spheres.pop(rs_id)
+                    if progress: pbar.next()
+
+            clouds.update({cloud_id: cloud})
+
+        if progress: pbar.finish()
+
+        return clouds
 
 
 if __name__ == "__main__":
