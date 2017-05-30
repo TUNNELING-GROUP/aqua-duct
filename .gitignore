@@ -4,14 +4,10 @@
 *.nc
 *.dcd
 *.pdb
-
 *.dump
-
 *.pyc
 *.pyo
-
 *.orig
-
 *.*~
 
 .project
@@ -27,11 +23,19 @@ ide.general.xml
 vcs.xml
 codestyles
 
+
 valve_tests
 real_traj
 
 docs_spell.geany
 pull_traj.sh
 
+
+
 docs/build
+src/build
+src/dist
+src/*egg*
+ves
+
 

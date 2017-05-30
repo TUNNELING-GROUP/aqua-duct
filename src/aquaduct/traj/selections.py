@@ -32,6 +32,11 @@ from aquaduct.utils.helpers import int2range, are_rows_uniq
 from aquaduct.utils.maths import make_default_array
 
 class Selection(object):
+
+    '''
+    def __init__(self,*args,**kwargs):
+        super(Selection,self).__init__(*args,**kwargs)
+    '''
     """
     def __init__(self,selection,selection_string=None):
 
@@ -39,10 +44,10 @@ class Selection(object):
         self.selection_string = selection_string
     """
 
+    '''
     def center_of_mass(self):
         # should return numpy (3,) array
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-
     def iterate_over_residues(self):
         # should iterate over residues in the selection returning object of the same type
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
@@ -54,13 +59,16 @@ class Selection(object):
     def unique_names(self):
         # should return array of names of residues
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+    '''
 
     def unique_resids_number(self):
         return len(self.unique_resids(ikwid=True))
+    '''
 
     def atom_positions(self):
         # should return numpy (x,3) array
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+    '''
 
     def center_of_mass_of_residues(self):
         # should resturn list of lists or generator of center of masses
@@ -115,10 +123,20 @@ class Selection(object):
 
 # TODO: decide if methods should be properties or not
 
-class SelectionMDA(mda.core.AtomGroup.AtomGroup,
-                   Selection):
+#class SelectionMDA(mda.core.AtomGroup.AtomGroup, #mda15
+class SelectionMDA(Selection,mda.core.groups.AtomGroup):     #mda16
+
+    def __init__(self,selection,universe): #mda16
+
+        #super(SelectionMDA,self).__init__(selection.indices,universe)
+        Selection.__init__(self)
+        #print dir(selection)
+        mda.core.groups.AtomGroup.__init__(self,selection.indices,universe)
+        #assert "center_of_mass" in dir(self)
+        #print self.center_of_mass()
+
     def iterate_over_residues(self):
-        return (self.__class__(R) for R in self.residues)
+        return (self.__class__(R.atoms,self.universe) for R in self.residues)
 
     def unique_names(self):
         resids = self.resids.tolist()
@@ -141,11 +159,11 @@ class SelectionMDA(mda.core.AtomGroup.AtomGroup,
 
     def __add__(self, other):
         if other is not None:
-            return SelectionMDA(self._atoms + other._atoms)
-        return SelectionMDA(self._atoms)
+            return SelectionMDA(self.atoms + other.atoms, self.universe)
+        return SelectionMDA(self.atoms, self.universe)
 
     def uniquify(self):
-        self.__init__(mda.core.AtomGroup.AtomGroup(set(self._atoms)))
+        self.__init__(mda.core.groups.AtomGroup(sum(set(self.atoms))),self.universe)
 
 
 

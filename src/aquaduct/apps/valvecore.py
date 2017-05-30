@@ -937,7 +937,6 @@ def stage_I_run(config, options,
 
         clui.message("Loop over frames - search of residues in object:")
         pbar = clui.pbar(traj_reader.number_of_frames)
-
         scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
         center_of_system = np.array([0., 0., 0.])
@@ -2182,7 +2181,7 @@ def stage_VI_run(config, options,
     if options.show_molecule:
         with clui.fbm("Molecule"):
             with reader.get() as traj_reader:
-                mda_ppr = mda.core.flags["permissive_pdb_reader"]
+                #mda_ppr = mda.core.flags["permissive_pdb_reader"] #mda16 it is porbably always True
                 mda.core.flags["permissive_pdb_reader"] = False
                 pdb = TmpDumpWriterOfMDA()
                 frames_to_show = range2int(options.show_molecule_frames)
