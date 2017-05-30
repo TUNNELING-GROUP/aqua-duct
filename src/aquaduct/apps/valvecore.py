@@ -2181,8 +2181,8 @@ def stage_VI_run(config, options,
     if options.show_molecule:
         with clui.fbm("Molecule"):
             with reader.get() as traj_reader:
-                #mda_ppr = mda.core.flags["permissive_pdb_reader"] #mda16 it is porbably always True
-                mda.core.flags["permissive_pdb_reader"] = False
+                #mda_ppr = mda.core.flags["permissive_pdb_reader"]
+                #mda.core.flags["permissive_pdb_reader"] = False #mda16 it is porbably always True
                 pdb = TmpDumpWriterOfMDA()
                 frames_to_show = range2int(options.show_molecule_frames)
                 pdb.dump_frames(traj_reader, frames=frames_to_show, selection=options.show_molecule)
