@@ -20,7 +20,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 import numpy as np
-from collections import namedtuple,OrderedDict
+from collections import namedtuple, OrderedDict
 from scipy.spatial.distance import pdist, squareform
 import copy
 from itertools import izip_longest
@@ -28,7 +28,6 @@ from itertools import izip_longest
 from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
 from aquaduct.utils.maths import make_default_array
-
 
 
 class ProtoInletTypeCodes:
@@ -60,12 +59,12 @@ class InletTypeCodes(ProtoInletTypeCodes):
 # clusers can be:
 # None  - no such cluster
 # nr - 0 means outliers
-
+# because of passing paths one more type could be considered ???
+# this might be also done in a different way
 
 class InletClusterGenericType(object):
     def __init__(self, inp, out):
         self.clusters = [inp, out]
-
 
     @property
     def input(self):
@@ -105,21 +104,6 @@ class InletClusterGenericType(object):
             val += e
         return val
 
-    # def __cmp__(self, other):
-    #     if other is None:
-    #         return 1
-    #     if not isinstance(other, self.__class__):
-    #         return 1
-    #
-    #     result = 0
-    #     base = max(max(self), max(other), len(self), len(other)) + 2.
-    #
-    #     if self.make_val(base) - other.make_val(base) > 0:
-    #         return 1
-    #     elif self.make_val(base) - other.make_val(base) < 0:
-    #         return -1
-    #     return 0
-
     def __cmp__(self, other):
 
         def sort_for_cmp(a, b):
@@ -149,7 +133,7 @@ class InletClusterGenericType(object):
             elif a < b:
                 return -1
 
-            # firstly only inputs are sorted, in case of self.input == other.input the outputs are sorted
+                # firstly only inputs are sorted, in case of self.input == other.input the outputs are sorted
 
         value = sort_for_cmp(self.input, other.input)
         if value == 0:
@@ -159,19 +143,6 @@ class InletClusterGenericType(object):
 
     def __hash__(self):
         return hash(str(self))
-
-
-# alien
-def make_spherical(xyz):
-    #http://stackoverflow.com/questions/4116658/faster-numpy-cartesian-to-spherical-coordinate-conversion#4116899
-    assert xyz.ndim == 2
-    sph = np.zeros(xyz.shape)
-    xy = xyz[:,0]**2 + xyz[:,1]**2
-    sph[:,0] = np.sqrt(xy + xyz[:,2]**2)
-    sph[:,1] = np.arctan2(np.sqrt(xy), xyz[:,2]) # for elevation angle defined from Z-axis down
-    #sph[1] = np.arctan2(xyz[2], np.sqrt(xy)) # for elevation angle defined from XY-plane up
-    sph[:,2] = np.arctan2(xyz[:,1], xyz[:,0])
-    return sph
 
 
 class InletClusterExtendedType(InletClusterGenericType):
@@ -184,11 +155,10 @@ class InletClusterExtendedType(InletClusterGenericType):
         return InletClusterGenericType(*self.clusters[:2])
 
 
-#Inlet = namedtuple('Inlet', 'coords type reference')
+# Inlet = namedtuple('Inlet', 'coords type reference')
 
 class Inlet(object):
-
-    def __init__(self,coords=None,type=None,reference=None):
+    def __init__(self, coords=None, type=None, reference=None):
         self.coords = make_default_array(coords)
         self.type = type
         self.reference = reference
@@ -212,13 +182,11 @@ class Inlets(object):
         for spath in spaths:
             self.extend_inlets(spath)
 
-
-
-    def add_leaf_wrapper(self,name=None,message=None,toleaf=None):
+    def add_leaf_wrapper(self, name=None, message=None, toleaf=None):
         if name == 0:
             self.tree.add_leaf(name='(0)', message=message, toleaf=toleaf)
         else:
-            self.tree.add_leaf(name=name,message=message,toleaf=toleaf)
+            self.tree.add_leaf(name=name, message=message, toleaf=toleaf)
 
     def resize_leaf_0(self):
         if 0 in self.clusters_list:
@@ -227,8 +195,8 @@ class Inlets(object):
             else:
                 self.tree.add_message(toleaf=0, message='size: %d' % self.clusters.count(0), replace=True)
 
-    def add_message_wrapper(self,message=None,toleaf=None):
-        self.tree.add_message(message=message,toleaf=toleaf)
+    def add_message_wrapper(self, message=None, toleaf=None):
+        self.tree.add_message(message=message, toleaf=toleaf)
 
     def extend_inlets(self, spath, onlytype=None):
         if not self.passing and spath.is_passing():
@@ -256,26 +224,27 @@ class Inlets(object):
         assert len(new_clusters) == len(self.inlets_list)
         # this is meant for situation when some points from clusters are changed to outliers
         # lets loop over current clusters list
-        for cluster,cluster_size in zip(self.clusters_list,self.clusters_size):
+        for cluster, cluster_size in zip(self.clusters_list, self.clusters_size):
             if cluster == 0: continue
             # check if cluster was changed!
             if cluster not in new_clusters:
                 # it was completly removed!
-                self.add_message_wrapper(message='outliers detection',toleaf=cluster)
-                self.add_leaf_wrapper(name=0,toleaf=cluster,message='size: %d' % cluster_size)
+                self.add_message_wrapper(message='outliers detection', toleaf=cluster)
+                self.add_leaf_wrapper(name=0, toleaf=cluster, message='size: %d' % cluster_size)
             elif self.clusters.count(cluster) != new_clusters.count(cluster):
                 # some points were shifted to outliers
                 self.add_message_wrapper(message='outliers detection', toleaf=cluster)
-                self.add_leaf_wrapper(name=0, toleaf=cluster, message='size: %d' % (cluster_size - new_clusters.count(cluster)))
+                self.add_leaf_wrapper(name=0, toleaf=cluster,
+                                      message='size: %d' % (cluster_size - new_clusters.count(cluster)))
                 # we need new cluster!
-                new_cluster = max(new_clusters)+1
-                for nr,dummy in enumerate(new_clusters):
+                new_cluster = max(new_clusters) + 1
+                for nr, dummy in enumerate(new_clusters):
                     if new_clusters[nr] == cluster:
                         new_clusters[nr] = new_cluster
-                self.add_leaf_wrapper(name=new_cluster, toleaf=cluster, message='size: %d' % (new_clusters.count(new_cluster)))
+                self.add_leaf_wrapper(name=new_cluster, toleaf=cluster,
+                                      message='size: %d' % (new_clusters.count(new_cluster)))
         self.clusters = new_clusters
         self.resize_leaf_0()
-
 
     def add_spheres(self, spheres):
         assert len(spheres) == len(self.inlets_list)
@@ -306,7 +275,6 @@ class Inlets(object):
     def refs_names(self):
         return [inlet.reference.name for inlet in self.inlets_list]
 
-
     def call_clusterization_method(self, method, data, spheres=None):
         # this method runs clusterization method against provided data
         # if center_of_system was set then use distance matrix...
@@ -314,10 +282,11 @@ class Inlets(object):
             return method(np.array(data) - self.center_of_system, spheres=spheres)
         return method(np.array(data), spheres=spheres)
 
-    def get_flat_tree(self,message=None):
-        st = clui.SimpleTree(name='all',message='size: %d' % self.size)
+    def get_flat_tree(self, message=None):
+        st = clui.SimpleTree(name='all', message='size: %d' % self.size)
         st.add_message(message=message)
-        [st.add_leaf(name=leaf,message='size: %d' % csize) for leaf,csize in zip(self.clusters_list,self.clusters_size)]
+        [st.add_leaf(name=leaf, message='size: %d' % csize) for leaf, csize in
+         zip(self.clusters_list, self.clusters_size)]
         return st
 
     def perform_clustering(self, method):
@@ -353,11 +322,12 @@ class Inlets(object):
         # self.renumber_clusters()
         # return clusters as simple tree
 
-    #CLUSTER
+    # CLUSTER
     def recluster_cluster(self, method, cluster):
         if cluster in self.clusters_list:
             logger.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
-            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords, spheres=self.lim2clusters(cluster).spheres)
+            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords,
+                                                      spheres=self.lim2clusters(cluster).spheres)
             if len(set(reclust)) <= 1:
                 clui.message('No new clusters found.')
             else:
@@ -375,10 +345,11 @@ class Inlets(object):
                     if r != 0:
                         reclust[nr] = r + max_cluster
                 if cluster != 0:
-                    self.add_message_wrapper(message=str(method),toleaf=cluster)
-                [self.add_leaf_wrapper(name=leaf,toleaf=cluster,message=['size: %d' % reclust.count(leaf)]) for leaf in sorted(list(set(reclust)))]
+                    self.add_message_wrapper(message=str(method), toleaf=cluster)
+                [self.add_leaf_wrapper(name=leaf, toleaf=cluster, message=['size: %d' % reclust.count(leaf)]) for leaf
+                 in sorted(list(set(reclust)))]
                 if cluster == 0:
-                    self.add_message_wrapper(message=['[RE]',str(method)], toleaf=cluster)
+                    self.add_message_wrapper(message=['[RE]', str(method)], toleaf=cluster)
                 if out_reclust:
                     clui.message('The old cluster %d will be split into new clusters: %s' % (
                         cluster, (' '.join(map(str, sorted(set(reclust))[1:])))))
@@ -408,8 +379,8 @@ class Inlets(object):
             if c == 0:
                 continue
             if self.clusters.count(c) <= maxsize:
-                self.add_leaf_wrapper(name=0,toleaf=c,message='size: %d' % self.clusters.count(c))
-                self.add_message_wrapper(message='|%d| to outliers' % maxsize,toleaf=c)
+                self.add_leaf_wrapper(name=0, toleaf=c, message='size: %d' % self.clusters.count(c))
+                self.add_message_wrapper(message='|%d| to outliers' % maxsize, toleaf=c)
                 for nr, cc in enumerate(self.clusters):
                     if cc == c:
                         self.clusters[nr] = 0
@@ -419,8 +390,9 @@ class Inlets(object):
         if new_out:
             if 0 not in self.tree.leafs_names:
                 self.tree.add_leaf(name=0)
-            self.add_message_wrapper(message=['|%d| to outliers' % maxsize,'new size %d' % self.clusters.count(0)], toleaf=0)
-        #self.resize_leaf_0()
+            self.add_message_wrapper(message=['|%d| to outliers' % maxsize, 'new size %d' % self.clusters.count(0)],
+                                     toleaf=0)
+            # self.resize_leaf_0()
 
     def renumber_clusters(self):
         if 0 in self.clusters_list:
@@ -447,8 +419,9 @@ class Inlets(object):
         else:
             new_numbers = [old_numbers[i] for i in np.argsort(old_sizes).tolist()[::-1]]
             new_sizes = [old_sizes[i] for i in np.argsort(old_sizes).tolist()[::-1]]
-        #trans_dict = {n: o for o, n in zip(old_numbers, new_numbers)}
-        trans_dict = dict((n,o) for o, n in zip(old_numbers, new_numbers)) # more universal as dict comprehension may not work in <2.7
+        # trans_dict = {n: o for o, n in zip(old_numbers, new_numbers)}
+        trans_dict = dict((n, o) for o, n in
+                          zip(old_numbers, new_numbers))  # more universal as dict comprehension may not work in <2.7
         new_clusters = []
         for c in self.clusters:
             new_clusters.append(trans_dict[c])
@@ -486,7 +459,7 @@ class Inlets(object):
         for sp in spaths:
             yield self.spath2ctype(sp)
 
-    def spath2ctype(self,sp):
+    def spath2ctype(self, sp):
         ctypes = self.lim2spaths(sp).types
         clusters = self.lim2spaths(sp).clusters
         surfin, interin, interout, surfout = None, None, None, None
@@ -507,7 +480,8 @@ class Inlets(object):
         new_inlets = self.__class__([], onlytype=self.onlytype)
         new_inlets.number_of_clustered_inlets = self.number_of_clustered_inlets
 
-        for inlet, ids, cluster, sphere, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters, self.spheres, what):
+        for inlet, ids, cluster, sphere, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters,
+                                                           self.spheres, what):
             if w in towhat:
                 new_inlets.inlets_list.append(inlet)
                 new_inlets.inlets_ids.append(ids)

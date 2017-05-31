@@ -116,7 +116,7 @@ class GenericPaths(object, GenericPathTypeCodes):
         if name_of_res is not None:
             self.name = name_of_res
         else:
-            self.name = 'UNK' #FIXME: magic constant
+            self.name = 'UNK'  # FIXME: magic constant
         self.__types = SmartRange()
         self.__frames = SmartRange()
         self.coords = []
@@ -461,16 +461,20 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
     def is_single(self):
         raise NotImplementedError("Implementation missing.")
+
     def is_passing(self):
         raise NotImplementedError("Implementation missing.")
 
-    def is_frame_in(self,frame):
+    def is_frame_in(self, frame):
         return self.__path_in.isin(frame)
-    def is_frame_object(self,frame):
+
+    def is_frame_object(self, frame):
         return self.__path_object.isin(frame)
-    def is_frame_out(self,frame):
+
+    def is_frame_out(self, frame):
         return self.__path_out.isin(frame)
-    def is_frame_walk(self,frame):
+
+    def is_frame_walk(self, frame):
         return self.is_frame_in(frame) or self.is_frame_object(frame) or self.is_frame_out(frame)
 
     @property
@@ -723,9 +727,9 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
 
 class SinglePath(MacroMolPath):
-
     def is_single(self):
         return True
+
     def is_passing(self):
         return False
 
@@ -748,10 +752,11 @@ class PassingPath(MacroMolPath):
 
     def is_single(self):
         return False
+
     def is_passing(self):
         return True
 
-    def is_frame_walk(self,frame):
+    def is_frame_walk(self, frame):
         return self.__path.isin(frame)
 
     @property
