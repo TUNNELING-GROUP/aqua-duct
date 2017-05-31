@@ -94,7 +94,7 @@ class ValveConfig(object, ConfigSpecialNames):
             if iskeyword(opt):
                 logger.warning('Invalid keyword <%s> in config file skipped. Check configuration file.' % opt)
                 continue
-            if opt.replace('_','').isalnum():
+            if opt.replace('_', '').isalnum():
                 options.append((opt, self.special_name(input_options[opt])))
             else:
                 logger.debug('Keyword <%s> in config file skipped.' % opt)
@@ -230,10 +230,10 @@ class ValveConfig(object, ConfigSpecialNames):
                 else:
                     config.set(section, setting, value=value)
 
-        def common_traj_data(section,commented=False):
+        def common_traj_data(section, commented=False):
             for setting in self.common_traj_data_config_names():
                 if commented:
-                    setting = '#'+setting
+                    setting = '#' + setting
                 config.set(section, setting, 'None')
 
         ################
@@ -394,30 +394,29 @@ class ValveConfig(object, ConfigSpecialNames):
         with open(filename, 'w') as fs:
             self.save_config_stream(fs)
 
-    def get_general_comment(self,section):
+    def get_general_comment(self, section):
         if section == self.global_name():
             return ['Global settings.']
         if section == self.cluster_name():
             out = ['Possible clusterization methods:']
             # get default clusterization method
-            defmet = self.config.get(section,'method')
+            defmet = self.config.get(section, 'method')
             for method in available_clusterization_methods:
                 if method == defmet: continue
-                out.append('method = %s' %method)
+                out.append('method = %s' % method)
                 params = get_required_params(method)
                 if params:
                     sss = ''
                     if len(params) > 1:
                         sss = 's'
-                    out.append('Required parameter%s for %s method:' % (sss,method))
+                    out.append('Required parameter%s for %s method:' % (sss, method))
                     for param in params:
                         out.append('%s = None' % param)
-                    #out.append('')
+                        # out.append('')
             return out
 
-
-    def dump_config(self,dump_template=False):
-        skip_list = '''simply_smooths'''.split() # these options are very optional!
+    def dump_config(self, dump_template=False):
+        skip_list = '''simply_smooths'''.split()  # these options are very optional!
         concise = True
         if dump_template:
             concise = False
@@ -442,13 +441,13 @@ class ValveConfig(object, ConfigSpecialNames):
 
         # this loop ensures it is returned in particular order
         for opts, name in zip(options, names):
-            output.append('[%s]' % name) # section name
+            output.append('[%s]' % name)  # section name
             # general comments
             if dump_template:
                 comment = self.get_general_comment(name)
                 if comment:
                     output.extend(['# %s' % line for line in comment])
-            for key,value in opts._asdict().iteritems(): # loop over options
+            for key, value in opts._asdict().iteritems():  # loop over options
                 if key in skip_list: continue
                 # comment scope etc. in stage II if dump_template
                 if dump_template and name == self.stage_names(1):
@@ -459,9 +458,9 @@ class ValveConfig(object, ConfigSpecialNames):
 
         # is something missing? another loop over all additional sections
         for miss in self.config.sections():
-            if miss in names: continue # skip if it was already dumped in the loop above
+            if miss in names: continue  # skip if it was already dumped in the loop above
             output.append('[%s]' % miss)
-            for key in self.config.options(miss): # loop over options in section miss
+            for key in self.config.options(miss):  # loop over options in section miss
                 if key in skip_list: continue
                 value = self.config.get(miss, key)
                 output.append('%s = %s' % (key, value2str(value)))
@@ -475,7 +474,7 @@ class ValveConfig(object, ConfigSpecialNames):
 # reader helper class
 
 class TrajectoryReader(object):
-    def __init__(self, top, trj,frames_window=None):
+    def __init__(self, top, trj, frames_window=None):
         assert isinstance(top, (str, unicode)), "Topology file name missing, %s given instead" % str(top)
         assert isinstance(trj, (str, unicode)), "Trajectory file(s) name(s) missing, %s given instead" % str(trj)
         self.top = top
@@ -671,7 +670,7 @@ def get_smooth_method(soptions):
     return smooth
 
 
-def get_clustering_method(coptions,config):
+def get_clustering_method(coptions, config):
     assert coptions.method in available_clusterization_methods, 'Unknown clusterization method %s.' % coptions.method
 
     opts = {}
@@ -899,7 +898,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 with clui.fbm('Saving data dump in %s file' % options.dump):
                     vda = get_vda_reader(options.dump)
                     vda(mode='w', data_file_name=options.dump).dump(**result)
-                # save_stage_dump(options.dump, **result)
+                    # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
                 ###########
@@ -926,7 +925,6 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
 def stage_I_run(config, options,
                 reader=None,
                 **kwargs):
-
     # create pool of workers - mapping function
     map_fun = map
     if optimal_threads.threads_count > 1:
@@ -981,7 +979,7 @@ def stage_I_run(config, options,
 
     clui.message("Number of residues to trace: %d" % all_res.unique_resids_number())
 
-    #'res_ids_in_object_over_frames': IdsOverIds.dict2arrays(res_ids_in_object_over_frames),
+    # 'res_ids_in_object_over_frames': IdsOverIds.dict2arrays(res_ids_in_object_over_frames),
     return {'all_res': all_res,
             'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
             'center_of_system': center_of_system,
@@ -1002,8 +1000,7 @@ def stage_II_run(config, options,
         res_ids_in_object_over_frames = {}
     else:
         pass
-        #res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
-
+        # res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
     with reader.get() as traj_reader:
 
@@ -1106,8 +1103,14 @@ def stage_III_run(config, options,
 
     if options.discard_short_paths > 0:
         shorter_then = int(options.discard_short_paths)
+        nr_of_spaths = len(spaths)
         with clui.fbm("Discard paths shorter then %d" % shorter_then):
             spaths = [sp for sp in spaths if sp.size > shorter_then]
+        new_nr_of_spaths = len(spaths)
+        if new_nr_of_spaths < nr_of_spaths:
+            clui.message("Discarded %d out of %d paths." % (nr_of_spaths - new_nr_of_spaths, nr_of_spaths))
+        else:
+            clui.message("No paths discarded.")
 
     if options.auto_barber:
         with reader.get() as traj_reader:
@@ -1135,7 +1138,8 @@ def stage_III_run(config, options,
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
         spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True,
-                                                      passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
+                                                      passing=options.allow_passing_paths) if
+                  pbar.update(nr + 1) is None]
         pbar.finish()
 
         if options.discard_short_paths > 0:
@@ -1145,7 +1149,7 @@ def stage_III_run(config, options,
                 spaths = [sp for sp in spaths if sp.size > shorter_then]
             new_nr_of_spaths = len(spaths)
             if new_nr_of_spaths < nr_of_spaths:
-                clui.message("Discarded %d out of %d paths." % (nr_of_spaths-new_nr_of_spaths,nr_of_spaths))
+                clui.message("Discarded %d out of %d paths." % (nr_of_spaths - new_nr_of_spaths, nr_of_spaths))
             else:
                 clui.message("No paths discarded.")
 
@@ -1196,6 +1200,7 @@ def get_skip_size_function(rt=None):
     assert op in operator_dict.keys(), "Unsupported operator %s in threshold %s" % (op, rt)
     return lambda size_of_cluster: operator_dict[op](vl, size_of_cluster)
 
+
 def get_allow_size_function(rt=None):
     if not isinstance(rt, str): return None
     assert re.compile('^[<>=]+[0-9.]+$').match(rt) is not None, "Wrong threshold definition: %s" % rt
@@ -1212,19 +1217,19 @@ def get_allow_size_function(rt=None):
 
 
 class SkipSizeFunction(object):
-
-    def __init__(self,ths_def):
+    def __init__(self, ths_def):
 
         self.thresholds = []
-        if isinstance(ths_def,(str,unicode)):
+        if isinstance(ths_def, (str, unicode)):
             for thd in ths_def.split():
                 self.thresholds.append(get_allow_size_function(thd))
 
-    def __call__(self,size_of_cluster):
+    def __call__(self, size_of_cluster):
         for thd in self.thresholds:
             if not thd(size_of_cluster):
                 return True
         return False
+
 
 def potentially_recursive_clusterization(config=None,
                                          clusterization_name=None,
@@ -1241,7 +1246,7 @@ def potentially_recursive_clusterization(config=None,
         for k, v in cluster_options._asdict().iteritems():
             clui.message("%s = %s" % (str(k), str(v)))
         # TODO: Print clusterization options in a nice way!
-        clustering_function = get_clustering_method(cluster_options,config)
+        clustering_function = get_clustering_method(cluster_options, config)
         # special case of barber!!!
         if cluster_options.method == 'barber':
             logger.debug('Getting inltets refs...')
@@ -1252,7 +1257,7 @@ def potentially_recursive_clusterization(config=None,
                              expected_nr_of_spaths=len(inlets_refs),
                              forceempty=True,
                              **clustering_function.method_kwargs)
-            #clouds = wtc.cloud_groups(progress=True)
+            # clouds = wtc.cloud_groups(progress=True)
             logger.debug('Getting spheres...')
             inlets_object.add_spheres(wtc.spheres)
         logger.debug('Proceed with clusterization, skip size...')
@@ -1908,7 +1913,7 @@ def stage_V_run(config, options,
     pa.sep()
     for tname, sptype, message in iter_over_tnspt():
         pa("Number of inlets%s: %d" % (
-        message, inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype)]).lim2rnames(tname).size))
+            message, inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype)]).lim2rnames(tname).size))
 
     no_of_clusters = len(inls.clusters_list) - {True: 1, False: 0}[0 in inls.clusters_list]  # minus outliers, if any
     pa("Number of clusters: %d" % no_of_clusters)
@@ -1979,12 +1984,12 @@ def stage_V_run(config, options,
 
     def iter_over_part():
         for _part in 'walk in object out'.split() + ['in out'.split()]:
-            if isinstance(_part,list):
+            if isinstance(_part, list):
                 _message = '_'.join(_part)
             else:
                 _message = _part
                 _part = [_part]
-            yield _part,_message
+            yield _part, _message
 
     def iter_over_spt():
         yield spaths_types, 'apaths'
@@ -1997,9 +2002,9 @@ def stage_V_run(config, options,
                 yield (_sptype,), _sptype_name
 
     def iter_over_c():
-        yield inls.clusters_list+[None], 'aclusts'
-        if len(inls.clusters_list+[None]) > 1:
-            for _cluster in inls.clusters_list+[None]:
+        yield inls.clusters_list + [None], 'aclusts'
+        if len(inls.clusters_list + [None]) > 1:
+            for _cluster in inls.clusters_list + [None]:
                 yield [_cluster], str(_cluster)
 
     def iter_over_ct():
@@ -2009,53 +2014,53 @@ def stage_V_run(config, options,
                 yield (_cluster,), str(_cluster)
 
     def iter_over_all():
-        for _tname,_m_tname in iter_over_tn():
-            for _sptype,_m_sptype in iter_over_spt():
-                for _cluster,_m_cluster in iter_over_c():
+        for _tname, _m_tname in iter_over_tn():
+            for _sptype, _m_sptype in iter_over_spt():
+                for _cluster, _m_cluster in iter_over_c():
                     for _part, _m_part in iter_over_part():
                         _message = '_'.join((_m_tname,
                                              _m_sptype,
                                              _m_cluster,
                                              _m_part))
-                        yield _tname,_sptype,_cluster,_part,_message
-                for _ctype,_m_ctype in iter_over_ct():
+                        yield _tname, _sptype, _cluster, _part, _message
+                for _ctype, _m_ctype in iter_over_ct():
                     for _part, _m_part in iter_over_part():
                         _message = '_'.join((_m_tname,
                                              _m_sptype,
                                              _m_ctype,
                                              _m_part))
-                        yield _tname,_sptype,_ctype,_part,_message
+                        yield _tname, _sptype, _ctype, _part, _message
 
     # histograms
     # calculate old max_frame
     with reader.get() as traj_reader:
         max_frame = traj_reader.number_of_frames - 1
     header = [column[-1] for column in iter_over_all()]
-    h = np.zeros((max_frame+1,len(header)))
+    h = np.zeros((max_frame + 1, len(header)))
     # loop over spaths
     pbar = clui.pbar(maxval=len(spaths),
                      mess='Calculating histograms')
-    for sp,ct in zip(spaths,ctypes):
+    for sp, ct in zip(spaths, ctypes):
         # loop over columns
-        for tname,sptype,c_ct,part,col_name in iter_over_all():
+        for tname, sptype, c_ct, part, col_name in iter_over_all():
             # check if column fits to the requirements
             if not sp.id.name in tname: continue
-            if not isinstance(sp,sptype): continue
+            if not isinstance(sp, sptype): continue
             # c or ct
             it_is_ct = False
-            if isinstance(c_ct[0],InletClusterGenericType):
+            if isinstance(c_ct[0], InletClusterGenericType):
                 it_is_ct = True
                 if not ct.generic in c_ct: continue
             else:
-                if len(union_full(ct.generic.clusters,c_ct)) == 0: continue
+                if len(union_full(ct.generic.clusters, c_ct)) == 0: continue
             # this is more than that...
             # if c_ct is not InletClusterGenericType then:
             # if 'in' in part only incoming paths in ct are used
             # if 'out' in part only outgoing paths in ct are used
             col_index = header.index(col_name)
             if 'walk' in part:
-                h[sp.paths_cont,col_index] += 1
-            if isinstance(sp,PassingPath): continue
+                h[sp.paths_cont, col_index] += 1
+            if isinstance(sp, PassingPath): continue
             if 'in' in part:
                 if not it_is_ct:
                     if not ct.input in c_ct:
@@ -2071,17 +2076,17 @@ def stage_V_run(config, options,
         pbar.next()
     pbar.finish()
     # add frame column?
-    frame_col = np.array([range(max_frame+1)]).T
-    h = np.hstack((frame_col,h))
+    frame_col = np.array([range(max_frame + 1)]).T
+    h = np.hstack((frame_col, h))
     header = ['frame'] + header
     # save???
-    np.savetxt(options.save+'.csv',h,
+    np.savetxt(options.save + '.csv', h,
                fmt='%u',
                delimiter=',',
                header=','.join(header))
 
+    return {'hist': h, 'header': header}
 
-    return {'hist':h,'header':header}
 
 ################################################################################
 
@@ -2103,12 +2108,14 @@ def plot_spaths_traces(spaths, spp=None, name=None, split=False, states=False, s
         if states or separate:
             sp = [sp]
         if split:
-            spp.paths_trace(sp, name=name + '_in' + name_separate, plot_object=False, plot_out=False, state=state,
-                            smooth=smooth)
-            spp.paths_trace(sp, name=name + '_obj' + name_separate, plot_in=False, plot_out=False, state=state,
-                            smooth=smooth)
-            spp.paths_trace(sp, name=name + '_out' + name_separate, plot_in=False, plot_object=False, state=state,
-                            smooth=smooth)
+            spp.paths_trace(sp, name=name + '_in' + name_separate, plot_walk=False, plot_object=False, plot_out=False,
+                            state=state, smooth=smooth)
+            spp.paths_trace(sp, name=name + '_obj' + name_separate, plot_walk=False, plot_in=False, plot_out=False,
+                            state=state, smooth=smooth)
+            spp.paths_trace(sp, name=name + '_out' + name_separate, plot_walk=False, plot_in=False, plot_object=False,
+                            state=state, smooth=smooth)
+            spp.paths_trace(sp, name=name + '_walk' + name_separate, plot_in=False, plot_object=False, plot_out=False,
+                            state=state, smooth=smooth)
         else:
             spp.paths_trace(sp, name=name + name_separate, state=state, smooth=smooth)
 
@@ -2181,14 +2188,14 @@ def stage_VI_run(config, options,
     if options.show_molecule:
         with clui.fbm("Molecule"):
             with reader.get() as traj_reader:
-                #mda_ppr = mda.core.flags["permissive_pdb_reader"]
-                #mda.core.flags["permissive_pdb_reader"] = False #mda16 it is porbably always True
+                # mda_ppr = mda.core.flags["permissive_pdb_reader"]
+                # mda.core.flags["permissive_pdb_reader"] = False #mda16 it is porbably always True
                 pdb = TmpDumpWriterOfMDA()
                 frames_to_show = range2int(options.show_molecule_frames)
                 pdb.dump_frames(traj_reader, frames=frames_to_show, selection=options.show_molecule)
                 pymol_connector.load_pdb('molecule', pdb.close())
                 del pdb
-                mda.core.flags["permissive_pdb_reader"] = mda_ppr
+                # mda.core.flags["permissive_pdb_reader"] = mda_ppr
                 # it would be nice to plot convexhull
     if options.show_chull:
         with clui.fbm("Convexhull"):
@@ -2224,9 +2231,10 @@ def stage_VI_run(config, options,
                 else:
                     c_name = str(int(c))
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
-                radii = inls.lim2clusters(c).radii
-                if len(radii) > 0:
-                    spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
+                if False:  # TODO: consider displaying radii if ab was used in III?
+                    radii = inls.lim2clusters(c).radii
+                    if len(radii) > 0:
+                        spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
 
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):

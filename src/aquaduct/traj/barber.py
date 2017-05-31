@@ -254,12 +254,12 @@ class WhereToCut(object):
                 # current id?
             current_id = clouds.keys()
             if current_id:
-                for cid in range(1,max(current_id)+3):
+                for cid in range(max(current_id)+2):
                     if cid not in current_id:
                         current_id = cid
                         break
             else:
-                current_id = 1
+                current_id = 0
             clouds.update({current_id:current_cloud})
             if progress: pbar.next()
 

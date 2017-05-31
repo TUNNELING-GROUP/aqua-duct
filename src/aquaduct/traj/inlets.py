@@ -29,6 +29,8 @@ from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
 from aquaduct.utils.maths import make_default_array
 
+
+
 class ProtoInletTypeCodes:
     surface = 'surface'
     internal = 'internal'
@@ -194,7 +196,7 @@ class Inlet(object):
 
 class Inlets(object):
     # class for list of inlets
-    def __init__(self, spaths, center_of_system=None, onlytype=InletTypeCodes.all_surface):
+    def __init__(self, spaths, center_of_system=None, onlytype=InletTypeCodes.all_surface, passing=False):
 
         self.center_of_system = center_of_system
         self.onlytype = onlytype
@@ -203,6 +205,7 @@ class Inlets(object):
         self.clusters = []
         self.number_of_clustered_inlets = None
         self.spheres = []
+        self.passing = passing
 
         self.tree = clui.SimpleTree()
 
@@ -228,6 +231,8 @@ class Inlets(object):
         self.tree.add_message(message=message,toleaf=toleaf)
 
     def extend_inlets(self, spath, onlytype=None):
+        if not self.passing and spath.is_passing():
+            return
 
         if onlytype is None:
             onlytype = self.onlytype
@@ -479,19 +484,22 @@ class Inlets(object):
     def spaths2ctypes(self, spaths):
         # surfin interin interout surfout
         for sp in spaths:
-            ctypes = self.lim2spaths(sp).types
-            clusters = self.lim2spaths(sp).clusters
-            surfin, interin, interout, surfout = None, None, None, None
-            for ct, cl in zip(ctypes, clusters):
-                if ct in InletTypeCodes.all_surface and ct in InletTypeCodes.all_incoming:
-                    surfin = cl
-                if ct in InletTypeCodes.all_internal and ct in InletTypeCodes.all_incoming:
-                    interin = cl
-                if ct in InletTypeCodes.all_internal and ct in InletTypeCodes.all_outgoing:
-                    interout = cl
-                if ct in InletTypeCodes.all_surface and ct in InletTypeCodes.all_outgoing:
-                    surfout = cl
-            yield InletClusterExtendedType(surfin, interin, interout, surfout)
+            yield self.spath2ctype(sp)
+
+    def spath2ctype(self,sp):
+        ctypes = self.lim2spaths(sp).types
+        clusters = self.lim2spaths(sp).clusters
+        surfin, interin, interout, surfout = None, None, None, None
+        for ct, cl in zip(ctypes, clusters):
+            if ct in InletTypeCodes.all_surface and ct in InletTypeCodes.all_incoming:
+                surfin = cl
+            if ct in InletTypeCodes.all_internal and ct in InletTypeCodes.all_incoming:
+                interin = cl
+            if ct in InletTypeCodes.all_internal and ct in InletTypeCodes.all_outgoing:
+                interout = cl
+            if ct in InletTypeCodes.all_surface and ct in InletTypeCodes.all_outgoing:
+                surfout = cl
+        return InletClusterExtendedType(surfin, interin, interout, surfout)
 
     def lim_to(self, what, towhat):
         if not is_iterable(towhat):

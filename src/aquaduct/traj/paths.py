@@ -459,6 +459,11 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
+    def is_single(self):
+        raise NotImplementedError("Implementation missing.")
+    def is_passing(self):
+        raise NotImplementedError("Implementation missing.")
+
     def is_frame_in(self,frame):
         return self.__path_in.isin(frame)
     def is_frame_object(self,frame):
@@ -718,7 +723,11 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
 
 class SinglePath(MacroMolPath):
-    pass
+
+    def is_single(self):
+        return True
+    def is_passing(self):
+        return False
 
 
 class PassingPath(MacroMolPath):
@@ -736,6 +745,11 @@ class PassingPath(MacroMolPath):
 
         self.smooth_coords = None
         self.smooth_method = None
+
+    def is_single(self):
+        return False
+    def is_passing(self):
+        return True
 
     def is_frame_walk(self,frame):
         return self.__path.isin(frame)

@@ -163,7 +163,8 @@ class SelectionMDA(Selection,mda.core.groups.AtomGroup):     #mda16
         return SelectionMDA(self.atoms, self.universe)
 
     def uniquify(self):
-        self.__init__(mda.core.groups.AtomGroup(sum(set(self.atoms))),self.universe)
+        #self.__init__(mda.core.groups.AtomGroup(sum(set(self.atoms)),self.universe),self.universe)
+        self.__init__(sum(set(self.atoms)),self.universe)
 
 
 
