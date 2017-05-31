@@ -31,8 +31,8 @@ from aquaduct.geom.convexhull import is_point_within_convexhull
 from aquaduct.utils.helpers import int2range, are_rows_uniq
 from aquaduct.utils.maths import make_default_array
 
-class Selection(object):
 
+class Selection(object):
     '''
     def __init__(self,*args,**kwargs):
         super(Selection,self).__init__(*args,**kwargs)
@@ -63,6 +63,7 @@ class Selection(object):
 
     def unique_resids_number(self):
         return len(self.unique_resids(ikwid=True))
+
     '''
 
     def atom_positions(self):
@@ -78,7 +79,7 @@ class Selection(object):
         # should return modified ConvexHull object
         return SciPyConvexHull(self.atom_positions())
 
-    def contains_residues(self,other,convex_hull=False,map_fun=None):
+    def contains_residues(self, other, convex_hull=False, map_fun=None):
         # Checks if this selection contains other.
         # If convex_hull is False it checks if residues of this selection matches to other.
         # If convex_hull is True it checks if residues of other selection are within convex hull of this.
@@ -97,9 +98,9 @@ class Selection(object):
             this_uids = self.unique_resids(ikwid=True)
             return [res_other.unique_resids(ikwid=True) in this_uids for res_other in other.iterate_over_residues()]
 
-    def containing_residues(self,other,*args,**kwargs):
+    def containing_residues(self, other, *args, **kwargs):
         # Convienience wrapper for contains_residues.
-        #def get_res_in_scope(is_res_in_scope, res):
+        # def get_res_in_scope(is_res_in_scope, res):
         other_new = None
         for iris, other_residue in zip(self.contains_residues(other, *args, **kwargs), other.iterate_over_residues()):
             if iris:
@@ -108,7 +109,6 @@ class Selection(object):
                 else:
                     other_new += other_residue
         return other_new
-
 
     def uniquify(self):
         # should change selection to unique atoms only
@@ -123,20 +123,20 @@ class Selection(object):
 
 # TODO: decide if methods should be properties or not
 
-#class SelectionMDA(mda.core.AtomGroup.AtomGroup, #mda15
-class SelectionMDA(Selection,mda.core.groups.AtomGroup):     #mda16
+# class SelectionMDA(mda.core.AtomGroup.AtomGroup, #mda15
+class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
 
-    def __init__(self,selection,universe): #mda16
+    def __init__(self, selection, universe):  # mda16
 
-        #super(SelectionMDA,self).__init__(selection.indices,universe)
+        # super(SelectionMDA,self).__init__(selection.indices,universe)
         Selection.__init__(self)
-        #print dir(selection)
-        mda.core.groups.AtomGroup.__init__(self,selection.indices,universe)
-        #assert "center_of_mass" in dir(self)
-        #print self.center_of_mass()
+        # print dir(selection)
+        mda.core.groups.AtomGroup.__init__(self, selection.indices, universe)
+        # assert "center_of_mass" in dir(self)
+        # print self.center_of_mass()
 
     def iterate_over_residues(self):
-        return (self.__class__(R.atoms,self.universe) for R in self.residues)
+        return (self.__class__(R.atoms, self.universe) for R in self.residues)
 
     def unique_names(self):
         resids = self.resids.tolist()
@@ -163,10 +163,8 @@ class SelectionMDA(Selection,mda.core.groups.AtomGroup):     #mda16
         return SelectionMDA(self.atoms, self.universe)
 
     def uniquify(self):
-        #self.__init__(mda.core.groups.AtomGroup(sum(set(self.atoms)),self.universe),self.universe)
-        self.__init__(sum(set(self.atoms)),self.universe)
-
-
+        # self.__init__(mda.core.groups.AtomGroup(sum(set(self.atoms)),self.universe),self.universe)
+        self.__init__(sum(set(self.atoms)), self.universe)
 
 
 class CompactSelectionMDA(object):

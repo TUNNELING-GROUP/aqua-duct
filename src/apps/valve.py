@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                
+
 """
 This is a driver for Aqua-Duct.
 """
@@ -33,14 +33,13 @@ formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]:
 formatter = logging.Formatter(formatter_string)
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)
-ch.setLevel(logging.WARNING) # default level is WARNING
+ch.setLevel(logging.WARNING)  # default level is WARNING
 logger.addHandler(ch)
 
 ################################################################################
 
 
 from aquaduct.apps.valvecore import *
-
 
 ################################################################################
 
@@ -53,7 +52,7 @@ if __name__ == "__main__":
         # argument parsing
         import argparse
 
-        description_version = '''Aquaduct library version %s''' % (aquaduct_version_nice(), )
+        description_version = '''Aquaduct library version %s''' % (aquaduct_version_nice(),)
         description = '''Valve, Aquaduct driver'''
 
         parser = argparse.ArgumentParser(description=description,
@@ -66,10 +65,14 @@ if __name__ == "__main__":
         parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
                             help="Limit Aqua-Duct calculations to given number of threads.")
         parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
-        parser.add_argument("--sps", action="store_true", dest="sps", required=False, help="Use single precision to store data.")
-        parser.add_argument("--max-frame", action="store", dest="max_frame", type=int, required=False, help="Maximal number of frame.")
-        parser.add_argument("--min-frame", action="store", dest="min_frame", type=int, required=False, help="Minimal number of frame.")
-        parser.add_argument("--step-frame", action="store", dest="step_frame", type=int, required=False, help="Frames step.")
+        parser.add_argument("--sps", action="store_true", dest="sps", required=False,
+                            help="Use single precision to store data.")
+        parser.add_argument("--max-frame", action="store", dest="max_frame", type=int, required=False,
+                            help="Maximal number of frame.")
+        parser.add_argument("--min-frame", action="store", dest="min_frame", type=int, required=False,
+                            help="Minimal number of frame.")
+        parser.add_argument("--step-frame", action="store", dest="step_frame", type=int, required=False,
+                            help="Frames step.")
         parser.add_argument("--version", action="store_true", dest="print_version", required=False,
                             help="Prints versions and exits.")
         parser.add_argument("--license", action="store_true", dest="print_license", required=False,
@@ -102,6 +105,7 @@ if __name__ == "__main__":
             logger.info('Single precision data storage activated.')
             from aquaduct.utils.maths import defaults
             from numpy import float32, int32
+
             defaults.float_default = float32
             defaults.int_default = int32
 
@@ -109,11 +113,12 @@ if __name__ == "__main__":
         # special option for dumping template config
         config = ValveConfig()  # config template
         if args.dump_template_conf:
-            #import cStringIO as StringIO
-            #config_dump = StringIO.StringIO()
-            #config.save_config_stream(config_dump)
-            #print config_dump.getvalue()
+            # import cStringIO as StringIO
+            # config_dump = StringIO.StringIO()
+            # config.save_config_stream(config_dump)
+            # print config_dump.getvalue()
             import os
+
             print os.linesep.join(config.dump_config(dump_template=True))
             exit(0)
         # special case of version
@@ -146,7 +151,6 @@ if __name__ == "__main__":
     '''
             exit(0)
 
-
         ############################################################################
         # begin!
 
@@ -163,7 +167,8 @@ if __name__ == "__main__":
             optimal_threads.threads_count = int(args.threads)
         clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads.threads_count)
         if (1 < optimal_threads.threads_count < 3) or (optimal_threads.threads_count - 1 > optimal_threads.cpu_count):
-            clui.message("Number of threads is not optimal; CPU count reported by system: %d" % optimal_threads.cpu_count)
+            clui.message(
+                "Number of threads is not optimal; CPU count reported by system: %d" % optimal_threads.cpu_count)
         # because it is used by mp.Pool it should be -1???
         if optimal_threads.threads_count > 1:
             optimal_threads.threads_count -= 1
@@ -179,10 +184,10 @@ if __name__ == "__main__":
         # STAGE 0
 
         # Maximal frame checks
-        frames_window = slice(args.min_frame,args.max_frame,args.step_frame)
+        frames_window = slice(args.min_frame, args.max_frame, args.step_frame)
 
         # TODO: Is it always required?
-        reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window) # trajectory reader
+        reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window)  # trajectory reader
 
         with reader.get() as traj_reader:
             clui.message("Frames window: %d:%d step %d" % (traj_reader.get_start_frame(),
@@ -190,7 +195,7 @@ if __name__ == "__main__":
                                                            traj_reader.get_step_frame()))
 
         ## TODO: Is it reported correctly?
-        #clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
+        # clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
 
         # container for collecting whether particular stage was executed
         run_status = {}
