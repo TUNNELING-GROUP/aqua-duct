@@ -302,11 +302,14 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
 
+
         config.set(section, 'max_level', '0')
         config.set(section, 'recluster_outliers', 'False')
         config.set(section, 'detect_outliers', 'False')
         config.set(section, 'singletons_outliers', 'False')
         config.set(section, 'create_master_paths', 'False')
+        config.set(section, 'exclude_passing_in_clusterization', 'True')
+        config.set(section, 'add_passing_to_clusters', 'None')
 
         ################
         # smooth
@@ -669,6 +672,28 @@ def get_smooth_method(soptions):
 
     return smooth
 
+def get_auto_barber_options(abo):
+    opts = {}
+    if 'auto_barber' in abo._asdict():
+        opts.update({'selection': str(abo.auto_barber)})
+    if 'auto_barber_maxcut' in abo._asdict():
+        if is_number(abo.auto_barber_maxcut):
+            opts.update({'maxcut': float(abo.auto_barber_maxcut)})
+        else:
+            opts.update({'maxcut': None})
+    if 'auto_barber_mincut' in abo._asdict():
+        if is_number(abo.auto_barber_mincut):
+            opts.update({'mincut': float(abo.auto_barber_mincut)})
+        else:
+            opts.update({'mincut': None})
+    if 'auto_barber_mincut_level' in abo._asdict():
+        opts.update({'mincut_level': bool(abo.auto_barber_mincut_level)})
+    if 'auto_barber_maxcut_level' in abo._asdict():
+        opts.update({'maxcut_level': bool(abo.auto_barber_maxcut_level)})
+    if 'auto_barber_tovdw' in abo._asdict():
+        opts.update({'tovdw': bool(abo.auto_barber_tovdw)})
+    return opts
+
 
 def get_clustering_method(coptions, config):
     assert coptions.method in available_clusterization_methods, 'Unknown clusterization method %s.' % coptions.method
@@ -737,37 +762,8 @@ def get_clustering_method(coptions, config):
 
     def barber_opts():
         abo = config.get_stage_options(2)
-        if abo.auto_barber:
-            opts.update({'selection': str(abo.auto_barber)})
-            if is_number(abo.auto_barber_mincut):
-                opts.update({'mincut': float(abo.auto_barber_mincut)})
-            else:
-                opts.update({'mincut': None})
-            if is_number(abo.auto_barber_maxcut):
-                opts.update({'maxcut': float(abo.auto_barber_maxcut)})
-            else:
-                opts.update({'maxcut': None})
-            opts.update({'mincut_level': bool(abo.auto_barber_mincut_level)})
-            opts.update({'maxcut_level': bool(abo.auto_barber_maxcut_level)})
-            opts.update({'tovdw': bool(abo.auto_barber_tovdw)})
-        if 'auto_barber' in coptions._asdict():
-            opts.update({'selection': str(coptions.auto_barber)})
-        if 'auto_barber_maxcut' in coptions._asdict():
-            if is_number(coptions.auto_barber_maxcut):
-                opts.update({'maxcut': float(coptions.auto_barber_maxcut)})
-            else:
-                opts.update({'maxcut': None})
-        if 'auto_barber_mincut' in coptions._asdict():
-            if is_number(coptions.auto_barber_mincut):
-                opts.update({'mincut': float(coptions.auto_barber_mincut)})
-            else:
-                opts.update({'mincut': None})
-        if 'auto_barber_mincut_level' in coptions._asdict():
-            opts.update({'mincut_level': bool(coptions.auto_barber_mincut_level)})
-        if 'auto_barber_maxcut_level' in coptions._asdict():
-            opts.update({'maxcut_level': bool(coptions.auto_barber_maxcut_level)})
-        if 'auto_barber_tovdw' in coptions._asdict():
-            opts.update({'tovdw': bool(coptions.auto_barber_tovdw)})
+        opts.update(get_auto_barber_options(abo))
+        opts.update(get_auto_barber_options(coptions))
 
     if coptions.method == 'dbscan':
         dbscan_opts()
@@ -1296,7 +1292,7 @@ def stage_IV_run(config, options,
     # new style clustering
     with clui.fbm("Create inlets"):
         # here we can check center of system
-        inls = Inlets(spaths, center_of_system=center_of_system)
+        inls = Inlets(spaths, center_of_system=center_of_system,passing=not options.exclude_passing_in_clusterization)
     clui.message("Number of inlets: %d" % inls.size)
 
     def noo():
@@ -1372,6 +1368,24 @@ def stage_IV_run(config, options,
                 inls.small_clusters_to_outliers(int(options.singletons_outliers))
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
+
+        # ***** ADD PASSING PATHS TO CLUSTERS *****
+        if options.exclude_passing_in_clusterization and options.add_passing_to_clusters:
+            # passing paths were excluded and they are meant to be added
+            # one need loop over clusters and then all passing paths have to checked
+            # it is assumed taht adding method is barber
+            abo = config.get_stage_options(2) # ab from stage III
+            ab_options = get_auto_barber_options(abo)
+            ab_options.update(get_auto_barber_options(options))
+            # loop over clusters
+            with reader.get() as traj_reader:
+                for cluster in inls.clusters_list:
+                    if cluster == 0: continue
+                    sps = inls.lim2clusters(cluster).limspaths2(spaths)
+                    wtc = WhereToCut(sps,traj_reader=traj_reader,**ab_options)
+                    wtc.cut_thyself(progress=True)
+
+
 
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())

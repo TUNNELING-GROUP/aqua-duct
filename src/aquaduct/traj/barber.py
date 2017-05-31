@@ -232,6 +232,14 @@ class WhereToCut(object):
     def cut_thyself(self):
         self.spheres = self._cut_thyself(self.spheres, progress=True)[0]
 
+    def is_overlaping_with_cloud(self,sphere):
+        spheres_coords = np.array([sphe.center for sphe in self.spheres])
+        spheres_radii = np.array([sphe.radius for sphe in self.spheres])
+        center, radius, nr = sphere
+        distances = cdist(np.matrix(center), spheres_coords, metric='euclidean').flatten()
+        distances = distances - spheres_radii - radius
+        return (distances <= 0).all()
+
     def cloud_groups(self, progress=False):
         # no redundant spheres
         noredundant_spheres, redundant_spheres = self._cut_thyself(self.spheres, progress=progress)
