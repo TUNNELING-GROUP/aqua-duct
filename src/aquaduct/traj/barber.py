@@ -125,58 +125,73 @@ class WhereToCut(object):
 
     def add_spheres_from_spaths(self, spaths, traj_reader):
         clui.message("Auto Barber is looking where to cut:")
-        mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         if self.expected_nr_of_spaths:
             pbar = clui.pbar(self.expected_nr_of_spaths)
         else:
             pbar = clui.pbar(len(spaths))
-        barber = traj_reader.parse_selection(self.selection)
-        vdwradius = 0
-        nr = 0
         for sp in spaths:
-            centers = []
-            frames = []
-            if sp.has_in:
-                centers.append(sp.coords_first_in)
-                frames.append(sp.paths_first_in)
-            if sp.has_out:
-                centers.append(sp.coords_last_out)
-                frames.append(sp.paths_last_out)
-            for center, frame in zip(centers, frames):
-                make_sphere = True
-                if make_sphere:
-                    traj_reader.set_current_frame(frame)
-                    distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
-                    if self.tovdw:
-                        vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
-                    radius = min(distances) - vdwradius
-                    if radius <= 0:
-                        logger.debug('VdW correction resulted in <= 0 radius.')
-                        make_sphere = False
-                    if mincut and radius < mincut_val:
-                        if not self.mincut_level:
-                            logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
-                            make_sphere = False
-                        else:
-                            logger.debug('Sphere radius %0.2f leveled to mincut %0.2f', radius, mincut_val)
-                            radius = mincut_val
-                    if maxcut and radius > maxcut_val:
-                        if not self.maxcut_level:
-                            logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
-                            make_sphere = False
-                        else:
-                            logger.debug('Sphere radius %0.2f leveled to maxcut %0.2f', radius, maxcut_val)
-                            radius = maxcut_val
-                if make_sphere:
-                    logger.debug('Added sphere of radius %0.2f' % radius)
-                    self.spheres.append(Sphere(center, radius, nr))
-                    nr += 1
-                elif self.forceempty:
-                    logger.debug('Added sphere of radius 0')
-                    self.spheres.append(Sphere(center, 0, nr))
-                    nr += 1
+            for sphe in self.spath2spheres(sp, traj_reader):
+                self.spheres.append(sphe)
             pbar.next()
         pbar.finish()
+
+    def get_current_nr(self):
+        if len(self.spheres):
+            #nr = max((sphe.nr for sphe in self.spheres))
+            nr = self.spheres[-1].nr
+            nr += 1
+        else:
+            nr = 0
+        assert nr == len(self.spheres), "Inconsistent number of spheres."
+        return nr
+
+    def spath2spheres(self, sp, traj_reader):
+
+        mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
+        barber = traj_reader.parse_selection(self.selection)
+        vdwradius = 0
+
+        centers = []
+        frames = []
+        # TODO: This is inconsistent with inlets types. Below is equivalent to surface only inlets. Rework this and make it coherent to each other.
+        # Assume it is already coherent.
+        if sp.has_in:
+            centers.append(sp.coords_first_in)
+            frames.append(sp.paths_first_in)
+        if sp.has_out:
+            centers.append(sp.coords_last_out)
+            frames.append(sp.paths_last_out)
+        for center, frame in zip(centers, frames):
+            make_sphere = True
+            if make_sphere:
+                traj_reader.set_current_frame(frame)
+                distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
+                if self.tovdw:
+                    vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
+                radius = min(distances) - vdwradius
+                if radius <= 0:
+                    logger.debug('VdW correction resulted in <= 0 radius.')
+                    make_sphere = False
+                if mincut and radius < mincut_val:
+                    if not self.mincut_level:
+                        logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
+                        make_sphere = False
+                    else:
+                        logger.debug('Sphere radius %0.2f leveled to mincut %0.2f', radius, mincut_val)
+                        radius = mincut_val
+                if maxcut and radius > maxcut_val:
+                    if not self.maxcut_level:
+                        logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
+                        make_sphere = False
+                    else:
+                        logger.debug('Sphere radius %0.2f leveled to maxcut %0.2f', radius, maxcut_val)
+                        radius = maxcut_val
+            if make_sphere:
+                logger.debug('Added sphere of radius %0.2f' % radius)
+                yield Sphere(center, radius, self.get_current_nr())
+            elif self.forceempty:
+                logger.debug('Added sphere of radius 0')
+                yield Sphere(center, 0, self.get_current_nr())
 
     def _cut_thyself(self, spheres_passed, progress=False):
         # returns noredundant spheres

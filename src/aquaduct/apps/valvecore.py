@@ -1373,16 +1373,26 @@ def stage_IV_run(config, options,
             ab_options = get_auto_barber_options(abo)
             ab_options.update(get_auto_barber_options(options))
             # get single paths only (no passing paths)
-            spaths_single = [sp for sp in spaths if isinstance(sp,SinglePath)]
+            spaths_single = [sp for sp in spaths if sp.is_single()]
             # ids of passing paths
-            spaths_passing_ids = [for nr in xrange(len(spaths)) if isinstance(spaths[nr],
+            spaths_passing_ids = [nr for nr in xrange(len(spaths)) if spaths[nr].is_passing()]
+            # loop over passing paths, add to inlets
+            inls.passing = True
+            passing_inlets_ids = []
+            for passing_id in spaths_passing_ids:
+                passing_inlets_ids.extend(inls.extend_inlets(spaths[passing_id]))
             # loop over clusters
             with reader.get() as traj_reader:
                 for cluster in inls.clusters_list:
                     if cluster == 0: continue
                     sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
                     wtc = WhereToCut(sps,traj_reader=traj_reader,**ab_options)
-                    wtc.cut_thyself(progress=True)
+                    wtc.cut_thyself()
+                    for passing_inlet in passing_inlets_ids[::-1]:
+                        pass
+
+
+
 
 
 
@@ -2206,7 +2216,7 @@ def stage_VI_run(config, options,
                 pdb.dump_frames(traj_reader, frames=frames_to_show, selection=options.show_molecule)
                 pymol_connector.load_pdb('molecule', pdb.close())
                 del pdb
-                mda.core.flags["permissive_pdb_reader"] = mda_ppr
+                #mda.core.flags["permissive_pdb_reader"] = mda_ppr
                 # it would be nice to plot convexhull
     if options.show_chull:
         with clui.fbm("Convexhull"):

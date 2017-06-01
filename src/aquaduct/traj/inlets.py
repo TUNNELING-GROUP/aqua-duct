@@ -39,8 +39,7 @@ class ProtoInletTypeCodes:
 
 
 class InletTypeCodes(ProtoInletTypeCodes):
-    # TODO: write it in a more smart way
-
+    # TODO: Rework this and make it coherent with barber create_spheres.
     all_surface = [(ProtoInletTypeCodes.surface, itype) for itype in
                    (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing)]
     all_internal = [(ProtoInletTypeCodes.internal, itype) for itype in
@@ -158,10 +157,13 @@ class InletClusterExtendedType(InletClusterGenericType):
 # Inlet = namedtuple('Inlet', 'coords type reference')
 
 class Inlet(object):
-    def __init__(self, coords=None, type=None, reference=None):
+    def __init__(self, coords=None, type=None, reference=None, frame=None):
+        # no none is allowed
+        assert None not in [type, reference, frame], "Wrong Inlet init."
         self.coords = make_default_array(coords)
         self.type = type
         self.reference = reference
+        self.frame = frame
 
 
 class Inlets(object):
@@ -205,14 +207,21 @@ class Inlets(object):
         if onlytype is None:
             onlytype = self.onlytype
 
+        added_list = []
         nr = len(self.inlets_list)
         for inlet in spath.get_inlets():
             if onlytype is not None:
                 if inlet.type not in onlytype:
                     continue
+            # is ther already clustering info?
+            if len(self.clusters):
+                self.clusters.append(0)
             self.inlets_list.append(inlet)
             self.inlets_ids.append(nr)
+            added_list.append(nr)
             nr += 1
+        return added_list
+
 
     def add_cluster_annotations(self, clusters):
         # this replaces clusters!

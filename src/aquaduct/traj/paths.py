@@ -402,8 +402,9 @@ class SinglePathID(object):
         return '%d:%d' % (self.id, self.nr)
 
     def __eq__(self, other):
-        assert isinstance(other, SinglePathID)
-        return self.id == other.id and self.nr == other.nr and self.name == other.name
+        if isinstance(other, SinglePathID):
+            return self.id == other.id and self.nr == other.nr and self.name == other.name
+        return False
 
 
 def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
@@ -535,17 +536,21 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
         if self.has_in:
             yield Inlet(coords=self.coords_in[0],
                         type=(InletTypeCodes.surface, InletTypeCodes.incoming),
-                        reference=self.id)
+                        reference=self.id,
+                        frame=self.path_in[0])
             yield Inlet(coords=self.coords_in[-1],
                         type=(InletTypeCodes.internal, InletTypeCodes.incoming),
-                        reference=self.id)
+                        reference=self.id,
+                        frame=self.path_in[-1])
         if self.has_out:
             yield Inlet(coords=self.coords_out[0],
                         type=(InletTypeCodes.internal, InletTypeCodes.outgoing),
-                        reference=self.id)
+                        reference=self.id,
+                        frame = self.path_out[0])
             yield Inlet(coords=self.coords_out[-1],
                         type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
-                        reference=self.id)
+                        reference=self.id,
+                        frame=self.path_out[-1])
 
     ####################################################################################################################
     # coords
@@ -824,10 +829,12 @@ class PassingPath(MacroMolPath):
     def get_inlets(self):
         yield Inlet(coords=self.__coords[0],
                     type=(InletTypeCodes.surface, InletTypeCodes.incoming),
-                    reference=self.id)
+                    reference=self.id,
+                    frame=self.paths_first_in)
         yield Inlet(coords=self.__coords[-1],
                     type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
-                    reference=self.id)
+                    reference=self.id,
+                    frame=self.paths_last_out)
 
 
 ####################################################################################################################
