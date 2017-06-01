@@ -1372,11 +1372,15 @@ def stage_IV_run(config, options,
             abo = config.get_stage_options(2) # ab from stage III
             ab_options = get_auto_barber_options(abo)
             ab_options.update(get_auto_barber_options(options))
+            # get single paths only (no passing paths)
+            spaths_single = [sp for sp in spaths if isinstance(sp,SinglePath)]
+            # ids of passing paths
+            spaths_passing_ids = [for nr in xrange(len(spaths)) if isinstance(spaths[nr],
             # loop over clusters
             with reader.get() as traj_reader:
                 for cluster in inls.clusters_list:
                     if cluster == 0: continue
-                    sps = inls.lim2clusters(cluster).limspaths2(spaths)
+                    sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
                     wtc = WhereToCut(sps,traj_reader=traj_reader,**ab_options)
                     wtc.cut_thyself(progress=True)
 
