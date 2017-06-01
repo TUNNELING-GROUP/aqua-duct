@@ -1364,6 +1364,7 @@ def stage_IV_run(config, options,
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
 
+        # TODO: Move it after master paths!
         # ***** ADD PASSING PATHS TO CLUSTERS *****
         if options.exclude_passing_in_clusterization and options.add_passing_to_clusters:
             # passing paths were excluded and they are meant to be added
@@ -1383,18 +1384,26 @@ def stage_IV_run(config, options,
                 passing_inlets_ids.extend(inls.extend_inlets(spaths[passing_id]))
             # loop over clusters
             with reader.get() as traj_reader:
+                added_to_cluster = 0
                 for cluster in inls.clusters_list:
                     if cluster == 0: continue
                     sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
                     wtc = WhereToCut(sps,traj_reader=traj_reader,**ab_options)
                     wtc.cut_thyself()
-                    for passing_inlet in passing_inlets_ids[::-1]:
-                        pass
+                    for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
+                        inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
+                        sphere = wtc.inlet2sphere(inlet,traj_reader)
+                        if sphere is not None:
+                            if wtc.is_overlaping_with_cloud(sphere):
+                                # add this inlet to cluster!
+                                inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
+                                added_to_cluster += 1
+                                passing_inlets_ids.pop(passing_inlet_nr)
 
-
-
-
-
+                if added_to_cluster:
+                    inls.add_message_wrapper(message='+%d passing' % added_to_cluster,toleaf=cluster)
+            if len(passing_inlets_ids):
+                inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids),toleaf=0)
 
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
@@ -2131,12 +2140,14 @@ def plot_spaths_traces(spaths, spp=None, name=None, split=False, states=False, s
         if states or separate:
             sp = [sp]
         if split:
-            spp.paths_trace(sp, name=name + '_in' + name_separate, plot_object=False, plot_out=False, state=state,
-                            smooth=smooth)
-            spp.paths_trace(sp, name=name + '_obj' + name_separate, plot_in=False, plot_out=False, state=state,
-                            smooth=smooth)
-            spp.paths_trace(sp, name=name + '_out' + name_separate, plot_in=False, plot_object=False, state=state,
-                            smooth=smooth)
+            spp.paths_trace(sp, name=name + '_in' + name_separate, plot_walk=False, plot_object=False, plot_out=False,
+                            state=state, smooth=smooth)
+            spp.paths_trace(sp, name=name + '_obj' + name_separate, plot_walk=False, plot_in=False, plot_out=False,
+                            state=state, smooth=smooth)
+            spp.paths_trace(sp, name=name + '_out' + name_separate, plot_walk=False, plot_in=False, plot_object=False,
+                            state=state, smooth=smooth)
+            spp.paths_trace(sp, name=name + '_walk' + name_separate, plot_in=False, plot_object=False, plot_out=False,
+                            state=state, smooth=smooth)
         else:
             spp.paths_trace(sp, name=name + name_separate, state=state, smooth=smooth)
 
@@ -2252,9 +2263,10 @@ def stage_VI_run(config, options,
                 else:
                     c_name = str(int(c))
                 spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
-                radii = inls.lim2clusters(c).radii
-                if len(radii) > 0:
-                    spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
+                if False: # TODO: This does not work any more in that way. Rewrite it or remove it
+                    radii = inls.lim2clusters(c).radii
+                    if len(radii) > 0:
+                        spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
 
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):

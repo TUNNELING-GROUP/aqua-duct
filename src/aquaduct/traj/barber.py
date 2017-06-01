@@ -145,6 +145,46 @@ class WhereToCut(object):
         assert nr == len(self.spheres), "Inconsistent number of spheres."
         return nr
 
+    def inlet2sphere(self,inlet, traj_reader):
+        mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
+        barber = traj_reader.parse_selection(self.selection)
+        vdwradius = 0
+
+        center = inlet.coords
+        frame = inlet.frame
+
+        make_sphere = True
+        if make_sphere:
+            traj_reader.set_current_frame(frame)
+            distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
+            if self.tovdw:
+                vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
+            radius = min(distances) - vdwradius
+            if radius <= 0:
+                logger.debug('VdW correction resulted in <= 0 radius.')
+                make_sphere = False
+            if mincut and radius < mincut_val:
+                if not self.mincut_level:
+                    logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
+                    make_sphere = False
+                else:
+                    logger.debug('Sphere radius %0.2f leveled to mincut %0.2f', radius, mincut_val)
+                    radius = mincut_val
+            if maxcut and radius > maxcut_val:
+                if not self.maxcut_level:
+                    logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
+                    make_sphere = False
+                else:
+                    logger.debug('Sphere radius %0.2f leveled to maxcut %0.2f', radius, maxcut_val)
+                    radius = maxcut_val
+        if make_sphere:
+            logger.debug('Added sphere of radius %0.2f' % radius)
+            return Sphere(center, radius, self.get_current_nr())
+        elif self.forceempty:
+            logger.debug('Added sphere of radius 0')
+            return Sphere(center, 0, self.get_current_nr())
+
+
     def spath2spheres(self, sp, traj_reader):
 
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
@@ -242,6 +282,9 @@ class WhereToCut(object):
 
         assert len(noredundat_spheres) + len(
             redundat_spheres) == N, "Inconsistent number of not and redundant spheres. Please send a bug report to the developer(s): %s" % __mail__
+        # sorting
+        noredundat_spheres.sort(key=lambda s: s.nr)
+        redundat_spheres.sort(key=lambda s: s.nr)
         return noredundat_spheres, redundat_spheres
 
     def cut_thyself(self):
@@ -253,7 +296,7 @@ class WhereToCut(object):
         center, radius, nr = sphere
         distances = cdist(np.matrix(center), spheres_coords, metric='euclidean').flatten()
         distances = distances - spheres_radii - radius
-        return (distances <= 0).all()
+        return (distances <= 0).any()
 
     def cloud_groups(self, progress=False):
         # no redundant spheres
