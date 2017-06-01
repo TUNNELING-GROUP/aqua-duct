@@ -62,6 +62,7 @@ class WhereToCut(object):
     # creates collection of Spheres
     def __init__(self,
                  spaths=None,
+                 inlets=None,
                  traj_reader=None,
                  expected_nr_of_spaths=None,
                  selection=None,
@@ -99,6 +100,8 @@ class WhereToCut(object):
 
         if spaths is not None and traj_reader is not None:
             self.add_spheres_from_spaths(spaths, traj_reader)
+        if inlets is not None and traj_reader is not None:
+            self.add_spheres_from_inlets(inlets, traj_reader)
 
     def check_minmaxcuts(self):
         mincut = False
@@ -131,6 +134,19 @@ class WhereToCut(object):
             pbar = clui.pbar(len(spaths))
         for sp in spaths:
             for sphe in self.spath2spheres(sp, traj_reader):
+                self.spheres.append(sphe)
+            pbar.next()
+        pbar.finish()
+
+    def add_spheres_from_inlets(self, inlets, traj_reader):
+        clui.message("Auto Barber is looking where to cut:")
+        if self.expected_nr_of_spaths:
+            pbar = clui.pbar(self.expected_nr_of_spaths)
+        else:
+            pbar = clui.pbar(len(inlets.inlets_list))
+        for inl in inlets.inlets_list:
+            sphe = self.inlet2sphere(inl, traj_reader)
+            if sphe is not None:
                 self.spheres.append(sphe)
             pbar.next()
         pbar.finish()

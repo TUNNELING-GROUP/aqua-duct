@@ -1107,7 +1107,7 @@ def stage_III_run(config, options,
 
     if options.auto_barber:
         with reader.get() as traj_reader:
-            wtc = WhereToCut(spaths, traj_reader,
+            wtc = WhereToCut(spaths=spaths, traj_reader=traj_reader,
                              selection=options.auto_barber,
                              mincut=options.auto_barber_mincut,
                              mincut_level=options.auto_barber_mincut_level,
@@ -1243,8 +1243,8 @@ def potentially_recursive_clusterization(config=None,
             logger.debug('Getting inltets refs...')
             inlets_refs = inlets_object.get_inlets_references()
             logger.debug('Starting wtc...')
-            wtc = WhereToCut((sp for sp in spaths if sp.id in inlets_refs),
-                             traj_reader,
+            wtc = WhereToCut(spaths=(sp for sp in spaths if sp.id in inlets_refs),
+                             traj_reader=traj_reader,
                              expected_nr_of_spaths=len(inlets_refs),
                              forceempty=True,
                              **clustering_function.method_kwargs)
@@ -1384,24 +1384,26 @@ def stage_IV_run(config, options,
                 passing_inlets_ids.extend(inls.extend_inlets(spaths[passing_id]))
             # loop over clusters
             with reader.get() as traj_reader:
-                added_to_cluster = 0
                 for cluster in inls.clusters_list:
+                    added_to_cluster = 0
                     if cluster == 0: continue
                     sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
-                    wtc = WhereToCut(sps,traj_reader=traj_reader,**ab_options)
+                    chull = inls.lim2clusters(cluster).get_chull()
+                    wtc = WhereToCut(inlets=inls.lim2clusters(cluster),traj_reader=traj_reader,**ab_options)
                     wtc.cut_thyself()
                     for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
                         inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
                         sphere = wtc.inlet2sphere(inlet,traj_reader)
                         if sphere is not None:
+                            #if True:
                             if wtc.is_overlaping_with_cloud(sphere):
+                                #if chull.point_within(inlet.coords):
                                 # add this inlet to cluster!
                                 inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
                                 added_to_cluster += 1
                                 passing_inlets_ids.pop(passing_inlet_nr)
-
-                if added_to_cluster:
-                    inls.add_message_wrapper(message='+%d passing' % added_to_cluster,toleaf=cluster)
+                    if added_to_cluster:
+                        inls.add_message_wrapper(message='+%d passing' % added_to_cluster,toleaf=cluster)
             if len(passing_inlets_ids):
                 inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids),toleaf=0)
 

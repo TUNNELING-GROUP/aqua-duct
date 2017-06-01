@@ -28,7 +28,7 @@ from itertools import izip_longest
 from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
 from aquaduct.utils.maths import make_default_array
-
+from aquaduct.geom.convexhull import SciPyConvexHull
 
 class ProtoInletTypeCodes:
     surface = 'surface'
@@ -524,3 +524,6 @@ class Inlets(object):
         for sp in spaths:
             if sp.id in refs:
                 yield sp
+
+    def get_chull(self):
+        return SciPyConvexHull(self.coords)
