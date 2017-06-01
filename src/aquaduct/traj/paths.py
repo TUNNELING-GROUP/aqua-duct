@@ -429,6 +429,8 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
                     # this is passing through
                     if passing:
                         sp = PassingPath(pid, paths[0], coords[0], types[0])
+                        sp.has_in = sp.paths_first_in > gp.min_possible_frame
+                        sp.has_out = sp.paths_last_out < gp.max_possible_frame
                     else:
                         continue
                 if progress:
@@ -740,8 +742,6 @@ class SinglePath(MacroMolPath):
 
 
 class PassingPath(MacroMolPath):
-    has_in = True
-    has_out = True
 
     def __init__(self, path_id, path, coords, types):
 
@@ -754,6 +754,33 @@ class PassingPath(MacroMolPath):
 
         self.smooth_coords = None
         self.smooth_method = None
+
+
+        self.__has_in = True
+        self.__has_out = True
+        '''
+        self.has_in = True
+        self.has_out = True
+        '''
+
+
+    @property
+    def has_in(self):
+        return self.__has_in
+
+    @has_in.setter
+    def has_in(self, value):
+        self.__has_in = value
+
+    @property
+    def has_out(self):
+        return self.__has_out
+
+    @has_out.setter
+    def has_out(self, value):
+        self.__has_out = value
+
+
 
     def is_single(self):
         return False
@@ -827,14 +854,18 @@ class PassingPath(MacroMolPath):
                 yield coords
 
     def get_inlets(self):
-        yield Inlet(coords=self.__coords[0],
-                    type=(InletTypeCodes.surface, InletTypeCodes.incoming),
-                    reference=self.id,
-                    frame=self.paths_first_in)
-        yield Inlet(coords=self.__coords[-1],
-                    type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
-                    reference=self.id,
-                    frame=self.paths_last_out)
+        # Lets assume that if max/min_possible_frame is there is no inlet
+        # how to check it?
+        if self.has_in:
+            yield Inlet(coords=self.__coords[0],
+                        type=(InletTypeCodes.surface, InletTypeCodes.incoming),
+                        reference=self.id,
+                        frame=self.paths_first_in)
+        if self.has_out:
+            yield Inlet(coords=self.__coords[-1],
+                        type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
+                        reference=self.id,
+                        frame=self.paths_last_out)
 
 
 ####################################################################################################################
