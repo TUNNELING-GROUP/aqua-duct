@@ -158,7 +158,7 @@ class WhereToCut(object):
             nr += 1
         else:
             nr = 0
-        assert nr == len(self.spheres), "Inconsistent number of spheres."
+        assert nr >= len(self.spheres), "Inconsistent number of spheres."
         return nr
 
     def inlet2sphere(self,inlet, traj_reader):
