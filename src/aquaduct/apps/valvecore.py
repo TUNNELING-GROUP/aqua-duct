@@ -1111,8 +1111,8 @@ def stage_III_run(config, options,
                              selection=options.auto_barber,
                              mincut=options.auto_barber_mincut,
                              mincut_level=options.auto_barber_mincut_level,
-                             maxcut=options.auto_barber_mincut,
-                             maxcut_level=options.auto_barber_mincut_level,
+                             maxcut=options.auto_barber_maxcut,
+                             maxcut_level=options.auto_barber_maxcut_level,
                              tovdw=options.auto_barber_mincut)
             # cut thyself!
             wtc.cut_thyself()
