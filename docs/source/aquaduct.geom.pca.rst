@@ -1,5 +1,5 @@
-aquaduct.geom.pca module
-========================
+aquaduct\.geom\.pca module
+==========================
 
 .. automodule:: aquaduct.geom.pca
     :members:

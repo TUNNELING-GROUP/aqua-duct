@@ -1,5 +1,5 @@
-aquaduct.traj.selections module
-===============================
+aquaduct\.traj\.selections module
+=================================
 
 .. automodule:: aquaduct.traj.selections
     :members:
