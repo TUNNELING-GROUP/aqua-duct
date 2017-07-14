@@ -42,11 +42,11 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 3, 6
+    return 0, 3, 6, 1
     # MDA == 0.15!
     # pbar bug fix
     # window frames support
-
+    # no lock in clui
 
 def version_nice():
     """

@@ -247,7 +247,7 @@ class SimpleProgressBar(object):
         :param str mess: Optional message displayed at progress bar initialization.
         """
 
-        self.lock = Manager().Lock()
+        #self.lock = Manager().Lock()
 
         assert isinstance(maxval,
                           (int, long)), 'Parameter maxval should be of int or long type, %r given instead.' % type(
@@ -360,10 +360,10 @@ class SimpleProgressBar(object):
                 self.tens.append(int(percent) / 10)
 
     def heartbeat(self):
-        with self.lock:
-            if time.time() - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!
-                self.tcurrent = time.time()
-                self.show()
+        #with self.lock:
+        if time.time() - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!
+            self.tcurrent = time.time()
+            self.show()
 
     def next(self):
         return self.update(self.current+1)
@@ -378,14 +378,14 @@ class SimpleProgressBar(object):
         :param int step: update step
         """
         # TODO: change logic of step == 1 vs step > 1 - add or set?
-        with self.lock:
-            if step > 0:
-                self.current = step
-            self.tcurrent = time.time()
-            if (step == self.maxval) or (
-                            self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
-                # TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision
-                self.show()
+        #with self.lock:
+        if step > 0:
+            self.current = step
+        self.tcurrent = time.time()
+        if (step == self.maxval) or (
+                        self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
+            # TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision
+            self.show()
 
     def ttime(self):
         """
