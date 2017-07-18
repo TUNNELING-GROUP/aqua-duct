@@ -1,5 +1,5 @@
-aquaduct.traj package
-=====================
+aquaduct\.traj package
+======================
 
 Submodules
 ----------

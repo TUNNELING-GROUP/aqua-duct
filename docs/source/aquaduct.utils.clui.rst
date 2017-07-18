@@ -1,5 +1,5 @@
-aquaduct.utils.clui module
-==========================
+aquaduct\.utils\.clui module
+============================
 
 .. automodule:: aquaduct.utils.clui
     :members:

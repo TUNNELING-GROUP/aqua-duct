@@ -2,6 +2,7 @@ Aqua-Duct changelog
 ===================
 
 * devel
+    * Uses newest MDAnalysis.
     * Steady improvement of documentation (including API).
     * Added mario script, WIP.
     * If barber is used for clusterization, appropriate radii are displayed. Buggy.
