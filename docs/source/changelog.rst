@@ -1,6 +1,9 @@
 Aqua-Duct changelog
 ===================
 
+* 0.3.7 (18.07.2017)
+    * Enable XTC trajectory format.
+    * Reliability fix in progress bar display.
 * 0.3.6 (28.06.2017)
     * AQ can be run for given part of trajectory.
     * Fixed bug in passing options to Barber clusterization method.
