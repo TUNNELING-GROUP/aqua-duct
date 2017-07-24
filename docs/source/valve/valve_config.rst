@@ -388,9 +388,9 @@ min_samples                 int             The number of samples (or total weig
 metric                      str             The metric to use when calculating distance between instances
                                             in a feature array. Can be one of the following:
 
+                                            * ``euclidean``,
                                             * ``cityblock``,
                                             * ``cosine``,
-                                            * ``euclidean``,
                                             * ``manhattan``.
 algorithm                   str             The algorithm to be used by the NearestNeighbors module to
                                             compute pointwise distances and find nearest neighbors.
