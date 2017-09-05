@@ -28,6 +28,7 @@ mda_available_formats = {re.compile('(nc|NC)'): 'nc',
                          re.compile('(parmtop|top|PARMTOP|TOP)'): 'parmtop',
                          re.compile('(dcd|DCD)'): 'LAMMPS',
                          re.compile('(psf|PSF)'): 'psf',
+                         re.compile('(crd|CRD)'): 'crd',
                          re.compile('(pdb|PDB)'): 'pdb'}
 
 
