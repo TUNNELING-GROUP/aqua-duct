@@ -118,7 +118,7 @@ class Selection(object):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def first_resid(self):
-        return self.resids.tolist()[0]
+        return self.resindices.tolist()[0]
 
 
 # TODO: decide if methods should be properties or not
@@ -139,13 +139,14 @@ class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
         return (self.__class__(R.atoms, self.universe) for R in self.residues)
 
     def unique_names(self):
-        resids = self.resids.tolist()
+        resids = self.resindices.tolist()
         return [self.resnames[resids.index(resid)] for resid in self.unique_resids(ikwid=True)]
 
     def unique_resids(self, ikwid=False):
         # TODO: do something with this method!
         assert ikwid, "This causes bugs! Avoid this method or take special care in using its results. If you want to use it pass additional variable ikwid = True."
-        return np.unique(self.resids)
+        logger.info("Unique resids are replaced by unique resindices since 0.3.99 version.")
+        return np.unique(self.resindices)
 
     def atom_positions(self):
         # check if positions are correct
