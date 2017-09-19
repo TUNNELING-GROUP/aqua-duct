@@ -373,6 +373,8 @@ class LinearizeRecursive(object):
 
         lengths = np.hstack(([0], np.cumsum(diff(coords))))
         size = len(lengths)
+        if size == 2 and lengths[-1] is None:
+            return [0]
         if size <= 3:
             return range(size)
         sp = 0
