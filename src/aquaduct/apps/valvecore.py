@@ -26,7 +26,7 @@ import os
 import re
 import shlex
 import sys
-from collections import namedtuple, OrderedDict  # TODO: check if OrderedDict is REALLY used
+from collections import namedtuple, OrderedDict
 from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
@@ -34,7 +34,7 @@ from keyword import iskeyword
 #import MDAnalysis as mda
 from scipy.spatial.distance import cdist
 
-#import roman  # TODO: remove this dependency!
+#import roman
 from aquaduct.utils.clui import roman
 
 from aquaduct import greetings as greetings_aquaduct
@@ -505,45 +505,45 @@ def rebuild_selection(selection, reader):
 # TODO: Move it to separate module.
 # TODO: Following functions are or will be deprecated, remove them as soon as possible.
 
-def CHullCheck(point):
-    return CHullCheck.chull.point_within(point)
-
-
-def CHullCheck_init(args):
-    CHullCheck.chull = copy.deepcopy(args[0])
-
-
-def CHullCheck_pool(chull, threads=optimal_threads.threads_count):
-    return mp.Pool(threads, CHullCheck_init, [(chull,)])
-
-
-def CHullCheck_exec(chull, points, threads=optimal_threads.threads_count):
-    pool = CHullCheck_pool(chull, threads=threads)
-    out = pool.map(CHullCheck, points)
-    pool.close()
-    pool.join()
-    del pool
-    return out
+# def CHullCheck(point):
+#     return CHullCheck.chull.point_within(point)
+#
+#
+# def CHullCheck_init(args):
+#     CHullCheck.chull = copy.deepcopy(args[0])
+#
+#
+# def CHullCheck_pool(chull, threads=optimal_threads.threads_count):
+#     return mp.Pool(threads, CHullCheck_init, [(chull,)])
+#
+#
+# def CHullCheck_exec(chull, points, threads=optimal_threads.threads_count):
+#     pool = CHullCheck_pool(chull, threads=threads)
+#     out = pool.map(CHullCheck, points)
+#     pool.close()
+#     pool.join()
+#     del pool
+#     return out
 
 
 ################################################################################
 # in scope helpers
 
-def check_res_in_scope(options, scope, res, res_coords):
-    if options.scope_convexhull:
-        # TODO: Remove it! This is deprecated code. It, probably, never runs.
-        if len(res_coords) == 0:
-            return []
-        # find convex hull of protein
-        chull = scope.get_convexhull_of_atom_positions()
-        is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=optimal_threads.threads_count)
-    else:
-        if res.unique_resids_number() == 0:
-            return []
-        res_in_scope_uids = scope.unique_resids(ikwid=True)
-        # res_in_scope_uids = traj_reader.parse_selection(options.scope).unique_resids(ikwid=True)
-        is_res_in_scope = [r.unique_resids(ikwid=True) in res_in_scope_uids for r in res.iterate_over_residues()]
-    return is_res_in_scope
+# def check_res_in_scope(options, scope, res, res_coords):
+#     if options.scope_convexhull:
+#         # TODO: Remove it! This is deprecated code. It, probably, never runs.
+#         if len(res_coords) == 0:
+#             return []
+#         # find convex hull of protein
+#         chull = scope.get_convexhull_of_atom_positions()
+#         is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=optimal_threads.threads_count)
+#     else:
+#         if res.unique_resids_number() == 0:
+#             return []
+#         res_in_scope_uids = scope.unique_resids(ikwid=True)
+#         # res_in_scope_uids = traj_reader.parse_selection(options.scope).unique_resids(ikwid=True)
+#         is_res_in_scope = [r.unique_resids(ikwid=True) in res_in_scope_uids for r in res.iterate_over_residues()]
+#     return is_res_in_scope
 
 
 def get_res_in_scope(is_res_in_scope, res):
@@ -944,15 +944,12 @@ def stage_I_run(config, options,
         res_ids_in_scope_over_frames = {}
         all_res = None
 
-        # res selection
-        res = traj_reader.parse_selection(options.object)
-
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
             # center of system
             center_of_system += scope.center_of_mass()
             ## current res selection
-            #res = traj_reader.parse_selection(options.object)
+            res = traj_reader.parse_selection(options.object)
             # find matching residues:
             res_new = scope.containing_residues(res, convex_hull=options.scope_convexhull, map_fun=map_fun)
             # adds them to all_res
@@ -1016,7 +1013,7 @@ def stage_II_run(config, options,
                  zip(all_res.unique_resids(ikwid=True), all_res.unique_names())))
 
         scope = traj_reader.parse_selection(options.scope)
-        res = traj_reader.parse_selection(options.object) # this is in case resid is missing in dict res_ids_in_object_over_frames
+        #res = traj_reader.parse_selection(options.object) # this is in case resid is missing in dict res_ids_in_object_over_frames
 
         with clui.fbm("Rebuild treceable residues with current trajectory"):
             all_res = rebuild_selection(all_res, traj_reader)
@@ -1054,7 +1051,7 @@ def stage_II_run(config, options,
 
                     # do we have info on res_ids_in_object_over_frames?
                     if frame not in res_ids_in_object_over_frames:
-                        #res = traj_reader.parse_selection(options.object)
+                        res = traj_reader.parse_selection(options.object)
                         # discard res out of scope
                         res_new = get_res_in_scope(is_res_in_scope, res)
                         # remeber ids of res in object in current frame

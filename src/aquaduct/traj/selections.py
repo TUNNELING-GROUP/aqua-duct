@@ -176,7 +176,7 @@ class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
     def unique_resids(self, ikwid=False):
         # TODO: do something with this method!
         assert ikwid, "This causes bugs! Avoid this method or take special care in using its results. If you want to use it pass additional variable ikwid = True."
-        logger.info("Unique resids are replaced by unique resindices since 0.3.99 version.")
+        #logger.info("Unique resids are replaced by unique resindices since 0.3.99 version.")
         return np.unique(self.resindices)
 
     def atom_positions(self):
