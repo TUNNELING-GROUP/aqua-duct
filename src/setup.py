@@ -26,7 +26,6 @@ install_requires =['numpy>=1.10.0', # this is required by MDA
                   'scipy>=0.14.0',
                   'scikit-learn>=0.16.0',
                   'MDAnalysis[amber]>=0.16.0',
-                  'roman>=2.0.0',
                   ]
 
 def install_requires_nice(level=0):

@@ -31,9 +31,11 @@ from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
 
-import MDAnalysis as mda
-import roman  # TODO: remove this dependency!
+#import MDAnalysis as mda
 from scipy.spatial.distance import cdist
+
+#import roman  # TODO: remove this dependency!
+from aquaduct.utils.clui import roman
 
 from aquaduct import greetings as greetings_aquaduct
 from aquaduct import logger
@@ -1184,23 +1186,23 @@ def stage_III_run(config, options,
 
 ################################################################################
 
-def get_skip_size_function(rt=None):
-    if not isinstance(rt, str): return None
-    assert re.compile('^[<>=]+[0-9.]+$').match(rt) is not None, "Wrong threshold definition: %s" % rt
-    op = re.compile('[<>=]+')
-    op = ''.join(sorted(op.findall(rt)[0]))
-    vl = re.compile('[0-9.]+')
-    vl = float(vl.findall(rt)[0])
-    operator_dict = {'>': operator.gt,
-                     '=>': operator.ge,
-                     '<=': operator.le,
-                     '<': operator.lt}
-    operator_dict = {'>': operator.ge,
-                     '=>': operator.gt,
-                     '<=': operator.lt,
-                     '<': operator.le}
-    assert op in operator_dict.keys(), "Unsupported operator %s in threshold %s" % (op, rt)
-    return lambda size_of_cluster: operator_dict[op](vl, size_of_cluster)
+# def get_skip_size_function(rt=None):
+#     if not isinstance(rt, str): return None
+#     assert re.compile('^[<>=]+[0-9.]+$').match(rt) is not None, "Wrong threshold definition: %s" % rt
+#     op = re.compile('[<>=]+')
+#     op = ''.join(sorted(op.findall(rt)[0]))
+#     vl = re.compile('[0-9.]+')
+#     vl = float(vl.findall(rt)[0])
+#     operator_dict = {'>': operator.gt,
+#                      '=>': operator.ge,
+#                      '<=': operator.le,
+#                      '<': operator.lt}
+#     operator_dict = {'>': operator.ge,
+#                      '=>': operator.gt,
+#                      '<=': operator.lt,
+#                      '<': operator.le}
+#     assert op in operator_dict.keys(), "Unsupported operator %s in threshold %s" % (op, rt)
+#     return lambda size_of_cluster: operator_dict[op](vl, size_of_cluster)
 
 def get_allow_size_function(rt=None):
     if not isinstance(rt, str): return None

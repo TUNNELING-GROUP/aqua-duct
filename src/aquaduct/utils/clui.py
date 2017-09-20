@@ -36,6 +36,28 @@ import numpy as np
 from multiprocessing import Queue, Manager, Lock, Value, Process
 from collections import OrderedDict
 
+# roman emulation
+class roman_emulation(object):
+    def toRoman(self,nr):
+        out = ''
+        if nr < 0:
+            out += '-'
+            nr = -nr
+        assert nr <= 10, 'Only values 0-10 are supported'
+        if nr >=1 and nr <=3:
+            out += 'I'*nr
+        if nr == 4:
+            out += 'IV'
+        if nr >= 5 and nr <= 8:
+            out += 'V' + self.toRoman(nr-5)
+        if nr == 9:
+            out += 'IX'
+        if nr == 10:
+            out += 'X'
+        return out
+
+roman = roman_emulation()
+
 def emit_message_to_file_in_root_logger(mess):
     # emits message to the file used by file handler in the root logger
     # assumes there is only one file handler
