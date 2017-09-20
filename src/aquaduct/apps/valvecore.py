@@ -939,14 +939,18 @@ def stage_I_run(config, options,
 
         # create some containers
         res_ids_in_object_over_frames = {}
+        res_ids_in_scope_over_frames = {}
         all_res = None
+
+        # res selection
+        res = traj_reader.parse_selection(options.object)
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
             # center of system
             center_of_system += scope.center_of_mass()
-            # current res selection
-            res = traj_reader.parse_selection(options.object)
+            ## current res selection
+            #res = traj_reader.parse_selection(options.object)
             # find matching residues:
             res_new = scope.containing_residues(res, convex_hull=options.scope_convexhull, map_fun=map_fun)
             # adds them to all_res
@@ -1010,6 +1014,7 @@ def stage_II_run(config, options,
                  zip(all_res.unique_resids(ikwid=True), all_res.unique_names())))
 
         scope = traj_reader.parse_selection(options.scope)
+        res = traj_reader.parse_selection(options.object) # this is in case resid is missing in dict res_ids_in_object_over_frames
 
         with clui.fbm("Rebuild treceable residues with current trajectory"):
             all_res = rebuild_selection(all_res, traj_reader)
@@ -1026,9 +1031,14 @@ def stage_II_run(config, options,
         for frame in traj_reader.iterate_over_frames():
 
             all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
-            all_resids = [res.first_resid() for res in all_res.iterate_over_residues()]
+            all_resids = [residue.first_resid() for residue in all_res.iterate_over_residues()]
             # check if is res are in scope
-            is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun)
+            if frame in res_ids_in_object_over_frames:
+                known_true = res_ids_in_object_over_frames[frame]
+            else:
+                known_true = None
+            #known_true = None
+            is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
 
             # loop over coord, is  in scope, and resid
             for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
@@ -1042,7 +1052,7 @@ def stage_II_run(config, options,
 
                     # do we have info on res_ids_in_object_over_frames?
                     if frame not in res_ids_in_object_over_frames:
-                        res = traj_reader.parse_selection(options.object)
+                        #res = traj_reader.parse_selection(options.object)
                         # discard res out of scope
                         res_new = get_res_in_scope(is_res_in_scope, res)
                         # remeber ids of res in object in current frame

@@ -79,14 +79,45 @@ class Selection(object):
         # should return modified ConvexHull object
         return SciPyConvexHull(self.atom_positions())
 
-    def contains_residues(self, other, convex_hull=False, map_fun=None):
+    def contains_residues(self, other, convex_hull=False, map_fun=None, known_true=None):
         # Checks if this selection contains other.
         # If convex_hull is False it checks if residues of this selection matches to other.
         # If convex_hull is True it checks if residues of other selection are within convex hull of this.
         # Returns list of bool values.
         # Parameter map_fun is optional map function. If it is None, regular map will be used.
+        # known_true is a list of resids of other selection that are known to be within this selection
         if map_fun is None:
             map_fun = map
+        if known_true is not None and len(known_true) > 0:
+            # this is the case wher we have list of known true
+            this_uids = self.unique_resids(ikwid=True)
+            other_uids = other.unique_resids(ikwid=True)
+            kt_list = []
+            ch_list = []
+            other_coords = []
+            for other_id,other_res in zip(other_uids,other.iterate_over_residues()):
+                if other_id in known_true:
+                    kt_list.append(other_id)
+                elif convex_hull:
+                    other_coords.append(other_res.center_of_mass().tolist())
+                    ch_list.append(other_id)
+                elif other_id in this_uids:
+                    kt_list.append(other_id) # this adds to kt because there is no sense in making another list for this case
+            # know if convex_hull call it
+            if convex_hull:
+                chull = self.get_convexhull_of_atom_positions()
+                ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
+            # final merging loop
+            final_results = []
+            for other_id in other_uids:
+                if other_id in ch_list:
+                    final_results.append(ch_results[ch_list.index(other_id)])
+                elif other_id in kt_list:
+                    final_results.append(True)
+                else:
+                    final_results.append(False)
+            return final_results
+
         if convex_hull:
             other_coords = list(other.center_of_mass_of_residues())
             chull = self.get_convexhull_of_atom_positions()
