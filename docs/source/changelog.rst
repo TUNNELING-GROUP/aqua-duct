@@ -2,7 +2,7 @@ Aqua-Duct changelog
 ===================
 
 * devel
-    * Uses newest MDAnalysis.
+    * Uses newest MDAnalysis (0.16.2).
     * Steady improvement of documentation (including API).
     * Added mario script, WIP.
     * If barber is used for clusterization, appropriate radii are displayed. Buggy.
@@ -13,6 +13,10 @@ Aqua-Duct changelog
     * Tables in the result file are split in regard to Object and Passing paths.
     * Small bug in reporting progress in AutoBarber preparation fixed.
     * Passing through paths are being introduced, WIP.
+    * Small bug in linearization functions fixed.
+    * CRD is enabled as topology/trajectory format.
+    * Traced residues are identified by resindices instead of resids; this allows to use weak topologies such as PDB.
+    * Stage II performance improved if clear_in_object_info is not used (default).
 * 0.3.7 (18.07.2017)
     * Enable XTC trajectory format.
     * Reliability fix in progress bar display.
