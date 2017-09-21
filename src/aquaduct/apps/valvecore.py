@@ -840,7 +840,7 @@ def valve_begin():
 def valve_end():
     clui.message(sep())
     clui.message('Let the Valve be always open!')
-    clui.message('Goodby!')
+    clui.message('Goodbye!')
 
 
 def valve_load_config(filename, config):
