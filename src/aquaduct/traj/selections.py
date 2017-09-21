@@ -33,10 +33,8 @@ from aquaduct.utils.maths import make_default_array
 
 
 class Selection(object):
-    '''
     def __init__(self,*args,**kwargs):
         super(Selection,self).__init__(*args,**kwargs)
-    '''
     """
     def __init__(self,selection,selection_string=None):
 
@@ -154,17 +152,13 @@ class Selection(object):
 
 # TODO: decide if methods should be properties or not
 
-# class SelectionMDA(mda.core.AtomGroup.AtomGroup, #mda15
+# class SelectionMDA(mda.core.AtomGroup.AtomGroup): #mda15
 class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
 
     def __init__(self, selection, universe): # mda16
-
-        # super(SelectionMDA,self).__init__(selection.indices,universe)
-        Selection.__init__(self)
-        # print dir(selection)
-        mda.core.groups.AtomGroup.__init__(self, selection.indices, universe)
-        # assert "center_of_mass" in dir(self)
-        # print self.center_of_mass()
+        super(SelectionMDA,self).__init__(selection.indices, universe)
+        # Selection.__init__(self)
+        # mda.core.groups.AtomGroup.__init__(self, selection.indices, universe)
 
     def iterate_over_residues(self):
         return (self.__class__(R.atoms, self.universe) for R in self.residues)
@@ -201,7 +195,6 @@ class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
 
 class CompactSelectionMDA(object):
     def __init__(self, sMDA):
-
         self.indices = map(lambda x: x + 1, map(int, sMDA.indices))
 
     def toSelectionMDA(self, reader):
