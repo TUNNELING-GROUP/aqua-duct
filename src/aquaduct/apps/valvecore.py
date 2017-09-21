@@ -1003,20 +1003,16 @@ def stage_II_run(config, options,
         pass
         #res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
 
-
     with reader.get() as traj_reader:
-
         with clui.fbm("Init paths container"):
             paths = dict(
                 ((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=traj_reader.number_of_frames - 1))
                  for resid, resname in
                  zip(all_res.unique_resids(ikwid=True), all_res.unique_names())))
-
-        scope = traj_reader.parse_selection(options.scope)
-        #res = traj_reader.parse_selection(options.object) # this is in case resid is missing in dict res_ids_in_object_over_frames
-
         with clui.fbm("Rebuild treceable residues with current trajectory"):
             all_res = rebuild_selection(all_res, traj_reader)
+        # scope is evaluated only once before loop over frames so it cannot be frame dependent
+        scope = traj_reader.parse_selection(options.scope)
 
         clui.message("Trajectory scan:")
         pbar = clui.pbar(traj_reader.number_of_frames)
@@ -1028,7 +1024,6 @@ def stage_II_run(config, options,
             map_fun = pool.map
 
         for frame in traj_reader.iterate_over_frames():
-
             all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
             all_resids = [residue.first_resid() for residue in all_res.iterate_over_residues()]
             # check if is res are in scope

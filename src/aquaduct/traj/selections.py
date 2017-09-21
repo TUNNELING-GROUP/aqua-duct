@@ -157,7 +157,7 @@ class Selection(object):
 # class SelectionMDA(mda.core.AtomGroup.AtomGroup, #mda15
 class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
 
-    def __init__(self, selection, universe):  # mda16
+    def __init__(self, selection, universe): # mda16
 
         # super(SelectionMDA,self).__init__(selection.indices,universe)
         Selection.__init__(self)
