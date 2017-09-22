@@ -18,6 +18,7 @@ Aqua-Duct changelog
     * Traced residues are identified by resindices instead of resids; this allows to use weak topologies such as PDB.
     * Stage II performance improved if clear_in_object_info is not used (default).
     * Removed roman dependency.
+    * Cache of convexhull solutions enabled for scope calculations. This improves Stage II performance but decrease slightly Stage I performance, WIP.
 * 0.3.7 (18.07.2017)
     * Enable XTC trajectory format.
     * Reliability fix in progress bar display.
