@@ -35,18 +35,21 @@ class ConvexHullCache(object):
 
     _cache = {}
 
-    def make_key(self,selection,frame):
-        return "%s_%d" % (selection,frame)
     def add_solution(self,selection,frame,result):
         if selection is not None:
-            self._cache.update({self.make_key(selection,frame):result})
-            #logger.debug('Added ConvexHull solution.')
+            if not self._cache.has_key(selection):
+                self._cache.update({selection:{}})
+            cache_selection = self._cache[selection]
+            cache_selection.update({frame:result})
+            logger.debug('Added ConvexHull solution %s %d.' % (selection,frame))
+
     def get_solution(self,selection,frame):
         if selection is not None:
-            key = self.make_key(selection,frame)
-            if key in self._cache:
-                #logger.debug('Using cached ConvexHull.')
-                return self._cache[key]
+            if self._cache.has_key(selection):
+                cache_selection = self._cache[selection]
+                if cache_selection.has_key(frame):
+                    logger.debug('Reused ConvexHull solution %s %d.' % (selection, frame))
+                    return cache_selection[frame]
 
 
 chc = ConvexHullCache()
