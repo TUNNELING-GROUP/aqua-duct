@@ -31,51 +31,47 @@ from aquaduct.geom.convexhull import is_point_within_convexhull
 from aquaduct.utils.helpers import int2range, are_rows_uniq
 from aquaduct.utils.maths import make_default_array
 
+class ConvexHullCache(object):
+
+    _cache = {}
+
+    def make_key(self,selection,frame):
+        return "%s_%d" % (selection,frame)
+    def add_solution(self,selection,frame,result):
+        if selection is not None:
+            self._cache.update({self.make_key(selection,frame):result})
+            #logger.debug('Added ConvexHull solution.')
+    def get_solution(self,selection,frame):
+        if selection is not None:
+            key = self.make_key(selection,frame)
+            if key in self._cache:
+                #logger.debug('Using cached ConvexHull.')
+                return self._cache[key]
+
+
+chc = ConvexHullCache()
 
 class Selection(object):
     def __init__(self,*args,**kwargs):
         super(Selection,self).__init__(*args,**kwargs)
-    """
-    def __init__(self,selection,selection_string=None):
-
-        self.selection_object = selection
-        self.selection_string = selection_string
-    """
-
-    '''
-    def center_of_mass(self):
-        # should return numpy (3,) array
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-    def iterate_over_residues(self):
-        # should iterate over residues in the selection returning object of the same type
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-
-    def unique_resids(self,*args,**kwargs):
-        # should return array of resids
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-
-    def unique_names(self):
-        # should return array of names of residues
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-    '''
+        self.selection_string = None
 
     def unique_resids_number(self):
         return len(self.unique_resids(ikwid=True))
-
-    '''
-
-    def atom_positions(self):
-        # should return numpy (x,3) array
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-    '''
 
     def center_of_mass_of_residues(self):
         # should resturn list of lists or generator of center of masses
         return (R.center_of_mass().tolist() for R in self.iterate_over_residues())
 
     def get_convexhull_of_atom_positions(self):
+        #return SciPyConvexHull(self.atom_positions())
+        result = chc.get_solution(self.selection_string,self.universe.trajectory.frame)
+        if result is None:
+            result = SciPyConvexHull(self.atom_positions())
+            chc.add_solution(self.selection_string,self.universe.trajectory.frame,result)
+        return result
         # should return modified ConvexHull object
-        return SciPyConvexHull(self.atom_positions())
+        #return SciPyConvexHull(self.atom_positions())
 
     def contains_residues(self, other, convex_hull=False, map_fun=None, known_true=None):
         # Checks if this selection contains other.
@@ -115,17 +111,17 @@ class Selection(object):
                 else:
                     final_results.append(False)
             return final_results
-
-        if convex_hull:
-            other_coords = list(other.center_of_mass_of_residues())
-            chull = self.get_convexhull_of_atom_positions()
-            return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
         else:
-            # check if other selection is empty
-            if other.unique_resids_number() == 0:
-                return []
-            this_uids = self.unique_resids(ikwid=True)
-            return [res_other.unique_resids(ikwid=True) in this_uids for res_other in other.iterate_over_residues()]
+            if convex_hull:
+                other_coords = list(other.center_of_mass_of_residues())
+                chull = self.get_convexhull_of_atom_positions()
+                return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
+            else:
+                # check if other selection is empty
+                if other.unique_resids_number() == 0:
+                    return []
+                this_uids = self.unique_resids(ikwid=True)
+                return [res_other.unique_resids(ikwid=True) in this_uids for res_other in other.iterate_over_residues()]
 
     def containing_residues(self, other, *args, **kwargs):
         # Convienience wrapper for contains_residues.
@@ -155,10 +151,11 @@ class Selection(object):
 # class SelectionMDA(mda.core.AtomGroup.AtomGroup): #mda15
 class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
 
-    def __init__(self, selection, universe): # mda16
+    def __init__(self, selection, universe, selection_string=None): # mda16
         super(SelectionMDA,self).__init__(selection.indices, universe)
         # Selection.__init__(self)
         # mda.core.groups.AtomGroup.__init__(self, selection.indices, universe)
+        self.selection_string = selection_string
 
     def iterate_over_residues(self):
         return (self.__class__(R.atoms, self.universe) for R in self.residues)
@@ -180,6 +177,7 @@ class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
             if not are_rows_uniq(positions):
                 logger.warning('Some atoms have the same positions, your data might me corrupted.')
             return make_default_array(positions)
+        #return make_default_array(self.positions)
         logger.warning('Selection comprises no atoms, check your settings.')
         return make_default_array([])
 
@@ -190,6 +188,7 @@ class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
 
     def uniquify(self):
         # self.__init__(mda.core.groups.AtomGroup(sum(set(self.atoms)),self.universe),self.universe)
+        # TODO: Rewrite it to speed up, may be by using indices or even resindices?
         self.__init__(sum(set(self.atoms)), self.universe)
 
 

@@ -924,33 +924,33 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
 def stage_I_run(config, options,
                 reader=None,
                 **kwargs):
-
     # create pool of workers - mapping function
     map_fun = map
     if optimal_threads.threads_count > 1:
         pool = mp.Pool(optimal_threads.threads_count)
         map_fun = pool.map
-
+    # get trajectory reader object
     with reader.get() as traj_reader:
-
         clui.message("Loop over frames - search of residues in object:")
         pbar = clui.pbar(traj_reader.number_of_frames)
+
+        # scope is evaluated only once before the loop over frames starts
         scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
         center_of_system = np.array([0., 0., 0.])
 
         # create some containers
         res_ids_in_object_over_frames = {}
-        res_ids_in_scope_over_frames = {}
+        res_ids_in_scope_over_frames = {} # not used
         all_res = None
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
             # center of system
             center_of_system += scope.center_of_mass()
-            ## current res selection
+            # current res selection
             res = traj_reader.parse_selection(options.object)
-            # find matching residues:
+            # find matching residues, ie those which are in the scope:
             res_new = scope.containing_residues(res, convex_hull=options.scope_convexhull, map_fun=map_fun)
             # adds them to all_res
             if all_res:
@@ -995,14 +995,17 @@ def stage_II_run(config, options,
                  all_res=None,
                  res_ids_in_object_over_frames=None,
                  **kwargs):
+    # create pool of workers - mapping function
+    map_fun = map
+    if optimal_threads.threads_count > 1:
+        pool = mp.Pool(optimal_threads.threads_count)
+        map_fun = pool.map
+    # clear in object info if required
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
         clui.message('This will be recalculated on demand.')
         res_ids_in_object_over_frames = {}
-    else:
-        pass
-        #res_ids_in_object_over_frames = IdsOverIds.arrays2dict(**res_ids_in_object_over_frames)
-
+    # get trajectory reader object
     with reader.get() as traj_reader:
         with clui.fbm("Init paths container"):
             paths = dict(
@@ -1011,37 +1014,39 @@ def stage_II_run(config, options,
                  zip(all_res.unique_resids(ikwid=True), all_res.unique_names())))
         with clui.fbm("Rebuild treceable residues with current trajectory"):
             all_res = rebuild_selection(all_res, traj_reader)
-        # scope is evaluated only once before loop over frames so it cannot be frame dependent
-        scope = traj_reader.parse_selection(options.scope)
-
         clui.message("Trajectory scan:")
         pbar = clui.pbar(traj_reader.number_of_frames)
 
-        # create pool of workers - mapping function
-        map_fun = map
-        if optimal_threads.threads_count > 1:
-            pool = mp.Pool(optimal_threads.threads_count)
-            map_fun = pool.map
+        # scope is evaluated only once before loop over frames so it cannot be frame dependent
+        scope = traj_reader.parse_selection(options.scope)
 
+        # the loop over frames
         for frame in traj_reader.iterate_over_frames():
-            all_res_coords = list(all_res.center_of_mass_of_residues())  # this uses iterate over residues
-            all_resids = [residue.first_resid() for residue in all_res.iterate_over_residues()]
-            # check if is res are in scope
+            # coordinates and ids of all residues found in the previous stage
+            #all_res_coords = all_res.center_of_mass_of_residues()  # this uses iterate over residues
+            #all_resids = (residue.first_resid() for residue in all_res.iterate_over_residues())
+            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
+            known_true = None
             if frame in res_ids_in_object_over_frames:
                 known_true = res_ids_in_object_over_frames[frame]
-            else:
-                known_true = None
-            #known_true = None
             is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
 
-            # loop over coord, is  in scope, and resid
-            for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
-                # the point is that nr is not pointing to correct element in paths
-                # now, nr is useless because paths is a dictionary, use resids instead
+            # loop over coords, is  in scope, and resid
+            for current_res,isscope in zip(all_res.iterate_over_residues(),is_res_in_scope):
+                if not isscope: continue
+                resid = current_res.first_resid()
                 assert paths[resid].id == resid, \
                     "Internal error. Paths IDs not synced with resids. \
                      Please send a bug report to the developer(s): %s" % __mail__
-                if isscope:
+                coord = current_res.center_of_mass()
+            #for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
+            #    if not isscope: continue
+            #    # the point is that nr is not pointing to correct element in paths
+            #    # now, nr is useless because paths is a dictionary, use resids instead
+            #    assert paths[resid].id == resid, \
+            #        "Internal error. Paths IDs not synced with resids. \
+            #         Please send a bug report to the developer(s): %s" % __mail__
+                if isscope: # residue is in the scope - always true
                     paths[resid].add_coord(coord)
 
                     # do we have info on res_ids_in_object_over_frames?
@@ -1058,8 +1063,8 @@ def stage_II_run(config, options,
                     # in scope
                     if resid not in res_ids_in_object_over_frames[frame]:
                         paths[resid].add_scope(frame)
+                    # in object
                     else:
-                        # in object
                         paths[resid].add_object(frame)
 
             pbar.update(frame)

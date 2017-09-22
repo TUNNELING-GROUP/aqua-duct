@@ -171,7 +171,7 @@ class ReadViaMDA(Reader):
             raise StopIteration
 
     def parse_selection(self, selection):
-        return SelectionMDA(self.trajectory_object.select_atoms(selection),self.trajectory_object)
+        return SelectionMDA(self.trajectory_object.select_atoms(selection),self.trajectory_object,selection_string=None)
 
     def select_resnum(self, resnum):
         assert isinstance(resnum, (int, long))
