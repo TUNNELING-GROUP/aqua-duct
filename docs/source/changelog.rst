@@ -19,6 +19,8 @@ Aqua-Duct changelog
     * Stage II performance improved if clear_in_object_info is not used (default).
     * Removed roman dependency.
     * Cache of convexhull solutions enabled for scope calculations. This improves Stage II performance but decrease slightly Stage I performance, WIP.
+    * In addition to histograms approximate (ConvexHull approximation) areas and volumes of the scope and object can be calculated.
+    * Small bug in CTypes extended fixed.
 * 0.3.7 (18.07.2017)
     * Enable XTC trajectory format.
     * Reliability fix in progress bar display.

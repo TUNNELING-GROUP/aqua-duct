@@ -63,6 +63,7 @@ class InletTypeCodes(ProtoInletTypeCodes):
 
 class InletClusterGenericType(object):
     def __init__(self, inp, out):
+        super(InletClusterGenericType, self).__init__()
         self.clusters = [inp, out]
 
     @property
@@ -71,7 +72,8 @@ class InletClusterGenericType(object):
 
     @property
     def output(self):
-        return self.clusters[-1]
+        return self.clusters[1]
+        #return self.clusters[-1]
 
     @staticmethod
     def cluster2str(cl):
@@ -146,7 +148,7 @@ class InletClusterGenericType(object):
 
 class InletClusterExtendedType(InletClusterGenericType):
     def __init__(self, surfin, interin, interout, surfout):
-        InletClusterGenericType.__init__(self, surfin, surfout)
+        super(InletClusterExtendedType, self).__init__(surfin, surfout)
         self.clusters.extend([interin, interout])
 
     @property

@@ -345,6 +345,10 @@ class ValveConfig(object, ConfigSpecialNames):
         config.remove_option(section, 'dump')
         config.set(section, 'save', '%d_%s_results.txt' % (snr + 1, section))
 
+        config.set(section, 'calculate_scope_object_size', 'False')
+        config.set(section, 'scope_chull', 'None')
+        config.set(section, 'object_chull', 'None')
+
         config.set(section, 'dump_config', 'True')
 
         ################
@@ -381,10 +385,10 @@ class ValveConfig(object, ConfigSpecialNames):
         # show protein
         config.set(section, 'show_molecule', 'None')
         config.set(section, 'show_molecule_frames', '0')
-        config.set(section, 'show_chull', 'None')
-        config.set(section, 'show_chull_frames', '0')
-        config.set(section, 'show_object', 'None')
-        config.set(section, 'show_object_frames', '0')
+        config.set(section, 'show_scope_chull', 'None')
+        config.set(section, 'show_scope_chull_frames', '0')
+        config.set(section, 'show_object_chull', 'None')
+        config.set(section, 'show_object_chull_frames', '0')
 
         return config
 
@@ -1396,8 +1400,8 @@ def stage_IV_run(config, options,
                 for cluster in inls.clusters_list:
                     added_to_cluster = 0
                     if cluster == 0: continue
-                    sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
-                    chull = inls.lim2clusters(cluster).get_chull()
+                    #sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
+                    #chull = inls.lim2clusters(cluster).get_chull()
                     wtc = WhereToCut(inlets=inls.lim2clusters(cluster),traj_reader=traj_reader,**ab_options)
                     wtc.cut_thyself()
                     for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
@@ -2079,6 +2083,7 @@ def stage_V_run(config, options,
     with reader.get() as traj_reader:
         max_frame = traj_reader.number_of_frames - 1
     header = [column[-1] for column in iter_over_all()]
+    fmt = ['%u']*len(header)
     h = np.zeros((max_frame+1,len(header)))
     # loop over spaths
     pbar = clui.pbar(maxval=len(spaths),
@@ -2118,13 +2123,34 @@ def stage_V_run(config, options,
                 h[sp.path_out, col_index] += 1
         pbar.next()
     pbar.finish()
+
+    # scope/object size?
+    if options.calculate_scope_object_size:
+        scope_size = []
+        object_size = []
+        # now, the problem is in the scope and object definition.
+        with reader.get() as traj_reader:
+            pbar = clui.pbar(maxval=traj_reader.number_of_frames, mess='Calculating scope and object sizes')
+            scope = traj_reader.parse_selection(options.scope_chull)
+            for frame in traj_reader.iterate_over_frames():
+                ch = scope.get_convexhull_of_atom_positions()
+                scope_size.append((ch.area,ch.volume))
+                res = traj_reader.parse_selection(options.object_chull)
+                ch = res.get_convexhull_of_atom_positions()
+                object_size.append((ch.area, ch.volume))
+                pbar.next()
+        header += ['scope_area','scope_volume','object_area','object_volume']
+        h = np.hstack((h,scope_size,object_size))
+        fmt += ['%0.2f']*4
+        pbar.finish()
     # add frame column?
     frame_col = np.array([range(max_frame+1)]).T
     h = np.hstack((frame_col,h))
     header = ['frame'] + header
+    fmt = ['%u']+fmt
     # save???
     np.savetxt(options.save+'.csv',h,
-               fmt='%u',
+               fmt=fmt,
                delimiter=',',
                header=','.join(header))
 
@@ -2240,21 +2266,21 @@ def stage_VI_run(config, options,
                 del pdb
                 #mda.core.flags["permissive_pdb_reader"] = mda_ppr
                 # it would be nice to plot convexhull
-    if options.show_chull:
+    if options.show_scope_chull:
         with clui.fbm("Convexhull"):
             with reader.get() as traj_reader:
-                scope = traj_reader.parse_selection(options.show_chull)
-                frames_to_show = range2int(options.show_chull_frames)
+                scope = traj_reader.parse_selection(options.show_scope_chull)
+                frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_real_frame(frame)
                     chull = scope.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, state=frame + 1)
 
-    if options.show_object:
+    if options.show_object_chull:
         with clui.fbm("Object shape"):
             with reader.get() as traj_reader:
-                object_shape = traj_reader.parse_selection(options.show_object)
-                frames_to_show = range2int(options.show_object_frames)
+                object_shape = traj_reader.parse_selection(options.show_object_chull)
+                frames_to_show = range2int(options.show_object_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_real_frame(frame)
                     chull = object_shape.get_convexhull_of_atom_positions()
