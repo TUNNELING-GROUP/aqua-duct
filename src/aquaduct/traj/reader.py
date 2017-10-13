@@ -33,7 +33,7 @@ mda_available_formats = {re.compile('(nc|NC)'): 'nc',
 
 
 class Reader(object):
-    def __init__(self, topology, trajectory, window=None):
+    def __init__(self, topology, trajectory, window=None,sandwich=None):
         assert isinstance(topology, str)
         if not isinstance(trajectory, str):
             for trj in trajectory:
@@ -41,12 +41,16 @@ class Reader(object):
 
         self.topology_file_name = topology
         self.trajectory_file_name = trajectory
+        self.sandwich = sandwich
 
         self.trajectory_object = self.open_trajectory()
 
         # if window is set then behaviour of iteration over frames related methods is different
         self.frames_window = window
         self.frames_window_list = None
+
+        self.iteration_in_progress = False
+        self.current_traj = 0
 
         # check window
         lo = min(self.get_start_frame(),self.get_stop_frame())
@@ -118,8 +122,12 @@ class Reader(object):
         # should return list of frames ids or generator returning such a list, and should set appropriate frame
         # appropriate frame means current frame that can be recalculated to real frame (window)
         for current_frame,real_frame in enumerate(self.get_window_frame_range()):
+            self.iteration_in_progress = True
             self.set_real_frame(real_frame)
-            yield current_frame
+            for nr in range(len(self.trajectory_object)):
+                self.current_traj = nr
+                yield current_frame
+        self.iteration_in_progress = False
 
     def cf2rf(self,cf):
         # current frame to real frame
@@ -157,12 +165,13 @@ class ReadViaMDA(Reader):
     ############################################################################
 
     def set_real_frame(self, frame):
-        self.trajectory_object.trajectory[frame]
+        for nr in xrange(len(self.trajectory_object)):
+            self.trajectory_object[nr].trajectory[frame]
 
     @property
     def real_number_of_frames(self):
         # should return number of frames
-        return len(self.trajectory_object.trajectory)
+        return len(self.trajectory_object[0].trajectory)
 
     def next_frame(self):
         try:
@@ -171,7 +180,8 @@ class ReadViaMDA(Reader):
             raise StopIteration
 
     def parse_selection(self, selection):
-        return SelectionMDA(self.trajectory_object.select_atoms(selection),self.trajectory_object,selection_string=selection)
+        assert self.iteration_in_progress, 'No selection is possible outside of iteration over frames loop.'
+        return SelectionMDA(self.trajectory_object[self.current_traj].select_atoms(selection),self.trajectory_object[self.current_traj],selection_string=selection)
 
     def select_resnum(self, resnum):
         assert isinstance(resnum, (int, long))
@@ -191,7 +201,8 @@ class ReadViaMDA(Reader):
         return self
 
     def __exit__(self, typ, value, traceback):
-        self.trajectory_object.trajectory.close()
+        for nr in xrange(len(self.trajectory_object)):
+            self.trajectory_object[nr].trajectory.close()
 
     def open_trajectory(self):
         topology = splitext(self.topology_file_name)[1][1:]
@@ -199,15 +210,19 @@ class ReadViaMDA(Reader):
             if afk.match(topology):
                 topology = mda_available_formats[afk]
                 break
-        trajectory = splitext(self.trajectory_file_name[0])[1][1:]
-        for afk in mda_available_formats.keys():
-            if afk.match(trajectory):
-                trajectory = mda_available_formats[afk]
-                break
-        return mda.Universe(self.topology_file_name,
-                            self.trajectory_file_name,
-                            topology_format=topology,
-                            format=trajectory)
+
+        if not self.sandwich:
+            trajectory = splitext(self.trajectory_file_name[0])[1][1:]
+            for afk in mda_available_formats.keys():
+                if afk.match(trajectory):
+                    trajectory = mda_available_formats[afk]
+                    break
+            return [mda.Universe(self.topology_file_name,
+                                self.trajectory_file_name,
+                                topology_format=topology,
+                                format=trajectory)]
+        else:
+            pass
 
 
 class ReadAmberNetCDFviaMDA(ReadViaMDA):

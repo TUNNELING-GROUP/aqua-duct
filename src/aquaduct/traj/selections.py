@@ -154,11 +154,12 @@ class Selection(object):
 # class SelectionMDA(mda.core.AtomGroup.AtomGroup): #mda15
 class SelectionMDA(Selection, mda.core.groups.AtomGroup):  # mda16
 
-    def __init__(self, selection, universe, selection_string=None): # mda16
+    def __init__(self, selection, universe, universe_nr=None, selection_string=None): # mda16
         super(SelectionMDA,self).__init__(selection.indices, universe)
         # Selection.__init__(self)
         # mda.core.groups.AtomGroup.__init__(self, selection.indices, universe)
         self.selection_string = selection_string
+        self.universe_nr = universe_nr
 
     def iterate_over_residues(self):
         return (self.__class__(R.atoms, self.universe) for R in self.residues)
