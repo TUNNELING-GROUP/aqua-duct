@@ -22,7 +22,7 @@ filetypes.xml
 ide.general.xml
 vcs.xml
 codestyles
-
+.kateproject*
 
 valve_tests
 real_traj
@@ -37,3 +37,4 @@ src/build
 src/dist
 src/*egg*
 ves
+tags
