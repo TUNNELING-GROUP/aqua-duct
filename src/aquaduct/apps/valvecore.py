@@ -484,12 +484,13 @@ class ValveConfig(object, ConfigSpecialNames):
 # reader helper class
 
 class TrajectoryReader(object):
-    def __init__(self, top, trj,frames_window=None):
+    def __init__(self, top, trj,frames_window=None,sandwich=None):
         assert isinstance(top, (str, unicode)), "Topology file name missing, %s given instead" % str(top)
         assert isinstance(trj, (str, unicode)), "Trajectory file(s) name(s) missing, %s given instead" % str(trj)
         self.top = top
         self.trj = shlex.split(trj)
         self.frames_window = frames_window
+        self.sandwich = sandwich
 
     def get(self):
         return ReadViaMDA(self.top, self.trj, window=self.frames_window)
@@ -854,9 +855,9 @@ def valve_load_config(filename, config):
         config.load_config(filename)
 
 
-def valve_read_trajectory(top, traj, frames_window=None):
+def valve_read_trajectory(top, traj, frames_window=None, sandwich=None):
     with clui.fbm('Read trajectory'):
-        return TrajectoryReader(top, traj, frames_window=frames_window)
+        return TrajectoryReader(top, traj, frames_window=frames_window, sandwich=sandwich)
         # read trajectory
         # traj_list = shlex.split(traj)
         # return ReadAmberNetCDFviaMDA(top, traj_list)
@@ -939,7 +940,7 @@ def stage_I_run(config, options,
         pbar = clui.pbar(traj_reader.number_of_frames)
 
         # scope is evaluated only once before the loop over frames starts
-        scope = traj_reader.parse_selection(options.scope)
+        #scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
         center_of_system = np.array([0., 0., 0.])
 
@@ -950,6 +951,8 @@ def stage_I_run(config, options,
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
+            # scope moved to the loop
+            scope = traj_reader.parse_selection(options.scope)
             # center of system
             center_of_system += scope.center_of_mass()
             # current res selection
