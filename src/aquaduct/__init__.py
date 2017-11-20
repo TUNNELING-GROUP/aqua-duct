@@ -42,7 +42,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 3, 99
+    return 0, 4, 99
     # code cleanup and bugs fixes
     # different way of creating paths ans separate paths
 

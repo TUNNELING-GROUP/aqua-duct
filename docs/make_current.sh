@@ -22,7 +22,6 @@ cd aqua-duct
 git config user.email "tljm@wp.pl"
 git config user.name "TM"
 
-
 # make for highest tag
 
 for tag in `echo $( git tag ; git branch --list -r | awk '{print $1}' | cut -d '/' -f 2 | grep -v -F '*' | grep v ) | tr "[:blank:]" "\n" | sort -r | head -1`
