@@ -21,7 +21,7 @@ else
     MAKE=make
 fi
 
-export PYTHONPATH=$PYTHONPATH:~/.local/lib/python2.7/site-packages:`pwd`/../src
+export PYTHONPATH=~/.local/lib/python2.7/site-packages:`pwd`/../src:$PYTHONPATH
 
 $MAKE SPHINXBUILD="$SPHINXBUILD" latexpdf
 

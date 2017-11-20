@@ -22,7 +22,7 @@ else
 fi
 
 #PYTHONPATH_CACHE=$PYTHONPATH
-export PYTHONPATH=$PYTHONPATH:~/.local/lib/python2.7/site-packages:`pwd`/../src
+export PYTHONPATH=~/.local/lib/python2.7/site-packages:`pwd`/../src:$PYTHONPATH
 
 $SPHINX_APIDOC -f -e -o source/ ../src/aquaduct/
 sed -i '/undoc/d' source/*.*.rst
