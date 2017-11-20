@@ -8,7 +8,7 @@ Welcome to Aqua-Duct's documentation!
 
 .. warning::
 
-    This is documentation for the development version of Aqua-Duct.
+    This is documentation for the unofficial version of Aqua-Duct.
 
 .. toctree::
     :maxdepth: 1
