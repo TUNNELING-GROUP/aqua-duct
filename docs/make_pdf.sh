@@ -2,15 +2,17 @@
 
 ./make_html.sh
 
-SPHINX_APIDOC=sphinx-apidoc
+PYTHON=python2.7
+
+SPHINX_APIDOC="$PYTHON sphinx-apidoc"
 if [ -x ~/.local/bin/sphinx-apidoc ]
 then
-    SPHINX_APIDOC=~/.local/bin/sphinx-apidoc
+    SPHINX_APIDOC="$PYTHON $HOME/.local/bin/sphinx-apidoc"
 fi
-SPHINXBUILD=sphinx-build
+SPHINXBUILD="$PYTHON sphinx-build"
 if [ -x ~/.local/bin/sphinx-build ]
 then
-    SPHINXBUILD=~/.local/bin/sphinx-build
+    SPHINXBUILD="$PYTHON $HOME/.local/bin/sphinx-build"
 fi
 if [ -n "`which gmake`" ]
 then
@@ -19,10 +21,8 @@ else
     MAKE=make
 fi
 
-PYTHONPATH_CACHE=$PYTHONPATH
-export PYTHONPATH=../src
+export PYTHONPATH=$PYTHONPATH:~/.local/lib/python2.7/site-packages:`pwd`/../src
 
-$MAKE SPHINXBUILD=$SPHINXBUILD latexpdf
+$MAKE SPHINXBUILD="$SPHINXBUILD" latexpdf
 
-export PYTHONPATH=$PYTHONPATH_CACHE
 

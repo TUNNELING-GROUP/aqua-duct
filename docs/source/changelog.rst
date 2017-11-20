@@ -2,12 +2,13 @@ Aqua-Duct changelog
 ===================
 
 * devel
-    * Uses newest MDAnalysis (0.16.2).
-    * Steady improvement of documentation (including API).
     * Added mario script, WIP.
     * If barber is used for clusterization, appropriate radii are displayed. Buggy.
-    * Data dumps routines moved to separate module.
     * Tests with netcdf4 for dumping data, WIP.
+* 0.4.0 (20.11.2017) unoffcial
+    * Uses newest MDAnalysis (0.16.2).
+    * Steady improvement of documentation (including API).
+    * Data dumps routines moved to separate module.
     * SmartRanges moved to helpers module.
     * Names of traced molecules are returned in the result file and tables are split appropriately.
     * Tables in the result file are split in regard to Object and Passing paths.

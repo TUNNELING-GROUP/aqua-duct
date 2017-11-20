@@ -1,16 +1,18 @@
 #!/bin/sh
 
+PYTHON=python2.7
+
 # this builds current
 
-SPHINX_APIDOC=sphinx-apidoc
+SPHINX_APIDOC="$PYTHON sphinx-apidoc"
 if [ -x ~/.local/bin/sphinx-apidoc ]
 then
-    SPHINX_APIDOC=~/.local/bin/sphinx-apidoc
+    SPHINX_APIDOC="$PYTHON $HOME/.local/bin/sphinx-apidoc"
 fi
-SPHINXBUILD=sphinx-build
+SPHINXBUILD="$PYTHON sphinx-build"
 if [ -x ~/.local/bin/sphinx-build ]
 then
-    SPHINXBUILD=~/.local/bin/sphinx-build
+    SPHINXBUILD="$PYTHON $HOME/.local/bin/sphinx-build"
 fi
 if [ -n "`which gmake`" ]
 then
@@ -19,8 +21,8 @@ else
     MAKE=make
 fi
 
-PYTHONPATH_CACHE=$PYTHONPATH
-export PYTHONPATH=~/.local/lib/python2.7/site-packages:`pwd`/../src
+#PYTHONPATH_CACHE=$PYTHONPATH
+export PYTHONPATH=$PYTHONPATH:~/.local/lib/python2.7/site-packages:`pwd`/../src
 
 $SPHINX_APIDOC -f -e -o source/ ../src/aquaduct/
 sed -i '/undoc/d' source/*.*.rst
@@ -59,17 +61,17 @@ sed -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.template > source/aquaduct_
 
 # AQ installation requirements
 echo "* Python 2.7 (CPython implementation)" > source/aquaduct_install_requires.rst
-printf 'install_requires_nice(1)' | python -i ../src/setup.py -n --name | sed '1d' 2>&1 >> source/aquaduct_install_requires.rst | cat > /dev/null
+printf 'install_requires_nice(1)' | python2.7 -i ../src/setup.py -n --name | sed '1d' 2>&1 >> source/aquaduct_install_requires.rst | cat > /dev/null
 
 rm -rf -- build/html*
-$MAKE SPHINXBUILD=$SPHINXBUILD html
+$MAKE SPHINXBUILD="$SPHINXBUILD" html
 
 # rework links to other resources
 #find build/html/ -iname '*.html' -exec sed -i 's/localhost/'$( hostname )'/g' {} +
 
 rm -rf source/aquaduct*.tar.gz
 
-export PYTHONPATH=$PYTHONPATH_CACHE
+#export PYTHONPATH=$PYTHONPATH_CACHE
 
 rm -rf aquaduct_docs.zip
 #( cd build/html ; zip -r -9 ../../aquaduct_docs.zip * )
