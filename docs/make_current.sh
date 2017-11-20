@@ -10,7 +10,8 @@ mkdir -p $PDIR
 
 function make_docs {
     cd docs
-    ./make_pdf.sh
+    #./make_pdf.sh
+    ./make_html.sh
     cd ..
     git stash
 }
@@ -32,11 +33,12 @@ do
     #git checkout tags/$tag # -b branch_$tag
     git checkout $tag # -b branch_$tag
     VERSION=current
+    git status
     #echo $tag $VERSION
     make_docs
     mv docs/build/html $PDIR
     cp docs/build/latex/*.pdf $PDIR
 done
 
-rm -rf -- $TDIR
-rm -rf -- $RDIR
+#rm -rf -- $TDIR
+#rm -rf -- $RDIR
