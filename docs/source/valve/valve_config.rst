@@ -173,39 +173,54 @@ auto_barber_maxcut_level    True            If set `True` spheres of radius grea
                                             resized to **maxcut** value.
 auto_barber_tovdw           True            Correct cutting sphere by decreasing its radius by VdW radius
                                             of the closest atom.
+allow_passing_paths         False           If set `True` paths that do not enter the object are detected
+                                            and added to the rest of paths as 'passing' paths.
 ========================    ==============  ================================================================
 
 
 Stage **inlets_clusterization**
 -------------------------------
 
-=====================   ==============  ================================================================
-Option                  Default value   Description
-=====================   ==============  ================================================================
-recluster_outliers      False           If set to ``True`` reclusterization of outliers is executed
-                                        according to the method defined in **reclusterization** section.
-detect_outliers         False           If set detection of outliers is executed. It could be set as a
-                                        floating point distance threshold or set tu ``Auto``. See
-                                        :ref:`clusterization_of_inlets` for more details.
-singletons_outliers     False           Maximal size of cluster to be considered as outliers. If set to
-                                        number > 0 clusters of that size are removed and their objects
-                                        are moved to outliers. See :ref:`clusterization_of_inlets` for
-                                        more details.
-max_level               5               Maximal number of recursive clusterization levels.
-create_master_paths     False           If set to ``True`` master paths are created (fast CPU and big
-                                        RAM recommended; 50k frames long simulation may need ca 20GB of
-                                        memory)
-=====================   ==============  ================================================================
+==================================  ==============  ================================================================
+Option                              Default value   Description
+==================================  ==============  ================================================================
+recluster_outliers                  False           If set to ``True`` reclusterization of outliers is executed
+                                                    according to the method defined in **reclusterization** section.
+detect_outliers                     False           If set detection of outliers is executed. It could be set as a
+                                                    floating point distance threshold or set tu ``Auto``. See
+                                                    :ref:`clusterization_of_inlets` for more details.
+singletons_outliers                 False           Maximal size of cluster to be considered as outliers. If set to
+                                                    number > 0 clusters of that size are removed and their objects
+                                                    are moved to outliers. See :ref:`clusterization_of_inlets` for
+                                                    more details.
+max_level                           5               Maximal number of recursive clusterization levels.
+create_master_paths                 False           If set to ``True`` master paths are created (fast CPU and big
+                                                    RAM recommended; 50k frames long simulation may need ca 20GB of
+                                                    memory)
+exclude_passing_in_clusterization   True            If set to ``True`` passing paths are not clustered with normal
+                                                    paths.
+add_passing_to_clusters             None            Allows to run procedure for adding passing paths inlets to
+                                                    clusters with Auto Barber method. To enable this the option
+                                                    should be set to molecular entity that will be used by Auto
+                                                    Barber.
+==================================  ==============  ================================================================
 
 Stage **analysis**
 ------------------
 
-=====================   ==============  ================================================================
-Option                  Default value   Description
-=====================   ==============  ================================================================
-dump_config             True            If set to ``True`` configuration options, as seen by Valve, are
-                                        added to the head of results.
-=====================   ==============  ================================================================
+==============================  ==============  ================================================================
+Option                          Default value   Description
+==============================  ==============  ================================================================
+dump_config                     True            If set to ``True`` configuration options, as seen by Valve, are
+                                                added to the head of results.
+calculate_scope_object_size     False           If set to ``True`` volumes and areas of object and scope
+                                                approximated by convex hulls will be calculated for each
+                                                analyzed frames and saved in output CSV file.
+scope_chull                     None            Scope convex hull definition used in calculating volume and
+                                                area.
+object_chull                    None            Object convex hull definition used in calculating volume and
+                                                area.
+==============================  ==============  ================================================================
 
 
 Stage **visualize**
@@ -215,84 +230,84 @@ Stage **visualize**
 .. table::
     :class: longtable
 
-    =====================   ================    ==========================================================================================
-    Option                  Default value       Description
-    =====================   ================    ==========================================================================================
-    simply_smooths          RecursiveVector     Option indicates linear simplification method to be used in
-                                                plotting smooth paths. Simplification removes points which do
-                                                not (or almost do not) change the shape of smooth path.
-                                                Possible choices are:
+    ==========================  ================    ==========================================================================================
+    Option                      Default value       Description
+    ==========================  ================    ==========================================================================================
+    simply_smooths              RecursiveVector     Option indicates linear simplification method to be used in
+                                                    plotting smooth paths. Simplification removes points which do
+                                                    not (or almost do not) change the shape of smooth path.
+                                                    Possible choices are:
 
-                                                * ``RecursiveVector``
-                                                  (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
-                                                * ``HobbitVector`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
-                                                * ``OneWayVector`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
-                                                * ``RecursiveTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
-                                                * ``HobbitTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
-                                                * ``OneWayTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
+                                                    * ``RecursiveVector``
+                                                      (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
+                                                    * ``HobbitVector`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
+                                                    * ``OneWayVector`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
+                                                    * ``RecursiveTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
+                                                    * ``HobbitTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
+                                                    * ``OneWayTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
 
-                                                Optionally name of the method can be followed by a threshold
-                                                value in parentheses, ie ``RecursiveVector(0.05)``. For sane
-                                                values of thresholds see appropriate documentation of each method.
-                                                Default values work well. This option is not case sensitive.
-                                                It is recommended to use default method or ``HobbitVector`` method.
-    all_paths_raw           False               If True produces one object in PyMOL that holds all paths
-                                                visualized by raw coordinates.
-    all_paths_smooth        False               If True produces one object in PyMOL that holds all paths
-                                                visualized by smooth coordinates.
-    all_paths_split         False               If is set True objects produced by **all_paths_raw** and
-                                                **all_paths_smooth** are split into Incoming, Object, and
-                                                Outgoing parts and visualized as three different objects.
-    all_paths_raw_io        False               If set True arrows pointing beginning and end of paths are
-                                                displayed oriented accordingly to raw paths orientation.
-    all_paths_smooth_io     False               If set True arrows pointing beginning and end of paths are
-                                                displayed oriented accordingly to smooth paths orientation.
-    paths_raw               False               If set True raw paths are displayed as separate objects or as
-                                                one object with states corresponding to number of path.
-    paths_smooth            False               If set True smooth paths are displayed as separate objects or
-                                                as one object with states corresponding to number of path.
-    paths_raw_io            False               If set True arrows indicating beginning and end of paths,
-                                                oriented accordingly to raw paths, are displayed as separate
-                                                objects or as one object with states corresponding to number
-                                                of paths.
-    paths_smooth_io         False               If set True arrows indicating beginning and end of paths,
-                                                oriented accordingly to smooth paths, are displayed as separate
-                                                objects or as one object with states corresponding to number
-                                                of paths.
-    paths_states            False               If True objects displayed by **paths_raw**, **paths_smooth**,
-                                                **paths_raw_io**, and **paths_smooth_io** are displayed as one
-                                                object with states corresponding to number of paths.
-                                                Otherwise they are displayed as separate objects.
-    ctypes_raw              False               Displays raw paths in a similar manner as non split
-                                                **all_paths_raw** but each cluster type is displayed in
-                                                separate object.
-    ctypes_smooth           False               Displays smooth paths in a similar manner as non split
-                                                **all_paths_smooth** but each cluster type is displayed in
-                                                separate object.
-    show_molecule           False               If is set to selection of some molecular object in the system,
-                                                for example to ``protein``, this object is displayed.
-    show_molecule_frames    0                   Allows to indicate which frames of object defined by
-                                                **show_molecule** should be displayed. It is possible to set
-                                                several frames. In that case frames would be displayed as
-                                                states.
-    show_chull              False               If is set to selection of some molecular object in the system,
-                                                for example to ``protein``, convex hull of this object is
-                                                displayed.
-    show_chull_frames       0                   Allows to indicate for which frames of object defined by
-                                                **show_chull** convex hull should be displayed. It is possible
-                                                to set several frames. In that case frames would be displayed
-                                                as states.
-    show_object             False               If is set to selection of some molecular object in the system
-                                                convex hull of this object is displayed. This works exacly the
-                                                same way as **show_chull** but is meant to mark object shape.
-                                                It can be achevied by using `name * and` molecular object
-                                                definition plus some spatial constrains, for example those
-                                                used in object definition.
-    show_object_frames      0                   Allows to indicate for which frames of object defined by
-                                                **show_object** convex hull should be displayed. It is possible
-                                                to set several frames. In that case frames would be displayed
-                                                as states.
-    =====================   ================    ==========================================================================================
+                                                    Optionally name of the method can be followed by a threshold
+                                                    value in parentheses, ie ``RecursiveVector(0.05)``. For sane
+                                                    values of thresholds see appropriate documentation of each method.
+                                                    Default values work well. This option is not case sensitive.
+                                                    It is recommended to use default method or ``HobbitVector`` method.
+    all_paths_raw               False               If True produces one object in PyMOL that holds all paths
+                                                    visualized by raw coordinates.
+    all_paths_smooth            False               If True produces one object in PyMOL that holds all paths
+                                                    visualized by smooth coordinates.
+    all_paths_split             False               If is set True objects produced by **all_paths_raw** and
+                                                    **all_paths_smooth** are split into Incoming, Object, and
+                                                    Outgoing parts and visualized as three different objects.
+    all_paths_raw_io            False               If set True arrows pointing beginning and end of paths are
+                                                    displayed oriented accordingly to raw paths orientation.
+    all_paths_smooth_io         False               If set True arrows pointing beginning and end of paths are
+                                                    displayed oriented accordingly to smooth paths orientation.
+    paths_raw                   False               If set True raw paths are displayed as separate objects or as
+                                                    one object with states corresponding to number of path.
+    paths_smooth                False               If set True smooth paths are displayed as separate objects or
+                                                    as one object with states corresponding to number of path.
+    paths_raw_io                False               If set True arrows indicating beginning and end of paths,
+                                                    oriented accordingly to raw paths, are displayed as separate
+                                                    objects or as one object with states corresponding to number
+                                                    of paths.
+    paths_smooth_io             False               If set True arrows indicating beginning and end of paths,
+                                                    oriented accordingly to smooth paths, are displayed as separate
+                                                    objects or as one object with states corresponding to number
+                                                    of paths.
+    paths_states                False               If True objects displayed by **paths_raw**, **paths_smooth**,
+                                                    **paths_raw_io**, and **paths_smooth_io** are displayed as one
+                                                    object with states corresponding to number of paths.
+                                                    Otherwise they are displayed as separate objects.
+    ctypes_raw                  False               Displays raw paths in a similar manner as non split
+                                                    **all_paths_raw** but each cluster type is displayed in
+                                                    separate object.
+    ctypes_smooth               False               Displays smooth paths in a similar manner as non split
+                                                    **all_paths_smooth** but each cluster type is displayed in
+                                                    separate object.
+    show_molecule               False               If is set to selection of some molecular object in the system,
+                                                    for example to ``protein``, this object is displayed.
+    show_molecule_frames        0                   Allows to indicate which frames of object defined by
+                                                    **show_molecule** should be displayed. It is possible to set
+                                                    several frames. In that case frames would be displayed as
+                                                    states.
+    show_scope_chull            False               If is set to selection of some molecular object in the system,
+                                                    for example to ``protein``, convex hull of this object is
+                                                    displayed.
+    show_scope_chull_frames     0                   Allows to indicate for which frames of object defined by
+                                                    **show_chull** convex hull should be displayed. It is possible
+                                                    to set several frames. In that case frames would be displayed
+                                                    as states.
+    show_object_chull           False               If is set to selection of some molecular object in the system
+                                                    convex hull of this object is displayed. This works exacly the
+                                                    same way as **show_chull** but is meant to mark object shape.
+                                                    It can be achevied by using `name * and` molecular object
+                                                    definition plus some spatial constrains, for example those
+                                                    used in object definition.
+    show_object_chull_frames    0                   Allows to indicate for which frames of object defined by
+                                                    **show_object** convex hull should be displayed. It is possible
+                                                    to set several frames. In that case frames would be displayed
+                                                    as states.
+    ==========================  ================    ==========================================================================================
 
 
 .. note::
