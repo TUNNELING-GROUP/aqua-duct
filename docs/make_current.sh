@@ -24,12 +24,14 @@ git config user.name "TM"
 
 
 # make for highest tag
-for tag in $( git tag | sort -r | head -1 )
+
+for tag in `echo $( git tag; git branch | grep v ) | tr "[:blank:]" "\n" | sort -r | head -1`
+#for tag in $( git tag | sort -r | head -1 )
 #for tag in $( git branch | tail -n 1 )
 do
     echo $tag
-    git checkout tags/$tag # -b branch_$tag
-    #git checkout $tag # -b branch_$tag
+    #git checkout tags/$tag # -b branch_$tag
+    git checkout $tag # -b branch_$tag
     VERSION=current
     #echo $tag $VERSION
     make_docs
