@@ -325,7 +325,12 @@ Additionally, in stage **inlets_clusterization** following options could also be
 Analysis
 ^^^^^^^^
 
-Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4. Results of the analysis are displayed on the screen or can be saved to text file and comprise of following parts:
+Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4.
+
+General summary
+"""""""""""""""
+
+Results of the analysis are displayed on the screen or can be saved to text file and comprise of following parts:
 
 * Tile and data stamp.
 * [Optional] Dump of configuration options.
@@ -378,14 +383,37 @@ Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4
     #. **CType**: Cluster type of separate path.
 
 Separate path ID
-""""""""""""""""
+################
 
 Separate Path IDs are composed of two numbers separated by colon. First number is the residue number. Second number is consecutive number of the separate path made by the residue. Numeration starts with 0.
 
 Cluster Type of separate path
-"""""""""""""""""""""""""""""
+#############################
 
 Each separate path has two ends: beginning and end. Both of them either belong to one of the clusters of inlets, or are among outliers, or are inside the scope. If an end belongs to one of the clusters (including outliers) it has ID of the cluster. If it is inside the scope it has special ID of ``N``. Cluster type is an ID composed of IDs of both ends of separate path separated by colon charter.
+
+Frames dependent analysis
+"""""""""""""""""""""""""
+
+In addition to general summary Aqua-Duct calculates frames dependent parameters. Two types of values are calculated: number of traced paths, and *Object* and *Scope* sizes. Results are saved in the additional CSV file.
+
+Number of traced paths
+######################
+
+For each frame number of traced paths are calculated for following categories:
+
+#. Name of traced molecules - ``amol`` is used for all possible names.
+#. Paths types (``object`` for standard paths and ``passing`` for passing paths) - ``apaths`` is used for all possible paths types.
+#. Clusters and cluster types - ``aclusts`` is used for all possible clusters and ``actypes`` is used for all possible cluster types.
+#. Part of paths. Possible values are: ``walk``, ``in``, ``object``, ``out``, and ``in_out``. Where ``walk`` corresponds to any part of path and in case of passing paths only this category is used; ``in``, ``object``, and ``out`` correspond to incoming, object, and outgoing parts; ``in_out`` corresponds to sum of incoming and outgoing parts.
+
+All the above listed categories are combined what results in big number of different categories.
+
+Size of *Object* and *Scope*
+############################
+
+If option ``calculate_scope_object_size`` is set ``True`` and values of ``scope_chull`` and ``object_chull`` correspond to appropriate molecular entities, Aqua-Duct calculates area and volume of *Scope* and *Object*. Calculated sizes are estimates as resulting from Convex Hull approximations. 
+
 
 Visualization
 ^^^^^^^^^^^^^
