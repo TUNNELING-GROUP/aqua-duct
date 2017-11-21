@@ -2088,8 +2088,10 @@ def stage_V_run(config, options,
     # loop over spaths
     pbar = clui.pbar(maxval=len(spaths),
                      mess='Calculating histograms')
+	# loop over paths and ctypes
     for sp,ct in zip(spaths,ctypes):
         # loop over columns
+        # traced names, paths types, clusters cluster types, part of paths, column name
         for tname,sptype,c_ct,part,col_name in iter_over_all():
             # check if column fits to the requirements
             if not sp.id.name in tname: continue
