@@ -201,18 +201,6 @@ It is also possible that incoming and/or outgoing part of the separate path is e
 
    Generation of *Passing paths* without redefinition of *Object* area in stage I and II may lead to false results.
 
-Passing paths
-^^^^^^^^^^^^^
-
-If *Passing paths* are allowed (see ``allow_passing_paths`` option in  :ref:`separate_paths configuration <separate_paths_options>`) they will be generated using list of *traceable residues* from the first stage of calculations. In usual settings, where *Object* and *Scope* definitions are the same in both I and II stage, this will result in relatively low number of passing paths. In particular this will not show the real number of traced molecules that enter *Scope* during the simulation.
-
-To get correct picture following options and settings have to be considered:
-
-#. Stage **traceable_residues**
-##. dd
-
-
-
 .. _auto_barber_procedure:
 
 Auto Barber
@@ -313,6 +301,26 @@ At the end of clusterization stage it is possible to run procedure for `master p
 #. Results for all chunks are collected, types probability are changed to types. All data is then used to create Master Path. If this fails no path is created.
 
 More technical details on master path generation can be found in :meth:`aquaduct.geom.master.CTypeSpathsCollection.get_master_path` method documentation.
+
+Passing paths
+^^^^^^^^^^^^^
+
+If *Passing paths* are allowed (see ``allow_passing_paths`` option in  :ref:`separate_paths configuration <separate_paths_options>`) they will be generated using list of *traceable residues* from the first stage of calculations. In usual settings, where *Object* and *Scope* definitions are the same in both I and II stage, this will result in relatively low number of passing paths. In particular this will not show the real number of traced molecules that enter *Scope* during the simulation.
+
+To get correct picture following options and settings have to be considered:
+
+* Stage **traceable_residues**
+	* ``object`` should be broad enough to encompass all molecules that should be traced. For example, if water is traced, ``object`` definition could be following: ``resname WAT``.
+* Stage **raw_paths**
+	* In order to retain default Aqua-Duct behavior of tracing molecules that flow through *Object* area, it have to be redefined to encompass the active site only - see :ref:`Object definition <object_definition>` discussion.
+	* ``clear_in_object_info`` should be set to ``True``. Otherwise, traceable molecules will be limited according to current ``object`` definition but *Object* boundaries from **traceable_residues** stage will be used.
+* Stage **separate_paths**
+	* ``allow_passing_paths`` should be set to ``True``. This allows generation of passing paths.
+
+Additionally, in stage **inlets_clusterization** following options could also be adjusted:
+
+* ``exclude_passing_in_clusterization`` could be set to ``True``. This will exclude passing paths inlets from clusterization.
+* If passing paths are not clustered they will be added as outliers. Option ``add_passing_to_clusters`` allows to add some of passing paths inlets to already existing clusters. This is done by Auto Barber method and therefore this option should define molecular entity used in Auto Barber procedure, for example ``protein``.
 
 Analysis
 ^^^^^^^^
