@@ -3,7 +3,8 @@ How does AQUA-DUCT work
 
 AQUA-DUCT is perfectly capable of tracing molecules that enter defined region of the macromolecule during MD simulation. Detailed statistics and visualization of all traced molecules are available. Moreover, AQUA-DUCT performs clusterization of exits/inlets data and groups identified paths according to this clusters - inlet-exit event grouping.
 
-Following picture illustrates the concept behind AQUA-DUCT. Only molecules which flow through the active site are traced. Incoming, outgoing, and active site parts of paths are detected and visualized accordingly. Traced molecules form clusters which allow for further detailed analysis.
+Following picture illustrates the concept behind AQUA-DUCT. Molecules which flow through the active site are traced. Incoming, outgoing, and active site parts of paths are detected and visualized accordingly. Traced molecules form clusters which allow for further detailed analysis.
+Optionally, AQ can trace molecules which does not flow through the active site. This can be useful to ilustrate overall flow and can be also used to derive relative number of molecules visiting the active site.
 
 .. figure:: AQ_work.png
    :align:  center

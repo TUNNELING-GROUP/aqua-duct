@@ -201,6 +201,18 @@ It is also possible that incoming and/or outgoing part of the separate path is e
 
    Generation of *Passing paths* without redefinition of *Object* area in stage I and II may lead to false results.
 
+Passing paths
+^^^^^^^^^^^^^
+
+If *Passing paths* are allowed (see ``allow_passing_paths`` option in  :ref:`separate_paths configuration <separate_paths_options>`) they will be generated using list of *traceable residues* from the first stage of calculations. In usual settings, where *Object* and *Scope* definitions are the same in both I and II stage, this will result in relatively low number of passing paths. In particular this will not show the real number of traced molecules that enter *Scope* during the simulation.
+
+To get correct picture following options and settings have to be considered:
+
+#. Stage **traceable_residues**
+##. dd
+
+
+
 .. _auto_barber_procedure:
 
 Auto Barber
