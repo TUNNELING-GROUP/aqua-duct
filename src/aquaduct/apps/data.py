@@ -134,6 +134,7 @@ class ValveDataAccess(object):
 
 class ValveDataAccess_pickle(ValveDataAccess):
     mimic_old_var_name = 'aq_data_to_save'
+    unknown_names = 'UNK'
 
     def open(self, data_file_name, mode):
         # open file
@@ -168,6 +169,15 @@ class ValveDataAccess_pickle(ValveDataAccess):
                         value = value.toSelectionMDA(self.reader)
                         # with self.reader.get() as traj_reader:
                         #    value = value.toSelectionMDA(traj_reader)
+                    # TODO: following is to overcome problems with missing names when data is <0.4
+                    if name == 'paths':
+                        for path_name,path in value.iteritems():
+                            if not hasattr(path,'name'):
+                                path.name = self.unknown_names
+                    if name == 'spaths':
+                        for spath in value:
+                            if not hasattr(spath.id,'name'):
+                                spath.id.name = self.unknown_names
                     data.update({name: value})
                 break
             else:
@@ -176,6 +186,15 @@ class ValveDataAccess_pickle(ValveDataAccess):
                         value = value.toSelectionMDA(self.reader)
                         # with self.reader.get() as traj_reader:
                         #    value = value.toSelectionMDA(traj_reader)
+                    # TODO: following is to overcome problems with missing names when data is <0.4
+                    if name == 'paths':
+                        for path_name,path in value.iteritems():
+                            if not hasattr(path,'name'):
+                                path.name = self.unknown_names
+                    if name == 'spaths':
+                        for spath in value:
+                            if not hasattr(spath.id,'name'):
+                                spath.id.name = self.unknown_names
                     data.update({name: value})
                 break
         return data
