@@ -156,7 +156,7 @@ class InletClusterExtendedType(InletClusterGenericType):
         return InletClusterGenericType(*self.clusters[:2])
 
 
-# Inlet = namedtuple('Inlet', 'coords type reference')
+#InletOLD = namedtuple('Inlet', 'coords type reference frame') # for backward compatibility
 
 class Inlet(object):
     def __init__(self, coords=None, type=None, reference=None, frame=None):

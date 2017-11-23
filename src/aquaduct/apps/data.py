@@ -170,6 +170,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
                         # with self.reader.get() as traj_reader:
                         #    value = value.toSelectionMDA(traj_reader)
                     # TODO: following is to overcome problems with missing names when data is <0.4
+                    ################################################################################
                     if name == 'paths':
                         for path_name,path in value.iteritems():
                             if not hasattr(path,'name'):
@@ -178,6 +179,14 @@ class ValveDataAccess_pickle(ValveDataAccess):
                         for spath in value:
                             if not hasattr(spath.id,'name'):
                                 spath.id.name = self.unknown_names
+                    if name == 'inls':
+                        if not hasattr(value,'spheres'):
+                            value.spheres = []
+                        if hasattr(value,'refs'):
+                            for r in value.refs:
+                                if not hasattr(r, 'name'):
+                                    r.name = self.unknown_names
+                    ################################################################################
                     data.update({name: value})
                 break
             else:
@@ -187,6 +196,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
                         # with self.reader.get() as traj_reader:
                         #    value = value.toSelectionMDA(traj_reader)
                     # TODO: following is to overcome problems with missing names when data is <0.4
+                    ################################################################################
                     if name == 'paths':
                         for path_name,path in value.iteritems():
                             if not hasattr(path,'name'):
@@ -195,6 +205,14 @@ class ValveDataAccess_pickle(ValveDataAccess):
                         for spath in value:
                             if not hasattr(spath.id,'name'):
                                 spath.id.name = self.unknown_names
+                    if name == 'inls':
+                        if not hasattr(value,'spheres'):
+                            value.spheres = []
+                        if hasattr(value,'refs'):
+                            for r in value.refs:
+                                if not hasattr(r, 'name'):
+                                    r.name = self.unknown_names
+                    ################################################################################
                     data.update({name: value})
                 break
         return data
