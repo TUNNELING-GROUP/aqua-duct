@@ -238,7 +238,7 @@ from os.path import splitext,isfile
 import tarfile
 import cPickle as pickle
 from tempfile import mkstemp
-fd, pdb_filename = mkstemp(suffix="pdb")
+fd, pdb_filename = mkstemp(suffix=".pdb")
 close(fd)
 max_state=0
 arch_file="%s"
