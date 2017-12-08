@@ -939,7 +939,7 @@ def stage_I_run(config, options,
         pbar = clui.pbar(traj_reader.number_of_frames)
 
         # scope is evaluated only once before the loop over frames starts
-        scope = traj_reader.parse_selection(options.scope)
+        #scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
         center_of_system = np.array([0., 0., 0.])
 
@@ -950,6 +950,7 @@ def stage_I_run(config, options,
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
+            scope = traj_reader.parse_selection(options.scope)
             # center of system
             center_of_system += scope.center_of_mass()
             # current res selection
@@ -1022,10 +1023,11 @@ def stage_II_run(config, options,
         pbar = clui.pbar(traj_reader.number_of_frames)
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
-        scope = traj_reader.parse_selection(options.scope)
+        #scope = traj_reader.parse_selection(options.scope)
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
+            scope = traj_reader.parse_selection(options.scope)
             # coordinates and ids of all residues found in the previous stage
             #all_res_coords = all_res.center_of_mass_of_residues()  # this uses iterate over residues
             #all_resids = (residue.first_resid() for residue in all_res.iterate_over_residues())
