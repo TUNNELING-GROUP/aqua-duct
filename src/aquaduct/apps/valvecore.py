@@ -2135,8 +2135,8 @@ def stage_V_run(config, options,
         # now, the problem is in the scope and object definition.
         with reader.get() as traj_reader:
             pbar = clui.pbar(maxval=traj_reader.number_of_frames, mess='Calculating scope and object sizes')
-            scope = traj_reader.parse_selection(options.scope_chull)
             for frame in traj_reader.iterate_over_frames():
+                scope = traj_reader.parse_selection(options.scope_chull)
                 ch = scope.get_convexhull_of_atom_positions()
                 scope_size.append((ch.area,ch.volume))
                 res = traj_reader.parse_selection(options.object_chull)
@@ -2273,20 +2273,20 @@ def stage_VI_run(config, options,
     if options.show_scope_chull:
         with clui.fbm("Convexhull"):
             with reader.get() as traj_reader:
-                scope = traj_reader.parse_selection(options.show_scope_chull)
                 frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_real_frame(frame)
+                    scope = traj_reader.parse_selection(options.show_scope_chull)
                     chull = scope.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, state=frame + 1)
 
     if options.show_object_chull:
         with clui.fbm("Object shape"):
             with reader.get() as traj_reader:
-                object_shape = traj_reader.parse_selection(options.show_object_chull)
                 frames_to_show = range2int(options.show_object_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_real_frame(frame)
+                    object_shape = traj_reader.parse_selection(options.show_object_chull)
                     chull = object_shape.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, name='object_shape', color=np.array([255, 153, 0]) / 255.,
                                    state=frame + 1)  # orange
