@@ -116,7 +116,7 @@ class ValveConfig(object, ConfigSpecialNames):
         # scope - scope definition
         # scope_convexhull - take convex hull of scope, true of false
         # object - object definition
-        return 'scope scope_convexhull object'.split()
+        return 'scope scope_convexhull scope_everyframe object'.split()
 
     @staticmethod
     def global_name():
@@ -260,6 +260,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
         common_traj_data(section)
+        config.set(section, 'scope_everyframe', 'False')
 
         ################
         snr += 1
@@ -939,7 +940,8 @@ def stage_I_run(config, options,
         pbar = clui.pbar(traj_reader.number_of_frames)
 
         # scope is evaluated only once before the loop over frames starts
-        #scope = traj_reader.parse_selection(options.scope)
+        if not options.scope_everyframe:
+            scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
         center_of_system = np.array([0., 0., 0.])
 
@@ -950,7 +952,8 @@ def stage_I_run(config, options,
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
-            scope = traj_reader.parse_selection(options.scope)
+            if options.scope_everyframe:
+                scope = traj_reader.parse_selection(options.scope)
             # center of system
             center_of_system += scope.center_of_mass()
             # current res selection
@@ -1023,11 +1026,13 @@ def stage_II_run(config, options,
         pbar = clui.pbar(traj_reader.number_of_frames)
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
-        #scope = traj_reader.parse_selection(options.scope)
+        if not options.scope_everyframe:
+            scope = traj_reader.parse_selection(options.scope)
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
-            scope = traj_reader.parse_selection(options.scope)
+            if options.scope_everyframe:
+                scope = traj_reader.parse_selection(options.scope)
             # coordinates and ids of all residues found in the previous stage
             #all_res_coords = all_res.center_of_mass_of_residues()  # this uses iterate over residues
             #all_resids = (residue.first_resid() for residue in all_res.iterate_over_residues())
@@ -1851,6 +1856,8 @@ def clusters_inlets(cluster, inlets):
     return line
 
 
+################################################################################
+
 @add_ctype_id_head
 def ctypes_spaths_info_header():
     header, line_template = spaths_lenght_total_header()
@@ -1861,6 +1868,47 @@ def ctypes_spaths_info_header():
 def ctypes_spaths_info(ctype, spaths):
     line = []
     line += spaths_length_total(spaths)
+    return line
+
+
+################################################################################
+
+
+@add_cluster_id_head
+def clusters_stats_header():
+    header = 'IN-OUT diff N IN-OUT_odds diff_odds N_odds'.split()
+    line_template = ['%8d'] * (len(header)/2) + ['%12.4f'] * (len(header)/2)
+    return header, line_template
+
+
+@add_cluster_id
+def clusters_stats(cluster, sp_ct):
+    line = []
+    io,d,N = 0,0,0
+    for sp,ct in sp_ct:
+        ct = ct.generic.clusters
+        assert cluster in ct
+        if cluster == ct[0] and cluster == ct[1]:
+            io += 1
+        elif None in ct:
+            N += 1
+        else:
+            d += 1
+    line += [io,d,N]
+
+    if sum((d, N)):
+        line.append(float(io) / sum((d, N)))
+    else:
+        line.append(float('nan'))
+    if sum((io, N)):
+        line.append(float(d) / sum((io, N)))
+    else:
+        line.append(float('nan'))
+    if sum((io, d)):
+        line.append(float(N) / sum((io, d)))
+    else:
+        line.append(float('nan'))
+
     return line
 
 
@@ -2012,6 +2060,20 @@ def stage_V_run(config, options,
         pa.tend(header_line)
 
     ############
+    ############
+    ############
+    pa.sep()
+    header_line, line_template = get_header_line_and_line_template(clusters_stats_header(), head_nr=head_nr)
+
+    for tname, sptype, message in iter_over_tnspt():
+        pa("Clusters statistics (of paths%s)" % message)
+        pa.thead(header_line)
+        for nr, cl in enumerate(inls.clusters_list):
+            sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+            pa(make_line(line_template, clusters_stats(cl, sp_ct_lim)), nr=nr)
+        pa.tend(header_line)
+
+    ############
     pa.sep()
     pa("List of separate paths and properties")
     header_line, line_template = get_header_line_and_line_template(spath_full_info_header(total=True), head_nr=head_nr)
@@ -2145,7 +2207,7 @@ def stage_V_run(config, options,
                 pbar.next()
         header += ['scope_area','scope_volume','object_area','object_volume']
         h = np.hstack((h,scope_size,object_size))
-        fmt += ['%0.2f']*4
+        fmt += ['%0.3f','%0.2f']*2
         pbar.finish()
     # add frame column?
     frame_col = np.array([range(max_frame+1)]).T

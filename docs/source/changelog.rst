@@ -5,6 +5,7 @@ Aqua-Duct changelog
     * Added mario script, WIP.
     * If barber is used for clusterization, appropriate radii are displayed. Buggy.
     * Tests with netcdf4 for dumping data, WIP.
+* 0.4....
 * 0.4.0 (20.11.2017) unoffcial
     * Uses newest MDAnalysis (0.16.2).
     * Steady improvement of documentation (including API).
