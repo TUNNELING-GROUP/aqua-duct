@@ -1702,6 +1702,13 @@ def spath_lenght_total_info_header(total=None):
 
 @add_path_id
 def spath_lenght_total_info(spath, totalonly=False, total=False):
+    # total and totalonly are internal flags
+    # to calculate: total len, in len, obj len, out len call:
+    # total=True (this will calculate total)
+    # to skip calculation of total call:
+    # total=False, totalonly=False (this will calculate in, obj, and out lens)
+    # to calculate total len call:
+    # total=False, totalonly=True
     line = []
     if not total:
         if not totalonly:
@@ -1804,7 +1811,7 @@ def spath_full_info(spath, ctype=None, total=None):
 @add_size_head
 def spaths_lenght_total_header():
     header = 'Tot TotStd Inp InpStd Obj ObjStd Out OutStd'.split()
-    line_template = ['%8.1f', '%8.2f'] * (len(header) / 2)
+    line_template = ['%9.1f', '%9.2f'] * (len(header) / 2)
     return header, line_template
 
 
@@ -1875,16 +1882,24 @@ def ctypes_spaths_info(ctype, spaths):
 
 
 @add_cluster_id_head
-def clusters_stats_header():
-    header = 'IN-OUT diff N IN-OUT_odds diff_odds N_odds'.split()
-    line_template = ['%8d'] * (len(header)/2) + ['%12.4f'] * (len(header)/2)
+def clusters_stats_prob_header():
+    header = 'IN-OUT diff N IN-OUT_prob diff_prob N_prob'.split()
+    line_template = ['%8d'] * (len(header)/2) + ['%12.2f'] * (len(header)/2)
+    #header += 'IN_len OUT_len Both_len'.split()
+    #line_template += ['%9.1f'] * 3
     return header, line_template
 
 
 @add_cluster_id
-def clusters_stats(cluster, sp_ct):
+def clusters_stats_prob(cluster, sp_ct):
+    # calculates probabilities of some events for cluster
+    # X:X transition - io
+    # X:? and ?:X transition - d
+    # X:N and N:X transition - N
     line = []
     io,d,N = 0,0,0
+    in_len,out_len,tot_len = 0.,0.,0.
+    in_n,out_n,tot_n = 0,0,0
     for sp,ct in sp_ct:
         ct = ct.generic.clusters
         assert cluster in ct
@@ -1895,7 +1910,68 @@ def clusters_stats(cluster, sp_ct):
         else:
             d += 1
     line += [io,d,N]
+    summa = float(sum([io,d,N]))
+    line += map(lambda x: x/summa,[io,d,N])
+    return line
 
+@add_cluster_id_head
+def clusters_stats_prob_header():
+    header = 'IN-OUT diff N IN-OUT_prob diff_prob N_prob'.split()
+    line_template = ['%8d'] * (len(header)/2) + ['%12.2f'] * (len(header)/2)
+    header += 'IN_len OUT_len Both_len'.split()
+    line_template += ['%9.1f'] * 3
+    return header, line_template
+
+
+@add_cluster_id
+def clusters_stats_prob(cluster, sp_ct):
+    line = []
+    io,d,N = 0,0,0
+    in_len,out_len,tot_len = 0.,0.,0.
+    in_n,out_n,tot_n = 0,0,0
+    for sp,ct in sp_ct:
+        ct = ct.generic.clusters
+        assert cluster in ct
+        if cluster == ct[0] and cluster == ct[1]:
+            io += 1
+        elif None in ct:
+            N += 1
+        else:
+            d += 1
+        lens = spath_lenght_total_info(sp, add_id=False, total=False, totalonly=False)
+        # tot,in,obj,out
+        if cluster == ct[0]:
+            if not np.isnan(lens[0]):
+                in_len += lens[0]
+                tot_len += lens[0]
+                in_n += 1
+        if cluster == ct[1]:
+            if not np.isnan(lens[-1]):
+                out_len += lens[-1]
+                tot_len += lens[-1]
+                out_n += 1
+        #if not np.isnan(lens[1]) or not np.isnan(lens[3]):
+        #    tot_n += 1
+
+    line += [io,d,N]
+    summa = float(sum([io,d,N]))
+    line += map(lambda x: x/summa,[io,d,N])
+
+    if (in_n + out_n):
+        tot_len /= (in_n + out_n)
+    else:
+        tot_len = float('nan')
+    if in_n:
+        in_len /= in_n
+    else:
+        in_len = float('nan')
+    if out_n:
+        out_len /= out_n
+    else:
+        out_len = float('nan')
+
+    line += [in_len,out_len,tot_len]
+    '''
     if sum((d, N)):
         line.append(float(io) / sum((d, N)))
     else:
@@ -1908,6 +1984,7 @@ def clusters_stats(cluster, sp_ct):
         line.append(float(N) / sum((io, d)))
     else:
         line.append(float('nan'))
+    '''
 
     return line
 
@@ -2034,6 +2111,24 @@ def stage_V_run(config, options,
         pa.tend(header_line)
 
     ############
+    ############
+    ############
+    pa.sep()
+
+    header_line, line_template = get_header_line_and_line_template(clusters_stats_header(), head_nr=head_nr)
+
+    for tname, sptype, message in iter_over_tnspt():
+        pa("Clusters statistics (of paths%s)" % message)
+        pa.thead(header_line)
+        for nr, cl in enumerate(inls.clusters_list):
+            sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+            pa(make_line(line_template, clusters_stats(cl, sp_ct_lim)), nr=nr)
+
+
+
+        pa.tend(header_line)
+
+    ############
     pa.sep()
     header_line, line_template = get_header_line_and_line_template(ctypes_spaths_info_header(), head_nr=head_nr)
 
@@ -2045,7 +2140,7 @@ def stage_V_run(config, options,
     for nr, ct in enumerate(ctypes_generic_list):
         sps = lind(spaths, what2what(ctypes_generic, [ct]))
         ctypes_size.append(len(sps))
-        # pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+    ctypes_generic_list = [ctypes_generic_list[i] for i in np.argsort(ctypes_size)[::-1]]
 
     for tname, sptype, message in iter_over_tnspt():
         pa("Separate paths clusters types summary - mean lengths of paths%s" % message)
@@ -2059,19 +2154,6 @@ def stage_V_run(config, options,
                 pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
         pa.tend(header_line)
 
-    ############
-    ############
-    ############
-    pa.sep()
-    header_line, line_template = get_header_line_and_line_template(clusters_stats_header(), head_nr=head_nr)
-
-    for tname, sptype, message in iter_over_tnspt():
-        pa("Clusters statistics (of paths%s)" % message)
-        pa.thead(header_line)
-        for nr, cl in enumerate(inls.clusters_list):
-            sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
-            pa(make_line(line_template, clusters_stats(cl, sp_ct_lim)), nr=nr)
-        pa.tend(header_line)
 
     ############
     pa.sep()
