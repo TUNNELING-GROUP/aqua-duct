@@ -33,6 +33,7 @@ from keyword import iskeyword
 
 #import MDAnalysis as mda
 from scipy.spatial.distance import cdist
+from scipy.stats import ttest_ind
 
 #import roman
 from aquaduct.utils.clui import roman
@@ -1915,76 +1916,40 @@ def clusters_stats_prob(cluster, sp_ct):
     return line
 
 @add_cluster_id_head
-def clusters_stats_prob_header():
-    header = 'IN-OUT diff N IN-OUT_prob diff_prob N_prob'.split()
-    line_template = ['%8d'] * (len(header)/2) + ['%12.2f'] * (len(header)/2)
-    header += 'IN_len OUT_len Both_len'.split()
-    line_template += ['%9.1f'] * 3
+def clusters_stats_len_header():
+    header = 'X->Obj Obj->X p-value'.split()
+    line_template = (['%9.1f'] * 2) + ['%9.4f']
     return header, line_template
 
-
 @add_cluster_id
-def clusters_stats_prob(cluster, sp_ct):
+def clusters_stats_len(cluster, sp_ct):
     line = []
-    io,d,N = 0,0,0
-    in_len,out_len,tot_len = 0.,0.,0.
-    in_n,out_n,tot_n = 0,0,0
+    in_len,out_len = [],[]
+
     for sp,ct in sp_ct:
         ct = ct.generic.clusters
         assert cluster in ct
-        if cluster == ct[0] and cluster == ct[1]:
-            io += 1
-        elif None in ct:
-            N += 1
-        else:
-            d += 1
         lens = spath_lenght_total_info(sp, add_id=False, total=False, totalonly=False)
         # tot,in,obj,out
         if cluster == ct[0]:
             if not np.isnan(lens[0]):
-                in_len += lens[0]
-                tot_len += lens[0]
-                in_n += 1
+                in_len.append(lens[0])
         if cluster == ct[1]:
             if not np.isnan(lens[-1]):
-                out_len += lens[-1]
-                tot_len += lens[-1]
-                out_n += 1
-        #if not np.isnan(lens[1]) or not np.isnan(lens[3]):
-        #    tot_n += 1
+                out_len.append(lens[-1])
 
-    line += [io,d,N]
-    summa = float(sum([io,d,N]))
-    line += map(lambda x: x/summa,[io,d,N])
-
-    if (in_n + out_n):
-        tot_len /= (in_n + out_n)
-    else:
-        tot_len = float('nan')
-    if in_n:
-        in_len /= in_n
-    else:
-        in_len = float('nan')
-    if out_n:
-        out_len /= out_n
-    else:
-        out_len = float('nan')
-
-    line += [in_len,out_len,tot_len]
-    '''
-    if sum((d, N)):
-        line.append(float(io) / sum((d, N)))
+    if len(in_len):
+        line.append(np.mean(in_len))
     else:
         line.append(float('nan'))
-    if sum((io, N)):
-        line.append(float(d) / sum((io, N)))
+    if len(out_len):
+        line.append(np.mean(out_len))
     else:
         line.append(float('nan'))
-    if sum((io, d)):
-        line.append(float(N) / sum((io, d)))
+    if len(in_len) > 1 and len(out_len) > 1:
+        line.append(ttest_ind(in_len,out_len)[-1])
     else:
         line.append(float('nan'))
-    '''
 
     return line
 
@@ -2115,17 +2080,22 @@ def stage_V_run(config, options,
     ############
     pa.sep()
 
-    header_line, line_template = get_header_line_and_line_template(clusters_stats_header(), head_nr=head_nr)
 
     for tname, sptype, message in iter_over_tnspt():
-        pa("Clusters statistics (of paths%s)" % message)
+        header_line, line_template = get_header_line_and_line_template(clusters_stats_prob_header(), head_nr=head_nr)
+        pa("Clusters statistics (of paths%s) probabilities of transfers" % message)
         pa.thead(header_line)
         for nr, cl in enumerate(inls.clusters_list):
             sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
-            pa(make_line(line_template, clusters_stats(cl, sp_ct_lim)), nr=nr)
+            pa(make_line(line_template, clusters_stats_prob(cl, sp_ct_lim)), nr=nr)
+        pa.tend(header_line)
 
-
-
+        header_line, line_template = get_header_line_and_line_template(clusters_stats_len_header(), head_nr=head_nr)
+        pa("Clusters statistics (of paths%s) mean lengths of transfers" % message)
+        pa.thead(header_line)
+        for nr, cl in enumerate(inls.clusters_list):
+            sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+            pa(make_line(line_template, clusters_stats_len(cl, sp_ct_lim)), nr=nr)
         pa.tend(header_line)
 
     ############
