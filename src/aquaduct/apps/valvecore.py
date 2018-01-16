@@ -2080,7 +2080,6 @@ def stage_V_run(config, options,
     ############
     pa.sep()
 
-
     for tname, sptype, message in iter_over_tnspt():
         header_line, line_template = get_header_line_and_line_template(clusters_stats_prob_header(), head_nr=head_nr)
         pa("Clusters statistics (of paths%s) probabilities of transfers" % message)
