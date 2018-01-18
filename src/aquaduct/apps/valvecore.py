@@ -1559,7 +1559,7 @@ def add_path_id(gen):
 
 
 def size_header():
-    return ['Size'], ['%7d']
+    return ['Size','Size%'], ['%7d','%6.2f']
 
 
 def add_size_head(gen):
@@ -1575,8 +1575,10 @@ def add_size_head(gen):
 
 def add_size(gen):
     @wraps(gen)
-    def patched(spaths, add_size=True, *args, **kwargs):
+    def patched(spaths, add_size=True, add_size_p100=None, *args, **kwargs):
         line = gen(spaths, *args, **kwargs)
+        if add_size_p100 is not None:
+            line = [len(spaths)/float(add_size_p100)*100] + line
         if add_size:
             line = [len(spaths)] + line
         return line
@@ -1767,6 +1769,22 @@ def spath_steps_info(spath, total=None):
     return line
 
 
+@add_path_id
+def spath_frames_info(spath, total=None):
+    line = []
+    if not total:
+        for t in spath.coords:
+            line.append(len(t))
+        return line
+    line += spath_steps_info(spath, add_id=False, total=False)
+    if not isinstance(spath, PassingPath):
+        t = spath.coords_cont
+        line = [len(t)] + line
+    else:
+        line = [float('nan')] + line
+    return line
+
+
 ################
 
 @add_path_id_head
@@ -1873,9 +1891,9 @@ def ctypes_spaths_info_header():
 
 
 @add_ctype_id
-def ctypes_spaths_info(ctype, spaths):
+def ctypes_spaths_info(ctype, spaths, add_size_p100=None):
     line = []
-    line += spaths_length_total(spaths)
+    line += spaths_length_total(spaths, add_size_p100=add_size_p100)
     return line
 
 
@@ -1917,15 +1935,16 @@ def clusters_stats_prob(cluster, sp_ct):
 
 @add_cluster_id_head
 def clusters_stats_len_header():
-    header = 'X->Obj Obj->X p-value'.split()
-    line_template = (['%9.1f'] * 2) + ['%9.4f']
+    header = 'X->Obj Obj->X p-value X->ObjMin X->ObjMinID Obj->XMin Obj->XMinID'.split()
+    line_template = (['%9.1f'] * 2) + ['%9.4f'] + ['%9.1f','%11s'] * 2
     return header, line_template
 
 @add_cluster_id
 def clusters_stats_len(cluster, sp_ct):
     line = []
     in_len,out_len = [],[]
-
+    in_len_min,out_len_min = float('inf'),float('inf')
+    in_len_min_id,out_len_min_id = None,None
     for sp,ct in sp_ct:
         ct = ct.generic.clusters
         assert cluster in ct
@@ -1934,9 +1953,15 @@ def clusters_stats_len(cluster, sp_ct):
         if cluster == ct[0]:
             if not np.isnan(lens[0]):
                 in_len.append(lens[0])
+                if lens[0]<in_len_min:
+                    in_len_min = lens[0]
+                    in_len_min_id = str(sp.id)
         if cluster == ct[1]:
             if not np.isnan(lens[-1]):
                 out_len.append(lens[-1])
+                if lens[-1]<out_len_min:
+                    out_len_min = lens[-1]
+                    out_len_min_id = str(sp.id)
 
     if len(in_len):
         line.append(np.mean(in_len))
@@ -1947,12 +1972,60 @@ def clusters_stats_len(cluster, sp_ct):
     else:
         line.append(float('nan'))
     if len(in_len) > 1 and len(out_len) > 1:
-        line.append(ttest_ind(in_len,out_len)[-1])
+        line.append(ttest_ind(in_len,out_len)[-1]) # this is supposed to return p-value
     else:
         line.append(float('nan'))
 
+    line += [in_len_min,in_len_min_id,out_len_min,out_len_min_id]
+
     return line
 
+@add_cluster_id_head
+def clusters_stats_steps_header():
+    header = 'X->Obj Obj->X p-value X->ObjMin X->ObjMinID Obj->XMin Obj->XMinID'.split()
+    line_template = (['%9.1f'] * 2) + ['%9.4f'] + ['%9.1f','%11s'] * 2
+    return header, line_template
+
+@add_cluster_id
+def clusters_stats_steps(cluster, sp_ct):
+    line = []
+    in_len,out_len = [],[]
+    in_len_min,out_len_min = float('inf'),float('inf')
+    in_len_min_id,out_len_min_id = None,None
+    for sp,ct in sp_ct:
+        ct = ct.generic.clusters
+        assert cluster in ct
+        lens = spath_frames_info(sp, add_id=False, total=False)
+        # tot,in,obj,out
+        if cluster == ct[0]:
+            if not np.isnan(lens[0]):
+                in_len.append(lens[0])
+                if lens[0]<in_len_min:
+                    in_len_min = lens[0]
+                    in_len_min_id = str(sp.id)
+        if cluster == ct[1]:
+            if not np.isnan(lens[2]):
+                out_len.append(lens[2])
+                if lens[-1]<out_len_min:
+                    out_len_min = lens[2]
+                    out_len_min_id = str(sp.id)
+
+    if len(in_len):
+        line.append(np.mean(in_len))
+    else:
+        line.append(float('nan'))
+    if len(out_len):
+        line.append(np.mean(out_len))
+    else:
+        line.append(float('nan'))
+    if len(in_len) > 1 and len(out_len) > 1:
+        line.append(ttest_ind(in_len,out_len)[-1]) # this is supposed to return p-value
+    else:
+        line.append(float('nan'))
+
+    line += [in_len_min,in_len_min_id,out_len_min,out_len_min_id]
+
+    return line
 
 ################################################################################
 
@@ -1966,7 +2039,7 @@ def stage_V_run(config, options,
                 reader=None,
                 **kwargs):
     # file handle?
-    head_nr = True
+    head_nr = False
     line_nr = head_nr
     pa = PrintAnalysis(options.save, line_nr=line_nr)
 
@@ -2097,6 +2170,14 @@ def stage_V_run(config, options,
             pa(make_line(line_template, clusters_stats_len(cl, sp_ct_lim)), nr=nr)
         pa.tend(header_line)
 
+        header_line, line_template = get_header_line_and_line_template(clusters_stats_steps_header(), head_nr=head_nr)
+        pa("Clusters statistics (of paths%s) mean frames numbers of transfers" % message)
+        pa.thead(header_line)
+        for nr, cl in enumerate(inls.clusters_list):
+            sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+            pa(make_line(line_template, clusters_stats_steps(cl, sp_ct_lim)), nr=nr)
+        pa.tend(header_line)
+
     ############
     pa.sep()
     header_line, line_template = get_header_line_and_line_template(ctypes_spaths_info_header(), head_nr=head_nr)
@@ -2115,12 +2196,13 @@ def stage_V_run(config, options,
         pa("Separate paths clusters types summary - mean lengths of paths%s" % message)
         pa.thead(header_line)
 
+        total_size = len([sp for sp in spaths if sp.id.name in tname and isinstance(sp, sptype)])
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp, sptype)]
             # ctypes_size.append(len(sps))
             if len(sps) > 0:
-                pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+                pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size)), nr=nr)
         pa.tend(header_line)
 
 
