@@ -73,6 +73,8 @@ if __name__ == "__main__":
                             help="Minimal number of frame.")
         parser.add_argument("--step-frame", action="store", dest="step_frame", type=int, required=False,
                             help="Frames step.")
+        parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
+                            help="Sandwich mode for multiple trajectories.")
         parser.add_argument("--version", action="store_true", dest="print_version", required=False,
                             help="Prints versions and exits.")
         parser.add_argument("--license", action="store_true", dest="print_license", required=False,
@@ -187,7 +189,7 @@ if __name__ == "__main__":
         frames_window = slice(args.min_frame, args.max_frame, args.step_frame)
 
         # TODO: Is it always required?
-        reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window)  # trajectory reader
+        reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
 
         with reader.get() as traj_reader:
             clui.message("Frames window: %d:%d step %d" % (traj_reader.get_start_frame(),
