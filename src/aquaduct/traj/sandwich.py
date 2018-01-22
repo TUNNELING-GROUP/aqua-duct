@@ -64,6 +64,9 @@ class Reader(object):
         # mda
         self.engine = ReaderTrajViaMDA
 
+
+        self.open_reader_traj = {}
+
     def __repr__(self):
         sandwich = ''
         if self.sandwich_mode:
@@ -72,16 +75,10 @@ class Reader(object):
 
     def sandwich(self):
         for nr,trajectory in enumerate(self.trajectory):
-            yield self.engine(self.topology,trajectory,
-                              number=nr,
-                              window=self.window,
-                              reader=self)
+            yield self.get_single_reader(nr)
 
     def baguette(self):
-        yield self.engine(self.topology,self.trajectory,
-                          number=0,
-                          window=self.window,
-                          reader=self)
+        yield self.get_single_reader(0)
 
     def iterate(self):
         if self.sandwich_mode:
@@ -89,15 +86,15 @@ class Reader(object):
         return self.baguette()
 
     def get_single_reader(self,number):
-        if self.sandwich_mode:
-            return self.engine(self.topology,self.trajectory[number],
-                               number=number,
-                               window=self.window,
-                               reader=self)
-        return self.engine(self.topology,self.trajectory,
-                           number=0,
-                           window=self.window,
-                           reader=self)
+        if self.open_reader_traj.has_key(number):
+            return self.open_reader_traj[number]
+        else:
+            if self.sandwich_mode:
+                self.open_reader_traj.update({number:self.engine(self.topology,self.trajectory[number],number=number,window=self.window,reader=self)})
+            else:
+                assert number == 0
+                self.open_reader_traj.update({0: self.engine(self.topology,self.trajectory[number],number=0,window=self.window,reader=self)})
+        return self.get_single_reader(number)
 
 
 class ReaderTraj(object):
@@ -144,11 +141,15 @@ class ReaderTraj(object):
         # sets real frame
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-
     def parse_selection(self, selection):
         # should return selection
         # selection resolution should be atoms
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
+
+    def atom2residue(self,atomid):
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
 
 # ReaderTraj engine MDAnalysis
 
@@ -185,18 +186,23 @@ class ReaderTrajViaMDA(ReaderTraj):
 
 
     def parse_selection(self, selection):
-        return Selection(self.trajectory_object.select_atoms(selection).atoms.ix,
-                         self.number,
-                         reader_traj=self)
+        return AtomSelection({self.number:self.trajectory_object.select_atoms(selection).atoms.ix},
+                              reader=self.reader)
 
+    def atom2residue(self,atomid):
+        return self.trajectory_object.atoms[atomid].residue.ix
 
 class Selection(object):
 
-    def __init__(self,ids,number,reader_traj=None):
+    def __init__(self,selected,reader=None):
 
-        self.selected = OrderedDict({number:list(ids)})
-        assert isinstance(reader_traj,ReaderTraj)
-        self.reader_traj = reader_traj
+        assert isinstance(reader,Reader)
+
+        self.selected = OrderedDict(selected)
+        for number, ids in self.selected.iteritems():
+            self.selected[number] = list(ids)
+
+        self.reader = reader
 
     def add(self,other):
 
@@ -218,3 +224,16 @@ class Selection(object):
                 yield (number,i)
 
 
+class AtomSelection(Selection):
+
+    def residues(self):
+        # returns residues selection
+        def get_unique_residues():
+            for number, ids in self.selected.iteritems():
+                yield number,sorted(set(map(self.reader.get_single_reader(number).atom2residue,ids)))
+        return ResidueSelection(get_unique_residues(),reader=self.reader)
+
+
+
+class ResidueSelection(Selection):
+    pass
