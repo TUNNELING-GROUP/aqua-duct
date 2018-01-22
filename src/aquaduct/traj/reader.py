@@ -174,6 +174,7 @@ class ReadViaMDA(Reader):
         # should return number of frames
         return len(self.trajectory_object[0].trajectory)
 
+    #useless
     def next_frame(self):
         try:
             self.trajectory_object.trajectory.next()
