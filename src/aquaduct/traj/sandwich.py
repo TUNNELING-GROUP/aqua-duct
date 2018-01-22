@@ -21,6 +21,7 @@ from os.path import splitext
 import re
 import MDAnalysis as mda
 
+from collections import OrderedDict
 
 class Window(object):
     def __init__(self,start,stop,step):
@@ -73,12 +74,14 @@ class Reader(object):
         for nr,trajectory in enumerate(self.trajectory):
             yield self.engine(self.topology,trajectory,
                               number=nr,
-                              window=self.window)
+                              window=self.window,
+                              reader=self)
 
     def baguette(self):
         yield self.engine(self.topology,self.trajectory,
                           number=0,
-                          window=self.window)
+                          window=self.window,
+                          reader=self)
 
     def iterate(self):
         if self.sandwich_mode:
@@ -88,20 +91,24 @@ class Reader(object):
     def get_single_reader(self,number):
         if self.sandwich_mode:
             return self.engine(self.topology,self.trajectory[number],
-                              number=number,
-                              window=self.window)
+                               number=number,
+                               window=self.window,
+                               reader=self)
         return self.engine(self.topology,self.trajectory,
-                          number=0,
-                          window=self.window)
+                           number=0,
+                           window=self.window,
+                           reader=self)
 
 
 class ReaderTraj(object):
-    def __init__(self,topology,trajectory,number=None,window=None):
+    def __init__(self,topology,trajectory,
+                 number=None,window=None,reader=None):
         '''
         :param str topology:  Topology file name.
         :param list trajectory: Trajectory file name.
         :param int number: Number of trajectory file.
         :param Window window: Frames window to read.
+        :param Reader reader: Parent reader object.
         '''
 
         self.topology = topology
@@ -111,6 +118,8 @@ class ReaderTraj(object):
 
         self.number = number
         self.window = window
+        assert isinstance(reader,Reader)
+        self.reader = reader
 
         self.real_frame_nr = None
 
@@ -118,8 +127,8 @@ class ReaderTraj(object):
 
     def __repr__(self):
         if len(self.trajectory) == 1:
-            return "ReaderTraj(%s,%s,%d,%r)" % (self.topology,self.trajectory[0],self.number,self.window)
-        return "ReaderTraj(%s,%s,%d,%r)" % (self.topology,"[%s]" % (','.join(self.trajectory)),self.number,self.window)
+            return "%s(%s,%s,%d,%r)" % (self.__class__.__name__,self.topology,self.trajectory[0],self.number,self.window)
+        return "%s(%s,%s,%d,%r)" % (self.__class__.__name__,self.topology,"[%s]" % (','.join(self.trajectory)),self.number,self.window)
 
     def open_trajectory(self):
         # should return any object that can be further used to parse trajectory
@@ -155,24 +164,57 @@ mda_available_formats = {re.compile('(nc|NC)'): 'nc',
 class ReaderTrajViaMDA(ReaderTraj):
 
     def open_trajectory(self):
-        topology = splitext(self.topology_file_name)[1][1:]
+        topology = splitext(self.topology)[1][1:]
         for afk in mda_available_formats.keys():
             if afk.match(topology):
                 topology = mda_available_formats[afk]
                 break
-        trajectory = splitext(self.trajectory_file_name[0])[1][1:]
+        trajectory = splitext(self.trajectory[0])[1][1:]
         for afk in mda_available_formats.keys():
             if afk.match(trajectory):
                 trajectory = mda_available_formats[afk]
                 break
-        return [mda.Universe(self.topology_file_name,
-                            self.trajectory_file_name,
+        return mda.Universe(self.topology,
+                            self.trajectory,
                             topology_format=topology,
-                            format=trajectory)]
+                            format=trajectory)
 
     def set_real_frame(self,real_frame):
         self.real_frame_nr = real_frame
         self.trajectory_object.trajectory[real_frame]
 
 
-s
+    def parse_selection(self, selection):
+        return Selection(self.trajectory_object.select_atoms(selection).atoms.ix,
+                         self.number,
+                         reader_traj=self)
+
+
+class Selection(object):
+
+    def __init__(self,ids,number,reader_traj=None):
+
+        self.selected = OrderedDict({number:list(ids)})
+        assert isinstance(reader_traj,ReaderTraj)
+        self.reader_traj = reader_traj
+
+    def add(self,other):
+
+        for number,ids in other.selected.iteritems():
+            if self.selected.has_key(number):
+                self.selected[number] = self.selected[number]+list(ids)
+            else:
+                self.selected.update({number:ids})
+
+    def uniqify(self):
+
+        for number, ids in self.selected.iteritems():
+            self.selected[number] = sorted(set(ids))
+
+    def unique_ids(self):
+        # these are not unique! run run uniqify first!
+        for number, ids in self.selected.iteritems():
+            for i in ids:
+                yield (number,i)
+
+
