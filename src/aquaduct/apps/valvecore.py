@@ -31,17 +31,15 @@ from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
 
-#import MDAnalysis as mda
 from scipy.spatial.distance import cdist
 from scipy.stats import ttest_ind
 
-#import roman
 from aquaduct.utils.clui import roman
 
 from aquaduct import greetings as greetings_aquaduct
 from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
-from aquaduct.apps.data import version_nice, get_vda_reader
+from aquaduct.apps.data import get_vda_reader
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
@@ -62,7 +60,7 @@ from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
 
 __mail__ = 'info@aquaduct.pl'
-__version__ = version_nice()
+__version__ = aquaduct_version_nice()
 
 
 ###############################################################################
@@ -1735,6 +1733,31 @@ def spath_lenght_total_info(spath, totalonly=False, total=False):
         line += [float('nan')] * 3
     return line
 
+@add_path_id
+def spath_frames_total_info(spath, totalonly=False, total=False):
+    # total and totalonly are internal flags
+    # to calculate: total len, in len, obj len, out len call:
+    # total=True (this will calculate total)
+    # to skip calculation of total call:
+    # total=False, totalonly=False (this will calculate in, obj, and out lens)
+    # to calculate total len call:
+    # total=False, totalonly=True
+    line = []
+    if not total:
+        if not totalonly:
+            for t in spath.coords:
+                line.append(len(t))
+            return line
+        else:
+            for t in (spath.coords_cont,):
+                line.append(len(t))
+            return line
+    line += spath_frames_total_info(spath, add_id=False, total=False, totalonly=True)
+    if not isinstance(spath, PassingPath):
+        line += spath_frames_total_info(spath, add_id=False, total=False, totalonly=False)
+    else:
+        line += [float('nan')] * 3
+    return line
 
 ################
 
@@ -1860,6 +1883,31 @@ def spaths_length_total(spaths):
 
     return [line[6], line[7], line[0], line[3], line[1], line[4], line[2], line[5]]
 
+@add_size
+def spaths_frames_total(spaths):
+    line = []
+    d4s = []
+    for sp in spaths:
+        if not isinstance(sp, PassingPath):
+            d4s.append(spath_frames_total_info(sp, add_id=False))
+    d4s = np.array(d4s)
+    if d4s.size:
+        line.extend(np.mean(d4s, 0))
+        line.extend(np.std(d4s, 0))
+    else:
+        line = [float('nan')] * 6
+    # total
+    d4s = []
+    for sp in spaths:
+        d4s.append(spath_frames_total_info(sp, totalonly=True, add_id=False))
+    d4s = np.array(d4s)
+    if d4s.size:
+        line.extend(np.mean(d4s, 0))
+        line.extend(np.std(d4s, 0))
+    else:
+        line += [float('nan')] * 4
+
+    return [line[6], line[7], line[0], line[3], line[1], line[4], line[2], line[5]]
 
 ################################################################################
 
@@ -1891,9 +1939,13 @@ def ctypes_spaths_info_header():
 
 
 @add_ctype_id
-def ctypes_spaths_info(ctype, spaths, add_size_p100=None):
+def ctypes_spaths_info(ctype, spaths, show='len', add_size_p100=None):
+    #show could be len or frames
     line = []
-    line += spaths_length_total(spaths, add_size_p100=add_size_p100)
+    if show == 'len':
+        line += spaths_length_total(spaths, add_size_p100=add_size_p100)
+    if show == 'frames':
+        line += spaths_frames_total(spaths, add_size_p100=add_size_p100)
     return line
 
 
@@ -2202,7 +2254,16 @@ def stage_V_run(config, options,
             sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp, sptype)]
             # ctypes_size.append(len(sps))
             if len(sps) > 0:
-                pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size)), nr=nr)
+                pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size,show="len")), nr=nr)
+        pa.tend(header_line)
+        pa("Separate paths clusters types summary - mean number of frames of paths%s" % message)
+        pa.thead(header_line)
+        for nr, ct in enumerate(ctypes_generic_list):
+            sps = lind(spaths, what2what(ctypes_generic, [ct]))
+            sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp, sptype)]
+            # ctypes_size.append(len(sps))
+            if len(sps) > 0:
+                pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size,show="frames")), nr=nr)
         pa.tend(header_line)
 
 
@@ -2587,7 +2648,6 @@ def stage_VI_run(config, options,
 __all__ = '''clui
 optimal_threads
 aquaduct_version_nice
-version_nice
 ValveConfig
 valve_begin
 valve_load_config
