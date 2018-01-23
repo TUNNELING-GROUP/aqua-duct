@@ -39,6 +39,9 @@ class Window(object):
         # recalculates real frame
         return self.start + frame*self.step
 
+    def len(self):
+        return (self.start - self.stop) / self.step
+
 # engine problem
 # Two options are currently available:
 # MDAnalysis
@@ -60,6 +63,8 @@ class Reader(object):
         '''
 
         self.topology = topology
+        if not isinstance(trajectory,list):
+            trajectory = [trajectory]
         self.trajectory = trajectory
 
         self.window = window
@@ -68,8 +73,29 @@ class Reader(object):
         # mda
         self.engine = ReaderTrajViaMDA
 
-
         self.open_reader_traj = {}
+
+        self.correct_window()
+
+    def correct_window(self):
+        # correct window!
+        N = self.real_number_of_frames()
+        start,stop,step = self.window.start,self.window.stop,self.window.step
+        if start is None:
+            start = 0
+        if stop is None:
+            stop = N - 1
+        if step is None:
+            step = 1
+        if start < 0:
+            start = 0
+        if stop < 0:
+            stop = 0
+        if start > N:
+            start = N - 1
+        if stop > N:
+            stop = N - 1
+        self.window = Window(start,stop,step)
 
     def __repr__(self):
         sandwich = ''
@@ -100,6 +126,13 @@ class Reader(object):
                 self.open_reader_traj.update({0: self.engine(self.topology,self.trajectory[number],number=0,window=self.window,reader=self)})
         return self.get_single_reader(number)
 
+    def real_number_of_frames(self):
+        return self.get_single_reader(0).real_number_of_frames()
+
+    def number_of_frames(self):
+        if self.sandwich():
+            return len(self.trajectory)*self.window.len()
+        return self.window.len()
 
 class ReaderTraj(object):
     def __init__(self,topology,trajectory,
@@ -166,6 +199,12 @@ class ReaderTraj(object):
         # residues ids to center of masses coordinates
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+
+    def real_number_of_frames(self):
+        # should return number of frames
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
+
 # ReaderTraj engine MDAnalysis
 
 mda_available_formats = {re.compile('(nc|NC)'): 'nc',
@@ -215,6 +254,10 @@ class ReaderTrajViaMDA(ReaderTraj):
         # residues ids to center of masses coordinates
         for rid in resids:
             yield self.trajectory_object.residues[[rid]].center_of_mass().tolist()
+
+    def real_number_of_frames(self):
+        # should return number of frames
+        return len(self.trajectory_object.trajectory)
 
 
 class Selection(object):

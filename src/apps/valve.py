@@ -38,7 +38,7 @@ logger.addHandler(ch)
 
 ################################################################################
 
-
+from aquaduct.traj.sandwich import Reader,Window
 from aquaduct.apps.valvecore import *
 
 ################################################################################
@@ -186,15 +186,15 @@ if __name__ == "__main__":
         # STAGE 0
 
         # Maximal frame checks
-        frames_window = slice(args.min_frame, args.max_frame, args.step_frame)
+        frames_window = Window(args.min_frame, args.max_frame, args.step_frame)
 
         # TODO: Is it always required?
-        reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
+        reader = Reader(goptions.top, goptions.trj, window=frames_window,sandwich=args.sandwich)  # trajectory reader
+        #reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
 
-        with reader.get() as traj_reader:
-            clui.message("Frames window: %d:%d step %d" % (traj_reader.get_start_frame(),
-                                                           traj_reader.get_stop_frame(),
-                                                           traj_reader.get_step_frame()))
+        clui.message("Frames window: %d:%d step %d" % (reader.window.start,
+                                                       reader.window.stop,
+                                                       reader.window.step))
 
         ## TODO: Is it reported correctly?
         # clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
