@@ -35,6 +35,10 @@ class Window(object):
     def range(self):
         return xrange(self.start,self.stop,self.step)
 
+    def get_real(self,frame):
+        # recalculates real frame
+        return self.start + frame*self.step
+
 # engine problem
 # Two options are currently available:
 # MDAnalysis
@@ -127,14 +131,17 @@ class ReaderTraj(object):
             return "%s(%s,%s,%d,%r)" % (self.__class__.__name__,self.topology,self.trajectory[0],self.number,self.window)
         return "%s(%s,%s,%d,%r)" % (self.__class__.__name__,self.topology,"[%s]" % (','.join(self.trajectory)),self.number,self.window)
 
-    def open_trajectory(self):
-        # should return any object that can be further used to parse trajectory
-        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-
     def iterate_over_frames(self):
         for frame,real_frame in enumerate(self.window.range()):
             self.set_real_frame(real_frame)
             yield frame
+
+    def set_frame(self,frame):
+        return self.set_real_frame(self.window.get_real(frame))
+
+    def open_trajectory(self):
+        # should return any object that can be further used to parse trajectory
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def set_real_frame(self,real_frame):
         self.real_frame_nr = real_frame
@@ -148,8 +155,16 @@ class ReaderTraj(object):
 
 
     def atom2residue(self,atomid):
+        # one atom id to one residue id
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def atoms_positions(self,atomids):
+        # atoms ids to coordinates
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
+    def residues_positions(self,resids):
+        # residues ids to center of masses coordinates
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
 # ReaderTraj engine MDAnalysis
 
@@ -192,6 +207,16 @@ class ReaderTrajViaMDA(ReaderTraj):
     def atom2residue(self,atomid):
         return self.trajectory_object.atoms[atomid].residue.ix
 
+    def atoms_positions(self,atomids):
+        # atoms ids to coordinates
+        return self.trajectory_object.atoms[atomids].positions.tolist()
+
+    def residues_positions(self,resids):
+        # residues ids to center of masses coordinates
+        for rid in resids:
+            yield self.trajectory_object.residues[[rid]].center_of_mass().tolist()
+
+
 class Selection(object):
 
     def __init__(self,selected,reader=None):
@@ -203,6 +228,9 @@ class Selection(object):
             self.selected[number] = list(ids)
 
         self.reader = reader
+
+    def get_reader(self,number):
+        return self.reader.get_single_reader(number)
 
     def add(self,other):
 
@@ -217,11 +245,16 @@ class Selection(object):
         for number, ids in self.selected.iteritems():
             self.selected[number] = sorted(set(ids))
 
-    def unique_ids(self):
+    def ids(self):
+        # reportet in this order! always!
         # these are not unique! run run uniqify first!
         for number, ids in self.selected.iteritems():
             for i in ids:
                 yield (number,i)
+
+    def coords(self):
+        # order of coords should be the same as in ids!
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
 
 class AtomSelection(Selection):
@@ -230,10 +263,34 @@ class AtomSelection(Selection):
         # returns residues selection
         def get_unique_residues():
             for number, ids in self.selected.iteritems():
-                yield number,sorted(set(map(self.reader.get_single_reader(number).atom2residue,ids)))
+                yield number,sorted(set(map(self.get_reader(number).atom2residue,ids)))
         return ResidueSelection(get_unique_residues(),reader=self.reader)
+
+    def coords(self):
+        for number, ids in self.selected.iteritems():
+            for coord in self.get_reader(number).atoms_positions(ids):
+                yield coord
 
 
 
 class ResidueSelection(Selection):
-    pass
+
+    def coords(self):
+        for number, ids in self.selected.iteritems():
+            for coord in self.get_reader(number).residues_positions(ids):
+                yield coord
+
+
+class SingleResidueSelection(object):
+    def __init__(self,resid,reader):
+        # where resid is id reported by ResidueSelection and reader is Reader
+        # resid is tuple (number,id) number is used to get reader_traj
+        self.resid = resid[-1]
+        self.number = resid[0]
+        self.reader_traj = reader.get_single_reader(self.number)
+
+    def coords(self,frames):
+        # return coords for frames
+        for f in frames:
+            self.reader_traj.set_frame(f)
+            yield self.reader_traj.residues_positions([self.resid]).next()
