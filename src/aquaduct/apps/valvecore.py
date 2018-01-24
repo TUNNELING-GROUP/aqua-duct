@@ -933,10 +933,11 @@ def stage_I_run(config, options,
     if optimal_threads.threads_count > 1:
         pool = mp.Pool(optimal_threads.threads_count)
         map_fun = pool.map
-    # get trajectory reader object
-    with reader.get() as traj_reader:
-        clui.message("Loop over frames - search of residues in object:")
-        pbar = clui.pbar(traj_reader.number_of_frames)
+
+    clui.message("Loop over frames - search of residues in object:")
+    pbar = clui.pbar(reader.number_of_frames())
+    # loop over possible layers of sandwich
+    for traj_reader in reader.iterate():
 
         # scope is evaluated only once before the loop over frames starts
         if not options.scope_everyframe:

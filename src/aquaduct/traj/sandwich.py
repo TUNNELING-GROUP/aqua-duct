@@ -20,6 +20,7 @@
 from os.path import splitext
 import re
 import MDAnalysis as mda
+import numpy as np
 
 from collections import OrderedDict
 
@@ -74,8 +75,8 @@ class Reader(object):
         self.engine = ReaderTrajViaMDA
 
         self.open_reader_traj = {}
-
         self.correct_window()
+        self.open_reader_traj = {} # clear that
 
     def correct_window(self):
         # correct window!
@@ -199,9 +200,7 @@ class ReaderTraj(object):
         # residues ids to center of masses coordinates
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-
-    def real_number_of_frames(self):
-        # should return number of frames
+    def atoms_masses(self,atomids):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
 
@@ -259,6 +258,9 @@ class ReaderTrajViaMDA(ReaderTraj):
         # should return number of frames
         return len(self.trajectory_object.trajectory)
 
+    def atoms_masses(self,atomids):
+        return self.trajectory_object.atoms[atomids].masses.tolist()
+
 
 class Selection(object):
 
@@ -299,6 +301,8 @@ class Selection(object):
         # order of coords should be the same as in ids!
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def center_of_mass(self):
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
 class AtomSelection(Selection):
 
@@ -314,6 +318,14 @@ class AtomSelection(Selection):
             for coord in self.get_reader(number).atoms_positions(ids):
                 yield coord
 
+    def center_of_mass(self):
+        center = np.zeros(3)
+        total_mass = 0
+        for number, ids in self.selected.iteritems():
+            masses = self.get_reader(number).atoms_masses(ids)
+            total_mass += sum(masses)
+            center += (np.array(masses)*np.array(self.get_reader(number).atoms_positions(ids))).sum(1)
+        return center/total_mass
 
 
 class ResidueSelection(Selection):
