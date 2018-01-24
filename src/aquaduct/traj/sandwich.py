@@ -23,6 +23,12 @@ import MDAnalysis as mda
 import numpy as np
 
 from collections import OrderedDict
+from itertools import izip_longest
+
+
+from aquaduct.utils.helpers import is_iterable
+from aquaduct.geom.convexhull import SciPyConvexHull,is_point_within_convexhull
+
 
 class Window(object):
     def __init__(self,start,stop,step):
@@ -247,19 +253,19 @@ class ReaderTrajViaMDA(ReaderTraj):
 
     def atoms_positions(self,atomids):
         # atoms ids to coordinates
-        return self.trajectory_object.atoms[atomids].positions.tolist()
+        return self.trajectory_object.atoms[atomids].positions
 
     def residues_positions(self,resids):
         # residues ids to center of masses coordinates
         for rid in resids:
-            yield self.trajectory_object.residues[[rid]].center_of_mass().tolist()
+            yield self.trajectory_object.residues[[rid]].center_of_mass()
 
     def real_number_of_frames(self):
         # should return number of frames
         return len(self.trajectory_object.trajectory)
 
     def atoms_masses(self,atomids):
-        return self.trajectory_object.atoms[atomids].masses.tolist()
+        return self.trajectory_object.atoms[atomids].masses
 
 
 class Selection(object):
@@ -273,6 +279,7 @@ class Selection(object):
             self.selected[number] = list(ids)
 
         self.reader = reader
+
 
     def get_reader(self,number):
         return self.reader.get_single_reader(number)
@@ -316,16 +323,60 @@ class AtomSelection(Selection):
     def coords(self):
         for number, ids in self.selected.iteritems():
             for coord in self.get_reader(number).atoms_positions(ids):
-                yield coord
+                yield coord.tolist()
 
     def center_of_mass(self):
         center = np.zeros(3)
         total_mass = 0
         for number, ids in self.selected.iteritems():
             masses = self.get_reader(number).atoms_masses(ids)
+            masses.shape = (len(masses),1)
             total_mass += sum(masses)
-            center += (np.array(masses)*np.array(self.get_reader(number).atoms_positions(ids))).sum(1)
+            center += (masses*self.get_reader(number).atoms_positions(ids)).sum(0)
         return center/total_mass
+
+    def contains_residues(self,other_residues,convex_hull=False,map_fun=None,known_true=None):
+        assert isinstance(other_residues,ResidueSelection)
+        if map_fun is None:
+            map_fun = map
+        # known_true should be list of ids
+        if known_true is not None and len(known_true):
+            this_ids = self.residues().ids
+            kt_list = []
+            ch_list = []
+            for other_id in other_residues.ids():
+                if other_id in known_true:
+                    kt_list.append(other_id)
+                elif convex_hull:
+                    ch_list.append(other_id)
+                elif other_id in this_ids:
+                    kt_list.append(other_id)
+            if convex_hull:
+                other_coords = other_residues.coords()
+                chull =  SciPyConvexHull(self.coords())
+                ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
+            # final merging loop
+            final_results = []
+            for other_id in other_residues.ids():
+                if other_id in ch_list:
+                    final_results.append(ch_results[ch_list.index(other_id)])
+                elif other_id in kt_list:
+                    final_results.append(True)
+                else:
+                    final_results.append(False)
+            return final_results
+        else:
+            if convex_hull:
+                other_coords = list(other.center_of_mass_of_residues())
+                chull = self.get_convexhull_of_atom_positions()
+                return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
+            else:
+                # check if other selection is empty
+                if other.unique_resids_number() == 0:
+                    return []
+                this_uids = self.unique_resids(ikwid=True)
+                return [res_other.unique_resids(ikwid=True) in this_uids for res_other in other.iterate_over_residues()]
+
 
 
 class ResidueSelection(Selection):
@@ -333,7 +384,7 @@ class ResidueSelection(Selection):
     def coords(self):
         for number, ids in self.selected.iteritems():
             for coord in self.get_reader(number).residues_positions(ids):
-                yield coord
+                yield coord.tolist()
 
 
 class SingleResidueSelection(object):
