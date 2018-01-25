@@ -59,6 +59,8 @@ class Selection(object):
         super(Selection,self).__init__(*args,**kwargs)
         self.selection_string = None
 
+
+
     def unique_resids_number(self):
         return len(self.unique_resids(ikwid=True))
 

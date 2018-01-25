@@ -946,7 +946,7 @@ def stage_I_run(config, options,
     center_of_system = np.array([0., 0., 0.])
 
     # loop over possible layers of sandwich
-    for traj_reader in reader.iterate():
+    for number,traj_reader in reader.iterate(number=True):
 
         # scope is evaluated only once before the loop over frames starts
         if not options.scope_everyframe:
@@ -971,9 +971,9 @@ def stage_I_run(config, options,
                 all_res = res_new
             # remeber ids of res in object in current frame
             if res_new is not None:
-                res_ids_in_object_over_frames.update({frame: res_new.ids()})
+                res_ids_in_object_over_frames.update({(number,frame): list(res_new.ids())})
             else:
-                res_ids_in_object_over_frames.update({frame: []})
+                res_ids_in_object_over_frames.update({(number,frame): []})
             pbar.next()
 
     # destroy pool of workers

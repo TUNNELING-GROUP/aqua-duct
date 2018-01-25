@@ -223,9 +223,9 @@ class ValveDataAccess_pickle(ValveDataAccess):
             if isinstance(value, SelectionMDA):
                 # value = CompactSelectionMDA(value)
                 kwargs.update({key: CompactSelectionMDA(value)})
-        self.set_variable(self.mimic_old_var_name, kwargs)
-        # for name, value in kwargs.iteritems():
-        #    self.set_variable(name, value)
+        #self.set_variable(self.mimic_old_var_name, kwargs)
+        for name, value in kwargs.iteritems():
+            self.set_variable(name, value)
 
     def get_variable(self, name):
         assert self.mode == "r"
@@ -244,7 +244,10 @@ class ValveDataAccess_pickle(ValveDataAccess):
         if 'options' in name:
             value = value._asdict()
         '''
-        pickle.dump({name: value}, self.data_file)
+        if hasattr(value,'simple_dump'):
+            pickle.dump({name: value.simple_dump()}, self.data_file)
+        else:
+            pickle.dump({name: value}, self.data_file)
 
 
 ################################################################################

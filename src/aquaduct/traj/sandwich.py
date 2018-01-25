@@ -110,17 +110,23 @@ class Reader(object):
             sandwich = ',sandwich'
         return "Reader(%s,%s,%r%s)" % (self.topology,"[%s]" % (','.join(self.trajectory)),self.window,sandwich)
 
-    def sandwich(self):
+    def sandwich(self,number=False):
         for nr,trajectory in enumerate(self.trajectory):
-            yield self.get_single_reader(nr)
+            if number:
+                yield nr,self.get_single_reader(nr)
+            else:
+                yield self.get_single_reader(nr)
 
-    def baguette(self):
-        yield self.get_single_reader(0)
+    def baguette(self,number=False):
+        if number:
+            yield 0,self.get_single_reader(0)
+        else:
+            yield self.get_single_reader(0)
 
-    def iterate(self):
+    def iterate(self,number=False):
         if self.sandwich_mode:
-            return self.sandwich()
-        return self.baguette()
+            return self.sandwich(number=number)
+        return self.baguette(number=number)
 
     def get_single_reader(self,number):
         if self.open_reader_traj.has_key(number):
@@ -279,6 +285,9 @@ class Selection(object):
             self.selected[number] = list(ids)
 
         self.reader = reader
+
+    def simple_dump(self):
+        return self.selected
 
     def len(self):
         _len = 0
