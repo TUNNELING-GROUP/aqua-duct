@@ -58,6 +58,7 @@ from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
+from aquaduct.traj.sandwich import ResidueSelection
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
@@ -909,10 +910,9 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 ###########
                 if options.dump:
                     with clui.fbm('Loading data dump from %s file' % options.dump):
-                        with reader.get() as traj_reader:
-                            vda = get_vda_reader(options.dump)
-                            result = vda(mode='r', data_file_name=options.dump, reader=traj_reader).load()
-                            # result = load_stage_dump(options.dump, reader=reader)
+                        vda = get_vda_reader(options.dump)
+                        result = vda(mode='r', data_file_name=options.dump, reader=reader).load()
+                        # result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
         # remove options stuff
@@ -1016,17 +1016,19 @@ def stage_II_run(config, options,
         clui.message('Clear data on residues in object over frames.')
         clui.message('This will be recalculated on demand.')
         res_ids_in_object_over_frames = {}
-    # get trajectory reader object
-    with reader.get() as traj_reader:
-        with clui.fbm("Init paths container"):
-            paths = dict(
-                ((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=traj_reader.number_of_frames - 1))
-                 for resid, resname in
-                 zip(all_res.unique_resids(ikwid=True), all_res.unique_names())))
-        with clui.fbm("Rebuild treceable residues with current trajectory"):
-            all_res = rebuild_selection(all_res, traj_reader)
-        clui.message("Trajectory scan:")
-        pbar = clui.pbar(traj_reader.number_of_frames)
+
+    with clui.fbm("Rebuild treceable residues with current trajectory"):
+        all_res = ResidueSelection(all_res,reader=reader)
+    with clui.fbm("Init paths container"):
+        paths = dict(
+            ((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=reader.number_of_frames() - 1))
+             for resid, resname in
+             zip(all_res.ids(), all_res.names())))
+
+    clui.message("Trajectory scan:")
+    pbar = clui.pbar(reader.number_of_frames())
+    # loop over possible layers of sandwich
+    for number,traj_reader in reader.iterate(number=True):
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
         if not options.scope_everyframe:
@@ -1042,17 +1044,15 @@ def stage_II_run(config, options,
             # check if all_res are in the scope, reuse res_ids_in_object_over_frames
             known_true = None
             if frame in res_ids_in_object_over_frames:
-                known_true = res_ids_in_object_over_frames[frame]
+                known_true = res_ids_in_object_over_frames[(number,frame)]
             is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
 
             # loop over coords, is  in scope, and resid
-            for current_res,isscope in zip(all_res.iterate_over_residues(),is_res_in_scope):
+            for resid,coord,isscope in zip(all_res.ids(),all_res.coords(),is_res_in_scope):
                 if not isscope: continue
-                resid = current_res.first_resid()
                 assert paths[resid].id == resid, \
                     "Internal error. Paths IDs not synced with resids. \
                      Please send a bug report to the developer(s): %s" % __mail__
-                coord = current_res.center_of_mass()
             #for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
             #    if not isscope: continue
             #    # the point is that nr is not pointing to correct element in paths

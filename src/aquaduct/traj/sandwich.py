@@ -212,6 +212,10 @@ class ReaderTraj(object):
         # residues ids to center of masses coordinates
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def residues_names(self,resids):
+        # residues ids to center of masses coordinates
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
     def atoms_masses(self,atomids):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
@@ -265,6 +269,11 @@ class ReaderTrajViaMDA(ReaderTraj):
         # residues ids to center of masses coordinates
         for rid in resids:
             yield self.trajectory_object.residues[[rid]].center_of_mass()
+
+    def residues_names(self,resids):
+        # residues ids to center of masses coordinates
+        for rid in resids:
+            yield self.trajectory_object.residues[rid].resname
 
     def real_number_of_frames(self):
         # should return number of frames
@@ -411,6 +420,10 @@ class ResidueSelection(Selection):
             for coord in self.get_reader(number).residues_positions(ids):
                 yield coord.tolist()
 
+    def names(self):
+        for number, ids in self.selected.iteritems():
+            for name in self.get_reader(number).residues_names(ids):
+                yield name
 
 class SingleResidueSelection(object):
     def __init__(self,resid,reader):
