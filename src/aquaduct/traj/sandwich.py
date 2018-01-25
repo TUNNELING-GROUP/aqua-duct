@@ -47,7 +47,7 @@ class Window(object):
         return self.start + frame*self.step
 
     def len(self):
-        return (self.start - self.stop) / self.step
+        return (self.stop - self.start) / self.step
 
 # engine problem
 # Two options are currently available:
@@ -137,7 +137,7 @@ class Reader(object):
         return self.get_single_reader(0).real_number_of_frames()
 
     def number_of_frames(self):
-        if self.sandwich():
+        if self.sandwich_mode:
             return len(self.trajectory)*self.window.len()
         return self.window.len()
 
@@ -280,6 +280,11 @@ class Selection(object):
 
         self.reader = reader
 
+    def len(self):
+        _len = 0
+        for number, ids in self.selected.iteritems():
+            _len += len(ids)
+        return _len
 
     def get_reader(self,number):
         return self.reader.get_single_reader(number)
@@ -292,13 +297,13 @@ class Selection(object):
             else:
                 self.selected.update({number:ids})
 
-    def uniqify(self):
+    def uniquify(self):
 
         for number, ids in self.selected.iteritems():
             self.selected[number] = sorted(set(ids))
 
     def ids(self):
-        # reportet in this order! always!
+        # report it in this order! always!
         # these are not unique! run run uniqify first!
         for number, ids in self.selected.iteritems():
             for i in ids:
@@ -341,19 +346,20 @@ class AtomSelection(Selection):
             map_fun = map
         # known_true should be list of ids
         if known_true is not None and len(known_true):
-            this_ids = self.residues().ids
+            this_ids = list(self.residues().ids())
             kt_list = []
             ch_list = []
-            for other_id in other_residues.ids():
+            other_coords = []
+            for other_id,other_coord in zip(other_residues.ids(),other_residues.coords()):
                 if other_id in known_true:
                     kt_list.append(other_id)
                 elif convex_hull:
                     ch_list.append(other_id)
+                    other_coords.append(other_coord)
                 elif other_id in this_ids:
                     kt_list.append(other_id)
             if convex_hull:
-                other_coords = other_residues.coords()
-                chull =  SciPyConvexHull(self.coords())
+                chull =  SciPyConvexHull(list(self.coords()))
                 ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
             # final merging loop
             final_results = []
@@ -367,15 +373,25 @@ class AtomSelection(Selection):
             return final_results
         else:
             if convex_hull:
-                other_coords = list(other.center_of_mass_of_residues())
-                chull = self.get_convexhull_of_atom_positions()
+                other_coords = other_residues.coords()
+                chull = SciPyConvexHull(list(self.coords()))
                 return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
             else:
                 # check if other selection is empty
-                if other.unique_resids_number() == 0:
-                    return []
-                this_uids = self.unique_resids(ikwid=True)
-                return [res_other.unique_resids(ikwid=True) in this_uids for res_other in other.iterate_over_residues()]
+                this_ids = list(self.residues().ids())
+                return [other_id in this_ids for other_id in other_residues.ids()]
+
+    def containing_residues(self, other_residues, *args, **kwargs):
+        # Convienience wrapper for contains_residues.
+        # def get_res_in_scope(is_res_in_scope, res):
+        other_new = {}
+        for iris, (number,resid) in zip(self.contains_residues(other_residues, *args, **kwargs), other_residues.ids()):
+            if iris:
+                if other_new.has_key(number):
+                    other_new[number].append(resid)
+                else:
+                    other_new.update({number:[resid]})
+        return ResidueSelection(other_new,reader=self.reader)
 
 
 

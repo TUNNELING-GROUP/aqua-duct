@@ -936,19 +936,21 @@ def stage_I_run(config, options,
 
     clui.message("Loop over frames - search of residues in object:")
     pbar = clui.pbar(reader.number_of_frames())
+
+    # create some containers
+    res_ids_in_object_over_frames = {}
+    res_ids_in_scope_over_frames = {}  # not used
+    all_res = None
+
+    # scope will be used to derrive center of system
+    center_of_system = np.array([0., 0., 0.])
+
     # loop over possible layers of sandwich
     for traj_reader in reader.iterate():
 
         # scope is evaluated only once before the loop over frames starts
         if not options.scope_everyframe:
             scope = traj_reader.parse_selection(options.scope)
-        # scope will be used to derrive center of system
-        center_of_system = np.array([0., 0., 0.])
-
-        # create some containers
-        res_ids_in_object_over_frames = {}
-        res_ids_in_scope_over_frames = {} # not used
-        all_res = None
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
@@ -957,21 +959,22 @@ def stage_I_run(config, options,
             # center of system
             center_of_system += scope.center_of_mass()
             # current res selection
-            res = traj_reader.parse_selection(options.object)
+            res = traj_reader.parse_selection(options.object).residues()
             # find matching residues, ie those which are in the scope:
             res_new = scope.containing_residues(res, convex_hull=options.scope_convexhull, map_fun=map_fun)
+            res_new.uniquify()
             # adds them to all_res
             if all_res:
-                all_res += res_new
+                all_res.add(res_new)
                 all_res.uniquify()
             else:
                 all_res = res_new
             # remeber ids of res in object in current frame
             if res_new is not None:
-                res_ids_in_object_over_frames.update({frame: res_new.unique_resids(ikwid=True)})
+                res_ids_in_object_over_frames.update({frame: res_new.ids()})
             else:
                 res_ids_in_object_over_frames.update({frame: []})
-            pbar.update(frame)
+            pbar.next()
 
     # destroy pool of workers
     if optimal_threads.threads_count > 1:
@@ -980,13 +983,13 @@ def stage_I_run(config, options,
         del pool
 
     pbar.finish()
-    center_of_system /= (frame + 1)
+    center_of_system /= (reader.number_of_frames())
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
 
     if all_res is None:
         raise ValueError("No traceable residues was found.")
 
-    clui.message("Number of residues to trace: %d" % all_res.unique_resids_number())
+    clui.message("Number of residues to trace: %d" % all_res.len())
 
     #'res_ids_in_object_over_frames': IdsOverIds.dict2arrays(res_ids_in_object_over_frames),
     return {'all_res': all_res,

@@ -189,7 +189,7 @@ if __name__ == "__main__":
         frames_window = Window(args.min_frame, args.max_frame, args.step_frame)
 
         # TODO: Is it always required?
-        reader = Reader(goptions.top, goptions.trj, window=frames_window,sandwich=args.sandwich)  # trajectory reader
+        reader = Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(",")], window=frames_window,sandwich=args.sandwich)  # trajectory reader
         #reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
 
         clui.message("Frames window: %d:%d step %d" % (reader.window.start,
