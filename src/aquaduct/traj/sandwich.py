@@ -47,7 +47,9 @@ class Window(object):
         return self.start + frame*self.step
 
     def len(self):
-        return (self.stop - self.start) / self.step
+        return (self.stop - self.start + 1) / self.step
+
+
 
 # engine problem
 # Two options are currently available:
@@ -78,11 +80,25 @@ class Reader(object):
         self.sandwich_mode = sandwich
 
         # mda
-        self.engine = ReaderTrajViaMDA
+        self.engine_name = 'mda'
 
         self.open_reader_traj = {}
         self.correct_window()
         self.open_reader_traj = {} # clear that
+
+
+    def __getstate__(self):
+        return dict(((k,v) for k,v in self.__dict__.iteritems() if k not in ['open_reader_traj']))
+
+    def __setstate__(self, state):
+        self.__dict__ = state
+        self.open_reader_traj = {}
+
+    @property
+    def engine(self):
+        if self.engine_name == 'mda':
+            return ReaderTrajViaMDA
+        raise NotImplementedError
 
     def correct_window(self):
         # correct window!
@@ -140,12 +156,15 @@ class Reader(object):
         return self.get_single_reader(number)
 
     def real_number_of_frames(self):
+        # number of frames in traj files
         return self.get_single_reader(0).real_number_of_frames()
 
     def number_of_frames(self):
+        # number of frames in the window times number of layers
         if self.sandwich_mode:
             return len(self.trajectory)*self.window.len()
         return self.window.len()
+
 
 class ReaderTraj(object):
     def __init__(self,topology,trajectory,
@@ -295,9 +314,6 @@ class Selection(object):
 
         self.reader = reader
 
-    def simple_dump(self):
-        return self.selected
-
     def len(self):
         _len = 0
         for number, ids in self.selected.iteritems():
@@ -425,16 +441,23 @@ class ResidueSelection(Selection):
             for name in self.get_reader(number).residues_names(ids):
                 yield name
 
+    def single_residues(self):
+        for resid in self.ids():
+            yield SingleResidueSelection(resid,self.reader)
+
 class SingleResidueSelection(object):
     def __init__(self,resid,reader):
         # where resid is id reported by ResidueSelection and reader is Reader
         # resid is tuple (number,id) number is used to get reader_traj
         self.resid = resid[-1]
         self.number = resid[0]
-        self.reader_traj = reader.get_single_reader(self.number)
+        self.reader = reader
+
+    def get_reader(self):
+        return self.reader.get_single_reader(self.number)
 
     def coords(self,frames):
         # return coords for frames
         for f in frames:
             self.reader_traj.set_frame(f)
-            yield self.reader_traj.residues_positions([self.resid]).next()
+            yield self.get_reader().residues_positions([self.resid]).next()

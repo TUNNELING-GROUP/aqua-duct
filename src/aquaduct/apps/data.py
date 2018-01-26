@@ -230,9 +230,8 @@ class ValveDataAccess_pickle(ValveDataAccess):
     def get_variable(self, name):
         assert self.mode == "r"
         value = self.data[name]
-        if isinstance(value, CompactSelectionMDA):
-            with self.reader.get() as traj_reader:
-                return value.toSelectionMDA(traj_reader)
+
+
         return value
 
     def set_variable(self, name, value):
@@ -244,7 +243,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
         if 'options' in name:
             value = value._asdict()
         '''
-        if hasattr(value,'simple_dump'):
+        if False: #hasattr(value,'simple_dump'):
             pickle.dump({name: value.simple_dump()}, self.data_file)
         else:
             pickle.dump({name: value}, self.data_file)

@@ -108,9 +108,15 @@ class GenericPathTypeCodes():
 class GenericPaths(object, GenericPathTypeCodes):
     # object to store paths... is it required?
 
-    def __init__(self, id_of_res, name_of_res=None, min_pf=None, max_pf=None):
+    def __init__(self, id_of_res, name_of_res=None, single_res_selection = None,
+                 min_pf=None, max_pf=None):
 
         # id is any type of object; it is used as identifier
+        # single_res_selection is object which have coords method that accepts frames and returns coordinates
+
+        assert single_res_selection is not None
+
+        self.single_res_selection = single_res_selection
 
         self.id = id_of_res
         if name_of_res is not None:
@@ -119,7 +125,6 @@ class GenericPaths(object, GenericPathTypeCodes):
             self.name = 'UNK'  # FIXME: magic constant
         self.__types = SmartRange()
         self.__frames = SmartRange()
-        self.coords = []
 
         # following is required to correct in and out paths that begin or end in scope and
         # begin or end at the very begining of MD or at very end of MD
@@ -137,6 +142,10 @@ class GenericPaths(object, GenericPathTypeCodes):
         return list(self.__frames.get())
 
     @property
+    def coords(self):
+        return self.single_res_selection.coords(self.frames)
+
+    @property
     def max_frame(self):
         return self.__frames.max()
 
@@ -145,10 +154,6 @@ class GenericPaths(object, GenericPathTypeCodes):
         return self.__frames.min()
 
     # add methods
-
-    def add_coord(self, coord):
-        # store coord as numpy float 32
-        self.coords.append(make_default_array(coord))
 
     def add_object(self, frame):
         self.add_type(frame, self.object_name)

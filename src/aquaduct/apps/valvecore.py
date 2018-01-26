@@ -1020,11 +1020,12 @@ def stage_II_run(config, options,
     with clui.fbm("Rebuild treceable residues with current trajectory"):
         all_res = ResidueSelection(all_res,reader=reader)
     with clui.fbm("Init paths container"):
-        number_of_frames =
+        number_of_frames = reader.window.len() - 1
         paths = dict(
-            ((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=reader.number_of_frames() - 1))
-             for resid, resname in
-             zip(all_res.ids(), all_res.names())))
+            ((resid, GenericPaths(resid, name_of_res=resname, single_res_selection=sressel,
+                                  min_pf=0, max_pf=number_of_frames))
+             for resid, resname, sressel in
+             zip(all_res.ids(), all_res.names(), all_res.single_residues())))
 
     clui.message("Trajectory scan:")
     pbar = clui.pbar(reader.number_of_frames())
@@ -1039,9 +1040,6 @@ def stage_II_run(config, options,
         for frame in traj_reader.iterate_over_frames():
             if options.scope_everyframe:
                 scope = traj_reader.parse_selection(options.scope)
-            # coordinates and ids of all residues found in the previous stage
-            #all_res_coords = all_res.center_of_mass_of_residues()  # this uses iterate over residues
-            #all_resids = (residue.first_resid() for residue in all_res.iterate_over_residues())
             # check if all_res are in the scope, reuse res_ids_in_object_over_frames
             known_true = None
             if (number,frame) in res_ids_in_object_over_frames:
@@ -1049,21 +1047,13 @@ def stage_II_run(config, options,
             is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
 
             # loop over coords, is  in scope, and resid
-            for resid,coord,isscope in zip(all_res.ids(),all_res.coords(),is_res_in_scope):
+            for resid,isscope in zip(all_res.ids(),is_res_in_scope):
                 if not isscope: continue
                 assert paths[resid].id == resid, \
                     "Internal error. Paths IDs not synced with resids. \
                      Please send a bug report to the developer(s): %s" % __mail__
-            #for nr, (coord, isscope, resid) in enumerate(zip(all_res_coords, is_res_in_scope, all_resids)):
-            #    if not isscope: continue
-            #    # the point is that nr is not pointing to correct element in paths
-            #    # now, nr is useless because paths is a dictionary, use resids instead
-            #    assert paths[resid].id == resid, \
-            #        "Internal error. Paths IDs not synced with resids. \
-            #         Please send a bug report to the developer(s): %s" % __mail__
                 if isscope: # residue is in the scope - always true
-                    paths[resid].add_coord(coord)
-
+                    #paths[resid].add_coord(coord)
                     # do we have info on res_ids_in_object_over_frames?
                     if (number,frame) not in res_ids_in_object_over_frames:
                         res = traj_reader.parse_selection(options.object)
@@ -1082,7 +1072,7 @@ def stage_II_run(config, options,
                     else:
                         paths[resid].add_object(frame)
 
-            pbar.update(frame)
+            pbar.next()
 
     # destroy pool of workers
     if optimal_threads.threads_count > 1:
