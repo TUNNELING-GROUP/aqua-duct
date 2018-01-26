@@ -58,7 +58,7 @@ from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
-from aquaduct.traj.sandwich import ResidueSelection
+from aquaduct.traj.sandwich import ResidueSelection,Reader
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
@@ -872,7 +872,7 @@ def valve_begin_stage(stage, config):
     return options
 
 
-def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_status=None,
+def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                      **kwargs):
     with clui.tictoc('Stage %s (%s)' % (roman.toRoman(stage + 1), config.stage_names(stage))):
 
@@ -893,7 +893,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 can_be_loaded = False
 
         if options.execute in ['run'] or (options.execute in ['runonce'] and not can_be_loaded):
-            result = stage_run(config, options, reader=reader, **kwargs)
+            result = stage_run(config, options, **kwargs)
             run_status.update({stage: True})
             if not no_io:
                 ###########
@@ -911,7 +911,7 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
                 if options.dump:
                     with clui.fbm('Loading data dump from %s file' % options.dump):
                         vda = get_vda_reader(options.dump)
-                        result = vda(mode='r', data_file_name=options.dump, reader=reader).load()
+                        result = vda(mode='r', data_file_name=options.dump).load()
                         # result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
@@ -926,7 +926,6 @@ def valve_exec_stage(stage, config, stage_run, reader=None, no_io=False, run_sta
 
 # traceable_residues
 def stage_I_run(config, options,
-                reader=None,
                 **kwargs):
     # create pool of workers - mapping function
     map_fun = map
@@ -935,7 +934,7 @@ def stage_I_run(config, options,
         map_fun = pool.map
 
     clui.message("Loop over frames - search of residues in object:")
-    pbar = clui.pbar(reader.number_of_frames())
+    pbar = clui.pbar(Reader.number_of_frames())
 
     # create some containers
     res_ids_in_object_over_frames = {}
@@ -946,7 +945,7 @@ def stage_I_run(config, options,
     center_of_system = np.array([0., 0., 0.])
 
     # loop over possible layers of sandwich
-    for number,traj_reader in reader.iterate(number=True):
+    for number,traj_reader in Reader.iterate(number=True):
 
         # scope is evaluated only once before the loop over frames starts
         if not options.scope_everyframe:
@@ -983,7 +982,7 @@ def stage_I_run(config, options,
         del pool
 
     pbar.finish()
-    center_of_system /= (reader.number_of_frames())
+    center_of_system /= (Reader.number_of_frames())
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
 
     if all_res is None:
@@ -1002,7 +1001,6 @@ def stage_I_run(config, options,
 
 # raw_paths
 def stage_II_run(config, options,
-                 reader=None,
                  all_res=None,
                  res_ids_in_object_over_frames=None,
                  **kwargs):
@@ -1017,10 +1015,10 @@ def stage_II_run(config, options,
         clui.message('This will be recalculated on demand.')
         res_ids_in_object_over_frames = {}
 
-    with clui.fbm("Rebuild treceable residues with current trajectory"):
-        all_res = ResidueSelection(all_res,reader=reader)
+    #with clui.fbm("Rebuild treceable residues with current trajectory"):
+    #    all_res = ResidueSelection(all_res,reader=reader)
     with clui.fbm("Init paths container"):
-        number_of_frames = reader.window.len() - 1
+        number_of_frames = Reader.window.len() - 1
         paths = dict(
             ((resid, GenericPaths(resid, name_of_res=resname, single_res_selection=sressel,
                                   min_pf=0, max_pf=number_of_frames))
@@ -1028,9 +1026,9 @@ def stage_II_run(config, options,
              zip(all_res.ids(), all_res.names(), all_res.single_residues())))
 
     clui.message("Trajectory scan:")
-    pbar = clui.pbar(reader.number_of_frames())
+    pbar = clui.pbar(Reader.number_of_frames())
     # loop over possible layers of sandwich
-    for number,traj_reader in reader.iterate(number=True):
+    for number,traj_reader in Reader.iterate(number=True):
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
         if not options.scope_everyframe:
@@ -1096,7 +1094,6 @@ class ABSphere(namedtuple('ABSphere', 'center radius')):
 # separate_paths
 def stage_III_run(config, options,
                   paths=None,
-                  reader=None,
                   **kwargs):
     soptions = config.get_smooth_options()
 

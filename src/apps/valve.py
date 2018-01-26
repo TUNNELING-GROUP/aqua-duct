@@ -188,13 +188,14 @@ if __name__ == "__main__":
         # Maximal frame checks
         frames_window = Window(args.min_frame, args.max_frame, args.step_frame)
 
-        # TODO: Is it always required?
-        reader = Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(",")], window=frames_window,sandwich=args.sandwich)  # trajectory reader
+        # Open trajectory reader
+        Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(",")], window=frames_window,sandwich=args.sandwich)  # trajectory reader
+
         #reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
 
-        clui.message("Frames window: %d:%d step %d" % (reader.window.start,
-                                                       reader.window.stop,
-                                                       reader.window.step))
+        clui.message("Frames window: %d:%d step %d" % (Reader.window.start,
+                                                       Reader.window.stop,
+                                                       Reader.window.step))
 
         ## TODO: Is it reported correctly?
         # clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
@@ -204,25 +205,21 @@ if __name__ == "__main__":
 
         # STAGE I
         result1 = valve_exec_stage(0, config, stage_I_run,
-                                   run_status=run_status,
-                                   reader=reader)
+                                   run_status=run_status)
 
         # STAGE II
         result2 = valve_exec_stage(1, config, stage_II_run,
                                    run_status=run_status,
-                                   reader=reader,
                                    **result1)
 
         # STAGE III
         result3 = valve_exec_stage(2, config, stage_III_run,
                                    run_status=run_status,
-                                   reader=reader,
                                    **result2)
 
         # STAGE IV
         result4 = valve_exec_stage(3, config, stage_IV_run,
                                    run_status=run_status,
-                                   reader=reader,
                                    **result3)
 
         # STAGE V
@@ -233,7 +230,6 @@ if __name__ == "__main__":
         result5 = valve_exec_stage(4, config, stage_V_run,
                                    run_status=run_status,
                                    no_io=True,
-                                   reader=reader,
                                    **results)
 
         # STAGE VI
@@ -244,7 +240,6 @@ if __name__ == "__main__":
         result6 = valve_exec_stage(5, config, stage_VI_run,
                                    run_status=run_status,
                                    no_io=True,
-                                   reader=reader,
                                    **results)
         ############################################################################
         # end!

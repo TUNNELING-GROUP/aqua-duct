@@ -47,7 +47,7 @@ class Window(object):
         return self.start + frame*self.step
 
     def len(self):
-        return (self.stop - self.start + 1) / self.step
+        return len(self.range())
 
 
 
@@ -57,11 +57,18 @@ class Window(object):
 # MDTraj
 
 
-class Reader(object):
+class MasterReader(object):
 
-    def __init__(self,topology,trajectory,
-                 window=None,
-                 sandwich=False):
+    open_reader_traj = {}
+
+    topology = ''
+    trajectory = ['']
+
+    window = None
+    sandwich_mode = None
+    engine_name = 'mda'
+
+    def __call__(self,topology,trajectory,window=None,sandwich=False):
         '''
         :param str topology:  Topology file name.
         :param list trajectory: List of trajectories. Each element is a fine name.
@@ -79,10 +86,7 @@ class Reader(object):
         self.window = window
         self.sandwich_mode = sandwich
 
-        # mda
-        self.engine_name = 'mda'
 
-        self.open_reader_traj = {}
         self.correct_window()
         self.open_reader_traj = {} # clear that
 
@@ -149,7 +153,7 @@ class Reader(object):
             return self.open_reader_traj[number]
         else:
             if self.sandwich_mode:
-                self.open_reader_traj.update({number:self.engine(self.topology,self.trajectory[number],number=number,window=self.window,reader=self)})
+                self.open_reader_traj.update({number:self.engine(self.topology,self.trajectory[number],number=number,window=self.window)})
             else:
                 assert number == 0
                 self.open_reader_traj.update({0: self.engine(self.topology,self.trajectory[number],number=0,window=self.window,reader=self)})
@@ -165,10 +169,17 @@ class Reader(object):
             return len(self.trajectory)*self.window.len()
         return self.window.len()
 
+Reader = MasterReader()
 
-class ReaderTraj(object):
+class ReaderAccess(object):
+
+    @property
+    def reader(self):
+        return Reader
+
+class ReaderTraj(ReaderAccess):
     def __init__(self,topology,trajectory,
-                 number=None,window=None,reader=None):
+                 number=None,window=None):
         '''
         :param str topology:  Topology file name.
         :param list trajectory: Trajectory file name.
@@ -184,8 +195,6 @@ class ReaderTraj(object):
 
         self.number = number
         self.window = window
-        assert isinstance(reader,Reader)
-        self.reader = reader
 
         self.real_frame_nr = None
 
@@ -274,8 +283,7 @@ class ReaderTrajViaMDA(ReaderTraj):
 
 
     def parse_selection(self, selection):
-        return AtomSelection({self.number:self.trajectory_object.select_atoms(selection).atoms.ix},
-                              reader=self.reader)
+        return AtomSelection({self.number:self.trajectory_object.select_atoms(selection).atoms.ix})
 
     def atom2residue(self,atomid):
         return self.trajectory_object.atoms[atomid].residue.ix
@@ -302,17 +310,13 @@ class ReaderTrajViaMDA(ReaderTraj):
         return self.trajectory_object.atoms[atomids].masses
 
 
-class Selection(object):
+class Selection(ReaderAccess):
 
-    def __init__(self,selected,reader=None):
-
-        assert isinstance(reader,Reader)
+    def __init__(self,selected):
 
         self.selected = OrderedDict(selected)
         for number, ids in self.selected.iteritems():
             self.selected[number] = list(ids)
-
-        self.reader = reader
 
     def len(self):
         _len = 0
@@ -357,7 +361,7 @@ class AtomSelection(Selection):
         def get_unique_residues():
             for number, ids in self.selected.iteritems():
                 yield number,sorted(set(map(self.get_reader(number).atom2residue,ids)))
-        return ResidueSelection(get_unique_residues(),reader=self.reader)
+        return ResidueSelection(get_unique_residues())
 
     def coords(self):
         for number, ids in self.selected.iteritems():
@@ -425,7 +429,7 @@ class AtomSelection(Selection):
                     other_new[number].append(resid)
                 else:
                     other_new.update({number:[resid]})
-        return ResidueSelection(other_new,reader=self.reader)
+        return ResidueSelection(other_new)
 
 
 
@@ -443,15 +447,14 @@ class ResidueSelection(Selection):
 
     def single_residues(self):
         for resid in self.ids():
-            yield SingleResidueSelection(resid,self.reader)
+            yield SingleResidueSelection(resid)
 
-class SingleResidueSelection(object):
-    def __init__(self,resid,reader):
+class SingleResidueSelection(ReaderAccess):
+    def __init__(self,resid):
         # where resid is id reported by ResidueSelection and reader is Reader
         # resid is tuple (number,id) number is used to get reader_traj
         self.resid = resid[-1]
         self.number = resid[0]
-        self.reader = reader
 
     def get_reader(self):
         return self.reader.get_single_reader(self.number)
@@ -459,5 +462,5 @@ class SingleResidueSelection(object):
     def coords(self,frames):
         # return coords for frames
         for f in frames:
-            self.reader_traj.set_frame(f)
+            self.get_reader().set_frame(f)
             yield self.get_reader().residues_positions([self.resid]).next()

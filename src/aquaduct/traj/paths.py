@@ -418,7 +418,7 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
     for nr, gp in enumerate(gps):
         path_id = gp.id
         path_name = gp.name
-        with clui.tictoc('Processing path %d' % path_id):
+        with clui.tictoc('Processing path %d:%d' % path_id):
             for paths, coords, types in gp.find_paths_coords_types(fullonly=fullonly):
                 if path_id in nr_dict:
                     nr_dict.update({path_id: (nr_dict[path_id] + 1)})
