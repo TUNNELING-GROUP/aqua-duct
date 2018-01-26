@@ -1020,6 +1020,7 @@ def stage_II_run(config, options,
     with clui.fbm("Rebuild treceable residues with current trajectory"):
         all_res = ResidueSelection(all_res,reader=reader)
     with clui.fbm("Init paths container"):
+        number_of_frames =
         paths = dict(
             ((resid, GenericPaths(resid, name_of_res=resname, min_pf=0, max_pf=reader.number_of_frames() - 1))
              for resid, resname in
@@ -1043,7 +1044,7 @@ def stage_II_run(config, options,
             #all_resids = (residue.first_resid() for residue in all_res.iterate_over_residues())
             # check if all_res are in the scope, reuse res_ids_in_object_over_frames
             known_true = None
-            if frame in res_ids_in_object_over_frames:
+            if (number,frame) in res_ids_in_object_over_frames:
                 known_true = res_ids_in_object_over_frames[(number,frame)]
             is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
 
@@ -1064,18 +1065,18 @@ def stage_II_run(config, options,
                     paths[resid].add_coord(coord)
 
                     # do we have info on res_ids_in_object_over_frames?
-                    if frame not in res_ids_in_object_over_frames:
+                    if (number,frame) not in res_ids_in_object_over_frames:
                         res = traj_reader.parse_selection(options.object)
                         # discard res out of scope
-                        res_new = get_res_in_scope(is_res_in_scope, res)
+                        res_new = (resid for iris,resid in zip(is_res_in_scope, res.ids()) if iris)
                         # remeber ids of res in object in current frame
                         if res_new is not None:
-                            res_ids_in_object_over_frames.update({frame: np.array(res_new.unique_resids(ikwid=True))})
+                            res_ids_in_object_over_frames.update({(number,frame): list(res_new)})
                         else:
-                            res_ids_in_object_over_frames.update({frame: np.array([])})
+                            res_ids_in_object_over_frames.update({(number,frame): []})
 
                     # in scope
-                    if resid not in res_ids_in_object_over_frames[frame]:
+                    if resid not in res_ids_in_object_over_frames[(number,frame)]:
                         paths[resid].add_scope(frame)
                     # in object
                     else:
