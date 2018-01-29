@@ -203,7 +203,7 @@ class WhereToCut(ReaderAccess):
 
     def spath2spheres(self, sp):
 
-        traj_reader = self.reader.get_reader_by_id(sp.)
+        traj_reader = self.reader.get_reader_by_id(sp.id.id)
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0
@@ -221,8 +221,8 @@ class WhereToCut(ReaderAccess):
         for center, frame in zip(centers, frames):
             make_sphere = True
             if make_sphere:
-                traj_reader.set_current_frame(frame)
-                distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
+                traj_reader.set_frame(frame)
+                distances = cdist(np.matrix(center), np.matrix(list(barber.coords())), metric='euclidean').flatten()
                 if self.tovdw:
                     vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
                 radius = min(distances) - vdwradius

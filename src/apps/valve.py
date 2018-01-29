@@ -231,7 +231,6 @@ if __name__ == "__main__":
                                    run_status=run_status,
                                    no_io=True,
                                    **results)
-
         # STAGE VI
         results = {}
         for result in (result3, result4):

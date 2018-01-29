@@ -638,6 +638,14 @@ class SmartRange(object):
             map(self.append, iterable)
 
 
+    def first_element(self):
+        if len(self.__elements) == 0:
+            return None
+        element = self.__elements[0]
+        if isinstance(element, SmartRangeFunction):
+            return element.element
+        return element
+
     def last_element(self):
         if len(self.__elements) == 0:
             return None
