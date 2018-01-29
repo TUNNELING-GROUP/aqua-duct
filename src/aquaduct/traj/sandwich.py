@@ -40,7 +40,7 @@ class Window(object):
         return "Window(%r:%r:%r)" % (self.start,self.stop,self.step)
 
     def range(self):
-        return xrange(self.start,self.stop,self.step)
+        return xrange(self.start,self.stop+1,self.step)
 
     def get_real(self,frame):
         # recalculates real frame
@@ -158,6 +158,10 @@ class MasterReader(object):
                 assert number == 0
                 self.open_reader_traj.update({0: self.engine(self.topology,self.trajectory[number],number=0,window=self.window,reader=self)})
         return self.get_single_reader(number)
+
+    def get_reader_by_id(self,someid):
+        # someid is tuple (number,ix)
+        return self.get_single_reader(someid[0])
 
     def real_number_of_frames(self):
         # number of frames in traj files
@@ -317,6 +321,11 @@ class Selection(ReaderAccess):
         self.selected = OrderedDict(selected)
         for number, ids in self.selected.iteritems():
             self.selected[number] = list(ids)
+
+    def layer(self,number):
+        if self.selected.has_key(number):
+            return self.__class__({number:self.selected[number]})
+        return self.__class__({})
 
     def len(self):
         _len = 0

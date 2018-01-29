@@ -309,16 +309,20 @@ class GenericPaths(object, GenericPathTypeCodes):
                             path_out = []
                 yield path_in, path_core, path_out
 
-    def find_paths_coords_types(self, fullonly=False):
+    def find_paths_types(self, fullonly=False):
         for path in self.find_paths(fullonly=fullonly):
             # yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
-            coords, types = self.get_single_path_coords_types(path)
-            yield path, coords, types
+            #coords, types = self.get_single_path_types(path)
+            types = self.get_single_path_types(path)
+            #yield path, coords, types
+            yield path, types
         for path in self._gpt():
-            coords, types = self.get_single_path_coords_types((path, [], []))
-            yield (path, [], []), coords, types
+            #coords, types = self.get_single_path_types((path, [], []))
+            types = self.get_single_path_types((path, [], []))
+            #yield (path, [], []), coords, types
+            yield (path, [], []), types
 
-    def get_single_path_coords_types(self, spath):
+    def get_single_path_types(self, spath):
         # returns typess for single path
         # single path comprises of in,scope,out parts
 
@@ -347,36 +351,37 @@ class GenericPaths(object, GenericPathTypeCodes):
             if len(p_in) > 0:
                 b, e = get_be(p_in)
                 in_t = types[b:e]
-                in_c = self.coords[b:e]
+                #in_c = self.coords[b:e]
             # p_object
             if len(p_object) > 0:
                 b, e = get_be(p_object)
                 object_t = types[b:e]
-                object_c = self.coords[b:e]
+                #object_c = self.coords[b:e]
             # p_out
             if len(p_out) > 0:
                 b, e = get_be(p_out)
                 out_t = types[b:e]
-                out_c = self.coords[b:e]
+                #out_c = self.coords[b:e]
         else:
             # full trajectory
             # p_in
             if len(p_in) > 0:
                 b, e = p_in[0], p_in[-1] + 1
                 in_t = types[b:e]
-                in_c = self.coords[b:e]
+                #in_c = self.coords[b:e]
             # p_object
             if len(p_object) > 0:
                 b, e = p_object[0], p_object[-1] + 1
                 object_t = types[b:e]
-                object_c = self.coords[b:e]
+                #object_c = self.coords[b:e]
             # p_out
             if len(p_out) > 0:
                 b, e = p_out[0], p_out[-1] + 1
                 out_t = types[b:e]
-                out_c = self.coords[b:e]
+                #out_c = self.coords[b:e]
 
-        return (in_c, object_c, out_c), (in_t, object_t, out_t)
+        #return (in_c, object_c, out_c), (in_t, object_t, out_t)
+        return (in_t, object_t, out_t)
 
     def barber_with_spheres(self, spheres):
         # calculate big distance matrix
@@ -419,7 +424,8 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
         path_id = gp.id
         path_name = gp.name
         with clui.tictoc('Processing path %d:%d' % path_id):
-            for paths, coords, types in gp.find_paths_coords_types(fullonly=fullonly):
+            for paths, types in gp.find_paths_types(fullonly=fullonly):
+            #for paths, coords, types in gp.find_paths_types(fullonly=fullonly):
                 if path_id in nr_dict:
                     nr_dict.update({path_id: (nr_dict[path_id] + 1)})
                 else:
@@ -429,11 +435,11 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
 
                 if len(paths[1]) > 0:
                     # if everything is OK
-                    sp = SinglePath(pid, paths, coords, types)
+                    sp = SinglePath(pid, paths, types, single_res_selection=gp.single_res_selection)
                 else:
                     # this is passing through
                     if passing:
-                        sp = PassingPath(pid, paths[0], coords[0], types[0])
+                        sp = PassingPath(pid, paths[0], types[0], single_res_selection=gp.single_res_selection)
                         sp.has_in = sp.paths_first_in > gp.min_possible_frame
                         sp.has_out = sp.paths_last_out < gp.max_possible_frame
                     else:
@@ -450,7 +456,12 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
     empty_coords = make_default_array(np.zeros((0, 3)))
 
-    def __init__(self, path_id, paths, coords, types):
+    def __init__(self, path_id, paths, types, single_res_selection = None):
+
+        assert single_res_selection is not None
+
+        self.single_res_selection = single_res_selection
+
 
         self.id = path_id
         # for paths use SmartRanges and then provide methods to read them
@@ -460,9 +471,9 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
         self.__types_in, self.__types_object, self.__types_out = map(SmartRange, types)
         # self.types_in, self.types_object, self.types_out = types
 
-        self.coords_in, self.coords_object, self.coords_out = map(make_default_array, coords)
+        #self.coords_in, self.coords_object, self.coords_out = map(make_default_array, coords)
 
-        self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = None, None, None
+        #self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = None, None, None
         self.smooth_method = None
 
         # return np.vstack([c for c in self._coords if len(c) > 0])

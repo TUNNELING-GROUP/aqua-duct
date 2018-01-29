@@ -32,6 +32,7 @@ import numpy as np
 from aquaduct.utils import clui
 from aquaduct.traj.reader import atom2vdw_radius
 from aquaduct.utils.helpers import lind
+from aquaduct.traj.sandwich import ReaderAccess
 
 __mail__ = 'info@aquaduct.pl'
 
@@ -53,7 +54,7 @@ class Sphere(namedtuple('Sphere', 'center radius nr')):
         return self.radius > cdist(np.matrix(self.center), np.matrix(center), metric='euclidean') - radius
 
 
-class WhereToCut(object):
+class WhereToCut(ReaderAccess):
     '''
     Class implements method for creating (optimal) set of AutoBarber spheres for a collection of spaths;
     access to trajectory is also required to read VdW radii.
@@ -63,7 +64,6 @@ class WhereToCut(object):
     def __init__(self,
                  spaths=None,
                  inlets=None,
-                 traj_reader=None,
                  expected_nr_of_spaths=None,
                  selection=None,
                  mincut=None,
@@ -74,7 +74,6 @@ class WhereToCut(object):
                  forceempty=False):
         '''
         :param list spaths: List of :class:`aquaduct.traj.paths.SinglePath` objects.
-        :param traj_reader: :class:`aquaduct.traj.reader.Reader` object.
         :param int expected_nr_of_spaths: Number of spaths passed as :arg:`spaths`. Requilred when length of :arg:`spaths` cannod be calculated, eg when it is a generator..
         :param str selection: Selection string of molecular object used for spheres generation.
         :param float mincut: Value of *mincut* parameter.
@@ -98,10 +97,10 @@ class WhereToCut(object):
 
         self.spheres = []
 
-        if spaths is not None and traj_reader is not None:
-            self.add_spheres_from_spaths(spaths, traj_reader)
-        if inlets is not None and traj_reader is not None:
-            self.add_spheres_from_inlets(inlets, traj_reader)
+        if spaths is not None:
+            self.add_spheres_from_spaths(spaths)
+        if inlets is not None:
+            self.add_spheres_from_inlets(inlets)
 
     def check_minmaxcuts(self):
         mincut = False
@@ -126,26 +125,26 @@ class WhereToCut(object):
                         'Options mincut_level and maxcut_level are set to %s and %s accordingly, some spheres might be retained.')
         return mincut, mincut_val, maxcut, maxcut_val
 
-    def add_spheres_from_spaths(self, spaths, traj_reader):
+    def add_spheres_from_spaths(self, spaths):
         clui.message("Auto Barber is looking where to cut:")
         if self.expected_nr_of_spaths:
             pbar = clui.pbar(self.expected_nr_of_spaths)
         else:
             pbar = clui.pbar(len(spaths))
         for sp in spaths:
-            for sphe in self.spath2spheres(sp, traj_reader):
+            for sphe in self.spath2spheres(sp):
                 self.spheres.append(sphe)
             pbar.next()
         pbar.finish()
 
-    def add_spheres_from_inlets(self, inlets, traj_reader):
+    def add_spheres_from_inlets(self, inlets):
         clui.message("Auto Barber is looking where to cut:")
         if self.expected_nr_of_spaths:
             pbar = clui.pbar(self.expected_nr_of_spaths)
         else:
             pbar = clui.pbar(len(inlets.inlets_list))
         for inl in inlets.inlets_list:
-            sphe = self.inlet2sphere(inl, traj_reader)
+            sphe = self.inlet2sphere(inl)
             if sphe is not None:
                 self.spheres.append(sphe)
             pbar.next()
@@ -161,13 +160,14 @@ class WhereToCut(object):
         assert nr >= len(self.spheres), "Inconsistent number of spheres."
         return nr
 
-    def inlet2sphere(self,inlet, traj_reader):
+    def inlet2sphere(self,inlet):
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0
 
         center = inlet.coords
         frame = inlet.frame
+
 
         make_sphere = True
         if make_sphere:
@@ -201,8 +201,9 @@ class WhereToCut(object):
             return Sphere(center, 0, self.get_current_nr())
 
 
-    def spath2spheres(self, sp, traj_reader):
+    def spath2spheres(self, sp):
 
+        traj_reader = self.reader.get_reader_by_id(sp.)
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0

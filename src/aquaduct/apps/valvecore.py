@@ -1034,6 +1034,7 @@ def stage_II_run(config, options,
         if not options.scope_everyframe:
             scope = traj_reader.parse_selection(options.scope)
 
+
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
             if options.scope_everyframe:
@@ -1042,10 +1043,11 @@ def stage_II_run(config, options,
             known_true = None
             if (number,frame) in res_ids_in_object_over_frames:
                 known_true = res_ids_in_object_over_frames[(number,frame)]
-            is_res_in_scope = scope.contains_residues(all_res, convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
+            is_res_in_scope = scope.contains_residues(all_res.layer(number), convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
 
             # loop over coords, is  in scope, and resid
-            for resid,isscope in zip(all_res.ids(),is_res_in_scope):
+            for resid,isscope in zip(all_res.layer(number).ids(),is_res_in_scope):
+                #if number != resid[0]: continue # skip path if it is from diffrent layer
                 if not isscope: continue
                 assert paths[resid].id == resid, \
                     "Internal error. Paths IDs not synced with resids. \
@@ -1054,7 +1056,7 @@ def stage_II_run(config, options,
                     #paths[resid].add_coord(coord)
                     # do we have info on res_ids_in_object_over_frames?
                     if (number,frame) not in res_ids_in_object_over_frames:
-                        res = traj_reader.parse_selection(options.object)
+                        res = traj_reader.parse_selection(options.object).residues()
                         # discard res out of scope
                         res_new = (resid for iris,resid in zip(is_res_in_scope, res.ids()) if iris)
                         # remeber ids of res in object in current frame
@@ -1117,16 +1119,15 @@ def stage_III_run(config, options,
             spaths = [sp for sp in spaths if sp.size > shorter_then]
 
     if options.auto_barber:
-        with reader.get() as traj_reader:
-            wtc = WhereToCut(spaths=spaths, traj_reader=traj_reader,
-                             selection=options.auto_barber,
-                             mincut=options.auto_barber_mincut,
-                             mincut_level=options.auto_barber_mincut_level,
-                             maxcut=options.auto_barber_maxcut,
-                             maxcut_level=options.auto_barber_maxcut_level,
-                             tovdw=options.auto_barber_mincut)
-            # cut thyself!
-            wtc.cut_thyself()
+        wtc = WhereToCut(spaths=spaths,
+                         selection=options.auto_barber,
+                         mincut=options.auto_barber_mincut,
+                         mincut_level=options.auto_barber_mincut_level,
+                         maxcut=options.auto_barber_maxcut,
+                         maxcut_level=options.auto_barber_maxcut_level,
+                         tovdw=options.auto_barber_mincut)
+        # cut thyself!
+        wtc.cut_thyself()
 
         clui.message("Auto Barber in action:")
         pbar = clui.pbar(len(paths))
