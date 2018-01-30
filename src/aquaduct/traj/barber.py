@@ -161,6 +161,7 @@ class WhereToCut(ReaderAccess):
         return nr
 
     def inlet2sphere(self,inlet):
+        traj_reader = self.reader.get_reader_by_id(inlet.reference.id)
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0
@@ -171,10 +172,10 @@ class WhereToCut(ReaderAccess):
 
         make_sphere = True
         if make_sphere:
-            traj_reader.set_current_frame(frame)
-            distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
+            traj_reader.set_frame(frame)
+            distances = cdist(np.matrix(center), np.matrix(list(barber.coords())), metric='euclidean').flatten()
             if self.tovdw:
-                vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
+                vdwradius = list(barber.ix(np.argmin(distances)).vdw())[0]
             radius = min(distances) - vdwradius
             if radius <= 0:
                 logger.debug('VdW correction resulted in <= 0 radius.')

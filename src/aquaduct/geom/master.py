@@ -53,13 +53,15 @@ Parts enumerate.
 
 ################################################################################
 
+fsrs_cache = {}
+
 
 class CTypeSpathsCollectionWorker(object):
     '''
     Worker class for averaging spaths in points of master path.
     '''
 
-    def __init__(self, spaths=None, ctype=None, bias_long=5, smooth=None):
+    def __init__(self, spaths=None, ctype=None, bias_long=5, smooth=None, lock=None):
         '''
         Core method for averaging spaths in to master path.
 
@@ -81,6 +83,8 @@ class CTypeSpathsCollectionWorker(object):
         self.lens_real_cache = None
         self.lens_norm_cache = None
         self.full_size_cache = None
+
+        self.lock = lock
 
     def coords_types_prob_widths(self, sp_slices_):
         '''
@@ -114,7 +118,13 @@ class CTypeSpathsCollectionWorker(object):
         '''
 
         # get zz coords, zz means zip_zip - for all spaths
-        coords_zz = [sp.get_coords_cont(smooth=self.smooth)[sl] for sp, sl in zip(self.spaths, sp_slices_)]
+        coords_zz = []
+        for sp, sl in zip(self.spaths, sp_slices_):
+            with self.lock:
+                coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
+            coords_zz.append(coords_zz_element[sl])
+        #with self.lock:
+        #    coords_zz = [sp.get_coords_cont(smooth=self.smooth)[sl] for sp, sl in zip(self.spaths, sp_slices_)]
 
         # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
         lens_zz = []
@@ -187,6 +197,7 @@ class CTypeSpathsCollection(object):
         '''
         self.pbar = pbar
         self.threads = threads
+        #self.threads = 1 # force one thread
         logger.debug("Threads passed %d", threads)
 
         self.spaths = spaths
@@ -204,7 +215,9 @@ class CTypeSpathsCollection(object):
             self.full_size_cache = self.full_size()
         self.beat()
 
-        # self.lock = Lock()
+        self.manager = multiprocessing.Manager()
+        self.lock = self.manager.Lock()
+
 
     def beat(self):
         '''
@@ -350,7 +363,7 @@ class CTypeSpathsCollection(object):
                  in types_prob]
         return types
 
-    def get_master_path(self, smooth=None, resid=0):
+    def get_master_path(self, smooth=None, resid=(0,0)):
         '''
         .. _master_path_generation:
 
@@ -370,7 +383,7 @@ class CTypeSpathsCollection(object):
         '''
         # prepare worker
         worker = CTypeSpathsCollectionWorker(spaths=self.spaths, ctype=self.ctype, bias_long=self.bias_long,
-                                             smooth=smooth)
+                                             smooth=smooth,lock=self.lock)
         # add some spaths precalcualted properties to worker
         worker.lens_cache = self.lens_cache
         worker.lens_real_cache = self.lens_real_cache
@@ -453,10 +466,10 @@ class CTypeSpathsCollection(object):
 
         with clui.tictoc('generic paths in %s' % str(self.ctype)):
             # get and populate GenericPath
-            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf)
-            for c, t, f in zip(coords, types, frames):  # TODO: remove loop
+            fsrs_cache.update({resid:FakeSingleResidueSelection(resid,frames,coords)})
+            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf,single_res_selection=fsrs_cache[resid])
+            for t, f in zip(types, frames):  # TODO: remove loop
                 gp.add_type(f, t)
-                gp.add_coord(c)
         # now try to get first SinglePath, if unable issue WARNING
         with clui.tictoc('separate paths in %s' % str(self.ctype)):
             try:
@@ -468,3 +481,19 @@ class CTypeSpathsCollection(object):
         mp = MasterPath(sp)
         mp.add_width(widths)
         return mp
+
+# fake single residue type like object
+from aquaduct.traj.sandwich import SingleResidueSelection
+
+class FakeSingleResidueSelection(SingleResidueSelection):
+    def __init__(self,resid,frames,coords):
+        self.resid = resid
+        self._frames = frames
+        self._coords = coords
+
+    def coords(self,frames):
+        # return coords for frames
+        for f in frames:
+            yield self._coords[self._frames.index(f)]
+
+

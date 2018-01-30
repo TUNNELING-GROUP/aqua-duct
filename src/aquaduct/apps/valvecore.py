@@ -1018,7 +1018,7 @@ def stage_II_run(config, options,
     #with clui.fbm("Rebuild treceable residues with current trajectory"):
     #    all_res = ResidueSelection(all_res,reader=reader)
     with clui.fbm("Init paths container"):
-        number_of_frames = Reader.window.len() - 1
+        number_of_frames = Reader.window.len()
         paths = dict(
             ((resid, GenericPaths(resid, name_of_res=resname, single_res_selection=sressel,
                                   min_pf=0, max_pf=number_of_frames))
@@ -1240,7 +1240,6 @@ def potentially_recursive_clusterization(config=None,
                                          clusterization_name=None,
                                          inlets_object=None,
                                          spaths=None,
-                                         traj_reader=None,
                                          message='clusterization',
                                          deep=0,
                                          max_level=5):
@@ -1258,7 +1257,6 @@ def potentially_recursive_clusterization(config=None,
             inlets_refs = inlets_object.get_inlets_references()
             logger.debug('Starting wtc...')
             wtc = WhereToCut(spaths=(sp for sp in spaths if sp.id in inlets_refs),
-                             traj_reader=traj_reader,
                              expected_nr_of_spaths=len(inlets_refs),
                              forceempty=True,
                              **clustering_function.method_kwargs)
@@ -1289,7 +1287,6 @@ def potentially_recursive_clusterization(config=None,
 def stage_IV_run(config, options,
                  spaths=None,
                  center_of_system=None,
-                 reader=None,
                  **kwargs):
     coptions = config.get_cluster_options()
     rcoptions = config.get_recluster_options()
@@ -1313,14 +1310,12 @@ def stage_IV_run(config, options,
     if inls.size > 0:
         # ***** CLUSTERIZATION *****
         with clui.fbm("Performing clusterization", cont=False):
-            with reader.get() as traj_reader:
-                potentially_recursive_clusterization(config=config,
-                                                     clusterization_name=config.cluster_name(),
-                                                     inlets_object=inls,
-                                                     spaths=spaths,
-                                                     traj_reader=traj_reader,
-                                                     message='clusterization',
-                                                     max_level=max_level)
+            potentially_recursive_clusterization(config=config,
+                                                 clusterization_name=config.cluster_name(),
+                                                 inlets_object=inls,
+                                                 spaths=spaths,
+                                                 message='clusterization',
+                                                 max_level=max_level)
         # with log.fbm("Performing clusterization"):
         #    clustering_function = get_clustering_method(coptions)
         #    inls.perform_clustering(clustering_function)
@@ -1355,20 +1350,19 @@ def stage_IV_run(config, options,
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
             with clui.fbm("Performing reclusterization of outliers", cont=False):
-                with reader.get() as traj_reader:
-                    '''
-                    potentially_recursive_clusterization(config=config,
-                                                     clusterization_name=config.recluster_name(),
-                                                     inlets_object=inls,
-                                                     spaths=spaths,
-                                                     traj_reader=traj_reader,
-                                                     message='reclusterization',
-                                                     max_level=max_level)
-                    '''
-                    clustering_function = get_clustering_method(rcoptions, config)
-                    # perform reclusterization
-                    # inls.recluster_outliers(clustering_function)
-                    inls.recluster_cluster(clustering_function, 0)
+                '''
+                potentially_recursive_clusterization(config=config,
+                                                 clusterization_name=config.recluster_name(),
+                                                 inlets_object=inls,
+                                                 spaths=spaths,
+                                                 traj_reader=traj_reader,
+                                                 message='reclusterization',
+                                                 max_level=max_level)
+                '''
+                clustering_function = get_clustering_method(rcoptions, config)
+                # perform reclusterization
+                # inls.recluster_outliers(clustering_function)
+                inls.recluster_cluster(clustering_function, 0)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
         # ***** SINGLETONS REMOVAL *****
@@ -1397,27 +1391,26 @@ def stage_IV_run(config, options,
             for passing_id in spaths_passing_ids:
                 passing_inlets_ids.extend(inls.extend_inlets(spaths[passing_id]))
             # loop over clusters
-            with reader.get() as traj_reader:
-                for cluster in inls.clusters_list:
-                    added_to_cluster = 0
-                    if cluster == 0: continue
-                    #sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
-                    #chull = inls.lim2clusters(cluster).get_chull()
-                    wtc = WhereToCut(inlets=inls.lim2clusters(cluster),traj_reader=traj_reader,**ab_options)
-                    wtc.cut_thyself()
-                    for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
-                        inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
-                        sphere = wtc.inlet2sphere(inlet,traj_reader)
-                        if sphere is not None:
-                            #if True:
-                            if wtc.is_overlaping_with_cloud(sphere):
-                                #if chull.point_within(inlet.coords):
-                                # add this inlet to cluster!
-                                inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
-                                added_to_cluster += 1
-                                passing_inlets_ids.pop(passing_inlet_nr)
-                    if added_to_cluster:
-                        inls.add_message_wrapper(message='+%d passing' % added_to_cluster,toleaf=cluster)
+            for cluster in inls.clusters_list:
+                added_to_cluster = 0
+                if cluster == 0: continue
+                #sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
+                #chull = inls.lim2clusters(cluster).get_chull()
+                wtc = WhereToCut(inlets=inls.lim2clusters(cluster),**ab_options)
+                wtc.cut_thyself()
+                for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
+                    inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
+                    sphere = wtc.inlet2sphere(inlet)
+                    if sphere is not None:
+                        #if True:
+                        if wtc.is_overlaping_with_cloud(sphere):
+                            #if chull.point_within(inlet.coords):
+                            # add this inlet to cluster!
+                            inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
+                            added_to_cluster += 1
+                            passing_inlets_ids.pop(passing_inlet_nr)
+                if added_to_cluster:
+                    inls.add_message_wrapper(message='+%d passing' % added_to_cluster,toleaf=cluster)
             if len(passing_inlets_ids):
                 inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids),toleaf=0)
 
@@ -1452,8 +1445,8 @@ def stage_IV_run(config, options,
                     # print len(sps),ct
                     ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
                                                   threads=optimal_threads.threads_count)
-                    master_paths.update({ct: ctspc.get_master_path(resid=nr)})
-                    master_paths_smooth.update({ct: ctspc.get_master_path(resid=nr, smooth=smooth)})
+                    master_paths.update({ct: ctspc.get_master_path(resid=(0,nr))})
+                    master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0,nr), smooth=smooth)})
                     del ctspc
                 pbar.finish()
 
