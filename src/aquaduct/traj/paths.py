@@ -389,10 +389,9 @@ class GenericPaths(object, GenericPathTypeCodes):
         # compare with radii
         # tokeep = distances > np.matrix([[s.radius for s in spheres]])
         if len(spheres):
-            tokeep = np.argwhere((cdist(self.coords, [s.center for s in spheres], metric='euclidean') > np.matrix(
+            tokeep = np.argwhere((cdist(np.array(list(self.coords)), [s.center for s in spheres], metric='euclidean') > np.matrix(
                 [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
             # tokeep = np.argwhere(tokeep).flatten().tolist()
-            self.coords = lind(self.coords, tokeep)
             self.__types = SmartRange(lind(self.types, tokeep))
             self.__frames = SmartRange(lind(self.frames, tokeep))
 
@@ -572,6 +571,17 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
     ####################################################################################################################
     # coords
+
+    @property
+    def coords_in(self):
+        return list(self.single_res_selection.coords(self.path_in))
+    @property
+    def coords_object(self):
+        return list(self.single_res_selection.coords(self.path_object))
+    @property
+    def coords_out(self):
+        return list(self.single_res_selection.coords(self.path_out))
+
 
     @property
     def coords(self):

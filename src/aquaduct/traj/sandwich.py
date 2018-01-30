@@ -434,7 +434,7 @@ class ReaderTrajViaMDA(ReaderTraj):
         return self.trajectory_object.atoms[atomids].masses
 
     def atom_vdw(self,atomid):
-        element = str(guess_atom_element(self.trajectory_object.atoms[atomid])).lower()
+        element = str(guess_atom_element(self.trajectory_object.atoms[atomid].name)).lower()
         if element in VdW_radii:
             return VdW_radii[element]
         element = str(self.trajectory_object.atoms[atomid].element).lower()
@@ -463,7 +463,7 @@ class Selection(ReaderAccess):
         for number, ids in self.selected.iteritems():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
-                return self.__class__({number:ids[ix-ix_current]})
+                return self.__class__({number:[ids[ix-ix_current]]})
             ix_current += len(ids)
         raise IndexError()
 
@@ -504,6 +504,11 @@ class Selection(ReaderAccess):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
 class AtomSelection(Selection):
+
+    def vdw(self):
+        for number, ids in self.selected.iteritems():
+            for aid in ids:
+                yield self.get_reader(number).atom_vdw(aid)
 
     def residues(self):
         # returns residues selection

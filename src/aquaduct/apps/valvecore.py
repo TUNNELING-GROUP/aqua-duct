@@ -1138,7 +1138,7 @@ def stage_III_run(config, options,
         # now, it might be that some of paths are empty
         # paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
         paths = dict((k, v) for k, v in paths.iteritems() if
-                     len(v.coords) > 0)  # more universal as dict comprehension may not work in <2.7
+                     len(v.frames) > 0)  # more universal as dict comprehension may not work in <2.7
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
@@ -1161,6 +1161,8 @@ def stage_III_run(config, options,
         with clui.fbm("Sort separate paths by resid"):
             spaths = sorted(spaths, key=lambda sp: (sp.id.id, sp.id.nr))
     # apply smoothing?
+    # it is no longer necessary
+    '''
     if options.apply_smoothing or options.apply_soft_smoothing:
         smooth = get_smooth_method(soptions)
     if options.apply_smoothing:
@@ -1177,7 +1179,7 @@ def stage_III_run(config, options,
             sp.get_coords(smooth=smooth)
             pbar.update(nr + 1)
         pbar.finish()
-
+    '''
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 

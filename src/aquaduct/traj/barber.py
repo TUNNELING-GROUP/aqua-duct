@@ -224,7 +224,7 @@ class WhereToCut(ReaderAccess):
                 traj_reader.set_frame(frame)
                 distances = cdist(np.matrix(center), np.matrix(list(barber.coords())), metric='euclidean').flatten()
                 if self.tovdw:
-                    vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
+                    vdwradius = list(barber.ix(np.argmin(distances)).vdw())[0]
                 radius = min(distances) - vdwradius
                 if radius <= 0:
                     logger.debug('VdW correction resulted in <= 0 radius.')
