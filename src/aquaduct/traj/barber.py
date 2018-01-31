@@ -196,10 +196,10 @@ class WhereToCut(ReaderAccess):
                     radius = maxcut_val
         if make_sphere:
             logger.debug('Added sphere of radius %0.2f' % radius)
-            return Sphere(center, radius, self.get_current_nr())
+            return Sphere(center.flatten(), radius, self.get_current_nr())
         elif self.forceempty:
             logger.debug('Added sphere of radius 0')
-            return Sphere(center, 0, self.get_current_nr())
+            return Sphere(center.flatten(), 0, self.get_current_nr())
 
 
     def spath2spheres(self, sp):
@@ -246,10 +246,10 @@ class WhereToCut(ReaderAccess):
                         radius = maxcut_val
             if make_sphere:
                 logger.debug('Added sphere of radius %0.2f' % radius)
-                yield Sphere(center, radius, self.get_current_nr())
+                yield Sphere(center.flatten(), radius, self.get_current_nr())
             elif self.forceempty:
                 logger.debug('Added sphere of radius 0')
-                yield Sphere(center, 0, self.get_current_nr())
+                yield Sphere(center.flatten(), 0, self.get_current_nr())
 
     def _cut_thyself(self, spheres_passed, progress=False):
         # returns noredundant spheres

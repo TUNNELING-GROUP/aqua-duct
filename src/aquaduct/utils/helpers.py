@@ -25,6 +25,7 @@ from collections import Iterable
 from functools import wraps
 from os import close
 from tempfile import mkstemp
+from functools import partial
 
 from aquaduct.utils.maths import defaults
 
@@ -363,26 +364,44 @@ def tupleify(gen):
 
     return patched
 
+class arrayify(object):
 
-def arrayify(gen):
-    """
-    Decorator to convert functions' outputs into a 2D numpy array. If the output is iterable it is converted in to a 2D numpy array
-    of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.
+    def __init__(self,shape=None):
+        self.shape = shape
 
-    Written on the basis of :func:`listify`.
+    def __call__(self,gen):
+        """
+        Decorator to convert functions' outputs into a 2D numpy array. If the output is iterable it is converted in to a 2D numpy array
+        of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.
 
-    :returns: Output of decorated function converted to a 2D numpy array.
-    :rtype: numpy.ndarray
-    """
+        Written on the basis of :func:`listify`.
 
-    @wraps(gen)
-    def patched(*args, **kwargs):
-        obj = gen(*args, **kwargs)
-        if isinstance(obj, Iterable):
-            return np.matrix(list(obj),dtype=defaults.float_default).A
-        return np.matrix([obj],dtype=defaults.float_default).A
+        :returns: Output of decorated function converted to a 2D numpy array.
+        :rtype: numpy.ndarray
+        """
+        #@wraps(gen)
+        def patched(*args, **kwargs):
+            obj = gen(*args, **kwargs)
+            if isinstance(obj, Iterable):
+                result = np.matrix(list(obj),dtype=defaults.float_default).A
+            else:
+                result = np.matrix([obj],dtype=defaults.float_default).A
+            if self.shape is None: return result
+            new_shape = []
+            for ds,s in zip(self.shape,result.shape):
+                if ds is None:
+                    if result.size:
+                        new_shape.append(s)
+                    else:
+                        new_shape.append(0)
+                else:
+                    new_shape.append(ds)
+            result.shape = tuple(new_shape)
+            return result
 
-    return patched
+        return patched
+
+
 
 
 def arrayify1(gen):

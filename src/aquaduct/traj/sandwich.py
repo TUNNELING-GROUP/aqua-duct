@@ -30,7 +30,7 @@ from itertools import izip_longest
 
 from aquaduct.utils.helpers import is_iterable
 from aquaduct.geom.convexhull import SciPyConvexHull,is_point_within_convexhull
-
+from aquaduct.utils.helpers import arrayify
 
 class Window(object):
     def __init__(self,start,stop,step):
@@ -169,9 +169,9 @@ class MasterReader(object):
         # number of frames in traj files
         return self.get_single_reader(0).real_number_of_frames()
 
-    def number_of_frames(self):
+    def number_of_frames(self,onelayer=False):
         # number of frames in the window times number of layers
-        if self.sandwich_mode:
+        if self.sandwich_mode and not onelayer:
             return len(self.trajectory)*self.window.len()
         return self.window.len()
 
@@ -551,7 +551,7 @@ class AtomSelection(Selection):
                 elif other_id in this_ids:
                     kt_list.append(other_id)
             if convex_hull:
-                chull =  SciPyConvexHull(list(self.coords()))
+                chull = self.chull()
                 ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
             # final merging loop
             final_results = []
@@ -566,7 +566,7 @@ class AtomSelection(Selection):
         else:
             if convex_hull:
                 other_coords = other_residues.coords()
-                chull = SciPyConvexHull(list(self.coords()))
+                chull = self.chull()
                 return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
             else:
                 # check if other selection is empty
@@ -585,6 +585,8 @@ class AtomSelection(Selection):
                     other_new.update({number:[resid]})
         return ResidueSelection(other_new)
 
+    def chull(self):
+        return SciPyConvexHull(list(self.coords()))
 
 
 class ResidueSelection(Selection):
@@ -613,6 +615,7 @@ class SingleResidueSelection(ReaderAccess):
     def get_reader(self):
         return self.reader.get_single_reader(self.number)
 
+    @arrayify(shape=(None,3))
     def coords(self,frames):
         # return coords for frames
         for f in frames:

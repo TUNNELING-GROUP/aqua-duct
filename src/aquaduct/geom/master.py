@@ -197,7 +197,7 @@ class CTypeSpathsCollection(object):
         '''
         self.pbar = pbar
         self.threads = threads
-        #self.threads = 1 # force one thread
+        self.threads = 1 # force one thread
         logger.debug("Threads passed %d", threads)
 
         self.spaths = spaths

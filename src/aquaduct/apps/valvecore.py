@@ -1970,7 +1970,7 @@ def clusters_stats_prob(cluster, sp_ct):
             d += 1
     line += [io,d,N]
     summa = float(sum([io,d,N]))
-    line += map(lambda x: x/summa,[io,d,N])
+    line += map(lambda x: x/summa if summa else float('nan'),[io,d,N])
     return line
 
 @add_cluster_id_head
@@ -2104,11 +2104,10 @@ def stage_V_run(config, options,
         pa(os.linesep.join(config.dump_config()))
 
     ############
-    with reader.get() as traj_reader:
-        pa.sep()
-        pa("Frames window: %d:%d step %d" % (traj_reader.get_start_frame(),
-                                             traj_reader.get_stop_frame(),
-                                             traj_reader.get_step_frame()))
+    pa.sep()
+    pa("Frames window: %d:%d step %d" % (Reader.window.start,
+                                         Reader.window.stop,
+                                         Reader.window.step))
 
     ############
     traced_names = tuple(sorted(list(set([sp.id.name for sp in spaths]))))
@@ -2326,11 +2325,10 @@ def stage_V_run(config, options,
 
     # histograms
     # calculate old max_frame
-    with reader.get() as traj_reader:
-        max_frame = traj_reader.number_of_frames - 1
+    max_frame = Reader.number_of_frames(onelayer=True)
     header = [column[-1] for column in iter_over_all()]
     fmt = ['%u']*len(header)
-    h = np.zeros((max_frame+1,len(header)))
+    h = np.zeros((max_frame,len(header)))
     # loop over spaths
     pbar = clui.pbar(maxval=len(spaths),
                      mess='Calculating histograms')
@@ -2377,22 +2375,26 @@ def stage_V_run(config, options,
         scope_size = []
         object_size = []
         # now, the problem is in the scope and object definition.
-        with reader.get() as traj_reader:
-            pbar = clui.pbar(maxval=traj_reader.number_of_frames, mess='Calculating scope and object sizes')
+        pbar = clui.pbar(maxval=Reader.number_of_frames(), mess='Calculating scope and object sizes')
+
+        for number, traj_reader in Reader.iterate(number=True):
+            scope_size.append([])
+            object_size.append([])
             for frame in traj_reader.iterate_over_frames():
                 scope = traj_reader.parse_selection(options.scope_chull)
-                ch = scope.get_convexhull_of_atom_positions()
-                scope_size.append((ch.area,ch.volume))
+                ch = scope.chull()
+                scope_size[-1].append((ch.area,ch.volume))
                 res = traj_reader.parse_selection(options.object_chull)
-                ch = res.get_convexhull_of_atom_positions()
-                object_size.append((ch.area, ch.volume))
+                ch = res.chull()
+                object_size[-1].append((ch.area, ch.volume))
                 pbar.next()
-        header += ['scope_area','scope_volume','object_area','object_volume']
-        h = np.hstack((h,scope_size,object_size))
-        fmt += ['%0.3f','%0.2f']*2
+            header += map(lambda s: '%s_%d' % (s,number), ['scope_area','scope_volume','object_area','object_volume'])
+            fmt += ['%0.3f','%0.2f']*2
+        for s_s,o_s in zip(scope_size,object_size):
+            h = np.hstack((h,s_s,o_s))
         pbar.finish()
     # add frame column?
-    frame_col = np.array([range(max_frame+1)]).T
+    frame_col = np.array([range(max_frame)]).T
     h = np.hstack((frame_col,h))
     header = ['frame'] + header
     fmt = ['%u']+fmt

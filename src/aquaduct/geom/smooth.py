@@ -182,7 +182,7 @@ class WindowSmooth(Smooth, IntWindow):
 
 
 
-    @arrayify
+    @arrayify()
     def smooth(self, coords):
         '''
         :param Iterable coords: Input coordinates to be smoothed.
@@ -212,7 +212,7 @@ class DistanceWindowSmooth(Smooth, FloatWindow):
         super(DistanceWindowSmooth, self).__init__(**kwargs)
 
 
-    @arrayify
+    @arrayify()
     def smooth(self, coords):
         '''
         :param Iterable coords: Input coordinates to be smoothed.
@@ -249,7 +249,7 @@ class ActiveWindowSmooth(Smooth, FloatWindow):
 
 
 
-    @arrayify
+    @arrayify()
     def smooth(self, coords):
         '''
         :param Iterable coords: Input coordinates to be smoothed.
@@ -289,7 +289,7 @@ class MaxStepSmooth(Smooth):
 
 
 
-    @arrayify
+    @arrayify()
     def smooth(self, coords):
         '''
         :param Iterable coords: Input coordinates to be smoothed.
@@ -349,7 +349,7 @@ class SavgolSmooth(Smooth):
     def set_savgol_function(self):
         return partial(savgol_filter, window_length=self.window_length, polyorder=self.polyorder, axis=0, **self.additional_kwargs)
 
-    @arrayify
+    @arrayify()
     def smooth(self, coords):
         '''
         :param Iterable coords: Input coordinates to be smoothed.

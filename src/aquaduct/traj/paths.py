@@ -408,7 +408,7 @@ class SinglePathID(object):
 
     def __str__(self):
         # by default name is not returned
-        return '%d:%d' % (self.id, self.nr)
+        return '%d:%d:%d' % (self.id+(self.nr,))
 
     def __eq__(self, other):
         if isinstance(other, SinglePathID):
@@ -524,7 +524,7 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     @property
     def coords_first_in(self):
         if len(self.__path_in) > 0:
-            return (self.single_res_selection.coords([self.__path_in.first_element()])).next()
+            return self.single_res_selection.coords([self.__path_in.first_element()])
 
     @property
     def paths_first_in(self):
@@ -534,7 +534,7 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     @property
     def coords_last_out(self):
         if len(self.__path_out) > 0:
-            return (self.single_res_selection.coords([self.__path_out.last_element()])).next()
+            return self.single_res_selection.coords([self.__path_out.last_element()])
 
     @property
     def paths_last_out(self):
@@ -574,13 +574,13 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
     @property
     def coords_in(self):
-        return list(self.single_res_selection.coords(self.path_in))
+        return self.single_res_selection.coords(self.path_in)
     @property
     def coords_object(self):
-        return list(self.single_res_selection.coords(self.path_object))
+        return self.single_res_selection.coords(self.path_object)
     @property
     def coords_out(self):
-        return list(self.single_res_selection.coords(self.path_out))
+        return self.single_res_selection.coords(self.path_out)
 
 
     @property
