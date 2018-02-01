@@ -609,7 +609,8 @@ class ResidueSelection(Selection):
 
 
 from joblib import Memory
-memory = Memory(cachedir='/home/tljm/Research/aqua-duct/valve_tests/km_test/cache')
+#memory = Memory(cachedir='/home/tljm/Research/aqua-duct/valve_tests/km_test/cache')
+memory = Memory(cachedir='/cygdrive/f/projects/aqua-duct/valve_tests/km_test/cache')
 
 
 class SingleResidueSelection(ReaderAccess):
