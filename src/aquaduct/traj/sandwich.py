@@ -533,6 +533,7 @@ class AtomSelection(Selection):
         return center/total_mass
 
     def contains_residues(self,other_residues,convex_hull=False,map_fun=None,known_true=None):
+        # FIXME: known_true slows down!
         assert isinstance(other_residues,ResidueSelection)
         if map_fun is None:
             map_fun = map

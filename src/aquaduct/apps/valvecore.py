@@ -938,7 +938,7 @@ def stage_I_run(config, options,
 
     # create some containers
     res_ids_in_object_over_frames = {}
-    res_ids_in_scope_over_frames = {}  # not used
+    #res_ids_in_scope_over_frames = {}  # not used
     all_res = None
 
     # scope will be used to derrive center of system
@@ -950,6 +950,8 @@ def stage_I_run(config, options,
         # scope is evaluated only once before the loop over frames starts
         if not options.scope_everyframe:
             scope = traj_reader.parse_selection(options.scope)
+
+        res_ids_in_object_over_frames.update({number:{}})
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
@@ -970,9 +972,9 @@ def stage_I_run(config, options,
                 all_res = res_new
             # remeber ids of res in object in current frame
             if res_new is not None:
-                res_ids_in_object_over_frames.update({(number,frame): list(res_new.ids())})
+                res_ids_in_object_over_frames[number].update({frame: [resid[-1] for resid in res_new.ids()]}) # store ix only!
             else:
-                res_ids_in_object_over_frames.update({(number,frame): []})
+                res_ids_in_object_over_frames[number].update({frame: []})
             pbar.next()
 
     # destroy pool of workers
@@ -1018,7 +1020,7 @@ def stage_II_run(config, options,
     #with clui.fbm("Rebuild treceable residues with current trajectory"):
     #    all_res = ResidueSelection(all_res,reader=reader)
     with clui.fbm("Init paths container"):
-        number_of_frames = Reader.window.len()
+        number_of_frames = Reader.window.len() - 1
         paths = dict(
             ((resid, GenericPaths(resid, name_of_res=resname, single_res_selection=sressel,
                                   min_pf=0, max_pf=number_of_frames))
@@ -1034,6 +1036,8 @@ def stage_II_run(config, options,
         if not options.scope_everyframe:
             scope = traj_reader.parse_selection(options.scope)
 
+        if not res_ids_in_object_over_frames.has_key(number):
+            res_ids_in_object_over_frames.update({number:{}})
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
@@ -1041,8 +1045,8 @@ def stage_II_run(config, options,
                 scope = traj_reader.parse_selection(options.scope)
             # check if all_res are in the scope, reuse res_ids_in_object_over_frames
             known_true = None
-            if (number,frame) in res_ids_in_object_over_frames:
-                known_true = res_ids_in_object_over_frames[(number,frame)]
+            if False: #frame in res_ids_in_object_over_frames[number]:
+                known_true = [(number,resid) for resid in res_ids_in_object_over_frames[number][frame]] # restore number
             is_res_in_scope = scope.contains_residues(all_res.layer(number), convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
 
             # loop over coords, is  in scope, and resid
@@ -1055,18 +1059,18 @@ def stage_II_run(config, options,
                 if isscope: # residue is in the scope - always true
                     #paths[resid].add_coord(coord)
                     # do we have info on res_ids_in_object_over_frames?
-                    if (number,frame) not in res_ids_in_object_over_frames:
+                    if frame not in res_ids_in_object_over_frames[number]:
                         res = traj_reader.parse_selection(options.object).residues()
                         # discard res out of scope
-                        res_new = (resid for iris,resid in zip(is_res_in_scope, res.ids()) if iris)
+                        res_new = (rid for iris,rid in zip(is_res_in_scope, res.ids()) if iris)
                         # remeber ids of res in object in current frame
                         if res_new is not None:
-                            res_ids_in_object_over_frames.update({(number,frame): list(res_new)})
+                            res_ids_in_object_over_frames[number].update({frame: [rid[-1] for rid in res_new]})
                         else:
-                            res_ids_in_object_over_frames.update({(number,frame): []})
+                            res_ids_in_object_over_frames[number].update({frame: []})
 
                     # in scope
-                    if resid not in res_ids_in_object_over_frames[(number,frame)]:
+                    if resid[-1] not in res_ids_in_object_over_frames[number][frame]:
                         paths[resid].add_scope(frame)
                     # in object
                     else:
