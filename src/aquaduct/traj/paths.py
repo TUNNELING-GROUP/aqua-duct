@@ -143,7 +143,7 @@ class GenericPaths(object, GenericPathTypeCodes):
 
     @property
     def coords(self):
-        return self.single_res_selection.coords(self.frames)
+        return self.single_res_selection.coords(self.__frames)
 
     @property
     def max_frame(self):
@@ -524,7 +524,8 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     @property
     def coords_first_in(self):
         if len(self.__path_in) > 0:
-            return self.single_res_selection.coords([self.__path_in.first_element()])
+            return self.coords_in[0]
+            #return self.single_res_selection.coords([self.__path_in.first_element()])
 
     @property
     def paths_first_in(self):
@@ -534,7 +535,8 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     @property
     def coords_last_out(self):
         if len(self.__path_out) > 0:
-            return self.single_res_selection.coords([self.__path_out.last_element()])
+            return self.coords_out[-1]
+            #return self.single_res_selection.coords([self.__path_out.last_element()])
 
     @property
     def paths_last_out(self):
@@ -574,13 +576,13 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
     @property
     def coords_in(self):
-        return self.single_res_selection.coords(self.path_in)
+        return self.single_res_selection.coords(self.__path_in)
     @property
     def coords_object(self):
-        return self.single_res_selection.coords(self.path_object)
+        return self.single_res_selection.coords(self.__path_object)
     @property
     def coords_out(self):
-        return self.single_res_selection.coords(self.path_out)
+        return self.single_res_selection.coords(self.__path_out)
 
 
     @property

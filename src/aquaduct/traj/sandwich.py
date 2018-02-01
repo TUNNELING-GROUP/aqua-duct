@@ -31,6 +31,7 @@ from itertools import izip_longest
 from aquaduct.utils.helpers import is_iterable
 from aquaduct.geom.convexhull import SciPyConvexHull,is_point_within_convexhull
 from aquaduct.utils.helpers import arrayify
+from aquaduct.utils.helpers import SmartRange
 
 class Window(object):
     def __init__(self,start,stop,step):
@@ -606,18 +607,36 @@ class ResidueSelection(Selection):
         for resid in self.ids():
             yield SingleResidueSelection(resid)
 
+
+from joblib import Memory
+memory = Memory(cachedir='/home/tljm/Research/aqua-duct/valve_tests/km_test/cache')
+
+
 class SingleResidueSelection(ReaderAccess):
     def __init__(self,resid):
         # where resid is id reported by ResidueSelection and reader is Reader
         # resid is tuple (number,id) number is used to get reader_traj
+        self._coords_range = memory.cache(self._coords_range_)
         self.resid = resid[-1]
         self.number = resid[0]
+
 
     def get_reader(self):
         return self.reader.get_single_reader(self.number)
 
-    @arrayify(shape=(None,3))
     def coords(self,frames):
+        if isinstance(frames,SmartRange):
+            if len(frames):
+                return np.vstack([self._coords_range(srange,(self.number,self.resid)) for srange in frames.raw])
+            return self._coords([])
+        else:
+            return self._coords(frames)
+
+    def _coords_range_(self,srange,resid):
+        return self._coords(srange.get())
+
+    @arrayify(shape=(None,3))
+    def _coords(self,frames):
         # return coords for frames
         for f in frames:
             self.get_reader().set_frame(f)
