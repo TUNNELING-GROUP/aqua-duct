@@ -31,16 +31,15 @@ from functools import wraps
 from itertools import izip_longest
 from keyword import iskeyword
 
-#import MDAnalysis as mda
 from scipy.spatial.distance import cdist
+from scipy.stats import ttest_ind
 
-#import roman
 from aquaduct.utils.clui import roman
 
 from aquaduct import greetings as greetings_aquaduct
 from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
-from aquaduct.apps.data import version_nice, get_vda_reader
+from aquaduct.apps.data import get_vda_reader
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
@@ -61,7 +60,7 @@ from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
 
 __mail__ = 'info@aquaduct.pl'
-__version__ = version_nice()
+__version__ = aquaduct_version_nice()
 
 
 ###############################################################################
@@ -116,7 +115,7 @@ class ValveConfig(object, ConfigSpecialNames):
         # scope - scope definition
         # scope_convexhull - take convex hull of scope, true of false
         # object - object definition
-        return 'scope scope_convexhull object'.split()
+        return 'scope scope_convexhull scope_everyframe object'.split()
 
     @staticmethod
     def global_name():
@@ -260,6 +259,7 @@ class ValveConfig(object, ConfigSpecialNames):
 
         common(section)
         common_traj_data(section)
+        config.set(section, 'scope_everyframe', 'False')
 
         ################
         snr += 1
@@ -939,7 +939,8 @@ def stage_I_run(config, options,
         pbar = clui.pbar(traj_reader.number_of_frames)
 
         # scope is evaluated only once before the loop over frames starts
-        scope = traj_reader.parse_selection(options.scope)
+        if not options.scope_everyframe:
+            scope = traj_reader.parse_selection(options.scope)
         # scope will be used to derrive center of system
         center_of_system = np.array([0., 0., 0.])
 
@@ -950,6 +951,8 @@ def stage_I_run(config, options,
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
+            if options.scope_everyframe:
+                scope = traj_reader.parse_selection(options.scope)
             # center of system
             center_of_system += scope.center_of_mass()
             # current res selection
@@ -1022,10 +1025,13 @@ def stage_II_run(config, options,
         pbar = clui.pbar(traj_reader.number_of_frames)
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
-        scope = traj_reader.parse_selection(options.scope)
+        if not options.scope_everyframe:
+            scope = traj_reader.parse_selection(options.scope)
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
+            if options.scope_everyframe:
+                scope = traj_reader.parse_selection(options.scope)
             # coordinates and ids of all residues found in the previous stage
             #all_res_coords = all_res.center_of_mass_of_residues()  # this uses iterate over residues
             #all_resids = (residue.first_resid() for residue in all_res.iterate_over_residues())
@@ -1551,7 +1557,7 @@ def add_path_id(gen):
 
 
 def size_header():
-    return ['Size'], ['%7d']
+    return ['Size','Size%'], ['%7d','%6.2f']
 
 
 def add_size_head(gen):
@@ -1567,8 +1573,10 @@ def add_size_head(gen):
 
 def add_size(gen):
     @wraps(gen)
-    def patched(spaths, add_size=True, *args, **kwargs):
+    def patched(spaths, add_size=True, add_size_p100=None, *args, **kwargs):
         line = gen(spaths, *args, **kwargs)
+        if add_size_p100 is not None:
+            line = [len(spaths)/float(add_size_p100)*100] + line
         if add_size:
             line = [len(spaths)] + line
         return line
@@ -1695,6 +1703,13 @@ def spath_lenght_total_info_header(total=None):
 
 @add_path_id
 def spath_lenght_total_info(spath, totalonly=False, total=False):
+    # total and totalonly are internal flags
+    # to calculate: total len, in len, obj len, out len call:
+    # total=True (this will calculate total)
+    # to skip calculation of total call:
+    # total=False, totalonly=False (this will calculate in, obj, and out lens)
+    # to calculate total len call:
+    # total=False, totalonly=True
     line = []
     if not total:
         if not totalonly:
@@ -1718,6 +1733,31 @@ def spath_lenght_total_info(spath, totalonly=False, total=False):
         line += [float('nan')] * 3
     return line
 
+@add_path_id
+def spath_frames_total_info(spath, totalonly=False, total=False):
+    # total and totalonly are internal flags
+    # to calculate: total len, in len, obj len, out len call:
+    # total=True (this will calculate total)
+    # to skip calculation of total call:
+    # total=False, totalonly=False (this will calculate in, obj, and out lens)
+    # to calculate total len call:
+    # total=False, totalonly=True
+    line = []
+    if not total:
+        if not totalonly:
+            for t in spath.coords:
+                line.append(len(t))
+            return line
+        else:
+            for t in (spath.coords_cont,):
+                line.append(len(t))
+            return line
+    line += spath_frames_total_info(spath, add_id=False, total=False, totalonly=True)
+    if not isinstance(spath, PassingPath):
+        line += spath_frames_total_info(spath, add_id=False, total=False, totalonly=False)
+    else:
+        line += [float('nan')] * 3
+    return line
 
 ################
 
@@ -1749,6 +1789,22 @@ def spath_steps_info(spath, total=None):
             line = [float('nan'), float('nan')] + line
     else:
         line += [float('nan'), float('nan')] * 3
+    return line
+
+
+@add_path_id
+def spath_frames_info(spath, total=None):
+    line = []
+    if not total:
+        for t in spath.coords:
+            line.append(len(t))
+        return line
+    line += spath_steps_info(spath, add_id=False, total=False)
+    if not isinstance(spath, PassingPath):
+        t = spath.coords_cont
+        line = [len(t)] + line
+    else:
+        line = [float('nan')] + line
     return line
 
 
@@ -1797,7 +1853,7 @@ def spath_full_info(spath, ctype=None, total=None):
 @add_size_head
 def spaths_lenght_total_header():
     header = 'Tot TotStd Inp InpStd Obj ObjStd Out OutStd'.split()
-    line_template = ['%8.1f', '%8.2f'] * (len(header) / 2)
+    line_template = ['%9.1f', '%9.2f'] * (len(header) / 2)
     return header, line_template
 
 
@@ -1827,6 +1883,31 @@ def spaths_length_total(spaths):
 
     return [line[6], line[7], line[0], line[3], line[1], line[4], line[2], line[5]]
 
+@add_size
+def spaths_frames_total(spaths):
+    line = []
+    d4s = []
+    for sp in spaths:
+        if not isinstance(sp, PassingPath):
+            d4s.append(spath_frames_total_info(sp, add_id=False))
+    d4s = np.array(d4s)
+    if d4s.size:
+        line.extend(np.mean(d4s, 0))
+        line.extend(np.std(d4s, 0))
+    else:
+        line = [float('nan')] * 6
+    # total
+    d4s = []
+    for sp in spaths:
+        d4s.append(spath_frames_total_info(sp, totalonly=True, add_id=False))
+    d4s = np.array(d4s)
+    if d4s.size:
+        line.extend(np.mean(d4s, 0))
+        line.extend(np.std(d4s, 0))
+    else:
+        line += [float('nan')] * 4
+
+    return [line[6], line[7], line[0], line[3], line[1], line[4], line[2], line[5]]
 
 ################################################################################
 
@@ -1849,6 +1930,8 @@ def clusters_inlets(cluster, inlets):
     return line
 
 
+################################################################################
+
 @add_ctype_id_head
 def ctypes_spaths_info_header():
     header, line_template = spaths_lenght_total_header()
@@ -1856,11 +1939,145 @@ def ctypes_spaths_info_header():
 
 
 @add_ctype_id
-def ctypes_spaths_info(ctype, spaths):
+def ctypes_spaths_info(ctype, spaths, show='len', add_size_p100=None):
+    #show could be len or frames
     line = []
-    line += spaths_length_total(spaths)
+    if show == 'len':
+        line += spaths_length_total(spaths, add_size_p100=add_size_p100)
+    if show == 'frames':
+        line += spaths_frames_total(spaths, add_size_p100=add_size_p100)
     return line
 
+
+################################################################################
+
+
+@add_cluster_id_head
+def clusters_stats_prob_header():
+    header = 'IN-OUT diff N IN-OUT_prob diff_prob N_prob'.split()
+    line_template = ['%8d'] * (len(header)/2) + ['%12.2f'] * (len(header)/2)
+    #header += 'IN_len OUT_len Both_len'.split()
+    #line_template += ['%9.1f'] * 3
+    return header, line_template
+
+
+@add_cluster_id
+def clusters_stats_prob(cluster, sp_ct):
+    # calculates probabilities of some events for cluster
+    # X:X transition - io
+    # X:? and ?:X transition - d
+    # X:N and N:X transition - N
+    line = []
+    io,d,N = 0,0,0
+    in_len,out_len,tot_len = 0.,0.,0.
+    in_n,out_n,tot_n = 0,0,0
+    for sp,ct in sp_ct:
+        ct = ct.generic.clusters
+        assert cluster in ct
+        if cluster == ct[0] and cluster == ct[1]:
+            io += 1
+        elif None in ct:
+            N += 1
+        else:
+            d += 1
+    line += [io,d,N]
+    summa = float(sum([io,d,N]))
+    line += map(lambda x: x/summa,[io,d,N])
+    return line
+
+@add_cluster_id_head
+def clusters_stats_len_header():
+    header = 'X->Obj Obj->X p-value X->ObjMin X->ObjMinID Obj->XMin Obj->XMinID'.split()
+    line_template = (['%9.1f'] * 2) + ['%9.4f'] + ['%9.1f','%11s'] * 2
+    return header, line_template
+
+@add_cluster_id
+def clusters_stats_len(cluster, sp_ct):
+    line = []
+    in_len,out_len = [],[]
+    in_len_min,out_len_min = float('inf'),float('inf')
+    in_len_min_id,out_len_min_id = None,None
+    for sp,ct in sp_ct:
+        ct = ct.generic.clusters
+        assert cluster in ct
+        lens = spath_lenght_total_info(sp, add_id=False, total=False, totalonly=False)
+        # tot,in,obj,out
+        if cluster == ct[0]:
+            if not np.isnan(lens[0]):
+                in_len.append(lens[0])
+                if lens[0]<in_len_min:
+                    in_len_min = lens[0]
+                    in_len_min_id = str(sp.id)
+        if cluster == ct[1]:
+            if not np.isnan(lens[-1]):
+                out_len.append(lens[-1])
+                if lens[-1]<out_len_min:
+                    out_len_min = lens[-1]
+                    out_len_min_id = str(sp.id)
+
+    if len(in_len):
+        line.append(np.mean(in_len))
+    else:
+        line.append(float('nan'))
+    if len(out_len):
+        line.append(np.mean(out_len))
+    else:
+        line.append(float('nan'))
+    if len(in_len) > 1 and len(out_len) > 1:
+        line.append(ttest_ind(in_len,out_len)[-1]) # this is supposed to return p-value
+    else:
+        line.append(float('nan'))
+
+    line += [in_len_min,in_len_min_id,out_len_min,out_len_min_id]
+
+    return line
+
+@add_cluster_id_head
+def clusters_stats_steps_header():
+    header = 'X->Obj Obj->X p-value X->ObjMin X->ObjMinID Obj->XMin Obj->XMinID'.split()
+    line_template = (['%9.1f'] * 2) + ['%9.4f'] + ['%9.1f','%11s'] * 2
+    return header, line_template
+
+@add_cluster_id
+def clusters_stats_steps(cluster, sp_ct):
+    line = []
+    in_len,out_len = [],[]
+    in_len_min,out_len_min = float('inf'),float('inf')
+    in_len_min_id,out_len_min_id = None,None
+    for sp,ct in sp_ct:
+        ct = ct.generic.clusters
+        assert cluster in ct
+        lens = spath_frames_info(sp, add_id=False, total=False)
+        # tot,in,obj,out
+        if cluster == ct[0]:
+            if not np.isnan(lens[0]):
+                in_len.append(lens[0])
+                if lens[0]<in_len_min:
+                    in_len_min = lens[0]
+                    in_len_min_id = str(sp.id)
+        if cluster == ct[1]:
+            if not np.isnan(lens[2]):
+                out_len.append(lens[2])
+                if lens[-1]<out_len_min:
+                    out_len_min = lens[2]
+                    out_len_min_id = str(sp.id)
+
+    if len(in_len):
+        line.append(np.mean(in_len))
+    else:
+        line.append(float('nan'))
+    if len(out_len):
+        line.append(np.mean(out_len))
+    else:
+        line.append(float('nan'))
+    if len(in_len) > 1 and len(out_len) > 1:
+        line.append(ttest_ind(in_len,out_len)[-1]) # this is supposed to return p-value
+    else:
+        line.append(float('nan'))
+
+    line += [in_len_min,in_len_min_id,out_len_min,out_len_min_id]
+
+    return line
 
 ################################################################################
 
@@ -1874,7 +2091,7 @@ def stage_V_run(config, options,
                 reader=None,
                 **kwargs):
     # file handle?
-    head_nr = True
+    head_nr = False
     line_nr = head_nr
     pa = PrintAnalysis(options.save, line_nr=line_nr)
 
@@ -1984,6 +2201,36 @@ def stage_V_run(config, options,
         pa.tend(header_line)
 
     ############
+    ############
+    ############
+    pa.sep()
+
+    for tname, sptype, message in iter_over_tnspt():
+        header_line, line_template = get_header_line_and_line_template(clusters_stats_prob_header(), head_nr=head_nr)
+        pa("Clusters statistics (of paths%s) probabilities of transfers" % message)
+        pa.thead(header_line)
+        for nr, cl in enumerate(inls.clusters_list):
+            sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+            pa(make_line(line_template, clusters_stats_prob(cl, sp_ct_lim)), nr=nr)
+        pa.tend(header_line)
+
+        header_line, line_template = get_header_line_and_line_template(clusters_stats_len_header(), head_nr=head_nr)
+        pa("Clusters statistics (of paths%s) mean lengths of transfers" % message)
+        pa.thead(header_line)
+        for nr, cl in enumerate(inls.clusters_list):
+            sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+            pa(make_line(line_template, clusters_stats_len(cl, sp_ct_lim)), nr=nr)
+        pa.tend(header_line)
+
+        header_line, line_template = get_header_line_and_line_template(clusters_stats_steps_header(), head_nr=head_nr)
+        pa("Clusters statistics (of paths%s) mean frames numbers of transfers" % message)
+        pa.thead(header_line)
+        for nr, cl in enumerate(inls.clusters_list):
+            sp_ct_lim = ((sp,ct) for sp,ct in zip(spaths, ctypes) if cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+            pa(make_line(line_template, clusters_stats_steps(cl, sp_ct_lim)), nr=nr)
+        pa.tend(header_line)
+
+    ############
     pa.sep()
     header_line, line_template = get_header_line_and_line_template(ctypes_spaths_info_header(), head_nr=head_nr)
 
@@ -1995,19 +2242,30 @@ def stage_V_run(config, options,
     for nr, ct in enumerate(ctypes_generic_list):
         sps = lind(spaths, what2what(ctypes_generic, [ct]))
         ctypes_size.append(len(sps))
-        # pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+    ctypes_generic_list = [ctypes_generic_list[i] for i in np.argsort(ctypes_size)[::-1]]
 
     for tname, sptype, message in iter_over_tnspt():
         pa("Separate paths clusters types summary - mean lengths of paths%s" % message)
         pa.thead(header_line)
 
+        total_size = len([sp for sp in spaths if sp.id.name in tname and isinstance(sp, sptype)])
         for nr, ct in enumerate(ctypes_generic_list):
             sps = lind(spaths, what2what(ctypes_generic, [ct]))
             sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp, sptype)]
             # ctypes_size.append(len(sps))
             if len(sps) > 0:
-                pa(make_line(line_template, ctypes_spaths_info(ct, sps)), nr=nr)
+                pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size,show="len")), nr=nr)
         pa.tend(header_line)
+        pa("Separate paths clusters types summary - mean number of frames of paths%s" % message)
+        pa.thead(header_line)
+        for nr, ct in enumerate(ctypes_generic_list):
+            sps = lind(spaths, what2what(ctypes_generic, [ct]))
+            sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp, sptype)]
+            # ctypes_size.append(len(sps))
+            if len(sps) > 0:
+                pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size,show="frames")), nr=nr)
+        pa.tend(header_line)
+
 
     ############
     pa.sep()
@@ -2133,8 +2391,8 @@ def stage_V_run(config, options,
         # now, the problem is in the scope and object definition.
         with reader.get() as traj_reader:
             pbar = clui.pbar(maxval=traj_reader.number_of_frames, mess='Calculating scope and object sizes')
-            scope = traj_reader.parse_selection(options.scope_chull)
             for frame in traj_reader.iterate_over_frames():
+                scope = traj_reader.parse_selection(options.scope_chull)
                 ch = scope.get_convexhull_of_atom_positions()
                 scope_size.append((ch.area,ch.volume))
                 res = traj_reader.parse_selection(options.object_chull)
@@ -2143,7 +2401,7 @@ def stage_V_run(config, options,
                 pbar.next()
         header += ['scope_area','scope_volume','object_area','object_volume']
         h = np.hstack((h,scope_size,object_size))
-        fmt += ['%0.2f']*4
+        fmt += ['%0.3f','%0.2f']*2
         pbar.finish()
     # add frame column?
     frame_col = np.array([range(max_frame+1)]).T
@@ -2271,20 +2529,20 @@ def stage_VI_run(config, options,
     if options.show_scope_chull:
         with clui.fbm("Convexhull"):
             with reader.get() as traj_reader:
-                scope = traj_reader.parse_selection(options.show_scope_chull)
                 frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_real_frame(frame)
+                    scope = traj_reader.parse_selection(options.show_scope_chull)
                     chull = scope.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, state=frame + 1)
 
     if options.show_object_chull:
         with clui.fbm("Object shape"):
             with reader.get() as traj_reader:
-                object_shape = traj_reader.parse_selection(options.show_object_chull)
                 frames_to_show = range2int(options.show_object_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_real_frame(frame)
+                    object_shape = traj_reader.parse_selection(options.show_object_chull)
                     chull = object_shape.get_convexhull_of_atom_positions()
                     spp.convexhull(chull, name='object_shape', color=np.array([255, 153, 0]) / 255.,
                                    state=frame + 1)  # orange
@@ -2390,7 +2648,6 @@ def stage_VI_run(config, options,
 __all__ = '''clui
 optimal_threads
 aquaduct_version_nice
-version_nice
 ValveConfig
 valve_begin
 valve_load_config

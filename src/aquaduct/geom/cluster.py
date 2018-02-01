@@ -64,9 +64,9 @@ class BarberCluster(object):
         clouds = wtc.cloud_groups(progress=True)
         # clouds to labels!
         labels = np.zeros(len(spheres))
+        spheres_id = [s.nr for s in spheres]
         for cloud_id,cloud in clouds.iteritems():
-            labels[cloud] = cloud_id
-
+            labels[[spheres_id.index(c) for c in cloud]] = cloud_id
         return BarberClusterResult(labels)
 
 
