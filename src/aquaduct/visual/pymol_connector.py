@@ -208,6 +208,7 @@ parser.add_argument("--keep",action="store",dest="keep",required=False,default='
 parser.add_argument("--force-color",action="store",dest="fc",required=False,default='',help="Force specific color.")
 args,unknown=parser.parse_known_args()
 import sys
+if unknown: print >> sys.stderr, "WARNING: Unknown options were used: "+" ".join(unknown)
 def _kd_order():
     if args.keep=='' and args.discard!='': return 'd'
     if args.keep!='' and args.discard=='': return 'k'
