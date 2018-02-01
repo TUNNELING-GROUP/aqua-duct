@@ -609,14 +609,21 @@ class ResidueSelection(Selection):
 
 
 from joblib import Memory
-memory = Memory(cachedir='/home/tljm/Research/aqua-duct/valve_tests/km_test/cache')
+memory = Memory(cachedir='/home/tljm/Research/aqua-duct/valve_tests/km_test/cache',verbose=0)
+
+@memory.cache
+@arrayify(shape=(None, 3))
+def coords_range(srange,number,rid):
+    reader = Reader.get_single_reader(number)
+    for f in srange.get():
+        reader.set_frame(f)
+        yield reader.residues_positions([rid]).next()
 
 
 class SingleResidueSelection(ReaderAccess):
     def __init__(self,resid):
         # where resid is id reported by ResidueSelection and reader is Reader
         # resid is tuple (number,id) number is used to get reader_traj
-        self._coords_range = memory.cache(self._coords_range_)
         self.resid = resid[-1]
         self.number = resid[0]
 
@@ -627,13 +634,10 @@ class SingleResidueSelection(ReaderAccess):
     def coords(self,frames):
         if isinstance(frames,SmartRange):
             if len(frames):
-                return np.vstack([self._coords_range(srange,(self.number,self.resid)) for srange in frames.raw])
+                return np.vstack([coords_range(srange,self.number,self.resid) for srange in frames.raw])
             return self._coords([])
         else:
             return self._coords(frames)
-
-    def _coords_range_(self,srange,resid):
-        return self._coords(srange.get())
 
     @arrayify(shape=(None,3))
     def _coords(self,frames):

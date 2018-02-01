@@ -379,7 +379,7 @@ class arrayify(object):
         :returns: Output of decorated function converted to a 2D numpy array.
         :rtype: numpy.ndarray
         """
-        #@wraps(gen)
+        @wraps(gen)
         def patched(*args, **kwargs):
             obj = gen(*args, **kwargs)
             if isinstance(obj, Iterable):
