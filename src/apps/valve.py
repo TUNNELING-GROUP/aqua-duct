@@ -38,19 +38,21 @@ logger.addHandler(ch)
 
 ################################################################################
 
-from aquaduct.traj.sandwich import Reader,Window
-from aquaduct.apps.valvecore import *
+from aquaduct.apps.data import GCS
 
 ################################################################################
 
 
 if __name__ == "__main__":
 
+    from aquaduct.utils import clui
+
     with clui.tictoc('Aqua-Duct calculations'):
 
         ############################################################################
         # argument parsing
         import argparse
+        from aquaduct import version_nice as aquaduct_version_nice
 
         description_version = '''Aquaduct library version %s''' % (aquaduct_version_nice(),)
         description = '''Valve, Aquaduct driver'''
@@ -75,12 +77,21 @@ if __name__ == "__main__":
                             help="Frames step.")
         parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
                             help="Sandwich mode for multiple trajectories.")
+        parser.add_argument("--cachedir", action="store", dest="cachedir", type=str, required=False,
+                            help="Directory for coordinates caching.")
         parser.add_argument("--version", action="store_true", dest="print_version", required=False,
                             help="Prints versions and exits.")
         parser.add_argument("--license", action="store_true", dest="print_license", required=False,
                             help="Prints short license info and exits.")
 
         args = parser.parse_args()
+
+        ############################################################################
+        # cache dir!
+        GCS.cachedir = args.cachedir
+
+        from aquaduct.traj.sandwich import Reader,Window
+        from aquaduct.apps.valvecore import *
 
         ############################################################################
         # debug
@@ -187,6 +198,7 @@ if __name__ == "__main__":
 
         # Maximal frame checks
         frames_window = Window(args.min_frame, args.max_frame, args.step_frame)
+
 
         # Open trajectory reader
         Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(",")], window=frames_window,sandwich=args.sandwich)  # trajectory reader

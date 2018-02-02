@@ -39,7 +39,7 @@ from aquaduct.utils.clui import roman
 from aquaduct import greetings as greetings_aquaduct
 from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
-from aquaduct.apps.data import get_vda_reader
+from aquaduct.apps.data import get_vda_reader,GCS
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
@@ -1023,7 +1023,7 @@ def stage_II_run(config, options,
         number_of_frames = Reader.window.len() - 1
         paths = dict(
             ((resid, GenericPaths(resid, name_of_res=resname, single_res_selection=sressel,
-                                  min_pf=0, max_pf=number_of_frames))
+                                  min_pf=0, max_pf=number_of_frames-1))
              for resid, resname, sressel in
              zip(all_res.ids(), all_res.names(), all_res.single_residues())))
 
@@ -1299,11 +1299,14 @@ def stage_IV_run(config, options,
     max_level = int(options.max_level)
     assert max_level >= 0
 
+
     # new style clustering
     with clui.fbm("Create inlets"):
         # here we can check center of system
         inls = Inlets(spaths, center_of_system=center_of_system,passing=not options.exclude_passing_in_clusterization)
     clui.message("Number of inlets: %d" % inls.size)
+
+
 
     def noo():
         # returns number of outliers
@@ -1430,7 +1433,12 @@ def stage_IV_run(config, options,
         master_paths = {}
         master_paths_smooth = {}
         if options.create_master_paths:
+            if GCS.cachedir:
+                pbar = clui.pbar(len(spaths), mess='Building coords cache')
+                [sp.coords for sp in spaths if pbar.next() is None]
+                pbar.finish()
             with clui.fbm("Creating master paths for cluster types", cont=False):
+
                 smooth = get_smooth_method(soptions)
                 ctypes_generic = [ct.generic for ct in ctypes]
                 ctypes_generic_list = sorted(list(set(ctypes_generic)))
@@ -2478,7 +2486,6 @@ def is_pymol_connector_script(filename):
 
 
 def stage_VI_run(config, options,
-                 reader=None,
                  spaths=None,
                  inls=None,
                  ctypes=None,
@@ -2510,35 +2517,33 @@ def stage_VI_run(config, options,
 
     if options.show_molecule:
         with clui.fbm("Molecule"):
-            with reader.get() as traj_reader:
+            for nr,traj_reader in enumerate(Reader.iterate()):
                 #mda_ppr = mda.core.flags["permissive_pdb_reader"]
                 #mda.core.flags["permissive_pdb_reader"] = False #mda16 it is porbably always True
-                pdb = TmpDumpWriterOfMDA()
                 frames_to_show = range2int(options.show_molecule_frames)
-                pdb.dump_frames(traj_reader, frames=frames_to_show, selection=options.show_molecule)
-                pymol_connector.load_pdb('molecule', pdb.close())
-                del pdb
-                #mda.core.flags["permissive_pdb_reader"] = mda_ppr
+                pdbfile = traj_reader.dump_frames(frames_to_show,selection=options.show_molecule)
+                pymol_connector.load_pdb('molecule%d' % nr, pdbfile)
+                os.unlink(pdbfile)
                 # it would be nice to plot convexhull
     if options.show_scope_chull:
         with clui.fbm("Convexhull"):
-            with reader.get() as traj_reader:
+            for nr,traj_reader in enumerate(Reader.iterate()):
                 frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:
-                    traj_reader.set_real_frame(frame)
+                    traj_reader.set_frame(frame)
                     scope = traj_reader.parse_selection(options.show_scope_chull)
-                    chull = scope.get_convexhull_of_atom_positions()
-                    spp.convexhull(chull, state=frame + 1)
+                    chull = scope.chull()
+                    spp.convexhull(chull,name='scope_shape%d' % nr, state=frame + 1)
 
     if options.show_object_chull:
         with clui.fbm("Object shape"):
-            with reader.get() as traj_reader:
-                frames_to_show = range2int(options.show_object_chull_frames)
+            for nr,traj_reader in enumerate(Reader.iterate()):
+                frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:
-                    traj_reader.set_real_frame(frame)
+                    traj_reader.set_frame(frame)
                     object_shape = traj_reader.parse_selection(options.show_object_chull)
-                    chull = object_shape.get_convexhull_of_atom_positions()
-                    spp.convexhull(chull, name='object_shape', color=np.array([255, 153, 0]) / 255.,
+                    chull = object_shape.chull()
+                    spp.convexhull(chull, name='object_shape%d' % nr, color=np.array([255, 153, 0]) / 255.,
                                    state=frame + 1)  # orange
 
     if options.inlets_clusters:

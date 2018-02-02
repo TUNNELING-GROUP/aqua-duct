@@ -318,6 +318,14 @@ def uniqify(gen):
 
     return patched
 
+def noaction(gen):
+
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        return gen(*args, **kwargs)
+
+    return patched
+
 
 def listify(gen):
     """
@@ -379,7 +387,7 @@ class arrayify(object):
         :returns: Output of decorated function converted to a 2D numpy array.
         :rtype: numpy.ndarray
         """
-        #@wraps(gen)
+        @wraps(gen)
         def patched(*args, **kwargs):
             obj = gen(*args, **kwargs)
             if isinstance(obj, Iterable):
@@ -746,6 +754,9 @@ class SmartRange(object):
 
     def __len__(self):
         return self.__len
+
+    def __iter__(self):
+        return self.get()
 
     def min(self):
         return self.__min
