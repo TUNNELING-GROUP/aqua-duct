@@ -1132,7 +1132,7 @@ def stage_III_run(config, options,
                              mincut_level=options.auto_barber_mincut_level,
                              maxcut=options.auto_barber_maxcut,
                              maxcut_level=options.auto_barber_maxcut_level,
-                             tovdw=options.auto_barber_mincut)
+                             tovdw=options.auto_barber_tovdw)
             # cut thyself!
             wtc.cut_thyself()
 
