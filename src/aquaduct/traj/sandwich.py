@@ -32,6 +32,7 @@ from aquaduct.utils.helpers import is_iterable
 from aquaduct.geom.convexhull import SciPyConvexHull,is_point_within_convexhull
 from aquaduct.utils.helpers import arrayify
 from aquaduct.utils.helpers import SmartRange
+from aquaduct.utils.helpers import create_tmpfile
 
 class Window(object):
     def __init__(self,start,stop,step):
@@ -70,6 +71,7 @@ class MasterReader(object):
     window = None
     sandwich_mode = None
     engine_name = 'mda'
+
 
     def __call__(self,topology,trajectory,window=None,sandwich=False):
         '''
@@ -159,7 +161,7 @@ class MasterReader(object):
                 self.open_reader_traj.update({number:self.engine(self.topology,self.trajectory[number],number=number,window=self.window)})
             else:
                 assert number == 0
-                self.open_reader_traj.update({0: self.engine(self.topology,self.trajectory[number],number=0,window=self.window,reader=self)})
+                self.open_reader_traj.update({0: self.engine(self.topology,self.trajectory[number],number=0,window=self.window)})
         return self.get_single_reader(number)
 
     def get_reader_by_id(self,someid):
@@ -372,6 +374,15 @@ class ReaderTraj(ReaderAccess):
     def atoms_masses(self,atomids):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def dump_frames(self,frames,selection=None,filename=None):
+        if filename is None:
+            filename = create_tmpfile(ext='pdb')
+        self.dump_frames_to_file(frames,selection,filename)
+        return filename
+
+    def dump_frames_to_file(self, frames, selection, filename):
+            raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
 
 # ReaderTraj engine MDAnalysis
 
@@ -443,6 +454,13 @@ class ReaderTrajViaMDA(ReaderTraj):
             return VdW_radii[element]
         return 1.4
 
+    def dump_frames_to_file(self, frames, selection, filename):
+        mdawriter = mda.Writer(filename, multiframe=True)
+        to_dump = self.trajectory_object.select_atoms(selection)
+        for frame in frames:
+            self.set_frame(frame)
+            mdawriter.write(to_dump)
+        mdawriter.close()
 
 class Selection(ReaderAccess):
 
@@ -607,11 +625,16 @@ class ResidueSelection(Selection):
         for resid in self.ids():
             yield SingleResidueSelection(resid)
 
+from aquaduct.apps.data import GCS
 
-from joblib import Memory
-memory = Memory(cachedir='/home/tljm/Research/aqua-duct/valve_tests/km_test/cache',verbose=0)
+if GCS.cachedir:
+    from joblib import Memory
+    memory_cache = Memory(cachedir=GCS.cachedir,mmap_mode='r',verbose=0)
+    memory = memory_cache.cache
+else:
+    from aquaduct.utils.helpers import noaction as memory
 
-@memory.cache
+@memory
 @arrayify(shape=(None, 3))
 def coords_range(srange,number,rid):
     reader = Reader.get_single_reader(number)

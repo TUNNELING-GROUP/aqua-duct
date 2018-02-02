@@ -120,9 +120,11 @@ class CTypeSpathsCollectionWorker(object):
         # get zz coords, zz means zip_zip - for all spaths
         coords_zz = []
         for sp, sl in zip(self.spaths, sp_slices_):
-            with self.lock:
-                coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
+            #self.lock.acquire()
+            coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
             coords_zz.append(coords_zz_element[sl])
+            #self.lock.release()
+
         #with self.lock:
         #    coords_zz = [sp.get_coords_cont(smooth=self.smooth)[sl] for sp, sl in zip(self.spaths, sp_slices_)]
 
@@ -484,6 +486,7 @@ class CTypeSpathsCollection(object):
 
 # fake single residue type like object
 from aquaduct.traj.sandwich import SingleResidueSelection
+from aquaduct.utils.helpers import arrayify
 
 class FakeSingleResidueSelection(SingleResidueSelection):
     def __init__(self,resid,frames,coords):
@@ -491,6 +494,7 @@ class FakeSingleResidueSelection(SingleResidueSelection):
         self._frames = frames
         self._coords = coords
 
+    @arrayify(shape=(None, 3))
     def coords(self,frames):
         # return coords for frames
         for f in frames:

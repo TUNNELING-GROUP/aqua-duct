@@ -318,6 +318,14 @@ def uniqify(gen):
 
     return patched
 
+def noaction(gen):
+
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        return gen(*args, **kwargs)
+
+    return patched
+
 
 def listify(gen):
     """
@@ -746,6 +754,9 @@ class SmartRange(object):
 
     def __len__(self):
         return self.__len
+
+    def __iter__(self):
+        return self.get()
 
     def min(self):
         return self.__min

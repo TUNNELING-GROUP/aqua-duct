@@ -33,6 +33,10 @@ from aquaduct import version, version_nice, logger
 from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
 
+class GlobalConfigStore(object):
+    cachedir = None
+
+GCS = GlobalConfigStore()
 
 ################################################################################
 # Version checking
