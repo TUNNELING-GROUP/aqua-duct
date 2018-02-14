@@ -23,7 +23,7 @@ from setuptools import find_packages, setup
 version = __import__('aquaduct').version_nice()  # version str
 
 install_requires =['numpy>=1.10.0', # this is required by MDA
-                  'scipy>=0.14.0',
+                  'scipy>=0.17.1',
                   'scikit-learn>=0.16.0',
                   'MDAnalysis[amber]>=0.16.0',
                   ]
