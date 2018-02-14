@@ -30,7 +30,7 @@ from scipy.spatial.distance import cdist
 import numpy as np
 
 from aquaduct.utils import clui
-from aquaduct.traj.reader import atom2vdw_radius
+#from aquaduct.traj.reader import atom2vdw_radius
 from aquaduct.utils.helpers import lind
 from aquaduct.traj.sandwich import ReaderAccess
 

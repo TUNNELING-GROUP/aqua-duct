@@ -631,6 +631,19 @@ if GCS.cachedir:
     from joblib import Memory
     memory_cache = Memory(cachedir=GCS.cachedir,mmap_mode='r',verbose=0)
     memory = memory_cache.cache
+elif GCS.cachemem:
+    from functools import wraps
+
+    # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
+    def memory(func):
+        cache = func.cache = {}
+        @wraps(func)
+        def memoized_func(*args, **kwargs):
+            key = str(args) + str(kwargs)
+            if key not in cache:
+                cache[key] = func(*args, **kwargs)
+            return cache[key]
+        return memoized_func
 else:
     from aquaduct.utils.helpers import noaction as memory
 

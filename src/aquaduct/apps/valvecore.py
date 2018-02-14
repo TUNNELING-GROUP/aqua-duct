@@ -53,8 +53,8 @@ from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath, SinglePath
 from aquaduct.traj.paths import union_full
-from aquaduct.traj.reader import ReadViaMDA
-from aquaduct.traj.selections import CompactSelectionMDA
+#from aquaduct.traj.reader import ReadViaMDA
+#from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
 from aquaduct.utils.multip import optimal_threads
@@ -1433,10 +1433,14 @@ def stage_IV_run(config, options,
         master_paths = {}
         master_paths_smooth = {}
         if options.create_master_paths:
-            if GCS.cachedir:
+            if GCS.cachedir or GCS.cachemem:
                 pbar = clui.pbar(len(spaths), mess='Building coords cache')
                 [sp.coords for sp in spaths if pbar.next() is None]
                 pbar.finish()
+                use_threads = optimal_threads.threads_count
+            else:
+                logger.warning("Master paths calculation without cache-dir or cache-mem option can be EXTREMELY slow.")
+                use_threads = 1
             with clui.fbm("Creating master paths for cluster types", cont=False):
 
                 smooth = get_smooth_method(soptions)
@@ -1456,7 +1460,7 @@ def stage_IV_run(config, options,
                     logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
                     # print len(sps),ct
                     ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
-                                                  threads=optimal_threads.threads_count)
+                                                  threads=use_threads)
                     master_paths.update({ct: ctspc.get_master_path(resid=(0,nr))})
                     master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0,nr), smooth=smooth)})
                     del ctspc

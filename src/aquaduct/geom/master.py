@@ -36,6 +36,8 @@ from aquaduct.utils import clui
 from aquaduct.utils.maths import make_default_array, defaults
 from aquaduct.traj.inlets import InletClusterGenericType, InletClusterExtendedType
 from aquaduct.traj.paths import PassingPath
+from aquaduct.apps.data import GCS
+
 
 ################################################################################
 part2type_dict = {0: GenericPathTypeCodes.scope_name,
@@ -85,6 +87,8 @@ class CTypeSpathsCollectionWorker(object):
         self.full_size_cache = None
 
         self.lock = lock
+        #self.lock_required = False
+
 
     def coords_types_prob_widths(self, sp_slices_):
         '''
@@ -391,6 +395,7 @@ class CTypeSpathsCollection(object):
         worker.lens_real_cache = self.lens_real_cache
         worker.lens_norm_cache = self.lens_norm_cache
         worker.full_size_cache = self.full_size_cache
+        #worker.lock_required = GCS.cachemem or GCS.cachedir
 
         # desired full size of path
         full_size = self.full_size_cache

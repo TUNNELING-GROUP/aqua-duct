@@ -77,8 +77,10 @@ if __name__ == "__main__":
                             help="Frames step.")
         parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
                             help="Sandwich mode for multiple trajectories.")
-        parser.add_argument("--cachedir", action="store", dest="cachedir", type=str, required=False,
+        parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
                             help="Directory for coordinates caching.")
+        parser.add_argument("--cache-mem", action="store_true", dest="cachemem", required=False,
+                            help="Switch on memory caching.")
         parser.add_argument("--version", action="store_true", dest="print_version", required=False,
                             help="Prints versions and exits.")
         parser.add_argument("--license", action="store_true", dest="print_license", required=False,
@@ -89,6 +91,7 @@ if __name__ == "__main__":
         ############################################################################
         # cache dir!
         GCS.cachedir = args.cachedir
+        GCS.cachemem = args.cachemem
 
         from aquaduct.traj.sandwich import Reader,Window
         from aquaduct.apps.valvecore import *
@@ -208,6 +211,8 @@ if __name__ == "__main__":
         clui.message("Frames window: %d:%d step %d" % (Reader.window.start,
                                                        Reader.window.stop,
                                                        Reader.window.step))
+        if args.sandwich:
+            clui.message("Sandwich mode with %d layers." % len(Reader.trajectory))
 
         ## TODO: Is it reported correctly?
         # clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))

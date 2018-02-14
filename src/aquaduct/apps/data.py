@@ -30,11 +30,12 @@ from importlib import import_module
 from netCDF4 import Dataset
 
 from aquaduct import version, version_nice, logger
-from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
+#from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
 
 class GlobalConfigStore(object):
     cachedir = None
+    cachemem = False
 
 GCS = GlobalConfigStore()
 
@@ -169,10 +170,12 @@ class ValveDataAccess_pickle(ValveDataAccess):
         for _name, _value in self.data.iteritems():
             if _name == self.mimic_old_var_name:
                 for name, value in _value.iteritems():
+                    '''
                     if isinstance(value, CompactSelectionMDA):
                         value = value.toSelectionMDA(self.reader)
                         # with self.reader.get() as traj_reader:
                         #    value = value.toSelectionMDA(traj_reader)
+                    '''
                     # TODO: following is to overcome problems with missing names when data is <0.4
                     ################################################################################
                     if name == 'paths':
@@ -195,10 +198,12 @@ class ValveDataAccess_pickle(ValveDataAccess):
                 break
             else:
                 for name, value in self.data.iteritems():
+                    '''
                     if isinstance(value, CompactSelectionMDA):
                         value = value.toSelectionMDA(self.reader)
                         # with self.reader.get() as traj_reader:
                         #    value = value.toSelectionMDA(traj_reader)
+                    '''
                     # TODO: following is to overcome problems with missing names when data is <0.4
                     ################################################################################
                     if name == 'paths':
@@ -222,12 +227,14 @@ class ValveDataAccess_pickle(ValveDataAccess):
         return data
 
     def dump(self, **kwargs):
+        '''
         # to mimic v0.3 behaviour do following:
         for key, value in kwargs.iteritems():
             if isinstance(value, SelectionMDA):
                 # value = CompactSelectionMDA(value)
                 kwargs.update({key: CompactSelectionMDA(value)})
         #self.set_variable(self.mimic_old_var_name, kwargs)
+        '''
         for name, value in kwargs.iteritems():
             self.set_variable(name, value)
 
@@ -240,8 +247,10 @@ class ValveDataAccess_pickle(ValveDataAccess):
 
     def set_variable(self, name, value):
         assert self.mode == "w"
+        '''
         if isinstance(value, SelectionMDA):
             value = CompactSelectionMDA(value)
+        '''
         # options are passed as dictionaries already
         '''
         if 'options' in name:
