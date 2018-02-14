@@ -2520,6 +2520,7 @@ def stage_VI_run(config, options,
     ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
     if options.show_molecule:
+        molecule_name = ''
         with clui.fbm("Molecule"):
             for nr,traj_reader in enumerate(Reader.iterate()):
                 #mda_ppr = mda.core.flags["permissive_pdb_reader"]
@@ -2527,6 +2528,8 @@ def stage_VI_run(config, options,
                 frames_to_show = range2int(options.show_molecule_frames)
                 pdbfile = traj_reader.dump_frames(frames_to_show,selection=options.show_molecule)
                 pymol_connector.load_pdb('molecule%d' % nr, pdbfile)
+                if len(molecule_name) == 0:
+                    molecule_name = 'molecule%d' % nr
                 os.unlink(pdbfile)
                 # it would be nice to plot convexhull
     if options.show_scope_chull:
@@ -2626,7 +2629,7 @@ def stage_VI_run(config, options,
                                separate=not options.paths_states, smooth=smooth, spp=spp)
 
     if options.show_molecule:
-        pymol_connector.orient_on('molecule')
+        pymol_connector.orient_on(molecule_name)
 
     if is_pymol_connector_session(options.save):
         with clui.fbm("Saving session (%s)" % options.save):
