@@ -473,7 +473,7 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
         #self.coords_in, self.coords_object, self.coords_out = map(make_default_array, coords)
 
         #self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = None, None, None
-        self.smooth_method = None
+        #self.smooth_method = None
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
@@ -689,11 +689,7 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
         # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
         # if smooth is not none applies smoothing
         if smooth is not None:
-            if smooth != self.smooth_method:
-                self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out = self._make_smooth_coords(
-                    self.coords_cont, smooth)
-                self.smooth_method = smooth
-            for nr, coords in enumerate((self.smooth_coords_in, self.smooth_coords_object, self.smooth_coords_out)):
+            for nr,coords in enumerate(self._make_smooth_coords(smooth)):
                 if coords is None:
                     yield self.coords[nr]
                 else:
@@ -702,31 +698,19 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
             for coords in self.coords:
                 yield coords
 
-    @tupleify
-    def _make_smooth_coords(self, coords, smooth=None):
-        # if smooth is not none applies smoothing
-        # smooth should be callable and should return an object of length equal to submitted one
-        # get continuous coords
-        if smooth:
-            coords_smooth = smooth(coords)
-        else:
-            coords_smooth = coords
-        # now lets return tupple of coords
-        nr = 0
-        for path in self._paths:
-            if len(path) > 0:
-                yield make_default_array(coords_smooth[nr:nr + len(path)])
-                nr += len(path)
-            else:
-                yield self.empty_coords
+
+    def _make_smooth_coords(self, smooth):
+        return self.single_res_selection.coords_smooth(self._paths,smooth)
 
     def get_coords_cont(self, smooth=None):
         # returns coords as one array
         return make_default_array(np.vstack([c for c in self.get_coords(smooth) if len(c) > 0]))
 
+    '''
     def apply_smoothing(self, smooth):
         # permament change!
         self.coords_in, self.coords_object, self.coords_out = self._make_smooth_coords(self.coords_cont, smooth)
+    '''
 
     ####################################################################################################################
 

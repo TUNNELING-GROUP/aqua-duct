@@ -2443,6 +2443,7 @@ def plot_spaths_traces(spaths, spp=None, name=None, split=False, states=False, s
         if states or separate:
             sp = [sp]
         if split:
+            # FIXME: if path(s) is empty this will probably produce CGO_END without CGO_BEGIN
             spp.paths_trace(sp, name=name + '_in' + name_separate, plot_walk=False, plot_object=False, plot_out=False,
                             state=state, smooth=smooth)
             spp.paths_trace(sp, name=name + '_obj' + name_separate, plot_walk=False, plot_in=False, plot_out=False,

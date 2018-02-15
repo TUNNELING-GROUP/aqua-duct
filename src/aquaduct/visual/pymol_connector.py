@@ -206,6 +206,7 @@ parser.add_argument("--save-session",action="store",dest="session",required=Fals
 parser.add_argument("--discard",action="store",dest="discard",required=False,default='',help="Objects to discard.")
 parser.add_argument("--keep",action="store",dest="keep",required=False,default='',help="Objects to keep.")
 parser.add_argument("--force-color",action="store",dest="fc",required=False,default='',help="Force specific color.")
+parser.add_argument("--fast",action="store_true",dest="fast",required=False,help="Disable all objects while loading.")
 args,unknown=parser.parse_known_args()
 import sys
 if unknown: print >> sys.stderr, "WARNING: Unknown options were used: "+" ".join(unknown)
@@ -234,6 +235,7 @@ from pymol import cmd,finish_launching
 finish_launching()
 print "Loading Aqua-Duct visualization..."
 cmd.set("cgo_line_width",%d)
+cmd.set("line_smooth","off")
 from os import close,unlink
 from os.path import splitext,isfile
 import tarfile
@@ -269,7 +271,8 @@ def load_object(filename,name,state):
         obj=decode_color(obj)
     cmd.load_cgo(obj,name,state)
     if state<2:
-        cmd.refresh()
+        if args.fast: cmd.disable("all")
+        else: cmd.refresh()
     if state>max_state:
         max_state=state
 def load_pdb(filename,name,state):
@@ -328,6 +331,7 @@ def load_pdb(filename,name,state):
         if self.connection_type == self.ct_file:
             self.script_fh.write('''data_fh.close()
 unlink(pdb_filename)
+if args.fast: cmd.enable("all")
 print "Aqua-Duct visualization loaded."
 if args.session:
     print "Preparing data to save session..."

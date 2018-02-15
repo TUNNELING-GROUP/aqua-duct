@@ -17,102 +17,141 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from os.path import splitext
 import re
-import MDAnalysis as mda
-from MDAnalysis.topology.core import guess_atom_element
 
-import numpy as np
-
+from os.path import splitext
 from collections import OrderedDict
 from itertools import izip_longest
 
+import numpy as np
+
+import MDAnalysis as mda
+from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import is_iterable
-from aquaduct.geom.convexhull import SciPyConvexHull,is_point_within_convexhull
-from aquaduct.utils.helpers import arrayify
-from aquaduct.utils.helpers import SmartRange
-from aquaduct.utils.helpers import create_tmpfile
+from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull
+from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, tupleify
+from aquaduct.utils.maths import make_default_array
+from aquaduct.apps.data import GCS
+
+################################################################################
+# memory decorator
+
+if GCS.cachedir:
+    from joblib import Memory
+
+    memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)
+    memory = memory_cache.cache
+elif GCS.cachemem:
+    from functools import wraps
+
+
+    # TODO: rework this to adapt it accordingly, moce it to utils?
+    # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
+    def memory(func):
+        cache = func.cache = {}
+
+        @wraps(func)
+        def memoized_func(*args, **kwargs):
+            key = str(args) + str(kwargs)
+            if key not in cache:
+                cache[key] = func(*args, **kwargs)
+            return cache[key]
+
+        return memoized_func
+else:
+    from aquaduct.utils.helpers import noaction as memory
+
+
+################################################################################
+# trajectory window object
 
 class Window(object):
-    def __init__(self,start,stop,step):
+    def __init__(self, start, stop, step):
         self.start = start
         self.stop = stop
         self.step = step
 
     def __repr__(self):
-        return "Window(%r:%r:%r)" % (self.start,self.stop,self.step)
+        return "Window(%r:%r:%r)" % (self.start, self.stop, self.step)
 
     def range(self):
-        return xrange(self.start,self.stop+1,self.step)
+        # returns range object
+        return xrange(self.start, self.stop + 1, self.step)
 
-    def get_real(self,frame):
+    def get_real(self, frame):
         # recalculates real frame
-        return self.start + frame*self.step
+        return self.start + frame * self.step
 
     def len(self):
+        # lenght of window
         return len(self.range())
 
 
+################################################################################
+# MasterReader
 
 # engine problem
 # Two options are currently available:
 # MDAnalysis
 # MDTraj
 
-
 class MasterReader(object):
+    # only one MasterReader object can be used
+    # it does not use ANY directo call to ANY MD access software
 
     open_reader_traj = {}
 
     topology = ''
     trajectory = ['']
-
     window = None
+
     sandwich_mode = None
     engine_name = 'mda'
 
-
-    def __call__(self,topology,trajectory,window=None,sandwich=False):
+    def __call__(self, topology, trajectory, window=None, sandwich=False):
         '''
         :param str topology:  Topology file name.
         :param list trajectory: List of trajectories. Each element is a fine name.
         :param Window window: Frames window to read.
         :param bool sandwich: Flag for setting sandwitch mode.
-
-        Window is propagated to ReaderTraj.
         '''
 
         self.topology = topology
-        if not isinstance(trajectory,list):
+        if not isinstance(trajectory, list):
             trajectory = [trajectory]
         self.trajectory = trajectory
 
         self.window = window
         self.sandwich_mode = sandwich
 
-
-        self.correct_window()
-        self.open_reader_traj = {} # clear that
-
+        self.correct_window()  # this corrects window
+        self.open_reader_traj = {}  # aster window correction clear all opened trajs
 
     def __getstate__(self):
-        return dict(((k,v) for k,v in self.__dict__.iteritems() if k not in ['open_reader_traj']))
+        # if pickle dump is required, this will not be used in the future
+        # do not pass open_reader_traj
+        return dict(((k, v) for k, v in self.__dict__.iteritems() if k not in ['open_reader_traj']))
 
     def __setstate__(self, state):
+        # if pickle dump is required, this will not be used in the future
         self.__dict__ = state
         self.open_reader_traj = {}
 
     @property
     def engine(self):
+        # returns engine used for accessing trajectory
+        # this returns object that inherits from ReaderTraj
         if self.engine_name == 'mda':
             return ReaderTrajViaMDA
         raise NotImplementedError
 
     def correct_window(self):
-        # correct window!
+        # corrects window object
+        # should be called at the initialization stage which is executed by calling the object
+        # side effect is that it opens at least one trajectory file
         N = self.real_number_of_frames()
-        start,stop,step = self.window.start,self.window.stop,self.window.step
+        start, stop, step = self.window.start, self.window.stop, self.window.step
         if start is None:
             start = 0
         if stop is None:
@@ -127,67 +166,85 @@ class MasterReader(object):
             start = N - 1
         if stop > N:
             stop = N - 1
-        self.window = Window(start,stop,step)
+        self.window = Window(start, stop, step)
 
     def __repr__(self):
         sandwich = ''
         if self.sandwich_mode:
             sandwich = ',sandwich'
-        return "Reader(%s,%s,%r%s)" % (self.topology,"[%s]" % (','.join(self.trajectory)),self.window,sandwich)
+        return "Reader(%s,%s,%r%s)" % (self.topology, "[%s]" % (','.join(self.trajectory)), self.window, sandwich)
 
-    def sandwich(self,number=False):
-        for nr,trajectory in enumerate(self.trajectory):
+    def sandwich(self, number=False):
+        # generates readers of consecutive sandwich layers
+        for nr, trajectory in enumerate(self.trajectory):
             if number:
-                yield nr,self.get_single_reader(nr)
+                yield nr, self.get_single_reader(nr)
             else:
                 yield self.get_single_reader(nr)
 
-    def baguette(self,number=False):
+    def baguette(self, number=False):
+        # generates reader of trajectory file(s)
         if number:
-            yield 0,self.get_single_reader(0)
+            yield 0, self.get_single_reader(0)
         else:
             yield self.get_single_reader(0)
 
-    def iterate(self,number=False):
+    def iterate(self, number=False):
+        # iterates over trajectory readers
+        # calls sandwich or baguette
         if self.sandwich_mode:
             return self.sandwich(number=number)
         return self.baguette(number=number)
 
-    def get_single_reader(self,number):
+    def get_single_reader(self, number):
+        # returns single trajectory reader of number
+        # is it is already opened it is returned directly
+        # if not is opened and then recursive call is executed
         if self.open_reader_traj.has_key(number):
             return self.open_reader_traj[number]
         else:
             if self.sandwich_mode:
-                self.open_reader_traj.update({number:self.engine(self.topology,self.trajectory[number],number=number,window=self.window)})
+                self.open_reader_traj.update(
+                    {number: self.engine(self.topology, self.trajectory[number], number=number, window=self.window)})
             else:
                 assert number == 0
-                self.open_reader_traj.update({0: self.engine(self.topology,self.trajectory[number],number=0,window=self.window)})
+                self.open_reader_traj.update(
+                    {0: self.engine(self.topology, self.trajectory[number], number=0, window=self.window)})
         return self.get_single_reader(number)
 
-    def get_reader_by_id(self,someid):
+    def get_reader_by_id(self, someid):
+        # returns trajectory reader of number in someid
         # someid is tuple (number,ix)
         return self.get_single_reader(someid[0])
 
     def real_number_of_frames(self):
-        # number of frames in traj files
+        # returns number of frames in traj files
+        # in sandwich it returns number of frames in first layer
+        # in baguette it returns total number of frames (so it is also number of frames in layer 0)
         return self.get_single_reader(0).real_number_of_frames()
 
-    def number_of_frames(self,onelayer=False):
+    def number_of_frames(self, onelayer=False):
         # number of frames in the window times number of layers
+        # in baguette number of layers is 1
         if self.sandwich_mode and not onelayer:
-            return len(self.trajectory)*self.window.len()
+            return len(self.trajectory) * self.window.len()
         return self.window.len()
 
+
+# instance of MasterReader
 Reader = MasterReader()
 
 
 class ReaderAccess(object):
+    # ReaderAccess class provides reader property that returns current instance of MasterReader
 
     @property
     def reader(self):
         return Reader
 
 
+################################################################################
+# VdW radii
 
 VdW_radii = {'ac': 2.47,
              'ag': 2.11,
@@ -300,22 +357,25 @@ Package **mendeleev** is not used because it depends on too many other libraries
 '''
 
 
-
+################################################################################
+# Reader Traj base class
 
 class ReaderTraj(ReaderAccess):
-    def __init__(self,topology,trajectory,
-                 number=None,window=None):
+    def __init__(self, topology, trajectory,
+                 number=None, window=None):
         '''
         :param str topology:  Topology file name.
         :param list trajectory: Trajectory file name.
         :param int number: Number of trajectory file.
         :param Window window: Frames window to read.
         :param Reader reader: Parent reader object.
+
+        This is base class for MD data access engines.
         '''
 
         self.topology = topology
         self.trajectory = trajectory
-        if not isinstance(trajectory,list):
+        if not isinstance(trajectory, list):
             self.trajectory = [trajectory]
 
         self.number = number
@@ -327,22 +387,37 @@ class ReaderTraj(ReaderAccess):
 
     def __repr__(self):
         if len(self.trajectory) == 1:
-            return "%s(%s,%s,%d,%r)" % (self.__class__.__name__,self.topology,self.trajectory[0],self.number,self.window)
-        return "%s(%s,%s,%d,%r)" % (self.__class__.__name__,self.topology,"[%s]" % (','.join(self.trajectory)),self.number,self.window)
+            return "%s(%s,%s,%d,%r)" % (
+                self.__class__.__name__, self.topology, self.trajectory[0], self.number, self.window)
+        return "%s(%s,%s,%d,%r)" % (
+            self.__class__.__name__, self.topology, "[%s]" % (','.join(self.trajectory)), self.number, self.window)
 
     def iterate_over_frames(self):
-        for frame,real_frame in enumerate(self.window.range()):
+        for frame, real_frame in enumerate(self.window.range()):
             self.set_real_frame(real_frame)
             yield frame
 
-    def set_frame(self,frame):
+    def set_frame(self, frame):
         return self.set_real_frame(self.window.get_real(frame))
+
+    def dump_frames(self, frames, selection=None, filename=None):
+        if filename is None:
+            filename = create_tmpfile(ext='pdb')
+        self.dump_frames_to_file(frames, selection, filename)
+        return filename
+
+    def __del__(self):
+        self.close_trajectory()
 
     def open_trajectory(self):
         # should return any object that can be further used to parse trajectory
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def set_real_frame(self,real_frame):
+    def close_trajectory(self):
+        # should close trajectory reader in self.trajectory_object
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
+    def set_real_frame(self, real_frame):
         self.real_frame_nr = real_frame
         # sets real frame
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
@@ -352,38 +427,33 @@ class ReaderTraj(ReaderAccess):
         # selection resolution should be atoms
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def atom_vdw(self,atomid):
+    def atom_vdw(self, atomid):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def atom2residue(self,atomid):
+    def atom2residue(self, atomid):
         # one atom id to one residue id
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def atoms_positions(self,atomids):
+    def atoms_positions(self, atomids):
         # atoms ids to coordinates
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def residues_positions(self,resids):
+    def residues_positions(self, resids):
         # residues ids to center of masses coordinates
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def residues_names(self,resids):
+    def residues_names(self, resids):
         # residues ids to center of masses coordinates
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
-    def atoms_masses(self,atomids):
+    def atoms_masses(self, atomids):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
-
-    def dump_frames(self,frames,selection=None,filename=None):
-        if filename is None:
-            filename = create_tmpfile(ext='pdb')
-        self.dump_frames_to_file(frames,selection,filename)
-        return filename
 
     def dump_frames_to_file(self, frames, selection, filename):
-            raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
 
+################################################################################
 # ReaderTraj engine MDAnalysis
 
 mda_available_formats = {re.compile('(nc|NC)'): 'nc',
@@ -413,27 +483,29 @@ class ReaderTrajViaMDA(ReaderTraj):
                             topology_format=topology,
                             format=trajectory)
 
-    def set_real_frame(self,real_frame):
+    def close_trajectory(self):
+        self.trajectory_object.trajectory.close()
+
+    def set_real_frame(self, real_frame):
         self.real_frame_nr = real_frame
         self.trajectory_object.trajectory[real_frame]
 
-
     def parse_selection(self, selection):
-        return AtomSelection({self.number:self.trajectory_object.select_atoms(selection).atoms.ix})
+        return AtomSelection({self.number: self.trajectory_object.select_atoms(selection).atoms.ix})
 
-    def atom2residue(self,atomid):
+    def atom2residue(self, atomid):
         return self.trajectory_object.atoms[atomid].residue.ix
 
-    def atoms_positions(self,atomids):
+    def atoms_positions(self, atomids):
         # atoms ids to coordinates
         return self.trajectory_object.atoms[atomids].positions
 
-    def residues_positions(self,resids):
+    def residues_positions(self, resids):
         # residues ids to center of masses coordinates
         for rid in resids:
             yield self.trajectory_object.residues[[rid]].center_of_mass()
 
-    def residues_names(self,resids):
+    def residues_names(self, resids):
         # residues ids to center of masses coordinates
         for rid in resids:
             yield self.trajectory_object.residues[rid].resname
@@ -442,10 +514,10 @@ class ReaderTrajViaMDA(ReaderTraj):
         # should return number of frames
         return len(self.trajectory_object.trajectory)
 
-    def atoms_masses(self,atomids):
+    def atoms_masses(self, atomids):
         return self.trajectory_object.atoms[atomids].masses
 
-    def atom_vdw(self,atomid):
+    def atom_vdw(self, atomid):
         element = str(guess_atom_element(self.trajectory_object.atoms[atomid].name)).lower()
         if element in VdW_radii:
             return VdW_radii[element]
@@ -462,27 +534,31 @@ class ReaderTrajViaMDA(ReaderTraj):
             mdawriter.write(to_dump)
         mdawriter.close()
 
+
+################################################################################
+# Selection objects
+
 class Selection(ReaderAccess):
 
-    def __init__(self,selected):
+    def __init__(self, selected):
 
         self.selected = OrderedDict(selected)
         for number, ids in self.selected.iteritems():
             self.selected[number] = list(ids)
 
-    def layer(self,number):
+    def layer(self, number):
         if self.selected.has_key(number):
-            return self.__class__({number:self.selected[number]})
+            return self.__class__({number: self.selected[number]})
         return self.__class__({})
 
-    def ix(self,ix):
+    def ix(self, ix):
         # gets selection of index ix
         ix_current = 0
         numbers = self.selected.keys()
         for number, ids in self.selected.iteritems():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
-                return self.__class__({number:[ids[ix-ix_current]]})
+                return self.__class__({number: [ids[ix - ix_current]]})
             ix_current += len(ids)
         raise IndexError()
 
@@ -492,16 +568,16 @@ class Selection(ReaderAccess):
             _len += len(ids)
         return _len
 
-    def get_reader(self,number):
+    def get_reader(self, number):
         return self.reader.get_single_reader(number)
 
-    def add(self,other):
+    def add(self, other):
 
-        for number,ids in other.selected.iteritems():
+        for number, ids in other.selected.iteritems():
             if self.selected.has_key(number):
-                self.selected[number] = self.selected[number]+list(ids)
+                self.selected[number] = self.selected[number] + list(ids)
             else:
-                self.selected.update({number:ids})
+                self.selected.update({number: ids})
 
     def uniquify(self):
 
@@ -513,7 +589,7 @@ class Selection(ReaderAccess):
         # these are not unique! run run uniqify first!
         for number, ids in self.selected.iteritems():
             for i in ids:
-                yield (number,i)
+                yield (number, i)
 
     def coords(self):
         # order of coords should be the same as in ids!
@@ -521,6 +597,9 @@ class Selection(ReaderAccess):
 
     def center_of_mass(self):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
+
+################################################################################
 
 class AtomSelection(Selection):
 
@@ -533,7 +612,8 @@ class AtomSelection(Selection):
         # returns residues selection
         def get_unique_residues():
             for number, ids in self.selected.iteritems():
-                yield number,sorted(set(map(self.get_reader(number).atom2residue,ids)))
+                yield number, sorted(set(map(self.get_reader(number).atom2residue, ids)))
+
         return ResidueSelection(get_unique_residues())
 
     def coords(self):
@@ -546,14 +626,14 @@ class AtomSelection(Selection):
         total_mass = 0
         for number, ids in self.selected.iteritems():
             masses = self.get_reader(number).atoms_masses(ids)
-            masses.shape = (len(masses),1)
+            masses.shape = (len(masses), 1)
             total_mass += sum(masses)
-            center += (masses*self.get_reader(number).atoms_positions(ids)).sum(0)
-        return center/total_mass
+            center += (masses * self.get_reader(number).atoms_positions(ids)).sum(0)
+        return center / total_mass
 
-    def contains_residues(self,other_residues,convex_hull=False,map_fun=None,known_true=None):
+    def contains_residues(self, other_residues, convex_hull=False, map_fun=None, known_true=None):
         # FIXME: known_true slows down!
-        assert isinstance(other_residues,ResidueSelection)
+        assert isinstance(other_residues, ResidueSelection)
         if map_fun is None:
             map_fun = map
         # known_true should be list of ids
@@ -562,7 +642,7 @@ class AtomSelection(Selection):
             kt_list = []
             ch_list = []
             other_coords = []
-            for other_id,other_coord in zip(other_residues.ids(),other_residues.coords()):
+            for other_id, other_coord in zip(other_residues.ids(), other_residues.coords()):
                 if other_id in known_true:
                     kt_list.append(other_id)
                 elif convex_hull:
@@ -597,17 +677,19 @@ class AtomSelection(Selection):
         # Convienience wrapper for contains_residues.
         # def get_res_in_scope(is_res_in_scope, res):
         other_new = {}
-        for iris, (number,resid) in zip(self.contains_residues(other_residues, *args, **kwargs), other_residues.ids()):
+        for iris, (number, resid) in zip(self.contains_residues(other_residues, *args, **kwargs), other_residues.ids()):
             if iris:
                 if other_new.has_key(number):
                     other_new[number].append(resid)
                 else:
-                    other_new.update({number:[resid]})
+                    other_new.update({number: [resid]})
         return ResidueSelection(other_new)
 
     def chull(self):
         return SciPyConvexHull(list(self.coords()))
 
+
+################################################################################
 
 class ResidueSelection(Selection):
 
@@ -625,59 +707,68 @@ class ResidueSelection(Selection):
         for resid in self.ids():
             yield SingleResidueSelection(resid)
 
-from aquaduct.apps.data import GCS
 
-if GCS.cachedir:
-    from joblib import Memory
-    memory_cache = Memory(cachedir=GCS.cachedir,mmap_mode='r',verbose=0)
-    memory = memory_cache.cache
-elif GCS.cachemem:
-    from functools import wraps
-
-    # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
-    def memory(func):
-        cache = func.cache = {}
-        @wraps(func)
-        def memoized_func(*args, **kwargs):
-            key = str(args) + str(kwargs)
-            if key not in cache:
-                cache[key] = func(*args, **kwargs)
-            return cache[key]
-        return memoized_func
-else:
-    from aquaduct.utils.helpers import noaction as memory
+################################################################################
 
 @memory
 @arrayify(shape=(None, 3))
-def coords_range(srange,number,rid):
+def coords_range(srange, number, rid):
     reader = Reader.get_single_reader(number)
     for f in srange.get():
         reader.set_frame(f)
         yield reader.residues_positions([rid]).next()
 
+################################################################################
+
+@memory
+@tupleify
+def smooth_coords_ranges(sranges,number,rid,smooth):
+    # first get all coords and make in continous
+    coords_cont = (coords_range(srange, number, rid) for srange in sranges)
+    coords_cont = make_default_array(np.vstack([c for c in coords_cont if len(c) > 0]))
+    # call smooth
+    coords_cont = smooth(coords_cont)
+    # split coords_cont
+    # now lets return tupple of coords
+    nr = 0
+    for path in sranges:
+        if len(path) > 0:
+            yield make_default_array(coords_cont[nr:nr + len(path)])
+            nr += len(path)
+        else:
+            # TODO: reuse some kind of empty coords
+            yield make_default_array(np.zeros((0, 3)))
+
+
+################################################################################
 
 class SingleResidueSelection(ReaderAccess):
-    def __init__(self,resid):
+    def __init__(self, resid):
         # where resid is id reported by ResidueSelection and reader is Reader
         # resid is tuple (number,id) number is used to get reader_traj
         self.resid = resid[-1]
         self.number = resid[0]
 
-
     def get_reader(self):
         return self.reader.get_single_reader(self.number)
 
-    def coords(self,frames):
-        if isinstance(frames,SmartRange):
+    def coords(self, frames):
+        if isinstance(frames, SmartRange):
             if len(frames):
-                return np.vstack([coords_range(srange,self.number,self.resid) for srange in frames.raw])
+                return np.vstack([coords_range(srange, self.number, self.resid) for srange in frames.raw])
             return self._coords([])
         else:
             return self._coords(frames)
 
-    @arrayify(shape=(None,3))
-    def _coords(self,frames):
+    @arrayify(shape=(None, 3))
+    def _coords(self, frames):
         # return coords for frames
         for f in frames:
             self.get_reader().set_frame(f)
             yield self.get_reader().residues_positions([self.resid]).next()
+
+    def coords_smooth(self,sranges,smooth):
+        for coord in smooth_coords_ranges(sranges,self.number, self.resid, smooth):
+            yield coord
+
+################################################################################
