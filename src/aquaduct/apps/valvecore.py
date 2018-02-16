@@ -1133,14 +1133,14 @@ def stage_III_run(config, options,
             short_object = None
 
         if options.discard_short_logic == 'and':
-            short_logic = robust_and
+            short_logic = robust_or # for and use or, this is intentional
             short_logic_name = "AND"
         else:
-            short_logic = robust_or
+            short_logic = robust_and
             short_logic_name = "OR"
             if options.discard_short_logic != 'or':
                 logger.warning("Invalid discard_short_logic '%s', using %s by default." % (options.discard_short_logic,short_logic_name))
-        with clui.fbm("Discard paths shorter then %d %s object shorter then %0.2f" % (short_paths,short_logic_name,short_object)):
+        with clui.fbm("Discard paths shorter than %d %s object shorter than %0.2f" % (short_paths,short_logic_name,short_object)):
             spaths_nr = len(spaths)
             spaths = [sp for sp in spaths if short_logic(sp.size>short_paths,sp.object_len>short_object)]
             spaths_nr_new = len(spaths)
