@@ -56,7 +56,7 @@ from aquaduct.traj.paths import union_full
 from aquaduct.traj.reader import ReadViaMDA
 from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
-from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number
+from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 
 __mail__ = 'info@aquaduct.pl'
@@ -293,7 +293,10 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'sort_by_id', 'True')
         config.set(section, 'apply_smoothing', 'False')
         config.set(section, 'apply_soft_smoothing', 'True')
-        config.set(section, 'discard_short_paths', '1')
+
+        config.set(section, 'discard_short_paths', '20')
+        config.set(section, 'discard_short_object', '2.0')
+        config.set(section, 'discard_short_logic', 'or')
 
         ################
         snr += 1
@@ -1119,10 +1122,32 @@ def stage_III_run(config, options,
                                                   passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
     pbar.finish()
 
-    if options.discard_short_paths > 0:
-        shorter_then = int(options.discard_short_paths)
-        with clui.fbm("Discard paths shorter then %d" % shorter_then):
-            spaths = [sp for sp in spaths if sp.size > shorter_then]
+    if options.discard_short_paths or options.discard_short_object:
+        if is_number(options.discard_short_paths):
+            short_paths = int(options.discard_short_paths)
+        else:
+            short_paths = None
+        if is_number(options.discard_short_object):
+            short_object = float(options.discard_short_object)
+        else:
+            short_object = None
+
+        if options.discard_short_logic == 'and':
+            short_logic = robust_and
+            short_logic_name = "AND"
+        else:
+            short_logic = robust_or
+            short_logic_name = "OR"
+            if options.discard_short_logic != 'or':
+                logger.warning("Invalid discard_short_logic '%s', using %s by default." % (options.discard_short_logic,short_logic_name))
+        with clui.fbm("Discard paths shorter then %d %s object shorter then %0.2f" % (short_paths,short_logic_name,short_object)):
+            spaths_nr = len(spaths)
+            spaths = [sp for sp in spaths if short_logic(sp.size>short_paths,sp.object_len>short_object)]
+            spaths_nr_new = len(spaths)
+        if spaths_nr == spaths_nr_new:
+            clui.message("No paths were discarded.")
+        else:
+            clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
 
     if options.auto_barber:
         with reader.get() as traj_reader:
@@ -1153,16 +1178,16 @@ def stage_III_run(config, options,
                                                       passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
         pbar.finish()
 
-        if options.discard_short_paths > 0:
-            shorter_then = int(options.discard_short_paths)
-            nr_of_spaths = len(spaths)
-            with clui.fbm("Discard (again) paths shorter then %d" % shorter_then):
-                spaths = [sp for sp in spaths if sp.size > shorter_then]
-            new_nr_of_spaths = len(spaths)
-            if new_nr_of_spaths < nr_of_spaths:
-                clui.message("Discarded %d out of %d paths." % (nr_of_spaths-new_nr_of_spaths,nr_of_spaths))
+        if options.discard_short_paths or options.discard_short_object:
+            with clui.fbm("Discard (again) paths shorter then %d %s object shorter then %0.2f" % (
+            short_paths, short_logic_name, short_object)):
+                spaths_nr = len(spaths)
+                spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
+                spaths_nr_new = len(spaths)
+            if spaths_nr == spaths_nr_new:
+                clui.message("No paths were discarded.")
             else:
-                clui.message("No paths discarded.")
+                clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
 
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):

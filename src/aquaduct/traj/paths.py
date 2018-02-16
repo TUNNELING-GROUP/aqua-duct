@@ -462,6 +462,17 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
+        self.__object_len = self.__object_len_calculate()
+
+    def __object_len_calculate(self):
+        for nr,real_coords in enumerate(traces.midpoints(self.coords)):
+            if nr != 1: continue
+            return float(sum(traces.diff(real_coords)))
+
+    @property
+    def object_len(self):
+        return self.__object_len
+
     def is_single(self):
         raise NotImplementedError("Implementation missing.")
 
