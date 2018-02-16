@@ -39,10 +39,11 @@ class BasicPymolCGO(object):
         self.previous = None
         self.clean()
 
-    def clean(self):
+    def clean(self,empty=False):
         self.previous = None
         self.cgo_entity = []
-        self.cgo_entity.extend(self.cgo_entity_begin)
+        if not empty:
+            self.cgo_entity.extend(self.cgo_entity_begin)
 
     def new(self):
         self.previous = None
@@ -425,7 +426,10 @@ class SinglePathPlotter(object):
         self.cgo_lines.clean()
         for nr, spath in enumerate(spaths):
             self.add_single_path_continous_trace(spath, smooth=smooth, **kwargs)
-        self.pymol_connector.add_cgo_object(name, self.cgo_lines.get(), state=state)
+        if self.cgo_lines.cgo_entity == self.cgo_lines.cgo_entity_begin:
+            self.cgo_lines.clean(empty=True)
+        else:
+            self.pymol_connector.add_cgo_object(name, self.cgo_lines.get(), state=state)
 
     def paths_inlets(self, spaths,
                      smooth=None,
