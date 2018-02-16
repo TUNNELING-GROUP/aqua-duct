@@ -1308,7 +1308,6 @@ def potentially_recursive_clusterization(config=None,
                                                     clusterization_name=cluster_options.recursive_clusterization,
                                                     inlets_object=inlets_object,
                                                     spaths=spaths,
-                                                    traj_reader=traj_reader,
                                                     deep=deep,
                                                     max_level=max_level)
 
