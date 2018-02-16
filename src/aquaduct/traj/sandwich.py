@@ -209,7 +209,7 @@ class MasterReader(object):
             else:
                 assert number == 0
                 self.open_reader_traj.update(
-                    {0: self.engine(self.topology, self.trajectory[number], number=0, window=self.window)})
+                    {0: self.engine(self.topology, self.trajectory, number=0, window=self.window)})
         return self.get_single_reader(number)
 
     def get_reader_by_id(self, someid):

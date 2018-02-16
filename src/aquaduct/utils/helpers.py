@@ -77,6 +77,21 @@ def are_rows_uniq(some_array):
 
 ########################################################################
 
+def robust_and(a,b):
+    if a is None:
+        return bool(b)
+    if b is None:
+        return bool(a)
+    return a and b
+
+def robust_or(a,b):
+    if a is None:
+        return bool(b)
+    if b is None:
+        return bool(a)
+    return a or b
+
+
 def is_number(s):
     # http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/
     if isinstance(s, bool):

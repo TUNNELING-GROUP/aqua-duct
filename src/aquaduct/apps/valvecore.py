@@ -487,6 +487,7 @@ class ValveConfig(object, ConfigSpecialNames):
 ################################################################################
 # reader helper class
 
+'''
 class TrajectoryReader(object):
     def __init__(self, top, trj,frames_window=None):
         assert isinstance(top, (str, unicode)), "Topology file name missing, %s given instead" % str(top)
@@ -506,7 +507,7 @@ class TrajectoryReader(object):
 
 def rebuild_selection(selection, reader):
     return CompactSelectionMDA(selection).toSelectionMDA(reader)
-
+'''
 
 ################################################################################
 # convex hull helpers
@@ -857,7 +858,7 @@ def valve_load_config(filename, config):
     with clui.fbm('Load configuration file'):
         config.load_config(filename)
 
-
+'''
 def valve_read_trajectory(top, traj, frames_window=None):
     with clui.fbm('Read trajectory'):
         return TrajectoryReader(top, traj, frames_window=frames_window)
@@ -865,7 +866,7 @@ def valve_read_trajectory(top, traj, frames_window=None):
         # traj_list = shlex.split(traj)
         # return ReadAmberNetCDFviaMDA(top, traj_list)
         # reader = ReadDCDviaMDA(topology, trajectory)
-
+'''
 
 def valve_begin_stage(stage, config):
     clui.message(sep())
@@ -2683,7 +2684,6 @@ aquaduct_version_nice
 ValveConfig
 valve_begin
 valve_load_config
-valve_read_trajectory
 valve_exec_stage
 stage_I_run
 stage_II_run
