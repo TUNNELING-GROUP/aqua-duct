@@ -1080,7 +1080,8 @@ def stage_II_run(config, options,
             '''
 
             # loop over coords, is  in scope, and resid
-            for nr,(resid,isscope) in enumerate(izip(all_res_this_ids,is_res_in_scope)):
+            for resid,isscope in izip(all_res_this_ids,is_res_in_scope):
+            #for nr,(resid,isscope) in enumerate(izip(all_res_this_ids,is_res_in_scope)):
                 #if number != resid[0]: continue # skip path if it is from diffrent layer
                 if not isscope: continue
                 assert paths[resid].id == resid, \
