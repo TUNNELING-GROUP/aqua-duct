@@ -1140,14 +1140,24 @@ def stage_III_run(config, options,
             short_logic_name = "OR"
             if options.discard_short_logic != 'or':
                 logger.warning("Invalid discard_short_logic '%s', using %s by default." % (options.discard_short_logic,short_logic_name))
-        with clui.fbm("Discard paths shorter than %d %s object shorter than %0.2f" % (short_paths,short_logic_name,short_object)):
-            spaths_nr = len(spaths)
-            spaths = [sp for sp in spaths if short_logic(sp.size>short_paths,sp.object_len>short_object)]
-            spaths_nr_new = len(spaths)
-        if spaths_nr == spaths_nr_new:
-            clui.message("No paths were discarded.")
+        # make message
+        if short_paths is not None and short_object is not None:
+            discard_message = "Discard paths shorter than %d %s object shorter than %0.2f" % (short_paths, short_logic_name, short_object)
+        elif short_paths is None and short_object is not None:
+            discard_message = "Discard paths object shorter than %0.2f" % short_object
+        elif short_paths is not None and short_object is None:
+            discard_message = "Discard paths shorter than %d" % short_paths
+        if short_paths is not None or short_object is not None:
+            with clui.fbm(discard_message):
+                spaths_nr = len(spaths)
+                spaths = [sp for sp in spaths if short_logic(sp.size>short_paths,sp.object_len>short_object)]
+                spaths_nr_new = len(spaths)
+            if spaths_nr == spaths_nr_new:
+                clui.message("No paths were discarded.")
+            else:
+                clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
         else:
-            clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
+            clui.message("No paths were discarded - no values were set.")
 
     if options.auto_barber:
         with reader.get() as traj_reader:
@@ -1179,15 +1189,17 @@ def stage_III_run(config, options,
         pbar.finish()
 
         if options.discard_short_paths or options.discard_short_object:
-            with clui.fbm("Discard (again) paths shorter then %d %s object shorter then %0.2f" % (
-            short_paths, short_logic_name, short_object)):
-                spaths_nr = len(spaths)
-                spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
-                spaths_nr_new = len(spaths)
-            if spaths_nr == spaths_nr_new:
-                clui.message("No paths were discarded.")
+            if short_paths is not None or short_object is not None:
+                with clui.fbm(discard_message):
+                    spaths_nr = len(spaths)
+                    spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
+                    spaths_nr_new = len(spaths)
+                if spaths_nr == spaths_nr_new:
+                    clui.message("No paths were discarded.")
+                else:
+                    clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
             else:
-                clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
+                clui.message("No paths were discarded - no values were set.")
 
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):
