@@ -28,7 +28,7 @@ import shlex
 import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps
-from itertools import izip_longest
+from itertools import izip_longest,izip
 from keyword import iskeyword
 
 from scipy.spatial.distance import cdist
@@ -59,6 +59,7 @@ from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.traj.sandwich import ResidueSelection,Reader
+from aquaduct.utils.helpers import SmartRange, iterate_or_die
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
@@ -941,7 +942,7 @@ def stage_I_run(config, options,
     pbar = clui.pbar(Reader.number_of_frames())
 
     # create some containers
-    res_ids_in_object_over_frames = {}
+    number_frame_rid_in_object=[]
     #res_ids_in_scope_over_frames = {}  # not used
     all_res = None
 
@@ -955,7 +956,9 @@ def stage_I_run(config, options,
         if not options.scope_everyframe:
             scope = traj_reader.parse_selection(options.scope)
 
-        res_ids_in_object_over_frames.update({number:{}})
+        #all_res_this_layer = [] # list of all new res in this layer found in an order of apparance
+
+        frame_rid_in_object = []
 
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
@@ -967,7 +970,7 @@ def stage_I_run(config, options,
             res = traj_reader.parse_selection(options.object).residues()
             # find matching residues, ie those which are in the scope:
             res_new = scope.containing_residues(res, convex_hull=options.scope_convexhull, map_fun=map_fun)
-            res_new.uniquify()
+            res_new.uniquify() # here is a list of residues in this layer that are in the object and in the scope
             # adds them to all_res
             if all_res:
                 all_res.add(res_new)
@@ -976,16 +979,22 @@ def stage_I_run(config, options,
                 all_res = res_new
             # remeber ids of res in object in current frame
             if res_new is not None:
-                res_ids_in_object_over_frames[number].update({frame: [resid[-1] for resid in res_new.ids()]}) # store ix only!
+                frame_rid_in_object.append([rid[-1] for rid in res_new.ids()])
             else:
-                res_ids_in_object_over_frames[number].update({frame: []})
+                frame_rid_in_object.append([])
             pbar.next()
+
+        number_frame_rid_in_object.append(frame_rid_in_object)
+
 
     # destroy pool of workers
     if optimal_threads.threads_count > 1:
         pool.close()
         pool.join()
         del pool
+
+
+    #res_ids_in_object_frames_list = [res_ids_in_object_frames_list[number][rid] for number,rid in all_res.ids()]
 
     pbar.finish()
     center_of_system /= (Reader.number_of_frames())
@@ -998,7 +1007,8 @@ def stage_I_run(config, options,
 
     #'res_ids_in_object_over_frames': IdsOverIds.dict2arrays(res_ids_in_object_over_frames),
     return {'all_res': all_res,
-            'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
+            #'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
+            'number_frame_rid_in_object': number_frame_rid_in_object,
             'center_of_system': center_of_system,
             'options': options._asdict()}
 
@@ -1008,7 +1018,8 @@ def stage_I_run(config, options,
 # raw_paths
 def stage_II_run(config, options,
                  all_res=None,
-                 res_ids_in_object_over_frames=None,
+                 number_frame_rid_in_object=None,
+                 #res_ids_in_object_over_frames=None,
                  **kwargs):
     # create pool of workers - mapping function
     map_fun = map
@@ -1019,67 +1030,68 @@ def stage_II_run(config, options,
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
         clui.message('This will be recalculated on demand.')
-        res_ids_in_object_over_frames = {}
+        number_frame_rid_in_object = None
 
-    #with clui.fbm("Rebuild treceable residues with current trajectory"):
-    #    all_res = ResidueSelection(all_res,reader=reader)
+    is_number_frame_rid_in_object = bool(number_frame_rid_in_object)
+
     with clui.fbm("Init paths container"):
         number_of_frames = Reader.window.len() - 1
         paths = dict(
             ((resid, GenericPaths(resid, name_of_res=resname, single_res_selection=sressel,
-                                  min_pf=0, max_pf=number_of_frames-1))
+                                  min_pf=0, max_pf=number_of_frames))
              for resid, resname, sressel in
              zip(all_res.ids(), all_res.names(), all_res.single_residues())))
 
     clui.message("Trajectory scan:")
     pbar = clui.pbar(Reader.number_of_frames())
     # loop over possible layers of sandwich
-    for number,traj_reader in Reader.iterate(number=True):
+    for frame_rid_in_object,(number,traj_reader) in izip(iterate_or_die(number_frame_rid_in_object,times=Reader.number_of_layers()),Reader.iterate(number=True)):
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
         if not options.scope_everyframe:
             scope = traj_reader.parse_selection(options.scope)
 
-        if not res_ids_in_object_over_frames.has_key(number):
-            res_ids_in_object_over_frames.update({number:{}})
+        # speed up!
+        all_res_this_layer = all_res.layer(number)
+        all_res_this_ids = list(all_res_this_layer.ids())
 
-        # the loop over frames
-        for frame in traj_reader.iterate_over_frames():
+        all_res_this_layer_len_by2 = all_res_this_layer.len()/2.
+
+        # the loop over frames, use izip otherwise iteration over frames does not work
+        for rid_in_object,frame in izip(iterate_or_die(frame_rid_in_object,times=Reader.number_of_frames(onelayer=True)),traj_reader.iterate_over_frames()):
+
+            # do we have object data?
+            if not is_number_frame_rid_in_object:
+                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(options.object).residues().ids()]
+
+            #assert rid_in_object is not None
+
             if options.scope_everyframe:
                 scope = traj_reader.parse_selection(options.scope)
             # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-            known_true = None
-            if False: #frame in res_ids_in_object_over_frames[number]:
-                known_true = [(number,resid) for resid in res_ids_in_object_over_frames[number][frame]] # restore number
-            is_res_in_scope = scope.contains_residues(all_res.layer(number), convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=known_true)
+            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=options.scope_convexhull,
+                                                      map_fun=map_fun,
+                                                      known_true=None)  # known_true could be rid_in_object
+            '''
+            if len(rid_in_object) > all_res_this_layer_len_by2:
+                is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=rid_in_object) # known_true could be rid_in_object
+            else:
+                is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=options.scope_convexhull, map_fun=map_fun,known_true=None) # known_true could be rid_in_object
+            '''
 
             # loop over coords, is  in scope, and resid
-            for resid,isscope in zip(all_res.layer(number).ids(),is_res_in_scope):
+            for nr,(resid,isscope) in enumerate(izip(all_res_this_ids,is_res_in_scope)):
                 #if number != resid[0]: continue # skip path if it is from diffrent layer
                 if not isscope: continue
                 assert paths[resid].id == resid, \
                     "Internal error. Paths IDs not synced with resids. \
                      Please send a bug report to the developer(s): %s" % __mail__
-                if isscope: # residue is in the scope - always true
+                #if isscope: # residue is in the scope - always true
                     #paths[resid].add_coord(coord)
-                    # do we have info on res_ids_in_object_over_frames?
-                    if frame not in res_ids_in_object_over_frames[number]:
-                        res = traj_reader.parse_selection(options.object).residues()
-                        # discard res out of scope
-                        res_new = (rid for iris,rid in zip(is_res_in_scope, res.ids()) if iris)
-                        # remeber ids of res in object in current frame
-                        if res_new is not None:
-                            res_ids_in_object_over_frames[number].update({frame: [rid[-1] for rid in res_new]})
-                        else:
-                            res_ids_in_object_over_frames[number].update({frame: []})
-
-                    # in scope
-                    if resid[-1] not in res_ids_in_object_over_frames[number][frame]:
-                        paths[resid].add_scope(frame)
-                    # in object
-                    else:
-                        paths[resid].add_object(frame)
-
+                if resid[-1] in rid_in_object:
+                    paths[resid].add_object(frame)
+                else:
+                    paths[resid].add_scope(frame)
             pbar.next()
 
     # destroy pool of workers
@@ -1139,14 +1151,24 @@ def stage_III_run(config, options,
             short_logic_name = "OR"
             if options.discard_short_logic != 'or':
                 logger.warning("Invalid discard_short_logic '%s', using %s by default." % (options.discard_short_logic,short_logic_name))
-        with clui.fbm("Discard paths shorter than %d %s object shorter than %0.2f" % (short_paths,short_logic_name,short_object)):
-            spaths_nr = len(spaths)
-            spaths = [sp for sp in spaths if short_logic(sp.size>short_paths,sp.object_len>short_object)]
-            spaths_nr_new = len(spaths)
-        if spaths_nr == spaths_nr_new:
-            clui.message("No paths were discarded.")
+        # make message
+        if short_paths is not None and short_object is not None:
+            discard_message = "Discard paths shorter than %d %s object shorter than %0.2f" % (short_paths, short_logic_name, short_object)
+        elif short_paths is None and short_object is not None:
+            discard_message = "Discard paths object shorter than %0.2f" % short_object
+        elif short_paths is not None and short_object is None:
+            discard_message = "Discard paths shorter than %d" % short_paths
+        if short_paths is not None or short_object is not None:
+            with clui.fbm(discard_message):
+                spaths_nr = len(spaths)
+                spaths = [sp for sp in spaths if short_logic(sp.size>short_paths,sp.object_len>short_object)]
+                spaths_nr_new = len(spaths)
+            if spaths_nr == spaths_nr_new:
+                clui.message("No paths were discarded.")
+            else:
+                clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
         else:
-            clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
+            clui.message("No paths were discarded - no values were set.")
 
     if options.auto_barber:
         wtc = WhereToCut(spaths=spaths,
@@ -1177,15 +1199,17 @@ def stage_III_run(config, options,
         pbar.finish()
 
         if options.discard_short_paths or options.discard_short_object:
-            with clui.fbm("Discard (again) paths shorter then %d %s object shorter then %0.2f" % (
-            short_paths, short_logic_name, short_object)):
-                spaths_nr = len(spaths)
-                spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
-                spaths_nr_new = len(spaths)
-            if spaths_nr == spaths_nr_new:
-                clui.message("No paths were discarded.")
+            if short_paths is not None or short_object is not None:
+                with clui.fbm(discard_message):
+                    spaths_nr = len(spaths)
+                    spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
+                    spaths_nr_new = len(spaths)
+                if spaths_nr == spaths_nr_new:
+                    clui.message("No paths were discarded.")
+                else:
+                    clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
             else:
-                clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
+                clui.message("No paths were discarded - no values were set.")
 
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):

@@ -520,6 +520,11 @@ def make_iterable(something):
         return [something]
     return something
 
+def iterate_or_die(something,times=None):
+    if is_iterable(something):
+        return something
+    return (something for dummy in xrange(times))
+
 
 def strech_zip(*args):
     ns = map(float, map(len, args))

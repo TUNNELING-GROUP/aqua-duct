@@ -21,7 +21,7 @@ import re
 
 from os.path import splitext
 from collections import OrderedDict
-from itertools import izip_longest
+from itertools import izip_longest, imap
 
 import numpy as np
 
@@ -33,6 +33,7 @@ from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull
 from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, tupleify
 from aquaduct.utils.maths import make_default_array
 from aquaduct.apps.data import GCS
+from aquaduct.utils.maths import defaults
 
 ################################################################################
 # memory decorator
@@ -230,6 +231,10 @@ class MasterReader(object):
             return len(self.trajectory) * self.window.len()
         return self.window.len()
 
+    def number_of_layers(self):
+        if self.sandwich_mode:
+            return len(self.trajectory)
+        return 1
 
 # instance of MasterReader
 Reader = MasterReader()
@@ -422,6 +427,10 @@ class ReaderTraj(ReaderAccess):
         # sets real frame
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def real_number_of_frames(self):
+        # should return number of frames
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
     def parse_selection(self, selection):
         # should return selection
         # selection resolution should be atoms
@@ -544,17 +553,19 @@ class Selection(ReaderAccess):
 
         self.selected = OrderedDict(selected)
         for number, ids in self.selected.iteritems():
-            self.selected[number] = list(ids)
+            self.selected[number] = list(imap(defaults.int_default,ids))
 
     def layer(self, number):
         if self.selected.has_key(number):
             return self.__class__({number: self.selected[number]})
         return self.__class__({})
 
+    def numbers(self):
+        return self.selected.keys()
+
     def ix(self, ix):
         # gets selection of index ix
         ix_current = 0
-        numbers = self.selected.keys()
         for number, ids in self.selected.iteritems():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
@@ -633,6 +644,7 @@ class AtomSelection(Selection):
 
     def contains_residues(self, other_residues, convex_hull=False, map_fun=None, known_true=None):
         # FIXME: known_true slows down!
+        # known_true are only ix!
         assert isinstance(other_residues, ResidueSelection)
         if map_fun is None:
             map_fun = map
@@ -643,7 +655,7 @@ class AtomSelection(Selection):
             ch_list = []
             other_coords = []
             for other_id, other_coord in zip(other_residues.ids(), other_residues.coords()):
-                if other_id in known_true:
+                if other_id[-1] in known_true:
                     kt_list.append(other_id)
                 elif convex_hull:
                     ch_list.append(other_id)
@@ -676,7 +688,7 @@ class AtomSelection(Selection):
     def containing_residues(self, other_residues, *args, **kwargs):
         # Convienience wrapper for contains_residues.
         # def get_res_in_scope(is_res_in_scope, res):
-        other_new = {}
+        other_new = OrderedDict()
         for iris, (number, resid) in zip(self.contains_residues(other_residues, *args, **kwargs), other_residues.ids()):
             if iris:
                 if other_new.has_key(number):
