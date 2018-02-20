@@ -42,7 +42,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 4, 12
+    return 0, 4, 13
 
 
 def version_nice():
