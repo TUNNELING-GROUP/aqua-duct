@@ -756,6 +756,7 @@ def smooth_coords_ranges(sranges,number,rid,smooth):
 
 class SingleResidueSelection(ReaderAccess):
     def __init__(self, resid):
+        super(SingleResidueSelection, self).__init__()
         # where resid is id reported by ResidueSelection and reader is Reader
         # resid is tuple (number,id) number is used to get reader_traj
         self.resid = resid[-1]
@@ -780,7 +781,7 @@ class SingleResidueSelection(ReaderAccess):
             yield self.get_reader().residues_positions([self.resid]).next()
 
     def coords_smooth(self,sranges,smooth):
-        for coord in smooth_coords_ranges(sranges,self.number, self.resid, smooth):
+        for coord in smooth_coords_ranges(sranges, self.number, self.resid, smooth):
             yield coord
 
 ################################################################################

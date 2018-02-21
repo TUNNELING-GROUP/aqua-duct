@@ -495,7 +495,7 @@ from aquaduct.utils.helpers import arrayify
 
 class FakeSingleResidueSelection(SingleResidueSelection):
     def __init__(self,resid,frames,coords):
-        self.resid = resid
+        super(FakeSingleResidueSelection, self).__init__(resid)
         self._frames = frames
         self._coords = coords
 
@@ -506,3 +506,7 @@ class FakeSingleResidueSelection(SingleResidueSelection):
             yield self._coords[self._frames.index(f)]
 
 
+    # TODO: This part of the code is weak. Change it, here and as well as in sandwich.
+    def coords_smooth(self,sranges,smooth):
+        for srange in sranges:
+            yield smooth(self.coords(srange.get()))

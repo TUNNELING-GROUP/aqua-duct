@@ -1495,38 +1495,38 @@ def stage_IV_run(config, options,
         master_paths = {}
         master_paths_smooth = {}
         if options.create_master_paths:
-            if GCS.cachedir or GCS.cachemem:
-                pbar = clui.pbar(len(spaths), mess='Building coords cache')
-                [sp.coords for sp in spaths if pbar.next() is None]
-                pbar.finish()
-                use_threads = optimal_threads.threads_count
-            else:
-                logger.warning("Master paths calculation without cache-dir or cache-mem option can be EXTREMELY slow.")
-                use_threads = 1
-            with clui.fbm("Creating master paths for cluster types", cont=False):
+            with clui.fbm("Master paths calculations", cont=False):
+                smooth = get_smooth_method(soptions) # this have to preceed GCS
+                if GCS.cachedir or GCS.cachemem:
+                    pbar = clui.pbar(len(spaths), mess='Building coords cache')
+                    [sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None]
+                    pbar.finish()
+                    use_threads = optimal_threads.threads_count
+                else:
+                    logger.warning("Master paths calculation without cache-dir or cache-mem option can be EXTREMELY slow.")
+                    use_threads = 1
+                with clui.fbm("Creating master paths for cluster types", cont=False):
+                    ctypes_generic = [ct.generic for ct in ctypes]
+                    ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
-                smooth = get_smooth_method(soptions)
-                ctypes_generic = [ct.generic for ct in ctypes]
-                ctypes_generic_list = sorted(list(set(ctypes_generic)))
-
-                pbar = clui.pbar(len([None for sp in spaths if not isinstance(sp, PassingPath)]) * 2)
-                for nr, ct in enumerate(ctypes_generic_list):
-                    logger.debug('CType %s (%d)' % (str(ct), nr))
-                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                    # no passing paths are allowed
-                    sps = [sp for sp in sps if not isinstance(sp, PassingPath)]
-                    if not len(sps):
-                        logger.debug(
-                            'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (str(ct), nr,))
-                        continue
-                    logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
-                    # print len(sps),ct
-                    ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
-                                                  threads=use_threads)
-                    master_paths.update({ct: ctspc.get_master_path(resid=(0,nr))})
-                    master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0,nr), smooth=smooth)})
-                    del ctspc
-                pbar.finish()
+                    pbar = clui.pbar(len([None for sp in spaths if not isinstance(sp, PassingPath)]) * 2)
+                    for nr, ct in enumerate(ctypes_generic_list):
+                        logger.debug('CType %s (%d)' % (str(ct), nr))
+                        sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                        # no passing paths are allowed
+                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)]
+                        if not len(sps):
+                            logger.debug(
+                                'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (str(ct), nr,))
+                            continue
+                        logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
+                        # print len(sps),ct
+                        ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
+                                                      threads=use_threads)
+                        master_paths.update({ct: ctspc.get_master_path(resid=(0,nr))})
+                        master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0,nr), smooth=smooth)})
+                        del ctspc
+                    pbar.finish()
 
     else:
         clui.message("No inlets found. Clusterization skipped.")
@@ -2230,7 +2230,7 @@ def stage_V_run(config, options,
     for tname, message in iter_over_tn():
         pa("Number of traceable residues%s: %d" %
            (message,
-            len([None for p in paths.values() if p.name in tname])))
+            len([None for p in paths if p.name in tname])))
 
     for tname, sptype, message in iter_over_tnspt():
         pa("Number of separate paths%s: %d" %
