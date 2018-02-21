@@ -1057,7 +1057,7 @@ def stage_II_run(config, options,
 
         all_res_this_layer_len_by2 = all_res_this_layer.len()/2.
 
-        # the loop over frames, use izip otherwise iteration over frames does not work
+        # the loop over frames, use izip, otherwise iteration over frames does not work
         for rid_in_object,frame in izip(iterate_or_die(frame_rid_in_object,times=Reader.number_of_frames(onelayer=True)),traj_reader.iterate_over_frames()):
 
             # do we have object data?
