@@ -155,6 +155,13 @@ class GenericPaths(object, GenericPathTypeCodes):
 
     # add methods
 
+    def add_012(self, os_in_frames):
+        for frame,os_type in enumerate(os_in_frames):
+            if os_type == 2:
+                self.add_object(frame)
+            elif os_type == 1:
+                self.add_scope(frame)
+
     def add_object(self, frame):
         self.add_type(frame, self.object_name)
 
