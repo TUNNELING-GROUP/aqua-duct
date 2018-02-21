@@ -1034,6 +1034,7 @@ def stage_II_run(config, options,
 
     is_number_frame_rid_in_object = bool(number_frame_rid_in_object)
 
+    '''
     with clui.fbm("Init paths container"):
         number_of_frames = Reader.window.len() - 1
         paths = dict(
@@ -1041,10 +1042,12 @@ def stage_II_run(config, options,
                                   min_pf=0, max_pf=number_of_frames))
              for resid, resname, sressel in
              zip(all_res.ids(), all_res.names(), all_res.single_residues())))
-
+    '''
+    number_of_frames = Reader.window.len() - 1
     clui.message("Trajectory scan:")
     pbar = clui.pbar(Reader.number_of_frames())
     # loop over possible layers of sandwich
+    paths = []
     for frame_rid_in_object,(number,traj_reader) in izip(iterate_or_die(number_frame_rid_in_object,times=Reader.number_of_layers()),Reader.iterate(number=True)):
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
@@ -1056,6 +1059,14 @@ def stage_II_run(config, options,
         all_res_this_ids = list(all_res_this_layer.ids())
 
         all_res_this_layer_len_by2 = all_res_this_layer.len()/2.
+
+        paths_this_layer = [GenericPaths(resid,
+                                         name_of_res=resname,
+                                         single_res_selection=sressel,
+                                         min_pf=0, max_pf=number_of_frames)
+        for resid, resname, sressel in izip(all_res_this_ids,
+                                            all_res_this_layer.names(),
+                                            all_res_this_layer.single_residues())]
 
         # the loop over frames, use izip otherwise iteration over frames does not work
         for rid_in_object,frame in izip(iterate_or_die(frame_rid_in_object,times=Reader.number_of_frames(onelayer=True)),traj_reader.iterate_over_frames()):
@@ -1080,20 +1091,21 @@ def stage_II_run(config, options,
             '''
 
             # loop over coords, is  in scope, and resid
-            for resid,isscope in izip(all_res_this_ids,is_res_in_scope):
+            for resid,isscope,pat in izip(all_res_this_ids,is_res_in_scope,paths_this_layer):
             #for nr,(resid,isscope) in enumerate(izip(all_res_this_ids,is_res_in_scope)):
                 #if number != resid[0]: continue # skip path if it is from diffrent layer
                 if not isscope: continue
-                assert paths[resid].id == resid, \
+                assert pat.id == resid, \
                     "Internal error. Paths IDs not synced with resids. \
                      Please send a bug report to the developer(s): %s" % __mail__
                 #if isscope: # residue is in the scope - always true
                     #paths[resid].add_coord(coord)
                 if resid[-1] in rid_in_object:
-                    paths[resid].add_object(frame)
+                    pat.add_object(frame)
                 else:
-                    paths[resid].add_scope(frame)
+                    pat.add_scope(frame)
             pbar.next()
+        paths.extend(paths_this_layer)
 
     # destroy pool of workers
     if optimal_threads.threads_count > 1:
@@ -1122,14 +1134,12 @@ def stage_III_run(config, options,
 
     if options.discard_empty_paths:
         with clui.fbm("Discard residues with empty paths"):
-            for key in paths.keys():
-                if len(paths[key].frames) == 0:
-                    paths.pop(key)
+            paths = [pat for pat in paths if len(pat.frames)>0]
 
     clui.message("Create separate paths:")
     pbar = clui.pbar(len(paths))
     # yield_single_paths requires a list of paths not a dictionary
-    spaths = [sp for sp, nr in yield_single_paths(paths.values(),
+    spaths = [sp for sp, nr in yield_single_paths(paths,
                                                   progress=True,
                                                   passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
     pbar.finish()
@@ -1184,18 +1194,20 @@ def stage_III_run(config, options,
 
         clui.message("Auto Barber in action:")
         pbar = clui.pbar(len(paths))
-        for p in paths.values():
+        for p in paths:
             p.barber_with_spheres(wtc.spheres)
             pbar.next()
         pbar.finish()
         # now, it might be that some of paths are empty
         # paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
-        paths = dict((k, v) for k, v in paths.iteritems() if
-                     len(v.frames) > 0)  # more universal as dict comprehension may not work in <2.7
+        #paths = dict((k, v) for k, v in paths.iteritems() if
+        #             len(v.frames) > 0)  # more universal as dict comprehension may not work in <2.7
+        paths = [pat for pat in paths if len(pat.frames)>0]
+
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         # yield_single_paths requires a list of paths not a dictionary
-        spaths = [sp for sp, nr in yield_single_paths(paths.values(), progress=True,
+        spaths = [sp for sp, nr in yield_single_paths(paths, progress=True,
                                                       passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
         pbar.finish()
 

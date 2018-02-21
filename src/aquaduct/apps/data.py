@@ -206,6 +206,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
                     '''
                     # TODO: following is to overcome problems with missing names when data is <0.4
                     ################################################################################
+                    '''
                     if name == 'paths':
                         for path_name,path in value.iteritems():
                             if not hasattr(path,'name'):
@@ -221,6 +222,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
                             for r in value.refs:
                                 if not hasattr(r, 'name'):
                                     r.name = self.unknown_names
+                    '''
                     ################################################################################
                     data.update({name: value})
                 break
