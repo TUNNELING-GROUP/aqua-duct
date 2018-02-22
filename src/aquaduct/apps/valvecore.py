@@ -1021,6 +1021,22 @@ def stage_II_run(config, options,
                  number_frame_rid_in_object=None,
                  # res_ids_in_object_over_frames=None,
                  **kwargs):
+    ####################################################################################################################
+    # FIXME: temporary solution, remove it later
+    with clui.fbm("Get number_frame_rid_in_object if possible"):
+        if 'res_ids_in_object_over_frames' in kwargs:
+            res_ids_in_object_over_frames = kwargs['res_ids_in_object_over_frames']
+        else:
+            res_ids_in_object_over_frames = None
+        if number_frame_rid_in_object is None and res_ids_in_object_over_frames is not None:
+            number_frame_rid_in_object = []
+            for number in xrange(max(res_ids_in_object_over_frames.keys())):
+                frame_rid_in_object = []
+                for layer in xrange(max(res_ids_in_object_over_frames[number].keys())):
+                    frame_rid_in_object.append(res_ids_in_object_over_frames[number][layer])
+                number_frame_rid_in_object.append(frame_rid_in_object)
+    ####################################################################################################################
+
     # create pool of workers - mapping function
     map_fun = map
     if optimal_threads.threads_count > 1:
@@ -1096,9 +1112,10 @@ def stage_II_run(config, options,
             number_frame_object_scope[frame,:] = np.array(map(sum,izip(is_res_in_object,is_res_in_scope)),dtype=np.int8)
 
             pbar.next()
+            '''
             continue
 
-            # loop over coords, is  in scope, and resid
+
             for resid, isscope, pat in izip(all_res_this_ids, is_res_in_scope, paths_this_layer):
                 # for nr,(resid,isscope) in enumerate(izip(all_res_this_ids,is_res_in_scope)):
                 # if number != resid[0]: continue # skip path if it is from diffrent layer
@@ -1113,6 +1130,7 @@ def stage_II_run(config, options,
                 else:
                     pat.add_scope(frame)
             pbar.next()
+            '''
 
         #number_frame_object_scope = np.array(number_frame_object_scope,dtype=np.int8).T
         # another loop over this columns
