@@ -1093,7 +1093,7 @@ def stage_II_run(config, options,
                 rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(options.object).residues().ids()]
             # assert rid_in_object is not None
 
-            is_res_in_object = [rid[-1] in rid_in_object for rid in all_res_this_ids]
+            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
 
             if options.scope_everyframe:
                 scope = traj_reader.parse_selection(options.scope)

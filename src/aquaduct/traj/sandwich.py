@@ -707,7 +707,8 @@ class ResidueSelection(Selection):
 
     def coords(self):
         for number, ids in self.selected.iteritems():
-            for coord in self.get_reader(number).residues_positions(ids):
+            number_reader = self.get_reader(number)
+            for coord in number_reader.residues_positions(ids):
                 yield coord.tolist()
 
     def names(self):
