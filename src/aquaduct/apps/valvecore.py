@@ -1023,12 +1023,12 @@ def stage_II_run(config, options,
                  **kwargs):
     ####################################################################################################################
     # FIXME: temporary solution, remove it later
-    with clui.fbm("Get number_frame_rid_in_object if possible"):
-        if 'res_ids_in_object_over_frames' in kwargs:
-            res_ids_in_object_over_frames = kwargs['res_ids_in_object_over_frames']
-        else:
-            res_ids_in_object_over_frames = None
-        if number_frame_rid_in_object is None and res_ids_in_object_over_frames is not None:
+    if 'res_ids_in_object_over_frames' in kwargs:
+        res_ids_in_object_over_frames = kwargs['res_ids_in_object_over_frames']
+    else:
+        res_ids_in_object_over_frames = None
+    if number_frame_rid_in_object is None and res_ids_in_object_over_frames is not None:
+        with clui.fbm("Get number_frame_rid_in_object if possible"):
             number_frame_rid_in_object = []
             for number in xrange(max(res_ids_in_object_over_frames.keys())):
                 frame_rid_in_object = []
@@ -1054,15 +1054,6 @@ def stage_II_run(config, options,
 
     is_number_frame_rid_in_object = bool(number_frame_rid_in_object)
 
-    '''
-    with clui.fbm("Init paths container"):
-        number_of_frames = Reader.window.len() - 1
-        paths = dict(
-            ((resid, GenericPaths(resid, name_of_res=resname, single_res_selection=sressel,
-                                  min_pf=0, max_pf=number_of_frames))
-             for resid, resname, sressel in
-             zip(all_res.ids(), all_res.names(), all_res.single_residues())))
-    '''
     number_of_frames = Reader.window.len() - 1
     clui.message("Trajectory scan:")
     pbar = clui.pbar(Reader.number_of_frames())
@@ -1112,25 +1103,6 @@ def stage_II_run(config, options,
             number_frame_object_scope[frame,:] = np.array(map(sum,izip(is_res_in_object,is_res_in_scope)),dtype=np.int8)
 
             pbar.next()
-            '''
-            continue
-
-
-            for resid, isscope, pat in izip(all_res_this_ids, is_res_in_scope, paths_this_layer):
-                # for nr,(resid,isscope) in enumerate(izip(all_res_this_ids,is_res_in_scope)):
-                # if number != resid[0]: continue # skip path if it is from diffrent layer
-                if not isscope: continue
-                assert pat.id == resid, \
-                    "Internal error. Paths IDs not synced with resids. \
-                     Please send a bug report to the developer(s): %s" % __mail__
-                # if isscope: # residue is in the scope - always true
-                # paths[resid].add_coord(coord)
-                if resid[-1] in rid_in_object:
-                    pat.add_object(frame)
-                else:
-                    pat.add_scope(frame)
-            pbar.next()
-            '''
 
         #number_frame_object_scope = np.array(number_frame_object_scope,dtype=np.int8).T
         # another loop over this columns
