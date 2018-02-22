@@ -1065,12 +1065,13 @@ def stage_II_run(config, options,
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
         if not options.scope_everyframe:
             scope = traj_reader.parse_selection(options.scope)
+            logger.debug("Scope definition evaluated only once for given layer")
+        else:
+            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
 
         # speed up!
         all_res_this_layer = all_res.layer(number)
         all_res_this_ids = list(all_res_this_layer.ids())
-
-        all_res_this_layer_len_by2 = all_res_this_layer.len() / 2.
 
         paths_this_layer = (GenericPaths(resid,
                                          name_of_res=resname,
@@ -1080,6 +1081,7 @@ def stage_II_run(config, options,
                                                                 all_res_this_layer.names(),
                                                                 all_res_this_layer.single_residues()))
 
+        # big container for 012 path data
         number_frame_object_scope = np.zeros((Reader.number_of_frames(onelayer=True), all_res_this_layer.len()), dtype=np.int8)
         # the loop over frames, use izip otherwise iteration over frames does not work
         for rid_in_object, frame in izip(
@@ -1101,7 +1103,8 @@ def stage_II_run(config, options,
                                                       known_true=None)  # known_true could be rid_in_object
 
             number_frame_object_scope[frame,:] = np.array(map(sum,izip(is_res_in_object,is_res_in_scope)),dtype=np.int8)
-
+            #number_frame_object_scope[frame, :] = np.array(is_res_in_object, dtype=np.int8) + \
+            #                                      np.array(is_res_in_scope, dtype = np.int8)
             pbar.next()
 
         #number_frame_object_scope = np.array(number_frame_object_scope,dtype=np.int8).T
