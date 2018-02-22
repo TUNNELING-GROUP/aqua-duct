@@ -224,6 +224,7 @@ class WhereToCut(object):
                 distances = cdist(np.matrix(center), barber.atom_positions(), metric='euclidean').flatten()
                 if self.tovdw:
                     vdwradius = atom2vdw_radius(barber.atoms[np.argmin(distances)])
+                    logger.debug('VdW correction %0.2f',vdwradius)
                 radius = min(distances) - vdwradius
                 if radius <= 0:
                     logger.debug('VdW correction resulted in <= 0 radius.')
