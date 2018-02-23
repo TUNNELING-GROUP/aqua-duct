@@ -271,14 +271,6 @@ def is_iterable(l):
     :return: True if submitted object is iterable otherwise returns False.
     :rtype: bool
 
-    .. warning::
-
-        Current implementation cannot be used with generators!
-
-    .. todo::
-
-        Current implementation is primitive and HAVE TO be replaced.
-
     """
     try:
         _ = (e for e in l)

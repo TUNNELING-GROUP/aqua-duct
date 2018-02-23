@@ -176,6 +176,7 @@ class WhereToCut(ReaderAccess):
             distances = cdist(np.matrix(center), np.matrix(list(barber.coords())), metric='euclidean').flatten()
             if self.tovdw:
                 vdwradius = list(barber.ix(np.argmin(distances)).vdw())[0]
+                logger.debug('VdW correction %0.2f', vdwradius)
             radius = min(distances) - vdwradius
             if radius <= 0:
                 logger.debug('VdW correction resulted in <= 0 radius.')
@@ -226,6 +227,7 @@ class WhereToCut(ReaderAccess):
                 distances = cdist(np.matrix(center), np.matrix(list(barber.coords())), metric='euclidean').flatten()
                 if self.tovdw:
                     vdwradius = list(barber.ix(np.argmin(distances)).vdw())[0]
+                    logger.debug('VdW correction %0.2f',vdwradius)
                 radius = min(distances) - vdwradius
                 if radius <= 0:
                     logger.debug('VdW correction resulted in <= 0 radius.')
