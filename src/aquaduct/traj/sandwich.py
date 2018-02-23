@@ -34,6 +34,7 @@ from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, tupleif
 from aquaduct.utils.maths import make_default_array
 from aquaduct.apps.data import GCS
 from aquaduct.utils.maths import defaults
+from aquaduct import logger
 
 ################################################################################
 # memory decorator
@@ -55,8 +56,10 @@ elif GCS.cachemem:
         @wraps(func)
         def memoized_func(*args, **kwargs):
             key = str(args) + str(kwargs)
+            logger.debug('Looking for cache key %s' % key)
             if key not in cache:
                 cache[key] = func(*args, **kwargs)
+                logger.debug("New key added to cache.")
             return cache[key]
 
         return memoized_func
