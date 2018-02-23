@@ -611,6 +611,9 @@ class SmartRangeFunction(object):
         self.element = element
         self.times = times
 
+    def __str__(self):
+        return self.__repr__()
+
     def __repr__(self):
         return "%s(%r,%d)" % (self.__class__.__name__, self.element, self.times)
 
@@ -675,6 +678,12 @@ class SmartRange(object):
 
         if iterable is not None:
             map(self.append, iterable)
+
+    def __str__(self):
+        return self.__repr__()
+
+    def __repr__(self):
+        return '[%s]' % (','.join(map(str,self.__elements)))
 
 
     def first_element(self):
