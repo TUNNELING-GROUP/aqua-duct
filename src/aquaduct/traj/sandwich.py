@@ -55,7 +55,7 @@ elif GCS.cachemem:
 
         @wraps(func)
         def memoized_func(*args, **kwargs):
-            key = str(args) + str(kwargs)
+            key = ','.join(map(str,args)) + '&' + ','.join(map(lambda kv: ':'.join(map(str,kv)),kwargs.iteritems()))
             logger.debug('Looking for cache key %s' % key)
             if key not in cache:
                 cache[key] = func(*args, **kwargs)
