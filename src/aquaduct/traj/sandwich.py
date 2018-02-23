@@ -623,14 +623,16 @@ class AtomSelection(Selection):
         # returns residues selection
         def get_unique_residues():
             for number, ids in self.selected.iteritems():
-                yield number, sorted(set(map(self.get_reader(number).atom2residue, ids)))
+                number_reader = self.get_reader(number)
+                yield number, sorted(set(map(number_reader.atom2residue, ids)))
 
         return ResidueSelection(get_unique_residues())
 
     def coords(self):
         for number, ids in self.selected.iteritems():
-            for coord in self.get_reader(number).atoms_positions(ids):
-                yield coord.tolist()
+            number_reader = self.get_reader(number)
+            for coord in number_reader.atoms_positions(ids):#.tolist():
+                yield coord
 
     def center_of_mass(self):
         center = np.zeros(3)
@@ -709,7 +711,7 @@ class ResidueSelection(Selection):
         for number, ids in self.selected.iteritems():
             number_reader = self.get_reader(number)
             for coord in number_reader.residues_positions(ids):
-                yield coord.tolist()
+                yield coord #.tolist()
 
     def names(self):
         for number, ids in self.selected.iteritems():
