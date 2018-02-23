@@ -1515,8 +1515,9 @@ def stage_IV_run(config, options,
             with clui.fbm("Master paths calculations", cont=False):
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
-                    pbar = clui.pbar(len(spaths), mess='Building coords cache')
-                    [sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None]
+                    pbar = clui.pbar(len(spaths)*2, mess='Building coords cache')
+                    [sp.get_coords(smooth=None) for sp in spaths if pbar.next() is None]
+                    #[sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None]
                     pbar.finish()
                     use_threads = optimal_threads.threads_count
                 else:
@@ -1543,7 +1544,7 @@ def stage_IV_run(config, options,
                         ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
                                                       threads=use_threads)
                         master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
-                        master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
+                        #master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
                         del ctspc
                     pbar.finish()
 
