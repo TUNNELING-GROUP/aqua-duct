@@ -1047,7 +1047,7 @@ def stage_II_run(config, options,
              for resid, resname, sressel in
              zip(all_res.ids(), all_res.names(), all_res.single_residues())))
     '''
-    number_of_frames = Reader.window.len() - 1
+    number_of_frames = Reader.number_of_frames(onelayer=True) - 1
     clui.message("Trajectory scan:")
     pbar = clui.pbar(Reader.number_of_frames())
     # loop over possible layers of sandwich
