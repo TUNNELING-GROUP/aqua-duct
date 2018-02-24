@@ -57,7 +57,7 @@ cp ../src/ubuntu_mdanalysis_install_helper.sh source/
 # AQ pip command
 #AQPIP="install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
 AQPIP="install aquaduct"
-sed -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.template > source/aquaduct_install.rst
+sed -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.template.rst > source/aquaduct_install.rst
 
 # AQ installation requirements
 echo "* Python 2.7 (CPython implementation)" > source/aquaduct_install_requires.rst

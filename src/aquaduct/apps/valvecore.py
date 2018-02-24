@@ -17,6 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import ipdb as pdb
+
+
 import ConfigParser
 import copy
 import multiprocessing as mp
@@ -1036,7 +1039,7 @@ def stage_II_run(config, options,
                     frame_rid_in_object.append(res_ids_in_object_over_frames[number][layer])
                 number_frame_rid_in_object.append(frame_rid_in_object)
     ####################################################################################################################
-
+    pdb.set_trace()
     # create pool of workers - mapping function
     map_fun = map
     if optimal_threads.threads_count > 1:
