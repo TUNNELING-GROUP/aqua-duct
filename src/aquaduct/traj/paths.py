@@ -771,7 +771,7 @@ class SinglePath(MacroMolPath):
     def is_passing(self):
         return False
 
-
+# TODO: passing paths probably does not work at all
 class PassingPath(MacroMolPath):
 
     def __init__(self, path_id, path, coords, types):
@@ -867,15 +867,11 @@ class PassingPath(MacroMolPath):
     def paths_last_out(self):
         return self.path[-1]
 
-    @tupleify
     def get_coords(self, smooth=None):
         # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
         # if smooth is not none applies smoothing
         if smooth is not None:
-            if smooth != self.smooth_method:
-                self.smooth_coords = self._make_smooth_coords(self.__coords, smooth)[0]
-                self.smooth_method = smooth
-            for nr, coords in enumerate((self.smooth_coords,)):
+            for nr,coords in enumerate(self._make_smooth_coords(smooth)):
                 if coords is None:
                     yield self.coords[nr]
                 else:
@@ -883,6 +879,7 @@ class PassingPath(MacroMolPath):
         else:
             for coords in self.coords:
                 yield coords
+
 
     def get_inlets(self):
         # Lets assume that if max/min_possible_frame is there is no inlet

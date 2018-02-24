@@ -417,7 +417,8 @@ class CTypeSpathsCollection(object):
             chunk_size = int(full_size / self.threads ** 2)
             if chunk_size == 0:
                 chunk_size = 1
-            map_fun = partial(pool.imap_unordered, chunksize=chunk_size)
+            #map_fun = partial(pool.imap_unordered, chunksize=chunk_size)
+            map_fun = partial(pool.imap, chunksize=chunk_size)
 
         # TODO: it is possible to add pbar support here!
         # maximal number of spath

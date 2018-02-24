@@ -1041,10 +1041,11 @@ def stage_II_run(config, options,
     map_fun = map
     if optimal_threads.threads_count > 1:
         pool = mp.Pool(optimal_threads.threads_count)
-        chunk_size = all_res.len() / Reader.number_of_layers() / (optimal_threads.threads_count ** 1)
-        if chunk_size == 0:
+        chunk_size = all_res.len() / Reader.number_of_layers() / (optimal_threads.threads_count ** 1) - 1
+        if chunk_size <= 0:
             chunk_size = 1
-        map_fun = partial(pool.imap_unordered, chunksize=chunk_size)
+        logger.debug("Chunk size %d.",chunk_size)
+        map_fun = partial(pool.imap, chunksize=chunk_size)
         #map_fun = pool.map
     # clear in object info if required
     if options.clear_in_object_info:
@@ -1517,7 +1518,7 @@ def stage_IV_run(config, options,
                 if GCS.cachedir or GCS.cachemem:
                     pbar = clui.pbar(len(spaths)*2, mess='Building coords cache')
                     [sp.get_coords(smooth=None) for sp in spaths if pbar.next() is None]
-                    #[sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None]
+                    [sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None]
                     pbar.finish()
                     use_threads = optimal_threads.threads_count
                 else:
@@ -1544,7 +1545,7 @@ def stage_IV_run(config, options,
                         ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
                                                       threads=use_threads)
                         master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
-                        #master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
+                        master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
                         del ctspc
                     pbar.finish()
 

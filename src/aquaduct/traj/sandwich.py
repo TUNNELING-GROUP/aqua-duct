@@ -42,7 +42,8 @@ from aquaduct import logger
 if GCS.cachedir:
     from joblib import Memory
 
-    memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)
+    memory_cache = Memory(cachedir=GCS.cachedir, verbose=0) # mmap have to be switched off, otherwise smoothing does not work properly
+    #memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)
     memory = memory_cache.cache
 elif GCS.cachemem:
     from functools import wraps
