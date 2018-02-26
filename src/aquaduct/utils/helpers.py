@@ -626,6 +626,17 @@ class SmartRangeFunction(object):
     def isin(self, element):
         raise NotImplementedError('This method should be implemented in a child class.')
 
+    def isin_srange(self,srange):
+        # tests if srange of type SmartRange is in this range
+        fe,le = srange.first_element(),srange.last_element()
+        return self.isin(fe) and self.isin(le) 
+
+    def first_element(self):
+        return self.element
+
+    def last_element(self):
+        raise NotImplementedError('This method should be implemented in a child class.')
+
 
 class SmartRangeEqual(SmartRangeFunction):
 
@@ -639,6 +650,9 @@ class SmartRangeEqual(SmartRangeFunction):
 
     def isin(self, element):
         return element == self.element
+
+    def last_element(self):
+        return self.first_element()
 
 
 class SmartRangeIncrement(SmartRangeFunction):
@@ -654,6 +668,9 @@ class SmartRangeIncrement(SmartRangeFunction):
     def isin(self, element):
         return (element >= self.element) and (element <= self.element + self.times - 1)
 
+    def last_element(self):
+        return self.first_element()+self.times-1
+
 
 class SmartRangeDecrement(SmartRangeFunction):
 
@@ -668,6 +685,8 @@ class SmartRangeDecrement(SmartRangeFunction):
     def isin(self, element):
         return (element <= self.element) and (element >= self.element - self.times + 1)
 
+    def last_element(self):
+        return self.first_element()-self.times+1
 
 class SmartRange(object):
     def __init__(self, iterable=None):

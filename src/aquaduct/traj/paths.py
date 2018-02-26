@@ -484,7 +484,7 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
-        self.__object_len = self.__object_len_calculate()
+        self.__object_len = None
 
     def __object_len_calculate(self):
         for nr,real_coords in enumerate(traces.midpoints(self.coords)):
@@ -494,6 +494,8 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
     @property
     def object_len(self):
+        if self.__object_len is None:
+            self.__object_len = self.__object_len_calculate()
         return self.__object_len
 
     def is_single(self):

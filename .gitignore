@@ -9,6 +9,7 @@
 *.pyo
 *.orig
 *.*~
+.*.swp
 
 .project
 .pydevproject

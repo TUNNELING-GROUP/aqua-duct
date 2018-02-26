@@ -515,9 +515,13 @@ class ReaderTrajViaMDA(ReaderTraj):
 
     def residues_positions(self, resids):
         # residues ids to center of masses coordinates
+        return (res.atoms.center_of_geometry() for res in
+                self.trajectory_object.residues[list(resids)])
+        '''
         for rid in resids:
             #yield self.trajectory_object.residues[[rid]].center_of_mass()
             yield self.trajectory_object.residues[[rid]].center_of_geometry()
+        '''
 
     def residues_names(self, resids):
         # residues ids to center of masses coordinates
@@ -732,11 +736,15 @@ class ResidueSelection(Selection):
 
 @memory
 @arrayify(shape=(None, 3))
-def coords_range(srange, number, rid):
+def coords_range_core(srange, number, rid):
     reader = Reader.get_single_reader(number)
     for f in srange.get():
         reader.set_frame(f)
         yield reader.residues_positions([rid]).next()
+
+def coords_range(srange, number, rid):
+    # wrapper to limit number of calls to coords_range_core
+    return coords_range_core(srange, number, rid)
 
 ################################################################################
 
