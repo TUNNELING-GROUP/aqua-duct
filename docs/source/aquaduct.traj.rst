@@ -10,8 +10,7 @@ Submodules
    aquaduct.traj.dumps
    aquaduct.traj.inlets
    aquaduct.traj.paths
-   aquaduct.traj.reader
-   aquaduct.traj.selections
+   aquaduct.traj.sandwich
 
 Module contents
 ---------------

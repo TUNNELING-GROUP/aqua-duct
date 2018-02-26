@@ -22,7 +22,7 @@ Configuration file comprises of several *sections*. They can be grouped into thr
 Section **global**
 ------------------
 
-This section allows settings of trajectory data and some other future global options.
+This section allows settings of trajectory data and is reserved for other future global options.
 
 ======  =============   ==========================================================================
 Option  Default value   Description
@@ -30,6 +30,8 @@ Option  Default value   Description
 top     None            Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.
 trj     None            Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.
 ======  =============   ==========================================================================
+
+Option **trj** can be used to provide list of trajectory files.
 
 .. note::
 
@@ -88,7 +90,6 @@ save        [save file name]    File name for saving results. Default value of t
                                 #. As Python script - extension ``.py`` plus companion archive
                                    ``.tar.gz``,
                                 #. As PyMOL session - extension ``.pse``.
-
 ========    =================   ===================================================================
 
 
@@ -227,6 +228,7 @@ Stage **visualize**
 -------------------
 
 .. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+
 .. table::
     :class: longtable
 

@@ -1164,6 +1164,9 @@ def stage_III_run(config, options,
                                                   passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
     pbar.finish()
 
+    clui.message("Created %d separate paths out of %d raw paths" %
+                 (len(spaths),len(paths)))
+
     if options.discard_short_paths or options.discard_short_object:
         if is_number(options.discard_short_paths):
             short_paths = int(options.discard_short_paths)
