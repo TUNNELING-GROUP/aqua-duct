@@ -467,6 +467,7 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     def __object_len_calculate(self):
         for nr,real_coords in enumerate(traces.midpoints(self.coords)):
             if nr != 1: continue
+            if len(real_coords) <= 1: return 0.
             return float(sum(traces.diff(real_coords)))
 
     @property
