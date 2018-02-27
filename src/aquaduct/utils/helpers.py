@@ -633,7 +633,7 @@ class SmartRangeFunction(object):
         return self.get()[-1]
 
     def overlaps(self,srange):
-        return self.isin(srange.first_element()) or self.isin(srange.last_element()) 
+        return (self.isin(srange.first_element()) or self.isin(srange.last_element())) or (srange.isin(self.first_element()) or srange.isin(self.last_element()))
 
     def contains(self,srange):
         # tests if srange of type SmartRange is in this range

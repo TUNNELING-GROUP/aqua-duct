@@ -767,7 +767,7 @@ class FramesRangeCollection(object):
         while (srange is not None):
             for nr,sr in enumerate(self.collection):
                 # sr
-                if sr.overlaps(srange) or srange.overlaps(sr):
+                if sr.overlaps(srange):# or srange.overlaps(sr):
                     if sr.contains(srange):
                         # case 3
                         srange = None
@@ -799,6 +799,14 @@ class FramesRangeCollection(object):
             if srange is not None and nr == len(self.collection) - 1:
                 self.collection.append(srange)
                 srange = None
+
+    def get_sranges_ranges(self,srange):
+        # yield sranges from collection and appropriate ranges for these sranges
+        # assumes append was already called? call it!
+        self.append(srange)
+        for sr in self.collection:
+            if srange.overlaps(sr):
+
 
 
 
