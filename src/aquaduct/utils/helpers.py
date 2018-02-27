@@ -25,8 +25,7 @@ from collections import Iterable
 from functools import wraps
 from os import close
 from tempfile import mkstemp
-from functools import partial
-
+from functools import partial,total_ordering
 from aquaduct.utils.maths import defaults
 
 
@@ -605,7 +604,7 @@ class Bunch(object):
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
-
+#@total_ordering
 class SmartRangeFunction(object):
     def __init__(self, element, times):
         self.element = element
@@ -616,6 +615,9 @@ class SmartRangeFunction(object):
 
     def __repr__(self):
         return "%s(%r,%d)" % (self.__class__.__name__, self.element, self.times)
+    
+    def __cmp__(self,other):
+        
 
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
@@ -626,16 +628,20 @@ class SmartRangeFunction(object):
     def isin(self, element):
         raise NotImplementedError('This method should be implemented in a child class.')
 
-    def isin_srange(self,srange):
-        # tests if srange of type SmartRange is in this range
-        fe,le = srange.first_element(),srange.last_element()
-        return self.isin(fe) and self.isin(le) 
-
     def first_element(self):
         return self.element
 
     def last_element(self):
-        raise NotImplementedError('This method should be implemented in a child class.')
+        # this is suboptimal, implement it in child class
+        return self.get()[-1]
+
+    def overlaps(self,srange):
+        return self.isin(srange.first_element()) or self.isin(srange.last_element()) 
+
+    def contains(self,srange):
+        # tests if srange of type SmartRange is in this range
+        return self.isin(srange.first_element()) and self.isin(srange.last_element()) 
+
 
 
 class SmartRangeEqual(SmartRangeFunction):
