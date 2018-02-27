@@ -616,9 +616,6 @@ class SmartRangeFunction(object):
     def __repr__(self):
         return "%s(%r,%d)" % (self.__class__.__name__, self.element, self.times)
     
-    def __cmp__(self,other):
-        
-
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
 

@@ -30,7 +30,8 @@ from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import is_iterable
 from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull
-from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, tupleify
+from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, \
+                                   tupleify, SmartRangeIncrement
 from aquaduct.utils.maths import make_default_array
 from aquaduct.apps.data import GCS
 from aquaduct.utils.maths import defaults
@@ -745,6 +746,63 @@ def coords_range_core(srange, number, rid):
 def coords_range(srange, number, rid):
     # wrapper to limit number of calls to coords_range_core
     return coords_range_core(srange, number, rid)
+
+class FramesRangeCollection(object):
+    # currently it is assumed that samrt ranges increments only are possible
+    def __init__(self):
+        self.collection = [] # order on this list does matter!
+
+    def append(self,srange):
+        if not len(self.collection):
+            self.collection.append(srange)
+            return
+        # there are V cases:
+        #           |------|            sr
+        # 1 |---|                       it is before sr
+        # 2      |-----|                it overlaps with sr but begins before
+        # 3          |----|             it is contained in sr
+        # 4              |----|         it overlaps with sr but ends after
+        # 24     |------------|         it overlabs with sr in 2 and 4 way
+        # 5                  |----|     it is after sr
+        while (srange is not None):
+            for nr,sr in enumerate(self.collection):
+                # sr
+                if sr.overlaps(srange) or srange.overlaps(sr):
+                    if sr.contains(srange):
+                        # case 3
+                        srange = None
+                        break
+                    if srange.first_element() < sr.first_element():
+                        # case 2
+                        self.collection.insert(nr,SmartRangeIncrement(srange.first_element(),sr.first_element()-srange.first_element()))
+                        if srange.last_element() > sr.last_element():
+                            # case 24
+                            srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
+                            break
+                        else:
+                            srange = None
+                        break
+                    if srange.last_element() > sr.last_element():
+                        # case 4
+                        srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
+                        continue
+                else:
+                    if srange.last_element() < sr.first_element():
+                        # case 1: insert it before sr
+                        self.collection.insert(nr,srange)
+                        srange = None
+                        break
+                    if srange.first_element() > sr.last_element():
+                        # case 5: do nothing
+                        continue
+            # if something is left append it to the end
+            if srange is not None and nr == len(self.collection) - 1:
+                self.collection.append(srange)
+                srange = None
+
+
+
+
 
 ################################################################################
 
