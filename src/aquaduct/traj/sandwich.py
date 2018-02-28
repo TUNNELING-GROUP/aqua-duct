@@ -746,6 +746,7 @@ def coords_range_core(srange, number, rid):
 
 
 def coords_range(srange, number, rid):
+    # srange is SmartRangeIncrement, it cannot be anything else
     # wrapper to limit number of calls to coords_range_core
     if number not in CRIC.cache:
         CRIC.cache.update({number:{}})
@@ -820,7 +821,7 @@ class FramesRangeCollection(object):
             if sr.overlaps(srange):
                 if sr.contains(srange):
                     # case 3
-                    yield sr,xrange(srange.first_element()-sr.first_element(),len(srange))
+                    yield sr,xrange(srange.first_element()-sr.first_element(),srange.first_element()-sr.first_element()+len(srange))
                     srange = None
                     break
                 # case 4
@@ -837,9 +838,13 @@ class FramesRangeCollection(object):
 @memory
 @tupleify
 def smooth_coords_ranges(sranges,number,rid,smooth):
+    # here, sranges are list of SmartRange objects whereas coords_range accepts SmartRangeIncrement
     # first get all coords and make in continous
-    coords_cont = (coords_range(srange, number, rid) for srange in sranges)
-    coords_cont = make_default_array(np.vstack([c for c in coords_cont if len(c) > 0]))
+    def sranges2coords_cont():
+        for srange in sranges:
+            for srangei in srange.raw:
+                yield coords_range(srangei, number, rid)
+    coords_cont = make_default_array(np.vstack([c for c in ranges2oords_cont() if len(c) > 0]))
     # call smooth
     coords_cont = smooth(coords_cont)
     # split coords_cont

@@ -38,7 +38,7 @@ logger.addHandler(ch)
 
 ################################################################################
 
-from aquaduct.apps.data import GCS
+from aquaduct.apps.data import GCS,load_cric
 
 ################################################################################
 
@@ -92,6 +92,7 @@ if __name__ == "__main__":
         # cache dir!
         GCS.cachedir = args.cachedir
         GCS.cachemem = args.cachemem
+        load_cric()
 
         from aquaduct.traj.sandwich import Reader,Window
         from aquaduct.apps.valvecore import *
