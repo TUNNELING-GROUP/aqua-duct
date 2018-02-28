@@ -39,6 +39,12 @@ class GlobalConfigStore(object):
 
 GCS = GlobalConfigStore()
 
+class CoordsRangeIndexCache(object):
+    cache = {}
+
+CRIC = CoordsRangeIndexCache()
+
+
 ################################################################################
 # Version checking
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+# This program is distributed in the hope that it will be useful,
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
 # Copyright (C) 2016-2017  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
 #
@@ -44,7 +45,7 @@ from aquaduct.utils.clui import roman
 from aquaduct import greetings as greetings_aquaduct
 from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
-from aquaduct.apps.data import get_vda_reader, GCS
+from aquaduct.apps.data import get_vda_reader, GCS, CRIC
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
@@ -912,6 +913,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                 with clui.fbm('Saving data dump in %s file' % options.dump):
                     vda = get_vda_reader(options.dump)
                     vda(mode='w', data_file_name=options.dump).dump(**result)
+                    vda(mode='w', data_file_name=options.dump).dump({'CRIC':CRIC})
                 # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
@@ -922,6 +924,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                     with clui.fbm('Loading data dump from %s file' % options.dump):
                         vda = get_vda_reader(options.dump)
                         result = vda(mode='r', data_file_name=options.dump).load()
+                        CRIC.cache = vda(mode='r', data_file_name=options.dump).load()['CRIC'].cache
                         # result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)

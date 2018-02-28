@@ -33,7 +33,7 @@ from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull
 from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, \
                                    tupleify, SmartRangeIncrement
 from aquaduct.utils.maths import make_default_array
-from aquaduct.apps.data import GCS
+from aquaduct.apps.data import GCS,CRIC
 from aquaduct.utils.maths import defaults
 from aquaduct import logger
 
@@ -744,17 +744,16 @@ def coords_range_core(srange, number, rid):
         yield reader.residues_positions([rid]).next()
 
 
-coords_range_index_cache = {}
 
 def coords_range(srange, number, rid):
     # wrapper to limit number of calls to coords_range_core
-    if number not in coords_range_index_cache:
-        coords_range_index_cache.update({number:{}})
-    if rid not in coords_range_index_cache[number]:
-        coords_range_index_cache[number].update({rid:FramesRangeCollection()})
+    if number not in CRIC.cache:
+        CRIC.cache.update({number:{}})
+    if rid not in CRIC.cache[number]:
+        CRIC.cache[number].update({rid:FramesRangeCollection()})
     # call get_ranges and stack array, do it in comprehension? nested function?
     def get_coords_from_cache():
-        for sr,xr in coords_range_index_cache[number][rid].get_ranges(srange):
+        for sr,xr in CRIC.cache[number][rid].get_ranges(srange):
             yield coords_range_core(sr,number,rid)[xr,:]
     return np.vstack(get_coords_from_cache())    
 
