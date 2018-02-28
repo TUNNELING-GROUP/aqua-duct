@@ -743,9 +743,21 @@ def coords_range_core(srange, number, rid):
         reader.set_frame(f)
         yield reader.residues_positions([rid]).next()
 
+
+coords_range_index_cache = {}
+
 def coords_range(srange, number, rid):
     # wrapper to limit number of calls to coords_range_core
-    return coords_range_core(srange, number, rid)
+    if number not in coords_range_index_cache:
+        coords_range_index_cache.update({number:{}})
+    if rid not in coords_range_index_cache[number]:
+        coords_range_index_cache[number].update({rid:FramesRangeCollection()})
+    # call get_ranges and stack array, do it in comprehension? nested function?
+    def get_coords_from_cache():
+        for sr,xr in coords_range_index_cache[number][rid].get_ranges(srange):
+            yield coords_range_core(sr,number,rid)[xr,:]
+    return np.vstack(get_coords_from_cache())    
+
 
 class FramesRangeCollection(object):
     # currently it is assumed that samrt ranges increments only are possible
