@@ -615,6 +615,9 @@ class SmartRangeFunction(object):
 
     def __repr__(self):
         return "%s(%r,%d)" % (self.__class__.__name__, self.element, self.times)
+
+    def __len__(self):
+        return self.times
     
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
@@ -633,7 +636,10 @@ class SmartRangeFunction(object):
         return self.get()[-1]
 
     def overlaps(self,srange):
-        return (self.isin(srange.first_element()) or self.isin(srange.last_element())) or (srange.isin(self.first_element()) or srange.isin(self.last_element()))
+        return (self.isin(srange.first_element()) or self.isin(srange.last_element()))
+
+    def overlaps_mutual(self,srange):
+        return self.overlaps(srange) or srange.overlaps(self)
 
     def contains(self,srange):
         # tests if srange of type SmartRange is in this range

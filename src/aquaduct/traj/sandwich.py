@@ -767,7 +767,7 @@ class FramesRangeCollection(object):
         while (srange is not None):
             for nr,sr in enumerate(self.collection):
                 # sr
-                if sr.overlaps(srange):# or srange.overlaps(sr):
+                if sr.overlaps_mutual(srange):# or srange.overlaps(sr):
                     if sr.contains(srange):
                         # case 3
                         srange = None
@@ -800,12 +800,21 @@ class FramesRangeCollection(object):
                 self.collection.append(srange)
                 srange = None
 
-    def get_sranges_ranges(self,srange):
+    def get_ranges(self,srange):
         # yield sranges from collection and appropriate ranges for these sranges
         # assumes append was already called? call it!
+        # after it is called only case 3 or 4 is possible or no overlap at all
         self.append(srange)
         for sr in self.collection:
-            if srange.overlaps(sr):
+            if sr.overlaps(srange):
+                if sr.contains(srange):
+                    # case 3
+                    yield sr,xrange(srange.first_element()-sr.first_element(),len(srange))
+                    srange = None
+                    break
+                # case 4
+                yield sr,xrange(srange.first_element()-sr.first_element(),srange.first_element()-sr.first_element()+sr.last_element()-srange.first_element()+1)
+                srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
 
 
 
