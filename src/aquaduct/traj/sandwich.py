@@ -844,7 +844,7 @@ def smooth_coords_ranges(sranges,number,rid,smooth):
         for srange in sranges:
             for srangei in srange.raw:
                 yield coords_range(srangei, number, rid)
-    coords_cont = make_default_array(np.vstack([c for c in ranges2oords_cont() if len(c) > 0]))
+    coords_cont = make_default_array(np.vstack([c for c in ranges2coords_cont() if len(c) > 0]))
     # call smooth
     coords_cont = smooth(coords_cont)
     # split coords_cont
