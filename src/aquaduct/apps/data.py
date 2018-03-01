@@ -48,28 +48,29 @@ CRIC = CoordsRangeIndexCache()
 # CIRC save in cache dir
 
 def get_cric_reader(mode='r'):
-    data_file_name = GCS.cachedir + os.path.sep + 'cric.dump'
-    if mode=='r' and not os.path.exists(data_file_name):
-        return None
-    vda = get_vda_reader(data_file_name)
-    logger.debug("Preparing CRIC store with file %s",data_file_name)
-    return vda(mode=mode,data_file_name=data_file_name)
-    
+    if GCS.cachedir:
+        data_file_name = GCS.cachedir + os.path.sep + 'cric.dump'
+        if mode=='r' and not os.path.exists(data_file_name):
+            return
+        if mode=='w' and not os.path.exists(GCS.cachedir):
+            os.makedirs(GCS.cachedir)
+        vda = get_vda_reader(data_file_name)
+        logger.debug("Preparing CRIC store with file %s",data_file_name)
+        return vda(mode=mode,data_file_name=data_file_name)
 
 def save_cric():
-    if GCS.cachedir:
-        vda = get_cric_reader(mode='w')
+    vda = get_cric_reader(mode='w')
+    if vda:
         logger.debug("Saving CRIC data.")
         vda.dump(**{"CRIC":CRIC.cache})
 
 def load_cric():
-    if GCS.cachedir:
-        vda = get_cric_reader(mode='r')
-        if vda:
-            logger.debug("Loading CRIC data.")
-            CRIC.cache = vda.load()['CRIC']
-            return
-    CRIC.cache = {}
+    vda = get_cric_reader(mode='r')
+    if vda:
+        logger.debug("Loading CRIC data.")
+        CRIC.cache = vda.load()['CRIC']
+    else:
+        CRIC.cache = {}
 
 
 ################################################################################
