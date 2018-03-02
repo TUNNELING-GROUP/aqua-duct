@@ -82,8 +82,12 @@ save        [save file name]    File name for saving results. Default value of t
                                 on the stage and for stages 1 to 4 is one of the following
                                 (listed in order):
 
-                                * 5_analysis_results.txt
-                                * 6_visualize_results.py
+                                * 5_analysis_results.txt & 5_analysis_results.txt.csv
+                                * 6_visualize_results.py & 6_visualize_results.tar.gz
+
+                                Stage 5 saves ``.txt`` file with analysis results and, if
+                                requested, it saves additional ``.csv`` with various counts of
+                                traced molecules.
 
                                 Stage 6 can save results in two file types:
 
