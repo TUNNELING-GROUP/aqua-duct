@@ -518,11 +518,6 @@ class ReaderTrajViaMDA(ReaderTraj):
         # residues ids to center of masses coordinates
         return (res.atoms.center_of_geometry() for res in
                 self.trajectory_object.residues[list(resids)])
-        '''
-        for rid in resids:
-            #yield self.trajectory_object.residues[[rid]].center_of_mass()
-            yield self.trajectory_object.residues[[rid]].center_of_geometry()
-        '''
 
     def residues_names(self, resids):
         # residues ids to center of masses coordinates
