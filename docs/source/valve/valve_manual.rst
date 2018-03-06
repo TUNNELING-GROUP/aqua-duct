@@ -103,7 +103,7 @@ Storage of coordinates for all paths for very long MD trajectories requires huge
 Sandwich
 """"""""
 
-Trajectory data can be provided as several files. By default these files are processed in sequential manner making one long trajectory. If option ``--sandwich`` is used trajectory files are read in  
+Trajectory data can be provided as several files. By default these files are processed in sequential manner making one long trajectory. If option ``--sandwich`` is used trajectory files are read as layers. For each layer, search of traceable residues is done separately (stage I and II) but processing and analysis (stage III, IV, V, and VI) are done for all paths simultaneously. Usage of ``--sandwich`` option is further referenced as *sandwich* mode.
 
 
 Debuging
@@ -114,25 +114,25 @@ Debuging
 How does *Valve* work
 ---------------------
 
-Application starts with parsing input options. If ``--help`` or ``--dump-template-config`` options are provided appropriate messages are printed on the screen and *Valve* quits with signal ``0``.
+Application starts with parsing input options. If ``--help`` or ``--dump-template-config`` options are used appropriate messages are printed on the screen and *Valve* quits with signal ``0``.
 
 .. note::
 
 	In current version *Valve* does not check the validity of the config file.
 
-If config file is provided *Valve* parse it quickly and regular calculations starts according to its content. Calculations performed by *Valve* are done in several stages described in the next sections.
+If config file is provided (option ``-c``) *Valve* parse it quickly and regular calculations starts according to its content. Calculations performed by *Valve* are done in six stages described in the next sections.
 
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-In the first stage of calculation Valve finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list.
+In the first stage of calculation *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In *sandwich* mode this is repeated for each layer.
 
-The search of the residues is done according to user provided definitions. Two requirements have to be met to append residue to the list:
+The search of *traceable residues* is done according to user provided specifications. Two requirements have to be met to append residue to the list:
 
 #. The residue has to be found according to the *object* definition.
 #. The residue has to be within the *scope* of interest.
 
-The *object* definition encompasses usually the active site of the protein. The *scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
+The *object* definition encompasses usually the active site of the protein (or other region of interest of macromolecule in question). The *scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
 
 Since :mod:`aquaduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *object* and *scope* have to be given as its *Selection Commands*.
 
@@ -161,11 +161,11 @@ Scope definition
 
 In the first case definition is very similar to *object* and it has to follow the same limitations. For example, proper *scope* definition could be following::
 
-    resname WAT around 2.0 protein
+    resname WAT and around 2.0 protein
 
 It consequently has to define ``WAT`` as residues of interest and defines spatial constrains: all ``WAT`` residues that are within 2 Angstroms of the protein.
 
-If the *scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
+If the *scope* is defined as the convex hull of selected molecular object (which is **recommended**), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
 
 Convex hulls of macromolecule atoms
 ###################################
@@ -184,12 +184,16 @@ No doubts, Convex hull is a very rough approximation of SES. It has, however, on
 Raw paths
 ^^^^^^^^^
 
-The second stage of calculations uses the list of all traceable residues from the first stage and finds coordinates of center of masses for each residue in each frame. As in the first stage, it is done in a loop over all frames. For each residue in each frame *Valve* calculates or checks two things:
+The second stage of calculations uses the list of all traceable residues from the first stage and for each residue in each frame two checks are performed:
 
 #. Is the residue in the *scope* (this is always calculated according to the scope definition).
 #. Is the residue in the *object*. This information is partially calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *object* definition.
 
-For each of the *traceable residues* a special *Path* object is created. If the residue is in the *scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *object* or not.
+For each of the *traceable residues* a special *Path* object is created which stores frames in which a residue is in *scope* or in *object*.
+
+.. note::
+
+    Residue is in *object* only if it is also in *scope*.
 
 
 Separate paths
@@ -240,11 +244,7 @@ See also :ref:`options of separate_paths <separate_paths_options>` stage.
 Smoothing
 """""""""
 
-Separate paths can be optionally smoothed. This can be done in two modes: `soft` and `hard`. In the former mode smoothed paths are used only for visualization purposes. In the latter, raw paths are replaced by smoothed.
-
-.. note::
-
-    If `hard` mode is used all further calculations are performed for smoothed paths.
+Separate paths can be optionally smoothed. Current :mod:`aquaduct` version allows perform `soft` smoothing only, ie smoothing is used only for visualization purposes. Raw paths cannot be replaced by the smoothed.
 
 Available methods
 #################
@@ -356,6 +356,11 @@ Results of the analysis are displayed on the screen or can be saved to text file
 
 * Tile and data stamp.
 * [Optional] Dump of configuration options.
+* Information of frames window used.
+* Names of traced molecules.
+    .. note::
+
+        If more than one name is on the list all consecutive sections of *Analysis* results are provided for each name separately and, as well as, for all names. 
 * Basic information on traceable residues and separate paths.
     * Number of traceable residues.
     * Number of separate paths.
@@ -363,6 +368,7 @@ Results of the analysis are displayed on the screen or can be saved to text file
     * Number of inlets.
     * Number of clusters.
     * Are outliers detected.
+* Clustering history.
 * Summary of inlets clusters. Table with 5 columns:
     #. **Nr**: Row number, starting from 0.
     #. **Cluster**: ID of the cluster. Outliers have 0.

@@ -1,5 +1,5 @@
-aquaduct\.apps package
-======================
+aquaduct.apps package
+=====================
 
 Submodules
 ----------
