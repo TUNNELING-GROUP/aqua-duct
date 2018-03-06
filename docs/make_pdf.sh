@@ -7,12 +7,12 @@ cd ~/Research/aqua-duct/docs
 
 PYTHON=python2.7
 
-SPHINX_APIDOC="$PYTHON sphinx-apidoc"
+SPHINX_APIDOC="sphinx-apidoc"
 if [ -x ~/.local/bin/sphinx-apidoc ]
 then
     SPHINX_APIDOC="$PYTHON $HOME/.local/bin/sphinx-apidoc"
 fi
-SPHINXBUILD="$PYTHON sphinx-build"
+SPHINXBUILD="sphinx-build"
 if [ -x ~/.local/bin/sphinx-build ]
 then
     SPHINXBUILD="$PYTHON $HOME/.local/bin/sphinx-build"
