@@ -263,14 +263,6 @@ class ValveDataAccess_pickle(ValveDataAccess):
         return data
 
     def dump(self, **kwargs):
-        '''
-        # to mimic v0.3 behaviour do following:
-        for key, value in kwargs.iteritems():
-            if isinstance(value, SelectionMDA):
-                # value = CompactSelectionMDA(value)
-                kwargs.update({key: CompactSelectionMDA(value)})
-        #self.set_variable(self.mimic_old_var_name, kwargs)
-        '''
         for name, value in kwargs.iteritems():
             self.set_variable(name, value)
 

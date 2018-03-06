@@ -1,5 +1,5 @@
-aquaduct.utils.helpers module
-=============================
+aquaduct\.utils\.helpers module
+===============================
 
 .. automodule:: aquaduct.utils.helpers
     :members:

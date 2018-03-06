@@ -1,5 +1,5 @@
-aquaduct.traj.dumps module
-==========================
+aquaduct\.traj\.dumps module
+============================
 
 .. automodule:: aquaduct.traj.dumps
     :members:

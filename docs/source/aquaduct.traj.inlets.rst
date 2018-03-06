@@ -1,5 +1,5 @@
-aquaduct.traj.inlets module
-===========================
+aquaduct\.traj\.inlets module
+=============================
 
 .. automodule:: aquaduct.traj.inlets
     :members:

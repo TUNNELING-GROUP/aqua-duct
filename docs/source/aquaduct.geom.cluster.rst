@@ -1,5 +1,5 @@
-aquaduct.geom.cluster module
-============================
+aquaduct\.geom\.cluster module
+==============================
 
 .. automodule:: aquaduct.geom.cluster
     :members:

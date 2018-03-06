@@ -1,5 +1,5 @@
-aquaduct.traj.sandwich module
-=============================
+aquaduct\.traj\.sandwich module
+===============================
 
 .. automodule:: aquaduct.traj.sandwich
     :members:
