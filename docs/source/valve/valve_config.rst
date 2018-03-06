@@ -153,7 +153,7 @@ clear_in_object_info    False           If it is set to ``True`` information on 
 Stage **separate_paths**
 ------------------------
 
-.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.0cm}|
+.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|
 
 ========================    ==============  ================================================================
 Option                      Default value   Description
@@ -196,6 +196,8 @@ allow_passing_paths         False           If set ``True`` paths that do not en
 Stage **inlets_clusterization**
 -------------------------------
 
+.. tabularcolumns:: |p{5.0cm}|p{2.5cm}|p{7.1cm}|
+
 ==================================  ==============  ================================================================
 Option                              Default value   Description
 ==================================  ==============  ================================================================
@@ -223,6 +225,8 @@ add_passing_to_clusters             None            Allows to run procedure for 
 Stage **analysis**
 ------------------
 
+.. tabularcolumns:: |p{4.5cm}|p{2.5cm}|p{7.6cm}|
+
 ==============================  ==============  ================================================================
 Option                          Default value   Description
 ==============================  ==============  ================================================================
@@ -241,7 +245,7 @@ object_chull                    None            Object convex hull definition us
 Stage **visualize**
 -------------------
 
-.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|
 
 .. table::
     :class: longtable
@@ -254,13 +258,12 @@ Stage **visualize**
                                                     not (or almost do not) change the shape of smooth path.
                                                     Possible choices are:
 
-                                                    * ``RecursiveVector``
-                                                      (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
-                                                    * ``HobbitVector`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
-                                                    * ``OneWayVector`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
-                                                    * ``RecursiveTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
-                                                    * ``HobbitTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
-                                                    * ``OneWayTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
+                                                    * ``RecursiveVector`` (:class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
+                                                    * ``HobbitVector`` (:class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
+                                                    * ``OneWayVector`` (:class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
+                                                    * ``RecursiveTriangle`` (:class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
+                                                    * ``HobbitTriangle`` (:class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
+                                                    * ``OneWayTriangle`` (:class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
 
                                                     Optionally name of the method can be followed by a threshold
                                                     value in parentheses, ie ``RecursiveVector(0.05)``. For sane
@@ -345,7 +348,7 @@ Clusterization sections
 
 Default section for definition of clusterization method is named **clusterization** and default section for reclusterization method definition is named **reclusterization**. All clusterization sections shares some common options. Other options depends on the method.
 
-.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.6cm}|
 
 =========================   =============== ================================================================
 Option                      Default value   Description
@@ -379,7 +382,7 @@ barber
 Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** Stage settings or according to parameters given in clausterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped in to clusters. Method **barber** supports the same settings as Auto Barber settings:
 
 
-.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.0cm}|
+.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|
 
 ========================    ==============  ================================================================
 Option                      Value type      Description
@@ -406,7 +409,7 @@ dbscan
 
 For detailed description look at :class:`sklearn.cluster.DBSCAN` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -439,7 +442,7 @@ affprop
 
 For detailed description look at :class:`~sklearn.cluster.AffinityPropagation` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -457,7 +460,7 @@ meanshift
 
 For detailed description look at :class:`~sklearn.cluster.MeanShift` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -480,7 +483,7 @@ birch
 
 For detailed description look at :class:`~sklearn.cluster.Birch` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -500,7 +503,7 @@ kmeans
 
 For detailed description look at :class:`~sklearn.cluster.KMeans` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -525,7 +528,7 @@ Smooth section
 
 Section **smooth** supports following options:
 
-.. tabularcolumns:: |p{2.0cm}|p{2.0cm}|p{10.5cm}|
+.. tabularcolumns:: |p{2.0cm}|p{2.0cm}|p{10.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description

@@ -7,7 +7,7 @@
 *Valve* invocation
 ------------------
 
-Once :mod:`aquaduct` module is installed (see :doc:`../aquaduct_install`) properly on the machine *Valve* is available as ``valve.py`` command line tool.
+Once :mod:`aquaduct` module is installed (see :doc:`../aquaduct_install`) properly on the machine, *Valve* is available as ``valve.py`` command line tool.
 
 Usage
 ^^^^^
@@ -18,33 +18,39 @@ Basic help of *Valve* usage can be displayed by following command::
 
 It should display following information::
 
-   usage: valve.py [-h] [--debug] [--debug-file DEBUG_FILE]
-                   [--dump-template-config] [-t THREADS] [-c CONFIG_FILE] [--sps]
-                   [--max-frame MAX_FRAME] [--min-frame MIN_FRAME]
-                   [--step-frame STEP_FRAME] [--version] [--license]
+    usage: valve.py [-h] [--debug] [--debug-file DEBUG_FILE]
+                    [--dump-template-config] [-t THREADS] [-c CONFIG_FILE] [--sps]
+                    [--max-frame MAX_FRAME] [--min-frame MIN_FRAME]
+                    [--step-frame STEP_FRAME] [--sandwich] [--cache-dir CACHEDIR]
+                    [--cache-mem] [--version] [--license]
 
-   Valve, Aquaduct driver
+    Valve, Aquaduct driver
 
-   optional arguments:
-     -h, --help            show this help message and exit
-     --debug               Prints debug info. (default: False)
-     --debug-file DEBUG_FILE
-                           Debug log file. (default: None)
-     --dump-template-config
-                           Dumps template config file. Suppress all other output
-                           or actions. (default: False)
-     -t THREADS            Limit Aqua-Duct calculations to given number of
-                           threads. (default: None)
-     -c CONFIG_FILE        Config file filename. (default: None)
-     --sps                 Use single precision to store data. (default: False)
-     --max-frame MAX_FRAME
-                           Maximal number of frame. (default: None)
-     --min-frame MIN_FRAME
-                           Minimal number of frame. (default: None)
-     --step-frame STEP_FRAME
-                           Frames step. (default: None)
-     --version             Prints versions and exits. (default: False)
-     --license             Prints short license info and exits. (default: False)
+    optional arguments:
+      -h, --help            show this help message and exit
+      --debug               Prints debug info. (default: False)
+      --debug-file DEBUG_FILE
+                            Debug log file. (default: None)
+      --dump-template-config
+                            Dumps template config file. Suppress all other output
+                            or actions. (default: False)
+      -t THREADS            Limit Aqua-Duct calculations to given number of
+                            threads. (default: None)
+      -c CONFIG_FILE        Config file filename. (default: None)
+      --sps                 Use single precision to store data. (default: False)
+      --max-frame MAX_FRAME
+                            Maximal number of frame. (default: None)
+      --min-frame MIN_FRAME
+                            Minimal number of frame. (default: None)
+      --step-frame STEP_FRAME
+                            Frames step. (default: None)
+      --sandwich            Sandwich mode for multiple trajectories. (default:
+                            False)
+      --cache-dir CACHEDIR  Directory for coordinates caching. (default: None)
+      --cache-mem           Switch on memory caching. (default: False)
+      --version             Prints versions and exits. (default: False)
+      --license             Prints short license info and exits. (default: False)
+
 
 Configuration file template
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,6 +91,19 @@ Single precision storage
 
 Most of the calculation is *Valve* is performed by NumPy. By default, NumPy uses double precision floats.
 *Valve* does not change this behavior but has special option ``--sps`` which forces to store all data (both internal data stored in RAM and on the disk) in single precision. This spare a lot of RAM and is recommended what you perform calculation for long trajectories and you have limited amount of RAM.
+
+Cache
+"""""
+Storage of coordinates for all paths for very long MD trajectories requires huge amount of RAM. User can decide whether :mod:`aquaduct` should store coordinetes in memory or in separated directory. Option ``--cache-mem`` instruct *Valve* to store cooridnates in RAM; ``--cache-dir`` stores coordinates in selected direcotry. If neither of both options is selected, coordinates are calculated on demad.
+
+.. note::
+
+    If no cache is used (memory or dir) :ref:`master_paths_manual` cannot be calculated. 
+
+Sandwich
+""""""""
+
+
 
 Debuging
 """"""""
@@ -282,6 +301,8 @@ Aqua-Duct implements several clustering methods. The recommended method is **bar
 
 
 For additional information see :ref:`clusterization sections <clusterization_options>` options.
+
+.. _master_paths_manual:
 
 Master paths
 """"""""""""
