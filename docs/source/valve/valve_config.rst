@@ -31,7 +31,7 @@ top     None            Path to topology file. Aqua-Duct supports PDB, PRMTOP, P
 trj     None            Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.
 ======  =============   ==========================================================================
 
-Option **trj** can be used to provide list of trajectory files separated by standard path separator ``:`` on POSIX platforms and ``;`` on Windows - see :mod:`os.pathsep`.
+Option **trj** can be used to provide list of trajectory files separated by standard path separator ``:`` on POSIX platforms and ``;`` on Windows - see :py:attr:`os.pathsep`.
 
 .. note::
 
