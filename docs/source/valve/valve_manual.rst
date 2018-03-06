@@ -103,6 +103,7 @@ Storage of coordinates for all paths for very long MD trajectories requires huge
 Sandwich
 """"""""
 
+Trajectory data can be provided as several files. 
 
 
 Debuging
