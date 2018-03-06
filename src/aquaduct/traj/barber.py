@@ -74,7 +74,7 @@ class WhereToCut(ReaderAccess):
                  forceempty=False):
         '''
         :param list spaths: List of :class:`aquaduct.traj.paths.SinglePath` objects.
-        :param int expected_nr_of_spaths: Number of spaths passed as :arg:`spaths`. Requilred when length of :arg:`spaths` cannod be calculated, eg when it is a generator..
+        :param int expected_nr_of_spaths: Number of spaths passed. Requilred when length of spaths cannod be calculated, eg when it is a generator.
         :param str selection: Selection string of molecular object used for spheres generation.
         :param float mincut: Value of *mincut* parameter.
         :param float maxcut: Value of *maxcut* parameter.

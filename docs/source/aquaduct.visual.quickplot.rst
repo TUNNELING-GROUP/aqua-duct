@@ -1,5 +1,5 @@
-aquaduct.visual.quickplot module
-================================
+aquaduct\.visual\.quickplot module
+==================================
 
 .. automodule:: aquaduct.visual.quickplot
     :members:

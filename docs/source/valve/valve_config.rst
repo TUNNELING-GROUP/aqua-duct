@@ -31,7 +31,7 @@ top     None            Path to topology file. Aqua-Duct supports PDB, PRMTOP, P
 trj     None            Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.
 ======  =============   ==========================================================================
 
-Option **trj** can be used to provide list of trajectory files separated by standard path separator ``:`` on POSIX platforms and ``;`` on Windows - see :mod:`os.pathsep`.
+Option **trj** can be used to provide list of trajectory files separated by standard path separator '``:``' on POSIX platforms and '``;``' on Windows - see :obj:`os.pathsep`.
 
 .. note::
 
@@ -53,7 +53,7 @@ execute     runonce             Option controls stage execution. It can have one
                                 calculations are always performed and if **dump** is set dump file
                                 is saved. If it is set to ``runonce`` calculations are performed
                                 if there is no dump file specified by **dump** option. If it is
-                                present calculations are skiped and data is loaded from the file.
+                                present calculations are skipped and data is loaded from the file.
                                 If it is set to ``skip`` calculations are skip and if **dump**
                                 is set data is loaded from the file.
 dump        [dump file name]    File name of dump data. It is used to save results of calculations
@@ -160,11 +160,11 @@ Option                      Default value   Description
 ========================    ==============  ================================================================
 discard_empty_paths         True            If set to ``True`` empty paths are discarded.
 sort_by_id                  True            If set to ``True`` separate paths are sorted by ID. Otherwise
-                                            they are sorted in order of apparance.
-discard_short_paths         20              This option allows to discard paths wich are shorter than the
+                                            they are sorted in order of appearance.
+discard_short_paths         20              This option allows to discard paths which are shorter than the
                                             threshold which is defined as total number of frames.
 discard_short_object        2.0             This option allows to discard paths which objects are shorter
-                                            than the threshold which is defined as total lenght in metric
+                                            than the threshold which is defined as total length in metric
                                             units.
 discard_short_logic         or              If both ``discard_short_paths`` and ``discard_short_object``
                                             options are used, this option allows to set combination logic.

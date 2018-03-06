@@ -1,5 +1,5 @@
-aquaduct.utils.maths module
-===========================
+aquaduct\.utils\.maths module
+=============================
 
 .. automodule:: aquaduct.utils.maths
     :members:

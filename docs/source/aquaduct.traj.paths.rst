@@ -1,5 +1,5 @@
-aquaduct.traj.paths module
-==========================
+aquaduct\.traj\.paths module
+============================
 
 .. automodule:: aquaduct.traj.paths
     :members:

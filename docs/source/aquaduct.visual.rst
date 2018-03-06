@@ -1,5 +1,5 @@
-aquaduct.visual package
-=======================
+aquaduct\.visual package
+========================
 
 Submodules
 ----------

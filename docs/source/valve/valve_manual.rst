@@ -94,7 +94,7 @@ Most of the calculation is *Valve* is performed by NumPy. By default, NumPy uses
 
 Cache
 """""
-Storage of coordinates for all paths for very long MD trajectories requires huge amount of RAM. User can decide whether :mod:`aquaduct` should store coordinetes in memory or in separated directory. Option ``--cache-mem`` instruct *Valve* to store cooridnates in RAM; ``--cache-dir`` stores coordinates in selected direcotry. If neither of both options is selected, coordinates are calculated on demad.
+Storage of coordinates for all paths for very long MD trajectories requires huge amount of RAM. User can decide whether :mod:`aquaduct` should store coordinates in memory or in separated directory. Option ``--cache-mem`` instruct *Valve* to store coordinates in RAM; ``--cache-dir`` stores coordinates in selected directory. If neither of both options is selected, coordinates are calculated on demand.
 
 .. note::
 
@@ -103,7 +103,7 @@ Storage of coordinates for all paths for very long MD trajectories requires huge
 Sandwich
 """"""""
 
-Trajectory data can be provided as several files. 
+Trajectory data can be provided as several files. By default these files are processed in sequential manner making one long trajectory. If option ``--sandwich`` is used trajectory files are read in  
 
 
 Debuging
