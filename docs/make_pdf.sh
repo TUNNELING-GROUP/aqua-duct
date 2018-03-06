@@ -1,5 +1,8 @@
 #!/bin/sh
 
+cd ~/Research/aqua-duct/docs
+
+
 ./make_html.sh
 
 PYTHON=python2.7
