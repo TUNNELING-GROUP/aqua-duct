@@ -43,7 +43,7 @@ Common settings of stage sections
 
 Stages 1-4 which perform calculations have some common options allowing for execution control and saving/loading data.
 
-.. tabularcolumns:: |p{1.5cm}|p{3cm}|p{10cm}|
+.. tabularcolumns:: |p{1.0cm}|p{2.5cm}|p{11.1cm}|
 
 ========    =================   ===================================================================
 Option      Default value       Description
@@ -69,7 +69,7 @@ dump        [dump file name]    File name of dump data. It is used to save resul
 
 Stages 5-6 also uses **execute** option, however, since they do not perform calculations `per se` in stead of **dump** option they use **save**.
 
-.. tabularcolumns:: |p{1.5cm}|p{3cm}|p{10cm}|
+.. tabularcolumns:: |p{1.0cm}|p{2.5cm}|p{11.1cm}|
 
 ========    =================   ===================================================================
 Option      Default value       Description
@@ -89,7 +89,7 @@ save        [save file name]    File name for saving results. Default value of t
                                 requested, it saves additional ``.csv`` with various counts of
                                 traced molecules.
 
-                                Stage 6 can save results in two file types:
+                                Stage 6 can save results in two different ways:
 
                                 #. As Python script - extension ``.py`` plus companion archive
                                    ``.tar.gz``,
@@ -100,12 +100,17 @@ save        [save file name]    File name for saving results. Default value of t
 Stage **traceable_residues**
 ----------------------------
 
+.. tabularcolumns:: |p{3.0cm}|p{2.5cm}|p{9.1cm}|
+
 =================   ==============  ================================================================
 Option              Default value   Description
 =================   ==============  ================================================================
 scope               None            Definition of *Scope* of interest. See also
                                     :ref:`scope_definition`.
-scope_convexhull    True            Flag to set if the *Scope* is direct or convex hull definition.
+scope_convexhull    True            Flag to set if *Scope* is direct or convex hull definition.
+scope_everyframe    False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
+                                    evaluated in every frame. This make sense if the definition is
+                                    complex and depends on distances between molecular entities.
 object              None            Definition of *Object* of interest. See also
                                     :ref:`object_definition`.
 =================   ==============  ================================================================
@@ -121,7 +126,7 @@ Stage **raw_paths**
 
 This stage also requires definition of the *Scope* and *Object*. If appropriate settings are not given, settings from the previous stage are used.
 
-.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+.. tabularcolumns:: |p{3.0cm}|p{2.5cm}|p{9.1cm}|
 
 =====================   ==============  ================================================================
 Option                  Default value   Description
@@ -130,6 +135,9 @@ scope                   None            Definition of *Scope* of interest. See a
                                         :ref:`scope_definition`. If ``None`` value form previous stage
                                         is used.
 scope_convexhull        None            Flag to set if the *Scope* is direct or convex hull definition.
+scope_everyframe        False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
+                                        evaluated in every frame. This make sense if the definition is
+                                        complex and depends on distances between molecular entities.
                                         If ``None`` value form previous stage is used.
 object                  None            Definition of *Object* of interest. See also
                                         :ref:`object_definition`. If ``None`` value form the previous
@@ -145,7 +153,7 @@ clear_in_object_info    False           If it is set to ``True`` information on 
 Stage **separate_paths**
 ------------------------
 
-.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.0cm}|
+.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|
 
 ========================    ==============  ================================================================
 Option                      Default value   Description
@@ -153,38 +161,42 @@ Option                      Default value   Description
 discard_empty_paths         True            If set to ``True`` empty paths are discarded.
 sort_by_id                  True            If set to ``True`` separate paths are sorted by ID. Otherwise
                                             they are sorted in order of apparance.
-apply_smoothing             False           If set to ``True`` smooth paths are precalculated according to
-                                            **smooth** setting. This speeds up access to smooth paths in
-                                            later stages but makes dump data much bigger.
-apply_soft_smoothing        True            If set to ``True`` raw paths are replaced by smooth paths
-                                            calculated according to **smooth** section.
-discard_short_paths         1               This option allows to discard paths that are shorter than the
-                                            threshold.
-allow_passing_paths         False           If set to ``True`` Passing Paths are generated.
+discard_short_paths         20              This option allows to discard paths wich are shorter than the
+                                            threshold which is defined as total number of frames.
+discard_short_object        2.0             This option allows to discard paths which objects are shorter
+                                            than the threshold which is defined as total lenght in metric
+                                            units.
+discard_short_logic         or              If both ``discard_short_paths`` and ``discard_short_object``
+                                            options are used, this option allows to set combination logic.
+                                            If it is set ``or`` a path is discarded if any of discard
+                                            criterion is met. If it is set ``and`` both criteria have to
+                                            be met to discard path.
 auto_barber                 None            This option allows to select molecular entity used in Auto
                                             Barber procedure. See also :ref:`auto_barber_procedure` and
                                             :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
 auto_barber_mincut          None            Minimal radius of spheres used in Auto Barber. If a sphere has
                                             radius smaller then this value it is not used in AutoBarber
                                             procedure. This option can be switched off by setting it to
-                                            `None`.
+                                            ``None``.
 auto_barber_maxcut          2.8             Maximal radius of spheres used in Auto Barber. If a sphere has
                                             radius greater then this value it is not used in AutoBarber
                                             procedure. This option can be switched off by setting it to
-                                            `None`.
-auto_barber_mincut_level    True            If set `True` spheres of radius smaller than **mincut** are
+                                            ``None``.
+auto_barber_mincut_level    True            If set ``True`` spheres of radius smaller than **mincut** are
                                             resized to **mincut** value.
-auto_barber_maxcut_level    True            If set `True` spheres of radius greater than **maxcut** are
+auto_barber_maxcut_level    True            If set ``True`` spheres of radius greater than **maxcut** are
                                             resized to **maxcut** value.
 auto_barber_tovdw           True            Correct cutting sphere by decreasing its radius by VdW radius
                                             of the closest atom.
-allow_passing_paths         False           If set `True` paths that do not enter the object are detected
+allow_passing_paths         False           If set ``True`` paths that do not enter the object are detected
                                             and added to the rest of paths as 'passing' paths.
 ========================    ==============  ================================================================
 
 
 Stage **inlets_clusterization**
 -------------------------------
+
+.. tabularcolumns:: |p{5.0cm}|p{2.5cm}|p{7.1cm}|
 
 ==================================  ==============  ================================================================
 Option                              Default value   Description
@@ -213,6 +225,8 @@ add_passing_to_clusters             None            Allows to run procedure for 
 Stage **analysis**
 ------------------
 
+.. tabularcolumns:: |p{4.5cm}|p{2.5cm}|p{7.6cm}|
+
 ==============================  ==============  ================================================================
 Option                          Default value   Description
 ==============================  ==============  ================================================================
@@ -231,7 +245,7 @@ object_chull                    None            Object convex hull definition us
 Stage **visualize**
 -------------------
 
-.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|
 
 .. table::
     :class: longtable
@@ -244,13 +258,12 @@ Stage **visualize**
                                                     not (or almost do not) change the shape of smooth path.
                                                     Possible choices are:
 
-                                                    * ``RecursiveVector``
-                                                      (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
-                                                    * ``HobbitVector`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
-                                                    * ``OneWayVector`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
-                                                    * ``RecursiveTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
-                                                    * ``HobbitTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
-                                                    * ``OneWayTriangle`` (see  :class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
+                                                    * ``RecursiveVector`` (:class:`~aquaduct.geom.traces.LinearizeRecursiveVector`),
+                                                    * ``HobbitVector`` (:class:`~aquaduct.geom.traces.LinearizeHobbitVector`),
+                                                    * ``OneWayVector`` (:class:`~aquaduct.geom.traces.LinearizeOneWayVector`),
+                                                    * ``RecursiveTriangle`` (:class:`~aquaduct.geom.traces.LinearizeRecursiveTriangle`),
+                                                    * ``HobbitTriangle`` (:class:`~aquaduct.geom.traces.LinearizeHobbitTriangle`),
+                                                    * ``OneWayTriangle`` (:class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
 
                                                     Optionally name of the method can be followed by a threshold
                                                     value in parentheses, ie ``RecursiveVector(0.05)``. For sane
@@ -335,7 +348,7 @@ Clusterization sections
 
 Default section for definition of clusterization method is named **clusterization** and default section for reclusterization method definition is named **reclusterization**. All clusterization sections shares some common options. Other options depends on the method.
 
-.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.5cm}|
+.. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.6cm}|
 
 =========================   =============== ================================================================
 Option                      Default value   Description
@@ -369,7 +382,7 @@ barber
 Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** Stage settings or according to parameters given in clausterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped in to clusters. Method **barber** supports the same settings as Auto Barber settings:
 
 
-.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.0cm}|
+.. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|
 
 ========================    ==============  ================================================================
 Option                      Value type      Description
@@ -396,7 +409,7 @@ dbscan
 
 For detailed description look at :class:`sklearn.cluster.DBSCAN` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -429,7 +442,7 @@ affprop
 
 For detailed description look at :class:`~sklearn.cluster.AffinityPropagation` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -447,7 +460,7 @@ meanshift
 
 For detailed description look at :class:`~sklearn.cluster.MeanShift` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -470,7 +483,7 @@ birch
 
 For detailed description look at :class:`~sklearn.cluster.Birch` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -490,7 +503,7 @@ kmeans
 
 For detailed description look at :class:`~sklearn.cluster.KMeans` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
 
-.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.5cm}|
+.. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description
@@ -515,7 +528,7 @@ Smooth section
 
 Section **smooth** supports following options:
 
-.. tabularcolumns:: |p{2.0cm}|p{2.0cm}|p{10.5cm}|
+.. tabularcolumns:: |p{2.0cm}|p{2.0cm}|p{10.6cm}|
 
 =========================   =============== ================================================================
 Option                      Value type      Description

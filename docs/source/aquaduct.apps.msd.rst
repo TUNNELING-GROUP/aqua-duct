@@ -1,5 +1,5 @@
-aquaduct\.apps\.msd module
-==========================
+aquaduct.apps.msd module
+========================
 
 .. automodule:: aquaduct.apps.msd
     :members:

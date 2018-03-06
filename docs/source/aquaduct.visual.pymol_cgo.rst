@@ -1,5 +1,5 @@
-aquaduct\.visual\.pymol\_cgo module
-===================================
+aquaduct.visual.pymol_cgo module
+================================
 
 .. automodule:: aquaduct.visual.pymol_cgo
     :members:

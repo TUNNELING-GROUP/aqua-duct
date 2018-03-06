@@ -1,5 +1,5 @@
-aquaduct\.visual\.helpers module
-================================
+aquaduct.visual.helpers module
+==============================
 
 .. automodule:: aquaduct.visual.helpers
     :members:

@@ -118,7 +118,7 @@ Other systems may require additional work, in particular installation of NetCDF4
     sudo python setup.py install
 
     # install MDAnalysis
-    sudo pip install "MDAnalysis[amber]>=0.15"
+    sudo pip install "MDAnalysis[amber]==0.16.2"
 
 If everything went fine you can follow generic instructions.
 
