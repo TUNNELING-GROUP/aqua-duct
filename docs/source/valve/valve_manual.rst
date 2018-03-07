@@ -382,8 +382,29 @@ Results of the analysis are displayed on the screen or can be saved to text file
         #. **N**: Number of separate paths that:
             * Enter the scope by this cluster and stays in the object, or
             * Leaves the scope by this cluster after staying in the object.
+        #. **IN-OUT_prob**: Probability of **IN-OUT**.
+        #. **diff_prob**: Probability of **diff**.
+        #. **N_prob**: Probability of **N**.
+    * Mean lengths of transfers. Table with 8 columns:
+        #. **Cluster**: ID of the cluster. Outliers have 0.
+        #. **X->Obj**: Mean length of separate paths leading from this cluster to the object.
+        #. **Obj->X**: Mean length of separate paths leading from the object to this cluster.
+        #. **p-value**: p-value of ttest of comparing **X->Obj** and **Obj->X**.
+        #. **X->ObjMin**: Minimal value of length of separate paths leading from this cluster to the object.
+        #. **X->ObjMinID**: ID of separate path for which **X->ObjMin** was calculated.
+        #. **Obj->XMin**: Minimal value of length of separate paths leading from the object to this cluster.
+        #. **Obj->XMinID**: ID of separate path for which **Obj->XMin** was calculated.
+    * Mean frames numbers of transfers. Table with 8 columns:
+        #. **Cluster**: ID of the cluster. Outliers have 0.
+        #. **X->Obj**: Mean number of frames of separate paths leading from this cluster to the object.
+        #. **Obj->X**: Mean number of frames of separate paths leading from the object to this cluster.
+        #. **p-value**: p-value of ttest of comparing **X->Obj** and **Obj->X**.
+        #. **X->ObjMin**: Minimal value of number of frames of separate paths leading from this cluster to the object.
+        #. **X->ObjMinID**: ID of separate path for which **X->ObjMin** was calculated.
+        #. **Obj->XMin**: Minimal value of number of frames of separate paths leading from the object to this cluster.
+        #. **Obj->XMinID**: ID of separate path for which **Obj->XMin** was calculated.
 
-        
+
         
 * Summary of separate paths clusters types. Table with 9 columns.
     #. **Nr**: Row number, starting from 0.
