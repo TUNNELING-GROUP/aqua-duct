@@ -1,5 +1,5 @@
-aquaduct.geom.traces module
-===========================
+aquaduct\.geom\.traces module
+=============================
 
 .. automodule:: aquaduct.geom.traces
     :members:

@@ -356,25 +356,35 @@ Results of the analysis are displayed on the screen or can be saved to text file
 
 * Tile and data stamp.
 * [Optional] Dump of configuration options.
-* Information of frames window used.
+* Frames window.
 * Names of traced molecules.
     .. note::
 
         If more than one name is on the list all consecutive sections of *Analysis* results are provided for each name separately and, as well as, for all names. 
-* Basic information on traceable residues and separate paths.
-    * Number of traceable residues.
-    * Number of separate paths.
-* Basic information on inlets.
-    * Number of inlets.
-    * Number of clusters.
-    * Are outliers detected.
-* Clustering history.
-* Summary of inlets clusters. Table with 5 columns:
-    #. **Nr**: Row number, starting from 0.
-    #. **Cluster**: ID of the cluster. Outliers have 0.
-    #. **Size**: Size of the cluster.
-    #. **INCOMING**: Number of inlets corresponding to separate paths that enter the scope.
-    #. **OUTGOING**: Number of inlets corresponding to separate paths that leave the scope.
+* Number of traceable residues.
+* Number of separate paths.
+* Number of inlets.
+* Number of clusters.
+    * Outliers flag, *yes* if they present.
+* Clusters summary - inlets.
+    * Summary of inlets' clusters. Table with 4 columns:
+        #. **Cluster**: ID of the cluster. Outliers have 0.
+        #. **Size**: Size of the cluster.
+        #. **INCOMING**: Number of inlets corresponding to separate paths that enter the scope.
+        #. **OUTGOING**: Number of inlets corresponding to separate paths that leave the scope.
+* Cluster statistics.
+    * Probabilities of transfers. Table with 7 columns:
+        #. **Cluster**: ID of the cluster. Outliers have 0.
+        #. **IN-OUT**: Number of separate paths that both enter and leave the scope by this cluster.
+        #. **diff**: Number of separate paths that:
+            * Enter the scope by this cluster but leave the scope by another cluster, or
+            * Enter the scope by another cluster but leave the scope by this cluster.
+        #. **N**: Number of separate paths that:
+            * Enter the scope by this cluster and stays in the object, or
+            * Leaves the scope by this cluster after staying in the object.
+
+        
+        
 * Summary of separate paths clusters types. Table with 9 columns.
     #. **Nr**: Row number, starting from 0.
     #. **CType**: Separate path Cluster Type.
