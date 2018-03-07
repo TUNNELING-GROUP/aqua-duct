@@ -1,5 +1,5 @@
-aquaduct.geom.smooth module
-===========================
+aquaduct\.geom\.smooth module
+=============================
 
 .. automodule:: aquaduct.geom.smooth
     :members:

@@ -1,5 +1,5 @@
-aquaduct.apps.data module
-=========================
+aquaduct\.apps\.data module
+===========================
 
 .. automodule:: aquaduct.apps.data
     :members:
