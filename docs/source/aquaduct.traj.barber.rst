@@ -1,5 +1,5 @@
-aquaduct\.traj\.barber module
-=============================
+aquaduct.traj.barber module
+===========================
 
 .. automodule:: aquaduct.traj.barber
     :members:

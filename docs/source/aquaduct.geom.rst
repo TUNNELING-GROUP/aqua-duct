@@ -1,5 +1,5 @@
-aquaduct\.geom package
-======================
+aquaduct.geom package
+=====================
 
 Submodules
 ----------

@@ -1,5 +1,5 @@
-aquaduct\.geom\.master module
-=============================
+aquaduct.geom.master module
+===========================
 
 .. automodule:: aquaduct.geom.master
     :members:
