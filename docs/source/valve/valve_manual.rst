@@ -403,13 +403,10 @@ Results of the analysis are displayed on the screen or can be saved to text file
         #. **X->ObjMinID**: ID of separate path for which **X->ObjMin** was calculated.
         #. **Obj->XMin**: Minimal value of number of frames of separate paths leading from the object to this cluster.
         #. **Obj->XMinID**: ID of separate path for which **Obj->XMin** was calculated.
-
-
-        
-* Summary of separate paths clusters types. Table with 9 columns.
-    #. **Nr**: Row number, starting from 0.
+* Separate paths clusters types summary. Table with 10 columns.
     #. **CType**: Separate path Cluster Type.
     #. **Size**: Number of separate paths belonging to Cluster type.
+    #. **Size%**: Percentage of **Size** realtive to the total number of separate paths.
     #. **Tot**: Average total length of the path.
     #. **TotStd**: Standard deviation of length Tot.
     #. **Inp**: Average length of incoming part of the path. If no incoming part is available it is NaN (not a number).
@@ -418,8 +415,7 @@ Results of the analysis are displayed on the screen or can be saved to text file
     #. **ObjStd**: Standard deviation of length Inp.
     #. **Out**: Average length of outgoing part of the path. If no incoming part is available it is NaN.
     #. **OutStd**: Standard deviation of length Inp.
-* List of separate paths and their properties. Table with 17 columns.
-    #. **Nr**: - Row number, starting from 0.
+* List of separate paths and their properties. Table with 20 columns.
     #. **ID**: - Separate path ID.
     #. **RES**: - Residue name.
     #. **BeginF**: Number of frame in which the path begins.
