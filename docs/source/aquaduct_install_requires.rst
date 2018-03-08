@@ -1,4 +1,4 @@
-* Python 2.7 (CPython implementation)
+aquaduct
     * numpy >= 1.10.0
     * scipy >= 0.17.1
     * scikit-learn >= 0.16.0

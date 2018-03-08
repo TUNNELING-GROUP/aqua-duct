@@ -84,7 +84,7 @@ master_doc = 'index'
 import aquaduct
 project = u'Aqua-Duct'
 author = aquaduct.__author_doc__
-copyright = u'2016, 2017, ' + unicode(author)
+copyright = u'2016, 2017, 2018 ' + unicode(author)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -231,7 +231,8 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-'preamble': '\usepackage{longtable}',
+'preamble': '''\usepackage{longtable}\usepackage{enumitem}\setlistdepth{99}
+''',
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

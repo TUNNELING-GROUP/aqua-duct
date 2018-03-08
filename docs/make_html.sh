@@ -1,15 +1,15 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 PYTHON=python2.7
 
 # this builds current
 
-SPHINX_APIDOC="$PYTHON sphinx-apidoc"
+SPHINX_APIDOC="sphinx-apidoc"
 if [ -x ~/.local/bin/sphinx-apidoc ]
 then
     SPHINX_APIDOC="$PYTHON $HOME/.local/bin/sphinx-apidoc"
 fi
-SPHINXBUILD="$PYTHON sphinx-build"
+SPHINXBUILD="sphinx-build"
 if [ -x ~/.local/bin/sphinx-build ]
 then
     SPHINXBUILD="$PYTHON $HOME/.local/bin/sphinx-build"
@@ -61,10 +61,10 @@ sed -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.template.rst > source/aquad
 
 # AQ installation requirements
 echo "* Python 2.7 (CPython implementation)" > source/aquaduct_install_requires.rst
-printf 'install_requires_nice(1)' | python2.7 -i ../src/setup.py -n --name | sed '1d' 2>&1 >> source/aquaduct_install_requires.rst | cat > /dev/null
+printf 'install_requires_nice(1)' | python2.7 -i ../src/setup.py -n --name 2> /dev/null > source/aquaduct_install_requires.rst
 
 rm -rf -- build/html*
-$MAKE SPHINXBUILD="$SPHINXBUILD" html
+$MAKE SPHINXBUILD="$SPHINXBUILD" html 
 
 # rework links to other resources
 #find build/html/ -iname '*.html' -exec sed -i 's/localhost/'$( hostname )'/g' {} +
