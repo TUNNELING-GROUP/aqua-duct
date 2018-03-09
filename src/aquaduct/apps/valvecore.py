@@ -1389,9 +1389,11 @@ def stage_IV_run(config, options,
     assert max_level >= 0
 
     # new style clustering
-    with clui.fbm("Create inlets"):
-        # here we can check center of system
-        inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clusterization)
+    #with clui.fbm("Create inlets"):
+    # here we can check center of system
+    pbar = clui.SimpleProgressBar(maxval=len(spaths),mess="Create inlets")
+    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clusterization, pbar=pbar)
+    pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
 
     def noo():

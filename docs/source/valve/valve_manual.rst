@@ -348,11 +348,12 @@ Analysis
 ^^^^^^^^
 
 Fifth stage of *Valve* calculations analyses results calculated in stages 1 to 4.
+Results of the analysis are displayed on the screen or can be saved to text file and comprise of several parts.
 
 General summary
 """""""""""""""
 
-Results of the analysis are displayed on the screen or can be saved to text file and comprise of following parts:
+
 
 * Tile and data stamp.
 * [Optional] Dump of configuration options.
@@ -366,6 +367,10 @@ Results of the analysis are displayed on the screen or can be saved to text file
 * Number of inlets.
 * Number of clusters.
     * Outliers flag, *yes* if they present.
+
+
+
+
 * Clusters summary - inlets.
     * Summary of inlets' clusters. Table with 4 columns:
         #. **Cluster**: ID of the cluster. Outliers have 0.

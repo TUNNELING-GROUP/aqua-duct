@@ -170,7 +170,7 @@ class Inlet(object):
 
 class Inlets(object):
     # class for list of inlets
-    def __init__(self, spaths, center_of_system=None, onlytype=InletTypeCodes.all_surface, passing=False):
+    def __init__(self, spaths, center_of_system=None, onlytype=InletTypeCodes.all_surface, passing=False, pbar=None):
 
         self.center_of_system = center_of_system
         self.onlytype = onlytype
@@ -185,6 +185,7 @@ class Inlets(object):
 
         for spath in spaths:
             self.extend_inlets(spath)
+            if pbar: pbar.next()
 
     def add_leaf_wrapper(self, name=None, message=None, toleaf=None):
         if name == 0:
