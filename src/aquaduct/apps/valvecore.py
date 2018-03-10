@@ -1078,7 +1078,7 @@ def stage_III_run(config, options,
     soptions = config.get_smooth_options()
 
     if options.allow_passing_paths:
-        logger.warning("Passing paths is a highly experimental feature and may not work as expected.")
+        logger.warning("Passing paths is a highly experimental feature. It may not work as expected. Please, analyze results with care.")
 
     if options.discard_empty_paths:
         with clui.fbm("Discard residues with empty paths"):
@@ -1372,42 +1372,47 @@ def stage_IV_run(config, options,
         # TODO: Move it after master paths!
         # ***** ADD PASSING PATHS TO CLUSTERS *****
         if options.exclude_passing_in_clusterization and options.add_passing_to_clusters:
-            # passing paths were excluded and they are meant to be added
-            # one need loop over clusters and then all passing paths have to checked
-            # it is assumed taht adding method is barber
-            abo = config.get_stage_options(2)  # ab from stage III
-            ab_options = get_auto_barber_options(abo)
-            ab_options.update(get_auto_barber_options(options))
-            # get single paths only (no passing paths)
-            spaths_single = [sp for sp in spaths if sp.is_single()]
-            # ids of passing paths
-            spaths_passing_ids = [nr for nr in xrange(len(spaths)) if spaths[nr].is_passing()]
-            # loop over passing paths, add to inlets
-            inls.passing = True
-            passing_inlets_ids = []
-            for passing_id in spaths_passing_ids:
-                passing_inlets_ids.extend(inls.extend_inlets(spaths[passing_id]))
-            # loop over clusters
-            for cluster in inls.clusters_list:
-                added_to_cluster = 0
-                if cluster == 0: continue
-                # sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
-                # chull = inls.lim2clusters(cluster).get_chull()
-                wtc = WhereToCut(inlets=inls.lim2clusters(cluster), **ab_options)
-                wtc.cut_thyself()
-                for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
-                    inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
-                    sphere = wtc.inlet2sphere(inlet)
-                    if sphere is not None:
-                        # if True:
-                        if wtc.is_overlaping_with_cloud(sphere):
-                            # if chull.point_within(inlet.coords):
-                            # add this inlet to cluster!
-                            inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
-                            added_to_cluster += 1
-                            passing_inlets_ids.pop(passing_inlet_nr)
-                if added_to_cluster:
-                    inls.add_message_wrapper(message='+%d passing' % added_to_cluster, toleaf=cluster)
+            with clui.fbm("Adding passing paths inlets to clusters",cont=False):
+                # passing paths were excluded and they are meant to be added
+                # one need loop over clusters and then all passing paths have to checked
+                # it is assumed taht adding method is barber
+                abo = config.get_stage_options(2)  # ab from stage III
+                ab_options = get_auto_barber_options(abo)
+                ab_options.update(get_auto_barber_options(options))
+                # get single paths only (no passing paths)
+                spaths_single = [sp for sp in spaths if sp.is_single()]
+                # ids of passing paths
+                spaths_passing_ids = [nr for nr in xrange(len(spaths)) if spaths[nr].is_passing()]
+                # loop over passing paths, add to inlets
+                inls.passing = True
+                passing_inlets_ids = []
+                for passing_id in spaths_passing_ids:
+                    passing_inlets_ids.extend(inls.extend_inlets(spaths[passing_id]))
+                # loop over clusters
+                for cluster in inls.clusters_list:
+                    added_to_cluster = 0
+                    if cluster == 0: continue
+                    clui.message("Current cluster: %d." % cluster)
+                    # sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
+                    # chull = inls.lim2clusters(cluster).get_chull()
+                    wtc = WhereToCut(inlets=inls.lim2clusters(cluster), **ab_options)
+                    wtc.cut_thyself()
+                    pbar = clui.SimpleProgressBar(len(passing_inlets_ids),"Loop over available passing paths inlets:")
+                    for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
+                        inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
+                        sphere = wtc.inlet2sphere(inlet)
+                        if sphere is not None:
+                            # if True:
+                            if wtc.is_overlaping_with_cloud(sphere):
+                                # if chull.point_within(inlet.coords):
+                                # add this inlet to cluster!
+                                inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
+                                added_to_cluster += 1
+                                passing_inlets_ids.pop(passing_inlet_nr)
+                        pbar.next()
+                    if added_to_cluster:
+                        inls.add_message_wrapper(message='+%d passing' % added_to_cluster, toleaf=cluster)
+                    pbar.finish()
             if len(passing_inlets_ids):
                 inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids), toleaf=0)
 
@@ -1427,8 +1432,8 @@ def stage_IV_run(config, options,
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
                     pbar = clui.pbar(len(spaths)*2, mess='Building coords cache')
-                    [sp.get_coords(smooth=None) for sp in spaths if pbar.next() is None]
-                    [sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None]
+                    [sp.get_coords(smooth=None) for sp in spaths if pbar.next() is None and not isinstance(sp, PassingPath)]
+                    [sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None and not isinstance(sp, PassingPath)]
                     pbar.finish()
                     use_threads = optimal_threads.threads_count
                 else:
@@ -1444,7 +1449,7 @@ def stage_IV_run(config, options,
                         logger.debug('CType %s (%d)' % (str(ct), nr))
                         sps = lind(spaths, what2what(ctypes_generic, [ct]))
                         # no passing paths are allowed
-                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)]
+                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)] # no PassingPaths!
                         if not len(sps):
                             logger.debug(
                                 'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
@@ -2061,10 +2066,10 @@ def clusters_stats_steps(cluster, sp_ct):
                     in_len_min = lens[0]
                     in_len_min_id = str(sp.id)
         if cluster == ct[1]:
-            if not np.isnan(lens[2]):
-                out_len.append(lens[2])
+            if not np.isnan(lens[-1]):
+                out_len.append(lens[-1])
                 if lens[-1] < out_len_min:
-                    out_len_min = lens[2]
+                    out_len_min = lens[-1]
                     out_len_min_id = str(sp.id)
 
     if len(in_len):

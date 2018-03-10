@@ -484,9 +484,7 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     def __init__(self, path_id, paths, types, single_res_selection = None):
 
         assert single_res_selection is not None
-
         self.single_res_selection = single_res_selection
-
 
         self.id = path_id
         # for paths use SmartRanges and then provide methods to read them
@@ -796,17 +794,22 @@ class SinglePath(MacroMolPath):
 # TODO: passing paths probably does not work at all
 class PassingPath(MacroMolPath):
 
-    def __init__(self, path_id, path, coords, types):
+
+    def __init__(self, path_id, paths, types, single_res_selection = None):
+    #def __init__(self, path_id, path, coords, types):
+
+        assert single_res_selection is not None
+        self.single_res_selection = single_res_selection
 
         self.id = path_id
 
-        self.__path = SmartRange(path)
+        self.__path = SmartRange(paths)
         self.__types = SmartRange(types)
 
-        self.__coords = make_default_array(coords)
+        #self.__coords = make_default_array(coords)
 
-        self.smooth_coords = None
-        self.smooth_method = None
+        #self.smooth_coords = None
+        #self.smooth_method = None
 
 
         self.__has_in = True
@@ -815,6 +818,18 @@ class PassingPath(MacroMolPath):
         self.has_in = True
         self.has_out = True
         '''
+        self.__object_len = None
+
+    def __object_len_calculate(self):
+        real_coords = self.coords[0]
+        if len(real_coords) <= 1: return 0.
+        return float(sum(traces.diff(real_coords)))
+
+    @property
+    def object_len(self):
+        if self.__object_len is None:
+            self.__object_len = self.__object_len_calculate()
+        return self.__object_len
 
 
     @property
@@ -832,8 +847,6 @@ class PassingPath(MacroMolPath):
     @has_out.setter
     def has_out(self, value):
         self.__has_out = value
-
-
 
     def is_single(self):
         return False
@@ -863,7 +876,7 @@ class PassingPath(MacroMolPath):
 
     @property
     def coords(self):
-        return (self.__coords,)
+        return (self.single_res_selection.coords(self.__path),)
 
     @property
     def path(self):
@@ -875,7 +888,7 @@ class PassingPath(MacroMolPath):
 
     @property
     def coords_first_in(self):
-        return self.__coords[0]
+        return self.coords[0][0]
 
     @property
     def paths_first_in(self):
@@ -883,7 +896,7 @@ class PassingPath(MacroMolPath):
 
     @property
     def coords_last_out(self):
-        return self.__coords[-1]
+        return self.coords[0][-1]
 
     @property
     def paths_last_out(self):
@@ -907,12 +920,12 @@ class PassingPath(MacroMolPath):
         # Lets assume that if max/min_possible_frame is there is no inlet
         # how to check it?
         if self.has_in:
-            yield Inlet(coords=self.__coords[0],
+            yield Inlet(coords=self.coords[0][0],
                         type=(InletTypeCodes.surface, InletTypeCodes.incoming),
                         reference=self.id,
                         frame=self.paths_first_in)
         if self.has_out:
-            yield Inlet(coords=self.__coords[-1],
+            yield Inlet(coords=self.coords[0][-1],
                         type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
                         reference=self.id,
                         frame=self.paths_last_out)
