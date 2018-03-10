@@ -231,7 +231,11 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-'preamble': '''\usepackage{longtable}\usepackage{enumitem}\setlistdepth{99}
+'preamble': '''\usepackage{longtable}
+\usepackage{enumitem}
+\setlistdepth{99}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
 ''',
 }
 

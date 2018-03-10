@@ -20,6 +20,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from collections import OrderedDict
 from aquaduct.utils import clui
 import numpy as np
 from scipy.spatial.distance import cdist
@@ -28,7 +29,7 @@ from aquaduct.traj.inlets import Inlet, InletTypeCodes
 from aquaduct.utils.helpers import is_number, lind, SmartRange, SmartRangeDecrement, SmartRangeEqual, SmartRangeFunction, SmartRangeIncrement # smart ranges are required here to provide bacward compatibility with v0.3
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
-
+from aquaduct.traj.sandwich import Reader
 
 ########################################################################################################################
 # paths/list manipulations
@@ -455,6 +456,24 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
                 else:
                     yield sp
 
+def yield_generic_paths(spaths, progress=None):
+    rid_seen = OrderedDict()
+    number_of_frames = Reader.number_of_frames(onelayer=True) - 1
+    for sp in spaths:
+        current_rid = sp.id.id
+        if current_rid not in rid_seen:
+            rid_seen.update({current_rid:GenericPaths(current_rid,name_of_res=sp.id.name,single_res_selection=sp.single_res_selection,min_pf=0,max_pf=number_of_frames)})
+        # TODO: following loop is not an optimal solution, it is better to add types and frames in one call
+        for t,f in zip(sp.gtypes_cont,sp.paths_cont):
+            if t == sp.path_object_code:
+                rid_seen[current_rid].add_object(f)
+            else:
+                rid_seen[current_rid].add_scope(f)
+        if progress: progress.next()
+    return rid_seen.values()
+
+
+
 
 class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     # special class
@@ -649,6 +668,7 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
         for t in self.types:
             typesc += t
         return typesc
+
 
     @property
     def gtypes(self):

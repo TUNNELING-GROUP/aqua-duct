@@ -100,6 +100,8 @@ Storage of coordinates for all paths for very long MD trajectories requires huge
 
     If no cache is used (memory or dir) :ref:`master_paths_manual` cannot be calculated. 
 
+.. _sandwich_option:
+
 Sandwich
 """"""""
 
@@ -353,7 +355,7 @@ Results of the analysis are displayed on the screen or can be saved to text file
 General summary
 """""""""""""""
 
-
+Results starts with general summary.
 
 * Tile and data stamp.
 * [Optional] Dump of configuration options.
@@ -366,10 +368,11 @@ General summary
 * Number of separate paths.
 * Number of inlets.
 * Number of clusters.
-    * Outliers flag, *yes* if they present.
+    * Outliers flag, *yes* if they are present.
+* Clustering history - a tree summarizing calculated clusters.
 
-
-
+Clusters' statistics
+""""""""""""""""""""
 
 * Clusters summary - inlets.
     * Summary of inlets' clusters. Table with 4 columns:
@@ -408,18 +411,47 @@ General summary
         #. **X->ObjMinID**: ID of separate path for which **X->ObjMin** was calculated.
         #. **Obj->XMin**: Minimal value of number of frames of separate paths leading from the object to this cluster.
         #. **Obj->XMinID**: ID of separate path for which **Obj->XMin** was calculated.
-* Separate paths clusters types summary. Table with 10 columns.
-    #. **CType**: Separate path Cluster Type.
-    #. **Size**: Number of separate paths belonging to Cluster type.
-    #. **Size%**: Percentage of **Size** realtive to the total number of separate paths.
-    #. **Tot**: Average total length of the path.
-    #. **TotStd**: Standard deviation of length Tot.
-    #. **Inp**: Average length of incoming part of the path. If no incoming part is available it is NaN (not a number).
-    #. **InpStd**: Standard deviation of length Inp.
-    #. **Obj**: Average length of object part of the path. If no incoming part is available it is NaN.
-    #. **ObjStd**: Standard deviation of length Inp.
-    #. **Out**: Average length of outgoing part of the path. If no incoming part is available it is NaN.
-    #. **OutStd**: Standard deviation of length Inp.
+
+Clusters types statistics
+"""""""""""""""""""""""""
+        
+* Separate paths clusters types summary. Tables with 11 columns.
+    * Mean length of paths:
+        #. **CType**: Separate path Cluster Type.
+        #. **Size**: Number of separate paths belonging to Cluster type.
+        #. **Size%**: Percentage of **Size** relative to the total number of separate paths.
+        #. **Tot**: Average total length of paths.
+        #. **TotStd**: Standard deviation of **Tot**.
+        #. **Inp**: Average length of incoming part of paths. If no incoming parts are available, NaN is printed (not a number).
+        #. **InpStd**: Standard deviation of **Inp**.
+        #. **Obj**: Average length of object part of paths. If no incoming parts are available, NaN is printed.
+        #. **ObjStd**: Standard deviation of **Inp**.
+        #. **Out**: Average length of outgoing part of paths. If no incoming parts are available, NaN is printed.
+        #. **OutStd**: Standard deviation of **Inp**.
+    * Mean number of frames:
+        #. **CType**: Separate path Cluster Type.
+        #. **Size**: Number of separate paths belonging to Cluster type.
+        #. **Size%**: Percentage of **Size** relative to the total number of separate paths.
+        #. **Tot**: Average total number of frames of paths.
+        #. **TotStd**: Standard deviation of **Tot**.
+        #. **Inp**: Average total number of incoming part of paths. If no incoming parts are available, NaN is printed (not a number).
+        #. **InpStd**: Standard deviation of **Inp**.
+        #. **Obj**: Average total number of object part of paths. If no incoming parts are available, NaN is printed.
+        #. **ObjStd**: Standard deviation of **Inp**.
+        #. **Out**: Average total number of outgoing part of paths. If no incoming parts are available, NaN is printed.
+        #. **OutStd**: Standard deviation of **Inp**.
+
+Cluster Type of separate path
+#############################
+
+Clusters types (or CType) is a mnemonic for separate paths that leads from one cluster to another, including paths that start/end in the same cluster or start/end in the *Object* area.
+
+Each separate path has two ends: beginning and end. Both of them either belong to one of the clusters of inlets, or are among outliers, or are inside the scope. If an end belongs to one of the clusters (including outliers) it has ID of the cluster. If it is inside the scope it has special ID of ``N``. Cluster type is an ID composed of IDs of both ends of separate path separated by colon charter.
+
+
+All separate paths data
+"""""""""""""""""""""""
+
 * List of separate paths and their properties. Table with 20 columns.
     #. **ID**: - Separate path ID.
     #. **RES**: - Residue name.
@@ -433,41 +465,36 @@ General summary
     #. **ObjL**: Length of Object part.
     #. **OutL**: Length of Outgoing part. If no outgoing part NaN is given.
     #. **TotS**: Average step of full path.
-    #. **TotStdS**: Standard deviation of TotS.
+    #. **TotStdS**: Standard deviation of **TotS**.
     #. **InpS**: Average step of Incoming part. If no incoming part NaN is given.
-    #. **InpStdS**: Standard deviation of InpS.
+    #. **InpStdS**: Standard deviation of **InpS**.
     #. **ObjS**: Average step of Object part.
-    #. **ObjStdS**: Standard deviation of ObjS.
+    #. **ObjStdS**: Standard deviation of **ObjS**.
     #. **OutS**: Average step of Outgoing part. If no outgoing part NaN is given.
-    #. **OutStdS**: Standard deviation of OutS.
+    #. **OutStdS**: Standard deviation of **OutS**.
     #. **CType**: Cluster type of separate path.
 
 Separate path ID
 ################
 
-Separate Path IDs are composed of two numbers separated by colon. First number is the residue number. Second number is consecutive number of the separate path made by the residue. Numeration starts with 0.
-
-Cluster Type of separate path
-#############################
-
-Each separate path has two ends: beginning and end. Both of them either belong to one of the clusters of inlets, or are among outliers, or are inside the scope. If an end belongs to one of the clusters (including outliers) it has ID of the cluster. If it is inside the scope it has special ID of ``N``. Cluster type is an ID composed of IDs of both ends of separate path separated by colon charter.
+Separate Path IDs are composed of three numbers separated by colon. First number is the layer number, if no :ref:`sandwich <sandwich_option>` option is used it is set to ``0``. The second number is residue number. Third number is consecutive number of the separate path made by the residue. Numeration starts with 0.
 
 Frames dependent analysis
 """""""""""""""""""""""""
 
-In addition to general summary Aqua-Duct calculates frames dependent parameters. Two types of values are calculated: number of traced paths, and *Object* and *Scope* sizes. Results are saved in the additional CSV file.
+In addition to general summary Aqua-Duct calculates frames dependent parameters. Two types of values are calculated: number of traced paths, and *Object* and *Scope* sizes. Results are saved in the additional CSV file or are printed on the screen.
 
 Number of traced paths
 ######################
 
-For each frame number of traced paths are calculated for following categories:
+For each frame, numbers of traced paths are calculated for following categories:
 
 #. Name of traced molecules - ``amol`` is used for all possible names.
 #. Paths types (``object`` for standard paths and ``passing`` for passing paths) - ``apaths`` is used for all possible paths types.
 #. Clusters and cluster types - ``aclusts`` is used for all possible clusters and ``actypes`` is used for all possible cluster types.
 #. Part of paths. Possible values are: ``walk``, ``in``, ``object``, ``out``, and ``in_out``. Where ``walk`` corresponds to any part of path and in case of passing paths only this category is used; ``in``, ``object``, and ``out`` correspond to incoming, object, and outgoing parts; ``in_out`` corresponds to sum of incoming and outgoing parts.
 
-All the above listed categories are combined what results in big number of different categories.
+All the above listed categories are combined together, and the final number of calculated categories may be quit big.
 
 Size of *Object* and *Scope*
 ############################

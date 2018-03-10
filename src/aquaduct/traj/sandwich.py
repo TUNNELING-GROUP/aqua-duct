@@ -744,10 +744,13 @@ def coords_range(srange, number, rid):
     # srange is SmartRangeIncrement, it cannot be anything else
     # wrapper to limit number of calls to coords_range_core
     # CRIC cache is {number:{rid:FramesRangeCollection}}
+    logger.debug("CRIC request %d:%d %s",number,rid,str(srange))
     if number not in CRIC.cache:
         CRIC.cache.update({number:{}})
+        logger.debug("CRIC new number %d",number)
     if rid not in CRIC.cache[number]:
         CRIC.cache[number].update({rid:FramesRangeCollection()})
+        logger.debug("CRIC new rid %d",rid)
     # call get_ranges and stack array, do it in comprehension? nested function?
     def get_coords_from_cache():
         for sr,xr in CRIC.cache[number][rid].get_ranges(srange):
@@ -763,6 +766,7 @@ class FramesRangeCollection(object):
     def append(self,srange):
         if not len(self.collection):
             self.collection.append(srange)
+            logger.debug("FRC append first srange %s",str(srange))
             return
         # there are V cases:
         #           |------|            sr
@@ -783,6 +787,7 @@ class FramesRangeCollection(object):
                     if srange.first_element() < sr.first_element():
                         # case 2
                         self.collection.insert(nr,SmartRangeIncrement(srange.first_element(),sr.first_element()-srange.first_element()))
+                        logger.debug("FRC case 2 insert srange %s at %d",str(SmartRangeIncrement(srange.first_element(),sr.first_element()-srange.first_element())),nr)
                         if srange.last_element() > sr.last_element():
                             # case 24
                             srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
@@ -798,6 +803,7 @@ class FramesRangeCollection(object):
                     if srange.last_element() < sr.first_element():
                         # case 1: insert it before sr
                         self.collection.insert(nr,srange)
+                        logger.debug("FRC case 1 insert srange %s at %d",str(srange),nr)
                         srange = None
                         break
                     if srange.first_element() > sr.last_element():
@@ -806,6 +812,7 @@ class FramesRangeCollection(object):
             # if something is left append it to the end
             if srange is not None and nr == len(self.collection) - 1:
                 self.collection.append(srange)
+                logger.debug("FRC append remaining srage %s",str(srange))
                 srange = None
 
     def get_ranges(self,srange):

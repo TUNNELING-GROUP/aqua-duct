@@ -58,7 +58,7 @@ from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath, SinglePath
-from aquaduct.traj.paths import union_full
+from aquaduct.traj.paths import union_full, yield_generic_paths
 # from aquaduct.traj.reader import ReadViaMDA
 # from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
@@ -1166,6 +1166,11 @@ def stage_III_run(config, options,
     pbar.finish()
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths),len(paths)))
+    pbar = clui.pbar(len(spaths),"Removing unused parts of paths:")
+    paths = yield_generic_paths(spaths,progress=pbar)
+    pbar.finish()
+
+
 
     if options.discard_short_paths or options.discard_short_object:
         if is_number(options.discard_short_paths):
@@ -1197,7 +1202,11 @@ def stage_III_run(config, options,
         if short_paths is not None or short_object is not None:
             with clui.fbm(discard_message):
                 spaths_nr = len(spaths)
-                spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
+                # TODO: if not short object is used there is no sense in calling object_len as it is very expensive
+                if short_object is not None:
+                    spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
+                else:
+                    spaths = [sp for sp in spaths if sp.size > short_paths]
                 spaths_nr_new = len(spaths)
             if spaths_nr == spaths_nr_new:
                 clui.message("No paths were discarded.")
@@ -2200,9 +2209,8 @@ def stage_V_run(config, options,
     pa = PrintAnalysis(options.save, line_nr=line_nr)
 
     if options.save:
-        clui.message('Using user provided file (%s).' % options.save)
-        # clui.message(sep())
-        # clui.message('')
+        clui.message('Using user provided file (%s), and' % options.save)
+        clui.message('for histograms data file (%s).' % (options.save + '.csv'))
     else:
         clui.message('Using standard output.')
         clui.message(sep())
@@ -2519,10 +2527,17 @@ def stage_V_run(config, options,
     header = ['frame'] + header
     fmt = ['%u'] + fmt
     # save???
-    np.savetxt(options.save + '.csv', h,
+    if options.save:
+        h_fname = options.save + '.csv'
+    else:
+        import cStringIO as StringIO
+        h_fname = StringIO.StringIO()
+    np.savetxt(h_fname, h,
                fmt=fmt,
                delimiter=',',
                header=','.join(header))
+    if not options.save:
+        print h_fname.getvalue()
 
     return {'hist': h, 'header': header}
 
