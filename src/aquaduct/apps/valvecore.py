@@ -489,76 +489,6 @@ class ValveConfig(object, ConfigSpecialNames):
 
 
 ################################################################################
-# reader helper class
-
-'''
-class TrajectoryReader(object):
-    def __init__(self, top, trj,frames_window=None):
-        assert isinstance(top, (str, unicode)), "Topology file name missing, %s given instead" % str(top)
-        assert isinstance(trj, (str, unicode)), "Trajectory file(s) name(s) missing, %s given instead" % str(trj)
-        self.top = top
-        self.trj = shlex.split(trj)
-        self.frames_window = frames_window
-
-    def get(self):
-        return ReadViaMDA(self.top, self.trj, window=self.frames_window)
-
-    @property
-    def max_frame(self):
-        with self.get() as tmp_reader:
-            return tmp_reader.number_of_frames - 1  # returns 0-based value
-
-
-def rebuild_selection(selection, reader):
-    return CompactSelectionMDA(selection).toSelectionMDA(reader)
-'''
-
-
-################################################################################
-# convex hull helpers
-# TODO: Move it to separate module.
-# TODO: Following functions are or will be deprecated, remove them as soon as possible.
-
-# def CHullCheck(point):
-#     return CHullCheck.chull.point_within(point)
-#
-#
-# def CHullCheck_init(args):
-#     CHullCheck.chull = copy.deepcopy(args[0])
-#
-#
-# def CHullCheck_pool(chull, threads=optimal_threads.threads_count):
-#     return mp.Pool(threads, CHullCheck_init, [(chull,)])
-#
-#
-# def CHullCheck_exec(chull, points, threads=optimal_threads.threads_count):
-#     pool = CHullCheck_pool(chull, threads=threads)
-#     out = pool.map(CHullCheck, points)
-#     pool.close()
-#     pool.join()
-#     del pool
-#     return out
-
-
-################################################################################
-# in scope helpers
-
-# def check_res_in_scope(options, scope, res, res_coords):
-#     if options.scope_convexhull:
-#         # TODO: Remove it! This is deprecated code. It, probably, never runs.
-#         if len(res_coords) == 0:
-#             return []
-#         # find convex hull of protein
-#         chull = scope.get_convexhull_of_atom_positions()
-#         is_res_in_scope = CHullCheck_exec(chull, res_coords, threads=optimal_threads.threads_count)
-#     else:
-#         if res.unique_resids_number() == 0:
-#             return []
-#         res_in_scope_uids = scope.unique_resids(ikwid=True)
-#         # res_in_scope_uids = traj_reader.parse_selection(options.scope).unique_resids(ikwid=True)
-#         is_res_in_scope = [r.unique_resids(ikwid=True) in res_in_scope_uids for r in res.iterate_over_residues()]
-#     return is_res_in_scope
-
 
 def get_res_in_scope(is_res_in_scope, res):
     res_new = None
@@ -580,12 +510,6 @@ def sep():
 
 def asep():
     return clui.gsep(sep='=', times=72)
-
-
-################################################################################
-# save & write as netCDF4!
-# first try to create a class that would wrap everything...
-# as for now, lets stick with pickle
 
 
 ################################################################################
@@ -1153,6 +1077,9 @@ def stage_III_run(config, options,
                   **kwargs):
     soptions = config.get_smooth_options()
 
+    if options.allow_passing_paths:
+        logger.warning("Passing paths is a highly experimental feature and may not work as expected.")
+
     if options.discard_empty_paths:
         with clui.fbm("Discard residues with empty paths"):
             paths = [pat for pat in paths if len(pat.frames) > 0]
@@ -1169,8 +1096,6 @@ def stage_III_run(config, options,
     pbar = clui.pbar(len(spaths),"Removing unused parts of paths:")
     paths = yield_generic_paths(spaths,progress=pbar)
     pbar.finish()
-
-
 
     if options.discard_short_paths or options.discard_short_object:
         if is_number(options.discard_short_paths):
@@ -1264,24 +1189,10 @@ def stage_III_run(config, options,
             spaths = sorted(spaths, key=lambda sp: (sp.id.id, sp.id.nr))
     # apply smoothing?
     # it is no longer necessary
-    '''
-    if options.apply_smoothing or options.apply_soft_smoothing:
-        smooth = get_smooth_method(soptions)
     if options.apply_smoothing:
-        clui.message('Applying hard smoothing:')
-        pbar = clui.pbar(len(spaths))
-        for nr, sp in enumerate(spaths):
-            sp.apply_smoothing(smooth)
-            pbar.update(nr + 1)
-        pbar.finish()
+        logger.warning("Hard smoothing is not available in the current version but may be available in the future. Stay tuned!")
     if options.apply_soft_smoothing:
-        clui.message('Applying soft smoothing:')
-        pbar = clui.pbar(len(spaths))
-        for nr, sp in enumerate(spaths):
-            sp.get_coords(smooth=smooth)
-            pbar.update(nr + 1)
-        pbar.finish()
-    '''
+        logger.warning("Soft smoothing option is not available any more. Soft smoothing is enabled by default if --cache-dir or --cache-mem options are used.")
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 
@@ -1289,24 +1200,6 @@ def stage_III_run(config, options,
 
 
 ################################################################################
-
-# def get_skip_size_function(rt=None):
-#     if not isinstance(rt, str): return None
-#     assert re.compile('^[<>=]+[0-9.]+$').match(rt) is not None, "Wrong threshold definition: %s" % rt
-#     op = re.compile('[<>=]+')
-#     op = ''.join(sorted(op.findall(rt)[0]))
-#     vl = re.compile('[0-9.]+')
-#     vl = float(vl.findall(rt)[0])
-#     operator_dict = {'>': operator.gt,
-#                      '=>': operator.ge,
-#                      '<=': operator.le,
-#                      '<': operator.lt}
-#     operator_dict = {'>': operator.ge,
-#                      '=>': operator.gt,
-#                      '<=': operator.lt,
-#                      '<': operator.le}
-#     assert op in operator_dict.keys(), "Unsupported operator %s in threshold %s" % (op, rt)
-#     return lambda size_of_cluster: operator_dict[op](vl, size_of_cluster)
 
 def get_allow_size_function(rt=None):
     if not isinstance(rt, str): return None
