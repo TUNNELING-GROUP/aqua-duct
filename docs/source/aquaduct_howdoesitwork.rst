@@ -1,9 +1,9 @@
 How does AQUA-DUCT work
 -----------------------
 
-AQUA-DUCT is perfectly capable of tracing molecules that enter defined region of the macromolecule during MD simulation. Detailed statistics and visualization of all traced molecules are available. Moreover, AQUA-DUCT performs clusterization of exits/inlets data and groups identified paths according to this clusters - inlet-exit event grouping.
+AQUA-DUCT is a tool perfectly capable of tracing molecules that enter defined region of the macromolecule during MD simulation. Detailed statistics and visualization of all traced molecules are available. Moreover, AQUA-DUCT performs clusterization of exits/inlets data and groups identified paths according to this clusters - inlet-exit event grouping.
 
-Following picture illustrates the concept behind AQUA-DUCT. Molecules which flow through the active site are traced. Incoming, outgoing, and active site parts of paths are detected and visualized accordingly. Traced molecules form clusters which allow for further detailed analysis.
+Following picture illustrates the concept behind AQUA-DUCT. Molecules which flow through the active site are traced. Incoming, outgoing, and active site parts of paths are detected and visualized accordingly. Traced molecules form clusters which allow for further detailed analysis of the flow.
 Optionally, AQ can trace molecules which does not flow through the active site. This can be useful to ilustrate overall flow and can be also used to derive relative number of molecules visiting the active site.
 
 .. figure:: AQ_work.png
@@ -23,7 +23,7 @@ Following sections briefly explain these stages, detailed description can be fou
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-In the first stage of calculation AQ finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list.
+In the first stage of calculation AQ finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In *sandwich* mode this is repeated for each layer.
 
 The search of the residues is done according to user provided definitions. Two requirements have to be met to append residue to the list:
 
@@ -60,7 +60,7 @@ In the first case definition is very similar to *Object* and it has to follow th
 
 It consequently has to define ``WAT`` as residues of interest and defines spatial constrains: all ``WAT`` residues that are within 2 Angstroms of the protein.
 
-If the *Scope* is defined as the convex hull of selected molecular object (which is recommended), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
+If the *Scope* is defined as the convex hull of selected molecular object (which is **recommended**), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
 
 Raw paths
 ^^^^^^^^^
@@ -70,7 +70,7 @@ The second stage of calculations uses the list of all traceable residues from th
 #. Is the residue in the *Scope* (this is always calculated according to the Scope definition).
 #. Is the residue in the *Object*. This information is partially calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *Object* definition.
 
-For each of the *traceable residues* a special *Path* object is created. If the residue is in the *Scope* its center of mass is added to the appropriate *Path* object together with the information if it is in the *Object* or not.
+For each of the *traceable residues* a special *Path* object is created which stores frames in which a residue is in *scope* or in *object*.
 
 
 Separate paths
@@ -96,8 +96,7 @@ It is also possible that incoming and/or outgoing part of the separate path is e
 
 After the initial search of *Separate Path* objects it is possible to run special procedure, Auto Barber, which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user.
 
-Separate paths can be optionally smoothed. This can be done in two modes: `soft` and `hard`. In the former mode smoothed paths are used only for visualization purposes. In the latter, raw paths are replaced by smoothed.
-AQUA-DUCT implements several smoothing methods, including Savitzky-Golay filter.
+Separate paths can be optionally smoothed for visualization purposes. AQUA-DUCT implements several smoothing methods, including Savitzky-Golay filter.
 
 Clusterization of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^

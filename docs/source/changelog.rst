@@ -1,28 +1,27 @@
 Aqua-Duct changelog
 ===================
 
-* devel
-    * Added mario script, WIP.
-    * If barber is used for clusterization, appropriate radii are displayed. Buggy.
-    * Tests with netcdf4 for dumping data, WIP.
-* 0.4....
-* 0.4.0 (20.11.2017) unoffcial
+* 0.5.9 (12.03.2018)
+    * Rewritten module for MD data access. Sandwich mode added.
+    * Coordinates can be stored in cache directory, in memory or generated on demand.
+    * Support for long trajectories. 
+    * Passing through paths are supported.
+    * Improvements in visualization script.
+    * Coordinates of residues are calculated as center of geometry.
+    * Recommended MDAnalysis is set to >=0.16 and <0.17. Version 0.17 is supported but not recommended.
+    * Bug fixes and code cleanup.
+* 0.4.0 - 0.4.14 (20.11.2017) unofficial
     * Uses newest MDAnalysis (0.16.2).
     * Steady improvement of documentation (including API).
-    * Data dumps routines moved to separate module.
-    * SmartRanges moved to helpers module.
     * Names of traced molecules are returned in the result file and tables are split appropriately.
     * Tables in the result file are split in regard to Object and Passing paths.
-    * Small bug in reporting progress in AutoBarber preparation fixed.
     * Passing through paths are being introduced, WIP.
-    * Small bug in linearization functions fixed.
+    * Additional tables in the result file.
     * CRD is enabled as topology/trajectory format.
     * Traced residues are identified by resindices instead of resids; this allows to use weak topologies such as PDB.
-    * Stage II performance improved if clear_in_object_info is not used (default).
     * Removed roman dependency.
-    * Cache of convexhull solutions enabled for scope calculations. This improves Stage II performance but decrease slightly Stage I performance, WIP.
     * In addition to histograms approximate (ConvexHull approximation) areas and volumes of the scope and object can be calculated.
-    * Small bug in CTypes extended fixed.
+    * Bug fixes and reliability fixes.
 * 0.3.7 (18.07.2017)
     * Enable XTC trajectory format.
     * Reliability fix in progress bar display.
@@ -37,7 +36,7 @@ Aqua-Duct changelog
 * 0.3.3 (20.03.2017)
     * AutoBarber default values of maxcut_level and mincut_level changed to True.
     * Improved template configuration file.
-    * Number of small improvements in documentaion.
+    * Number of small improvements in documentation.
 * 0.3.2 (24.02.2017)
     * Major improvement: new auto_barber based clustering method.
     * Clusterization history displayed as simple ascii tree.

@@ -127,7 +127,7 @@ If config file is provided (option ``-c``) *Valve* parse it quickly and regular 
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-In the first stage of calculation *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In *sandwich* mode this is repeated for each layer.
+In the first stage of calculation *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In :ref:`sandwich_mode <sandwich>` mode this is repeated for each layer.
 
 The search of *traceable residues* is done according to user provided specifications. Two requirements have to be met to append residue to the list:
 
@@ -412,6 +412,10 @@ Clusters' statistics
         #. **Obj->XMin**: Minimal value of number of frames of separate paths leading from the object to this cluster.
         #. **Obj->XMinID**: ID of separate path for which **Obj->XMin** was calculated.
 
+.. note::
+
+    Distributions of **X->Obj** and **Obj->X** might be not normal, ttest may result unrealistic values. This test will be changed in the future releases.
+
 Clusters types statistics
 """""""""""""""""""""""""
         
@@ -505,13 +509,87 @@ If option ``calculate_scope_object_size`` is set ``True`` and values of ``scope_
 Visualization
 ^^^^^^^^^^^^^
 
-Sixth stage of *Valve* calculations visualizes results calculated in stages 1 to 4. Visualization is done with PyMOL. *Valve* automatically starts PyMOL and loads visualizations in to it.
+Sixth stage of *Valve* calculations visualizes results calculated in stages 1 to 4. Visualization is done with PyMOL. *Valve* creates visualizations in two modes:
+
+#. Two files are created: special python script and archive with data. Python script can be simply started with python, it automatically opens PyMol and loads all data from the archive. Optionally it can automatically save PyMol session.
+#. PyMol is automatically started and all data is loaded directly to PyMol workspace.
+
 Molecule is loaded as PDB file. Other objects like Inlets clusters or paths are loaded as CGO objects.
+
+Visulaization scipt
+"""""""""""""""""""
+By default *Valve* creates python visualization script and archive with data files. This script is a regular python script. It does not depends on AQUA-DUCT. To run it, python2.7 and pymol is required. If no **save** option is used *Valve* saves visualization script as ``6_visualize_results.py``. To load full visualization call::
+
+    python 6_visualize_results.py --help
+
+    usage: 6_visualize_results.py [-h] [--save-session SESSION]
+                                  [--discard DISCARD] [--keep KEEP]
+                                  [--force-color FC] [--fast]
+
+    Aqua-Duct visualization script
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --save-session SESSION
+                            Pymol session file name.
+      --discard DISCARD     Objects to discard.
+      --keep KEEP           Objects to keep.
+      --force-color FC      Force specific color.
+      --fast                Disable all objects while loading.
+
+Option ``--save-session`` allows to save PyMol session file. Once visualization is loaded session is saved and PyMol closes. Option ``--fast`` increases slightly loading of objects.
+
+Option ``--force-color`` allows to change default color of objects. It accepts list of specifications comprised of pairs 'object name' and 'color name'. For example: ``'scope_shape0 yellow cluster_1 blue'``. This will color *scope_shape0* object in yellow and *cluster_1* in blue::
+
+     python 6_visualize_results.py --force-color 'scope_shape0 yellow cluster_1 blue'
+
+.. note::
+
+    List of specifications has to be given in parentheses.
+
+.. note::
+
+    List of specifications has to comprise of full objects' names.
+
+.. note::
+
+    Currently, it is not possible to change color of molecules.
+
+Options ``--keep`` and ``--discard`` allows to select specific objects for visualization. Both accept list of names comprising of full or partial object names. Option ``--keep`` instructs script to load only specified objects, whereas, ``--discard`` instructs to skip specific objects. For example to keep shapes of object and scope, molecule and clusters only one can call following::
+
+    python 6_visualize_results.py --keep 'shape molecule cluster'
+
+To discard all raw paths::
+
+    python 6_visualize_results.py --discard 'raw'
+
+Options can be used simultaneously, order does matter:
+
+#. If ``--keep`` is used first, objects are not displayed if they are not on the *keep* list. If they are on the list, visualization script checks if they are on the *discard* list. If yes, objects are not displayed.
+#. If ``--discard`` is used first, objects are not displayed if they are on the *dsicard* list and are not on the *keep* list.
+
+For example, in order to display molecule, clusters, and only raw master paths, one can use following command::
+
+    python 6_visualize_results.py --keep 'molecule cluster master' --discard 'smooth'
+    
+
+.. note::
+
+    Options ``--keep`` and ``--discard`` accepts both full and partial object names.
+
+.. note::
+
+    List of names has to be given in parentheses.
+
+
+Visualization objects
+"""""""""""""""""""""
 
 Following is a list of objects created in PyMOL (all of them are optional). PyMOL object names given in **bold** text or short explanation is given.
 
-* Selected frame of the simulated system. Object name: *molecule*.
-* Inlets clusters, each cluster is a separate object. Object name: **cluster_** followed by cluster annotation: otliers are annotated as Out; regular clusters by ID.
+* Selected frame of the simulated system. Object name: **molecule** plus number of layer, if no :ref:`sandwich <sandwich_option>` option is used it becomes, by default, **molecule0**.
+* Approximate shapes of object and scope. Objects names **object_shape** and **scope_shape** plus number of layer, if no :ref:`sandwich <sandwich_option>` option is used **0** is added by default.
+* Inlets clusters, each cluster is a separate object. Object name: **cluster_** followed by cluster annotation: outliers are annotated as **out**; regular clusters by ID.
 * List of cluster types, raw paths. Each cluster type is a separate object. Object name composed of cluster type (colon replaced by underline) plus **_raw**.
 * List of cluster types, smooth paths. Each cluster type is a separate object. Object name composed of cluster type (colon replaced by underline) plus **_smooth**.
 * All raw paths. They can be displayed as one object or separated in to Incoming, Object and Outgoing part. Object name: **all_raw**, or **all_raw_in**, **all_raw_obj**, and **all_raw_out**.
@@ -528,6 +606,7 @@ Color schemes
 
 Inlets clusters are colored automatically. Outliers are gray.
 
-Incoming parts of paths are red, Outgoing parts are blue. Object parts in case of smooth paths are green and in case of raw paths are green if residue is precisely in the object area or yellow if is leaved object area but it is not in the Outgoing part yet. *Passing paths* are displayed in grey.
+Incoming parts of paths are red, Outgoing parts are blue. Object parts in case of smooth paths are green and in case of raw paths are green if residue is precisely in the object area or yellow if it leaved object area but it is not in the Outgoing part yet. *Passing paths* are displayed in grey.
 
 Arrows are colored in accordance to the colors of paths.
+
