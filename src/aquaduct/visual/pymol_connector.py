@@ -247,8 +247,14 @@ close(fd)
 max_state=0
 arch_file="%s"
 if not isfile(arch_file):
+    import pymol
+    if pymol.IS_WINDOWS:
+        print "Please open visualization script using 'Open with' context menu and choose PyMol executable."
+        print "Alternatively, if you have PyMol installed as Python module, open visulaization script with Python executable."
+    while (pymol._ext_gui is None): pymol = reload(pymol)
+    while (not hasattr(pymol._ext_gui,'root')): pymol = reload(pymol)
     import tkFileDialog
-    arch_file=tkFileDialog.askopenfilename(filetypes=[("AQ Vis Arch","*.tar.gz")],title="Select AQ visualization archive")
+    arch_file=tkFileDialog.askopenfilename(filetypes=[("AQ Vis Arch","*.tar.gz")],title="Select AQ visualization archive",parent=pymol._ext_gui.root)
 data_fh=tarfile.open(arch_file,"r:gz")
 def decode_color(cgo_object,fc=None):
     for element in cgo_object:

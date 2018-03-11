@@ -1383,38 +1383,41 @@ def stage_IV_run(config, options,
                 spaths_single = [sp for sp in spaths if sp.is_single()]
                 # ids of passing paths
                 spaths_passing_ids = [nr for nr in xrange(len(spaths)) if spaths[nr].is_passing()]
-                # loop over passing paths, add to inlets
-                inls.passing = True
-                passing_inlets_ids = []
-                for passing_id in spaths_passing_ids:
-                    passing_inlets_ids.extend(inls.extend_inlets(spaths[passing_id]))
-                # loop over clusters
-                for cluster in inls.clusters_list:
-                    added_to_cluster = 0
-                    if cluster == 0: continue
-                    clui.message("Current cluster: %d." % cluster)
-                    # sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
-                    # chull = inls.lim2clusters(cluster).get_chull()
-                    wtc = WhereToCut(inlets=inls.lim2clusters(cluster), **ab_options)
-                    wtc.cut_thyself()
-                    pbar = clui.SimpleProgressBar(len(passing_inlets_ids),"Loop over available passing paths inlets:")
-                    for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
-                        inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
-                        sphere = wtc.inlet2sphere(inlet)
-                        if sphere is not None:
-                            # if True:
-                            if wtc.is_overlaping_with_cloud(sphere):
-                                # if chull.point_within(inlet.coords):
-                                # add this inlet to cluster!
-                                inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
-                                added_to_cluster += 1
-                                passing_inlets_ids.pop(passing_inlet_nr)
-                        pbar.next()
-                    if added_to_cluster:
-                        inls.add_message_wrapper(message='+%d passing' % added_to_cluster, toleaf=cluster)
-                    pbar.finish()
-            if len(passing_inlets_ids):
-                inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids), toleaf=0)
+                if len(spaths_passing_ids) == 0:
+                    clui.message("No passing paths to add.")
+                else:
+                    # loop over passing paths, add to inlets
+                    inls.passing = True
+                    passing_inlets_ids = []
+                    for passing_id in spaths_passing_ids:
+                        passing_inlets_ids.extend(inls.extend_inlets(spaths[passing_id]))
+                    # loop over clusters
+                    for cluster in inls.clusters_list:
+                        added_to_cluster = 0
+                        if cluster == 0: continue
+                        clui.message("Current cluster: %d." % cluster)
+                        # sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
+                        # chull = inls.lim2clusters(cluster).get_chull()
+                        wtc = WhereToCut(inlets=inls.lim2clusters(cluster), **ab_options)
+                        wtc.cut_thyself()
+                        pbar = clui.SimpleProgressBar(len(passing_inlets_ids),"Loop over available passing paths inlets:")
+                        for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
+                            inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
+                            sphere = wtc.inlet2sphere(inlet)
+                            if sphere is not None:
+                                # if True:
+                                if wtc.is_overlaping_with_cloud(sphere):
+                                    # if chull.point_within(inlet.coords):
+                                    # add this inlet to cluster!
+                                    inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
+                                    added_to_cluster += 1
+                                    passing_inlets_ids.pop(passing_inlet_nr)
+                            pbar.next()
+                        if added_to_cluster:
+                            inls.add_message_wrapper(message='+%d passing' % added_to_cluster, toleaf=cluster)
+                        pbar.finish()
+                    if len(passing_inlets_ids):
+                        inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids), toleaf=0)
 
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
