@@ -488,6 +488,12 @@ Frames dependent analysis
 
 In addition to general summary Aqua-Duct calculates frames dependent parameters. Two types of values are calculated: number of traced paths, and *Object* and *Scope* sizes. Results are saved in the additional CSV file or are printed on the screen.
 
+Calculated numbers of traced paths can be used to visualize behavior of the system in question. For example, one can analyze number of paths is two different clusters:
+
+.. figure:: figure_16_6.png
+   :align:  center
+
+
 Number of traced paths
 ######################
 
