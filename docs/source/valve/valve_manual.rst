@@ -490,9 +490,10 @@ In addition to general summary Aqua-Duct calculates frames dependent parameters.
 
 Calculated numbers of traced paths can be used to visualize behavior of the system in question. For example, one can analyze number of paths is two different clusters:
 
-.. figure:: figure_16_6.png
+.. figure:: figure_16_6.png 
    :align:  center
 
+The above plot shows number of water molecules (or paths) in cluster 16 and 6 throughout the simulation. One can observe that number of molecules in cluster 6 diminishes approximately in the middle. This kind of plot can be easily generated with additional CSV data.
 
 Number of traced paths
 ######################

@@ -17,5 +17,4 @@ Welcome to Aqua-Duct's documentation!
     Aqua-Duct API documentation <modules>
     Changelog <changelog>
 
-.. include:: other_versions.rst
 

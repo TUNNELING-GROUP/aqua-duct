@@ -1,5 +1,5 @@
-aquaduct.apps.valvecore module
-==============================
+aquaduct\.apps\.valvecore module
+================================
 
 .. automodule:: aquaduct.apps.valvecore
     :members:
