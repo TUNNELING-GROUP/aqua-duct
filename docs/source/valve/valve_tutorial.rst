@@ -22,13 +22,13 @@ Test data
 
 **Mouse!**
 
-We will use 1ns MD simulation data of sEH protein (PDBID **1cqz**). This simulation was performed in Amber 14. Necessary files can be found  at `Aqua-Duct home page <http://aquaduct.pl/>`_ in section `download <http://aquaduct.pl/download>`_. Required data is in the `sample data` file.
+We will use 1 ns MD simulation data of sEH protein (PDBID **1cqz**). This simulation was performed in Amber 14. Necessary files can be found  at `Aqua-Duct home page <http://aquaduct.pl/>`_ in section `download <http://aquaduct.pl/download>`_. Required data is in the `sample data` file.
 
 
 Inspect your system
 -------------------
 
-Before we start any calculations lets have a look at the protein of interest. Start PyMOL and get ``1cqz`` PDB structure (for example by typing in PyMOL command prompt ``fetch 1cqz``).
+Before we start any calculations let's have a look at the protein of interest. Start PyMOL and get ``1cqz`` PDB structure (for example by typing in PyMOL command prompt ``fetch 1cqz``).
 
 To setup *Valve* calculations we need to know the active site of the protein. More precisely we need to know IDs of residues that are in the active site. This would allow us to create :ref:`object_definition`.
 
@@ -37,7 +37,7 @@ But wait. Is it really the correct structure? How many chains there are? What is
 Create *Object definition*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Lets load another structure. Open file ``1cqz_sample_topology.pdb`` (see :ref:`Test data<test_data>`). It is a first frame of the MD simulation and it is en example of how the frame of MD looks like. In order to create :ref:`object_definition` you have to discover following things:
+Leti's load another structure. Open file ``1cqz_sample_topology.pdb`` (see :ref:`Test data<test_data>`). It is a first frame of the MD simulation and it is an example of how the frame of MD looks like. In order to create :ref:`object_definition` you have to discover following things:
 
 #. What is the name of water molecules?
 #. What are numbers of residues in the active site?
@@ -95,7 +95,7 @@ Feedback
 --------
 
 Give us your opinion. Send your questions, inquires, anything to developer(s): `info@aquaduct.pl <info@aquaduct.pl>`_.
-This are couple of questions that might be useful to form your opinion.
+There are couple of questions that might be useful to form your opinion.
 
 #. What do you like in *Valve* and *Aqua-Duct*?
 #. What do you do not like in *Valve* or *Aqua-Duct*?

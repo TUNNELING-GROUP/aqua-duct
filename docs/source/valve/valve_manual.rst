@@ -108,8 +108,8 @@ Sandwich
 Trajectory data can be provided as several files. By default these files are processed in sequential manner making one long trajectory. If option ``--sandwich`` is used trajectory files are read as layers. For each layer, search of traceable residues is done separately (stage I and II) but processing and analysis (stage III, IV, V, and VI) are done for all paths simultaneously. Usage of ``--sandwich`` option is further referenced as *sandwich* mode.
 
 
-Debuging
-""""""""
+Debugging
+"""""""""
 
 *Valve* can output some debug information. Use ``--debug`` to see all debug information on the screen or use ``--debug-file`` with some file name to dump all debug messages to the given file. Beside debug messages standard messages will be saved in the file as well.
 
@@ -127,7 +127,7 @@ If config file is provided (option ``-c``) *Valve* parse it quickly and regular 
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-In the first stage of calculation *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In :ref:`sandwich_mode <sandwich>` mode this is repeated for each layer.
+In the first stage of calculation *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In :ref:`sandwich_option <sandwich>` mode this is repeated for each layer.
 
 The search of *traceable residues* is done according to user provided specifications. Two requirements have to be met to append residue to the list:
 
@@ -174,14 +174,14 @@ Convex hulls of macromolecule atoms
 
 AQ uses quickhull algorithm for convex hulls calculations (via SciPy class :class:`scipy.spatial.ConvexHull`, see also `<http://www.qhull.org/>`_ and original publication `The quickhull algorithm for convex hulls <http://dx.doi.org/10.1145/235815.235821>`_).
 
-Convex hull concept is used to check if traced molecules are inside of the macromolecule. Convex hull can be considered as rough approximation of molecular surface. Following picture shows schematic comparison of convex hull and solvent excluded surface:
+Convex hull concept is used to check if traced molecules are inside of the macromolecule. Convex hull can be considered as rough approximation of molecular surface. Following picture shows schematic comparison of convex hull and solvent excluded surface (SES):
 
 .. figure:: ch_vs_ses.png
    :align:  center
 
-Convex hull (red shape) of atoms (blue dots with VdW spheres) and SES (blue line): a) Convex hull and SES cover roughly the same area, Convex hull approximates SES; b) movement of one atom dramatically changes SES, however, interior of the molecule as approximated by Convex hull remains stable.
+Convex hull (red shape) of atoms (blue dots with VdW spheres) and SES (blue line): a) convex hull and SES cover roughly the same area, convex hull approximates SES; b) movement of one atom dramatically changes SES, however, interior of the molecule as approximated by convex hull remains stable.
 
-No doubts, Convex hull is a very rough approximation of SES. It has, however, one very important property when it is used to approximate interior of molecules: its interior does not considerably depend on the molecular conformation of a molecule (or molecular entity) in question.
+No doubts, convex hull is a very rough approximation of SES. It has, however, one very important property when it is used to approximate interior of molecules: its interior does not considerably depend on the molecular conformation of a molecule (or molecular entity) in question.
 
 Raw paths
 ^^^^^^^^^
@@ -232,7 +232,7 @@ It is also possible that incoming and/or outgoing part of the separate path is e
 Auto Barber
 """""""""""
 
-After the initial search of *Separate Path* objects it is possible to run procedure, Auto Barber, which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This trimming is done by creating collection of spheres that have centers at the ends of paths and radii equal to the distance for the center to the nearest atom of user defined molecular entity. Next, parts of raw paths that are inside these spheres are removed and separate paths are recreated.
+After the initial search of *Separate Path* objects it is possible to run Auto Barber procedure which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This trimming is done by creating collection of spheres that have centers at the ends of paths and radii equal to the distance for the center to the nearest atom of user defined molecular entity. Next, parts of raw paths that are inside these spheres are removed and separate paths are recreated.
 
 Auto Barber procedure has several options, for example:
 
@@ -246,7 +246,7 @@ See also :ref:`options of separate_paths <separate_paths_options>` stage.
 Smoothing
 """""""""
 
-Separate paths can be optionally smoothed. Current :mod:`aquaduct` version allows perform `soft` smoothing only, ie smoothing is used only for visualization purposes. Raw paths cannot be replaced by the smoothed.
+Separate paths can be optionally smoothed. Current :mod:`aquaduct` version allows perform `soft` smoothing only, i.e. smoothing is used only for visualization purposes. Raw paths cannot be replaced by the smoothed.
 
 Available methods
 #################
@@ -278,8 +278,8 @@ Clusterization of inlets is performed in following steps:
 #. `Initial clusterization`: All inlets are submitted to selected clusterization method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
 #. [Optional] `Outliers detection`: Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
 
-    #. `Automatic mode`: Inlet is considered to be an outlier if its distance from the centroid is greater then mean distance + 4 * standard deviation of all distances within the cluster.
-    #. `Defined threshold`: Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the threshold.
+    #. `Automatic mode`: Inlet is considered to be an outlier if its distance from the centroid is greater than mean distance + 4 * standard deviation of all distances within the cluster.
+    #. `Defined threshold`: Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater than the threshold.
 
 #. [Optional] `Reclusterization of outliers`: It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
 
@@ -357,7 +357,7 @@ General summary
 
 Results starts with general summary.
 
-* Tile and data stamp.
+* Title and data stamp.
 * [Optional] Dump of configuration options.
 * Frames window.
 * Names of traced molecules.
@@ -371,11 +371,11 @@ Results starts with general summary.
     * Outliers flag, *yes* if they are present.
 * Clustering history - a tree summarizing calculated clusters.
 
-Clusters' statistics
-""""""""""""""""""""
+Clusters statistics
+"""""""""""""""""""
 
 * Clusters summary - inlets.
-    * Summary of inlets' clusters. Table with 4 columns:
+    * Summary of inlets clusters. Table with 4 columns:
         #. **Cluster**: ID of the cluster. Outliers have 0.
         #. **Size**: Size of the cluster.
         #. **INCOMING**: Number of inlets corresponding to separate paths that enter the scope.
@@ -397,7 +397,7 @@ Clusters' statistics
         #. **Cluster**: ID of the cluster. Outliers have 0.
         #. **X->Obj**: Mean length of separate paths leading from this cluster to the object.
         #. **Obj->X**: Mean length of separate paths leading from the object to this cluster.
-        #. **p-value**: p-value of ttest of comparing **X->Obj** and **Obj->X**.
+        #. **p-value**: p-value of *ttest* of comparing **X->Obj** and **Obj->X**.
         #. **X->ObjMin**: Minimal value of length of separate paths leading from this cluster to the object.
         #. **X->ObjMinID**: ID of separate path for which **X->ObjMin** was calculated.
         #. **Obj->XMin**: Minimal value of length of separate paths leading from the object to this cluster.
@@ -406,7 +406,7 @@ Clusters' statistics
         #. **Cluster**: ID of the cluster. Outliers have 0.
         #. **X->Obj**: Mean number of frames of separate paths leading from this cluster to the object.
         #. **Obj->X**: Mean number of frames of separate paths leading from the object to this cluster.
-        #. **p-value**: p-value of ttest of comparing **X->Obj** and **Obj->X**.
+        #. **p-value**: p-value of *ttest* of comparing **X->Obj** and **Obj->X**.
         #. **X->ObjMin**: Minimal value of number of frames of separate paths leading from this cluster to the object.
         #. **X->ObjMinID**: ID of separate path for which **X->ObjMin** was calculated.
         #. **Obj->XMin**: Minimal value of number of frames of separate paths leading from the object to this cluster.
@@ -414,7 +414,7 @@ Clusters' statistics
 
 .. note::
 
-    Distributions of **X->Obj** and **Obj->X** might be not normal, ttest may result unrealistic values. This test will be changed in the future releases.
+    Distributions of **X->Obj** and **Obj->X** might be not normal, *ttest* may result unrealistic values. This test will be changed in the future releases.
 
 Clusters types statistics
 """""""""""""""""""""""""
@@ -498,12 +498,12 @@ For each frame, numbers of traced paths are calculated for following categories:
 #. Clusters and cluster types - ``aclusts`` is used for all possible clusters and ``actypes`` is used for all possible cluster types.
 #. Part of paths. Possible values are: ``walk``, ``in``, ``object``, ``out``, and ``in_out``. Where ``walk`` corresponds to any part of path and in case of passing paths only this category is used; ``in``, ``object``, and ``out`` correspond to incoming, object, and outgoing parts; ``in_out`` corresponds to sum of incoming and outgoing parts.
 
-All the above listed categories are combined together, and the final number of calculated categories may be quit big.
+All the above listed categories are combined together, and the final number of calculated categories may be quite big.
 
 Size of *Object* and *Scope*
 ############################
 
-If option ``calculate_scope_object_size`` is set ``True`` and values of ``scope_chull`` and ``object_chull`` correspond to appropriate molecular entities, Aqua-Duct calculates area and volume of *Scope* and *Object*. Calculated sizes are estimates as resulting from Convex Hull approximations. 
+If option ``calculate_scope_object_size`` is set ``True`` and values of ``scope_chull`` and ``object_chull`` correspond to appropriate molecular entities, Aqua-Duct calculates area and volume of *Scope* and *Object*. Calculated sizes are estimates as resulting from convex hull approximations. 
 
 
 Visualization
@@ -511,14 +511,15 @@ Visualization
 
 Sixth stage of *Valve* calculations visualizes results calculated in stages 1 to 4. Visualization is done with PyMOL. *Valve* creates visualizations in two modes:
 
-#. Two files are created: special python script and archive with data. Python script can be simply started with python, it automatically opens PyMol and loads all data from the archive. Optionally it can automatically save PyMol session.
+#. Two files are created: special Python script and archive with data. Python script can be simply started with python, it automatically opens PyMol and loads all data from the archive. Optionally it can automatically save PyMol session.
 #. PyMol is automatically started and all data is loaded directly to PyMol workspace.
 
 Molecule is loaded as PDB file. Other objects like Inlets clusters or paths are loaded as CGO objects.
 
-Visulaization scipt
-"""""""""""""""""""
-By default *Valve* creates python visualization script and archive with data files. This script is a regular python script. It does not depends on AQUA-DUCT. To run it, python2.7 and pymol is required. If no **save** option is used *Valve* saves visualization script as ``6_visualize_results.py``. To load full visualization call::
+Visualization script
+""""""""""""""""""""
+
+By default *Valve* creates Python visualization script and archive with data files. This script is a regular Python script. It does not depends on AQUA-DUCT. To run it, python2.7 and PyMol is required. If no **save** option is used *Valve* saves visualization script as ``6_visualize_results.py``. To load full visualization call::
 
     python 6_visualize_results.py --help
 
@@ -553,7 +554,7 @@ Option ``--force-color`` allows to change default color of objects. It accepts l
 
 .. note::
 
-    Currently, it is not possible to change color of molecules.
+    Currently, ``--force-color`` does not allow to change color of molecules. It can be done in PyMol.
 
 Options ``--keep`` and ``--discard`` allows to select specific objects for visualization. Both accept list of names comprising of full or partial object names. Option ``--keep`` instructs script to load only specified objects, whereas, ``--discard`` instructs to skip specific objects. For example to keep shapes of object and scope, molecule and clusters only one can call following::
 
@@ -566,13 +567,12 @@ To discard all raw paths::
 Options can be used simultaneously, order does matter:
 
 #. If ``--keep`` is used first, objects are not displayed if they are not on the *keep* list. If they are on the list, visualization script checks if they are on the *discard* list. If yes, objects are not displayed.
-#. If ``--discard`` is used first, objects are not displayed if they are on the *dsicard* list and are not on the *keep* list.
+#. If ``--discard`` is used first, objects are not displayed if they are on the *discard* list and are not on the *keep* list.
 
 For example, in order to display molecule, clusters, and only raw master paths, one can use following command::
 
     python 6_visualize_results.py --keep 'molecule cluster master' --discard 'smooth'
     
-
 .. note::
 
     Options ``--keep`` and ``--discard`` accepts both full and partial object names.
@@ -580,7 +580,6 @@ For example, in order to display molecule, clusters, and only raw master paths, 
 .. note::
 
     List of names has to be given in parentheses.
-
 
 Visualization objects
 """""""""""""""""""""

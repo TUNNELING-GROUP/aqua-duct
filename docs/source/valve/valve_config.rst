@@ -1,7 +1,7 @@
 Configuration file options
 ==========================
 
-Valve Configuration file is a simple and plain text file. It has similar structure as INI files commonly used in one of the popular operating systems and is compliant with Python module :mod:`ConfigParser`.
+Valve configuration file is a simple and plain text file. It has similar structure as INI files commonly used in one of the popular operating systems and is compliant with Python module :mod:`ConfigParser`.
 
 Configuration file comprises of several *sections*. They can be grouped into three categories. Names of sections are in **bold** text.
 
@@ -138,9 +138,9 @@ scope_convexhull        None            Flag to set if the *Scope* is direct or 
 scope_everyframe        False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
                                         evaluated in every frame. This make sense if the definition is
                                         complex and depends on distances between molecular entities.
-                                        If ``None`` value form previous stage is used.
+                                        If ``None`` value from previous stage is used.
 object                  None            Definition of *Object* of interest. See also
-                                        :ref:`object_definition`. If ``None`` value form the previous
+                                        :ref:`object_definition`. If ``None`` value from the previous
                                         stage is used
 clear_in_object_info    False           If it is set to ``True`` information on occupation of *Object*
                                         site by traceable residues calculated in the previous stage is
@@ -203,8 +203,8 @@ Option                              Default value   Description
 ==================================  ==============  ================================================================
 recluster_outliers                  False           If set to ``True`` reclusterization of outliers is executed
                                                     according to the method defined in **reclusterization** section.
-detect_outliers                     False           If set detection of outliers is executed. It could be set as a
-                                                    floating point distance threshold or set tu ``Auto``. See
+detect_outliers                     False           If set, detection of outliers is executed. It could be set as a
+                                                    floating point distance threshold or set to ``Auto``. See
                                                     :ref:`clusterization_of_inlets` for more details.
 singletons_outliers                 False           Maximal size of cluster to be considered as outliers. If set to
                                                     number > 0 clusters of that size are removed and their objects
@@ -253,6 +253,17 @@ Stage **visualize**
     ==========================  ================    ==========================================================================================
     Option                      Default value       Description
     ==========================  ================    ==========================================================================================
+    all_paths_raw               False               If True produces one object in PyMOL that holds all paths
+                                                    visualized by raw coordinates.
+    all_paths_smooth            False               If True produces one object in PyMOL that holds all paths
+                                                    visualized by smooth coordinates.
+    all_paths_split             False               If is set True objects produced by **all_paths_raw** and
+                                                    **all_paths_smooth** are split into Incoming, Object, and
+                                                    Outgoing parts and visualized as three different objects.
+    all_paths_raw_io            False               If set True arrows pointing beginning and end of paths are
+                                                    displayed oriented accordingly to raw paths orientation.
+    all_paths_smooth_io         False               If set True arrows pointing beginning and end of paths are
+                                                    displayed oriented accordingly to smooth paths orientation.
     simply_smooths              RecursiveVector     Option indicates linear simplification method to be used in
                                                     plotting smooth paths. Simplification removes points which do
                                                     not (or almost do not) change the shape of smooth path.
@@ -266,21 +277,10 @@ Stage **visualize**
                                                     * ``OneWayTriangle`` (:class:`~aquaduct.geom.traces.LinearizeOneWayTriangle`).
 
                                                     Optionally name of the method can be followed by a threshold
-                                                    value in parentheses, ie ``RecursiveVector(0.05)``. For sane
+                                                    value in parentheses, i.e. ``RecursiveVector(0.05)``. For sane
                                                     values of thresholds see appropriate documentation of each method.
                                                     Default values work well. This option is not case sensitive.
                                                     It is recommended to use default method or ``HobbitVector`` method.
-    all_paths_raw               False               If True produces one object in PyMOL that holds all paths
-                                                    visualized by raw coordinates.
-    all_paths_smooth            False               If True produces one object in PyMOL that holds all paths
-                                                    visualized by smooth coordinates.
-    all_paths_split             False               If is set True objects produced by **all_paths_raw** and
-                                                    **all_paths_smooth** are split into Incoming, Object, and
-                                                    Outgoing parts and visualized as three different objects.
-    all_paths_raw_io            False               If set True arrows pointing beginning and end of paths are
-                                                    displayed oriented accordingly to raw paths orientation.
-    all_paths_smooth_io         False               If set True arrows pointing beginning and end of paths are
-                                                    displayed oriented accordingly to smooth paths orientation.
     paths_raw                   False               If set True raw paths are displayed as separate objects or as
                                                     one object with states corresponding to number of path.
     paths_smooth                False               If set True smooth paths are displayed as separate objects or
@@ -319,7 +319,7 @@ Stage **visualize**
     show_object_chull           False               If is set to selection of some molecular object in the system
                                                     convex hull of this object is displayed. This works exacly the
                                                     same way as **show_chull** but is meant to mark object shape.
-                                                    It can be achevied by using `name * and` molecular object
+                                                    It can be achieved by using `name * and` molecular object
                                                     definition plus some spatial constrains, for example those
                                                     used in object definition.
     show_object_chull_frames    0                   Allows to indicate for which frames of object defined by
@@ -355,7 +355,7 @@ Option                      Default value   Description
 =========================   =============== ================================================================
 method                      barber or       Name of clusterization method. It has to be one of the
                             dbscan          following: barber, dbscan, affprop, meanshift, birch, kmeans.
-                                            Default value depends whether it is **clusteriation** section
+                                            Default value depends whether it is **clusterization** section
                                             (barber) or **reclusterization** section (dbscan).
 recursive_clusterization    clusterization  If it is set to name of some section that holds clusterization
                             or None         method settings this method will be called in the next
@@ -379,7 +379,7 @@ barber
 .. _clusterization_barber:
 
 
-Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** Stage settings or according to parameters given in clausterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped in to clusters. Method **barber** supports the same settings as Auto Barber settings:
+Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** stage settings or according to parameters given in clasterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped in to clusters. Method **barber** supports the same settings as Auto Barber settings:
 
 
 .. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|

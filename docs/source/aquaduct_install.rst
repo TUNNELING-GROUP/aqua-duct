@@ -39,7 +39,7 @@ Software-wise requirements
 Hardware-wise requirements
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Aqua-Duct should work on every machine on which you can install the above mentioned software. On computers older then 10 years it may work very slow though. We recommend 64bit SMP architecture, with at least 4GB RAM (32 GB RAM is recommended).
+Aqua-Duct should work on every machine on which you can install the above mentioned software. On computers older than 10 years it may work very slow though. We recommend 64bit SMP architecture, with at least 4GB RAM (32 GB RAM is recommended).
 
 Installation
 ------------

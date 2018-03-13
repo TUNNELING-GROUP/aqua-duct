@@ -60,7 +60,7 @@ __version__ = version_nice()
 __mail__ = 'info@aquaduct.pl'
 
 __author__ = u'Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk'
-__author_doc__ = u'Tomasz Magdziarz, Karolina Mitusińska, Sandra Gołdowska, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Artur Góra'
+__author_doc__ = u'Tomasz Magdziarz, Karolina Mitusińska, Artur Góra'
 
 def greetings():
     """
