@@ -131,15 +131,15 @@ class ValveConfig(object, ConfigSpecialNames):
 
     @staticmethod
     def cluster_name():
-        return 'clusterization'
+        return 'clustering|clusterization'
 
     @staticmethod
     def recluster_name():
-        return 'reclusterization'
+        return 'reclustering|reclusterization'
 
     @staticmethod
     def recursive_clusterization_name():
-        return 'recursive_clusterization'
+        return 'recursive_clustering|recursive_clusterization'
 
     @staticmethod
     def recursive_threshold_name():
@@ -180,6 +180,22 @@ class ValveConfig(object, ConfigSpecialNames):
                         options.update({name: value})
         return self.__make_options_nt(options)
 
+    @staticmethod
+    def get_name_re(name,names_list):
+        snc = re.compile(name)
+        canditates = [sect for n in names_list if snc.match(n) is not None]
+        if len(candidates) > 1:
+            logger.warning('Ambigous sections names (%s), using first by default.',' '.join(candidates))
+        if len(canidataes) > 0:
+            return candidates[0]
+
+
+    def get_section_name_re(self,section_name):
+        name = self.get_name_re(section_name,self.config.sections())
+        if name is None:
+            ValueError('Unknown section %s' % section_name)
+        return name
+
     def get_global_options(self):
         section = self.global_name()
         names = self.config.options(section)
@@ -198,15 +214,18 @@ class ValveConfig(object, ConfigSpecialNames):
         return self.__make_options_nt(options)
 
     def get_cluster_options(self, section_name=None):
+        # if section_name is None it means it is called to get 0 level clustering options
         if section_name is None:
             section = self.cluster_name()
         else:
             section = section_name
+        section = self.get_section_name_re(section) # in order not to break compatibility with <=0.5.9
         names = self.config.options(section)
         # options = {name: self.config.get(section, name) for name in names}
         options = OrderedDict(((name, self.config.get(section, name)) for name in names))
-        # special recursive_clusterization option
-        if self.recursive_clusterization_name() not in options:
+        # special recursive_clusterization option 
+        recursive_clusterization_name = self.get_name_re(self.recursive_clusterization_name(),options.keys()) # in order not to break compatibility with <=0.5.9
+        if recursive_clusterization_name is None:
             options.update({self.recursive_clusterization_name(): None})
         if self.recursive_threshold_name() not in options:
             options.update({self.recursive_threshold_name(): None})
