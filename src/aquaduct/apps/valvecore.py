@@ -36,6 +36,7 @@ from itertools import izip_longest, izip, imap
 from keyword import iskeyword
 
 import array
+import cStringIO as StringIO
 
 from scipy.spatial.distance import cdist
 from scipy.stats import ttest_ind
@@ -126,32 +127,35 @@ class ValveConfig(object, ConfigSpecialNames):
         return 'scope scope_convexhull scope_everyframe object'.split()
 
     @staticmethod
-    def global_name():
+    def global_name(default=True):
         return 'global'
 
     @staticmethod
-    def cluster_name():
+    def cluster_name(default=True):
+        if default: return 'clustering'
         return 'clustering|clusterization'
 
     @staticmethod
-    def recluster_name():
+    def recluster_name(default=True):
+        if default: return 'reclustering'
         return 'reclustering|reclusterization'
 
     @staticmethod
-    def recursive_clusterization_name():
+    def recursive_clusterization_name(default=True):
+        if default: return 'recursive_clustering'
         return 'recursive_clustering|recursive_clusterization'
 
     @staticmethod
-    def recursive_threshold_name():
+    def recursive_threshold_name(default=True):
         return 'recursive_threshold'
 
     @staticmethod
-    def smooth_name():
+    def smooth_name(default=True):
         return 'smooth'
 
-    def stage_names(self, nr=None):
+    def stage_names(self, nr=None, default=True):
         if nr is None:
-            return [self.stage_names(nr) for nr in range(5)]
+            return [self.stage_names(nr) for nr in range(6)]
         else:
             if nr == 0:
                 return 'traceable_residues'
@@ -160,12 +164,21 @@ class ValveConfig(object, ConfigSpecialNames):
             elif nr == 2:
                 return 'separate_paths'
             elif nr == 3:
-                return 'inlets_clusterization'
+                if default: return 'inlets_clustering'
+                return 'inlets_clustering|inlets_clusterization'
             elif nr == 4:
                 return 'analysis'
             elif nr == 5:
                 return 'visualize'
         raise NotImplementedError('Stage %r is not implemented.' % nr)
+
+    def get_all_possible_sections(self,default=True):
+        names = [self.global_name(default=default)] + \
+                [self.stage_names(stage,default=default) for stage in range(6)] + \
+                [self.cluster_name(default=default), self.recluster_name(default=default),
+                 self.smooth_name(default=default)]
+        return names
+
 
     def get_common_traj_data(self, stage):
         assert isinstance(stage, int)
@@ -183,17 +196,17 @@ class ValveConfig(object, ConfigSpecialNames):
     @staticmethod
     def get_name_re(name,names_list):
         snc = re.compile(name)
-        canditates = [sect for n in names_list if snc.match(n) is not None]
+        candidates = [n for n in names_list if snc.match(n) is not None]
         if len(candidates) > 1:
-            logger.warning('Ambigous sections names (%s), using first by default.',' '.join(candidates))
-        if len(canidataes) > 0:
+            logger.warning('Ambigous names (%s), using first by default.',' '.join(candidates))
+        if len(candidates) > 0:
             return candidates[0]
 
 
     def get_section_name_re(self,section_name):
         name = self.get_name_re(section_name,self.config.sections())
         if name is None:
-            ValueError('Unknown section %s' % section_name)
+            ValueError('Unknown section %s.' % section_name)
         return name
 
     def get_global_options(self):
@@ -213,7 +226,7 @@ class ValveConfig(object, ConfigSpecialNames):
             options.update(self.get_common_traj_data(stage)._asdict())
         return self.__make_options_nt(options)
 
-    def get_cluster_options(self, section_name=None):
+    def get_cluster_options(self, section_name=None, return_section_name=False):
         # if section_name is None it means it is called to get 0 level clustering options
         if section_name is None:
             section = self.cluster_name()
@@ -229,6 +242,8 @@ class ValveConfig(object, ConfigSpecialNames):
             options.update({self.recursive_clusterization_name(): None})
         if self.recursive_threshold_name() not in options:
             options.update({self.recursive_threshold_name(): None})
+        if return_section_name:
+            return self.__make_options_nt(options),section
         return self.__make_options_nt(options)
 
     def get_recluster_options(self):
@@ -421,7 +436,20 @@ class ValveConfig(object, ConfigSpecialNames):
         return config
 
     def load_config(self, filename):
-        self.config.read(filename)
+        # load file as string and preprosess it... 
+        with open(filename,'r') as conf_file_h:
+            config_str = conf_file_h.read()
+        # correct some sections
+        for sname_re,sname in zip(self.get_all_possible_sections(default=False),self.get_all_possible_sections(default=True)):
+            # modify re so it matches sections (or it should)
+            cre = re.compile('\[(%s)\]' % sname_re)
+            sname = '[%s]' % sname
+            config_str = cre.sub(sname,config_str)
+        corrected_config = StringIO.StringIO()
+        corrected_config.write(config_str)
+        corrected_config.seek(0)
+
+        self.config.readfp(corrected_config)
         self.config_filename = filename
 
     def save_config_stream(self, fs):
@@ -464,10 +492,7 @@ class ValveConfig(object, ConfigSpecialNames):
                   [self.get_stage_options(stage) for stage in range(6)] + \
                   [self.get_cluster_options(), self.get_recluster_options(),
                    self.get_smooth_options()]
-        names = [self.global_name()] + \
-                [self.stage_names(stage) for stage in range(6)] + \
-                [self.cluster_name(), self.recluster_name(),
-                 self.smooth_name()]
+        names = self.get_all_possible_sections()
 
         def value2str(val):
             if val is Auto:
@@ -1259,9 +1284,8 @@ def potentially_recursive_clusterization(config=None,
                                          deep=0,
                                          max_level=5):
     with clui.fbm("Performing %s, level %d of %d" % (message, deep, max_level), cont=False):
-        logger.debug('Clustering options section: %s' % clusterization_name)
-        cluster_options = config.get_cluster_options(section_name=clusterization_name)
-        clui.message('Clustering options:')
+        cluster_options,clusterization_name = config.get_cluster_options(section_name=clusterization_name,return_section_name=True)
+        clui.message('Clustering options [%s]:' % clusterization_name)
         for k, v in cluster_options._asdict().iteritems():
             clui.message("%s = %s" % (str(k), str(v)))
         # TODO: Print clusterization options in a nice way!
@@ -2450,7 +2474,6 @@ def stage_V_run(config, options,
     if options.save:
         h_fname = options.save + '.csv'
     else:
-        import cStringIO as StringIO
         h_fname = StringIO.StringIO()
     np.savetxt(h_fname, h,
                fmt=fmt,
