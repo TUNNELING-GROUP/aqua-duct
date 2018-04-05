@@ -183,10 +183,10 @@ class ValveConfig(object, ConfigSpecialNames):
     @staticmethod
     def get_name_re(name,names_list):
         snc = re.compile(name)
-        canditates = [sect for n in names_list if snc.match(n) is not None]
+        candidates = [n for n in names_list if snc.match(n) is not None]
         if len(candidates) > 1:
             logger.warning('Ambigous sections names (%s), using first by default.',' '.join(candidates))
-        if len(canidataes) > 0:
+        if len(candidates) > 0:
             return candidates[0]
 
 
