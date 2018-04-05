@@ -48,7 +48,7 @@ from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
 from aquaduct.apps.data import get_vda_reader, GCS, CRIC, save_cric
 from aquaduct.geom import traces
-from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
+from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clustering_methods
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
     BarberCluster, get_required_params
 from aquaduct.geom.master import CTypeSpathsCollection
@@ -141,7 +141,8 @@ class ValveConfig(object, ConfigSpecialNames):
         return 'reclustering|reclusterization'
 
     @staticmethod
-    def recursive_clusterization_name(default=True):
+    def recursive_clustering_name(default=True,old=False):
+        if old: return 'recursive_clusterization'
         if default: return 'recursive_clustering'
         return 'recursive_clustering|recursive_clusterization'
 
@@ -236,10 +237,16 @@ class ValveConfig(object, ConfigSpecialNames):
         names = self.config.options(section)
         # options = {name: self.config.get(section, name) for name in names}
         options = OrderedDict(((name, self.config.get(section, name)) for name in names))
-        # special recursive_clusterization option 
-        recursive_clusterization_name = self.get_name_re(self.recursive_clusterization_name(),options.keys()) # in order not to break compatibility with <=0.5.9
-        if recursive_clusterization_name is None:
-            options.update({self.recursive_clusterization_name(): None})
+        # special recursive_clustering option
+        # in order not to break compatibility with <=0.5.9
+        recursive_clustering_name_old = self.recursive_clustering_name(old=True)
+        if recursive_clustering_name_old in  names:
+            logger.warning("Option name '%s' in clustering sections is deprecated; use '%s' instead.",recursive_clustering_name_old,self.recursive_clustering_name())
+            recursive_clustering_name = recursive_clustering_name_old
+        else:
+            recursive_clustering_name = self.get_name_re(self.recursive_clustering_name(),options.keys()) 
+        if recursive_clustering_name is None:
+            options.update({self.recursive_clustering_name(): None})
         if self.recursive_threshold_name() not in options:
             options.update({self.recursive_threshold_name(): None})
         if return_section_name:
@@ -353,7 +360,7 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'detect_outliers', 'False')
         config.set(section, 'singletons_outliers', 'False')
         config.set(section, 'create_master_paths', 'False')
-        config.set(section, 'exclude_passing_in_clusterization', 'True')
+        config.set(section, 'exclude_passing_in_clustering', 'True')
         config.set(section, 'add_passing_to_clusters', 'None')
 
         ################
@@ -363,19 +370,19 @@ class ValveConfig(object, ConfigSpecialNames):
         config.set(section, 'method', 'window')
 
         ################
-        # clusterization
+        # clustering
         section = self.cluster_name()
         config.add_section(section)
         config.set(section, 'method', 'barber')
-        config.set(section, self.recursive_clusterization_name(), self.cluster_name())
+        config.set(section, self.recursive_clustering_name(), self.cluster_name())
         config.set(section, self.recursive_threshold_name(), 'False')
 
         ################
-        # reclusterization
+        # reclustering
         section = self.recluster_name()
         config.add_section(section)
         config.set(section, 'method', 'dbscan')
-        config.set(section, self.recursive_clusterization_name(), 'False')
+        config.set(section, self.recursive_clustering_name(), 'False')
         config.set(section, self.recursive_threshold_name(), 'False')
 
         ################
@@ -443,6 +450,9 @@ class ValveConfig(object, ConfigSpecialNames):
         for sname_re,sname in zip(self.get_all_possible_sections(default=False),self.get_all_possible_sections(default=True)):
             # modify re so it matches sections (or it should)
             cre = re.compile('\[(%s)\]' % sname_re)
+            if cre.findall(config_str):
+                if cre.findall(config_str)[0] != sname:
+                    logger.warning("Section name '%s' is deprecated; use '%s' instead.",', '.join(cre.findall(config_str)),sname)
             sname = '[%s]' % sname
             config_str = cre.sub(sname,config_str)
         corrected_config = StringIO.StringIO()
@@ -463,10 +473,10 @@ class ValveConfig(object, ConfigSpecialNames):
         if section == self.global_name():
             return ['Global settings.']
         if section == self.cluster_name():
-            out = ['Possible clusterization methods:']
-            # get default clusterization method
+            out = ['Possible clustering methods:']
+            # get default clustering method
             defmet = self.config.get(section, 'method')
-            for method in available_clusterization_methods:
+            for method in available_clustering_methods:
                 if method == defmet: continue
                 out.append('method = %s' % method)
                 params = get_required_params(method)
@@ -681,7 +691,7 @@ def get_auto_barber_options(abo):
 
 
 def get_clustering_method(coptions, config):
-    assert coptions.method in available_clusterization_methods, 'Unknown clusterization method %s.' % coptions.method
+    assert coptions.method in available_clustering_methods, 'Unknown clustering method %s.' % coptions.method
 
     opts = {}
 
@@ -988,6 +998,86 @@ def stage_I_run(config, options,
 
 ################################################################################
 
+
+class stage_II_run_worker(object):
+
+    def __init__(self,scope,scope_convexhull,scope_everyframe,object_def,is_number_frame_rid_in_object,lock,pbar):
+        self.options_scope_everyframe = scope_everyframe
+        self.options_scope = scope
+        self.options_scope_convexhull = scope_convexhull
+        self.options_object = object_def
+        self.is_number_frame_rid_in_object = is_number_frame_rid_in_object
+        self.lock = lock
+        self.pbar = pbar
+
+    def loop_layers(self,traj_reader,
+                    all_res_this_layer,
+                    number_of_frames_onelayer,
+                    frame_rid_in_object):
+
+        # scope is evaluated only once before loop over frames so it cannot be frame dependent
+        if not self.options_scope_everyframe:
+            scope = traj_reader.parse_selection(self.options_scope)
+            #logger.debug("Scope definition evaluated only once for given layer")
+        else:
+            pass
+            #logger.debug("Scope definition evaluated in every frame, this might be very slow.")
+
+        # speed up!
+        all_res_this_ids = list(all_res_this_layer.ids())
+
+        paths_this_layer = (GenericPaths(resid,
+                                         name_of_res=resname,
+                                         single_res_selection=sressel,
+                                         min_pf=0, max_pf=number_of_frames_onelayer-1)
+                            for resid, resname, sressel in izip(all_res_this_ids,
+                                                                all_res_this_layer.names(),
+                                                                all_res_this_layer.single_residues()))
+
+
+        # big container for 012 path data
+        number_frame_object_scope = np.zeros((number_of_frames_onelayer, all_res_this_layer.len()), dtype=np.int8)
+
+        # the loop over frames, use izip otherwise iteration over frames does not work
+        for rid_in_object, frame in izip(
+                iterate_or_die(frame_rid_in_object, times=number_of_frames_onelayer),
+                traj_reader.iterate_over_frames()):
+
+            # do we have object data?
+            if not self.is_number_frame_rid_in_object:
+                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(self.options_object).residues().ids()]
+            # assert rid_in_object is not None
+
+            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
+
+            if self.options_scope_everyframe:
+                scope = traj_reader.parse_selection(self.options_scope)
+            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
+            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=self.options_scope_convexhull,
+                                                      map_fun=map,
+                                                      known_true=None)  # known_true could be rid_in_object
+
+            number_frame_object_scope[frame,:] = np.array(map(sum,izip(is_res_in_object,is_res_in_scope)),dtype=np.int8)
+            '''
+            if self.lock:
+                with self.lock:
+                    self.pbar.next()
+            else:
+                self.pbar.next()
+            '''
+        #number_frame_object_scope = np.array(number_frame_object_scope,dtype=np.int8).T
+        # another loop over this columns
+        paths = []
+        for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
+            pat.add_012(nfos)
+            paths.append(pat)
+
+        return paths
+        #paths.extend(paths_this_layer)
+
+    def __call__(self,args):
+        return self.loop_layers(*args)
+
 # raw_paths
 def stage_II_run(config, options,
                  all_res=None,
@@ -1011,14 +1101,21 @@ def stage_II_run(config, options,
     ####################################################################################################################
     # create pool of workers - mapping function
     map_fun = map
+    lock = None
     if optimal_threads.threads_count > 1:
         pool = mp.Pool(optimal_threads.threads_count)
         chunk_size = all_res.len() / Reader.number_of_layers() / (optimal_threads.threads_count ** 1) - 1
         if chunk_size <= 0:
             chunk_size = 1
         logger.debug("Chunk size %d.",chunk_size)
-        map_fun = partial(pool.imap, chunksize=chunk_size)
-        #map_fun = pool.map
+        map_fun = partial(pool.imap, chunksize=1)#chunk_size)
+        map_fun = pool.map
+        #manager = mp.Manager()
+        #lock = manager.Lock()
+    # joblib par test
+    from joblib import Parallel, delayed
+    #map_fun = Parallel(n_jobs=optimal_threads.threads_count,verbose=0,backend='threading')
+    map_fun = Parallel(n_jobs=optimal_threads.threads_count,verbose=0)
     # clear in object info if required
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
@@ -1041,60 +1138,21 @@ def stage_II_run(config, options,
     pbar = clui.pbar(Reader.number_of_frames())
     # loop over possible layers of sandwich
     paths = []
-    for frame_rid_in_object, (number, traj_reader) in izip(
-            iterate_or_die(number_frame_rid_in_object, times=Reader.number_of_layers()), Reader.iterate(number=True)):
 
-        # scope is evaluated only once before loop over frames so it cannot be frame dependent
-        if not options.scope_everyframe:
-            scope = traj_reader.parse_selection(options.scope)
-            logger.debug("Scope definition evaluated only once for given layer")
-        else:
-            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
 
-        # speed up!
-        all_res_this_layer = all_res.layer(number)
-        all_res_this_ids = list(all_res_this_layer.ids())
+    loop_layers_input = ((traj_reader,
+                          all_res.layer(number),
+                          number_of_frames+1,
+                          frame_rid_in_object) for frame_rid_in_object, (number, traj_reader) in izip(iterate_or_die(number_frame_rid_in_object,times=Reader.number_of_layers()),Reader.iterate(number=True)))
 
-        paths_this_layer = (GenericPaths(resid,
-                                         name_of_res=resname,
-                                         single_res_selection=sressel,
-                                         min_pf=0, max_pf=number_of_frames)
-                            for resid, resname, sressel in izip(all_res_this_ids,
-                                                                all_res_this_layer.names(),
-                                                                all_res_this_layer.single_residues()))
-
-        # big container for 012 path data
-        number_frame_object_scope = np.zeros((Reader.number_of_frames(onelayer=True), all_res_this_layer.len()), dtype=np.int8)
-        # the loop over frames, use izip otherwise iteration over frames does not work
-        for rid_in_object, frame in izip(
-                iterate_or_die(frame_rid_in_object, times=Reader.number_of_frames(onelayer=True)),
-                traj_reader.iterate_over_frames()):
-
-            # do we have object data?
-            if not is_number_frame_rid_in_object:
-                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(options.object).residues().ids()]
-            # assert rid_in_object is not None
-
-            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
-
-            if options.scope_everyframe:
-                scope = traj_reader.parse_selection(options.scope)
-            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=options.scope_convexhull,
-                                                      map_fun=map_fun,
-                                                      known_true=None)  # known_true could be rid_in_object
-
-            number_frame_object_scope[frame,:] = np.array(map(sum,izip(is_res_in_object,is_res_in_scope)),dtype=np.int8)
-            pbar.next()
-
-        #number_frame_object_scope = np.array(number_frame_object_scope,dtype=np.int8).T
-        # another loop over this columns
-        for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
-            pat.add_012(nfos)
-            paths.append(pat)
-        del number_frame_object_scope
-
-        #paths.extend(paths_this_layer)
+    loop_worker = stage_II_run_worker(options.scope,
+                                      options.scope_convexhull,
+                                      options.scope_everyframe,
+                                      options.object,
+                                      is_number_frame_rid_in_object,lock,None)
+    print map_fun
+    paths = list(map_fun(delayed(loop_worker)(args) for args in loop_layers_input))
+    #paths = list(map_fun(loop_worker,list(loop_layers_input)))
 
     # destroy pool of workers
     if optimal_threads.threads_count > 1:
@@ -1276,19 +1334,19 @@ class SkipSizeFunction(object):
         return False
 
 
-def potentially_recursive_clusterization(config=None,
-                                         clusterization_name=None,
+def potentially_recursive_clustering(config=None,
+                                         clustering_name=None,
                                          inlets_object=None,
                                          spaths=None,
-                                         message='clusterization',
+                                         message='clustering',
                                          deep=0,
                                          max_level=5):
     with clui.fbm("Performing %s, level %d of %d" % (message, deep, max_level), cont=False):
-        cluster_options,clusterization_name = config.get_cluster_options(section_name=clusterization_name,return_section_name=True)
-        clui.message('Clustering options [%s]:' % clusterization_name)
+        cluster_options,clustering_name = config.get_cluster_options(section_name=clustering_name,return_section_name=True)
+        clui.message('Clustering options [%s]:' % clustering_name)
         for k, v in cluster_options._asdict().iteritems():
             clui.message("%s = %s" % (str(k), str(v)))
-        # TODO: Print clusterization options in a nice way!
+        # TODO: Print clustering options in a nice way!
         clustering_function = get_clustering_method(cluster_options, config)
         # special case of barber!!!
         if cluster_options.method == 'barber':
@@ -1302,26 +1360,26 @@ def potentially_recursive_clusterization(config=None,
             # clouds = wtc.cloud_groups(progress=True)
             logger.debug('Getting spheres...')
             inlets_object.add_spheres(wtc.spheres)
-        logger.debug('Proceed with clusterization, skip size...')
+        logger.debug('Proceed with clustering, skip size...')
         # get skip_size function according to recursive_treshold
         skip_size = SkipSizeFunction(cluster_options.recursive_threshold)
-        logger.debug('Proceed with clusterization, call method...')
+        logger.debug('Proceed with clustering, call method...')
         inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
     clui.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
 
-    if cluster_options.recursive_clusterization:
+    if cluster_options.recursive_clustering:
         deep += 1
         if deep > max_level:
             return
-        return potentially_recursive_clusterization(config=config,
-                                                    clusterization_name=cluster_options.recursive_clusterization,
+        return potentially_recursive_clustering(config=config,
+                                                    clustering_name=cluster_options.recursive_clustering,
                                                     inlets_object=inlets_object,
                                                     spaths=spaths,
                                                     deep=deep,
                                                     max_level=max_level)
 
 
-# inlets_clusterization
+# inlets_clustering
 def stage_IV_run(config, options,
                  spaths=None,
                  center_of_system=None,
@@ -1337,7 +1395,7 @@ def stage_IV_run(config, options,
     #with clui.fbm("Create inlets"):
     # here we can check center of system
     pbar = clui.SimpleProgressBar(maxval=len(spaths),mess="Create inlets")
-    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clusterization, pbar=pbar)
+    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clustering, pbar=pbar)
     pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
 
@@ -1349,14 +1407,14 @@ def stage_IV_run(config, options,
 
     if inls.size > 0:
         # ***** CLUSTERIZATION *****
-        with clui.fbm("Performing clusterization", cont=False):
-            potentially_recursive_clusterization(config=config,
-                                                 clusterization_name=config.cluster_name(),
+        with clui.fbm("Performing clustering", cont=False):
+            potentially_recursive_clustering(config=config,
+                                                 clustering_name=config.cluster_name(),
                                                  inlets_object=inls,
                                                  spaths=spaths,
-                                                 message='clusterization',
+                                                 message='clustering',
                                                  max_level=max_level)
-        # with log.fbm("Performing clusterization"):
+        # with log.fbm("Performing clustering"):
         #    clustering_function = get_clustering_method(coptions)
         #    inls.perform_clustering(clustering_function)
         clui.message('Number of outliers: %d' % noo())
@@ -1389,18 +1447,18 @@ def stage_IV_run(config, options,
             clui.message('Number of outliers: %d' % noo())
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
-            with clui.fbm("Performing reclusterization of outliers", cont=False):
+            with clui.fbm("Performing reclustering of outliers", cont=False):
                 '''
-                potentially_recursive_clusterization(config=config,
-                                                 clusterization_name=config.recluster_name(),
+                potentially_recursive_clustering(config=config,
+                                                 clustering_name=config.recluster_name(),
                                                  inlets_object=inls,
                                                  spaths=spaths,
                                                  traj_reader=traj_reader,
-                                                 message='reclusterization',
+                                                 message='reclustering',
                                                  max_level=max_level)
                 '''
                 clustering_function = get_clustering_method(rcoptions, config)
-                # perform reclusterization
+                # perform reclustering
                 # inls.recluster_outliers(clustering_function)
                 inls.recluster_cluster(clustering_function, 0)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
@@ -1414,7 +1472,7 @@ def stage_IV_run(config, options,
 
         # TODO: Move it after master paths!
         # ***** ADD PASSING PATHS TO CLUSTERS *****
-        if options.exclude_passing_in_clusterization and options.add_passing_to_clusters:
+        if options.exclude_passing_in_clustering and options.add_passing_to_clusters:
             with clui.fbm("Adding passing paths inlets to clusters",cont=False):
                 # passing paths were excluded and they are meant to be added
                 # one need loop over clusters and then all passing paths have to checked
@@ -1511,7 +1569,7 @@ def stage_IV_run(config, options,
                     pbar.finish()
 
     else:
-        clui.message("No inlets found. Clusterization skipped.")
+        clui.message("No inlets found. Clustering skipped.")
         # make empty results
         ctypes = inls.spaths2ctypes(spaths)
         master_paths = {}

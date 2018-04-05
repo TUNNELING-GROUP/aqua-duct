@@ -17,8 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-This module provides functions for clusterization.
-Clusterization is done by :mod:`scikit-learn` module.
+This module provides functions for clustering.
+Clustering is done by :mod:`scikit-learn` module.
 """
 
 import numpy as np
@@ -45,14 +45,14 @@ from aquaduct.traj.barber import WhereToCut
 
 class BarberClusterResult(object):
     '''
-    Helper class for results of barber clusterization.
+    Helper class for results of barber clustering.
     '''
     def __init__(self,labels_):
         self.labels_ = np.array(labels_)
 
 class BarberCluster(object):
     '''
-    Wrapper class that implements *barber* clusterization.
+    Wrapper class that implements *barber* clustering.
     '''
     def fit(self, coords, spheres=None):
         '''
@@ -87,13 +87,13 @@ def MeanShiftBandwidth(X, **kwargs):
 
 class PerformClustering(object):
     '''
-    Helper class for clusterization.
+    Helper class for clustering.
     '''
     # aqeuduct clustering helper class
 
     def __init__(self, method, **kwargs):
         '''
-        :param object method: Class that implements cclusterization via *fit* method.
+        :param object method: Class that implements cclustering via *fit* method.
         '''
 
         self.method = method
@@ -153,8 +153,8 @@ class PerformClustering(object):
         '''
         :return: Centers of clusters.
         '''
-        assert self.clusters is not None, "Perform clusterization first."
-        assert self.method_results is not None, "Perform clusterization first."
+        assert self.clusters is not None, "Perform clustering first."
+        assert self.method_results is not None, "Perform clustering first."
 
         if hasattr(self.method_results, 'cluster_centers_'):
             return self.method_results.cluster_centers_
