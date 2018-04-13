@@ -159,7 +159,7 @@ class CTypeSpathsCollectionWorker(object):
 
         # calculate widths
         if len(self.spaths) > 1:  # is the len of coords_zz the same as sp_slices_ and self.spaths?
-            widths_to_append = make_default_array(np.mean(pdist(coords_zz_cat, 'euclidean')))
+            widths_to_append = make_default_array(np.mean(pdist(coords_zz_cat, 'euclidean'))) # TODO: this is probably the reason for memory hunger
         else:
             widths_to_append = 0.
         del coords_zz_cat

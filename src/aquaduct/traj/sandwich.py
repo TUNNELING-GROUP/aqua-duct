@@ -22,6 +22,7 @@ import re
 from os.path import splitext
 from collections import OrderedDict
 from itertools import izip_longest, imap
+from joblib import Parallel, delayed
 
 import numpy as np
 
@@ -686,6 +687,8 @@ class AtomSelection(Selection):
             if convex_hull:
                 other_coords = other_residues.coords()
                 chull = self.chull()
+                #>>> Parallel(n_jobs=2)(delayed(sqrt)(i ** 2) for i in range(10))
+                #return map_fun((delayed(is_point_within_convexhull)(args) for args in izip_longest(other_coords, [], fillvalue=chull)))
                 return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
             else:
                 # check if other selection is empty

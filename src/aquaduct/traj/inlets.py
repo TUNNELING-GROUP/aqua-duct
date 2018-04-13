@@ -287,8 +287,8 @@ class Inlets(object):
     def refs_names(self):
         return [inlet.reference.name for inlet in self.inlets_list]
 
-    def call_clusterization_method(self, method, data, spheres=None):
-        # this method runs clusterization method against provided data
+    def call_clustering_method(self, method, data, spheres=None):
+        # this method runs clustering method against provided data
         # if center_of_system was set then use distance matrix...
         if self.center_of_system is not None:
             return method(np.array(data) - self.center_of_system, spheres=spheres)
@@ -304,7 +304,7 @@ class Inlets(object):
     def perform_clustering(self, method):
         # this do clean clustering, all previous clusters are discarded
         # 0 means outliers
-        self.add_cluster_annotations(self.call_clusterization_method(method, self.coords, spheres=self.spheres))
+        self.add_cluster_annotations(self.call_clustering_method(method, self.coords, spheres=self.spheres))
         self.number_of_clustered_inlets = len(self.clusters)
         clui.message("New clusters created: %s" % (' '.join(map(str, sorted(set(self.clusters))))))
         # renumber clusters
@@ -313,7 +313,7 @@ class Inlets(object):
         self.tree = self.get_flat_tree(message=str(method))
 
     def perform_reclustering(self, method, skip_outliers=False, skip_size=None):
-        # this do reclusterization of all clusters, if no cluster exists perform_clustering is called
+        # this do reclustering of all clusters, if no cluster exists perform_clustering is called
         if len(self.clusters) == 0:
             return self.perform_clustering(method)
         for cluster in self.clusters_list:
@@ -326,7 +326,7 @@ class Inlets(object):
                 if skip_size(cluster_size):
                     clui.message('Cluster %d of size %0.3f skipped.' % (cluster, cluster_size))
                     continue
-            clui.message('Cluster %d of size %0.3f submitted to reclusterization.' % (cluster, cluster_size))
+            clui.message('Cluster %d of size %0.3f submitted to reclustering.' % (cluster, cluster_size))
             self.recluster_cluster(method, cluster)
         # number of cluster
         self.number_of_clustered_inlets = len(self.clusters)
@@ -338,7 +338,7 @@ class Inlets(object):
     def recluster_cluster(self, method, cluster):
         if cluster in self.clusters_list:
             logger.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
-            reclust = self.call_clusterization_method(method, self.lim2clusters(cluster).coords,
+            reclust = self.call_clustering_method(method, self.lim2clusters(cluster).coords,
                                                       spheres=self.lim2clusters(cluster).spheres)
             if len(set(reclust)) <= 1:
                 clui.message('No new clusters found.')
