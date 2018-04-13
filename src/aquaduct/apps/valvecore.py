@@ -199,7 +199,10 @@ class ValveConfig(object, ConfigSpecialNames):
         snc = re.compile(name)
         candidates = [n for n in names_list if snc.match(n) is not None]
         if len(candidates) > 1:
+<<<<<<< HEAD
             logger.warning('Ambigous sections names (%s), using first by default.',' '.join(candidates))
+=======
+>>>>>>> f8b05d26faa34fbf314b69b3bca95a526dde54f5
             logger.warning('Ambigous names (%s), using first by default.',' '.join(candidates))
         if len(candidates) > 0:
             return candidates[0]
