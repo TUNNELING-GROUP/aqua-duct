@@ -27,7 +27,7 @@ import numpy as np
 from collections import OrderedDict
 from importlib import import_module
 
-from netCDF4 import Dataset
+#from netCDF4 import Dataset
 
 from aquaduct import version, version_nice, logger
 #from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
@@ -292,7 +292,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
 
 ################################################################################
 # NetCDF helpers
-
+'''
 class ValveDataAccessRoots(object):
     roots = []
 
@@ -310,7 +310,7 @@ class ValveDataAccessRoots(object):
 
 VDAR = ValveDataAccessRoots()
 
-
+'''
 def get_object_name(something):
     name_ = something.__module__
     if hasattr(something, '__name__'):
@@ -358,6 +358,7 @@ class IdsOverIds(object):
 ################################################################################
 # NetCDF way
 
+'''
 
 class ValveDataAccess_nc(ValveDataAccess):
 
@@ -369,7 +370,7 @@ class ValveDataAccess_nc(ValveDataAccess):
         self.root = VDAR.open(data_file_name, mode)
         logger.debug('Dataset created')
 
-
+'''
 
 ################################################################################
 # default way

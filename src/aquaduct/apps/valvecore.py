@@ -997,8 +997,8 @@ def stage_II_run(config, options,
     pbar = clui.pbar(Reader.number_of_frames())
     # loop over possible layers of sandwich
     paths = []
-    for frame_rid_in_object, (number, traj_reader) in izip(
-            iterate_or_die(number_frame_rid_in_object, times=Reader.number_of_layers()), Reader.iterate(number=True)):
+    for frame_rid_in_object, (number, traj_reader) in izip(iterate_or_die(number_frame_rid_in_object, times=Reader.number_of_layers()),
+                                                           Reader.iterate(number=True)):
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
         if not options.scope_everyframe:
@@ -1022,9 +1022,8 @@ def stage_II_run(config, options,
         # big container for 012 path data
         number_frame_object_scope = np.zeros((Reader.number_of_frames(onelayer=True), all_res_this_layer.len()), dtype=np.int8)
         # the loop over frames, use izip otherwise iteration over frames does not work
-        for rid_in_object, frame in izip(
-                iterate_or_die(frame_rid_in_object, times=Reader.number_of_frames(onelayer=True)),
-                traj_reader.iterate_over_frames()):
+        for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=Reader.number_of_frames(onelayer=True)),
+                                         traj_reader.iterate_over_frames()):
 
             # do we have object data?
             if not is_number_frame_rid_in_object:

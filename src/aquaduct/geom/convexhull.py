@@ -21,6 +21,8 @@ import numpy as np
 from scipy.spatial import ConvexHull as SciPyConvexHull
 
 from aquaduct.utils.helpers import uniqify
+from aquaduct.geom import Sphere, do_cut_thyself
+
 from scipy.spatial.distance import cdist, pdist
 
 
@@ -69,3 +71,45 @@ def is_point_within_convexhull(point_chull):
     # point_chull is a tuple where first element holds a point and the second is a ConvexHull object.
     return point_chull[-1].point_within(point_chull[0])
 
+
+def are_points_within_convexhull(points,chull,ids=None,map_fun=None):
+    if map_fun is None:
+        map_fun = map
+    if ids is None:
+        ids = np.array(range(len(points)))
+    # 1) make chull
+    points_chull = SciPyConvexHull(points)
+    are_points_chull = np.array(list(map_fun(is_point_within_convexhull, ((oc,chull) for oc in points_chull.vertices_points))))
+    # special case if all are in
+    if are_points_chull.all():
+        return range(len(points))
+    # 2) take matching only
+    are_points = points_chull.vertices_points[are_points_chull]
+    are_points = np.hstack((are_points,np.ones((are_points.shape[0],1))))
+    # 3) for each such point calculate minimal distance to faces of chull
+    dmin = (np.abs(np.dot(chull.equations,are_points.T))/np.sqrt(np.matrix(are_points[:,:3]**2).sum(1)).T.A).min(0)
+    # 4) starting from the biggest what is cluded in spheres is also within
+    spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(are_points[:,:3],dmin))]
+    nrspheres = do_cut_thyself(spheres)[0]
+    nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
+    within_ids = []
+    for sphe in nrspheres:
+        d = cdist([sphe.center],points).flatten()
+        within_ids.extend(ids[d <= sphe.radius].tolist())
+        ids = ids[~(d <= sphe.radius)]
+        points = points[~(d <= sphe.radius)]
+    if len(within_ids) and len(points):
+        return within_ids+are_points_within_convexhull(points,chull,ids,map_fun=map_fun)
+
+    return within_ids
+
+if __name__ == "__main__":
+    import numpy as np
+
+    A = np.random.randn(100, 3)
+    B = np.random.randn(100, 3)
+    chull = SciPyConvexHull(A)
+
+    old_way = np.argwhere(map(lambda p: is_point_within_convexhull((p,chull)),B)).flatten()
+
+    new_way = sorted(are_points_within_convexhull(B,chull))
