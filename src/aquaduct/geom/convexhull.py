@@ -101,7 +101,7 @@ def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
     # 4) for matching points construct spheres, cut thyself, sort
     within_ids = []
     if are_points_chull.any():
-        spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[are_points_chull,:3],dmin))]
+        spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[are_points_chull,:3],dmin[are_points_chull]))]
         nrspheres = do_cut_thyself(spheres)[0] # nonredundant
         nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
         # 5) find all points that are included in these spheres - they are also in chull
@@ -112,7 +112,7 @@ def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
             points = points[~(d <= sphe.radius)]
     # 6) for non matching points onstruct spheres, cut thyself, sort
     if (~are_points_chull).any():
-        spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[~are_points_chull,:3],dmin))]
+        spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[~are_points_chull,:3],dmin[~are_points_chull]))]
         nrspheres = do_cut_thyself(spheres)[0] # nonredundant
         nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
         # 5) find all points that are included in these spheres - they are also outside chull
@@ -120,14 +120,29 @@ def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
             d = cdist([sphe.center],points).flatten()
             ids = ids[~(d <= sphe.radius)]
             points = points[~(d <= sphe.radius)]
-    if len(within_ids) and len(ids):
+    if len(ids):
             return within_ids + ids_points_within_convexhull(points, chull, ids, map_fun=map_fun)
     return within_ids
 
 if __name__ == "__main__":
     import numpy as np
 
-    for nr in xrange(100):
+
+    def plot_sphere(point,radius,ax,color='b',prec=30):
+        x = np.cos(np.linspace(0,2*np.pi,prec))*radius
+        y = np.sin(np.linspace(0,2*np.pi,prec))*radius
+        ax.plot(x+point[0],y+point[1],point[2],zdir='z',color=color)
+        ax.plot(x+point[0],y+point[2],point[1],zdir='y',color=color)
+        ax.plot(x+point[1],y+point[2],point[0],zdir='x',color=color)
+
+
+    def plot_chul(chull,ax,color='g'):
+        [ax.plot(f[:,0],f[:,1],f[:,2],color=color) for f in chull.facets]
+
+
+
+
+    for nr in xrange(1000):
 
         A = np.random.randn(100, 3)
         B = np.random.randn(100, 3)
@@ -138,5 +153,10 @@ if __name__ == "__main__":
         print nr
         if (old_way != new_way).any():
             print "discrepancy!"
-            print np.argwhere(~(old_way==new_way))
+            dis = np.argwhere(~(old_way==new_way)).flatten()
+            print dis
+            for d in dis:
+                print d,'old',old_way[d],'new',new_way[d]
+            if len(dis) > 50:
+                break
             #print are_points_within_convexhull(B, chull)
