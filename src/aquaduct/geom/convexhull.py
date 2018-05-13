@@ -71,45 +71,72 @@ def is_point_within_convexhull(point_chull):
     # point_chull is a tuple where first element holds a point and the second is a ConvexHull object.
     return point_chull[-1].point_within(point_chull[0])
 
+def are_points_within_convexhull(points,chull,map_fun=None):
+    are = np.zeros(len(points),dtype=bool)
+    are[ids_points_within_convexhull(points,chull,map_fun=map_fun)] = True
+    return are.tolist()
 
-def are_points_within_convexhull(points,chull,ids=None,map_fun=None):
+def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
     if map_fun is None:
         map_fun = map
     if ids is None:
         ids = np.array(range(len(points)))
+    # 0) can we calculate chull?
+    if len(points) < 4:
+        are_points = np.array(list(map_fun(is_point_within_convexhull, ((oc, chull) for oc in points))))
+        if are_points.any():
+            return ids[are_points].tolist()
+        return []
     # 1) make chull
     points_chull = SciPyConvexHull(points)
     are_points_chull = np.array(list(map_fun(is_point_within_convexhull, ((oc,chull) for oc in points_chull.vertices_points))))
     # special case if all are in
     if are_points_chull.all():
-        return range(len(points))
-    # 2) take matching only
-    are_points = points_chull.vertices_points[are_points_chull]
-    are_points = np.hstack((are_points,np.ones((are_points.shape[0],1))))
+        return ids.tolist()
+    # 2) take all
+    all_points = points_chull.vertices_points
+    all_points = np.hstack((all_points,np.ones((all_points.shape[0],1)))) # add column of 1
     # 3) for each such point calculate minimal distance to faces of chull
-    dmin = (np.abs(np.dot(chull.equations,are_points.T))/np.sqrt(np.matrix(are_points[:,:3]**2).sum(1)).T.A).min(0)
-    # 4) starting from the biggest what is cluded in spheres is also within
-    spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(are_points[:,:3],dmin))]
-    nrspheres = do_cut_thyself(spheres)[0]
-    nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
+    dmin = (np.abs(np.dot(chull.equations,all_points.T))/np.sqrt(np.matrix(all_points[:,:3]**2).sum(1)).T.A).min(0)
+    # 4) for matching points construct spheres, cut thyself, sort
     within_ids = []
-    for sphe in nrspheres:
-        d = cdist([sphe.center],points).flatten()
-        within_ids.extend(ids[d <= sphe.radius].tolist())
-        ids = ids[~(d <= sphe.radius)]
-        points = points[~(d <= sphe.radius)]
-    if len(within_ids) and len(points):
-        return within_ids+are_points_within_convexhull(points,chull,ids,map_fun=map_fun)
-
+    if are_points_chull.any():
+        spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[are_points_chull,:3],dmin))]
+        nrspheres = do_cut_thyself(spheres)[0] # nonredundant
+        nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
+        # 5) find all points that are included in these spheres - they are also in chull
+        for sphe in nrspheres: # TODO: this loop can be replaced by array arithmetics
+            d = cdist([sphe.center],points).flatten()
+            within_ids.extend(ids[d <= sphe.radius].tolist())
+            ids = ids[~(d <= sphe.radius)]
+            points = points[~(d <= sphe.radius)]
+    # 6) for non matching points onstruct spheres, cut thyself, sort
+    if (~are_points_chull).any():
+        spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[~are_points_chull,:3],dmin))]
+        nrspheres = do_cut_thyself(spheres)[0] # nonredundant
+        nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
+        # 5) find all points that are included in these spheres - they are also outside chull
+        for sphe in nrspheres: # TODO: this loop can be replaced by array arithmetics
+            d = cdist([sphe.center],points).flatten()
+            ids = ids[~(d <= sphe.radius)]
+            points = points[~(d <= sphe.radius)]
+    if len(within_ids) and len(ids):
+            return within_ids + ids_points_within_convexhull(points, chull, ids, map_fun=map_fun)
     return within_ids
 
 if __name__ == "__main__":
     import numpy as np
 
-    A = np.random.randn(100, 3)
-    B = np.random.randn(100, 3)
-    chull = SciPyConvexHull(A)
+    for nr in xrange(100):
 
-    old_way = np.argwhere(map(lambda p: is_point_within_convexhull((p,chull)),B)).flatten()
+        A = np.random.randn(100, 3)
+        B = np.random.randn(100, 3)
+        chull = SciPyConvexHull(A)
 
-    new_way = sorted(are_points_within_convexhull(B,chull))
+        old_way = np.array(map(lambda p: is_point_within_convexhull((p,chull)),B))
+        new_way = np.array(are_points_within_convexhull(B, chull))
+        print nr
+        if (old_way != new_way).any():
+            print "discrepancy!"
+            print np.argwhere(~(old_way==new_way))
+            #print are_points_within_convexhull(B, chull)
