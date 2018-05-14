@@ -1677,7 +1677,7 @@ class PrintAnalysis(object):
 
 @add_path_id_head
 def spath_basic_info_header():
-    header = 'BeginF InpF ObjF OutF EndF'.split()
+    header = 'BeginF InpF ObjF ObjFS OutF EndF'.split()
     line_template = ['%7d'] * len(header)
     return header, line_template
 
@@ -1687,7 +1687,10 @@ def spath_basic_info(spath):
     line = []
     line.append(spath.begins)
     if not isinstance(spath, PassingPath):
-        line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
+        line.extend(map(len, (spath.path_in, spath.path_object)))
+        line.append(spath.path_object_strict_len)
+        line.append(len(spath.path_out))
+        #line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
     else:
         line += [float('nan')] * 3
     line.append(spath.ends)

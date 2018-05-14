@@ -30,6 +30,7 @@ from aquaduct.utils.helpers import is_number, lind, SmartRange, SmartRangeDecrem
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader
+from aquaduct.utils.helpers import list_blocks_to_slices
 
 ########################################################################################################################
 # paths/list manipulations
@@ -540,6 +541,11 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     @property
     def path_object(self):
         return list(self.__path_object.get())
+
+    @property
+    def path_object_strict_len(self):
+        # number of frames strictly in object
+        return self.etypes[1].count(self.etypes[1][0])
 
     @property
     def path_out(self):
