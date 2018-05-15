@@ -19,6 +19,7 @@
 import numpy as np
 
 from scipy.spatial import ConvexHull as SciPyConvexHull
+from scipy.spatial import KDTree
 
 from aquaduct.utils.helpers import uniqify
 from aquaduct.geom import Sphere, do_cut_thyself
@@ -81,19 +82,28 @@ def ids_points_within_convexhull_alt(points, chull, ids=None, map_fun=None):
         map_fun = map
     if ids is None:
         ids = range(len(points))
+    tree = KDTree(points)
     while (len(ids)):
         i = ids.pop()
         p = np.hstack((points[i],1))
-        dmin = (np.abs(np.dot(chull.equations,np.array([p]).T))/np.sqrt(np.matrix(p[:3]**2).sum(1)).T.A).min()
+        dmin = (np.abs(np.dot(chull.equations,np.array([p]).T))).min()
         if is_point_within_convexhull((p[:3],chull)):
             yield i
-            d = np.argwhere(cdist([p[:3]], points[ids, :]).flatten() <= dmin).flatten().tolist()
-            for di in d[::-1]:
-                yield ids.pop(di)
+            for t in tree.query_ball_point(p[:3], dmin):
+                yield t
+                if t in ids:
+                    ids.pop(ids.index(t))
+        else:
+            for t in tree.query_ball_point(p[:3], dmin):
+                if t in ids:
+                    ids.pop(ids.index(t))
+
 
 def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
     if map_fun is None:
         map_fun = map
+    return map_fun(is_point_within_convexhull, ((oc,chull) for oc in points))
+
     if ids is None:
         ids = np.array(range(len(points)))
     # 0) can we calculate chull?
@@ -208,10 +218,10 @@ if __name__ == "__main__":
 
 
 
-    for nr in xrange(1000):
+    for nr in xrange(100):
 
         A = np.random.randn(100, 3)
-        B = np.random.randn(100, 3)
+        B = np.random.randn(1000, 3)*2
         chull = SciPyConvexHull(A)
 
         old_way = np.array(map(lambda p: is_point_within_convexhull((p,chull)),B))
