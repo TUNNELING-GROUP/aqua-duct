@@ -73,8 +73,23 @@ def is_point_within_convexhull(point_chull):
 
 def are_points_within_convexhull(points,chull,map_fun=None):
     are = np.zeros(len(points),dtype=bool)
-    are[ids_points_within_convexhull(points,chull,map_fun=map_fun)] = True
+    are[list(ids_points_within_convexhull_alt(points,chull,map_fun=map_fun))] = True
     return are.tolist()
+
+def ids_points_within_convexhull_alt(points, chull, ids=None, map_fun=None):
+    if map_fun is None:
+        map_fun = map
+    if ids is None:
+        ids = range(len(points))
+    while (len(ids)):
+        i = ids.pop()
+        p = np.hstack((points[i],1))
+        dmin = (np.abs(np.dot(chull.equations,np.array([p]).T))/np.sqrt(np.matrix(p[:3]**2).sum(1)).T.A).min()
+        if is_point_within_convexhull((p[:3],chull)):
+            yield i
+            d = np.argwhere(cdist([p[:3]], points[ids, :]).flatten() <= dmin).flatten().tolist()
+            for di in d[::-1]:
+                yield ids.pop(di)
 
 def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
     if map_fun is None:
@@ -100,26 +115,77 @@ def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
     dmin = (np.abs(np.dot(chull.equations,all_points.T))/np.sqrt(np.matrix(all_points[:,:3]**2).sum(1)).T.A).min(0)
     # 4) for matching points construct spheres, cut thyself, sort
     within_ids = []
-    if are_points_chull.any():
+    if sum(are_points_chull) > sum(~are_points_chull):
         spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[are_points_chull,:3],dmin[are_points_chull]))]
         nrspheres = do_cut_thyself(spheres)[0] # nonredundant
         nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
         # 5) find all points that are included in these spheres - they are also in chull
+        d = cdist([sphe.center for sphe in nrspheres],points)
+        d -= np.repeat([[sphe.radius for sphe in nrspheres]],len(points),0).T
+        d = (d <= 0).any(0)
+        within_ids.extend(ids[d].tolist())
+        ids = ids[~d]
+        points = points[~d]
+        '''
         for sphe in nrspheres: # TODO: this loop can be replaced by array arithmetics
             d = cdist([sphe.center],points).flatten()
             within_ids.extend(ids[d <= sphe.radius].tolist())
             ids = ids[~(d <= sphe.radius)]
             points = points[~(d <= sphe.radius)]
-    # 6) for non matching points onstruct spheres, cut thyself, sort
-    if (~are_points_chull).any():
-        spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[~are_points_chull,:3],dmin[~are_points_chull]))]
-        nrspheres = do_cut_thyself(spheres)[0] # nonredundant
-        nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
-        # 5) find all points that are included in these spheres - they are also outside chull
-        for sphe in nrspheres: # TODO: this loop can be replaced by array arithmetics
-            d = cdist([sphe.center],points).flatten()
-            ids = ids[~(d <= sphe.radius)]
-            points = points[~(d <= sphe.radius)]
+        '''
+        if (~are_points_chull).any():
+            # 6) for non matching points onstruct spheres, cut thyself, sort
+            spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[~are_points_chull,:3],dmin[~are_points_chull]))]
+            nrspheres = do_cut_thyself(spheres)[0] # nonredundant
+            nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
+            # 5) find all points that are included in these spheres - they are also outside chull
+            d = cdist([sphe.center for sphe in nrspheres],points)
+            d -= np.repeat([[sphe.radius for sphe in nrspheres]],len(points),0).T
+            d = (d <= 0).any(0)
+            ids = ids[~d]
+            points = points[~d]
+            '''
+            for sphe in nrspheres: # TODO: this loop can be replaced by array arithmetics
+                d = cdist([sphe.center],points).flatten()
+                ids = ids[~(d <= sphe.radius)]
+                points = points[~(d <= sphe.radius)]
+            '''
+    else:
+        if (~are_points_chull).any():
+            # 6) for non matching points onstruct spheres, cut thyself, sort
+            spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[~are_points_chull,:3],dmin[~are_points_chull]))]
+            nrspheres = do_cut_thyself(spheres)[0] # nonredundant
+            nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
+            # 5) find all points that are included in these spheres - they are also outside chull
+            d = cdist([sphe.center for sphe in nrspheres],points)
+            d -= np.repeat([[sphe.radius for sphe in nrspheres]],len(points),0).T
+            d = (d <= 0).any(0)
+            ids = ids[~d]
+            points = points[~d]
+            '''
+            for sphe in nrspheres: # TODO: this loop can be replaced by array arithmetics
+                d = cdist([sphe.center],points).flatten()
+                ids = ids[~(d <= sphe.radius)]
+                points = points[~(d <= sphe.radius)]
+            '''
+        if (are_points_chull).any():
+            spheres = [Sphere(center,radius,nr) for nr,(center,radius) in enumerate(zip(all_points[are_points_chull,:3],dmin[are_points_chull]))]
+            nrspheres = do_cut_thyself(spheres)[0] # nonredundant
+            nrspheres = sorted(nrspheres,key=lambda s: -s.radius)
+            # 5) find all points that are included in these spheres - they are also in chull
+            d = cdist([sphe.center for sphe in nrspheres],points)
+            d -= np.repeat([[sphe.radius for sphe in nrspheres]],len(points),0).T
+            d = (d <= 0).any(0)
+            within_ids.extend(ids[d].tolist())
+            ids = ids[~d]
+            points = points[~d]
+            '''
+            for sphe in nrspheres: # TODO: this loop can be replaced by array arithmetics
+                d = cdist([sphe.center],points).flatten()
+                within_ids.extend(ids[d <= sphe.radius].tolist())
+                ids = ids[~(d <= sphe.radius)]
+                points = points[~(d <= sphe.radius)]
+            '''
     if len(ids):
             return within_ids + ids_points_within_convexhull(points, chull, ids, map_fun=map_fun)
     return within_ids
@@ -136,7 +202,7 @@ if __name__ == "__main__":
         ax.plot(x+point[1],y+point[2],point[0],zdir='x',color=color)
 
 
-    def plot_chul(chull,ax,color='g'):
+    def plot_chull(chull,ax,color='g'):
         [ax.plot(f[:,0],f[:,1],f[:,2],color=color) for f in chull.facets]
 
 
@@ -157,6 +223,5 @@ if __name__ == "__main__":
             print dis
             for d in dis:
                 print d,'old',old_way[d],'new',new_way[d]
-            if len(dis) > 50:
+            if len(dis) > 1:
                 break
-            #print are_points_within_convexhull(B, chull)
