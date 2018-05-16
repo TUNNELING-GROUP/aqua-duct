@@ -81,22 +81,29 @@ def ids_points_within_convexhull_alt(points, chull, ids=None, map_fun=None):
     if map_fun is None:
         map_fun = map
     if ids is None:
-        ids = range(len(points))
+        ids = np.ones(len(points)) == 1
     tree = KDTree(points)
-    while (len(ids)):
-        i = ids.pop()
+    search_p = SciPyConvexHull(points).vertices_points[0]
+    while ids.any():
+        i = tree.query(search_p,k=1)[-1]
+        if not ids[i]:
+            i = int(np.argwhere(ids)[0])
         p = np.hstack((points[i],1))
-        dmin = (np.abs(np.dot(chull.equations,np.array([p]).T))).min()
+        dmin = np.abs(np.dot(chull.equations,np.array([p]).T))
         if is_point_within_convexhull((p[:3],chull)):
+            dmin = dmin.min()
             yield i
-            for t in tree.query_ball_point(p[:3], dmin):
+            ids[i] = False
+            tt = tree.query_ball_point(p[:3], dmin)
+            for t in tt:
                 yield t
-                if t in ids:
-                    ids.pop(ids.index(t))
+            ids[tt] = False
         else:
-            for t in tree.query_ball_point(p[:3], dmin):
-                if t in ids:
-                    ids.pop(ids.index(t))
+            dfac = (cdist(f[:3,:],[p[:3]]).min() for f,d in zip(chull.facets,dmin))
+            dmin = min([dm if dm<df else df for df,dm in zip(dfac,dmin)])
+            tt = tree.query_ball_point(p[:3], dmin)
+            ids[tt] = False
+            search_p = SciPyConvexHull(points[ids,:]).vertices_points[0]
 
 
 def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
@@ -221,7 +228,7 @@ if __name__ == "__main__":
     for nr in xrange(100):
 
         A = np.random.randn(100, 3)
-        B = np.random.randn(1000, 3)*2
+        B = np.random.randn(10000, 3)*100
         chull = SciPyConvexHull(A)
 
         old_way = np.array(map(lambda p: is_point_within_convexhull((p,chull)),B))
