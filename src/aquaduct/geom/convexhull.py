@@ -24,7 +24,7 @@ from scipy.spatial import KDTree
 from aquaduct.utils.helpers import uniqify
 from aquaduct.geom import Sphere, do_cut_thyself
 
-from scipy.spatial.distance import cdist, pdist
+from scipy.spatial.distance import cdist, pdist, squareform
 
 
 def _vertices_ids(convexhull):
@@ -60,11 +60,16 @@ def _edges(convexhull):
                 yield point, simp[0]
 
 
+def _simplices_vertices(convexhull):
+    for simp in convexhull.simplices:
+        yield [convexhull.vertices_ids.index(s) for s in simp]
+
 SciPyConvexHull.vertices_ids = property(_vertices_ids)
 SciPyConvexHull.vertices_points = property(_vertices_points)
 SciPyConvexHull.point_within = _point_within_convexhull
 SciPyConvexHull.facets = property(_facets)
 SciPyConvexHull.edges = property(_edges)
+SciPyConvexHull.simplices_vertices = property(_simplices_vertices)
 
 
 def is_point_within_convexhull(point_chull):
@@ -83,27 +88,51 @@ def ids_points_within_convexhull_alt(points, chull, ids=None, map_fun=None):
     if ids is None:
         ids = np.ones(len(points)) == 1
     tree = KDTree(points)
-    search_p = SciPyConvexHull(points).vertices_points[0]
+    if len(points)>3:
+        search_p = SciPyConvexHull(points).vertices_points[0]
+    else:
+        search_p = np.zeros(3)
+    dver = squareform(pdist(chull.vertices_points)) # inter vertices distances
+    output = []
     while ids.any():
         i = tree.query(search_p,k=1)[-1]
         if not ids[i]:
             i = int(np.argwhere(ids)[0])
         p = np.hstack((points[i],1))
-        dmin = np.abs(np.dot(chull.equations,np.array([p]).T))
+        dmin = np.abs(np.dot(chull.equations,np.array([p]).T)) # distances to faces
         if is_point_within_convexhull((p[:3],chull)):
             dmin = dmin.min()
-            yield i
+            output.append(i)
             ids[i] = False
             tt = tree.query_ball_point(p[:3], dmin)
-            for t in tt:
-                yield t
+            output.extend(tt)
             ids[tt] = False
         else:
-            dfac = (cdist(f[:3,:],[p[:3]]).min() for f,d in zip(chull.facets,dmin))
-            dmin = min([dm if dm<df else df for df,dm in zip(dfac,dmin)])
+            dfacets = (cdist(f[:3,:],[p[:3]]) for f,d in zip(chull.facets,dmin)) # distance p to facets points, by facets
+            dfac = []
+            for dfacet,simp,dm in zip(dfacets,chull.simplices_vertices,dmin):
+                dmin_vertices = False
+                for nr in range(3):
+                    t = map(float,[dfacet[nr],dfacet[(nr+1)%3],dver[simp[nr],simp[(nr+1)%3]]])
+                    if np.arccos((t[1]**2 + t[2]**2 - t[0]**2)/(2*t[1]*t[2])) > np.pi/2:
+                        dmin_vertices = True
+                        break
+                    if np.arccos((t[0]**2 + t[2]**2 - t[1]**2)/(2*t[0]*t[2])) > np.pi/2:
+                        dmin_vertices = True
+                        break
+                if dmin_vertices:
+                    dfac.append(min(dfacet))
+                else:
+                    dfac.append(dm)
+            dmin = min(dfac)
             tt = tree.query_ball_point(p[:3], dmin)
             ids[tt] = False
-            search_p = SciPyConvexHull(points[ids,:]).vertices_points[0]
+            if sum(ids)>3:
+                search_p = SciPyConvexHull(points[ids, :]).vertices_points[0]
+            else:
+                search_p = np.zeros(3)
+
+    return output
 
 
 def ids_points_within_convexhull(points, chull, ids=None, map_fun=None):
@@ -228,7 +257,7 @@ if __name__ == "__main__":
     for nr in xrange(100):
 
         A = np.random.randn(100, 3)
-        B = np.random.randn(10000, 3)*100
+        B = np.random.randn(10000, 3)*10
         chull = SciPyConvexHull(A)
 
         old_way = np.array(map(lambda p: is_point_within_convexhull((p,chull)),B))
