@@ -264,6 +264,7 @@ def open_traj_reader(ort):
             traj_reader = open_traj_reader_engine(ort)
             Reader.open_reader_traj_real.update({ort.number:traj_reader})
             return traj_reader
+        return Reader.open_reader_traj_real[ort.number]
     return open_traj_reader_engine(ort)
 
 
@@ -716,8 +717,8 @@ class AtomSelection(Selection):
                     kt_list.append(other_id)
             if convex_hull:
                 chull = self.chull()
-                #ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
-                ch_results = are_points_within_convexhull(other_coords, chull, map_fun=map_fun)
+                ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
+                #ch_results = are_points_within_convexhull(other_coords, chull, map_fun=map_fun)
             # final merging loop
             final_results = []
             for other_id in other_residues.ids():
@@ -732,8 +733,8 @@ class AtomSelection(Selection):
             if convex_hull:
                 other_coords = other_residues.coords()
                 chull = self.chull()
-                #return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
-                return are_points_within_convexhull(other_coords, chull, map_fun=map_fun)
+                return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
+                #return are_points_within_convexhull(other_coords, chull, map_fun=map_fun)
             else:
                 # check if other selection is empty
                 this_ids = list(self.residues().ids())

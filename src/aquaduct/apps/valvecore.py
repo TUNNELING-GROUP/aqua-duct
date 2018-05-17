@@ -916,7 +916,7 @@ def stage_I_worker(pbar_queue,
 def stage_I_run(config, options,
                 **kwargs):
     # disable real cache of ort
-    Reader.open_reader_traj_real = None
+    Reader.open_reader_traj_real = {}
 
     clui.message("Loop over frames - search of residues in object:")
     pbar = clui.pbar(Reader.number_of_frames())
@@ -932,14 +932,18 @@ def stage_I_run(config, options,
     results_queue = Queue()
 
     # loop over possible layers of sandwich
+    pool = []
     for results_count,(number, traj_reader) in enumerate(Reader.iterate(number=True)):
-        Process(target=stage_I_worker, args=(pbar_queue,results_queue,
+        pool.append(Process(target=stage_I_worker, args=(pbar_queue,results_queue,
                                              traj_reader,
                                              options.scope_everyframe,
                                              options.scope,
                                              options.scope_convexhull,
                                              options.object,
-                                             max(1,Reader.number_of_frames()/500))).start()
+                                             max(1,Reader.number_of_frames()/500))))
+        pool[-1].start()
+        #break
+
     # display progress
     for progress in iter(pbar_queue.get,None): pbar.next(progress)
     pbar.finish()
@@ -956,7 +960,7 @@ def stage_I_run(config, options,
             else:
                 all_res = _all_res
             number_frame_rid_in_object.append(_frame_rid_in_object)
-            break
+            pool[nr].join(1)
             if nr == results_count: break
 
         center_of_system /= (Reader.number_of_frames())
@@ -1057,7 +1061,8 @@ def stage_II_run(config, options,
                  # res_ids_in_object_over_frames=None,
                  **kwargs):
     # disable real cache of ort
-    Reader.open_reader_traj_real = None
+    #Reader.open_reader_traj_real = None
+    Reader.open_reader_traj_real = {}
 
     ####################################################################################################################
     # FIXME: temporary solution, remove it later
@@ -1092,12 +1097,13 @@ def stage_II_run(config, options,
     results_queue = Queue()
 
     # loop over possible layers of sandwich
+    pool=[]
     for results_count,(frame_rid_in_object, (number, traj_reader)) in enumerate(izip(iterate_or_die(number_frame_rid_in_object,
                                                                                                     times=Reader.number_of_layers()),
                                                                                      Reader.iterate(number=True))):
         all_res_layer = all_res.layer(number)
 
-        Process(target=stage_II_worker, args=(pbar_queue,results_queue,
+        pool.append(Process(target=stage_II_worker, args=(pbar_queue,results_queue,
                                               traj_reader,
                                               options.scope_everyframe,
                                               options.scope,
@@ -1107,7 +1113,10 @@ def stage_II_run(config, options,
                                               number_of_frames,
                                               frame_rid_in_object,
                                               is_number_frame_rid_in_object,
-                                              max(1,Reader.number_of_frames()/500))).start()
+                                              max(1,Reader.number_of_frames()/500))))
+        pool[-1].start()
+        #break
+
     # display progress
     for progress in iter(pbar_queue.get,None): pbar.next(progress)
     pbar.finish()
@@ -1119,7 +1128,7 @@ def stage_II_run(config, options,
             report(str(nr))
             _paths = results
             paths.extend(_paths)
-            break
+            pool[nr].join(1)
             if nr == results_count: break
 
     clui.message("Number of paths: %d" % len(paths))
@@ -1138,7 +1147,7 @@ def stage_III_run(config, options,
                   paths=None,
                   **kwargs):
     # enable real cache of ort
-    if Reader.open_reader_traj_real is None: Reader.open_reader_traj_real = {}
+    Reader.open_reader_traj_real = {}
 
     soptions = config.get_smooth_options()
 
@@ -1349,7 +1358,7 @@ def stage_IV_run(config, options,
                  center_of_system=None,
                  **kwargs):
     # enable real cache of ort
-    if Reader.open_reader_traj_real is None: Reader.open_reader_traj_real = {}
+    Reader.open_reader_traj_real = {}
 
 
     coptions = config.get_cluster_options()
@@ -2177,7 +2186,7 @@ def stage_V_run(config, options,
                 reader=None,
                 **kwargs):
     # enable real cache of ort
-    if Reader.open_reader_traj_real is None: Reader.open_reader_traj_real = {}
+    Reader.open_reader_traj_real = {}
 
 
     # file handle?
@@ -2482,6 +2491,7 @@ def stage_V_run(config, options,
         pbar = clui.pbar(maxval=Reader.number_of_frames(), mess='Calculating scope and object sizes')
 
         for number, traj_reader in Reader.iterate(number=True):
+            traj_reader = traj_reader.open()
             scope_size.append([])
             object_size.append([])
             for frame in traj_reader.iterate_over_frames():
@@ -2594,7 +2604,7 @@ def stage_VI_run(config, options,
                  master_paths_smooth=None,
                  **kwargs):
     # enable real cache of ort
-    if Reader.open_reader_traj_real is None: Reader.open_reader_traj_real = {}
+    Reader.open_reader_traj_real = {}
 
 
     from aquaduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter

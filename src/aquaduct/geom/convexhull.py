@@ -88,6 +88,7 @@ def is_point_within_convexhull(point_chull):
 # many points - new solution but soon will be deprecated
 
 def are_points_within_convexhull(points,chull,map_fun=None,sane_huge=10000):
+    return np.array(map(lambda p: is_point_within_convexhull((p,chull)),points))
     points = np.array(list(points))
     if map_fun is None:
         map_fun = map

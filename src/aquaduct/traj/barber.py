@@ -143,7 +143,7 @@ class WhereToCut(ReaderAccess):
         return nr
 
     def inlet2sphere(self,inlet):
-        traj_reader = self.reader.get_reader_by_id(inlet.reference.id)
+        traj_reader = self.reader.get_reader_by_id(inlet.reference.id).open()
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0
