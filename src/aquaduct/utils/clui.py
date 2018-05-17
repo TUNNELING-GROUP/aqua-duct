@@ -398,8 +398,10 @@ class SimpleProgressBar(object):
             self.tcurrent = time.time()
             self.show()
 
-    def next(self):
-        return self.update(self.current+1)
+    def next(self,step=None):
+        if step is None:
+            return self.update(self.current+1)
+        return self.update(self.current + step)
 
     def update(self, step):
         """

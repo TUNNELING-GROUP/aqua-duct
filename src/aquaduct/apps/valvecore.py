@@ -64,7 +64,7 @@ from aquaduct.traj.paths import union_full, yield_generic_paths
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
-from aquaduct.traj.sandwich import ResidueSelection, Reader
+from aquaduct.traj.sandwich import ResidueSelection, Reader,open_traj_reader
 from aquaduct.utils.helpers import SmartRange, iterate_or_die
 
 __mail__ = 'info@aquaduct.pl'
@@ -860,14 +860,62 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
 ################################################################################
 # stages run
 
+def stage_I_worker(pbar_queue,
+                   results_queue,
+                   traj_reader_proto,
+                   scope_everyframe,
+                   scope,
+                   scope_convexhull,
+                   object_selection,
+                   progress_freq):
+
+    center_of_system = np.zeros(3)
+    all_res = None
+
+    traj_reader = open_traj_reader(traj_reader_proto)
+
+    if not scope_everyframe:
+        scope = traj_reader.parse_selection(scope)
+
+    progress = 0
+    frame_rid_in_object = []
+    # the loop over frames
+    for frame in traj_reader.iterate_over_frames():
+        if scope_everyframe:
+            scope = traj_reader.parse_selection(scope)
+        # center of system
+        center_of_system += scope.center_of_mass()
+        # current res selection
+        res = traj_reader.parse_selection(object_selection).residues()
+        # find matching residues, ie those which are in the scope:
+        res_new = scope.containing_residues(res, convex_hull=scope_convexhull)
+        res_new.uniquify()  # here is a list of residues in this layer that are in the object and in the scope
+        # adds them to all_res
+        if all_res:
+            all_res.add(res_new)
+            all_res.uniquify()
+        else:
+            all_res = res_new
+        # remeber ids of res in object in current frame
+        if res_new is not None:
+            frame_rid_in_object.append([rid[-1] for rid in res_new.ids()])
+        else:
+            frame_rid_in_object.append([])
+        progress += 1
+        if progress == progress_freq:
+            progress = 0
+            pbar_queue.put(progress_freq)
+    # sent results
+    results_queue.put((all_res,frame_rid_in_object,center_of_system))
+    pbar_queue.put(progress)
+    pbar_queue.put(None)
+    # termination
+    #pbar_queue.put(None)
+
+
 # traceable_residues
 def stage_I_run(config, options,
                 **kwargs):
-    # create pool of workers - mapping function
-    map_fun = map
-    if optimal_threads.threads_count > 1:
-        pool = mp.Pool(optimal_threads.threads_count)
-        map_fun = pool.map
 
     clui.message("Loop over frames - search of residues in object:")
     pbar = clui.pbar(Reader.number_of_frames())
@@ -876,56 +924,42 @@ def stage_I_run(config, options,
     number_frame_rid_in_object = []
     # res_ids_in_scope_over_frames = {}  # not used
     all_res = None
-
     # scope will be used to derrive center of system
     center_of_system = np.array([0., 0., 0.])
 
+    # lets try mp
+    from multiprocessing import Pool, Queue, Process
+    #pool = Pool(processes=optimal_threads.threads_count)
+
+    pbar_queue = Queue()
+    results_queue = Queue()
+
     # loop over possible layers of sandwich
-    for number, traj_reader in Reader.iterate(number=True):
+    for results_count,(number, traj_reader) in enumerate(Reader.iterate(number=True)):
+        Process(target=stage_I_worker, args=(pbar_queue,results_queue,
+                                             traj_reader,
+                                             options.scope_everyframe,
+                                             options.scope,
+                                             options.scope_convexhull,
+                                             options.object,
+                                             max(1,Reader.number_of_frames()/500))).start()
+    # display progress
+    for progress in iter(pbar_queue.get,None): pbar.next(progress)
+    pbar.finish()
 
-        # scope is evaluated only once before the loop over frames starts
-        if not options.scope_everyframe:
-            scope = traj_reader.parse_selection(options.scope)
-
-        # all_res_this_layer = [] # list of all new res in this layer found in an order of apparance
-
-        frame_rid_in_object = []
-
-        # the loop over frames
-        for frame in traj_reader.iterate_over_frames():
-            if options.scope_everyframe:
-                scope = traj_reader.parse_selection(options.scope)
-            # center of system
-            center_of_system += scope.center_of_mass()
-            # current res selection
-            res = traj_reader.parse_selection(options.object).residues()
-            # find matching residues, ie those which are in the scope:
-            res_new = scope.containing_residues(res, convex_hull=options.scope_convexhull, map_fun=map_fun)
-            res_new.uniquify()  # here is a list of residues in this layer that are in the object and in the scope
-            # adds them to all_res
+    # collect results
+    with clui.fbm("Collecting results"):
+        for nr,results in enumerate(iter(results_queue.get,None)):
+            _all_res, _frame_rid_in_object, _center_of_system = results
+            center_of_system += center_of_system
             if all_res:
-                all_res.add(res_new)
+                all_res.add(_all_res)
                 all_res.uniquify()
             else:
-                all_res = res_new
-            # remeber ids of res in object in current frame
-            if res_new is not None:
-                frame_rid_in_object.append([rid[-1] for rid in res_new.ids()])
-            else:
-                frame_rid_in_object.append([])
-            pbar.next()
+                all_res = _all_res
+            number_frame_rid_in_object.append(_frame_rid_in_object)
+            if nr == results_count: break
 
-        number_frame_rid_in_object.append(frame_rid_in_object)
-
-    # destroy pool of workers
-    if optimal_threads.threads_count > 1:
-        pool.close()
-        pool.join()
-        del pool
-
-    # res_ids_in_object_frames_list = [res_ids_in_object_frames_list[number][rid] for number,rid in all_res.ids()]
-
-    pbar.finish()
     center_of_system /= (Reader.number_of_frames())
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
 
@@ -934,7 +968,6 @@ def stage_I_run(config, options,
 
     clui.message("Number of residues to trace: %d" % all_res.len())
 
-    # 'res_ids_in_object_over_frames': IdsOverIds.dict2arrays(res_ids_in_object_over_frames),
     return {'all_res': all_res,
             # 'res_ids_in_object_over_frames': res_ids_in_object_over_frames,
             'number_frame_rid_in_object': number_frame_rid_in_object,

@@ -20,12 +20,15 @@ import numpy as np
 
 from scipy.spatial import ConvexHull as SciPyConvexHull
 from scipy.spatial import KDTree
+from scipy.spatial.distance import cdist, pdist, squareform
 
 from aquaduct.utils.helpers import uniqify
-from aquaduct.geom import Sphere, do_cut_thyself
 from aquaduct.utils.multip import optimal_threads
 
-from scipy.spatial.distance import cdist, pdist, squareform
+################################################################################
+# SciPy ConvexHull improvements
+
+# helper functions
 
 
 def _vertices_ids(convexhull):
@@ -65,6 +68,8 @@ def _simplices_vertices(convexhull):
     for simp in convexhull.simplices:
         yield [convexhull.vertices_ids.index(s) for s in simp]
 
+# add them to the class
+
 SciPyConvexHull.vertices_ids = property(_vertices_ids)
 SciPyConvexHull.vertices_points = property(_vertices_points)
 SciPyConvexHull.point_within = _point_within_convexhull
@@ -72,15 +77,15 @@ SciPyConvexHull.facets = property(_facets)
 SciPyConvexHull.edges = property(_edges)
 SciPyConvexHull.simplices_vertices = property(_simplices_vertices)
 
-
-
-
-
+################################################################################
+# primitives to check if point(s) is within chull
 
 def is_point_within_convexhull(point_chull):
     # This is helper function to check if point is within convex hull.
     # point_chull is a tuple where first element holds a point and the second is a ConvexHull object.
     return point_chull[-1].point_within(point_chull[0])
+
+# many points - new solution but soon will be deprecated
 
 def are_points_within_convexhull(points,chull,map_fun=None,sane_huge=10000):
     points = np.array(list(points))
@@ -89,10 +94,6 @@ def are_points_within_convexhull(points,chull,map_fun=None,sane_huge=10000):
         n = len(points)
     else:
         n = max(1, len(points) / optimal_threads.threads_count)
-    #n = max(sane_max,n)
-    #return np.hstack(map_fun(are_points_within_convexhull_core,((points[i:i + n],chull) for i in xrange(0, len(points), n))))
-    #return np.hstack(map(are_points_within_convexhull_core, ((points[i:i + n], chull) for i in xrange(0, len(points), n))))
-    #return are_points_within_convexhull_core((points, chull))
     if len(points) > sane_huge:
         return np.hstack(map_fun(are_points_within_convexhull_core,
                                  ((points[i:i + n], chull) for i in xrange(0, len(points), n))))
@@ -129,7 +130,6 @@ def are_points_within_convexhull_core(points_chull):
         else:
             dfacets = (cdist(f[:3,:],[p[:3]]) for f in chull.facets) # distance p to facets points, by facets
             dfac = []
-            #dmin = np.abs(np.dot(chull.equations, np.array([p]).T))
             for dfacet,simp,equa in zip(dfacets,chull.simplices_vertices,chull.equations):
                 dmin_vertices = 0
                 for nr in range(3):
@@ -143,7 +143,6 @@ def are_points_within_convexhull_core(points_chull):
                     dfac.append(min(dfacet))
                 else:
                     _dm = np.abs((equa*p).sum())
-                    #assert _dm == dm
                     dfac.append(_dm)
             dmin = min(dfac)
             tt = tree.query_ball_point(p[:3], dmin)
@@ -153,11 +152,12 @@ def are_points_within_convexhull_core(points_chull):
                 search_p = SciPyConvexHull(points[ids, :]).vertices_points[0]
             else:
                 search_p = np.zeros(3)
-    if ids.any():
+    if ids.any(): # fall back to is_point...
         output[[int(i) for i in np.argwhere(ids) if is_point_within_convexhull((points[i,:],chull))]]=True
 
     return output
 
+################################################################################
 
 if __name__ == "__main__":
     import numpy as np

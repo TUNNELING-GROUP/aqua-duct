@@ -20,7 +20,7 @@
 import re
 
 from os.path import splitext
-from collections import OrderedDict
+from collections import OrderedDict,namedtuple
 from itertools import izip_longest, imap
 
 import numpy as np
@@ -42,19 +42,15 @@ from aquaduct import logger
 
 if GCS.cachedir:
     from joblib import Memory
-
     memory_cache = Memory(cachedir=GCS.cachedir, verbose=0) # mmap have to be switched off, otherwise smoothing does not work properly
     #memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)
     memory = memory_cache.cache
 elif GCS.cachemem:
     from functools import wraps
-
-
     # TODO: rework this to adapt it accordingly, moce it to utils?
     # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
     def memory(func):
         cache = func.cache = {}
-
         @wraps(func)
         def memoized_func(*args, **kwargs):
             key = ','.join(map(str,args)) + '&' + ','.join(map(lambda kv: ':'.join(map(str,kv)),kwargs.iteritems()))
@@ -63,11 +59,9 @@ elif GCS.cachemem:
                 cache[key] = func(*args, **kwargs)
                 logger.debug("New key added to cache.")
             return cache[key]
-
         return memoized_func
 else:
     from aquaduct.utils.helpers import noaction as memory
-
 
 ################################################################################
 # trajectory window object
@@ -102,11 +96,20 @@ class Window(object):
 # MDAnalysis
 # MDTraj
 
+class OpenReaderTraj(namedtuple('OpenReaderTraj','topology trajectory number window engine')):
+    pass
+
+def open_traj_reader(ort):
+    if ort.engine == 'mda':
+        return ReaderTrajViaMDA(ort.topology,ort.trajectory,number=ort.number,window=ort.window)
+    raise NotImplementedError
+
+
 class MasterReader(object):
     # only one MasterReader object can be used
-    # it does not use ANY directo call to ANY MD access software
+    # it does not use ANY direct call to ANY MD access software
 
-    open_reader_traj = {}
+    open_reader_traj = {} # this should hold only file names etc.
 
     topology = ''
     trajectory = ['']
@@ -144,6 +147,7 @@ class MasterReader(object):
         self.__dict__ = state
         self.open_reader_traj = {}
 
+    '''
     @property
     def engine(self):
         # returns engine used for accessing trajectory
@@ -151,6 +155,11 @@ class MasterReader(object):
         if self.engine_name == 'mda':
             return ReaderTrajViaMDA
         raise NotImplementedError
+    '''
+
+    def engine(self,topology,trajectory,number,window):
+        assert self.engine_name in ['mda']
+        return OpenReaderTraj(topology,trajectory,number,window,self.engine_name)
 
     def correct_window(self):
         # corrects window object
@@ -227,7 +236,7 @@ class MasterReader(object):
         # returns number of frames in traj files
         # in sandwich it returns number of frames in first layer
         # in baguette it returns total number of frames (so it is also number of frames in layer 0)
-        return self.get_single_reader(0).real_number_of_frames()
+        return open_traj_reader(self.get_single_reader(0)).real_number_of_frames()
 
     def number_of_frames(self, onelayer=False):
         # number of frames in the window times number of layers
@@ -370,7 +379,8 @@ Package **mendeleev** is not used because it depends on too many other libraries
 ################################################################################
 # Reader Traj base class
 
-class ReaderTraj(ReaderAccess):
+#class ReaderTraj(ReaderAccess):
+class ReaderTraj(object):
     def __init__(self, topology, trajectory,
                  number=None, window=None):
         '''
@@ -508,7 +518,7 @@ class ReaderTrajViaMDA(ReaderTraj):
         self.trajectory_object.trajectory[real_frame]
 
     def parse_selection(self, selection):
-        return AtomSelection({self.number: self.trajectory_object.select_atoms(selection).atoms.ix})
+        return AtomSelection({self.number: self.trajectory_object.select_atoms(selection).atoms.ix},{self.number:self})
 
     def atom2residue(self, atomid):
         return self.trajectory_object.atoms[atomid].residue.ix
@@ -557,11 +567,24 @@ class ReaderTrajViaMDA(ReaderTraj):
 
 class Selection(ReaderAccess):
 
-    def __init__(self, selected):
+    def __init__(self, selected,open_traj_reader=None):
+
+        assert open_traj_reader is not None
+        self.open_traj_reader = {}
+        if open_traj_reader is not None:
+            self.open_traj_reader.update(open_traj_reader)
 
         self.selected = OrderedDict(selected)
         for number, ids in self.selected.iteritems():
             self.selected[number] = list(imap(defaults.int_default,ids))
+
+    def __getstate__(self):
+        state = self.__dict__
+        state.update({'open_traj_reader':{}})
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     def layer(self, number):
         if self.selected.has_key(number):
@@ -588,7 +611,10 @@ class Selection(ReaderAccess):
         return _len
 
     def get_reader(self, number):
-        return self.reader.get_single_reader(number)
+        if number in self.open_traj_reader:
+            return self.open_traj_reader[number]
+        self.open_traj_reader.update({number:open_traj_reader(self.reader.get_single_reader(number))})
+        return self.get_reader(number)
 
     def add(self, other):
 
@@ -597,6 +623,9 @@ class Selection(ReaderAccess):
                 self.selected[number] = self.selected[number] + list(ids)
             else:
                 self.selected.update({number: ids})
+
+        self.open_traj_reader.update(other.open_traj_reader)
+
 
     def uniquify(self):
 
@@ -634,7 +663,7 @@ class AtomSelection(Selection):
                 number_reader = self.get_reader(number)
                 yield number, sorted(set(map(number_reader.atom2residue, ids)))
 
-        return ResidueSelection(get_unique_residues())
+        return ResidueSelection(get_unique_residues(),self.open_traj_reader)
 
     def coords(self):
         for number, ids in self.selected.iteritems():
@@ -707,7 +736,7 @@ class AtomSelection(Selection):
                     other_new[number].append(resid)
                 else:
                     other_new.update({number: [resid]})
-        return ResidueSelection(other_new)
+        return ResidueSelection(other_new,other_residues.open_traj_reader)
 
     def chull(self):
         return SciPyConvexHull(list(self.coords()))
