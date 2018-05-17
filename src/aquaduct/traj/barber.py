@@ -187,7 +187,7 @@ class WhereToCut(ReaderAccess):
 
     def spath2spheres(self, sp):
 
-        traj_reader = self.reader.get_reader_by_id(sp.id.id)
+        traj_reader = self.reader.get_reader_by_id(sp.id.id).open()
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0

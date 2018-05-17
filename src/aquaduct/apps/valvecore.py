@@ -34,6 +34,7 @@ from collections import namedtuple, OrderedDict
 from functools import wraps, partial
 from itertools import izip_longest, izip, imap
 from keyword import iskeyword
+from multiprocessing import Pool, Queue, Process
 
 import array
 
@@ -908,14 +909,14 @@ def stage_I_worker(pbar_queue,
     # sent results
     results_queue.put((all_res,frame_rid_in_object,center_of_system))
     pbar_queue.put(progress)
-    pbar_queue.put(None)
     # termination
-    #pbar_queue.put(None)
-
+    pbar_queue.put(None)
 
 # traceable_residues
 def stage_I_run(config, options,
                 **kwargs):
+    # disable real cache of ort
+    Reader.open_reader_traj_real = None
 
     clui.message("Loop over frames - search of residues in object:")
     pbar = clui.pbar(Reader.number_of_frames())
@@ -926,10 +927,6 @@ def stage_I_run(config, options,
     all_res = None
     # scope will be used to derrive center of system
     center_of_system = np.array([0., 0., 0.])
-
-    # lets try mp
-    from multiprocessing import Pool, Queue, Process
-    #pool = Pool(processes=optimal_threads.threads_count)
 
     pbar_queue = Queue()
     results_queue = Queue()
@@ -948,8 +945,9 @@ def stage_I_run(config, options,
     pbar.finish()
 
     # collect results
-    with clui.fbm("Collecting results"):
+    with clui.fbm("Collecting results from layers") as report:
         for nr,results in enumerate(iter(results_queue.get,None)):
+            report(str(nr))
             _all_res, _frame_rid_in_object, _center_of_system = results
             center_of_system += center_of_system
             if all_res:
@@ -958,9 +956,10 @@ def stage_I_run(config, options,
             else:
                 all_res = _all_res
             number_frame_rid_in_object.append(_frame_rid_in_object)
+            break
             if nr == results_count: break
 
-    center_of_system /= (Reader.number_of_frames())
+        center_of_system /= (Reader.number_of_frames())
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
 
     if all_res is None:
@@ -977,12 +976,89 @@ def stage_I_run(config, options,
 
 ################################################################################
 
+def stage_II_worker(pbar_queue,
+                    results_queue,
+                    traj_reader_proto,
+                    scope_everyframe,
+                    scope,
+                    scope_convexhull,
+                    object_selection,
+                    all_res_this_layer,
+                    number_of_frames,
+                    frame_rid_in_object,
+                    is_number_frame_rid_in_object,
+                    progress_freq):
+
+    traj_reader = open_traj_reader(traj_reader_proto)
+
+    # scope is evaluated only once before loop over frames so it cannot be frame dependent
+    if not scope_everyframe:
+        scope = traj_reader.parse_selection(scope)
+        logger.debug("Scope definition evaluated only once for given layer")
+    else:
+        logger.debug("Scope definition evaluated in every frame, this might be very slow.")
+
+    # speed up!
+    all_res_this_ids = list(all_res_this_layer.ids())
+
+    paths_this_layer = (GenericPaths(resid,
+                                     name_of_res=resname,
+                                     single_res_selection=sressel,
+                                     min_pf=0, max_pf=number_of_frames-1)
+                        for resid, resname, sressel in izip(all_res_this_ids,
+                                                            all_res_this_layer.names(),
+                                                            all_res_this_layer.single_residues()))
+
+    # big container for 012 path data
+    number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
+                                         dtype=np.int8)
+    progress = 0
+    # the loop over frames, use izip otherwise iteration over frames does not work
+    for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
+                                     traj_reader.iterate_over_frames()):
+
+        # do we have object data?
+        if not is_number_frame_rid_in_object:
+            rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
+        # assert rid_in_object is not None
+
+        is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
+
+        if scope_everyframe:
+            scope = traj_reader.parse_selection(scope)
+        # check if all_res are in the scope, reuse res_ids_in_object_over_frames
+        is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
+                                                  known_true=None)  # known_true could be rid_in_object
+
+        number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)), dtype=np.int8)
+
+        progress += 1
+        if progress == progress_freq:
+            progress = 0
+            pbar_queue.put(progress_freq)
+
+    paths = []
+    for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
+        pat.add_012(nfos)
+        paths.append(pat)
+
+
+    # sent results
+    results_queue.put(paths)
+    pbar_queue.put(progress)
+    # termination
+    pbar_queue.put(None)
+
+
 # raw_paths
 def stage_II_run(config, options,
                  all_res=None,
                  number_frame_rid_in_object=None,
                  # res_ids_in_object_over_frames=None,
                  **kwargs):
+    # disable real cache of ort
+    Reader.open_reader_traj_real = None
+
     ####################################################################################################################
     # FIXME: temporary solution, remove it later
     if 'res_ids_in_object_over_frames' in kwargs:
@@ -998,16 +1074,7 @@ def stage_II_run(config, options,
                     frame_rid_in_object.append(res_ids_in_object_over_frames[number][layer])
                 number_frame_rid_in_object.append(frame_rid_in_object)
     ####################################################################################################################
-    # create pool of workers - mapping function
-    map_fun = map
-    if optimal_threads.threads_count > 1:
-        pool = mp.Pool(optimal_threads.threads_count)
-        chunk_size = all_res.len() / Reader.number_of_layers() / (optimal_threads.threads_count ** 1) - 1
-        if chunk_size <= 0:
-            chunk_size = 1
-        logger.debug("Chunk size %d.",chunk_size)
-        map_fun = partial(pool.imap, chunksize=chunk_size)
-        #map_fun = pool.map
+
     # clear in object info if required
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
@@ -1016,81 +1083,44 @@ def stage_II_run(config, options,
 
     is_number_frame_rid_in_object = bool(number_frame_rid_in_object)
 
-    '''
-    with clui.fbm("Init paths container"):
-        number_of_frames = Reader.window.len() - 1
-        paths = dict(
-            ((resid, GenericPaths(resid, name_of_res=resname, single_res_selection=sressel,
-                                  min_pf=0, max_pf=number_of_frames))
-             for resid, resname, sressel in
-             zip(all_res.ids(), all_res.names(), all_res.single_residues())))
-    '''
-    number_of_frames = Reader.number_of_frames(onelayer=True) - 1
+    number_of_frames = Reader.number_of_frames(onelayer=True)
     clui.message("Trajectory scan:")
     pbar = clui.pbar(Reader.number_of_frames())
+
+
+    pbar_queue = Queue()
+    results_queue = Queue()
+
     # loop over possible layers of sandwich
-    paths = []
-    for frame_rid_in_object, (number, traj_reader) in izip(iterate_or_die(number_frame_rid_in_object, times=Reader.number_of_layers()),
-                                                           Reader.iterate(number=True)):
+    for results_count,(frame_rid_in_object, (number, traj_reader)) in enumerate(izip(iterate_or_die(number_frame_rid_in_object,
+                                                                                                    times=Reader.number_of_layers()),
+                                                                                     Reader.iterate(number=True))):
+        all_res_layer = all_res.layer(number)
 
-        # scope is evaluated only once before loop over frames so it cannot be frame dependent
-        if not options.scope_everyframe:
-            scope = traj_reader.parse_selection(options.scope)
-            logger.debug("Scope definition evaluated only once for given layer")
-        else:
-            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
-
-        # speed up!
-        all_res_this_layer = all_res.layer(number)
-        all_res_this_ids = list(all_res_this_layer.ids())
-
-        paths_this_layer = (GenericPaths(resid,
-                                         name_of_res=resname,
-                                         single_res_selection=sressel,
-                                         min_pf=0, max_pf=number_of_frames)
-                            for resid, resname, sressel in izip(all_res_this_ids,
-                                                                all_res_this_layer.names(),
-                                                                all_res_this_layer.single_residues()))
-
-        # big container for 012 path data
-        number_frame_object_scope = np.zeros((Reader.number_of_frames(onelayer=True), all_res_this_layer.len()), dtype=np.int8)
-        # the loop over frames, use izip otherwise iteration over frames does not work
-        for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=Reader.number_of_frames(onelayer=True)),
-                                         traj_reader.iterate_over_frames()):
-
-            # do we have object data?
-            if not is_number_frame_rid_in_object:
-                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(options.object).residues().ids()]
-            # assert rid_in_object is not None
-
-            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
-
-            if options.scope_everyframe:
-                scope = traj_reader.parse_selection(options.scope)
-            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=options.scope_convexhull,
-                                                      map_fun=map_fun,
-                                                      known_true=None)  # known_true could be rid_in_object
-
-            number_frame_object_scope[frame,:] = np.array(map(sum,izip(is_res_in_object,is_res_in_scope)),dtype=np.int8)
-            pbar.next()
-
-        #number_frame_object_scope = np.array(number_frame_object_scope,dtype=np.int8).T
-        # another loop over this columns
-        for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
-            pat.add_012(nfos)
-            paths.append(pat)
-        del number_frame_object_scope
-
-        #paths.extend(paths_this_layer)
-
-    # destroy pool of workers
-    if optimal_threads.threads_count > 1:
-        pool.close()
-        pool.join()
-        del pool
-
+        Process(target=stage_II_worker, args=(pbar_queue,results_queue,
+                                              traj_reader,
+                                              options.scope_everyframe,
+                                              options.scope,
+                                              options.scope_convexhull,
+                                              options.object,
+                                              all_res_layer,
+                                              number_of_frames,
+                                              frame_rid_in_object,
+                                              is_number_frame_rid_in_object,
+                                              max(1,Reader.number_of_frames()/500))).start()
+    # display progress
+    for progress in iter(pbar_queue.get,None): pbar.next(progress)
     pbar.finish()
+
+    paths = []
+    # collect results
+    with clui.fbm("Collecting results from layers") as report:
+        for nr,results in enumerate(iter(results_queue.get,None)):
+            report(str(nr))
+            _paths = results
+            paths.extend(_paths)
+            break
+            if nr == results_count: break
 
     clui.message("Number of paths: %d" % len(paths))
 
@@ -1107,6 +1137,9 @@ class ABSphere(namedtuple('ABSphere', 'center radius')):
 def stage_III_run(config, options,
                   paths=None,
                   **kwargs):
+    # enable real cache of ort
+    if Reader.open_reader_traj_real is None: Reader.open_reader_traj_real = {}
+
     soptions = config.get_smooth_options()
 
     if options.allow_passing_paths:
@@ -1315,6 +1348,10 @@ def stage_IV_run(config, options,
                  spaths=None,
                  center_of_system=None,
                  **kwargs):
+    # enable real cache of ort
+    if Reader.open_reader_traj_real is None: Reader.open_reader_traj_real = {}
+
+
     coptions = config.get_cluster_options()
     rcoptions = config.get_recluster_options()
     soptions = config.get_smooth_options()
@@ -2139,6 +2176,10 @@ def stage_V_run(config, options,
                 ctypes=None,
                 reader=None,
                 **kwargs):
+    # enable real cache of ort
+    if Reader.open_reader_traj_real is None: Reader.open_reader_traj_real = {}
+
+
     # file handle?
     head_nr = False
     line_nr = head_nr
@@ -2552,6 +2593,10 @@ def stage_VI_run(config, options,
                  master_paths=None,
                  master_paths_smooth=None,
                  **kwargs):
+    # enable real cache of ort
+    if Reader.open_reader_traj_real is None: Reader.open_reader_traj_real = {}
+
+
     from aquaduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
     # from aquaduct.visual.pymol_connector import cmd as pymol_cmd
     from aquaduct.visual.helpers import ColorMapDistMap
@@ -2579,6 +2624,7 @@ def stage_VI_run(config, options,
         molecule_name = ''
         with clui.fbm("Molecule"):
             for nr, traj_reader in enumerate(Reader.iterate()):
+                traj_reader = traj_reader.open()
                 # mda_ppr = mda.core.flags["permissive_pdb_reader"]
                 # mda.core.flags["permissive_pdb_reader"] = False #mda16 it is porbably always True
                 frames_to_show = range2int(options.show_molecule_frames)
@@ -2591,6 +2637,7 @@ def stage_VI_run(config, options,
     if options.show_scope_chull:
         with clui.fbm("Convexhull"):
             for nr, traj_reader in enumerate(Reader.iterate()):
+                traj_reader = traj_reader.open()
                 frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_frame(frame)
@@ -2601,6 +2648,7 @@ def stage_VI_run(config, options,
     if options.show_object_chull:
         with clui.fbm("Object shape"):
             for nr, traj_reader in enumerate(Reader.iterate()):
+                traj_reader = traj_reader.open()
                 frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_frame(frame)

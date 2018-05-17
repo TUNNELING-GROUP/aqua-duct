@@ -97,12 +97,9 @@ class Window(object):
 # MDTraj
 
 class OpenReaderTraj(namedtuple('OpenReaderTraj','topology trajectory number window engine')):
-    pass
-
-def open_traj_reader(ort):
-    if ort.engine == 'mda':
-        return ReaderTrajViaMDA(ort.topology,ort.trajectory,number=ort.number,window=ort.window)
-    raise NotImplementedError
+    def open(self):
+        # convenience function
+        return open_traj_reader(self)
 
 
 class MasterReader(object):
@@ -110,6 +107,7 @@ class MasterReader(object):
     # it does not use ANY direct call to ANY MD access software
 
     open_reader_traj = {} # this should hold only file names etc.
+    open_reader_traj_real = None
 
     topology = ''
     trajectory = ['']
@@ -117,6 +115,7 @@ class MasterReader(object):
 
     sandwich_mode = None
     engine_name = 'mda'
+
 
     def __call__(self, topology, trajectory, window=None, sandwich=False):
         '''
@@ -252,6 +251,20 @@ class MasterReader(object):
 
 # instance of MasterReader
 Reader = MasterReader()
+
+def open_traj_reader_engine(ort):
+    if ort.engine == 'mda':
+        return ReaderTrajViaMDA(ort.topology, ort.trajectory, number=ort.number, window=ort.window)
+    raise NotImplementedError
+
+
+def open_traj_reader(ort):
+    if Reader.open_reader_traj_real is not None:
+        if ort.number not in Reader.open_reader_traj_real:
+            traj_reader = open_traj_reader_engine(ort)
+            Reader.open_reader_traj_real.update({ort.number:traj_reader})
+            return traj_reader
+    return open_traj_reader_engine(ort)
 
 
 class ReaderAccess(object):
@@ -588,7 +601,7 @@ class Selection(ReaderAccess):
 
     def layer(self, number):
         if self.selected.has_key(number):
-            return self.__class__({number: self.selected[number]})
+            return self.__class__({number: self.selected[number]},self.open_traj_reader)
         return self.__class__({})
 
     def numbers(self):
@@ -600,7 +613,7 @@ class Selection(ReaderAccess):
         for number, ids in self.selected.iteritems():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
-                return self.__class__({number: [ids[ix - ix_current]]})
+                return self.__class__({number: [ids[ix - ix_current]]},self.open_traj_reader)
             ix_current += len(ids)
         raise IndexError()
 
@@ -767,7 +780,7 @@ class ResidueSelection(Selection):
 @memory
 @arrayify(shape=(None, 3))
 def coords_range_core(srange, number, rid):
-    reader = Reader.get_single_reader(number)
+    reader = Reader.get_single_reader(number).open()
     for f in srange.get():
         reader.set_frame(f)
         yield reader.residues_positions([rid]).next()

@@ -107,9 +107,9 @@ class fbm(object):
 
     def __call__(self, info):
         if self.__cont:
-            message(linesep + '\t' + info + '...', cont=True)
+            message(info, cont=True)
         else:
-            message(info + '...', cont=False)
+            message(info, cont=False)
 
 
 class tictoc(object):
