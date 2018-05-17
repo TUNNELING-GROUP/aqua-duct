@@ -308,7 +308,7 @@ class CTypeSpathsCollection(object):
             else:
                 # weighted average by paths lengths
                 sizes.append(int(np.average([len(sp.types[part]) for sp in self.spaths], 0, lens)))
-        return sum(sizes)  # total size (desired)
+        return max(30,sum(sizes)/3)  # total size (desired), min 30 - a good low limit default?
 
     @staticmethod
     def simple_types_distribution(types):

@@ -29,7 +29,7 @@ import MDAnalysis as mda
 from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import is_iterable
-from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull, ids_points_within_convexhull
+from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull, are_points_within_convexhull
 from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, \
                                    tupleify, SmartRangeIncrement
 from aquaduct.utils.maths import make_default_array
@@ -675,7 +675,7 @@ class AtomSelection(Selection):
             if convex_hull:
                 chull = self.chull()
                 #ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
-                ch_results = ids_points_within_convexhull(other_coords, chull, map_fun=map_fun)
+                ch_results = are_points_within_convexhull(other_coords, chull, map_fun=map_fun)
             # final merging loop
             final_results = []
             for other_id in other_residues.ids():
@@ -691,7 +691,7 @@ class AtomSelection(Selection):
                 other_coords = other_residues.coords()
                 chull = self.chull()
                 #return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
-                return ids_points_within_convexhull(other_coords, chull, map_fun=map_fun)
+                return are_points_within_convexhull(other_coords, chull, map_fun=map_fun)
             else:
                 # check if other selection is empty
                 this_ids = list(self.residues().ids())

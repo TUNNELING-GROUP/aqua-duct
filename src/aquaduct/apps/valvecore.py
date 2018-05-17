@@ -2602,7 +2602,8 @@ def stage_VI_run(config, options,
                 plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
                 if ct in master_paths:
                     if master_paths[ct] is not None:
-                        plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp)
+                        plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp,
+                                           smooth=lambda anything: anything)
 
     if options.ctypes_smooth:
         with clui.fbm("CTypes smooth"):

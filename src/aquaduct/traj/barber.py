@@ -250,7 +250,7 @@ class WhereToCut(ReaderAccess):
 
     def cloud_groups(self, progress=False):
         # no redundant spheres
-        noredundant_spheres, redundant_spheres = self.do_cut_thyself(self.spheres, progress=progress)
+        noredundant_spheres, redundant_spheres = do_cut_thyself(self.spheres, progress=progress)
         if progress:
             clui.message("Barber, clouds clusters:")
             pbar = clui.pbar(len(self.spheres))
