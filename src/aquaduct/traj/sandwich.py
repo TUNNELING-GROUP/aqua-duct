@@ -106,8 +106,7 @@ class MasterReader(object):
     # only one MasterReader object can be used
     # it does not use ANY direct call to ANY MD access software
 
-    open_reader_traj = {} # this should hold only file names etc.
-    open_reader_traj_real = None
+    open_reader_traj = {}
 
     topology = ''
     trajectory = ['']
@@ -134,7 +133,10 @@ class MasterReader(object):
         self.sandwich_mode = sandwich
 
         self.correct_window()  # this corrects window
-        self.open_reader_traj = {}  # aster window correction clear all opened trajs
+        self.reset() # assert window correction clear all opened trajs
+
+    def reset(self):
+        self.open_reader_traj = {}
 
     def __getstate__(self):
         # if pickle dump is required, this will not be used in the future
@@ -214,17 +216,11 @@ class MasterReader(object):
         # returns single trajectory reader of number
         # is it is already opened it is returned directly
         # if not is opened and then recursive call is executed
-        if self.open_reader_traj.has_key(number):
-            return self.open_reader_traj[number]
+        if self.sandwich_mode:
+            return self.engine(self.topology, self.trajectory[number], number=number, window=self.window)
         else:
-            if self.sandwich_mode:
-                self.open_reader_traj.update(
-                    {number: self.engine(self.topology, self.trajectory[number], number=number, window=self.window)})
-            else:
-                assert number == 0
-                self.open_reader_traj.update(
-                    {0: self.engine(self.topology, self.trajectory, number=0, window=self.window)})
-        return self.get_single_reader(number)
+            assert number == 0
+            return self.engine(self.topology, self.trajectory, number=0, window=self.window)
 
     def get_reader_by_id(self, someid):
         # returns trajectory reader of number in someid
@@ -257,15 +253,10 @@ def open_traj_reader_engine(ort):
         return ReaderTrajViaMDA(ort.topology, ort.trajectory, number=ort.number, window=ort.window)
     raise NotImplementedError
 
-
 def open_traj_reader(ort):
-    if Reader.open_reader_traj_real is not None:
-        if ort.number not in Reader.open_reader_traj_real:
-            traj_reader = open_traj_reader_engine(ort)
-            Reader.open_reader_traj_real.update({ort.number:traj_reader})
-            return traj_reader
-        return Reader.open_reader_traj_real[ort.number]
-    return open_traj_reader_engine(ort)
+    if ort.number not in Reader.open_reader_traj:
+        Reader.open_reader_traj.update({ort.number:open_traj_reader_engine(ort)})
+    return Reader.open_reader_traj[ort.number]
 
 
 class ReaderAccess(object):

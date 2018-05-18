@@ -910,13 +910,11 @@ def stage_I_worker(pbar_queue,
     results_queue.put((all_res,frame_rid_in_object,center_of_system))
     pbar_queue.put(progress)
     # termination
-    pbar_queue.put(None)
 
 # traceable_residues
 def stage_I_run(config, options,
                 **kwargs):
-    # disable real cache of ort
-    Reader.open_reader_traj_real = {}
+    Reader.reset()
 
     clui.message("Loop over frames - search of residues in object:")
     pbar = clui.pbar(Reader.number_of_frames())
@@ -945,13 +943,17 @@ def stage_I_run(config, options,
         #break
 
     # display progress
-    for progress in iter(pbar_queue.get,None): pbar.next(progress)
+    progress = 0
+    progress_target = Reader.number_of_frames()
+    for p in iter(pbar_queue.get,None):
+        pbar.next(p)
+        progress += p
+        if progress == progress_target: break
     pbar.finish()
 
     # collect results
     with clui.fbm("Collecting results from layers") as report:
         for nr,results in enumerate(iter(results_queue.get,None)):
-            if nr !=1: continue
             report(str(nr))
             _all_res, _frame_rid_in_object, _center_of_system = results
             center_of_system += center_of_system
@@ -1052,7 +1054,6 @@ def stage_II_worker(pbar_queue,
     results_queue.put(paths)
     pbar_queue.put(progress)
     # termination
-    pbar_queue.put(None)
 
 
 # raw_paths
@@ -1062,8 +1063,7 @@ def stage_II_run(config, options,
                  # res_ids_in_object_over_frames=None,
                  **kwargs):
     # disable real cache of ort
-    #Reader.open_reader_traj_real = None
-    Reader.open_reader_traj_real = {}
+    Reader.reset()
 
     ####################################################################################################################
     # FIXME: temporary solution, remove it later
@@ -1118,15 +1118,18 @@ def stage_II_run(config, options,
         pool[-1].start()
         #break
 
-    # display progress
-    for progress in iter(pbar_queue.get,None): pbar.next(progress)
+    progress = 0
+    progress_target = Reader.number_of_frames()
+    for p in iter(pbar_queue.get,None):
+        pbar.next(p)
+        progress += p
+        if progress == progress_target: break
     pbar.finish()
 
     paths = []
     # collect results
     with clui.fbm("Collecting results from layers") as report:
         for nr,results in enumerate(iter(results_queue.get,None)):
-            if nr !=1: continue
             report(str(nr))
             _paths = results
             paths.extend(_paths)
@@ -1149,7 +1152,7 @@ def stage_III_run(config, options,
                   paths=None,
                   **kwargs):
     # enable real cache of ort
-    Reader.open_reader_traj_real = {}
+    Reader.reset()
 
     soptions = config.get_smooth_options()
 
@@ -1360,7 +1363,7 @@ def stage_IV_run(config, options,
                  center_of_system=None,
                  **kwargs):
     # enable real cache of ort
-    Reader.open_reader_traj_real = {}
+    Reader.reset()
 
 
     coptions = config.get_cluster_options()
@@ -2188,7 +2191,7 @@ def stage_V_run(config, options,
                 reader=None,
                 **kwargs):
     # enable real cache of ort
-    Reader.open_reader_traj_real = {}
+    Reader.reset()
 
 
     # file handle?
@@ -2606,7 +2609,7 @@ def stage_VI_run(config, options,
                  master_paths_smooth=None,
                  **kwargs):
     # enable real cache of ort
-    Reader.open_reader_traj_real = {}
+    Reader.reset()
 
 
     from aquaduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
