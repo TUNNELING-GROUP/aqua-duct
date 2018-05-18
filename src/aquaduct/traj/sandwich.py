@@ -262,10 +262,14 @@ def open_traj_reader(ort):
 class ReaderAccess(object):
     # ReaderAccess class provides reader property that returns current instance of MasterReader
 
-    @property
-    def reader(self):
-        return Reader
+    def get_reader(self, number):
+        if number in Reader.open_reader_traj:
+            return Reader.open_reader_traj[number]
+        Reader.get_single_reader(number).open()
+        return self.get_reader(number)
 
+    def get_reader_by_id(self,someid):
+        return self.get_reader(someid[0])
 
 ################################################################################
 # VdW radii
@@ -523,7 +527,7 @@ class ReaderTrajViaMDA(ReaderTraj):
         self.trajectory_object.trajectory[real_frame]
 
     def parse_selection(self, selection):
-        return AtomSelection({self.number: self.trajectory_object.select_atoms(selection).atoms.ix},{self.number:self})
+        return AtomSelection({self.number: self.trajectory_object.select_atoms(selection).atoms.ix})
 
     def atom2residue(self, atomid):
         return self.trajectory_object.atoms[atomid].residue.ix
@@ -572,28 +576,15 @@ class ReaderTrajViaMDA(ReaderTraj):
 
 class Selection(ReaderAccess):
 
-    def __init__(self, selected,open_traj_reader=None):
-
-        assert open_traj_reader is not None
-        self.open_traj_reader = {}
-        if open_traj_reader is not None:
-            self.open_traj_reader.update(open_traj_reader)
+    def __init__(self, selected):
 
         self.selected = OrderedDict(selected)
         for number, ids in self.selected.iteritems():
             self.selected[number] = list(imap(defaults.int_default,ids))
 
-    def __getstate__(self):
-        state = self.__dict__
-        state.update({'open_traj_reader':{}})
-        return state
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-
     def layer(self, number):
         if self.selected.has_key(number):
-            return self.__class__({number: self.selected[number]},self.open_traj_reader)
+            return self.__class__({number: self.selected[number]})
         return self.__class__({})
 
     def numbers(self):
@@ -605,7 +596,7 @@ class Selection(ReaderAccess):
         for number, ids in self.selected.iteritems():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
-                return self.__class__({number: [ids[ix - ix_current]]},self.open_traj_reader)
+                return self.__class__({number: [ids[ix - ix_current]]})
             ix_current += len(ids)
         raise IndexError()
 
@@ -615,11 +606,13 @@ class Selection(ReaderAccess):
             _len += len(ids)
         return _len
 
+    '''
     def get_reader(self, number):
         if number in self.open_traj_reader:
             return self.open_traj_reader[number]
         self.open_traj_reader.update({number:open_traj_reader(self.reader.get_single_reader(number))})
         return self.get_reader(number)
+    '''
 
     def add(self, other):
 
@@ -628,8 +621,6 @@ class Selection(ReaderAccess):
                 self.selected[number] = self.selected[number] + list(ids)
             else:
                 self.selected.update({number: ids})
-
-        self.open_traj_reader.update(other.open_traj_reader)
 
 
     def uniquify(self):
@@ -668,7 +659,7 @@ class AtomSelection(Selection):
                 number_reader = self.get_reader(number)
                 yield number, sorted(set(map(number_reader.atom2residue, ids)))
 
-        return ResidueSelection(get_unique_residues(),self.open_traj_reader)
+        return ResidueSelection(get_unique_residues())
 
     def coords(self):
         for number, ids in self.selected.iteritems():
@@ -741,7 +732,7 @@ class AtomSelection(Selection):
                     other_new[number].append(resid)
                 else:
                     other_new.update({number: [resid]})
-        return ResidueSelection(other_new,other_residues.open_traj_reader)
+        return ResidueSelection(other_new)
 
     def chull(self):
         return SciPyConvexHull(list(self.coords()))
@@ -911,9 +902,6 @@ class SingleResidueSelection(ReaderAccess):
         self.resid = resid[-1]
         self.number = resid[0]
 
-    def get_reader(self):
-        return self.reader.get_single_reader(self.number)
-
     def coords(self, frames):
         if isinstance(frames, SmartRange):
             if len(frames):
@@ -925,9 +913,10 @@ class SingleResidueSelection(ReaderAccess):
     @arrayify(shape=(None, 3))
     def _coords(self, frames):
         # return coords for frames
+        traj_reader = self.get_reader(self.number)
         for f in frames:
-            self.get_reader().set_frame(f)
-            yield self.get_reader().residues_positions([self.resid]).next()
+            traj_reader.set_frame(f)
+            yield traj_reader.residues_positions([self.resid]).next()
 
     def coords_smooth(self,sranges,smooth):
         for coord in smooth_coords_ranges(sranges, self.number, self.resid, smooth):
