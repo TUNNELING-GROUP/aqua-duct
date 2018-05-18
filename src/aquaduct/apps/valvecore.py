@@ -942,10 +942,9 @@ def stage_I_run(config, options,
         pbar.next(p)
         progress += p
         if progress == progress_target: break
-    pbar.finish()
-
     # [stop workers]
     [input_queue.put(None) for p in pool]
+    pbar.finish()
 
     # collect results
     pbar = clui.pbar((results_count+1)*2+1,'Collecting results from layers:')
@@ -985,79 +984,69 @@ def stage_I_run(config, options,
 
 ################################################################################
 
-def stage_II_worker(pbar_queue,
-                    results_queue,
-                    layer_number,
-                    traj_reader_proto,
-                    scope_everyframe,
-                    scope,
-                    scope_convexhull,
-                    object_selection,
-                    all_res_this_layer,
-                    number_of_frames,
-                    frame_rid_in_object,
-                    is_number_frame_rid_in_object,
-                    progress_freq):
+def stage_II_worker_q(input_queue,results_queue,pbar_queue):
 
-    traj_reader = open_traj_reader(traj_reader_proto)
+    for input_data in iter(input_queue.get,None):
+        layer_number,traj_reader_proto,scope_everyframe,scope,scope_convexhull,object_selection,all_res_this_layer,number_of_frames,frame_rid_in_object,is_number_frame_rid_in_object,progress_freq = input_data
 
-    # scope is evaluated only once before loop over frames so it cannot be frame dependent
-    if not scope_everyframe:
-        scope = traj_reader.parse_selection(scope)
-        logger.debug("Scope definition evaluated only once for given layer")
-    else:
-        logger.debug("Scope definition evaluated in every frame, this might be very slow.")
+        traj_reader = open_traj_reader(traj_reader_proto)
 
-    # speed up!
-    all_res_this_ids = list(all_res_this_layer.ids())
-
-    paths_this_layer = (GenericPaths(resid,
-                                     name_of_res=resname,
-                                     single_res_selection=sressel,
-                                     min_pf=0, max_pf=number_of_frames-1)
-                        for resid, resname, sressel in izip(all_res_this_ids,
-                                                            all_res_this_layer.names(),
-                                                            all_res_this_layer.single_residues()))
-
-    # big container for 012 path data
-    number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
-                                         dtype=np.int8)
-    progress = 0
-    # the loop over frames, use izip otherwise iteration over frames does not work
-    for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
-                                     traj_reader.iterate_over_frames()):
-
-        # do we have object data?
-        if not is_number_frame_rid_in_object:
-            rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
-        # assert rid_in_object is not None
-
-        is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
-
-        if scope_everyframe:
+        # scope is evaluated only once before loop over frames so it cannot be frame dependent
+        if not scope_everyframe:
             scope = traj_reader.parse_selection(scope)
-        # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-        is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
-                                                  known_true=None)  # known_true could be rid_in_object
+            logger.debug("Scope definition evaluated only once for given layer")
+        else:
+            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
 
-        number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)), dtype=np.int8)
+        # speed up!
+        all_res_this_ids = list(all_res_this_layer.ids())
 
-        progress += 1
-        if progress == progress_freq:
-            progress = 0
-            pbar_queue.put(progress_freq)
+        paths_this_layer = (GenericPaths(resid,
+                                         name_of_res=resname,
+                                         single_res_selection=sressel,
+                                         min_pf=0, max_pf=number_of_frames-1)
+                            for resid, resname, sressel in izip(all_res_this_ids,
+                                                                all_res_this_layer.names(),
+                                                                all_res_this_layer.single_residues()))
 
-    paths = []
-    for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
-        pat.add_012(nfos)
-        paths.append(pat)
+        # big container for 012 path data
+        number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
+                                             dtype=np.int8)
+        progress = 0
+        # the loop over frames, use izip otherwise iteration over frames does not work
+        for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
+                                         traj_reader.iterate_over_frames()):
+
+            # do we have object data?
+            if not is_number_frame_rid_in_object:
+                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
+            # assert rid_in_object is not None
+
+            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
+
+            if scope_everyframe:
+                scope = traj_reader.parse_selection(scope)
+            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
+            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
+                                                      known_true=None)  # known_true could be rid_in_object
+
+            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)), dtype=np.int8)
+
+            progress += 1
+            if progress == progress_freq:
+                progress = 0
+                pbar_queue.put(progress_freq)
+
+        paths = []
+        for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
+            pat.add_012(nfos)
+            paths.append(pat)
 
 
-    # sent results
-    results_queue.put({layer_number:paths})
-    pbar_queue.put(progress)
-    # termination
-
+        # sent results
+        results_queue.put({layer_number:paths})
+        pbar_queue.put(progress)
+        # termination
 
 # raw_paths
 def stage_II_run(config, options,
@@ -1097,31 +1086,21 @@ def stage_II_run(config, options,
     pbar = clui.pbar(Reader.number_of_frames())
 
 
+    # prepare queues
     pbar_queue = Queue()
     results_queue = Queue()
+    input_queue = Queue()
 
-    # loop over possible layers of sandwich
-    pool=[]
+    # prepare and start pool of workers
+    pool = [Process(target=stage_II_worker_q,args=(input_queue,results_queue,pbar_queue)) for dummy in xrange(optimal_threads.threads_count)]
+    [p.start() for p in pool]
+
+    # feed input_queue with data
     for results_count,(frame_rid_in_object, (number, traj_reader)) in enumerate(izip(iterate_or_die(number_frame_rid_in_object,
                                                                                                     times=Reader.number_of_layers()),
                                                                                      Reader.iterate(number=True))):
         all_res_layer = all_res.layer(number)
-
-        pool.append(Process(target=stage_II_worker,
-                            args=(pbar_queue,results_queue,
-                                  number,
-                                  traj_reader,
-                                  options.scope_everyframe,
-                                  options.scope,
-                                  options.scope_convexhull,
-                                  options.object,
-                                  all_res_layer,
-                                  number_of_frames,
-                                  frame_rid_in_object,
-                                  is_number_frame_rid_in_object,
-                                  max(1,Reader.number_of_frames()/500))))
-        pool[-1].start()
-        #break
+        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,number_of_frames,frame_rid_in_object,is_number_frame_rid_in_object,max(1,Reader.number_of_frames()/500)))
 
     # display progress
     progress = 0
@@ -1130,20 +1109,22 @@ def stage_II_run(config, options,
         pbar.next(p)
         progress += p
         if progress == progress_target: break
+    # [stop workers]
+    [input_queue.put(None) for p in pool]
     pbar.finish()
 
     paths = []
     # collect results
-    pbar = clui.pbar(len(pool)*2,'Collecting results from layers:')
+    pbar = clui.pbar((results_count+1)*2,'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
         results.update(result)
-        pool[nr].join(1)
         pbar.next()
         if nr == results_count: break
     for key in sorted(results.keys()):
         paths.extend(results.pop(key))
         pbar.next()
+    [p.join(1) for p in pool]
     pbar.finish()
 
     clui.message("Number of paths: %d" % len(paths))
