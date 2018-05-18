@@ -951,6 +951,7 @@ def stage_I_run(config, options,
     # collect results
     with clui.fbm("Collecting results from layers") as report:
         for nr,results in enumerate(iter(results_queue.get,None)):
+            if nr !=1: continue
             report(str(nr))
             _all_res, _frame_rid_in_object, _center_of_system = results
             center_of_system += center_of_system
@@ -1125,6 +1126,7 @@ def stage_II_run(config, options,
     # collect results
     with clui.fbm("Collecting results from layers") as report:
         for nr,results in enumerate(iter(results_queue.get,None)):
+            if nr !=1: continue
             report(str(nr))
             _paths = results
             paths.extend(_paths)
