@@ -606,14 +606,6 @@ class Selection(ReaderAccess):
             _len += len(ids)
         return _len
 
-    '''
-    def get_reader(self, number):
-        if number in self.open_traj_reader:
-            return self.open_traj_reader[number]
-        self.open_traj_reader.update({number:open_traj_reader(self.reader.get_single_reader(number))})
-        return self.get_reader(number)
-    '''
-
     def add(self, other):
 
         for number, ids in other.selected.iteritems():

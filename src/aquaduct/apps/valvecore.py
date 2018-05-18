@@ -1085,6 +1085,15 @@ def stage_II_run(config, options,
     clui.message("Trajectory scan:")
     pbar = clui.pbar(Reader.number_of_frames())
 
+    if not Reader.sandwich_mode and len(all_res.numbers())>1:
+        with clui.fbm("Unisandwitchize traced residues"):
+            # all_res, each layer should comprise of the same res
+            ids = sorted(set([i[-1] for i in all_res.ids()]))
+            for number in all_res.numbers():
+                all_res.add(ResidueSelection({number:ids}))
+                all_res.uniquify()
+
+
 
     # prepare queues
     pbar_queue = Queue()
@@ -1126,6 +1135,8 @@ def stage_II_run(config, options,
         pbar.next()
     [p.join(1) for p in pool]
     pbar.finish()
+
+
 
     clui.message("Number of paths: %d" % len(paths))
 
