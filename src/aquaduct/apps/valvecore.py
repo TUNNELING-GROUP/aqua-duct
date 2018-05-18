@@ -863,6 +863,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
 
 def stage_I_worker(pbar_queue,
                    results_queue,
+                   layer_number,
                    traj_reader_proto,
                    scope_everyframe,
                    scope,
@@ -907,7 +908,7 @@ def stage_I_worker(pbar_queue,
             progress = 0
             pbar_queue.put(progress_freq)
     # sent results
-    results_queue.put((all_res,frame_rid_in_object,center_of_system))
+    results_queue.put({layer_number:(all_res,frame_rid_in_object,center_of_system)})
     pbar_queue.put(progress)
     # termination
 
@@ -932,15 +933,15 @@ def stage_I_run(config, options,
     # loop over possible layers of sandwich
     pool = []
     for results_count,(number, traj_reader) in enumerate(Reader.iterate(number=True)):
-        pool.append(Process(target=stage_I_worker, args=(pbar_queue,results_queue,
-                                             traj_reader,
-                                             options.scope_everyframe,
-                                             options.scope,
-                                             options.scope_convexhull,
-                                             options.object,
-                                             max(1,Reader.number_of_frames()/500))))
+        pool.append(Process(target=stage_I_worker,
+                            args=(pbar_queue,results_queue,number,
+                                 traj_reader,
+                                 options.scope_everyframe,
+                                 options.scope,
+                                 options.scope_convexhull,
+                                 options.object,
+                                 max(1,Reader.number_of_frames()/500))))
         pool[-1].start()
-        #break
 
     # display progress
     progress = 0
@@ -952,22 +953,27 @@ def stage_I_run(config, options,
     pbar.finish()
 
     # collect results
-    with clui.fbm("Collecting results from layers") as report:
-        for nr,results in enumerate(iter(results_queue.get,None)):
-            report(str(nr))
-            _all_res, _frame_rid_in_object, _center_of_system = results
-            center_of_system += center_of_system
-            if all_res:
-                all_res.add(_all_res)
-                all_res.uniquify()
-            else:
-                all_res = _all_res
-            number_frame_rid_in_object.append(_frame_rid_in_object)
-            pool[nr].join(1)
-            if nr == results_count: break
-
-        center_of_system /= (Reader.number_of_frames())
+    pbar = clui.pbar(len(pool)*2+1,'Collecting results from layers:')
+    results = {}
+    for nr, result in enumerate(iter(results_queue.get, None)):
+        results.update(result)
+        pool[nr].join(1)
+        pbar.next()
+        if nr == results_count: break
+    for key in sorted(results.keys()):
+        _all_res, _frame_rid_in_object, _center_of_system = results.pop(key)
+        center_of_system += center_of_system
+        if all_res:
+            all_res.add(_all_res)
+            all_res.uniquify()
+        else:
+            all_res = _all_res
+        number_frame_rid_in_object.append(_frame_rid_in_object)
+        pbar.next()
+    center_of_system /= (Reader.number_of_frames())
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
+    pbar.next()
+    pbar.finish()
 
     if all_res is None:
         raise ValueError("No traceable residues was found.")
@@ -985,6 +991,7 @@ def stage_I_run(config, options,
 
 def stage_II_worker(pbar_queue,
                     results_queue,
+                    layer_number,
                     traj_reader_proto,
                     scope_everyframe,
                     scope,
@@ -1051,7 +1058,7 @@ def stage_II_worker(pbar_queue,
 
 
     # sent results
-    results_queue.put(paths)
+    results_queue.put({layer_number:paths})
     pbar_queue.put(progress)
     # termination
 
@@ -1104,20 +1111,23 @@ def stage_II_run(config, options,
                                                                                      Reader.iterate(number=True))):
         all_res_layer = all_res.layer(number)
 
-        pool.append(Process(target=stage_II_worker, args=(pbar_queue,results_queue,
-                                              traj_reader,
-                                              options.scope_everyframe,
-                                              options.scope,
-                                              options.scope_convexhull,
-                                              options.object,
-                                              all_res_layer,
-                                              number_of_frames,
-                                              frame_rid_in_object,
-                                              is_number_frame_rid_in_object,
-                                              max(1,Reader.number_of_frames()/500))))
+        pool.append(Process(target=stage_II_worker,
+                            args=(pbar_queue,results_queue,
+                                  number,
+                                  traj_reader,
+                                  options.scope_everyframe,
+                                  options.scope,
+                                  options.scope_convexhull,
+                                  options.object,
+                                  all_res_layer,
+                                  number_of_frames,
+                                  frame_rid_in_object,
+                                  is_number_frame_rid_in_object,
+                                  max(1,Reader.number_of_frames()/500))))
         pool[-1].start()
         #break
 
+    # display progress
     progress = 0
     progress_target = Reader.number_of_frames()
     for p in iter(pbar_queue.get,None):
@@ -1128,13 +1138,17 @@ def stage_II_run(config, options,
 
     paths = []
     # collect results
-    with clui.fbm("Collecting results from layers") as report:
-        for nr,results in enumerate(iter(results_queue.get,None)):
-            report(str(nr))
-            _paths = results
-            paths.extend(_paths)
-            pool[nr].join(1)
-            if nr == results_count: break
+    pbar = clui.pbar(len(pool)*2,'Collecting results from layers:')
+    results = {}
+    for nr, result in enumerate(iter(results_queue.get, None)):
+        results.update(result)
+        pool[nr].join(1)
+        pbar.next()
+        if nr == results_count: break
+    for key in sorted(results.keys()):
+        paths.extend(results.pop(key))
+        pbar.next()
+    pbar.finish()
 
     clui.message("Number of paths: %d" % len(paths))
 
