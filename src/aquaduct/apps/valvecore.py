@@ -861,56 +861,51 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
 ################################################################################
 # stages run
 
-def stage_I_worker(pbar_queue,
-                   results_queue,
-                   layer_number,
-                   traj_reader_proto,
-                   scope_everyframe,
-                   scope,
-                   scope_convexhull,
-                   object_selection,
-                   progress_freq):
+def stage_I_worker_q(input_queue,results_queue,pbar_queue):
 
-    center_of_system = np.zeros(3)
-    all_res = None
+    for input_data in iter(input_queue.get,None):
+        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, progress_freq = input_data
 
-    traj_reader = open_traj_reader(traj_reader_proto)
+        center_of_system = np.zeros(3)
+        all_res = None
 
-    if not scope_everyframe:
-        scope = traj_reader.parse_selection(scope)
+        traj_reader = open_traj_reader(traj_reader_proto)
 
-    progress = 0
-    frame_rid_in_object = []
-    # the loop over frames
-    for frame in traj_reader.iterate_over_frames():
-        if scope_everyframe:
+        if not scope_everyframe:
             scope = traj_reader.parse_selection(scope)
-        # center of system
-        center_of_system += scope.center_of_mass()
-        # current res selection
-        res = traj_reader.parse_selection(object_selection).residues()
-        # find matching residues, ie those which are in the scope:
-        res_new = scope.containing_residues(res, convex_hull=scope_convexhull)
-        res_new.uniquify()  # here is a list of residues in this layer that are in the object and in the scope
-        # adds them to all_res
-        if all_res:
-            all_res.add(res_new)
-            all_res.uniquify()
-        else:
-            all_res = res_new
-        # remeber ids of res in object in current frame
-        if res_new is not None:
-            frame_rid_in_object.append([rid[-1] for rid in res_new.ids()])
-        else:
-            frame_rid_in_object.append([])
-        progress += 1
-        if progress == progress_freq:
-            progress = 0
-            pbar_queue.put(progress_freq)
-    # sent results
-    results_queue.put({layer_number:(all_res,frame_rid_in_object,center_of_system)})
-    pbar_queue.put(progress)
-    # termination
+
+        progress = 0
+        frame_rid_in_object = []
+        # the loop over frames
+        for frame in traj_reader.iterate_over_frames():
+            if scope_everyframe:
+                scope = traj_reader.parse_selection(scope)
+            # center of system
+            center_of_system += scope.center_of_mass()
+            # current res selection
+            res = traj_reader.parse_selection(object_selection).residues()
+            # find matching residues, ie those which are in the scope:
+            res_new = scope.containing_residues(res, convex_hull=scope_convexhull)
+            res_new.uniquify()  # here is a list of residues in this layer that are in the object and in the scope
+            # adds them to all_res
+            if all_res:
+                all_res.add(res_new)
+                all_res.uniquify()
+            else:
+                all_res = res_new
+            # remeber ids of res in object in current frame
+            if res_new is not None:
+                frame_rid_in_object.append([rid[-1] for rid in res_new.ids()])
+            else:
+                frame_rid_in_object.append([])
+            progress += 1
+            if progress == progress_freq:
+                progress = 0
+                pbar_queue.put(progress_freq)
+        # sent results
+        results_queue.put({layer_number: (all_res, frame_rid_in_object, center_of_system)})
+        pbar_queue.put(progress)
+
 
 # traceable_residues
 def stage_I_run(config, options,
@@ -927,21 +922,18 @@ def stage_I_run(config, options,
     # scope will be used to derrive center of system
     center_of_system = np.array([0., 0., 0.])
 
+    # prepare queues
     pbar_queue = Queue()
     results_queue = Queue()
+    input_queue = Queue()
 
-    # loop over possible layers of sandwich
-    pool = []
+    # prepare and start pool of workers
+    pool = [Process(target=stage_I_worker_q,args=(input_queue,results_queue,pbar_queue)) for dummy in xrange(optimal_threads.threads_count)]
+    [p.start() for p in pool]
+
+    # feed input_queue with data
     for results_count,(number, traj_reader) in enumerate(Reader.iterate(number=True)):
-        pool.append(Process(target=stage_I_worker,
-                            args=(pbar_queue,results_queue,number,
-                                 traj_reader,
-                                 options.scope_everyframe,
-                                 options.scope,
-                                 options.scope_convexhull,
-                                 options.object,
-                                 max(1,Reader.number_of_frames()/500))))
-        pool[-1].start()
+        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,max(1,Reader.number_of_frames()/500)))
 
     # display progress
     progress = 0
@@ -952,12 +944,14 @@ def stage_I_run(config, options,
         if progress == progress_target: break
     pbar.finish()
 
+    # [stop workers]
+    [input_queue.put(None) for p in pool]
+
     # collect results
-    pbar = clui.pbar(len(pool)*2+1,'Collecting results from layers:')
+    pbar = clui.pbar((results_count+1)*2+1,'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
         results.update(result)
-        pool[nr].join(1)
         pbar.next()
         if nr == results_count: break
     for key in sorted(results.keys()):
@@ -973,6 +967,8 @@ def stage_I_run(config, options,
     center_of_system /= (Reader.number_of_frames())
     logger.info('Center of system is %0.2f, %0.2f, %0.2f' % tuple(center_of_system))
     pbar.next()
+    # join pool
+    [p.join(1) for p in pool]
     pbar.finish()
 
     if all_res is None:
