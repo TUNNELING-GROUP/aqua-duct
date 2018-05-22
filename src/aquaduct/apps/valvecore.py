@@ -65,7 +65,7 @@ from aquaduct.traj.paths import union_full, yield_generic_paths
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
-from aquaduct.traj.sandwich import ResidueSelection, Reader,open_traj_reader
+from aquaduct.traj.sandwich import ResidueSelection, Reader,open_traj_reader, SingleResidueSelection
 from aquaduct.utils.helpers import SmartRange, iterate_or_die
 
 __mail__ = 'info@aquaduct.pl'
@@ -1086,9 +1086,9 @@ def stage_II_run(config, options,
     if unsandwitchize:
         with clui.fbm("Unsandwitchize traced residues"):
             # all_res, each layer should comprise of the same res
-            ids = sorted(set([i[-1] for i in all_res.ids()]))
+            all_res_ids = sorted(set([i[-1] for i in all_res.ids()]))
             for number in all_res.numbers():
-                all_res.add(ResidueSelection({number:ids}))
+                all_res.add(ResidueSelection({number:all_res_ids}))
                 all_res.uniquify()
 
     number_of_frames = Reader.number_of_frames(onelayer=True)
@@ -1125,10 +1125,7 @@ def stage_II_run(config, options,
 
     paths = []
     # collect results
-    if unsandwitchize:
-        pbar = clui.pbar((results_count + 1), 'Collecting results from layers:')
-    else:
-        pbar = clui.pbar((results_count+1)*2, 'Collecting results from layers:')
+    pbar = clui.pbar((results_count+1)*2+1, 'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
         results.update(result)
@@ -1140,6 +1137,26 @@ def stage_II_run(config, options,
             pbar.next()
     [p.join(1) for p in pool]
     pbar.finish()
+
+    if unsandwitchize:
+        # make coherent paths
+        frames_offset = []
+        numbers = []
+        for number, traj_reader in Reader.iterate(number=True):
+            frames_offset.append(traj_reader.window.len())
+            numbers.append(number)
+        # paths names, paths
+
+        max_pf = Reader.number_of_frames() - 1
+
+        # do one loop over all paths
+        for ps in ([results[n][pnr] for n in numbers] for pnr in xrange(len(all_res_ids))):
+            ps
+            p = GenericPaths((0,ps[0].id[-1]),
+                             name_of_res=ps[0].name,
+                             single_res_selection=SingleResidueSelection((0,ps[0].id[-1])),
+                             min_pf=0, max_pf=max_pf)
+
 
 
 
