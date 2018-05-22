@@ -87,6 +87,13 @@ class Window(object):
         # lenght of window
         return len(self.range())
 
+    def split(self,slices=None):
+        assert slices>0
+        N = int(max(1,np.floor(self.len()/float(slices))))
+        for start in list(self.range())[::(N+1)]:
+            yield Window(start,min(self.stop,start+(N)*self.step),self.step)
+
+
 
 ################################################################################
 # MasterReader
@@ -110,13 +117,14 @@ class MasterReader(object):
 
     topology = ''
     trajectory = ['']
-    window = None
+    window = None # this is full window
 
     sandwich_mode = None
     engine_name = 'mda'
+    threads = 1
 
 
-    def __call__(self, topology, trajectory, window=None, sandwich=False):
+    def __call__(self, topology, trajectory, window=None, sandwich=False, threads=1):
         '''
         :param str topology:  Topology file name.
         :param list trajectory: List of trajectories. Each element is a fine name.
@@ -134,6 +142,8 @@ class MasterReader(object):
 
         self.correct_window()  # this corrects window
         self.reset() # assert window correction clear all opened trajs
+
+        self.threads = threads
 
     def reset(self):
         self.open_reader_traj = {}
@@ -205,11 +215,21 @@ class MasterReader(object):
         else:
             yield self.get_single_reader(0)
 
+    def strata(self, number=False):
+        # generates slices of baquette
+        for nr in xrange(self.threads):
+            if number:
+                yield nr+1, self.get_single_reader(nr+1)
+            else:
+                yield self.get_single_reader(nr+1)
+
     def iterate(self, number=False):
         # iterates over trajectory readers
         # calls sandwich or baguette
         if self.sandwich_mode:
             return self.sandwich(number=number)
+        elif self.threads>1:
+            return self.strata(number=number)
         return self.baguette(number=number)
 
     def get_single_reader(self, number):
@@ -218,6 +238,9 @@ class MasterReader(object):
         # if not is opened and then recursive call is executed
         if self.sandwich_mode:
             return self.engine(self.topology, self.trajectory[number], number=number, window=self.window)
+        elif number > 0 and self.threads>1:
+            window = list(self.window.split(self.threads))[number-1]
+            return self.engine(self.topology, self.trajectory, number=number, window=window)
         else:
             assert number == 0
             return self.engine(self.topology, self.trajectory, number=0, window=self.window)
@@ -243,7 +266,7 @@ class MasterReader(object):
     def number_of_layers(self):
         if self.sandwich_mode:
             return len(self.trajectory)
-        return 1
+        return self.threads
 
 # instance of MasterReader
 Reader = MasterReader()
@@ -440,6 +463,10 @@ class ReaderTraj(object):
 
     def __del__(self):
         self.close_trajectory()
+
+    def number_of_frames(self):
+        # should return number of frames in this reader (window)
+        return self.window.len()
 
     def open_trajectory(self):
         # should return any object that can be further used to parse trajectory

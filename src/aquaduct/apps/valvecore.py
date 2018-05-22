@@ -987,9 +987,10 @@ def stage_I_run(config, options,
 def stage_II_worker_q(input_queue,results_queue,pbar_queue):
 
     for input_data in iter(input_queue.get,None):
-        layer_number,traj_reader_proto,scope_everyframe,scope,scope_convexhull,object_selection,all_res_this_layer,number_of_frames,frame_rid_in_object,is_number_frame_rid_in_object,progress_freq = input_data
+        layer_number,traj_reader_proto,scope_everyframe,scope,scope_convexhull,object_selection,all_res_this_layer,frame_rid_in_object,is_number_frame_rid_in_object,progress_freq = input_data
 
         traj_reader = open_traj_reader(traj_reader_proto)
+        number_of_frames = traj_reader.number_of_frames()
 
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
         if not scope_everyframe:
@@ -1081,18 +1082,18 @@ def stage_II_run(config, options,
 
     is_number_frame_rid_in_object = bool(number_frame_rid_in_object)
 
-    number_of_frames = Reader.number_of_frames(onelayer=True)
-    clui.message("Trajectory scan:")
-    pbar = clui.pbar(Reader.number_of_frames())
-
-    if not Reader.sandwich_mode and len(all_res.numbers())>1:
-        with clui.fbm("Unisandwitchize traced residues"):
+    unsandwitchize = not Reader.sandwich_mode and len(all_res.numbers())>1
+    if unsandwitchize:
+        with clui.fbm("Unsandwitchize traced residues"):
             # all_res, each layer should comprise of the same res
             ids = sorted(set([i[-1] for i in all_res.ids()]))
             for number in all_res.numbers():
                 all_res.add(ResidueSelection({number:ids}))
                 all_res.uniquify()
 
+    number_of_frames = Reader.number_of_frames(onelayer=True)
+    clui.message("Trajectory scan:")
+    pbar = clui.pbar(Reader.number_of_frames())
 
 
     # prepare queues
@@ -1109,7 +1110,7 @@ def stage_II_run(config, options,
                                                                                                     times=Reader.number_of_layers()),
                                                                                      Reader.iterate(number=True))):
         all_res_layer = all_res.layer(number)
-        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,number_of_frames,frame_rid_in_object,is_number_frame_rid_in_object,max(1,Reader.number_of_frames()/500)))
+        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,frame_rid_in_object,is_number_frame_rid_in_object,max(1,Reader.number_of_frames()/500)))
 
     # display progress
     progress = 0
@@ -1124,17 +1125,22 @@ def stage_II_run(config, options,
 
     paths = []
     # collect results
-    pbar = clui.pbar((results_count+1)*2,'Collecting results from layers:')
+    if unsandwitchize:
+        pbar = clui.pbar((results_count + 1), 'Collecting results from layers:')
+    else:
+        pbar = clui.pbar((results_count+1)*2, 'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
         results.update(result)
         pbar.next()
         if nr == results_count: break
-    for key in sorted(results.keys()):
-        paths.extend(results.pop(key))
-        pbar.next()
+    if not unsandwitchize:
+        for key in sorted(results.keys()):
+            paths.extend(results.pop(key))
+            pbar.next()
     [p.join(1) for p in pool]
     pbar.finish()
+
 
 
 
