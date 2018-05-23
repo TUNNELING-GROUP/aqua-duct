@@ -32,7 +32,7 @@ import shlex
 import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps, partial
-from itertools import izip_longest, izip, imap
+from itertools import izip_longest, izip, imap, chain
 from keyword import iskeyword
 from multiprocessing import Pool, Queue, Process
 
@@ -1004,11 +1004,9 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
 
         paths_this_layer = (GenericPaths(resid,
                                          name_of_res=resname,
-                                         single_res_selection=sressel,
                                          min_pf=0, max_pf=number_of_frames-1)
-                            for resid, resname, sressel in izip(all_res_this_ids,
-                                                                all_res_this_layer.names(),
-                                                                all_res_this_layer.single_residues()))
+                            for resid, resname in izip(all_res_this_ids,
+                                                       all_res_this_layer.names()))
 
         # big container for 012 path data
         number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
@@ -1125,7 +1123,10 @@ def stage_II_run(config, options,
 
     paths = []
     # collect results
-    pbar = clui.pbar((results_count+1)*2+1, 'Collecting results from layers:')
+    if not unsandwitchize:
+        pbar = clui.pbar((results_count+1)*2+1, 'Collecting results from layers:')
+    else:
+        pbar = clui.pbar((results_count + 1)+1, 'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
         results.update(result)
@@ -1136,6 +1137,7 @@ def stage_II_run(config, options,
             paths.extend(results.pop(key))
             pbar.next()
     [p.join(1) for p in pool]
+    pbar.next()
     pbar.finish()
 
     if unsandwitchize:
@@ -1148,16 +1150,25 @@ def stage_II_run(config, options,
         # paths names, paths
 
         max_pf = Reader.number_of_frames() - 1
+        frames_offset = np.cumsum([0]+frames_offset).tolist()[:len(numbers)]
+
+        pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
+
+
+        def isum(l,a):
+            return (ll+a for ll in l)
+
 
         # do one loop over all paths
         for ps in ([results[n][pnr] for n in numbers] for pnr in xrange(len(all_res_ids))):
-            ps
-            p = GenericPaths((0,ps[0].id[-1]),
-                             name_of_res=ps[0].name,
-                             single_res_selection=SingleResidueSelection((0,ps[0].id[-1])),
-                             min_pf=0, max_pf=max_pf)
-
-
+            new_p = GenericPaths((0,ps[0].id[-1]),
+                                 name_of_res=ps[0].name,min_pf=0, max_pf=max_pf)
+            frames = chain(*[isum(p.frames_promise,fo) for p,fo in izip(ps,frames_offset)])
+            types = chain(*[p.types_promise for p in ps])
+            new_p.add_frames_types(frames,types)
+            paths.append(new_p)
+            pbar.next()
+    pbar.finish()
 
 
 
@@ -1190,16 +1201,33 @@ def stage_III_run(config, options,
 
     clui.message("Create separate paths:")
     pbar = clui.pbar(len(paths))
+
+    pool = Pool(processes=optimal_threads.threads_count)
+    ysp = partial(yield_single_paths,progress=True,passing=options.allow_passing_paths)
+    n = max(1,len(paths)/optimal_threads.threads_count/3)
+    spaths = []
+    nr_all = 0
+    for sps_nrs in pool.imap_unordered(ysp,(paths[i:i + n] for i in xrange(0, len(paths), n))):
+        for sp,nr in sps_nrs:
+            spaths.append(sp)
+            pbar.update(nr_all+nr+1)
+        nr_all += nr + 1
+    pool.close()
+    pool.join()
+    '''
     # yield_single_paths requires a list of paths not a dictionary
     spaths = [sp for sp, nr in yield_single_paths(paths,
                                                   progress=True,
                                                   passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
+    '''
     pbar.finish()
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths),len(paths)))
     pbar = clui.pbar(len(spaths),"Removing unused parts of paths:")
     paths = yield_generic_paths(spaths,progress=pbar)
     pbar.finish()
+
+    exit()
 
     if options.discard_short_paths or options.discard_short_object:
         if is_number(options.discard_short_paths):
@@ -2663,7 +2691,7 @@ def stage_VI_run(config, options,
     if options.show_molecule:
         molecule_name = ''
         with clui.fbm("Molecule"):
-            for nr, traj_reader in enumerate(Reader.iterate()):
+            for nr, traj_reader in enumerate(Reader.iterate(threads=False)):
                 traj_reader = traj_reader.open()
                 # mda_ppr = mda.core.flags["permissive_pdb_reader"]
                 # mda.core.flags["permissive_pdb_reader"] = False #mda16 it is porbably always True
@@ -2676,7 +2704,7 @@ def stage_VI_run(config, options,
                 # it would be nice to plot convexhull
     if options.show_scope_chull:
         with clui.fbm("Convexhull"):
-            for nr, traj_reader in enumerate(Reader.iterate()):
+            for nr, traj_reader in enumerate(Reader.iterate(threads=False)):
                 traj_reader = traj_reader.open()
                 frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:
@@ -2687,7 +2715,7 @@ def stage_VI_run(config, options,
 
     if options.show_object_chull:
         with clui.fbm("Object shape"):
-            for nr, traj_reader in enumerate(Reader.iterate()):
+            for nr, traj_reader in enumerate(Reader.iterate(threads=False)):
                 traj_reader = traj_reader.open()
                 frames_to_show = range2int(options.show_scope_chull_frames)
                 for frame in frames_to_show:

@@ -223,12 +223,12 @@ class MasterReader(object):
             else:
                 yield self.get_single_reader(nr+1)
 
-    def iterate(self, number=False):
+    def iterate(self, number=False, threads=True):
         # iterates over trajectory readers
         # calls sandwich or baguette
         if self.sandwich_mode:
             return self.sandwich(number=number)
-        elif self.threads>1:
+        elif threads and self.threads>1:
             return self.strata(number=number)
         return self.baguette(number=number)
 
