@@ -478,11 +478,11 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
 
                 if len(paths[1]) > 0:
                     # if everything is OK
-                    sp = SinglePath(pid, paths, types, single_res_selection=gp.single_res_selection)
+                    sp = SinglePath(pid, paths, types)
                 else:
                     # this is passing through
                     if passing:
-                        sp = PassingPath(pid, paths[0], types[0], single_res_selection=gp.single_res_selection)
+                        sp = PassingPath(pid, paths[0], types[0])
                         sp.has_in = sp.paths_first_in > gp.min_possible_frame
                         sp.has_out = sp.paths_last_out < gp.max_possible_frame
                     else:
@@ -514,18 +514,17 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     # special class
     # represents one path
 
-    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __obejct_len".split()
+    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __obejct_len single_res_selection".split()
 
     empty_coords = make_default_array(np.zeros((0, 3)))
 
-    def __init__(self, path_id, paths, types, single_res_selection = None):
+    def __init__(self, path_id, paths, types):
 
         super(MacroMolPath, self).__init__()
 
-        assert single_res_selection is not None
-        self.single_res_selection = single_res_selection
 
         self.id = path_id
+        self.single_res_selection = SingleResidueSelection(self.id.id)
         # for paths use SmartRanges and then provide methods to read them
         self.__path_in, self.__path_object, self.__path_out = map(SmartRange, paths)
         # similarly, do it with types
@@ -547,6 +546,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     def __setstate__(self, state):
         self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len = state
+        self.single_res_selection = SingleResidueSelection(self.id.id)
 
 
     def __object_len_calculate(self):

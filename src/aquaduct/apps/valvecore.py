@@ -1187,7 +1187,6 @@ class ABSphere(namedtuple('ABSphere', 'center radius')):
 def stage_III_run(config, options,
                   paths=None,
                   **kwargs):
-    # enable real cache of ort
     Reader.reset()
 
     soptions = config.get_smooth_options()
@@ -1195,9 +1194,13 @@ def stage_III_run(config, options,
     if options.allow_passing_paths:
         logger.warning("Passing paths is a highly experimental feature. Please, analyze results with care.")
 
+    ######################################################################
+
     if options.discard_empty_paths:
         with clui.fbm("Discard residues with empty paths"):
             paths = [pat for pat in paths if len(pat.frames) > 0]
+
+    ######################################################################
 
     clui.message("Create separate paths:")
     pbar = clui.pbar(len(paths))
@@ -1214,20 +1217,18 @@ def stage_III_run(config, options,
         nr_all += nr + 1
     pool.close()
     pool.join()
-    '''
-    # yield_single_paths requires a list of paths not a dictionary
-    spaths = [sp for sp, nr in yield_single_paths(paths,
-                                                  progress=True,
-                                                  passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
-    '''
     pbar.finish()
+
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths),len(paths)))
+
+    ######################################################################
+
     pbar = clui.pbar(len(spaths),"Removing unused parts of paths:")
     paths = yield_generic_paths(spaths,progress=pbar)
     pbar.finish()
 
-    exit()
+    ######################################################################
 
     if options.discard_short_paths or options.discard_short_object:
         if is_number(options.discard_short_paths):
@@ -1260,6 +1261,7 @@ def stage_III_run(config, options,
             with clui.fbm(discard_message):
                 spaths_nr = len(spaths)
                 # TODO: if not short object is used there is no sense in calling object_len as it is very expensive
+                # TODO: make it in parallel
                 if short_object is not None:
                     spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
                 else:
@@ -1271,6 +1273,8 @@ def stage_III_run(config, options,
                 clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
         else:
             clui.message("No paths were discarded - no values were set.")
+
+    ######################################################################
 
     if options.auto_barber:
         wtc = WhereToCut(spaths=spaths,
@@ -1290,18 +1294,31 @@ def stage_III_run(config, options,
             pbar.next()
         pbar.finish()
         # now, it might be that some of paths are empty
-        # paths = {k: v for k, v in paths.iteritems() if len(v.coords) > 0}
-        # paths = dict((k, v) for k, v in paths.iteritems() if
-        #             len(v.frames) > 0)  # more universal as dict comprehension may not work in <2.7
         paths = [pat for pat in paths if len(pat.frames) > 0]
+
+    ######################################################################
+
+    if options.auto_barber:
 
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
-        # yield_single_paths requires a list of paths not a dictionary
-        spaths = [sp for sp, nr in yield_single_paths(paths, progress=True,
-                                                      passing=options.allow_passing_paths) if
-                  pbar.update(nr + 1) is None]
+        pool = Pool(processes=optimal_threads.threads_count)
+        #ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
+        n = max(1, len(paths) / optimal_threads.threads_count / 3)
+        spaths = []
+        nr_all = 0
+        for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+            for sp, nr in sps_nrs:
+                spaths.append(sp)
+                pbar.update(nr_all + nr + 1)
+            nr_all += nr + 1
+        pool.close()
+        pool.join()
         pbar.finish()
+
+    ######################################################################
+
+    if options.auto_barber:
 
         if options.discard_short_paths or options.discard_short_object:
             if short_paths is not None or short_object is not None:
@@ -1316,9 +1333,14 @@ def stage_III_run(config, options,
             else:
                 clui.message("No paths were discarded - no values were set.")
 
+    ######################################################################
+
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):
             spaths = sorted(spaths, key=lambda sp: (sp.id.id, sp.id.nr))
+
+    ######################################################################
+
     # apply smoothing?
     # it is no longer necessary
     if options.apply_smoothing:
