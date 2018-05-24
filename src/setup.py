@@ -19,6 +19,8 @@
 
 import sys
 from setuptools import find_packages, setup
+#from distutils.core import setup
+from Cython.Build import cythonize
 
 version = __import__('aquaduct').version_nice()  # version str
 
@@ -56,4 +58,5 @@ setup(name='aquaduct',
                    'Operating System :: POSIX',
                    'Programming Language :: Python :: 2.7',
                    ],
+      ext_modules = cythonize("aquaduct/geom/convexhull_c.pyx")
       )

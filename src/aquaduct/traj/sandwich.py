@@ -29,7 +29,7 @@ import MDAnalysis as mda
 from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import is_iterable
-from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull, are_points_within_convexhull
+from aquaduct.geom.convexhull_c import SciPyConvexHull, is_point_within_convexhull, are_points_within_convexhull
 from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, \
                                    tupleify, SmartRangeIncrement
 from aquaduct.utils.maths import make_default_array

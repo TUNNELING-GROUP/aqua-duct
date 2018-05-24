@@ -113,10 +113,11 @@ class fbm(object):
 
 
 class tictoc(object):
-    def __init__(self, mess):
+    def __init__(self, mess, stdout=False):
         self.__tic = 0
         self.__toc = 0
         self.__mess = mess
+        self.__stdout = stdout
 
     def __enter__(self):
         self.__tic = time.time()
@@ -125,9 +126,15 @@ class tictoc(object):
     def __exit__(self, typ, value, traceback):
         self.__toc = time.time()
         if typ is None:
-            #logger.debug('Execution time of [%s] %s', self.__mess, smart_time_string(self.__toc - self.__tic))
-            logger.debug('Execution time of [%s] %f', self.__mess, (self.__toc - self.__tic))
+            if self.__stdout:
+                message('Execution time of [%s] %f' % (self.__mess, (self.__toc - self.__tic)))
+            else:
+                #logger.debug('Execution time of [%s] %s', self.__mess, smart_time_string(self.__toc - self.__tic))
+                logger.debug('Execution time of [%s] %f', self.__mess, (self.__toc - self.__tic))
 
+    @property
+    def duration(self):
+        return self.__toc - self.__tic
 
 gregorian_year_in_days = 365.2425
 '''Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year'''

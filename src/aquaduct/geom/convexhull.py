@@ -89,6 +89,7 @@ def is_point_within_convexhull(point_chull):
 
 def are_points_within_convexhull(points,chull,map_fun=None,sane_huge=10000):
     return np.array(map(lambda p: is_point_within_convexhull((p,chull)),points))
+    '''
     points = np.array(list(points))
     if map_fun is None:
         map_fun = map
@@ -96,9 +97,11 @@ def are_points_within_convexhull(points,chull,map_fun=None,sane_huge=10000):
     else:
         n = max(1, len(points) / optimal_threads.threads_count)
     if len(points) > sane_huge:
-        return np.hstack(map_fun(are_points_within_convexhull_core,
-                                 ((points[i:i + n], chull) for i in xrange(0, len(points), n))))
+        return are_points_within_convexhull_core((points,chull))
+        #return np.hstack(map_fun(are_points_within_convexhull_core,
+        #                         ((points[i:i + n], chull) for i in xrange(0, len(points), n))))
     return np.array(map(lambda p: is_point_within_convexhull((p,chull)),points))
+    '''
 
 def are_points_within_convexhull_core(points_chull):
     points,chull = points_chull
@@ -176,22 +179,38 @@ if __name__ == "__main__":
         [ax.plot(f[:,0],f[:,1],f[:,2],color=color) for f in chull.facets]
 
 
+    from aquaduct.geom import convexhull_c
+    from aquaduct.utils.clui import tictoc
 
-
-    for nr in xrange(100):
+    for nr in xrange(10):
 
         A = np.random.randn(100, 3)
-        B = np.random.randn(10000, 3)
-        chull = SciPyConvexHull(A)
+        B = np.random.randn(1000, 3)*(1+np.random.randn(1))
 
-        old_way = np.array(map(lambda p: is_point_within_convexhull((p,chull)),B))
-        new_way = np.array(are_points_within_convexhull(B, chull))
-        print nr
-        if (old_way != new_way).any():
-            print "discrepancy!"
-            dis = np.argwhere(~(old_way==new_way)).flatten()
-            print dis
-            for d in dis:
-                print d,'old',old_way[d],'new',new_way[d]
-            if len(dis) > 1:
-                break
+
+        with tictoc("Normal",stdout=True):
+            chull = SciPyConvexHull(A)
+            with tictoc("old_way"):
+                old_way = np.array(map(lambda p: is_point_within_convexhull((p,chull)),B))
+            with tictoc("new_way"):
+                new_way = np.array(are_points_within_convexhull(B, chull))
+        '''
+        with tictoc("Normal"):
+            chull = convexhull_c.SciPyConvexHull(A)
+            with tictoc("old_way"):
+                old_way = np.array(map(lambda p: convexhull_c.is_point_within_convexhull((p,chull)),B))
+            with tictoc("new_way"):
+                new_way = np.array(convexhull_c.are_points_within_convexhull(B, chull))
+        '''
+
+    '''        
+    print nr
+    if (old_way != new_way).any():
+        print "discrepancy!"
+        dis = np.argwhere(~(old_way==new_way)).flatten()
+        print dis
+        for d in dis:
+            print d,'old',old_way[d],'new',new_way[d]
+        if len(dis) > 1:
+            break
+    '''

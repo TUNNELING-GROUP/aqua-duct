@@ -875,6 +875,7 @@ def stage_I_worker_q(input_queue,results_queue,pbar_queue):
             scope = traj_reader.parse_selection(scope)
 
         progress = 0
+        progress_freq_flex = min(1,progress_freq)
         frame_rid_in_object = []
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
@@ -899,9 +900,10 @@ def stage_I_worker_q(input_queue,results_queue,pbar_queue):
             else:
                 frame_rid_in_object.append([])
             progress += 1
-            if progress == progress_freq:
+            if progress == progress_freq_flex:
+                pbar_queue.put(progress)
                 progress = 0
-                pbar_queue.put(progress_freq)
+                progress_freq_flex = min(progress_freq_flex*2,progress_freq)
         # sent results
         results_queue.put({layer_number: (all_res, frame_rid_in_object, center_of_system)})
         pbar_queue.put(progress)
@@ -1012,6 +1014,7 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
         number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
                                              dtype=np.int8)
         progress = 0
+        progress_freq_flex = min(1,progress_freq)
         # the loop over frames, use izip otherwise iteration over frames does not work
         for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
                                          traj_reader.iterate_over_frames()):
@@ -1032,9 +1035,10 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
             number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)), dtype=np.int8)
 
             progress += 1
-            if progress == progress_freq:
+            if progress == progress_freq_flex:
+                pbar_queue.put(progress)
                 progress = 0
-                pbar_queue.put(progress_freq)
+                progress_freq_flex = min(progress_freq_flex*2,progress_freq)
 
         paths = []
         for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
@@ -1108,7 +1112,7 @@ def stage_II_run(config, options,
                                                                                                     times=Reader.number_of_layers()),
                                                                                      Reader.iterate(number=True))):
         all_res_layer = all_res.layer(number)
-        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,frame_rid_in_object,is_number_frame_rid_in_object,max(1,Reader.number_of_frames()/500)))
+        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,frame_rid_in_object,is_number_frame_rid_in_object,max(1,Reader.number_of_frames()/1000)))
 
     # display progress
     progress = 0
