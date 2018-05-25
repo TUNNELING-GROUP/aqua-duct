@@ -27,7 +27,8 @@ import numpy as np
 
 import MDAnalysis as mda
 # FIXME: do it according to user options
-mda.core.flags['use_periodic_selections'] = False
+if mda.__version__ > '0.16.2':
+    mda.core.flags['use_periodic_selections'] = False
 
 from MDAnalysis.topology.core import guess_atom_element
 
@@ -220,7 +221,7 @@ class MasterReader(object):
 
     def strata(self, number=False):
         # generates slices of baquette
-        for nr in xrange(self.threads):
+        for nr in xrange(self.threads*3):
             if number:
                 yield nr+1, self.get_single_reader(nr+1)
             else:

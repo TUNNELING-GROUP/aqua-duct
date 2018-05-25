@@ -1115,17 +1115,17 @@ def stage_II_worker_q_T(input_queue,results_queue,pbar_queue):
             # loop over possible lo,hi
             for lo,hi in lohi:
                 # OK, loop in lo,hi range and check if res is in scope
-                frame = lo - 1
-                if lo > 0:
-                    for frame in xrange(lo,hi+1):
-                        #assert not object_frames.isin(frame)
-                        traj_reader.set_frame(frame)
-                        if scope_everyframe:
-                            # TODO: make it more efficient by storing scopes
-                            scope = traj_reader.parse_selection(scope)
-                        if scope.contains_residues(this_rid, convex_hull=scope_convexhull,known_true=None):
-                            scope_frames.append(frame)
-                        else: break
+                #frame = lo - 1
+                #if lo > 0:
+                for frame in xrange(lo,hi+1):
+                    #assert not object_frames.isin(frame)
+                    traj_reader.set_frame(frame)
+                    if scope_everyframe:
+                        # TODO: make it more efficient by storing scopes
+                        scope = traj_reader.parse_selection(scope)
+                    if scope.contains_residues(this_rid, convex_hull=scope_convexhull,known_true=None):
+                        scope_frames.append(frame)
+                    else: break
                 # and in opposite direction, if needed, loop in lo,hi range and check if res is in scope
                 if hi <= number_of_frames - 1 and frame < hi:
                     for frame in xrange(hi,frame,-1):
@@ -1221,7 +1221,7 @@ def stage_II_run(config, options,
                                                                                                     times=Reader.number_of_layers()),
                                                                                      Reader.iterate(number=True))):
         all_res_layer = all_res.layer(number)
-        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,frame_rid_in_object,is_number_frame_rid_in_object,max(1,len(all_res)/1000)))
+        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,frame_rid_in_object,is_number_frame_rid_in_object,max(1,optimal_threads.threads_count)))
 
     # display progress
     progress = 0
