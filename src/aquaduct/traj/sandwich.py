@@ -243,7 +243,7 @@ class MasterReader(object):
         if self.sandwich_mode:
             return self.engine(self.topology, self.trajectory[number], number=number, window=self.window)
         elif number > 0 and self.threads>1:
-            window = list(self.window.split(self.threads))[number-1]
+            window = list(self.window.split(self.threads*3))[number-1]
             return self.engine(self.topology, self.trajectory, number=number, window=window)
         else:
             assert number == 0
@@ -270,7 +270,7 @@ class MasterReader(object):
     def number_of_layers(self):
         if self.sandwich_mode:
             return len(self.trajectory)
-        return self.threads
+        return self.threads*3
 
 # instance of MasterReader
 Reader = MasterReader()
