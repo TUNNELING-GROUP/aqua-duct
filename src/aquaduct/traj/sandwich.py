@@ -26,6 +26,9 @@ from itertools import izip_longest, imap
 import numpy as np
 
 import MDAnalysis as mda
+# FIXME: do it according to user options
+mda.core.flags['use_periodic_selections'] = False
+
 from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import is_iterable
