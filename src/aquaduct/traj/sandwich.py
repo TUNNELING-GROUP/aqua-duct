@@ -29,7 +29,7 @@ import MDAnalysis as mda
 from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import is_iterable
-from aquaduct.geom.convexhull_c import SciPyConvexHull, is_point_within_convexhull, are_points_within_convexhull
+from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull, are_points_within_convexhull
 from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, \
                                    tupleify, SmartRangeIncrement
 from aquaduct.utils.maths import make_default_array
@@ -627,11 +627,21 @@ class Selection(ReaderAccess):
             ix_current += len(ids)
         raise IndexError()
 
+    def single(self,selection_id):
+        # TODO: suboptimal and probably does not make any sense
+        if selection_id[0] in self.selected:
+            if selection_id[-1] in self.selected[selection_id[0]]:
+                return self.__class__({selection_id[0]: [selection_id[-1]]})
+        raise IndexError()
+
     def len(self):
         _len = 0
         for number, ids in self.selected.iteritems():
             _len += len(ids)
         return _len
+
+    def __len__(self):
+        return self.len()
 
     def add(self, other):
 
@@ -718,8 +728,8 @@ class AtomSelection(Selection):
                     kt_list.append(other_id)
             if convex_hull:
                 chull = self.chull()
-                ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
-                #ch_results = are_points_within_convexhull(other_coords, chull, map_fun=map_fun)
+                #ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
+                ch_results = are_points_within_convexhull(other_coords, chull)
             # final merging loop
             final_results = []
             for other_id in other_residues.ids():
@@ -734,8 +744,8 @@ class AtomSelection(Selection):
             if convex_hull:
                 other_coords = other_residues.coords()
                 chull = self.chull()
-                return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
-                #return are_points_within_convexhull(other_coords, chull, map_fun=map_fun)
+                #return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
+                return are_points_within_convexhull(other_coords, chull)
             else:
                 # check if other selection is empty
                 this_ids = list(self.residues().ids())

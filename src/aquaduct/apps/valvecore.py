@@ -1051,6 +1051,114 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
         pbar_queue.put(progress)
         # termination
 
+def stage_II_worker_q_T(input_queue,results_queue,pbar_queue):
+
+    for input_data in iter(input_queue.get,None):
+        layer_number,traj_reader_proto,scope_everyframe,scope,scope_convexhull,object_selection,all_res_this_layer,frame_rid_in_object,is_number_frame_rid_in_object,progress_freq = input_data
+
+        traj_reader = traj_reader_proto.open()
+        number_of_frames = traj_reader.number_of_frames()
+
+        # scope is evaluated only once before loop over frames so it cannot be frame dependent
+        if not scope_everyframe:
+            scope = traj_reader.parse_selection(scope)
+            logger.debug("Scope definition evaluated only once for given layer")
+        else:
+            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
+
+        # speed up!
+        all_res_this_ids = list(all_res_this_layer.ids())
+
+        paths_this_layer = (GenericPaths(resid,
+                                         name_of_res=resname,
+                                         min_pf=0, max_pf=number_of_frames-1)
+                            for resid, resname in izip(all_res_this_ids,
+                                                       all_res_this_layer.names()))
+
+        paths = []
+
+        # big container for 012 path data
+        number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
+                                             dtype=np.int8)
+        progress = 0
+        progress_freq_flex = min(1,progress_freq)
+
+        # loop over residues!
+        for rid in all_res_this_layer.ids():
+            this_rid = all_res_this_layer.single(rid)
+            # for particular rid get frames at object
+            object_frames = SmartRange((nr for nr,frio in enumerate(frame_rid_in_object) if rid[-1] in frio))
+            scope_frames = []
+            chunks = list(object_frames.raw)
+            chunks_N = len(chunks)
+            # now make lohi
+            lohi = []
+            for chunk_nr in xrange(chunks_N):
+                lo = chunks[chunk_nr].last_element() + 1
+                if lo > number_of_frames - 1: continue
+                if chunk_nr + 1 == chunks_N:
+                    hi = number_of_frames - 1
+                else:
+                    hi = chunks[chunk_nr+1].first_element() - 1
+                lohi.append((lo,hi))
+            if len(lohi):
+                # add boundaries
+                if lohi[0][0] > 0 and chunks[0].first_element() !=0:
+                    lohi = [(0,chunks[0].first_element() - 1)] + lohi
+                if lohi[-1][-1] < number_of_frames - 1 and chunks[-1].last_element() != number_of_frames - 1:
+                    lohi.append((lohi[-1][-1]+1,number_of_frames - 1))
+            else:
+                if len(chunks):
+                    lohi.append((0,chunks[0].first_element() - 1))
+                else:
+                    lohi.append((0,number_of_frames-1))
+            # loop over possible lo,hi
+            for lo,hi in lohi:
+                # OK, loop in lo,hi range and check if res is in scope
+                frame = lo - 1
+                if lo > 0:
+                    for frame in xrange(lo,hi+1):
+                        #assert not object_frames.isin(frame)
+                        traj_reader.set_frame(frame)
+                        if scope_everyframe:
+                            # TODO: make it more efficient by storing scopes
+                            scope = traj_reader.parse_selection(scope)
+                        if scope.contains_residues(this_rid, convex_hull=scope_convexhull,known_true=None):
+                            scope_frames.append(frame)
+                        else: break
+                # and in opposite direction, if needed, loop in lo,hi range and check if res is in scope
+                if hi <= number_of_frames - 1 and frame < hi:
+                    for frame in xrange(hi,frame,-1):
+                        #assert not object_frames.isin(frame)
+                        traj_reader.set_frame(frame)
+                        if scope_everyframe:
+                            # TODO: make it more efficient by storing scopes
+                            scope = traj_reader.parse_selection(scope)
+                        if scope.contains_residues(this_rid, convex_hull=scope_convexhull,known_true=None):
+                            scope_frames.append(frame)
+                        else: break
+
+            # now, we know all about this path, make it now!
+            # make 012
+            this_012 = np.zeros(number_of_frames,dtype=np.int8)
+            this_012[list(object_frames.get())] = 2
+            this_012[scope_frames] = 1
+            pat = paths_this_layer.next()
+            pat.add_012(this_012)
+            paths.append(pat)
+
+            progress += 1
+            if progress == progress_freq_flex:
+                pbar_queue.put(progress)
+                progress = 0
+                progress_freq_flex = min(progress_freq_flex*2,progress_freq)
+
+
+        # sent results
+        results_queue.put({layer_number:paths})
+        pbar_queue.put(progress)
+        # termination
+
 # raw_paths
 def stage_II_run(config, options,
                  all_res=None,
@@ -1094,9 +1202,10 @@ def stage_II_run(config, options,
                 all_res.uniquify()
 
     number_of_frames = Reader.number_of_frames(onelayer=True)
-    clui.message("Trajectory scan:")
-    pbar = clui.pbar(Reader.number_of_frames())
+    #clui.message("Trajectory scan:")
+    #pbar = clui.pbar(Reader.number_of_frames())
 
+    pbar = clui.pbar(len(all_res),"Trajectory scan over traced residues:")
 
     # prepare queues
     pbar_queue = Queue()
@@ -1104,7 +1213,7 @@ def stage_II_run(config, options,
     input_queue = Queue()
 
     # prepare and start pool of workers
-    pool = [Process(target=stage_II_worker_q,args=(input_queue,results_queue,pbar_queue)) for dummy in xrange(optimal_threads.threads_count)]
+    pool = [Process(target=stage_II_worker_q_T,args=(input_queue,results_queue,pbar_queue)) for dummy in xrange(optimal_threads.threads_count)]
     [p.start() for p in pool]
 
     # feed input_queue with data
@@ -1112,11 +1221,11 @@ def stage_II_run(config, options,
                                                                                                     times=Reader.number_of_layers()),
                                                                                      Reader.iterate(number=True))):
         all_res_layer = all_res.layer(number)
-        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,frame_rid_in_object,is_number_frame_rid_in_object,max(1,Reader.number_of_frames()/1000)))
+        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,frame_rid_in_object,is_number_frame_rid_in_object,max(1,len(all_res)/1000)))
 
     # display progress
     progress = 0
-    progress_target = Reader.number_of_frames()
+    progress_target = len(all_res)
     for p in iter(pbar_queue.get,None):
         pbar.next(p)
         progress += p

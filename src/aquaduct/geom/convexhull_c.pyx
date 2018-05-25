@@ -26,12 +26,12 @@ ctypedef np.float_t DTYPE
 
 @cython.boundscheck(False) # turn off bounds-checking for entire function
 @cython.wraparound(False)  # turn off negative index wrapping for entire function
-cpdef np.ndarray are_points_within_convexhull(np.ndarray[DTYPE, ndim=2] points, chull):
-    cdef np.ndarray[DTYPE, ndim=2] vertices_points = chull.points[chull.vertices]
-    cdef np.ndarray[DTYPE, ndim=1] point
+def are_points_within_convexhull(np.ndarray points, chull):
+    cdef np.ndarray vertices_points = chull.points[chull.vertices]
+    cdef np.ndarray point
 
-    promise = (np.vstack((point,vertices_points)) for point in points)
-    #promise = ((ConvexHull(np.vstack((point,vertices_points))).vertices[0] != 0) for point in points)
+    #promise = (np.vstack((point,vertices_points)) for point in points)
+    promise = ((ConvexHull(np.vstack((point,vertices_points))).vertices[0] != 0) for point in points)
 
     return np.fromiter(promise,bool)
 

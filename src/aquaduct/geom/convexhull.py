@@ -87,7 +87,15 @@ def is_point_within_convexhull(point_chull):
 
 # many points - new solution but soon will be deprecated
 
-def are_points_within_convexhull(points,chull,map_fun=None,sane_huge=10000):
+def are_points_within_convexhull(points, chull):
+    vertices_points = chull.points[chull.vertices]
+
+    promise = ((SciPyConvexHull(np.vstack((point,vertices_points))).vertices[0] != 0) for point in points)
+
+    return np.fromiter(promise,bool)
+
+
+def are_points_within_convexhull_old(points,chull,map_fun=None,sane_huge=10000):
     return np.array(map(lambda p: is_point_within_convexhull((p,chull)),points))
     '''
     points = np.array(list(points))
