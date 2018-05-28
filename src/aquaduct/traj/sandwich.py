@@ -126,6 +126,7 @@ class MasterReader(object):
     sandwich_mode = None
     engine_name = 'mda'
     threads = 1
+    threads_multiply = 1
 
 
     def __call__(self, topology, trajectory, window=None, sandwich=False, threads=1):
@@ -221,7 +222,7 @@ class MasterReader(object):
 
     def strata(self, number=False):
         # generates slices of baquette
-        for nr in xrange(self.threads*3):
+        for nr in xrange(self.threads*self.threads_multiply):
             if number:
                 yield nr+1, self.get_single_reader(nr+1)
             else:
@@ -243,7 +244,7 @@ class MasterReader(object):
         if self.sandwich_mode:
             return self.engine(self.topology, self.trajectory[number], number=number, window=self.window)
         elif number > 0 and self.threads>1:
-            window = list(self.window.split(self.threads*3))[number-1]
+            window = list(self.window.split(self.threads*self.threads_multiply))[number-1]
             return self.engine(self.topology, self.trajectory, number=number, window=window)
         else:
             assert number == 0
@@ -270,7 +271,7 @@ class MasterReader(object):
     def number_of_layers(self):
         if self.sandwich_mode:
             return len(self.trajectory)
-        return self.threads*3
+        return self.threads*self.threads_multiply
 
 # instance of MasterReader
 Reader = MasterReader()

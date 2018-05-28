@@ -1202,10 +1202,10 @@ def stage_II_run(config, options,
                 all_res.uniquify()
 
     number_of_frames = Reader.number_of_frames(onelayer=True)
-    #clui.message("Trajectory scan:")
-    #pbar = clui.pbar(Reader.number_of_frames())
+    clui.message("Trajectory scan:")
+    pbar = clui.pbar(Reader.number_of_frames())
 
-    pbar = clui.pbar(len(all_res),"Trajectory scan over traced residues:")
+    #pbar = clui.pbar(len(all_res),"Trajectory scan over traced residues:")
 
     # prepare queues
     pbar_queue = Queue()
@@ -1213,7 +1213,7 @@ def stage_II_run(config, options,
     input_queue = Queue()
 
     # prepare and start pool of workers
-    pool = [Process(target=stage_II_worker_q_T,args=(input_queue,results_queue,pbar_queue)) for dummy in xrange(optimal_threads.threads_count)]
+    pool = [Process(target=stage_II_worker_q,args=(input_queue,results_queue,pbar_queue)) for dummy in xrange(optimal_threads.threads_count)]
     [p.start() for p in pool]
 
     # feed input_queue with data
@@ -1225,7 +1225,8 @@ def stage_II_run(config, options,
 
     # display progress
     progress = 0
-    progress_target = len(all_res)
+    progress_target = Reader.number_of_frames()
+    #progress_target = len(all_res)
     for p in iter(pbar_queue.get,None):
         pbar.next(p)
         progress += p
