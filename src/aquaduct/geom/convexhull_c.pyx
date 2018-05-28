@@ -16,3 +16,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import numpy as np
+cimport cython
+cimport numpy as np
+
+from scipy.spatial import ConvexHull
+
+ctypedef np.float_t DTYPE
+
+@cython.boundscheck(False) # turn off bounds-checking for entire function
+@cython.wraparound(False)  # turn off negative index wrapping for entire function
+def are_points_within_convexhull(np.ndarray points, chull):
+    cdef np.ndarray vertices_points = chull.points[chull.vertices]
+    cdef np.ndarray point
+
+    #promise = (np.vstack((point,vertices_points)) for point in points)
+    promise = ((ConvexHull(np.vstack((point,vertices_points))).vertices[0] != 0) for point in points)
+
+    return np.fromiter(promise,bool)
+
+
+

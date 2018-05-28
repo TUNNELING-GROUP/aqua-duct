@@ -460,9 +460,10 @@ All separate paths data
     #. **ID**: - Separate path ID.
     #. **RES**: - Residue name.
     #. **BeginF**: Number of frame in which the path begins.
-    #. **InpF**: Number of frame in which path begins Incoming part.
-    #. **ObjF**: Number of frame in which path begins Object part.
-    #. **OutF**: Number of frame in which path begins Outgoing part.
+    #. **InpF**: Number of frames in which path is in Incoming part.
+    #. **ObjF**: Number of frames in which path is in Object part.
+    #. **ObjFS**: Number of frames in which path is strictly in Object part.
+    #. **OutF**: Number of frames in which path is in Outgoing part.
     #. **EndF**: Number of frame in which the path ends.
     #. **TotL**: Total length of path.
     #. **InpL**: Length of Incoming part. If no incoming part NaN is given.

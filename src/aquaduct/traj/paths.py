@@ -20,6 +20,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from itertools import izip
 from collections import OrderedDict
 from aquaduct.utils import clui
 import numpy as np
@@ -29,7 +30,8 @@ from aquaduct.traj.inlets import Inlet, InletTypeCodes
 from aquaduct.utils.helpers import is_number, lind, SmartRange, SmartRangeDecrement, SmartRangeEqual, SmartRangeFunction, SmartRangeIncrement # smart ranges are required here to provide bacward compatibility with v0.3
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
-from aquaduct.traj.sandwich import Reader
+from aquaduct.traj.sandwich import Reader,SingleResidueSelection
+from aquaduct.utils.helpers import list_blocks_to_slices
 
 ########################################################################################################################
 # paths/list manipulations
@@ -93,33 +95,37 @@ def right(a, b, smartr=True):
 ########################################################################################################################
 
 
-class PathTypesCodes():
+class PathTypesCodes(object):
+    __slots__ = ()
     path_in_code = 'i'
     path_object_code = 'c'
     path_out_code = 'o'
     path_walk_code = 'w'
 
 
-class GenericPathTypeCodes():
+class GenericPathTypeCodes(object):
+    __slots__ = ()
     object_name = 'c'
     scope_name = 's'
     out_name = 'n'
 
 
-class GenericPaths(object, GenericPathTypeCodes):
+class GenericPaths(GenericPathTypeCodes):
     # object to store paths... is it required?
+    __slots__ = 'id single_res_selection name __types __frames max_possible_frame min_possible_frame'.split()
 
-    def __init__(self, id_of_res, name_of_res=None, single_res_selection = None,
+    def __init__(self, id_of_res, name_of_res=None,
                  min_pf=None, max_pf=None):
+
+        super(GenericPaths, self).__init__()
 
         # id is any type of object; it is used as identifier
         # single_res_selection is object which have coords method that accepts frames and returns coordinates
 
-        assert single_res_selection is not None
-
-        self.single_res_selection = single_res_selection
 
         self.id = id_of_res
+        self.single_res_selection = SingleResidueSelection(self.id)
+
         if name_of_res is not None:
             self.name = name_of_res
         else:
@@ -133,14 +139,29 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.max_possible_frame = max_pf
         self.min_possible_frame = min_pf
 
+    def __getstate__(self):
+        return self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame
+
+    def __setstate__(self, state):
+        self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame = state
+        self.single_res_selection = SingleResidueSelection(self.id)
+
     # info methods
     @property
     def types(self):
         return list(self.__types.get())
 
     @property
+    def types_promise(self):
+        return self.__types.get()
+
+    @property
     def frames(self):
         return list(self.__frames.get())
+
+    @property
+    def frames_promise(self):
+        return self.__frames.get()
 
     @property
     def coords(self):
@@ -172,6 +193,12 @@ class GenericPaths(object, GenericPathTypeCodes):
     def add_type(self, frame, ftype):
         self.__types.append(ftype)
         self.__frames.append(frame)
+
+    def add_frames_types(self, frames, types):
+        for f,t in izip(frames,types):
+            self.__types.append(t)
+            self.__frames.append(f)
+
 
     def _gpt(self):
         # get, I'm just passing through
@@ -406,6 +433,9 @@ class GenericPaths(object, GenericPathTypeCodes):
 
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
 class SinglePathID(object):
+
+    __slots__ = 'id nr name'.split()
+
     def __init__(self, path_id=None, nr=None, name=None):
         assert path_id is not None, "path_id connot be None."
         self.id = path_id
@@ -413,6 +443,12 @@ class SinglePathID(object):
         self.nr = nr
         assert name is not None, "name connot be None."
         self.name = name
+
+    def __getstate__(self):
+        return self.id,self.nr,self.name
+
+    def __setstate__(self,state):
+        self.id,self.nr,self.name = state
 
     def __str__(self):
         # by default name is not returned
@@ -423,7 +459,7 @@ class SinglePathID(object):
             return self.id == other.id and self.nr == other.nr and self.name == other.name
         return False
 
-
+@listify
 def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
     nr_dict = {}
@@ -442,11 +478,11 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
 
                 if len(paths[1]) > 0:
                     # if everything is OK
-                    sp = SinglePath(pid, paths, types, single_res_selection=gp.single_res_selection)
+                    sp = SinglePath(pid, paths, types)
                 else:
                     # this is passing through
                     if passing:
-                        sp = PassingPath(pid, paths[0], types[0], single_res_selection=gp.single_res_selection)
+                        sp = PassingPath(pid, paths[0], types[0])
                         sp.has_in = sp.paths_first_in > gp.min_possible_frame
                         sp.has_out = sp.paths_last_out < gp.max_possible_frame
                     else:
@@ -462,7 +498,7 @@ def yield_generic_paths(spaths, progress=None):
     for sp in spaths:
         current_rid = sp.id.id
         if current_rid not in rid_seen:
-            rid_seen.update({current_rid:GenericPaths(current_rid,name_of_res=sp.id.name,single_res_selection=sp.single_res_selection,min_pf=0,max_pf=number_of_frames)})
+            rid_seen.update({current_rid:GenericPaths(current_rid,name_of_res=sp.id.name,min_pf=0,max_pf=number_of_frames)})
         # TODO: following loop is not an optimal solution, it is better to add types and frames in one call
         for t,f in zip(sp.gtypes_cont,sp.paths_cont):
             if t == sp.path_object_code:
@@ -474,19 +510,21 @@ def yield_generic_paths(spaths, progress=None):
 
 
 
-
-class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
+class MacroMolPath(PathTypesCodes, InletTypeCodes):
     # special class
     # represents one path
 
+    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __obejct_len single_res_selection".split()
+
     empty_coords = make_default_array(np.zeros((0, 3)))
 
-    def __init__(self, path_id, paths, types, single_res_selection = None):
+    def __init__(self, path_id, paths, types):
 
-        assert single_res_selection is not None
-        self.single_res_selection = single_res_selection
+        super(MacroMolPath, self).__init__()
+
 
         self.id = path_id
+        self.single_res_selection = SingleResidueSelection(self.id.id)
         # for paths use SmartRanges and then provide methods to read them
         self.__path_in, self.__path_object, self.__path_out = map(SmartRange, paths)
         # similarly, do it with types
@@ -502,6 +540,14 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
         self.__object_len = None
+
+    def __getstate__(self):
+        return self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len
+
+    def __setstate__(self, state):
+        self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len = state
+        self.single_res_selection = SingleResidueSelection(self.id.id)
+
 
     def __object_len_calculate(self):
         for nr,real_coords in enumerate(traces.midpoints(self.coords)):
@@ -540,6 +586,11 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     @property
     def path_object(self):
         return list(self.__path_object.get())
+
+    @property
+    def path_object_strict_len(self):
+        # number of frames strictly in object
+        return self.etypes[1].count(self.etypes[1][0])
 
     @property
     def path_out(self):
@@ -794,9 +845,12 @@ class SinglePath(MacroMolPath):
 # TODO: passing paths probably does not work at all
 class PassingPath(MacroMolPath):
 
+    __slots__ = "id __path __types __has_in __has_out __object_len".split()
 
     def __init__(self, path_id, paths, types, single_res_selection = None):
     #def __init__(self, path_id, path, coords, types):
+
+        super(PassingPath, self).__init__()
 
         assert single_res_selection is not None
         self.single_res_selection = single_res_selection
@@ -935,6 +989,9 @@ class PassingPath(MacroMolPath):
 
 
 class MasterPath(MacroMolPath):
+
+    __slots__ = 'width_cont'.split()
+
     def __init__(self, sp):
         super(MasterPath, self).__init__(sp.id, sp.paths, sp.gtypes, single_res_selection = sp.single_res_selection)
         self.width_cont = None

@@ -606,6 +606,8 @@ class Bunch(object):
 
 #@total_ordering
 class SmartRangeFunction(object):
+    __slots__ = "element times".split()
+
     def __init__(self, element, times):
         self.element = element
         self.times = times
@@ -618,7 +620,13 @@ class SmartRangeFunction(object):
 
     def __len__(self):
         return self.times
-    
+
+    def __getstate__(self):
+        return self.element,self.times
+
+    def __setstate__(self, state):
+        self.element,self.times = state
+
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
 
@@ -635,21 +643,20 @@ class SmartRangeFunction(object):
         # this is suboptimal, implement it in child class
         return self.get()[-1]
 
-    def overlaps(self,srange):
+    def overlaps(self, srange):
         return (self.isin(srange.first_element()) or self.isin(srange.last_element()))
 
-    def overlaps_mutual(self,srange):
+    def overlaps_mutual(self, srange):
         return self.overlaps(srange) or srange.overlaps(self)
 
-    def contains(self,srange):
+    def contains(self, srange):
         # tests if srange of type SmartRange is in this range
-        return self.isin(srange.first_element()) and self.isin(srange.last_element()) 
-
+        return self.isin(srange.first_element()) and self.isin(srange.last_element())
 
 
 class SmartRangeEqual(SmartRangeFunction):
-
-    type = 'e'
+    __slots__ = "element times".split()
+    #type = 'e'
 
     def get(self):
         return [self.element] * self.times
@@ -665,8 +672,8 @@ class SmartRangeEqual(SmartRangeFunction):
 
 
 class SmartRangeIncrement(SmartRangeFunction):
-
-    type = 'i'
+    __slots__ = "element times".split()
+    #type = 'i'
 
     def get(self):
         return (self.element + i for i in xrange(self.times))
@@ -678,12 +685,12 @@ class SmartRangeIncrement(SmartRangeFunction):
         return (element >= self.element) and (element <= self.element + self.times - 1)
 
     def last_element(self):
-        return self.first_element()+self.times-1
+        return self.first_element() + self.times - 1
 
 
 class SmartRangeDecrement(SmartRangeFunction):
-
-    type = 'd'
+    __slots__ = "element times".split()
+    #type = 'd'
 
     def get(self):
         return (self.element - i for i in xrange(self.times))
@@ -695,9 +702,12 @@ class SmartRangeDecrement(SmartRangeFunction):
         return (element <= self.element) and (element >= self.element - self.times + 1)
 
     def last_element(self):
-        return self.first_element()-self.times+1
+        return self.first_element() - self.times + 1
+
 
 class SmartRange(object):
+    __slots__ = '__elements __len __min __max'.split()
+
     def __init__(self, iterable=None):
         self.__elements = []
         self.__len = 0
@@ -707,12 +717,17 @@ class SmartRange(object):
         if iterable is not None:
             map(self.append, iterable)
 
+    def __getstate__(self):
+        return self.__elements, self.__len, self.__min, self.__max
+
+    def __setstate__(self, state):
+        self.__elements, self.__len, self.__min, self.__max = state
+
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return '[%s]' % (','.join(map(str,self.__elements)))
-
+        return '[%s]' % (','.join(map(str, self.__elements)))
 
     def first_element(self):
         if len(self.__elements) == 0:
@@ -739,7 +754,6 @@ class SmartRange(object):
         return 1
 
     @property
-    @listify
     def raw(self):
         for element in self.__elements:
             if not isinstance(element, SmartRangeFunction):
@@ -818,5 +832,3 @@ class SmartRange(object):
             if block.isin(element):
                 return True
         return False
-
-

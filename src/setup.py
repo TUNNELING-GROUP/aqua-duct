@@ -19,6 +19,8 @@
 
 import sys
 from setuptools import find_packages, setup
+#from distutils.core import setup
+from Cython.Build import cythonize
 
 version = __import__('aquaduct').version_nice()  # version str
 
@@ -48,7 +50,7 @@ setup(name='aquaduct',
       extras_require={'full_pymol': ["pymol>=1.4"],
                       'graphs': ['matplotlib'],
                       },
-      scripts=['apps/valve.py', 'apps/valve_run'],
+      scripts=['apps/valve.py', 'apps/valve_run', 'apps/portal.py', 'apps/portal_run'],
       provides=['aquaduct'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
@@ -56,4 +58,5 @@ setup(name='aquaduct',
                    'Operating System :: POSIX',
                    'Programming Language :: Python :: 2.7',
                    ],
+      ext_modules = cythonize("aquaduct/geom/convexhull_c.pyx")
       )
