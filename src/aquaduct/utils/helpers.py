@@ -25,7 +25,6 @@ from collections import Iterable
 from functools import wraps
 from os import close
 from tempfile import mkstemp
-from functools import partial,total_ordering
 from aquaduct.utils.maths import defaults
 
 
@@ -92,7 +91,7 @@ def robust_or(a,b):
 
 
 def is_number(s):
-    # http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/
+    # http://pythoncentral.org/how-to-check-if-a-strfing-is-a-number-in-python-including-unicode/
     if isinstance(s, bool):
         return False
     try:
@@ -604,7 +603,7 @@ class Bunch(object):
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
-#@total_ordering
+
 class SmartRangeFunction(object):
     __slots__ = "element times".split()
 
@@ -625,6 +624,10 @@ class SmartRangeFunction(object):
         return self.element,self.times
 
     def __setstate__(self, state):
+        # FIXME: tmp solution
+        if isinstance(state,dict):
+            self.element = state['element']
+            self.times = state['times']
         self.element,self.times = state
 
     def get(self):
@@ -721,6 +724,12 @@ class SmartRange(object):
         return self.__elements, self.__len, self.__min, self.__max
 
     def __setstate__(self, state):
+        # FIXME: tmp solution
+        if isinstance(state,dict):
+            self.__elements = state['_SmartRange__elements']
+            self.__len = state['_SmartRange__len']
+            self.__max = state['_SmartRange__max']
+            self.__min = state['_SmartRange__min']
         self.__elements, self.__len, self.__min, self.__max = state
 
     def __str__(self):

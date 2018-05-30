@@ -32,10 +32,10 @@ if mda.__version__ > '0.16.2':
 
 from MDAnalysis.topology.core import guess_atom_element
 
-from aquaduct.utils.helpers import is_iterable
+from aquaduct.utils.helpers import is_iterable, SmartRangeIncrement, SmartRange
 from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull, are_points_within_convexhull
-from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, \
-                                   tupleify, SmartRangeIncrement
+from aquaduct.utils.helpers import arrayify, create_tmpfile, \
+                                   tupleify
 from aquaduct.utils.maths import make_default_array
 from aquaduct.apps.data import GCS,CRIC
 from aquaduct.utils.maths import defaults

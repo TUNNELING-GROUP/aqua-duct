@@ -1,5 +1,5 @@
-from aquaduct.traj.sandwich import FramesRangeCollection, SmartRangeIncrement
-from aquaduct.utils.helpers import lind
+from aquaduct.traj.sandwich import FramesRangeCollection
+from aquaduct.utils.helpers import lind, SmartRangeIncrement
 
 frc = FramesRangeCollection()
 

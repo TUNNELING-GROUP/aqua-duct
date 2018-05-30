@@ -27,72 +27,13 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from aquaduct.geom import traces
 from aquaduct.traj.inlets import Inlet, InletTypeCodes
-from aquaduct.utils.helpers import is_number, lind, SmartRange, SmartRangeDecrement, SmartRangeEqual, SmartRangeFunction, SmartRangeIncrement # smart ranges are required here to provide bacward compatibility with v0.3
+from aquaduct.utils.helpers import is_number, lind, \
+    SmartRange  # smart ranges are required here to provide bacward compatibility with v0.3
+from aquaduct.utils.sets import intersection, glue, left, right
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader,SingleResidueSelection
-from aquaduct.utils.helpers import list_blocks_to_slices
 
-########################################################################################################################
-# paths/list manipulations
-# following part of code comes directly from the very initial tcl/vmd implementation
-# all following functions should return list
-# functions union_smartr and xor_smartr were added later in python implementation to speed up calculations
-
-def union_full(a, b):
-    return [aa for aa in a if aa in b]
-
-
-def union_smartr(a, b):
-    b_ = SmartRange(b)
-    return [aa for aa in a if b_.isin(aa)]
-
-
-def union(a, b, smartr=True):
-    if smartr:
-        return union_smartr(a, b)
-    return union_full(a, b)
-
-
-def glue(a, b):
-    if a[-1] >= b[0]:
-        g = list(set(a + b))
-        g.sort()
-        return g
-    return []
-
-
-@listify
-def xor_full(a, b):
-    ab = union(a, b)
-    for e in glue(a, b):
-        if e not in ab:
-            yield e
-
-
-@listify
-def xor_smartr(a, b):
-    ab = SmartRange(union_smartr(a, b))
-    for e in glue(a, b):
-        if not ab.isin(e):
-            yield e
-
-
-def xor(a, b, smartr=True):
-    if smartr:
-        return xor_smartr(a, b)
-    return xor_full(a, b)
-
-
-def left(a, b, smartr=True):
-    return union(a, xor(a, b, smartr=smartr), smartr=smartr)
-
-
-def right(a, b, smartr=True):
-    return union(b, xor(a, b, smartr=smartr), smartr=smartr)
-
-
-########################################################################################################################
 
 
 class PathTypesCodes(object):
@@ -143,7 +84,16 @@ class GenericPaths(GenericPathTypeCodes):
         return self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame
 
     def __setstate__(self, state):
-        self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame = state
+        # FIXME: tmp solution
+        if isinstance(state,dict):
+            self.id = state['id']
+            self.name = state['name']
+            self.__types = state['_GenericPaths__types']
+            self.__frames = state['_GenericPaths__frames']
+            self.max_possible_frame = state['max_possible_frame']
+            self.min_possible_frame = state['min_possible_frame']
+        else:
+            self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame = state
         self.single_res_selection = SingleResidueSelection(self.id)
 
     # info methods
@@ -300,7 +250,7 @@ class GenericPaths(GenericPathTypeCodes):
     def get_paths_out(self):
         return self._gpo()
 
-    def find_paths(self, fullonly=False, smartr=True):
+    def find_paths(self, fullonly=False):
         # this looks for normal, ie containing 'core' paths
         paths_out = list(self.get_paths_out())
         paths_in = list(self.get_paths_in())
@@ -310,9 +260,9 @@ class GenericPaths(GenericPathTypeCodes):
             path_glue = glue(path_in, path_out)
             if len(path_glue) > 0:
                 path_out = paths_out.pop(0)
-                path_core = union(path_in, path_out, smartr=smartr)
-                path_in = left(path_in, path_out, smartr=smartr)
-                path_out = right(path_core, path_out, smartr=smartr)
+                path_core = intersection(path_in, path_out)
+                path_in = left(path_in, path_out)
+                path_out = right(path_core, path_out)
             else:
                 path_core = []
                 path_out = []

@@ -59,14 +59,15 @@ from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath, SinglePath
-from aquaduct.traj.paths import union_full, yield_generic_paths
+from aquaduct.traj.paths import yield_generic_paths
 # from aquaduct.traj.reader import ReadViaMDA
 # from aquaduct.traj.selections import CompactSelectionMDA
 from aquaduct.utils import clui
-from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
+from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or, SmartRange
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.traj.sandwich import ResidueSelection, Reader,open_traj_reader, SingleResidueSelection
-from aquaduct.utils.helpers import SmartRange, iterate_or_die
+from aquaduct.utils.helpers import iterate_or_die
+from aquaduct.utils.sets import intersection_full
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
@@ -2653,7 +2654,7 @@ def stage_V_run(config, options,
                 it_is_ct = True
                 if not ct.generic in c_ct: continue
             else:
-                if len(union_full(ct.generic.clusters, c_ct)) == 0: continue
+                if len(intersection_full(ct.generic.clusters, c_ct)) == 0: continue
             # this is more than that...
             # if c_ct is not InletClusterGenericType then:
             # if 'in' in part only incoming paths in ct are used
