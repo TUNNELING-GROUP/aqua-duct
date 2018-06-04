@@ -1014,6 +1014,7 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
         # big container for 012 path data
         number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
                                              dtype=np.int8)
+
         progress = 0
         progress_freq_flex = min(1,progress_freq)
         # the loop over frames, use izip otherwise iteration over frames does not work
@@ -1052,10 +1053,10 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
         pbar_queue.put(progress)
         # termination
 
-def stage_II_worker_q_T(input_queue,results_queue,pbar_queue):
 
-    for input_data in iter(input_queue.get,None):
-        layer_number,traj_reader_proto,scope_everyframe,scope,scope_convexhull,object_selection,all_res_this_layer,frame_rid_in_object,is_number_frame_rid_in_object,progress_freq = input_data
+def stage_II_worker_q_alt(input_queue, results_queue, pbar_queue, direction='up'):
+    for input_data in iter(input_queue.get, None):
+        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
 
         traj_reader = traj_reader_proto.open()
         number_of_frames = traj_reader.number_of_frames()
@@ -1072,93 +1073,52 @@ def stage_II_worker_q_T(input_queue,results_queue,pbar_queue):
 
         paths_this_layer = (GenericPaths(resid,
                                          name_of_res=resname,
-                                         min_pf=0, max_pf=number_of_frames-1)
+                                         min_pf=0, max_pf=number_of_frames - 1)
                             for resid, resname in izip(all_res_this_ids,
                                                        all_res_this_layer.names()))
-
-        paths = []
 
         # big container for 012 path data
         number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
                                              dtype=np.int8)
+
         progress = 0
-        progress_freq_flex = min(1,progress_freq)
+        progress_freq_flex = min(1, progress_freq)
+        # the loop over frames, use izip otherwise iteration over frames does not work
+        for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
+                                         traj_reader.iterate_over_frames()):
 
-        # loop over residues!
-        for rid in all_res_this_layer.ids():
-            this_rid = all_res_this_layer.single(rid)
-            # for particular rid get frames at object
-            object_frames = SmartRange((nr for nr,frio in enumerate(frame_rid_in_object) if rid[-1] in frio))
-            scope_frames = []
-            chunks = list(object_frames.raw)
-            chunks_N = len(chunks)
-            # now make lohi
-            lohi = []
-            for chunk_nr in xrange(chunks_N):
-                lo = chunks[chunk_nr].last_element() + 1
-                if lo > number_of_frames - 1: continue
-                if chunk_nr + 1 == chunks_N:
-                    hi = number_of_frames - 1
-                else:
-                    hi = chunks[chunk_nr+1].first_element() - 1
-                lohi.append((lo,hi))
-            if len(lohi):
-                # add boundaries
-                if lohi[0][0] > 0 and chunks[0].first_element() !=0:
-                    lohi = [(0,chunks[0].first_element() - 1)] + lohi
-                if lohi[-1][-1] < number_of_frames - 1 and chunks[-1].last_element() != number_of_frames - 1:
-                    lohi.append((lohi[-1][-1]+1,number_of_frames - 1))
-            else:
-                if len(chunks):
-                    lohi.append((0,chunks[0].first_element() - 1))
-                else:
-                    lohi.append((0,number_of_frames-1))
-            # loop over possible lo,hi
-            for lo,hi in lohi:
-                # OK, loop in lo,hi range and check if res is in scope
-                #frame = lo - 1
-                #if lo > 0:
-                for frame in xrange(lo,hi+1):
-                    #assert not object_frames.isin(frame)
-                    traj_reader.set_frame(frame)
-                    if scope_everyframe:
-                        # TODO: make it more efficient by storing scopes
-                        scope = traj_reader.parse_selection(scope)
-                    if scope.contains_residues(this_rid, convex_hull=scope_convexhull,known_true=None):
-                        scope_frames.append(frame)
-                    else: break
-                # and in opposite direction, if needed, loop in lo,hi range and check if res is in scope
-                if hi <= number_of_frames - 1 and frame < hi:
-                    for frame in xrange(hi,frame,-1):
-                        #assert not object_frames.isin(frame)
-                        traj_reader.set_frame(frame)
-                        if scope_everyframe:
-                            # TODO: make it more efficient by storing scopes
-                            scope = traj_reader.parse_selection(scope)
-                        if scope.contains_residues(this_rid, convex_hull=scope_convexhull,known_true=None):
-                            scope_frames.append(frame)
-                        else: break
+            # do we have object data?
+            if not is_number_frame_rid_in_object:
+                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
+            # assert rid_in_object is not None
 
-            # now, we know all about this path, make it now!
-            # make 012
-            this_012 = np.zeros(number_of_frames,dtype=np.int8)
-            this_012[list(object_frames.get())] = 2
-            this_012[scope_frames] = 1
-            pat = paths_this_layer.next()
-            pat.add_012(this_012)
-            paths.append(pat)
+            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
+
+            if scope_everyframe:
+                scope = traj_reader.parse_selection(scope)
+            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
+            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
+                                                      known_true=None)  # known_true could be rid_in_object
+
+            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
+                                                           dtype=np.int8)
 
             progress += 1
             if progress == progress_freq_flex:
                 pbar_queue.put(progress)
                 progress = 0
-                progress_freq_flex = min(progress_freq_flex*2,progress_freq)
+                progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
 
+        paths = []
+        for pat, nfos in izip(paths_this_layer, number_frame_object_scope.T):
+            pat.add_012(nfos)
+            paths.append(pat)
 
         # sent results
-        results_queue.put({layer_number:paths})
+        results_queue.put({layer_number: paths})
         pbar_queue.put(progress)
         # termination
+
 
 # raw_paths
 def stage_II_run(config, options,
@@ -1323,6 +1283,7 @@ def stage_III_run(config, options,
     pool = Pool(processes=optimal_threads.threads_count)
     ysp = partial(yield_single_paths,progress=True,passing=options.allow_passing_paths)
     n = max(1,len(paths)/optimal_threads.threads_count/3)
+    n = max(1,optimal_threads.threads_count)
     spaths = []
     nr_all = 0
     for sps_nrs in pool.imap_unordered(ysp,(paths[i:i + n] for i in xrange(0, len(paths), n))):

@@ -628,7 +628,8 @@ class SmartRangeFunction(object):
         if isinstance(state,dict):
             self.element = state['element']
             self.times = state['times']
-        self.element,self.times = state
+        else:
+            self.element,self.times = state
 
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
@@ -730,7 +731,8 @@ class SmartRange(object):
             self.__len = state['_SmartRange__len']
             self.__max = state['_SmartRange__max']
             self.__min = state['_SmartRange__min']
-        self.__elements, self.__len, self.__min, self.__max = state
+        else:
+            self.__elements, self.__len, self.__min, self.__max = state
 
     def __str__(self):
         return self.__repr__()

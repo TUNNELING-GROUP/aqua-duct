@@ -49,14 +49,18 @@ CRIC = CoordsRangeIndexCache()
 
 def get_cric_reader(mode='r'):
     if GCS.cachedir:
-        data_file_name = GCS.cachedir + os.path.sep + 'cric.dump'
-        if mode=='r' and not os.path.exists(data_file_name):
-            return
-        if mode=='w' and not os.path.exists(GCS.cachedir):
-            os.makedirs(GCS.cachedir)
-        vda = get_vda_reader(data_file_name)
-        logger.debug("Preparing CRIC store with file %s",data_file_name)
-        return vda(mode=mode,data_file_name=data_file_name)
+        try:
+            data_file_name = GCS.cachedir + os.path.sep + 'cric.dump'
+            if mode=='r' and not os.path.exists(data_file_name):
+                return
+            if mode=='w' and not os.path.exists(GCS.cachedir):
+                os.makedirs(GCS.cachedir)
+            vda = get_vda_reader(data_file_name)
+            logger.debug("Preparing CRIC store with file %s",data_file_name)
+            return vda(mode=mode,data_file_name=data_file_name)
+        except IOError:
+            logger.warning("Unable to access CRIC data in cache dir [%s]." % GCS.cachedir)
+            pass
 
 def save_cric():
     vda = get_cric_reader(mode='w')
