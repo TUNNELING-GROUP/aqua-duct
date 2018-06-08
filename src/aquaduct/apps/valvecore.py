@@ -1297,7 +1297,6 @@ def stage_III_run(config, options,
 
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths),len(paths)))
-
     ######################################################################
 
     pbar = clui.pbar(len(spaths),"Removing unused parts of paths:")

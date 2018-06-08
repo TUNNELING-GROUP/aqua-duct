@@ -294,18 +294,19 @@ class GenericPaths(GenericPathTypeCodes):
                             path_out = []
                 yield path_in, path_core, path_out
 
-    def find_paths_types(self, fullonly=False):
+    def find_paths_types(self, fullonly=False,passing=None):
         for path in self.find_paths(fullonly=fullonly):
             # yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
             #coords, types = self.get_single_path_types(path)
             types = self.get_single_path_types(path)
             #yield path, coords, types
             yield path, types
-        for path in self._gpt():
-            #coords, types = self.get_single_path_types((path, [], []))
-            types = self.get_single_path_types((path, [], []))
-            #yield (path, [], []), coords, types
-            yield (path, [], []), types
+        if passing:
+            for path in self._gpt():
+                #coords, types = self.get_single_path_types((path, [], []))
+                types = self.get_single_path_types((path, [], []))
+                #yield (path, [], []), coords, types
+                yield (path, [], []), types
 
     def get_single_path_types(self, spath):
         # returns typess for single path
@@ -417,7 +418,7 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
         path_id = gp.id
         path_name = gp.name
         with clui.tictoc('Processing path %d:%d' % path_id):
-            for paths, types in gp.find_paths_types(fullonly=fullonly):
+            for paths, types in gp.find_paths_types(fullonly=fullonly,passing=passing):
             #for paths, coords, types in gp.find_paths_types(fullonly=fullonly):
                 if path_id in nr_dict:
                     nr_dict.update({path_id: (nr_dict[path_id] + 1)})
