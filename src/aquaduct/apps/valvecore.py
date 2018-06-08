@@ -1255,6 +1255,7 @@ def stage_II_run(config, options,
 ################################################################################
 
 def discard_short_etc(spaths,short_paths=None,short_object=None,short_logic=None):
+    # worker for discarding paths, can be time consuming because of filling coords cache
     if short_object is not None:
         return len(spaths),[sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
     else:
@@ -1347,26 +1348,6 @@ def stage_III_run(config, options,
                 spaths = list(chain.from_iterable((sps for nr,sps in spaths_new if pbar.next(step=nr) is None)))
                 pool.close()
                 pool.join()
-
-
-                '''
-                for nr,sps in pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n))):
-                    spaths_new.extend(sps)
-                    pbar.update(nr_all+nr)
-                    nr_all += nr
-                pool.close()
-                pool.join()
-                '''
-            '''
-            with clui.fbm(discard_message):
-                spaths_nr = len(spaths)
-                # TODO: if not short object is used there is no sense in calling object_len as it is very expensive
-                # TODO: make it in parallel
-                if short_object is not None:
-                    spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
-                else:
-                    spaths = [sp for sp in spaths if sp.size > short_paths]
-            '''
             #del spaths
             spaths_nr_new = len(spaths)
             if spaths_nr == spaths_nr_new:

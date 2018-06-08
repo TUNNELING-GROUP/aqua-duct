@@ -270,13 +270,18 @@ class SimpleProgressBar(object):
 
     barlenght = 24
 
-    def __init__(self, maxval=None, mess=None):
+    def __init__(self, maxval=None, mess=None,iterable=None):
         """
         :param int maxval: Maximal number of iterations stored to :attr:`maxval`.
         :param str mess: Optional message displayed at progress bar initialization.
         """
 
         #self.lock = Manager().Lock()
+
+        if maxval is None and is_iterable(iterable):
+            maxval = len(iterable)
+
+        self.iterable = iterable
 
         assert isinstance(maxval,
                           (int, long)), 'Parameter maxval should be of int or long type, %r given instead.' % type(
@@ -310,6 +315,13 @@ class SimpleProgressBar(object):
 
     def __exit__(self, typ, value, traceback):
         if typ is None:
+            self.finish()
+
+    def iter(finish=False):
+        for e in self.iterable:
+            yield e
+            self.next():
+        if finish:
             self.finish()
 
     def bar(self):
