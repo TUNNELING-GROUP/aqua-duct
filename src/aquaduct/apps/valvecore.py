@@ -1254,6 +1254,13 @@ def stage_II_run(config, options,
 
 ################################################################################
 
+def discard_short_etc(spaths,short_paths=None,short_object=None,short_logic=None):
+    if short_object is not None:
+        return len(spaths),[sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
+    else:
+        return len(spaths),[sp for sp in spaths if sp.size > short_paths]
+
+
 class ABSphere(namedtuple('ABSphere', 'center radius')):
     pass
 
@@ -1272,40 +1279,37 @@ def stage_III_run(config, options,
     ######################################################################
 
     if options.discard_empty_paths:
-        with clui.fbm("Discard residues with empty paths"):
-            paths = [pat for pat in paths if len(pat.frames) > 0]
+        with clui.pbar(maxval=len(paths),mess="Discard residues with empty paths:") as pbar:
+            paths = [pat for pat in paths if len(pat.frames) > 0 if pbar.next() is None]
 
     ######################################################################
 
-    clui.message("Create separate paths:")
-    pbar = clui.pbar(len(paths))
-
-    pool = Pool(processes=optimal_threads.threads_count)
-    ysp = partial(yield_single_paths,progress=True,passing=options.allow_passing_paths)
-    n = max(1,len(paths)/optimal_threads.threads_count/3)
-    n = max(1,optimal_threads.threads_count)
-    spaths = []
-    nr_all = 0
-    for sps_nrs in pool.imap_unordered(ysp,(paths[i:i + n] for i in xrange(0, len(paths), n))):
-        for sp,nr in sps_nrs:
-            spaths.append(sp)
-            pbar.update(nr_all+nr+1)
-        nr_all += nr + 1
-    pool.close()
-    pool.join()
-    pbar.finish()
+    with clui.pbar(len(paths),"Create separate paths:") as pbar:
+        pool = Pool(processes=optimal_threads.threads_count)
+        ysp = partial(yield_single_paths,progress=True,passing=options.allow_passing_paths)
+        n = max(1,optimal_threads.threads_count)
+        spaths = []
+        nr_all = 0
+        for sps_nrs in pool.imap_unordered(ysp,(paths[i:i + n] for i in xrange(0, len(paths), n))):
+            for sp,nr in sps_nrs:
+                spaths.append(sp)
+                pbar.update(nr_all+nr+1)
+            nr_all += nr + 1
+        pool.close()
+        pool.join()
 
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths),len(paths)))
+
     ######################################################################
 
-    pbar = clui.pbar(len(spaths),"Removing unused parts of paths:")
-    paths = yield_generic_paths(spaths,progress=pbar)
-    pbar.finish()
+    with  clui.pbar(len(spaths),"Removing unused parts of paths:") as pbar:
+        paths = yield_generic_paths(spaths,progress=pbar)
 
     ######################################################################
 
     if options.discard_short_paths or options.discard_short_object:
+        # prepare options
         if is_number(options.discard_short_paths):
             short_paths = int(options.discard_short_paths)
         else:
@@ -1314,7 +1318,7 @@ def stage_III_run(config, options,
             short_object = float(options.discard_short_object)
         else:
             short_object = None
-
+        # check logic
         if options.discard_short_logic == 'and':
             short_logic = robust_or  # for and use or, this is intentional
             short_logic_name = "AND"
@@ -1332,7 +1336,28 @@ def stage_III_run(config, options,
             discard_message = "Discard paths object shorter than %0.2f" % short_object
         elif short_paths is not None and short_object is None:
             discard_message = "Discard paths shorter than %d" % short_paths
+        # do calculations
         if short_paths is not None or short_object is not None:
+            with clui.pbar(len(spaths),discard_message) as pbar:
+                spaths_nr = len(spaths)
+                pool = Pool(processes=optimal_threads.threads_count)
+                dse = partial(discard_short_etc,short_paths=short_paths,short_object=short_object,short_logic=short_logic)
+                n = max(1,optimal_threads.threads_count)
+                spaths_new = pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                spaths = list(chain.from_iterable((sps for nr,sps in spaths_new if pbar.next(step=nr) is None)))
+                pool.close()
+                pool.join()
+
+
+                '''
+                for nr,sps in pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n))):
+                    spaths_new.extend(sps)
+                    pbar.update(nr_all+nr)
+                    nr_all += nr
+                pool.close()
+                pool.join()
+                '''
+            '''
             with clui.fbm(discard_message):
                 spaths_nr = len(spaths)
                 # TODO: if not short object is used there is no sense in calling object_len as it is very expensive
@@ -1341,7 +1366,9 @@ def stage_III_run(config, options,
                     spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
                 else:
                     spaths = [sp for sp in spaths if sp.size > short_paths]
-                spaths_nr_new = len(spaths)
+            '''
+            #del spaths
+            spaths_nr_new = len(spaths)
             if spaths_nr == spaths_nr_new:
                 clui.message("No paths were discarded.")
             else:
@@ -1397,10 +1424,21 @@ def stage_III_run(config, options,
 
         if options.discard_short_paths or options.discard_short_object:
             if short_paths is not None or short_object is not None:
+                with clui.pbar(len(spaths),discard_message) as pbar:
+                    spaths_nr = len(spaths)
+                    pool = Pool(processes=optimal_threads.threads_count)
+                    dse = partial(discard_short_etc,short_paths=short_paths,short_object=short_object,short_logic=short_logic)
+                    n = max(1,optimal_threads.threads_count)
+                    spaths_new = pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                    spaths = list(chain.from_iterable((sps for nr,sps in spaths_new if pbar.next(step=nr) is None)))
+                    pool.close()
+                    pool.join()
+                '''
                 with clui.fbm(discard_message):
                     spaths_nr = len(spaths)
                     spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
-                    spaths_nr_new = len(spaths)
+                '''
+                spaths_nr_new = len(spaths)
                 if spaths_nr == spaths_nr_new:
                     clui.message("No paths were discarded.")
                 else:

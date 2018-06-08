@@ -305,6 +305,13 @@ class SimpleProgressBar(object):
             message(mess)
         self.show()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, typ, value, traceback):
+        if typ is None:
+            self.finish()
+
     def bar(self):
         barval = int(self.percent() / 100 * self.barlenght)
         if barval > self.barlenght:
