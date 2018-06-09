@@ -320,7 +320,7 @@ class SimpleProgressBar(object):
     def iter(finish=False):
         for e in self.iterable:
             yield e
-            self.next():
+            self.next()
         if finish:
             self.finish()
 

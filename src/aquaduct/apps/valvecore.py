@@ -1498,7 +1498,7 @@ def potentially_recursive_clusterization(config=None,
         # special case of barber!!!
         if cluster_options.method == 'barber':
             logger.debug('Getting inltets refs...')
-            inlets_refs = inlets_object.get_inlets_references()
+            inlets_refs = set(inlets_object.get_inlets_references())
             logger.debug('Starting wtc...')
             wtc = WhereToCut(spaths=(sp for sp in spaths if sp.id in inlets_refs),
                              expected_nr_of_spaths=len(inlets_refs),
