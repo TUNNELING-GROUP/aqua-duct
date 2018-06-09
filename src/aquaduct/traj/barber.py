@@ -95,6 +95,54 @@ def spaths2spheres(spaths,minmax=None,selection=None,tovdw=None,forceempty=None)
                 logger.debug('Added sphere of radius 0')
                 yield center.flatten(), 0
 
+def inlets2spheres(inlets,minmax=None,selection=None,tovdw=None,forceempty=None):
+
+
+
+    mincut, mincut_val, maxcut, maxcut_val, mincut_level, maxcut_level = minmax
+    for inlet in inlets:
+
+        traj_reader = Reader.get_reader_by_id(inlet.reference.id).open()
+        barber = traj_reader.parse_selection(selection)
+
+        vdwradius = 0
+
+        center = inlet.coords
+        frame = inlet.frame
+
+
+        make_sphere = True
+        if make_sphere:
+            traj_reader.set_frame(frame)
+            distances = cdist(np.matrix(center), np.matrix(list(barber.coords())), metric='euclidean').flatten()
+            if tovdw:
+                vdwradius = list(barber.ix(np.argmin(distances)).vdw())[0]
+                logger.debug('VdW correction %0.2f', vdwradius)
+            radius = min(distances) - vdwradius
+            if radius <= 0:
+                logger.debug('VdW correction resulted in <= 0 radius.')
+                make_sphere = False
+            if mincut and radius < mincut_val:
+                if not mincut_level:
+                    logger.debug('Sphere radius %0.2f is less then mincut %0.2f', radius, mincut_val)
+                    make_sphere = False
+                else:
+                    logger.debug('Sphere radius %0.2f leveled to mincut %0.2f', radius, mincut_val)
+                    radius = mincut_val
+            if maxcut and radius > maxcut_val:
+                if not maxcut_level:
+                    logger.debug('Sphere radius %0.2f is greater then maxcut %0.2f', radius, maxcut_val)
+                    make_sphere = False
+                else:
+                    logger.debug('Sphere radius %0.2f leveled to maxcut %0.2f', radius, maxcut_val)
+                    radius = maxcut_val
+        if make_sphere:
+            logger.debug('Added sphere of radius %0.2f' % radius)
+            return center.flatten(), radius
+        elif forceempty:
+            logger.debug('Added sphere of radius 0')
+            return center.flatten(), 0
+
 
 class WhereToCut(ReaderAccess):
     '''
@@ -168,19 +216,18 @@ class WhereToCut(ReaderAccess):
         return mincut, mincut_val, maxcut, maxcut_val
 
     def add_spheres_from_spaths(self, spaths):
-
         clui.message("Auto Barber is looking where to cut:")
         if self.expected_nr_of_spaths:
             pbar = clui.pbar(self.expected_nr_of_spaths)
-            n_spaths = self.expected_nr_of_spaths
+            n_add = self.expected_nr_of_spaths
         else:
             pbar = clui.pbar(len(spaths))
-            n_spaths = len(spaths)
+            n_add = len(spaths)
         minmax = self.check_minmaxcuts() + (self.mincut_level,self.maxcut_level)
 
         pool = Pool(processes=optimal_threads.threads_count)
         n = max(1, optimal_threads.threads_count)
-        chunks = (n if chunk <= (n_spaths /n - 1) else (n_spaths % n) for chunk in xrange(n_spaths / n + np.sign(n_spaths % n)))
+        chunks = (n if chunk <= (n_add /n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
 
         add_function = partial(spaths2spheres,minmax=minmax,selection=self.selection,tovdw=self.tovdw,forceempty=self.forceempty)
         _spaths = chain(spaths)
@@ -191,33 +238,52 @@ class WhereToCut(ReaderAccess):
             for center,radius in spheres:
                 self.spheres.append(Sphere(center=center,radius=radius,nr=self.get_current_nr()))
             nr += n
-            if nr < n_spaths:
+            if nr < n_add:
                 pbar.update(nr)
             else:
-                pbar.update(n_spaths)
+                pbar.update(n_add)
         pool.close()
         pool.join()
         pbar.finish()
-
-        '''
-        for sp in spaths:
-            for sphe in self.spath2spheres(sp):
-                self.spheres.append(sphe)
-            pbar.next()
-        '''
 
     def add_spheres_from_inlets(self, inlets):
         clui.message("Auto Barber is looking where to cut:")
         if self.expected_nr_of_spaths:
             pbar = clui.pbar(self.expected_nr_of_spaths)
+            n_add = self.expected_nr_of_spaths
         else:
             pbar = clui.pbar(len(inlets.inlets_list))
+            n_add = len(inlets.inlets_list)
+        minmax = self.check_minmaxcuts() + (self.mincut_level,self.maxcut_level)
+
+        pool = Pool(processes=optimal_threads.threads_count)
+        n = max(1, optimal_threads.threads_count)
+        chunks = (n if chunk <= (n_add /n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
+
+        add_function = partial(inlets2spheres,minmax=minmax,selection=self.selection,tovdw=self.tovdw,forceempty=self.forceempty)
+        _inlets = chain(inlets)
+        spheres_new = pool.imap(add_function, ([_inlets.next() for cc in xrange(c)] for c in chunks))
+
+        nr = 0
+        for spheres in spheres_new:
+            for center,radius in spheres:
+                self.spheres.append(Sphere(center=center,radius=radius,nr=self.get_current_nr()))
+            nr += n
+            if nr < n_add:
+                pbar.update(nr)
+            else:
+                pbar.update(n_add)
+        pool.close()
+        pool.join()
+        pbar.finish()
+
+        '''
         for inl in inlets.inlets_list:
             sphe = self.inlet2sphere(inl)
             if sphe is not None:
                 self.spheres.append(sphe)
             pbar.next()
-        pbar.finish()
+        '''
 
     def get_current_nr(self):
         if len(self.spheres):
