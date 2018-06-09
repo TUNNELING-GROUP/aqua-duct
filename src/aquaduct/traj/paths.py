@@ -433,7 +433,7 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
                 else:
                     # this is passing through
                     if passing:
-                        sp = PassingPath(pid, paths[0], types[0])
+                        sp = PassingPath(pid, paths, types)
                         sp.has_in = sp.paths_first_in > gp.min_possible_frame
                         sp.has_out = sp.paths_last_out < gp.max_possible_frame
                     else:
@@ -465,7 +465,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     # special class
     # represents one path
 
-    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __obejct_len single_res_selection".split()
+    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __object_len single_res_selection".split()
 
     empty_coords = make_default_array(np.zeros((0, 3)))
 
@@ -787,6 +787,9 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
 
 class SinglePath(MacroMolPath):
+
+    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __object_len single_res_selection".split()
+
     def is_single(self):
         return True
 
@@ -796,62 +799,24 @@ class SinglePath(MacroMolPath):
 # TODO: passing paths probably does not work at all
 class PassingPath(MacroMolPath):
 
-    __slots__ = "id __path __types __has_in __has_out __object_len".split()
-
-    def __init__(self, path_id, paths, types, single_res_selection = None):
-    #def __init__(self, path_id, path, coords, types):
-
-        super(PassingPath, self).__init__()
-
-        assert single_res_selection is not None
-        self.single_res_selection = single_res_selection
-
-        self.id = path_id
-
-        self.__path = SmartRange(paths)
-        self.__types = SmartRange(types)
-
-        #self.__coords = make_default_array(coords)
-
-        #self.smooth_coords = None
-        #self.smooth_method = None
+    __slots__ = "_has_in_flag _has_out_flag id __path_in __path_object __path_out __types_in __types_object __types_out __object_len single_res_selection".split()
 
 
-        self.__has_in = True
-        self.__has_out = True
-        '''
-        self.has_in = True
-        self.has_out = True
-        '''
-        self.__object_len = None
+    def __init__(self, path_id, paths, types):
 
-    def __object_len_calculate(self):
-        real_coords = self.coords[0]
-        if len(real_coords) <= 1: return 0.
-        return float(sum(traces.diff(real_coords)))
+        super(PassingPath, self).__init__(path_id, paths, types)
 
-    @property
-    def object_len(self):
-        if self.__object_len is None:
-            self.__object_len = self.__object_len_calculate()
-        return self.__object_len
+        self._has_in_flag = None
+        self._has_out_flag = None
 
 
-    @property
-    def has_in(self):
-        return self.__has_in
+    def __getstate__(self):
+        return self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len, self._has_in_flag,self._has_out_flag
 
-    @has_in.setter
-    def has_in(self, value):
-        self.__has_in = value
+    def __setstate__(self, state):
+        self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len,self._has_in_flag,self._has_out_flag = state
+        self.single_res_selection = SingleResidueSelection(self.id.id)
 
-    @property
-    def has_out(self):
-        return self.__has_out
-
-    @has_out.setter
-    def has_out(self, value):
-        self.__has_out = value
 
     def is_single(self):
         return False
@@ -859,54 +824,26 @@ class PassingPath(MacroMolPath):
     def is_passing(self):
         return True
 
-    def is_frame_walk(self, frame):
-        return self.__path.isin(frame)
 
     @property
-    def types(self):
-        return ([self.path_walk_code] * self.size,)
+    def has_in(self):
+        return self._has_in_flag
+
+    @has_in.setter
+    def has_in(self,flag):
+        self._has_in_flag = flag
 
     @property
-    def gtypes(self):
-        # generic types
-        return (self.__types.get(),)
+    def has_out(self):
+        return self._has_out_flag
 
-    @property
-    def sizes(self):
-        return 0, len(self.__path), 0
+    @has_out.setter
+    def has_out(self,flag):
+        self._has_out_flag = flag
 
-    @property
-    def _paths(self):
-        return (self.__path,)
 
-    @property
-    def coords(self):
-        return (self.single_res_selection.coords(self.__path),)
 
-    @property
-    def path(self):
-        return list(self.__path.get())
-
-    @property
-    def paths(self):
-        return (self.path,)
-
-    @property
-    def coords_first_in(self):
-        return self.coords[0][0]
-
-    @property
-    def paths_first_in(self):
-        return self.path[0]
-
-    @property
-    def coords_last_out(self):
-        return self.coords[0][-1]
-
-    @property
-    def paths_last_out(self):
-        return self.path[-1]
-
+    '''
     def get_coords(self, smooth=None):
         # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
         # if smooth is not none applies smoothing
@@ -934,6 +871,8 @@ class PassingPath(MacroMolPath):
                         type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
                         reference=self.id,
                         frame=self.paths_last_out)
+
+    '''
 
 
 ####################################################################################################################
