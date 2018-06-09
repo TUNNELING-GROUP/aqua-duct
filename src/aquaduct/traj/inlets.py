@@ -187,6 +187,9 @@ class Inlets(object):
             self.extend_inlets(spath)
             if pbar: pbar.next()
 
+    def __iter__(self):
+        return (inlet for inlet in self.inlets_list)
+
     def add_leaf_wrapper(self, name=None, message=None, toleaf=None):
         if name == 0:
             self.tree.add_leaf(name='(0)', message=message, toleaf=toleaf)

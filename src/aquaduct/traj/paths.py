@@ -53,7 +53,7 @@ class GenericPathTypeCodes(object):
 
 class GenericPaths(GenericPathTypeCodes):
     # object to store paths... is it required?
-    __slots__ = 'id single_res_selection name __types __frames max_possible_frame min_possible_frame'.split()
+    __slots__ = 'id single_res_selection name _types __frames max_possible_frame min_possible_frame'.split()
 
     def __init__(self, id_of_res, name_of_res=None,
                  min_pf=None, max_pf=None):
@@ -71,7 +71,7 @@ class GenericPaths(GenericPathTypeCodes):
             self.name = name_of_res
         else:
             self.name = 'UNK'  # FIXME: magic constant
-        self.__types = SmartRange()
+        self._types = SmartRange()
         self.__frames = SmartRange()
 
         # following is required to correct in and out paths that begin or end in scope and
@@ -81,29 +81,29 @@ class GenericPaths(GenericPathTypeCodes):
         self.min_possible_frame = min_pf
 
     def __getstate__(self):
-        return self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame
+        return self.id,self.name,self._types,self.__frames,self.max_possible_frame,self.min_possible_frame
 
     def __setstate__(self, state):
         # FIXME: tmp solution
         if isinstance(state,dict):
             self.id = state['id']
             self.name = state['name']
-            self.__types = state['_GenericPaths__types']
+            self._types = state['_GenericPaths_types']
             self.__frames = state['_GenericPaths__frames']
             self.max_possible_frame = state['max_possible_frame']
             self.min_possible_frame = state['min_possible_frame']
         else:
-            self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame = state
+            self.id,self.name,self._types,self.__frames,self.max_possible_frame,self.min_possible_frame = state
         self.single_res_selection = SingleResidueSelection(self.id)
 
     # info methods
     @property
     def types(self):
-        return list(self.__types.get())
+        return list(self._types.get())
 
     @property
     def types_promise(self):
-        return self.__types.get()
+        return self._types.get()
 
     @property
     def frames(self):
@@ -141,12 +141,12 @@ class GenericPaths(GenericPathTypeCodes):
         self.add_type(frame, self.scope_name)
 
     def add_type(self, frame, ftype):
-        self.__types.append(ftype)
+        self._types.append(ftype)
         self.__frames.append(frame)
 
     def add_frames_types(self, frames, types):
         for f,t in izip(frames,types):
-            self.__types.append(t)
+            self._types.append(t)
             self.__frames.append(f)
 
 
@@ -378,7 +378,7 @@ class GenericPaths(GenericPathTypeCodes):
             tokeep = np.argwhere((cdist(np.array(list(self.coords)), [s.center for s in spheres], metric='euclidean') > np.matrix(
                 [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
             # tokeep = np.argwhere(tokeep).flatten().tolist()
-            self.__types = SmartRange(lind(self.types, tokeep))
+            self._types = SmartRange(lind(self.types, tokeep))
             self.__frames = SmartRange(lind(self.frames, tokeep))
 
 
@@ -465,7 +465,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     # special class
     # represents one path
 
-    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __object_len single_res_selection".split()
+    __slots__ = "id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
 
     empty_coords = make_default_array(np.zeros((0, 3)))
 
@@ -477,10 +477,10 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         self.id = path_id
         self.single_res_selection = SingleResidueSelection(self.id.id)
         # for paths use SmartRanges and then provide methods to read them
-        self.__path_in, self.__path_object, self.__path_out = map(SmartRange, paths)
+        self._path_in, self._path_object, self._path_out = map(SmartRange, paths)
         # similarly, do it with types
         # self.path_in, self.path_object, self.path_out = paths
-        self.__types_in, self.__types_object, self.__types_out = map(SmartRange, types)
+        self._types_in, self._types_object, self._types_out = map(SmartRange, types)
         # self.types_in, self.types_object, self.types_out = types
 
         #self.coords_in, self.coords_object, self.coords_out = map(make_default_array, coords)
@@ -490,17 +490,17 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
-        self.__object_len = None
+        self._object_len = None
 
     def __getstate__(self):
-        return self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len
+        return self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len
 
     def __setstate__(self, state):
-        self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len = state
+        self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len = state
         self.single_res_selection = SingleResidueSelection(self.id.id)
 
 
-    def __object_len_calculate(self):
+    def _object_len_calculate(self):
         for nr,real_coords in enumerate(traces.midpoints(self.coords)):
             if nr != 1: continue
             if len(real_coords) <= 1: return 0.
@@ -508,9 +508,9 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     @property
     def object_len(self):
-        if self.__object_len is None:
-            self.__object_len = self.__object_len_calculate()
-        return self.__object_len
+        if self._object_len is None:
+            self._object_len = self._object_len_calculate()
+        return self._object_len
 
     def is_single(self):
         raise NotImplementedError("Implementation missing.")
@@ -519,24 +519,24 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         raise NotImplementedError("Implementation missing.")
 
     def is_frame_in(self, frame):
-        return self.__path_in.isin(frame)
+        return self._path_in.isin(frame)
 
     def is_frame_object(self, frame):
-        return self.__path_object.isin(frame)
+        return self._path_object.isin(frame)
 
     def is_frame_out(self, frame):
-        return self.__path_out.isin(frame)
+        return self._path_out.isin(frame)
 
     def is_frame_walk(self, frame):
         return self.is_frame_in(frame) or self.is_frame_object(frame) or self.is_frame_out(frame)
 
     @property
     def path_in(self):
-        return list(self.__path_in.get())
+        return list(self._path_in.get())
 
     @property
     def path_object(self):
-        return list(self.__path_object.get())
+        return list(self._path_object.get())
 
     @property
     def path_object_strict_len(self):
@@ -545,42 +545,42 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     @property
     def path_out(self):
-        return list(self.__path_out.get())
+        return list(self._path_out.get())
 
     @property
     def types_in(self):
-        return list(self.__types_in.get())
+        return list(self._types_in.get())
 
     @property
     def types_object(self):
-        return list(self.__types_object.get())
+        return list(self._types_object.get())
 
     @property
     def types_out(self):
-        return list(self.__types_out.get())
+        return list(self._types_out.get())
 
     # ---------------------------------------------------------------------------------------------------------------- #
 
     @property
     def coords_first_in(self):
-        if len(self.__path_in) > 0:
+        if len(self._path_in) > 0:
             return self.coords_in[0]
-            #return self.single_res_selection.coords([self.__path_in.first_element()])
+            #return self.single_res_selection.coords([self._path_in.first_element()])
 
     @property
     def paths_first_in(self):
-        if len(self.__path_in) > 0:
+        if len(self._path_in) > 0:
             return self.path_in[0]
 
     @property
     def coords_last_out(self):
-        if len(self.__path_out) > 0:
+        if len(self._path_out) > 0:
             return self.coords_out[-1]
-            #return self.single_res_selection.coords([self.__path_out.last_element()])
+            #return self.single_res_selection.coords([self._path_out.last_element()])
 
     @property
     def paths_last_out(self):
-        if len(self.__path_out) > 0:
+        if len(self._path_out) > 0:
             return self.path_out[-1]
 
     @property
@@ -616,13 +616,13 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     @property
     def coords_in(self):
-        return self.single_res_selection.coords(self.__path_in)
+        return self.single_res_selection.coords(self._path_in)
     @property
     def coords_object(self):
-        return self.single_res_selection.coords(self.__path_object)
+        return self.single_res_selection.coords(self._path_object)
     @property
     def coords_out(self):
-        return self.single_res_selection.coords(self.__path_out)
+        return self.single_res_selection.coords(self._path_out)
 
 
     @property
@@ -639,7 +639,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     @property
     def _paths(self):
-        return self.__path_in, self.__path_object, self.__path_out
+        return self._path_in, self._path_object, self._path_out
 
     @property
     def paths(self):
@@ -658,9 +658,9 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     @property
     def types(self):
         # spath types
-        return ([self.path_in_code] * len(self.__path_in),
-                [self.path_object_code] * len(self.__path_object),
-                [self.path_out_code] * len(self.__path_out))
+        return ([self.path_in_code] * len(self._path_in),
+                [self.path_object_code] * len(self._path_object),
+                [self.path_out_code] * len(self._path_out))
 
     @property
     def types_cont(self):
@@ -713,15 +713,15 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     @property
     def has_in(self):
-        return len(self.__path_in) > 0
+        return len(self._path_in) > 0
 
     @property
     def has_object(self):
-        return len(self.__path_object) > 0
+        return len(self._path_object) > 0
 
     @property
     def has_out(self):
-        return len(self.__path_out) > 0
+        return len(self._path_out) > 0
 
     ####################################################################################################################
 
@@ -788,7 +788,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
 class SinglePath(MacroMolPath):
 
-    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __object_len single_res_selection".split()
+    __slots__ = "id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
 
     def is_single(self):
         return True
@@ -799,7 +799,7 @@ class SinglePath(MacroMolPath):
 # TODO: passing paths probably does not work at all
 class PassingPath(MacroMolPath):
 
-    __slots__ = "_has_in_flag _has_out_flag id __path_in __path_object __path_out __types_in __types_object __types_out __object_len single_res_selection".split()
+    __slots__ = "_has_in_flag _has_out_flag id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
 
 
     def __init__(self, path_id, paths, types):
@@ -811,10 +811,10 @@ class PassingPath(MacroMolPath):
 
 
     def __getstate__(self):
-        return self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len, self._has_in_flag,self._has_out_flag
+        return self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len, self._has_in_flag,self._has_out_flag
 
     def __setstate__(self, state):
-        self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len,self._has_in_flag,self._has_out_flag = state
+        self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len,self._has_in_flag,self._has_out_flag = state
         self.single_res_selection = SingleResidueSelection(self.id.id)
 
 
@@ -842,6 +842,23 @@ class PassingPath(MacroMolPath):
         self._has_out_flag = flag
 
 
+    @property
+    def coords_first_in(self):
+        return self.coords_in[0]
+
+    @property
+    def paths_first_in(self):
+        return self.path_in[0]
+
+    @property
+    def coords_last_out(self):
+        return self.coords_in[-1]
+
+    @property
+    def paths_last_out(self):
+        return self.path_in[-1]
+
+
 
     '''
     def get_coords(self, smooth=None):
@@ -857,6 +874,7 @@ class PassingPath(MacroMolPath):
             for coords in self.coords:
                 yield coords
 
+    '''
 
     def get_inlets(self):
         # Lets assume that if max/min_possible_frame is there is no inlet
@@ -872,7 +890,6 @@ class PassingPath(MacroMolPath):
                         reference=self.id,
                         frame=self.paths_last_out)
 
-    '''
 
 
 ####################################################################################################################
