@@ -1374,7 +1374,7 @@ def stage_III_run(config, options,
         # cut thyself!
         wtc.cut_thyself()
 
-        with clui.pbar(maxval=len(paths),mess="AutoBarber in action:") as pbar
+        with clui.pbar(maxval=len(paths),mess="AutoBarber in action:") as pbar:
             pool = Pool(processes=optimal_threads.threads_count)
             bp = partial(barber_paths,spheres=wtc.spheres)
             n = max(1, optimal_threads.threads_count)
