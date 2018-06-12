@@ -1345,6 +1345,7 @@ def stage_III_run(config, options,
                 dse = partial(discard_short_etc,short_paths=short_paths,short_object=short_object,short_logic=short_logic)
                 n = max(1,optimal_threads.threads_count)
                 spaths_new = pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                # CRIC AWARE MP!
                 if short_object is not None:
                     spaths = list(chain.from_iterable((sps for nr,sps,cric in spaths_new if (pbar.next(step=nr) is None) and (CRIC.update_cric(cric) is None))))
                 else:
@@ -1414,7 +1415,14 @@ def stage_III_run(config, options,
                     dse = partial(discard_short_etc,short_paths=short_paths,short_object=short_object,short_logic=short_logic)
                     n = max(1,optimal_threads.threads_count)
                     spaths_new = pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n)))
-                    spaths = list(chain.from_iterable((sps for nr,sps in spaths_new if pbar.next(step=nr) is None)))
+                    # CRIC AWARE MP!
+                    if short_object is not None:
+                        spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
+                                                           (pbar.next(step=nr) is None) and (
+                                                                       CRIC.update_cric(cric) is None))))
+                    else:
+                        spaths = list(
+                            chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
                     pool.close()
                     pool.join()
                 '''
