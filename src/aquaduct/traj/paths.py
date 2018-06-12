@@ -53,7 +53,7 @@ class GenericPathTypeCodes(object):
 
 class GenericPaths(GenericPathTypeCodes):
     # object to store paths... is it required?
-    __slots__ = 'id single_res_selection name _types __frames max_possible_frame min_possible_frame'.split()
+    __slots__ = 'id single_res_selection name _types _frames max_possible_frame min_possible_frame'.split()
 
     def __init__(self, id_of_res, name_of_res=None,
                  min_pf=None, max_pf=None):
@@ -72,7 +72,7 @@ class GenericPaths(GenericPathTypeCodes):
         else:
             self.name = 'UNK'  # FIXME: magic constant
         self._types = SmartRange()
-        self.__frames = SmartRange()
+        self._frames = SmartRange()
 
         # following is required to correct in and out paths that begin or end in scope and
         # begin or end at the very begining of MD or at very end of MD
@@ -81,7 +81,7 @@ class GenericPaths(GenericPathTypeCodes):
         self.min_possible_frame = min_pf
 
     def __getstate__(self):
-        return self.id,self.name,self._types,self.__frames,self.max_possible_frame,self.min_possible_frame
+        return self.id,self.name,self._types,self._frames,self.max_possible_frame,self.min_possible_frame
 
     def __setstate__(self, state):
         # FIXME: tmp solution
@@ -89,11 +89,11 @@ class GenericPaths(GenericPathTypeCodes):
             self.id = state['id']
             self.name = state['name']
             self._types = state['_GenericPaths_types']
-            self.__frames = state['_GenericPaths__frames']
+            self._frames = state['_GenericPaths_frames']
             self.max_possible_frame = state['max_possible_frame']
             self.min_possible_frame = state['min_possible_frame']
         else:
-            self.id,self.name,self._types,self.__frames,self.max_possible_frame,self.min_possible_frame = state
+            self.id,self.name,self._types,self._frames,self.max_possible_frame,self.min_possible_frame = state
         self.single_res_selection = SingleResidueSelection(self.id)
 
     # info methods
@@ -107,23 +107,23 @@ class GenericPaths(GenericPathTypeCodes):
 
     @property
     def frames(self):
-        return list(self.__frames.get())
+        return list(self._frames.get())
 
     @property
     def frames_promise(self):
-        return self.__frames.get()
+        return self._frames.get()
 
     @property
     def coords(self):
-        return self.single_res_selection.coords(self.__frames)
+        return self.single_res_selection.coords(self._frames)
 
     @property
     def max_frame(self):
-        return self.__frames.max()
+        return self._frames.max()
 
     @property
     def min_frame(self):
-        return self.__frames.min()
+        return self._frames.min()
 
     # add methods
 
@@ -142,20 +142,20 @@ class GenericPaths(GenericPathTypeCodes):
 
     def add_type(self, frame, ftype):
         self._types.append(ftype)
-        self.__frames.append(frame)
+        self._frames.append(frame)
 
     def add_frames_types(self, frames, types):
         for f,t in izip(frames,types):
             self._types.append(t)
-            self.__frames.append(f)
+            self._frames.append(f)
 
 
     def _gpt(self):
         # get, I'm just passing through
-        n = len(self.__frames)
+        n = len(self._frames)
         types = self.types
         begin = 0
-        for block in self.__frames.raw:
+        for block in self._frames.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -177,10 +177,10 @@ class GenericPaths(GenericPathTypeCodes):
                         yield block_frames
 
     def _gpo(self):
-        n = len(self.__frames)
+        n = len(self._frames)
         types = self.types
         begin = 0
-        for block in self.__frames.raw:
+        for block in self._frames.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -211,10 +211,10 @@ class GenericPaths(GenericPathTypeCodes):
                     yield block_frames
 
     def _gpi(self):
-        n = len(self.__frames)
+        n = len(self._frames)
         types = self.types
         begin = 0
-        for block in self.__frames.raw:
+        for block in self._frames.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -379,7 +379,7 @@ class GenericPaths(GenericPathTypeCodes):
                 [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
             # tokeep = np.argwhere(tokeep).flatten().tolist()
             self._types = SmartRange(lind(self.types, tokeep))
-            self.__frames = SmartRange(lind(self.frames, tokeep))
+            self._frames = SmartRange(lind(self.frames, tokeep))
 
 
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
