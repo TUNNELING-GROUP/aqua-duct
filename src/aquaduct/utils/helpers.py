@@ -776,8 +776,8 @@ class SmartRange(object):
         assert not isinstance(element, SmartRangeFunction)
         if len(self._elements) == 0:
             self._elements.append(element)
-            self.__min = element
-            self.__max = element
+            self._min = element
+            self._max = element
         else:
             if element == self.last_element():
                 if isinstance(self._elements[-1], SmartRangeEqual) or (
@@ -803,10 +803,10 @@ class SmartRange(object):
                             self._elements.append(element)
                     else:
                         self._elements.append(element)
-            if element > self.__max:
-                self.__max = element
+            if element > self._max:
+                self._max = element
             if element < self.__min:
-                self.__min = element
+                self._min = element
         self._len += 1
 
     def get(self):
@@ -833,10 +833,10 @@ class SmartRange(object):
         return self.get()
 
     def min(self):
-        return self.__min
+        return self._min
 
     def max(self):
-        return self.__max
+        return self._max
 
     def isin(self, element):
         for block in self.raw:
