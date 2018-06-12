@@ -1346,7 +1346,7 @@ def stage_III_run(config, options,
                 n = max(1,optimal_threads.threads_count)
                 spaths_new = pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n)))
                 if short_object is not None:
-                    spaths = list(chain.from_iterable((sps for nr,sps,cric in spaths_new if (pbar.next(step=nr) is None) and (CRIC.update_cric(cric) is None))))
+                    spaths = list(chain.from_iterable((sps for nr,sps,cric in spaths_new if (pbar.next(step=nr) is None) and (cric is not None))))
                 else:
                     spaths = list(chain.from_iterable((sps for nr,sps in spaths_new if pbar.next(step=nr) is None)))
                 pool.close()
