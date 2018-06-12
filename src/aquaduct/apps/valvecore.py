@@ -1382,8 +1382,8 @@ def stage_III_run(config, options,
             paths_ = []
             for paths_new_list in paths_new:
                 CRIC.update_cric(paths_new_list.pop(-1))
-                pbar.update(len(paths_new_list))
                 paths_.extend(paths_new_list)
+                pbar.next(step=len(paths_new_list))
             # now, it might be that some of paths are empty
             paths = [pat for pat in paths_ if len(pat.frames) > 0]
 
