@@ -1257,7 +1257,7 @@ def stage_II_run(config, options,
 def discard_short_etc(spaths,short_paths=None,short_object=None,short_logic=None):
     # worker for discarding paths, can be time consuming because of filling coords cache
     if short_object is not None:
-        return len(spaths),[sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
+        return len(spaths),[sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)],CRIC
     else:
         return len(spaths),[sp for sp in spaths if sp.size > short_paths]
 
@@ -1345,7 +1345,10 @@ def stage_III_run(config, options,
                 dse = partial(discard_short_etc,short_paths=short_paths,short_object=short_object,short_logic=short_logic)
                 n = max(1,optimal_threads.threads_count)
                 spaths_new = pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n)))
-                spaths = list(chain.from_iterable((sps for nr,sps in spaths_new if pbar.next(step=nr) is None)))
+                if short_object is not None:
+                    spaths = list(chain.from_iterable((sps for nr,sps,cric in spaths_new if (pbar.next(step=nr) is None) and (CRIC.update_cric(cric) is None))))
+                else:
+                    spaths = list(chain.from_iterable((sps for nr,sps in spaths_new if pbar.next(step=nr) is None)))
                 pool.close()
                 pool.join()
             #del spaths

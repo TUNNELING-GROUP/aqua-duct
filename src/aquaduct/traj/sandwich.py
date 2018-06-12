@@ -21,7 +21,7 @@ import re
 
 from os.path import splitext
 from collections import OrderedDict,namedtuple
-from itertools import izip_longest, imap
+from itertools import imap
 
 import numpy as np
 
@@ -32,12 +32,12 @@ if mda.__version__ > '0.16.2':
 
 from MDAnalysis.topology.core import guess_atom_element
 
-from aquaduct.utils.helpers import is_iterable, SmartRangeIncrement, SmartRange
-from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull, are_points_within_convexhull
+from aquaduct.utils.helpers import SmartRange
+from aquaduct.geom.convexhull import SciPyConvexHull, are_points_within_convexhull
 from aquaduct.utils.helpers import arrayify, create_tmpfile, \
                                    tupleify
 from aquaduct.utils.maths import make_default_array
-from aquaduct.apps.data import GCS,CRIC
+from aquaduct.apps.data import GCS, CRIC, FramesRangeCollection
 from aquaduct.utils.maths import defaults
 from aquaduct import logger
 
@@ -808,96 +808,20 @@ def coords_range(srange, number, rid):
     # srange is SmartRangeIncrement, it cannot be anything else
     # wrapper to limit number of calls to coords_range_core
     # CRIC cache is {number:{rid:FramesRangeCollection}}
+    '''
     logger.debug("CRIC request %d:%d %s",number,rid,str(srange))
     if number not in CRIC.cache:
         CRIC.cache.update({number:{}})
         logger.debug("CRIC new number %d",number)
     if rid not in CRIC.cache[number]:
-        CRIC.cache[number].update({rid:FramesRangeCollection()})
+        CRIC.cache[number].update({rid: FramesRangeCollection()})
         logger.debug("CRIC new rid %d",rid)
+    '''
     # call get_ranges and stack array, do it in comprehension? nested function?
     def get_coords_from_cache():
-        for sr,xr in CRIC.cache[number][rid].get_ranges(srange):
+        for sr,xr in CRIC.get_frc(number,rid).get_ranges(srange):
             yield coords_range_core(sr,number,rid)[xr,:]
     return np.vstack(get_coords_from_cache())
-
-
-class FramesRangeCollection(object):
-    # currently it is assumed that samrt ranges increments only are possible
-    def __init__(self):
-        self.collection = [] # order on this list does matter!
-
-    def append(self,srange):
-        if not len(self.collection):
-            self.collection.append(srange)
-            logger.debug("FRC append first srange %s",str(srange))
-            return
-        # there are V cases:
-        #           |------|            sr
-        # 1 |---|                       it is before sr
-        # 2      |-----|                it overlaps with sr but begins before
-        # 3          |----|             it is contained in sr
-        # 4              |----|         it overlaps with sr but ends after
-        # 24     |------------|         it overlabs with sr in 2 and 4 way
-        # 5                  |----|     it is after sr
-        while (srange is not None):
-            for nr,sr in enumerate(self.collection):
-                # sr
-                if sr.overlaps_mutual(srange):# or srange.overlaps(sr):
-                    if sr.contains(srange):
-                        # case 3
-                        srange = None
-                        break
-                    if srange.first_element() < sr.first_element():
-                        # case 2
-                        self.collection.insert(nr,SmartRangeIncrement(srange.first_element(),sr.first_element()-srange.first_element()))
-                        logger.debug("FRC case 2 insert srange %s at %d",str(SmartRangeIncrement(srange.first_element(),sr.first_element()-srange.first_element())),nr)
-                        if srange.last_element() > sr.last_element():
-                            # case 24
-                            srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
-                            break
-                        else:
-                            srange = None
-                        break
-                    if srange.last_element() > sr.last_element():
-                        # case 4
-                        srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
-                        continue
-                else:
-                    if srange.last_element() < sr.first_element():
-                        # case 1: insert it before sr
-                        self.collection.insert(nr,srange)
-                        logger.debug("FRC case 1 insert srange %s at %d",str(srange),nr)
-                        srange = None
-                        break
-                    if srange.first_element() > sr.last_element():
-                        # case 5: do nothing
-                        continue
-            # if something is left append it to the end
-            if srange is not None and nr == len(self.collection) - 1:
-                self.collection.append(srange)
-                logger.debug("FRC append remaining srage %s",str(srange))
-                srange = None
-
-    def get_ranges(self,srange):
-        # yield sranges from collection and appropriate ranges for these sranges
-        # assumes append was already called? call it!
-        # after it is called only case 3 or 4 is possible or no overlap at all
-        self.append(srange)
-        for sr in self.collection:
-            if sr.overlaps(srange):
-                if sr.contains(srange):
-                    # case 3
-                    yield sr,xrange(srange.first_element()-sr.first_element(),srange.first_element()-sr.first_element()+len(srange))
-                    srange = None
-                    break
-                # case 4
-                yield sr,xrange(srange.first_element()-sr.first_element(),srange.first_element()-sr.first_element()+sr.last_element()-srange.first_element()+1)
-                srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
-
-
-
-
 
 
 ################################################################################
