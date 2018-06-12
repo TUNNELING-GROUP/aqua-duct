@@ -37,6 +37,7 @@ from aquaduct.utils.multip import optimal_threads
 from multiprocessing import Pool
 from functools import partial
 from itertools import chain, izip
+from aquaduct.apps.data import CRIC
 
 __mail__ = 'info@aquaduct.pl'
 
@@ -90,10 +91,11 @@ def spaths2spheres(spaths,minmax=None,selection=None,tovdw=None,forceempty=None)
                         radius = maxcut_val
             if make_sphere:
                 logger.debug('Added sphere of radius %0.2f' % radius)
-                yield center.flatten(), radius
+                yield (center.flatten(), radius)
             elif forceempty:
                 logger.debug('Added sphere of radius 0')
-                yield center.flatten(), 0
+                yield (center.flatten(), 0)
+    yield CRIC
 
 @listify
 def inlets2spheres(inlets,minmax=None,selection=None,tovdw=None,forceempty=None):
@@ -137,10 +139,11 @@ def inlets2spheres(inlets,minmax=None,selection=None,tovdw=None,forceempty=None)
                     radius = maxcut_val
         if make_sphere:
             logger.debug('Added sphere of radius %0.2f' % radius)
-            yield center.flatten(), radius
+            yield (center.flatten(), radius)
         elif forceempty:
             logger.debug('Added sphere of radius 0')
-            yield center.flatten(), 0
+            yield (center.flatten(), 0)
+    yield CRIC
 
 
 class WhereToCut(ReaderAccess):
@@ -234,8 +237,12 @@ class WhereToCut(ReaderAccess):
 
         nr = 0
         for spheres in spheres_new:
-            for center,radius in spheres:
-                self.spheres.append(Sphere(center=center,radius=radius,nr=self.get_current_nr()))
+            for center_radius_or_cric in spheres:
+                if isinstance(center_radius_or_cric,tuple):
+                    center,radius = center_radius_or_cric
+                    self.spheres.append(Sphere(center=center,radius=radius,nr=self.get_current_nr()))
+                else:
+                    CRIC.update_cric(center_radius_or_cric)
             nr += n
             if nr < n_add:
                 pbar.update(nr)
@@ -265,8 +272,12 @@ class WhereToCut(ReaderAccess):
 
         nr = 0
         for spheres in spheres_new:
-            for center,radius in spheres:
-                self.spheres.append(Sphere(center=center,radius=radius,nr=self.get_current_nr()))
+            for center_radius_or_cric in spheres:
+                if isinstance(center_radius_or_cric,tuple):
+                    center,radius = center_radius_or_cric
+                    self.spheres.append(Sphere(center=center,radius=radius,nr=self.get_current_nr()))
+                else:
+                    CRIC.update_cric(center_radius_or_cric)
             nr += n
             if nr < n_add:
                 pbar.update(nr)
