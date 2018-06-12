@@ -710,63 +710,63 @@ class SmartRangeDecrement(SmartRangeFunction):
 
 
 class SmartRange(object):
-    __slots__ = '__elements __len __min __max'.split()
+    __slots__ = '_elements _len _min _max'.split()
 
     def __init__(self, iterable=None):
-        self.__elements = []
-        self.__len = 0
-        self.__min = None
-        self.__max = None
+        self._elements = []
+        self._len = 0
+        self._min = None
+        self._max = None
 
         if iterable is not None:
             map(self.append, iterable)
 
     def __getstate__(self):
-        return self.__elements, self.__len, self.__min, self.__max
+        return self._elements, self._len, self._min, self._max
 
     def __setstate__(self, state):
         # FIXME: tmp solution
         if isinstance(state,dict):
-            self.__elements = state['_SmartRange__elements']
-            self.__len = state['_SmartRange__len']
-            self.__max = state['_SmartRange__max']
-            self.__min = state['_SmartRange__min']
+            self._elements = state['_elements']
+            self._len = state['_len']
+            self._max = state['_max']
+            self._min = state['_min']
         else:
-            self.__elements, self.__len, self.__min, self.__max = state
+            self._elements, self._len, self._min, self._max = state
 
     def __str__(self):
         return self.__repr__()
 
     def __repr__(self):
-        return '[%s]' % (','.join(map(str, self.__elements)))
+        return '[%s]' % (','.join(map(str, self._elements)))
 
     def first_element(self):
-        if len(self.__elements) == 0:
+        if len(self._elements) == 0:
             return None
-        element = self.__elements[0]
+        element = self._elements[0]
         if isinstance(element, SmartRangeFunction):
             return element.element
         return element
 
     def last_element(self):
-        if len(self.__elements) == 0:
+        if len(self._elements) == 0:
             return None
-        element = self.__elements[-1]
+        element = self._elements[-1]
         if isinstance(element, SmartRangeFunction):
             return element.element
         return element
 
     def last_times(self):
-        if len(self.__elements) == 0:
+        if len(self._elements) == 0:
             return 0
-        element = self.__elements[-1]
+        element = self._elements[-1]
         if isinstance(element, SmartRangeFunction):
             return element.times
         return 1
 
     @property
     def raw(self):
-        for element in self.__elements:
+        for element in self._elements:
             if not isinstance(element, SmartRangeFunction):
                 yield SmartRangeEqual(element, 1)
             else:
@@ -774,43 +774,43 @@ class SmartRange(object):
 
     def append(self, element):
         assert not isinstance(element, SmartRangeFunction)
-        if len(self.__elements) == 0:
-            self.__elements.append(element)
+        if len(self._elements) == 0:
+            self._elements.append(element)
             self.__min = element
             self.__max = element
         else:
             if element == self.last_element():
-                if isinstance(self.__elements[-1], SmartRangeEqual) or (
-                        not isinstance(self.__elements[-1], SmartRangeFunction)):
-                    self.__elements[-1] = SmartRangeEqual(element, self.last_times() + 1)
+                if isinstance(self._elements[-1], SmartRangeEqual) or (
+                        not isinstance(self._elements[-1], SmartRangeFunction)):
+                    self._elements[-1] = SmartRangeEqual(element, self.last_times() + 1)
                 else:
-                    self.__elements.append(element)
+                    self._elements.append(element)
             else:
                 if not is_number(element):
-                    self.__elements.append(element)
+                    self._elements.append(element)
                 else:
                     if element - self.last_times() == self.last_element():
-                        if isinstance(self.__elements[-1], SmartRangeIncrement) or (
-                                not isinstance(self.__elements[-1], SmartRangeFunction)):
-                            self.__elements[-1] = SmartRangeIncrement(self.last_element(), self.last_times() + 1)
+                        if isinstance(self._elements[-1], SmartRangeIncrement) or (
+                                not isinstance(self._elements[-1], SmartRangeFunction)):
+                            self._elements[-1] = SmartRangeIncrement(self.last_element(), self.last_times() + 1)
                         else:
-                            self.__elements.append(element)
+                            self._elements.append(element)
                     elif element + self.last_times() == self.last_element():
-                        if isinstance(self.__elements[-1], SmartRangeDecrement) or (
-                                not isinstance(self.__elements[-1], SmartRangeFunction)):
-                            self.__elements[-1] = SmartRangeDecrement(self.last_element(), self.last_times() + 1)
+                        if isinstance(self._elements[-1], SmartRangeDecrement) or (
+                                not isinstance(self._elements[-1], SmartRangeFunction)):
+                            self._elements[-1] = SmartRangeDecrement(self.last_element(), self.last_times() + 1)
                         else:
-                            self.__elements.append(element)
+                            self._elements.append(element)
                     else:
-                        self.__elements.append(element)
+                        self._elements.append(element)
             if element > self.__max:
                 self.__max = element
             if element < self.__min:
                 self.__min = element
-        self.__len += 1
+        self._len += 1
 
     def get(self):
-        for element in self.__elements:
+        for element in self._elements:
             if not isinstance(element, SmartRangeFunction):
                 yield element
             else:
@@ -819,15 +819,15 @@ class SmartRange(object):
 
     def rev(self):
         elements = []
-        for e in self.__elements[::-1]:
+        for e in self._elements[::-1]:
             if isinstance(e, SmartRangeFunction):
                 elements.append(e.rev())
             else:
                 elements.append(e)
-        self.__elements = elements
+        self._elements = elements
 
     def __len__(self):
-        return self.__len
+        return self._len
 
     def __iter__(self):
         return self.get()
