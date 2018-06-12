@@ -805,7 +805,7 @@ class SmartRange(object):
                         self._elements.append(element)
             if element > self._max:
                 self._max = element
-            if element < self.__min:
+            if element < self._min:
                 self._min = element
         self._len += 1
 
