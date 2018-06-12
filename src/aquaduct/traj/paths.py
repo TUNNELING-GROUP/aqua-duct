@@ -80,6 +80,11 @@ class GenericPaths(GenericPathTypeCodes):
         self.max_possible_frame = max_pf
         self.min_possible_frame = min_pf
 
+    def update_types_frames(self,types,frames):
+        if isinstance(types,SmartRange) and isinstance(frames,SmartRange):
+            self._types = types
+            self._frames = frames
+
     def __getstate__(self):
         return self.id,self.name,self._types,self._frames,self.max_possible_frame,self.min_possible_frame
 

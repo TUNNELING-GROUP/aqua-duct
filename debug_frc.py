@@ -1,4 +1,4 @@
-from aquaduct.traj.sandwich import FramesRangeCollection
+from aquaduct.apps.data import FramesRangeCollection
 from aquaduct.utils.helpers import lind, SmartRangeIncrement
 
 frc = FramesRangeCollection()

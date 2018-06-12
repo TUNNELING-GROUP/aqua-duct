@@ -54,7 +54,7 @@ from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation
 from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
-from aquaduct.traj.barber import WhereToCut
+from aquaduct.traj.barber import WhereToCut,barber_paths
 from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
@@ -1374,14 +1374,18 @@ def stage_III_run(config, options,
         # cut thyself!
         wtc.cut_thyself()
 
-        clui.message("Auto Barber in action:")
-        pbar = clui.pbar(len(paths))
-        for p in paths:
-            p.barber_with_spheres(wtc.spheres)
-            pbar.next()
-        pbar.finish()
-        # now, it might be that some of paths are empty
-        paths = [pat for pat in paths if len(pat.frames) > 0]
+        with clui.pbar(maxval=len(paths),mess="AutoBarber in action:") as pbar
+            pool = Pool(processes=optimal_threads.threads_count)
+            bp = partial(barber_paths,spheres=wtc.spheres)
+            n = max(1, optimal_threads.threads_count)
+            paths_new = pool.imap_unordered(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
+            paths_ = []
+            for paths_new_list in paths_new:
+                CRIC.update_cric(paths_new_list.pop(-1))
+                pbar.update(len(paths_new_list))
+                paths_.extend(paths_new_list)
+            # now, it might be that some of paths are empty
+            paths = [pat for pat in paths_ if len(pat.frames) > 0]
 
     ######################################################################
 

@@ -30,7 +30,7 @@ import numpy as np
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import listify
 #from aquaduct.traj.reader import atom2vdw_radius
-from aquaduct.utils.helpers import lind
+from aquaduct.utils.helpers import lind,SmartRange
 from aquaduct.traj.sandwich import ReaderAccess,Reader
 from aquaduct.geom import Sphere, do_cut_thyself
 from aquaduct.utils.multip import optimal_threads
@@ -471,6 +471,25 @@ class WhereToCut(ReaderAccess):
         if progress: pbar.finish()
 
         return clouds
+
+
+
+def barber_with_spheres(coords, spheres):
+    # calculate big distance matrix
+    # distances = cdist(self.coords, [s.center for s in spheres],metric='euclidean')
+    # compare with radii
+    # tokeep = distances > np.matrix([[s.radius for s in spheres]])
+    if len(spheres):
+        return np.argwhere((cdist(np.array(list(coords)), [s.center for s in spheres], metric='euclidean') > np.matrix(
+            [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
+
+@listify
+def barber_paths(paths,spheres=None):
+    for path in paths:
+        tokeep = barber_with_spheres(path.coords,spheres)
+        path.update_types_frames(SmartRange(lind(path.types, tokeep)),SmartRange(lind(path.frames, tokeep)))
+        yield path
+    yield CRIC
 
 
 if __name__ == "__main__":
