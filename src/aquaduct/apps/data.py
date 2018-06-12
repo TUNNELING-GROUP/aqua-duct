@@ -46,7 +46,6 @@ class CoordsRangeIndexCache(object):
 
     def get_frc(self,number,rid):
         # wrapper for get ranges from frc
-        logger.debug("CRIC request %d:%d %s", number, rid, str(srange))
         if number not in self.cache:
             self.cache.update({number: {}})
             logger.debug("CRIC new number %d", number)

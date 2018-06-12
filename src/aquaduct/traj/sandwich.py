@@ -808,8 +808,8 @@ def coords_range(srange, number, rid):
     # srange is SmartRangeIncrement, it cannot be anything else
     # wrapper to limit number of calls to coords_range_core
     # CRIC cache is {number:{rid:FramesRangeCollection}}
-    '''
     logger.debug("CRIC request %d:%d %s",number,rid,str(srange))
+    '''
     if number not in CRIC.cache:
         CRIC.cache.update({number:{}})
         logger.debug("CRIC new number %d",number)
