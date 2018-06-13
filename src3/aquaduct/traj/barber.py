@@ -464,7 +464,7 @@ class WhereToCut(ReaderAccess):
                 if current_cloud:
                     cloud.append(nr)
                     redundant_spheres.pop(rs_id)
-                    if progress: next(pbar)
+                    if progress: pbar.next()
 
             clouds.update({cloud_id: cloud})
 
