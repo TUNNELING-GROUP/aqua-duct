@@ -129,7 +129,7 @@ class ColorMapDistMap(object):
         e1 = to0255(e1)
         e2 = to0255(e2)
 
-        rmean = (e1[0]+e2[0])/2
+        rmean = int((e1[0]+e2[0])/2)
         r = e1[0]-e2[0]
         g = e1[1]-e2[1]
         b = e1[2]-e2[2]
@@ -140,7 +140,7 @@ class ColorMapDistMap(object):
         k = len(self.cmap)
         # indices
         mi = [] # model
-        ti = range(m) # test
+        ti = list(range(m)) # test
         # FIRST OBJECT
         # get distance to mean object
         Xm = np.array(self.cmap).mean(axis=0) # mean object

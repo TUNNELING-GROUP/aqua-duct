@@ -152,7 +152,7 @@ class SimpleTarWriteHelper(object):
         self.tar_fh = tarfile.open(filename, 'w:gz')
 
     def save_object2tar(self, obj, name):
-        with open(self.tmp_file, 'w') as f:
+        with open(self.tmp_file, 'wb') as f:
             pickle.dump(obj, f)
         self.save_file2tar(self.tmp_file, name)
 

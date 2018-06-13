@@ -392,6 +392,9 @@ class SinglePathID(object):
 
     __slots__ = 'id nr name'.split()
 
+    def __hash__(self):
+        return hash(self.__getstate__())
+
     def __init__(self, path_id=None, nr=None, name=None):
         assert path_id is not None, "path_id connot be None."
         self.id = path_id
@@ -461,7 +464,7 @@ def yield_generic_paths(spaths, progress=None):
                 rid_seen[current_rid].add_object(f)
             else:
                 rid_seen[current_rid].add_scope(f)
-        if progress: next(progress)
+        if progress: progress.next()
     return list(rid_seen.values())
 
 

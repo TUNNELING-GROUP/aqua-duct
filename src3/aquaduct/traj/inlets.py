@@ -24,6 +24,7 @@ from collections import namedtuple, OrderedDict
 from scipy.spatial.distance import pdist, squareform
 import copy
 from itertools import zip_longest
+from functools import total_ordering
 
 from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
@@ -61,6 +62,7 @@ class InletTypeCodes(ProtoInletTypeCodes):
 # because of passing paths one more type could be considered ???
 # this might be also done in a different way
 
+@total_ordering
 class InletClusterGenericType(object):
     def __init__(self, inp, out):
         super(InletClusterGenericType, self).__init__()
@@ -104,6 +106,15 @@ class InletClusterGenericType(object):
                 e /= float(base)
             val += e
         return val
+
+    def __eq__(self, other):
+        return self.__cmp__(other) == 0
+
+    def __lt__(self, other):
+        return self.__cmp__(other) == -1
+
+    def __gt__(self, other):
+        return self.__cmp__(other) == 1
 
     def __cmp__(self, other):
 
@@ -185,7 +196,7 @@ class Inlets(object):
 
         for spath in spaths:
             self.extend_inlets(spath)
-            if pbar: next(pbar)
+            if pbar: pbar.next()
 
     def __iter__(self):
         return (inlet for inlet in self.inlets_list)

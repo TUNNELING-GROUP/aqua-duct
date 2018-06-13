@@ -1281,7 +1281,7 @@ def stage_III_run(config, options,
 
     if options.discard_empty_paths:
         with clui.pbar(maxval=len(paths),mess="Discard residues with empty paths:") as pbar:
-            paths = [pat for pat in paths if len(pat.frames) > 0 if next(pbar) is None]
+            paths = [pat for pat in paths if len(pat.frames) > 0 if pbar.next() is None]
 
     ######################################################################
 
@@ -1395,7 +1395,7 @@ def stage_III_run(config, options,
         pbar = clui.pbar(len(paths))
         pool = Pool(processes=optimal_threads.threads_count)
         #ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
-        n = max(1, len(paths) / optimal_threads.threads_count / 3)
+        n = max(1, int(len(paths) / optimal_threads.threads_count / 3))
         spaths = []
         nr_all = 0
         for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in range(0, len(paths), n))):
@@ -1679,7 +1679,7 @@ def stage_IV_run(config, options,
                                     inls.clusters[passing_inlets_ids[passing_inlet_nr]] = cluster
                                     added_to_cluster += 1
                                     passing_inlets_ids.pop(passing_inlet_nr)
-                            next(pbar)
+                            pbar.next()
                         if added_to_cluster:
                             inls.add_message_wrapper(message='+%d passing' % added_to_cluster, toleaf=cluster)
                         pbar.finish()
@@ -1702,8 +1702,8 @@ def stage_IV_run(config, options,
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
                     pbar = clui.pbar(len(spaths)*2, mess='Building coords cache')
-                    [sp.get_coords(smooth=None) for sp in spaths if next(pbar) is None and not isinstance(sp, PassingPath)]
-                    [sp.get_coords(smooth=smooth) for sp in spaths if next(pbar) is None and not isinstance(sp, PassingPath)]
+                    [sp.get_coords(smooth=None) for sp in spaths if pbar.next() is None and not isinstance(sp, PassingPath)]
+                    [sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None and not isinstance(sp, PassingPath)]
                     pbar.finish()
                     use_threads = optimal_threads.threads_count
                 else:
@@ -2043,7 +2043,7 @@ def spath_steps_info_header(total=None):
     header = 'InpS InpStdS ObjS ObjStdS OutS OutStdS'.split()
     if total:
         header = ['TotS', 'TotStdS'] + header
-    line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
+    line_template = ['%8.2f', '%8.3f'] * (int(len(header) / 2))
     return header, line_template
 
 
@@ -2130,7 +2130,7 @@ def spath_full_info(spath, ctype=None, total=None):
 @add_size_head
 def spaths_lenght_total_header():
     header = 'Tot TotStd Inp InpStd Obj ObjStd Out OutStd'.split()
-    line_template = ['%9.1f', '%9.2f'] * (len(header) / 2)
+    line_template = ['%9.1f', '%9.2f'] * (int(len(header) / 2))
     return header, line_template
 
 
@@ -2234,7 +2234,7 @@ def ctypes_spaths_info(ctype, spaths, show='len', add_size_p100=None):
 @add_cluster_id_head
 def clusters_stats_prob_header():
     header = 'IN-OUT diff N IN-OUT_prob diff_prob N_prob'.split()
-    line_template = ['%8d'] * (len(header) / 2) + ['%12.2f'] * (len(header) / 2)
+    line_template = ['%8d'] * (int(len(header) / 2)) + ['%12.2f'] * (int(len(header) / 2))
     # header += 'IN_len OUT_len Both_len'.split()
     # line_template += ['%9.1f'] * 3
     return header, line_template
@@ -2669,7 +2669,7 @@ def stage_V_run(config, options,
                     if not ct.output in c_ct:
                         continue
                 h[sp.path_out, col_index] += 1
-        next(pbar)
+        pbar.next()
     pbar.finish()
 
     # scope/object size?
@@ -2690,11 +2690,11 @@ def stage_V_run(config, options,
                 res = traj_reader.parse_selection(options.object_chull)
                 ch = res.chull()
                 object_size[-1].append((ch.area, ch.volume))
-                next(pbar)
+                pbar.next()
             header += ['%s_%d' % (s, number) for s in ['scope_area', 'scope_volume', 'object_area', 'object_volume']]
             fmt += ['%0.3f', '%0.2f'] * 2
         for s_s, o_s in zip(scope_size, object_size):
-            h = np.hstack((h, s_s, o_s))
+            h = np.hstack((h, np.array(s_s), np.array(o_s)))
         pbar.finish()
     # add frame column?
     frame_col = np.array([list(range(max_frame))]).T

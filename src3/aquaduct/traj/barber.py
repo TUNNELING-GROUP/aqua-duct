@@ -229,7 +229,7 @@ class WhereToCut(ReaderAccess):
 
         pool = Pool(processes=optimal_threads.threads_count)
         n = max(1, optimal_threads.threads_count)
-        chunks = (n if chunk <= (n_add /n - 1) else (n_add % n) for chunk in range(n_add / n + np.sign(n_add % n)))
+        chunks = (n if chunk <= (n_add /n - 1) else (n_add % n) for chunk in range(int(n_add / n + np.sign(n_add % n))))
 
         add_function = partial(spaths2spheres,minmax=minmax,selection=self.selection,tovdw=self.tovdw,forceempty=self.forceempty)
         _spaths = chain(spaths)
@@ -441,7 +441,7 @@ class WhereToCut(ReaderAccess):
             else:
                 current_id = 0
             clouds.update({current_id: current_cloud})
-            if progress: next(pbar)
+            if progress: pbar.next()
 
         # chnage nrs id to global ids; add redundant spheres
         nrs_gids = [nrs.nr for nrs in noredundant_spheres]
