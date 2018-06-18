@@ -42,10 +42,10 @@ class PathTypesCodes(object):
     #path_object_code = 'c'
     #path_out_code = 'o'
     #path_walk_code = 'w'
-    path_in_code = 01
-    path_object_code = 02
-    path_out_code = 03
-    path_walk_code = 00
+    path_in_code = 1
+    path_object_code = 2
+    path_out_code = 3
+    path_walk_code = 0
 
 
 class GenericPathTypeCodes(object):
@@ -53,9 +53,9 @@ class GenericPathTypeCodes(object):
     #object_name = 'c'
     #scope_name = 's'
     #out_name = 'n'
-    object_name = 010
-    scope_name = 011
-    out_name = 012
+    object_name = 8
+    scope_name = 9
+    out_name = 10
 
 
 class GenericPaths(GenericPathTypeCodes):

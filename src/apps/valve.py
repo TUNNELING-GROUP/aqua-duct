@@ -46,6 +46,7 @@ from aquaduct.apps.data import GCS,load_cric
 if __name__ == "__main__":
 
     from aquaduct.utils import clui
+    from pympler import summary, muppy
 
     with clui.tictoc('Aqua-Duct calculations'):
 
@@ -226,24 +227,34 @@ if __name__ == "__main__":
         # container for collecting whether particular stage was executed
         run_status = {}
 
+        summary.print_(summary.summarize(muppy.get_objects()))
+
         # STAGE I
         result1 = valve_exec_stage(0, config, stage_I_run,
                                    run_status=run_status)
+
+        summary.print_(summary.summarize(muppy.get_objects()))
 
         # STAGE II
         result2 = valve_exec_stage(1, config, stage_II_run,
                                    run_status=run_status,
                                    **result1)
 
+        summary.print_(summary.summarize(muppy.get_objects()))
+
         # STAGE III
         result3 = valve_exec_stage(2, config, stage_III_run,
                                    run_status=run_status,
                                    **result2)
 
+        summary.print_(summary.summarize(muppy.get_objects()))
+
         # STAGE IV
         result4 = valve_exec_stage(3, config, stage_IV_run,
                                    run_status=run_status,
                                    **result3)
+
+        summary.print_(summary.summarize(muppy.get_objects()))
 
         # STAGE V
         results = {}
@@ -254,6 +265,8 @@ if __name__ == "__main__":
                                    run_status=run_status,
                                    no_io=True,
                                    **results)
+        summary.print_(summary.summarize(muppy.get_objects()))
+
         # STAGE VI
         results = {}
         for result in (result3, result4):
