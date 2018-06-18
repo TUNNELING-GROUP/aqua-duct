@@ -46,7 +46,8 @@ from aquaduct.apps.data import GCS,load_cric
 if __name__ == "__main__":
 
     from aquaduct.utils import clui
-    from pympler import summary, muppy
+    import resource
+    print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
     with clui.tictoc('Aqua-Duct calculations'):
 
@@ -227,34 +228,34 @@ if __name__ == "__main__":
         # container for collecting whether particular stage was executed
         run_status = {}
 
-        summary.print_(summary.summarize(muppy.get_objects()))
+        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE I
         result1 = valve_exec_stage(0, config, stage_I_run,
                                    run_status=run_status)
 
-        summary.print_(summary.summarize(muppy.get_objects()))
+        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE II
         result2 = valve_exec_stage(1, config, stage_II_run,
                                    run_status=run_status,
                                    **result1)
 
-        summary.print_(summary.summarize(muppy.get_objects()))
+        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE III
         result3 = valve_exec_stage(2, config, stage_III_run,
                                    run_status=run_status,
                                    **result2)
 
-        summary.print_(summary.summarize(muppy.get_objects()))
+        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE IV
         result4 = valve_exec_stage(3, config, stage_IV_run,
                                    run_status=run_status,
                                    **result3)
 
-        summary.print_(summary.summarize(muppy.get_objects()))
+        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE V
         results = {}
@@ -265,7 +266,7 @@ if __name__ == "__main__":
                                    run_status=run_status,
                                    no_io=True,
                                    **results)
-        summary.print_(summary.summarize(muppy.get_objects()))
+        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE VI
         results = {}
@@ -281,6 +282,5 @@ if __name__ == "__main__":
 
         valve_end()
         logger.info('Valve calulations finished.')
-    from pympler import summary, muppy
-    summary.print_(summary.summarize(muppy.get_objects()))
+    print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
