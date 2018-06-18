@@ -463,7 +463,7 @@ def yield_generic_paths(spaths, progress=None):
         if current_rid not in rid_seen:
             rid_seen.update({current_rid:GenericPaths(current_rid,name_of_res=sp.id.name,min_pf=0,max_pf=number_of_frames)})
         # TODO: following loop is not an optimal solution, it is better to add types and frames in one call
-        for t,f in zip(sp.gtypes_cont,sp.paths_cont):
+        for t,f in zip(sp.types_cont,sp.paths_cont):
             if t == sp.path_object_code:
                 rid_seen[current_rid].add_object(f)
             else:
@@ -716,7 +716,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         return map(len, self._paths)
 
     @property
-    def begins(self):
+    def begins(seClf):
         return self.paths_cont[0]
 
     @property
@@ -738,7 +738,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     ####################################################################################################################
 
     @tupleify
-    def get_coords(self, smooth=None):
+    def get_coordsdddsdsd(self, smooth=None):
         # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
         # if smooth is not none applies smoothing
         if smooth is not None:
