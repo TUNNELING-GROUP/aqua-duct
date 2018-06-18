@@ -699,11 +699,11 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     def etypes(self):
         # extended types
         for t, g in zip(self.types, self.gtypes):
-            yield [''.join(t) for t in zip(t, g)]
+            yield [t for t in zip(t, g)]
 
     @property
     def etypes_cont(self):
-        return [''.join(t) for t in zip(self.types_cont, self.gtypes_cont)]
+        return [t for t in zip(self.types_cont, self.gtypes_cont)]
 
     ####################################################################################################################
 
