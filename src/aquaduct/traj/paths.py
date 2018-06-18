@@ -42,20 +42,20 @@ class PathTypesCodes(object):
     #path_object_code = 'c'
     #path_out_code = 'o'
     #path_walk_code = 'w'
-    path_in_code = 1
-    path_object_code = 2
-    path_out_code = 3
-    path_walk_code = 4
+    path_in_code = 01
+    path_object_code = 02
+    path_out_code = 03
+    path_walk_code = 00
 
 
 class GenericPathTypeCodes(object):
     __slots__ = ()
-    object_name = 'c'
-    scope_name = 's'
-    out_name = 'n'
-    #object_name = 5
-    #scope_name = 6
-    #out_name = 7
+    #object_name = 'c'
+    #scope_name = 's'
+    #out_name = 'n'
+    object_name = 010
+    scope_name = 011
+    out_name = 012
 
 
 class GenericPaths(GenericPathTypeCodes):
@@ -716,7 +716,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         return map(len, self._paths)
 
     @property
-    def begins(seClf):
+    def begins(self):
         return self.paths_cont[0]
 
     @property
