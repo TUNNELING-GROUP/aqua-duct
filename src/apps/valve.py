@@ -268,3 +268,6 @@ if __name__ == "__main__":
 
         valve_end()
         logger.info('Valve calulations finished.')
+    from pympler import summary, muppy
+    summary.print_(summary.summarize(muppy.get_objects()))
+

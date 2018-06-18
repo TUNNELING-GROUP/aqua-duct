@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
@@ -268,3 +268,6 @@ if __name__ == "__main__":
 
         valve_end()
         logger.info('Valve calulations finished.')
+    from pympler import summary, muppy
+    summary.print_(summary.summarize(muppy.get_objects()))
+

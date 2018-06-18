@@ -38,17 +38,24 @@ from aquaduct.traj.sandwich import Reader,SingleResidueSelection
 
 class PathTypesCodes(object):
     __slots__ = ()
-    path_in_code = 'i'
-    path_object_code = 'c'
-    path_out_code = 'o'
-    path_walk_code = 'w'
+    #path_in_code = 'i'
+    #path_object_code = 'c'
+    #path_out_code = 'o'
+    #path_walk_code = 'w'
+    path_in_code = 1
+    path_object_code = 2
+    path_out_code = 3
+    path_walk_code = 4
 
 
 class GenericPathTypeCodes(object):
     __slots__ = ()
-    object_name = 'c'
-    scope_name = 's'
-    out_name = 'n'
+    #object_name = 'c'
+    #scope_name = 's'
+    #out_name = 'n'
+    object_name = 5
+    scope_name = 6
+    out_name = 7
 
 
 class GenericPaths(GenericPathTypeCodes):
