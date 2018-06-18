@@ -65,12 +65,12 @@ def cc(c):
     return c[:3]
 
 
-_dcc_is = ptc.path_in_code + gptc.scope_name
-_dcc_cc = ptc.path_object_code + gptc.object_name
-_dcc_cs = ptc.path_object_code + gptc.scope_name
-_dcc_os = ptc.path_out_code + gptc.scope_name
+_dcc_is = ptc.path_in_code, gptc.scope_name
+_dcc_cc = ptc.path_object_code, gptc.object_name
+_dcc_cs = ptc.path_object_code, gptc.scope_name
+_dcc_os = ptc.path_out_code, gptc.scope_name
 
-_dcc_ws = ptc.path_walk_code + gptc.scope_name
+_dcc_ws = ptc.path_walk_code, gptc.scope_name
 
 _dcc_i = ptc.path_in_code
 _dcc_c = ptc.path_object_code
