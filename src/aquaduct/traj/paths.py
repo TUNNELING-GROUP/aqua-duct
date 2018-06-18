@@ -50,12 +50,12 @@ class PathTypesCodes(object):
 
 class GenericPathTypeCodes(object):
     __slots__ = ()
-    #object_name = 'c'
-    #scope_name = 's'
-    #out_name = 'n'
-    object_name = 5
-    scope_name = 6
-    out_name = 7
+    object_name = 'c'
+    scope_name = 's'
+    out_name = 'n'
+    #object_name = 5
+    #scope_name = 6
+    #out_name = 7
 
 
 class GenericPaths(GenericPathTypeCodes):
