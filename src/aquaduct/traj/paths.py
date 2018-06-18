@@ -738,7 +738,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     ####################################################################################################################
 
     @tupleify
-    def get_coordsdddsdsd(self, smooth=None):
+    def get_coords(self, smooth=None):
         # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
         # if smooth is not none applies smoothing
         if smooth is not None:
