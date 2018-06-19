@@ -90,7 +90,7 @@ class GenericPaths(GenericPathTypeCodes):
     def update_types_frames(self,types,frames):
         if isinstance(types,SmartRange) and isinstance(frames,SmartRange):
             self._types = types
-            self._frames = frames
+            self._frames = array('i',list(frames.get()))
 
     def __getstate__(self):
         return self.id,self.name,self._types,self._frames,self.max_possible_frame,self.min_possible_frame
