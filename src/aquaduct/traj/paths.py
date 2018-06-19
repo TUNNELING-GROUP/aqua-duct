@@ -37,7 +37,7 @@ from aquaduct.traj.sandwich import Reader,SingleResidueSelection
 
 
 class PathTypesCodes(object):
-    __slots__ = ()
+    __slots__ = "path_in_code path_object_code path_out_code path_walk_code".split() 
     #path_in_code = 'i'
     #path_object_code = 'c'
     #path_out_code = 'o'
@@ -49,7 +49,7 @@ class PathTypesCodes(object):
 
 
 class GenericPathTypeCodes(object):
-    __slots__ = ()
+    __slots__ = "object_name scope_name out_name".split()
     #object_name = 'c'
     #scope_name = 's'
     #out_name = 'n'
@@ -800,7 +800,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
 class SinglePath(MacroMolPath):
 
-    __slots__ = "id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
+    #__slots__ = "id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
 
     def is_single(self):
         return True
@@ -808,10 +808,10 @@ class SinglePath(MacroMolPath):
     def is_passing(self):
         return False
 
-# TODO: passing paths probably does not work at all
+# TODO: there are problems with passing paths
 class PassingPath(MacroMolPath):
 
-    __slots__ = "_has_in_flag _has_out_flag id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
+    __slots__ = "_has_in_flag _has_out_flag".split() # id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
 
 
     def __init__(self, path_id, paths, types):

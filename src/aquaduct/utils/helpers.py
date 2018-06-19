@@ -659,7 +659,7 @@ class SmartRangeFunction(object):
 
 
 class SmartRangeEqual(SmartRangeFunction):
-    __slots__ = "element times".split()
+    #__slots__ = "element times".split()
     #type = 'e'
 
     def get(self):
@@ -676,7 +676,7 @@ class SmartRangeEqual(SmartRangeFunction):
 
 
 class SmartRangeIncrement(SmartRangeFunction):
-    __slots__ = "element times".split()
+    #__slots__ = "element times".split()
     #type = 'i'
 
     def get(self):
@@ -693,7 +693,7 @@ class SmartRangeIncrement(SmartRangeFunction):
 
 
 class SmartRangeDecrement(SmartRangeFunction):
-    __slots__ = "element times".split()
+    #__slots__ = "element times".split()
     #type = 'd'
 
     def get(self):

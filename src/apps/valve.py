@@ -46,8 +46,6 @@ from aquaduct.apps.data import GCS,load_cric
 if __name__ == "__main__":
 
     from aquaduct.utils import clui
-    import resource
-    print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
     with clui.tictoc('Aqua-Duct calculations'):
 
@@ -228,34 +226,29 @@ if __name__ == "__main__":
         # container for collecting whether particular stage was executed
         run_status = {}
 
-        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE I
         result1 = valve_exec_stage(0, config, stage_I_run,
                                    run_status=run_status)
 
-        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE II
         result2 = valve_exec_stage(1, config, stage_II_run,
                                    run_status=run_status,
                                    **result1)
 
-        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE III
         result3 = valve_exec_stage(2, config, stage_III_run,
                                    run_status=run_status,
                                    **result2)
 
-        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE IV
         result4 = valve_exec_stage(3, config, stage_IV_run,
                                    run_status=run_status,
                                    **result3)
 
-        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE V
         results = {}
@@ -266,7 +259,6 @@ if __name__ == "__main__":
                                    run_status=run_status,
                                    no_io=True,
                                    **results)
-        print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
         # STAGE VI
         results = {}
@@ -282,5 +274,4 @@ if __name__ == "__main__":
 
         valve_end()
         logger.info('Valve calulations finished.')
-    print 'Memory usage: %s (kb)' % resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
 
