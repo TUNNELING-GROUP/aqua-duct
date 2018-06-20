@@ -720,12 +720,13 @@ class SmartRange(object):
 
         if iterable is not None:
             map(self.append, iterable)
-            if fast_array is not None:
-                self._elements = list(self._a2e(a))
-                self._len = len(a)
-                self._min = min(a)
-                self._max = max(a)
+        if fast_array is not None:
+            self._elements = list(self._a2e(fast_array))
+            self._len = len(fast_array)
+            self._min = min(fast_array)
+            self._max = max(fast_array)
 
+    @staticmethod
     def _a2e(a):
         prev = 0
         for i in np.argwhere(np.diff(a)>1).flatten():

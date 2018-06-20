@@ -123,13 +123,17 @@ class GenericPaths(GenericPathTypeCodes):
         #return list(self._frames.get())
         return list(self._frames)
 
+    @property
+    def _frames_sr(self):
+        return SmartRange(fast_array=self._frames)
+
     #@property
     #def frames_promise(self):
     #    return self._frames.get()
 
     @property
     def coords(self):
-        return self.single_res_selection.coords(SmartRange(fast_array=self._frames))
+        return self.single_res_selection.coords(self._frames_sr)
 
     @property
     def max_frame(self):
@@ -169,7 +173,7 @@ class GenericPaths(GenericPathTypeCodes):
         n = len(self._frames)
         types = self.types
         begin = 0
-        for block in self._frames.raw:
+        for block in self._frames_sr.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -190,11 +194,11 @@ class GenericPaths(GenericPathTypeCodes):
                     if not self.object_name in block_types:
                         yield block_frames
 
-    def _gpo(self):
-        n = len(self._frames)
+    def _gpo(self,frames_sr):
+        n = len(frames_sr)
         types = self.types
         begin = 0
-        for block in self._frames.raw:
+        for block in frames_sr.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -224,11 +228,11 @@ class GenericPaths(GenericPathTypeCodes):
                 if len(block_frames) > 0:
                     yield block_frames
 
-    def _gpi(self):
-        n = len(self._frames)
+    def _gpi(self,frames_sr):
+        n = len(frames_sr)
         types = self.types
         begin = 0
-        for block in self._frames.raw:
+        for block in frames_sr.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -258,16 +262,12 @@ class GenericPaths(GenericPathTypeCodes):
                 if len(block_frames) > 0:
                     yield block_frames
 
-    def get_paths_in(self):
-        return self._gpi()
-
-    def get_paths_out(self):
-        return self._gpo()
-
     def find_paths(self, fullonly=False):
         # this looks for normal, ie containing 'core' paths
-        paths_out = list(self.get_paths_out())
-        paths_in = list(self.get_paths_in())
+        frames_sr = self._frames_sr
+        paths_out = list(self._gpo(frames_sr))
+        paths_in = list(self._gpi(frames_sr))
+        del frames_sr
 
         for path_in in paths_in:
             path_out = paths_out[0]
