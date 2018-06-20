@@ -76,7 +76,7 @@ __version__ = aquaduct_version_nice()
 ###############################################################################
 # configuration file helpers
 
-class ConfigSpecialNames:
+class ConfigSpecialNames(object):
     special_names_dict = {'none': None,
                           'null': None,
                           'true': True,
@@ -93,7 +93,7 @@ class ConfigSpecialNames:
 
 
 # TODO: add parser for initial checking of configuration file
-class ValveConfig(object, ConfigSpecialNames):
+class ValveConfig(ConfigSpecialNames):
     def __init__(self):
         self.config = self.get_default_config()
         self.config_filename = ''
@@ -2848,7 +2848,7 @@ def stage_VI_run(config, options,
         with clui.fbm("Object shape"):
             for nr, traj_reader in enumerate(Reader.iterate(threads=False)):
                 traj_reader = traj_reader.open()
-                frames_to_show = range2int(options.show_scope_chull_frames)
+                frames_to_show = range2int(options.show_object_chull_frames)
                 for frame in frames_to_show:
                     traj_reader.set_frame(frame)
                     object_shape = traj_reader.parse_selection(options.show_object_chull)

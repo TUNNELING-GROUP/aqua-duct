@@ -65,12 +65,12 @@ def cc(c):
     return c[:3]
 
 
-_dcc_is = ptc.path_in_code + gptc.scope_name
-_dcc_cc = ptc.path_object_code + gptc.object_name
-_dcc_cs = ptc.path_object_code + gptc.scope_name
-_dcc_os = ptc.path_out_code + gptc.scope_name
+_dcc_is = ptc.path_in_code, gptc.scope_name
+_dcc_cc = ptc.path_object_code, gptc.object_name
+_dcc_cs = ptc.path_object_code, gptc.scope_name
+_dcc_os = ptc.path_out_code, gptc.scope_name
 
-_dcc_ws = ptc.path_walk_code + gptc.scope_name
+_dcc_ws = ptc.path_walk_code, gptc.scope_name
 
 _dcc_i = ptc.path_in_code
 _dcc_c = ptc.path_object_code
@@ -129,7 +129,7 @@ class ColorMapDistMap(object):
         e1 = to0255(e1)
         e2 = to0255(e2)
 
-        rmean = int((e1[0]+e2[0])/2)
+        rmean = (e1[0]+e2[0])/2
         r = e1[0]-e2[0]
         g = e1[1]-e2[1]
         b = e1[2]-e2[2]

@@ -1238,7 +1238,7 @@ def stage_II_run(config, options,
         for ps in ([results[n][pnr] for n in numbers] for pnr in range(len(all_res_ids))):
             new_p = GenericPaths((0,ps[0].id[-1]),
                                  name_of_res=ps[0].name,min_pf=0, max_pf=max_pf)
-            frames = chain(*[isum(p.frames_promise,fo) for p,fo in zip(ps,frames_offset)])
+            frames = chain(*[isum(p.frames,fo) for p,fo in zip(ps,frames_offset)])
             types = chain(*[p.types_promise for p in ps])
             new_p.add_frames_types(frames,types)
             paths.append(new_p)
@@ -1395,7 +1395,7 @@ def stage_III_run(config, options,
         pbar = clui.pbar(len(paths))
         pool = Pool(processes=optimal_threads.threads_count)
         #ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
-        n = max(1, int(len(paths) / optimal_threads.threads_count / 3))
+        n = int(max(1, len(paths) / optimal_threads.threads_count / 3))
         spaths = []
         nr_all = 0
         for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in range(0, len(paths), n))):
@@ -2043,7 +2043,7 @@ def spath_steps_info_header(total=None):
     header = 'InpS InpStdS ObjS ObjStdS OutS OutStdS'.split()
     if total:
         header = ['TotS', 'TotStdS'] + header
-    line_template = ['%8.2f', '%8.3f'] * (int(len(header) / 2))
+    line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
     return header, line_template
 
 
@@ -2130,7 +2130,7 @@ def spath_full_info(spath, ctype=None, total=None):
 @add_size_head
 def spaths_lenght_total_header():
     header = 'Tot TotStd Inp InpStd Obj ObjStd Out OutStd'.split()
-    line_template = ['%9.1f', '%9.2f'] * (int(len(header) / 2))
+    line_template = ['%9.1f', '%9.2f'] * (len(header) / 2)
     return header, line_template
 
 
@@ -2234,7 +2234,7 @@ def ctypes_spaths_info(ctype, spaths, show='len', add_size_p100=None):
 @add_cluster_id_head
 def clusters_stats_prob_header():
     header = 'IN-OUT diff N IN-OUT_prob diff_prob N_prob'.split()
-    line_template = ['%8d'] * (int(len(header) / 2)) + ['%12.2f'] * (int(len(header) / 2))
+    line_template = ['%8d'] * (len(header) / 2) + ['%12.2f'] * (len(header) / 2)
     # header += 'IN_len OUT_len Both_len'.split()
     # line_template += ['%9.1f'] * 3
     return header, line_template
@@ -2694,7 +2694,7 @@ def stage_V_run(config, options,
             header += ['%s_%d' % (s, number) for s in ['scope_area', 'scope_volume', 'object_area', 'object_volume']]
             fmt += ['%0.3f', '%0.2f'] * 2
         for s_s, o_s in zip(scope_size, object_size):
-            h = np.hstack((h, np.array(s_s), np.array(o_s)))
+            h = np.hstack((h, s_s, o_s))
         pbar.finish()
     # add frame column?
     frame_col = np.array([list(range(max_frame))]).T

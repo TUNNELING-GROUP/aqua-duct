@@ -33,22 +33,29 @@ from aquaduct.utils.sets import intersection, glue, left, right
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader,SingleResidueSelection
-
+from array import array
 
 
 class PathTypesCodes(object):
-    __slots__ = ()
-    path_in_code = 'i'
-    path_object_code = 'c'
-    path_out_code = 'o'
-    path_walk_code = 'w'
+    __slots__ = () #"path_in_code path_object_code path_out_code path_walk_code".split()
+    #path_in_code = 'i'
+    #path_object_code = 'c'
+    #path_out_code = 'o'
+    #path_walk_code = 'w'
+    path_in_code = 1
+    path_object_code = 2
+    path_out_code = 3
+    path_walk_code = 0
 
 
 class GenericPathTypeCodes(object):
-    __slots__ = ()
-    object_name = 'c'
-    scope_name = 's'
-    out_name = 'n'
+    __slots__ = () #"object_name scope_name out_name".split()
+    #object_name = 'c'
+    #scope_name = 's'
+    #out_name = 'n'
+    object_name = 8
+    scope_name = 9
+    out_name = 10
 
 
 class GenericPaths(GenericPathTypeCodes):
@@ -72,7 +79,8 @@ class GenericPaths(GenericPathTypeCodes):
         else:
             self.name = 'UNK'  # FIXME: magic constant
         self._types = SmartRange()
-        self._frames = SmartRange()
+        #self._frames = SmartRange()
+        self._frames = array('i')
 
         # following is required to correct in and out paths that begin or end in scope and
         # begin or end at the very begining of MD or at very end of MD
@@ -83,7 +91,7 @@ class GenericPaths(GenericPathTypeCodes):
     def update_types_frames(self,types,frames):
         if isinstance(types,SmartRange) and isinstance(frames,SmartRange):
             self._types = types
-            self._frames = frames
+            self._frames = array('i',list(frames.get()))
 
     def __getstate__(self):
         return self.id,self.name,self._types,self._frames,self.max_possible_frame,self.min_possible_frame
@@ -112,15 +120,20 @@ class GenericPaths(GenericPathTypeCodes):
 
     @property
     def frames(self):
-        return list(self._frames.get())
+        #return list(self._frames.get())
+        return list(self._frames)
 
     @property
-    def frames_promise(self):
-        return self._frames.get()
+    def _frames_sr(self):
+        return SmartRange(fast_array=self._frames)
+
+    #@property
+    #def frames_promise(self):
+    #    return self._frames.get()
 
     @property
     def coords(self):
-        return self.single_res_selection.coords(self._frames)
+        return self.single_res_selection.coords(self._frames_sr)
 
     @property
     def max_frame(self):
@@ -160,7 +173,7 @@ class GenericPaths(GenericPathTypeCodes):
         n = len(self._frames)
         types = self.types
         begin = 0
-        for block in self._frames.raw:
+        for block in self._frames_sr.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -181,11 +194,11 @@ class GenericPaths(GenericPathTypeCodes):
                     if not self.object_name in block_types:
                         yield block_frames
 
-    def _gpo(self):
-        n = len(self._frames)
+    def _gpo(self,frames_sr):
+        n = len(frames_sr)
         types = self.types
         begin = 0
-        for block in self._frames.raw:
+        for block in frames_sr.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -215,11 +228,11 @@ class GenericPaths(GenericPathTypeCodes):
                 if len(block_frames) > 0:
                     yield block_frames
 
-    def _gpi(self):
-        n = len(self._frames)
+    def _gpi(self,frames_sr):
+        n = len(frames_sr)
         types = self.types
         begin = 0
-        for block in self._frames.raw:
+        for block in frames_sr.raw:
             end = begin + block.times
             # get types of this block
             block_frames = list(block.get())
@@ -249,16 +262,12 @@ class GenericPaths(GenericPathTypeCodes):
                 if len(block_frames) > 0:
                     yield block_frames
 
-    def get_paths_in(self):
-        return self._gpi()
-
-    def get_paths_out(self):
-        return self._gpo()
-
     def find_paths(self, fullonly=False):
         # this looks for normal, ie containing 'core' paths
-        paths_out = list(self.get_paths_out())
-        paths_in = list(self.get_paths_in())
+        frames_sr = self._frames_sr
+        paths_out = list(self._gpo(frames_sr))
+        paths_in = list(self._gpi(frames_sr))
+        del frames_sr
 
         for path_in in paths_in:
             path_out = paths_out[0]
@@ -459,7 +468,7 @@ def yield_generic_paths(spaths, progress=None):
         if current_rid not in rid_seen:
             rid_seen.update({current_rid:GenericPaths(current_rid,name_of_res=sp.id.name,min_pf=0,max_pf=number_of_frames)})
         # TODO: following loop is not an optimal solution, it is better to add types and frames in one call
-        for t,f in zip(sp.gtypes_cont,sp.paths_cont):
+        for t,f in zip(sp.types_cont,sp.paths_cont):
             if t == sp.path_object_code:
                 rid_seen[current_rid].add_object(f)
             else:
@@ -695,11 +704,11 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     def etypes(self):
         # extended types
         for t, g in zip(self.types, self.gtypes):
-            yield [''.join(t) for t in zip(t, g)]
+            yield [t for t in zip(t, g)]
 
     @property
     def etypes_cont(self):
-        return [''.join(t) for t in zip(self.types_cont, self.gtypes_cont)]
+        return [t for t in zip(self.types_cont, self.gtypes_cont)]
 
     ####################################################################################################################
 
@@ -796,7 +805,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
 class SinglePath(MacroMolPath):
 
-    __slots__ = "id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
+    #__slots__ = "id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
 
     def is_single(self):
         return True
@@ -804,10 +813,10 @@ class SinglePath(MacroMolPath):
     def is_passing(self):
         return False
 
-# TODO: passing paths probably does not work at all
+# TODO: there are problems with passing paths
 class PassingPath(MacroMolPath):
 
-    __slots__ = "_has_in_flag _has_out_flag id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
+    __slots__ = "_has_in_flag _has_out_flag".split() # id _path_in _path_object _path_out _types_in _types_object _types_out _object_len single_res_selection".split()
 
 
     def __init__(self, path_id, paths, types):

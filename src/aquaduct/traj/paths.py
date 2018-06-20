@@ -37,7 +37,7 @@ from array import array
 
 
 class PathTypesCodes(object):
-    __slots__ = "path_in_code path_object_code path_out_code path_walk_code".split() 
+    __slots__ = () #"path_in_code path_object_code path_out_code path_walk_code".split()
     #path_in_code = 'i'
     #path_object_code = 'c'
     #path_out_code = 'o'
@@ -49,7 +49,7 @@ class PathTypesCodes(object):
 
 
 class GenericPathTypeCodes(object):
-    __slots__ = "object_name scope_name out_name".split()
+    __slots__ = () #"object_name scope_name out_name".split()
     #object_name = 'c'
     #scope_name = 's'
     #out_name = 'n'

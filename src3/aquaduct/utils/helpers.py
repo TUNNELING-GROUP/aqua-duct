@@ -659,7 +659,7 @@ class SmartRangeFunction(object):
 
 
 class SmartRangeEqual(SmartRangeFunction):
-    __slots__ = "element times".split()
+    #__slots__ = "element times".split()
     #type = 'e'
 
     def get(self):
@@ -676,7 +676,7 @@ class SmartRangeEqual(SmartRangeFunction):
 
 
 class SmartRangeIncrement(SmartRangeFunction):
-    __slots__ = "element times".split()
+    #__slots__ = "element times".split()
     #type = 'i'
 
     def get(self):
@@ -693,7 +693,7 @@ class SmartRangeIncrement(SmartRangeFunction):
 
 
 class SmartRangeDecrement(SmartRangeFunction):
-    __slots__ = "element times".split()
+    #__slots__ = "element times".split()
     #type = 'd'
 
     def get(self):
@@ -712,7 +712,7 @@ class SmartRangeDecrement(SmartRangeFunction):
 class SmartRange(object):
     __slots__ = '_elements _len _min _max'.split()
 
-    def __init__(self, iterable=None):
+    def __init__(self, iterable=None, fast_array=None):
         self._elements = []
         self._len = 0
         self._min = None
@@ -720,6 +720,19 @@ class SmartRange(object):
 
         if iterable is not None:
             list(map(self.append, iterable))
+        if fast_array is not None:
+            self._elements = list(self._a2e(fast_array))
+            self._len = len(fast_array)
+            self._min = min(fast_array)
+            self._max = max(fast_array)
+
+    @staticmethod
+    def _a2e(a):
+        prev = 0
+        for i in np.argwhere(np.diff(a)>1).flatten():
+            yield SmartRangeIncrement(a[prev],i-prev+1)
+            prev = i+1
+        yield SmartRangeIncrement(a[prev],a[-1]-a[prev]+1)
 
     def __getstate__(self):
         return self._elements, self._len, self._min, self._max

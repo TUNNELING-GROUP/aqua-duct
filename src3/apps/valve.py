@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2.7
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
@@ -226,24 +226,29 @@ if __name__ == "__main__":
         # container for collecting whether particular stage was executed
         run_status = {}
 
+
         # STAGE I
         result1 = valve_exec_stage(0, config, stage_I_run,
                                    run_status=run_status)
+
 
         # STAGE II
         result2 = valve_exec_stage(1, config, stage_II_run,
                                    run_status=run_status,
                                    **result1)
 
+
         # STAGE III
         result3 = valve_exec_stage(2, config, stage_III_run,
                                    run_status=run_status,
                                    **result2)
 
+
         # STAGE IV
         result4 = valve_exec_stage(3, config, stage_IV_run,
                                    run_status=run_status,
                                    **result3)
+
 
         # STAGE V
         results = {}
@@ -254,6 +259,7 @@ if __name__ == "__main__":
                                    run_status=run_status,
                                    no_io=True,
                                    **results)
+
         # STAGE VI
         results = {}
         for result in (result3, result4):
@@ -268,6 +274,4 @@ if __name__ == "__main__":
 
         valve_end()
         logger.info('Valve calulations finished.')
-    from pympler import summary, muppy
-    summary.print_(summary.summarize(muppy.get_objects()))
 
