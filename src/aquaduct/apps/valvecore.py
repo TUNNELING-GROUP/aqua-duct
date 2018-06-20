@@ -1238,7 +1238,7 @@ def stage_II_run(config, options,
         for ps in ([results[n][pnr] for n in numbers] for pnr in xrange(len(all_res_ids))):
             new_p = GenericPaths((0,ps[0].id[-1]),
                                  name_of_res=ps[0].name,min_pf=0, max_pf=max_pf)
-            frames = chain(*[isum(p.frames_promise,fo) for p,fo in izip(ps,frames_offset)])
+            frames = chain(*[isum(p.frames,fo) for p,fo in izip(ps,frames_offset)])
             types = chain(*[p.types_promise for p in ps])
             new_p.add_frames_types(frames,types)
             paths.append(new_p)

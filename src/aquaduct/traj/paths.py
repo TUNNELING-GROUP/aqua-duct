@@ -33,7 +33,7 @@ from aquaduct.utils.sets import intersection, glue, left, right
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader,SingleResidueSelection
-
+from array import array
 
 
 class PathTypesCodes(object):
@@ -79,7 +79,8 @@ class GenericPaths(GenericPathTypeCodes):
         else:
             self.name = 'UNK'  # FIXME: magic constant
         self._types = SmartRange()
-        self._frames = SmartRange()
+        #self._frames = SmartRange()
+        self._frames = array('i')
 
         # following is required to correct in and out paths that begin or end in scope and
         # begin or end at the very begining of MD or at very end of MD
@@ -119,15 +120,16 @@ class GenericPaths(GenericPathTypeCodes):
 
     @property
     def frames(self):
-        return list(self._frames.get())
+        #return list(self._frames.get())
+        return list(self._frames)
 
-    @property
-    def frames_promise(self):
-        return self._frames.get()
+    #@property
+    #def frames_promise(self):
+    #    return self._frames.get()
 
     @property
     def coords(self):
-        return self.single_res_selection.coords(self._frames)
+        return self.single_res_selection.coords(SmartRange(fast_array=self._frames))
 
     @property
     def max_frame(self):
