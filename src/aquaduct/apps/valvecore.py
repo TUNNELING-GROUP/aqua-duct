@@ -2396,10 +2396,12 @@ def stage_V_run(config, options,
     if options.save:
         clui.message('Using user provided file (%s), and' % options.save)
         clui.message('for histograms data file (%s).' % (options.save + '.csv'))
+        pbar = True
     else:
         clui.message('Using standard output.')
         clui.message(sep())
         clui.message('')
+        pbar = False
 
     ############
     pa.sep()
@@ -2457,6 +2459,14 @@ def stage_V_run(config, options,
 
     ############
 
+    if pbar:
+        # calculate number of tnspt
+        nr_tnspt = [nr for nr,dummy in enumerate(iter_over_tnspt())][-1] + 1
+        tnspt_update = 47
+        pbar = clui.pbar(maxval=nr_tnspt*2*tnspt_update+len(spaths),mess="Calculating stats")
+
+    ############
+
     pa.sep()
     for tname, message in iter_over_tn():
         pa("Number of traceable residues%s: %d" %
@@ -2509,6 +2519,8 @@ def stage_V_run(config, options,
             sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
                          cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
             pa(make_line(line_template, clusters_stats_prob(cl, sp_ct_lim)), nr=nr)
+            if pbar:
+                pbar.heartbeat()
         pa.tend(header_line)
 
         header_line, line_template = get_header_line_and_line_template(clusters_stats_len_header(), head_nr=head_nr)
@@ -2518,6 +2530,8 @@ def stage_V_run(config, options,
             sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
                          cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
             pa(make_line(line_template, clusters_stats_len(cl, sp_ct_lim)), nr=nr)
+            if pbar:
+                pbar.heartbeat()
         pa.tend(header_line)
 
         header_line, line_template = get_header_line_and_line_template(clusters_stats_steps_header(), head_nr=head_nr)
@@ -2527,7 +2541,12 @@ def stage_V_run(config, options,
             sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
                          cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
             pa(make_line(line_template, clusters_stats_steps(cl, sp_ct_lim)), nr=nr)
+            if pbar:
+                pbar.heartbeat()
         pa.tend(header_line)
+        if pbar:
+            pbar.next(tnspt_update)
+
 
     ############
     pa.sep()
@@ -2554,6 +2573,8 @@ def stage_V_run(config, options,
             # ctypes_size.append(len(sps))
             if len(sps) > 0:
                 pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size, show="len")), nr=nr)
+            if pbar:
+                pbar.heartbeat()
         pa.tend(header_line)
         pa("Separate paths clusters types summary - mean number of frames of paths%s" % message)
         pa.thead(header_line)
@@ -2564,7 +2585,11 @@ def stage_V_run(config, options,
             if len(sps) > 0:
                 pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size, show="frames")),
                    nr=nr)
+            if pbar:
+                pbar.heartbeat()
         pa.tend(header_line)
+        if pbar:
+            pbar.next(tnspt_update)
 
     ############
     pa.sep()
@@ -2575,7 +2600,13 @@ def stage_V_run(config, options,
         if ctype is not None:
             ctype = ctype.generic
         pa(make_line(line_template, spath_full_info(sp, ctype=ctype, total=True)), nr=nr)
+        if pbar:
+            pbar.next()
+
     pa.tend(header_line)
+
+    if pbar:
+        pbar.finish()
 
     ############
     # additional analysis
