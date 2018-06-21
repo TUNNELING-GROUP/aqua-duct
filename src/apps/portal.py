@@ -77,6 +77,7 @@ if __name__ == "__main__":
         print ""
 
         for traj_reader in Reader.iterate():
+            traj_reader = traj_reader.open()
             for frame in traj_reader.iterate_over_frames():
                 print frame,
                 for area in areas:

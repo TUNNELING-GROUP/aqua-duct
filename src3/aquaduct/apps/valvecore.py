@@ -1386,6 +1386,8 @@ def stage_III_run(config, options,
                 pbar.next(step=len(paths_new_list))
             # now, it might be that some of paths are empty
             paths = [pat for pat in paths_ if len(pat.frames) > 0]
+            pool.close()
+            pool.join()
 
     ######################################################################
 

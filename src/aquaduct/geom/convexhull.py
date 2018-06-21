@@ -25,6 +25,7 @@ from scipy.spatial.distance import cdist, pdist, squareform
 from aquaduct.utils.helpers import uniqify
 from aquaduct.utils.multip import optimal_threads
 
+
 ################################################################################
 # SciPy ConvexHull improvements
 
@@ -68,6 +69,7 @@ def _simplices_vertices(convexhull):
     for simp in convexhull.simplices:
         yield [convexhull.vertices_ids.index(s) for s in simp]
 
+
 # add them to the class
 
 SciPyConvexHull.vertices_ids = property(_vertices_ids)
@@ -77,6 +79,7 @@ SciPyConvexHull.facets = property(_facets)
 SciPyConvexHull.edges = property(_edges)
 SciPyConvexHull.simplices_vertices = property(_simplices_vertices)
 
+
 ################################################################################
 # primitives to check if point(s) is within chull
 
@@ -85,18 +88,19 @@ def is_point_within_convexhull(point_chull):
     # point_chull is a tuple where first element holds a point and the second is a ConvexHull object.
     return point_chull[-1].point_within(point_chull[0])
 
+
 # many points - new solution but soon will be deprecated
 
 def are_points_within_convexhull(points, chull):
     vertices_points = chull.points[chull.vertices]
 
-    promise = ((SciPyConvexHull(np.vstack((point,vertices_points))).vertices[0] != 0) for point in points)
+    promise = ((SciPyConvexHull(np.vstack((point, vertices_points))).vertices[0] != 0) for point in points)
 
-    return np.fromiter(promise,bool)
+    return np.fromiter(promise, bool)
 
 
-def are_points_within_convexhull_old(points,chull,map_fun=None,sane_huge=10000):
-    return np.array(map(lambda p: is_point_within_convexhull((p,chull)),points))
+def are_points_within_convexhull_old(points, chull, map_fun=None, sane_huge=10000):
+    return np.array(map(lambda p: is_point_within_convexhull((p, chull)), points))
     '''
     points = np.array(list(points))
     if map_fun is None:
@@ -111,63 +115,66 @@ def are_points_within_convexhull_old(points,chull,map_fun=None,sane_huge=10000):
     return np.array(map(lambda p: is_point_within_convexhull((p,chull)),points))
     '''
 
+
 def are_points_within_convexhull_core(points_chull):
-    points,chull = points_chull
+    points, chull = points_chull
     ids = np.ones(len(points)) == 1
     output = np.ones(len(points)) == 0
     tree = KDTree(points)
-    if len(points)>3:
+    if len(points) > 3:
         search_p = SciPyConvexHull(points).vertices_points[0]
     else:
         search_p = np.zeros(3)
-    dver = squareform(pdist(chull.vertices_points)) # inter vertices distances
+    dver = squareform(pdist(chull.vertices_points))  # inter vertices distances
     search_p_change = True
-    N = len(ids)/10.
-    while sum(ids)>N:
-        i = tree.query(search_p,k=1)[-1]
+    N = len(ids) / 10.
+    while sum(ids) > N:
+        i = tree.query(search_p, k=1)[-1]
         if not ids[i]:
             i = int(np.argwhere(ids)[0])
-        p = np.hstack((points[i],1))
-        if is_point_within_convexhull((p[:3],chull)):
+        p = np.hstack((points[i], 1))
+        if is_point_within_convexhull((p[:3], chull)):
             dmin = np.abs(np.dot(chull.equations, np.array([p]).T))  # distances to faces
             dmin = dmin.min()
             output[i] = True
             ids[i] = False
             tt = tree.query_ball_point(p[:3], dmin)
-            output[tt]=True
+            output[tt] = True
             ids[tt] = False
             if search_p_change:
                 search_p_change = False
                 search_p = chull.vertices_points.mean(0)
         else:
-            dfacets = (cdist(f[:3,:],[p[:3]]) for f in chull.facets) # distance p to facets points, by facets
+            dfacets = (cdist(f[:3, :], [p[:3]]) for f in chull.facets)  # distance p to facets points, by facets
             dfac = []
-            for dfacet,simp,equa in zip(dfacets,chull.simplices_vertices,chull.equations):
+            for dfacet, simp, equa in zip(dfacets, chull.simplices_vertices, chull.equations):
                 dmin_vertices = 0
                 for nr in range(3):
-                    t = map(float,[dfacet[nr],dfacet[(nr+1)%3],dver[simp[nr],simp[(nr+1)%3]]])
-                    if np.arccos((t[1]**2 + t[2]**2 - t[0]**2)/(2*t[1]*t[2])) > np.pi/2:
+                    t = map(float, [dfacet[nr], dfacet[(nr + 1) % 3], dver[simp[nr], simp[(nr + 1) % 3]]])
+                    if np.arccos((t[1] ** 2 + t[2] ** 2 - t[0] ** 2) / (2 * t[1] * t[2])) > np.pi / 2:
                         dmin_vertices += 1
-                    elif np.arccos((t[0]**2 + t[2]**2 - t[1]**2)/(2*t[0]*t[2])) > np.pi/2:
+                    elif np.arccos((t[0] ** 2 + t[2] ** 2 - t[1] ** 2) / (2 * t[0] * t[2])) > np.pi / 2:
                         dmin_vertices += 1
-                    if dmin_vertices > 1: break
+                    if dmin_vertices > 1:
+                        break
                 if dmin_vertices > 1:
                     dfac.append(min(dfacet))
                 else:
-                    _dm = np.abs((equa*p).sum())
+                    _dm = np.abs((equa * p).sum())
                     dfac.append(_dm)
             dmin = min(dfac)
             tt = tree.query_ball_point(p[:3], dmin)
             ids[tt] = False
             search_p_change = True
-            if sum(ids)>3:
+            if sum(ids) > 3:
                 search_p = SciPyConvexHull(points[ids, :]).vertices_points[0]
             else:
                 search_p = np.zeros(3)
-    if ids.any(): # fall back to is_point...
-        output[[int(i) for i in np.argwhere(ids) if is_point_within_convexhull((points[i,:],chull))]]=True
+    if ids.any():  # fall back to is_point...
+        output[[int(i) for i in np.argwhere(ids) if is_point_within_convexhull((points[i, :], chull))]] = True
 
     return output
+
 
 ################################################################################
 
@@ -175,31 +182,29 @@ if __name__ == "__main__":
     import numpy as np
 
 
-    def plot_sphere(point,radius,ax,color='b',prec=30):
-        x = np.cos(np.linspace(0,2*np.pi,prec))*radius
-        y = np.sin(np.linspace(0,2*np.pi,prec))*radius
-        ax.plot(x+point[0],y+point[1],point[2],zdir='z',color=color)
-        ax.plot(x+point[0],y+point[2],point[1],zdir='y',color=color)
-        ax.plot(x+point[1],y+point[2],point[0],zdir='x',color=color)
+    def plot_sphere(point, radius, ax, color='b', prec=30):
+        x = np.cos(np.linspace(0, 2 * np.pi, prec)) * radius
+        y = np.sin(np.linspace(0, 2 * np.pi, prec)) * radius
+        ax.plot(x + point[0], y + point[1], point[2], zdir='z', color=color)
+        ax.plot(x + point[0], y + point[2], point[1], zdir='y', color=color)
+        ax.plot(x + point[1], y + point[2], point[0], zdir='x', color=color)
 
 
-    def plot_chull(chull,ax,color='g'):
-        [ax.plot(f[:,0],f[:,1],f[:,2],color=color) for f in chull.facets]
+    def plot_chull(chull, ax, color='g'):
+        [ax.plot(f[:, 0], f[:, 1], f[:, 2], color=color) for f in chull.facets]
 
 
     from aquaduct.geom import convexhull_c
     from aquaduct.utils.clui import tictoc
 
     for nr in xrange(10):
-
         A = np.random.randn(100, 3)
-        B = np.random.randn(1000, 3)*(1+np.random.randn(1))
+        B = np.random.randn(1000, 3) * (1 + np.random.randn(1))
 
-
-        with tictoc("Normal",stdout=True):
+        with tictoc("Normal", stdout=True):
             chull = SciPyConvexHull(A)
             with tictoc("old_way"):
-                old_way = np.array(map(lambda p: is_point_within_convexhull((p,chull)),B))
+                old_way = np.array(map(lambda p: is_point_within_convexhull((p, chull)), B))
             with tictoc("new_way"):
                 new_way = np.array(are_points_within_convexhull(B, chull))
         '''

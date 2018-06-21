@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016-2018  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk, Magdalena Ługowska, Sandra Gołdowska <info@aquaduct.pl>
+# Copyright (C) 2016-2018  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk,
+#                          Magdalena Ługowska, Sandra Gołdowska <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,7 +31,8 @@ from aquaduct.utils import clui
 from aquaduct.utils.maths import make_default_array
 from aquaduct.geom.convexhull import SciPyConvexHull
 
-class ProtoInletTypeCodes:
+
+class ProtoInletTypeCodes(object):
     surface = 'surface'
     internal = 'internal'
 
@@ -40,14 +42,14 @@ class ProtoInletTypeCodes:
 
 class InletTypeCodes(ProtoInletTypeCodes):
     # TODO: Rework this and make it coherent with barber create_spheres.
-    all_surface = [(ProtoInletTypeCodes.surface, itype) for itype in
-                   (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing)]
-    all_internal = [(ProtoInletTypeCodes.internal, itype) for itype in
-                    (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing)]
-    all_incoming = [(itype, ProtoInletTypeCodes.incoming) for itype in
-                    (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal)]
-    all_outgoing = [(itype, ProtoInletTypeCodes.outgoing) for itype in
-                    (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal)]
+    all_surface = ((ProtoInletTypeCodes.surface, itype) for itype in
+                   (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing))
+    all_internal = ((ProtoInletTypeCodes.internal, itype) for itype in
+                    (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing))
+    all_incoming = ((itype, ProtoInletTypeCodes.incoming) for itype in
+                    (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal))
+    all_outgoing = ((itype, ProtoInletTypeCodes.outgoing) for itype in
+                    (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal))
 
     surface_incoming = (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.incoming)
     internal_incoming = (ProtoInletTypeCodes.internal, ProtoInletTypeCodes.incoming)
@@ -73,7 +75,7 @@ class InletClusterGenericType(object):
     @property
     def output(self):
         return self.clusters[1]
-        #return self.clusters[-1]
+        # return self.clusters[-1]
 
     @staticmethod
     def cluster2str(cl):
@@ -156,14 +158,14 @@ class InletClusterExtendedType(InletClusterGenericType):
         return InletClusterGenericType(*self.clusters[:2])
 
 
-#InletOLD = namedtuple('Inlet', 'coords type reference frame') # for backward compatibility
+# InletOLD = namedtuple('Inlet', 'coords type reference frame') # for backward compatibility
 
 class Inlet(object):
-    def __init__(self, coords=None, type=None, reference=None, frame=None):
+    def __init__(self, coords=None, inlet_type=None, reference=None, frame=None):
         # no none is allowed
-        assert None not in [type, reference, frame], "Wrong Inlet init."
+        assert None not in [inlet_type, reference, frame], "Wrong Inlet init."
         self.coords = make_default_array(coords)
-        self.type = type
+        self.type = inlet_type
         self.reference = reference
         self.frame = frame
 
@@ -227,7 +229,6 @@ class Inlets(object):
             added_list.append(nr)
             nr += 1
         return added_list
-
 
     def add_cluster_annotations(self, clusters):
         # this replaces clusters!
@@ -342,7 +343,7 @@ class Inlets(object):
         if cluster in self.clusters_list:
             logger.debug('Reclustering %d cluster: initial number of clusters %d.' % (cluster, len(self.clusters_list)))
             reclust = self.call_clustering_method(method, self.lim2clusters(cluster).coords,
-                                                      spheres=self.lim2clusters(cluster).spheres)
+                                                  spheres=self.lim2clusters(cluster).spheres)
             if len(set(reclust)) <= 1:
                 clui.message('No new clusters found.')
             else:

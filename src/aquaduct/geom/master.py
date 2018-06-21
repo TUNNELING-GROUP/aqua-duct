@@ -38,7 +38,6 @@ from aquaduct.traj.inlets import InletClusterGenericType, InletClusterExtendedTy
 from aquaduct.traj.paths import PassingPath
 from aquaduct.apps.data import GCS
 
-
 ################################################################################
 part2type_dict = {0: GenericPathTypeCodes.scope_name,
                   1: GenericPathTypeCodes.object_name,
@@ -52,19 +51,18 @@ parts = (0, 1, 2)
 Parts enumerate.
 '''
 
-
 ################################################################################
 
 fsrs_cache = {}
 
 
 class CTypeSpathsCollectionWorker(object):
-    '''
+    """
     Worker class for averaging spaths in points of master path.
-    '''
+    """
 
     def __init__(self, spaths=None, ctype=None, bias_long=5, smooth=None, lock=None):
-        '''
+        """
         Core method for averaging spaths in to master path.
 
         Averaging is done in chunks.
@@ -73,7 +71,7 @@ class CTypeSpathsCollectionWorker(object):
         :param InletClusterGenericType ctype: CType of spaths.
         :param int bias_long: Bias towards long paths used in :meth:`lens_norm`.
         :param Smooth smooth: Smoothing method.
-        '''
+        """
 
         self.spaths = spaths
         assert isinstance(ctype, InletClusterGenericType) or isinstance(ctype, InletClusterExtendedType)
@@ -87,50 +85,53 @@ class CTypeSpathsCollectionWorker(object):
         self.full_size_cache = None
 
         self.lock = lock
-        #self.lock_required = False
-
+        # self.lock_required = False
 
     def coords_types_prob_widths(self, sp_slices_):
-        '''
+        """
         Calculates average coordinates, type and width in given chunk.
 
-        Parameter :attr:`sp_slices_` is tuple of length equal to number of spaths. It contains slices for all spaths respectively. With these slices spaths are cut and **only** resulting chunks are used for calculations.
+        Parameter :attr:`sp_slices_` is tuple of length equal to number of spaths.
+        It contains slices for all spaths respectively. With these slices spaths are cut and **only**
+        resulting chunks are used for calculations.
 
-        Therefore, this method average spaths in one point of master math. This point is defined by slices submitted as :attr:`sp_lices_` parameter.
+        Therefore, this method average spaths in one point of master math. This point is defined by slices submitted as
+        :attr:`sp_lices_` parameter.
 
         Algorithm of averaging (within current chunks of spaths):
 
         #. Coordinates for all spaths are collected.
-        #. Lengths of all spaths are collected (from cached variables) and kept as lists of lengths equal to chunks' sizes.
+        #. Lengths of all spaths are collected (from cached variables) and kept as lists of lengths equal to
+           chunks' sizes.
 
             .. note::
 
                 Lengths of collected lengths of spaths are of the same size as coordinates
 
-        #. New coordinates are calculated as weighted average of collected coordintates with :func:`numpy.average`. As weights collected lengths are used.
+        #. New coordinates are calculated as weighted average of collected coordintates with :func:`numpy.average`.
+           As weights collected lengths are used.
 
             .. note::
 
                 Function :func:`numpy.average` is called with flatten coordinates and lengths.
 
         #. Width of average path is calculated as mean value of flatten coordinates mutual distances.
-        #. Type of average paths is calculated as probability (frequency) of :attr:`~aquaduct.traj.paths.GenericPathTypeCodes.scope_name`.
+        #. Type of average paths is calculated as probability (frequency) of
+           :attr:`~aquaduct.traj.paths.GenericPathTypeCodes.scope_name`.
 
         :param tuple sp_slices_: Slices that cut chunks from all paths.
         :rtype: 3 element tuple
         :return: coordinates, type (frequency), and width of averaged spaths in current point
-        '''
+        """
 
         # get zz coords, zz means zip_zip - for all spaths
         coords_zz = []
         for sp, sl in zip(self.spaths, sp_slices_):
-            #self.lock.acquire()
+            # self.lock.acquire()
             coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
             coords_zz.append(coords_zz_element[sl])
-            #self.lock.release()
+            # self.lock.release()
 
-        #with self.lock:
-        #    coords_zz = [sp.get_coords_cont(smooth=self.smooth)[sl] for sp, sl in zip(self.spaths, sp_slices_)]
 
         # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
         lens_zz = []
@@ -159,7 +160,8 @@ class CTypeSpathsCollectionWorker(object):
 
         # calculate widths
         if len(self.spaths) > 1:  # is the len of coords_zz the same as sp_slices_ and self.spaths?
-            widths_to_append = make_default_array(np.mean(pdist(coords_zz_cat, 'euclidean'))) # TODO: this is probably the reason for memory hunger
+            widths_to_append = make_default_array(
+                np.mean(pdist(coords_zz_cat, 'euclidean')))  # TODO: this is probably the reason for memory hunger
         else:
             widths_to_append = 0.
         del coords_zz_cat
@@ -174,19 +176,19 @@ class CTypeSpathsCollectionWorker(object):
         return coords_to_append, types_to_append, widths_to_append
 
     def __call__(self, nr_sp_slices_):
-        '''
+        """
         Callable interface.
 
         :param tuple nr_sp_slices_: Two element tuple: nr and sp_slice
-        '''
+        """
         return nr_sp_slices_[0], self.coords_types_prob_widths(nr_sp_slices_[-1])
 
 
 class CTypeSpathsCollection(object):
-    '''
+    """
     Object for grouping separate paths that belong to the same CType.
     Method :meth:`get_master_path` allows for calculation of average path.
-    '''
+    """
     parts = (0, 1, 2)  # spath parts
     '''
     Enumeration of spath parts.
@@ -194,16 +196,16 @@ class CTypeSpathsCollection(object):
 
     # takes group of paths belonging to one ctype and allows to get MasterPath
     def __init__(self, spaths=None, ctype=None, bias_long=5, pbar=None, threads=1):
-        '''
+        """
         :param list spaths: List of separate paths.
         :param InletClusterGenericType ctype: CType of spaths.
         :param int bias_long: Bias towards long paths used in :meth:`lens_norm`.
         :param pbar: Progress bar object.
         :param int threads: Number of available threads.
-        '''
+        """
         self.pbar = pbar
         self.threads = threads
-        #self.threads = 1 # force one thread
+        # self.threads = 1 # force one thread
         logger.debug("Threads passed %d", threads)
 
         self.spaths = spaths
@@ -224,30 +226,29 @@ class CTypeSpathsCollection(object):
         self.manager = multiprocessing.Manager()
         self.lock = self.manager.Lock()
 
-
     def beat(self):
-        '''
+        """
         Touch progress bar, if any.
-        '''
+        """
         if self.pbar is not None:
             self.pbar.heartbeat()
 
     def update(self):
-        '''
+        """
         Update progres bar by one, if any.
-        '''
+        """
         if self.pbar is not None:
             self.pbar.next()
 
     def lens(self):
-        '''
+        """
         Returns total lengths of all paths.
 
         If ctype in #:# and not 0 and not None then take length of `object` part only.
 
         :return: Total (or `object` part) lengths of all paths.
         :rtype: numpy.ndarray
-        '''
+        """
 
         def lens_object_full():
             for sp in self.spaths:
@@ -263,7 +264,7 @@ class CTypeSpathsCollection(object):
         return make_default_array([float(sp.size) for sp in self.spaths])
 
     def lens_norm(self):
-        '''
+        """
         Returns normalized lengths calculated by :meth:`lens`.
 
         Applied normalization is twofold:
@@ -273,28 +274,28 @@ class CTypeSpathsCollection(object):
 
         :return: Normalized total (or `object` part) lengths of all paths.
         :rtype: numpy.ndarray
-        '''
+        """
         lens = self.lens()
         if np.max(lens) > 0:
             lens /= np.max(lens)  # normalize
             return lens ** self.bias_long  # bias to long paths
 
     def lens_real(self):
-        '''
+        """
         Returns real lengths of all paths.
 
         :return: Sizes of all paths.
         :rtype: list
-        '''
+        """
         return [sp.size for sp in self.spaths]
 
     def full_size(self):
-        '''
+        """
         Returns desired size of master path.
 
         :return: Size of master path.
         :rtype: int
-        '''
+        """
         # first check what is the size of paths in all parts and normalize and then scale them
         sizes = []
         for part in self.parts:
@@ -308,11 +309,11 @@ class CTypeSpathsCollection(object):
             else:
                 # weighted average by paths lengths
                 sizes.append(int(np.average([len(sp.types[part]) for sp in self.spaths], 0, lens)))
-        return max(30,sum(sizes)/3)  # total size (desired), min 30 - a good low limit default?
+        return max(30, sum(sizes) / 3)  # total size (desired), min 30 - a good low limit default?
 
     @staticmethod
     def simple_types_distribution(types):
-        '''
+        """
         Calculates normalized sizes of incoming, object, and outgoing parts of spath using generic types.
 
         It is assumed that spath has object part.
@@ -320,7 +321,7 @@ class CTypeSpathsCollection(object):
         :param list types: List of generic types.
         :rtype: 3 element list
         :return: Normalized sizes of incomin, object, and outgoing parts.
-        '''
+        """
         # possible types are:
         # GenericPathTypeCodes.object_name
         # GenericPathTypeCodes.scope_name
@@ -337,22 +338,22 @@ class CTypeSpathsCollection(object):
         return map(lambda x: float(x) / len(types), (td_in, td_obj, td_out))
 
     def types_distribution(self):
-        '''
+        """
         :rtype: numpy.matrix
         :return: median values of :meth:`simple_types_distribution` for all spaths.
-        '''
+        """
         # make median distribuitions
         return np.matrix(make_default_array(
             np.median([self.simple_types_distribution(sp.gtypes_cont) for sp in self.spaths], axis=0)))
 
     def types_prob_to_types(self, types_prob):
-        '''
+        """
         Changes types probabilities as returned by :meth:`CTypeSpathsCollectionWorker.coords_types_prob_widths` to types.
 
         :param list types_prob: List of types probabilities.
         :rtype: list
         :return: List of :class:`~aquaduct.traj.paths.GenericPathTypeCodes`.
-        '''
+        """
         # get proper types
         types_dist_orig = self.types_distribution()
         types_dist_range = list(set(types_prob))
@@ -369,8 +370,8 @@ class CTypeSpathsCollection(object):
                  in types_prob]
         return types
 
-    def get_master_path(self, smooth=None, resid=(0,0)):
-        '''
+    def get_master_path(self, smooth=None, resid=(0, 0)):
+        """
         .. _master_path_generation:
 
         Averages spaths into one master path.
@@ -386,16 +387,16 @@ class CTypeSpathsCollection(object):
         :param int resid: Residue ID of master path.
         :rtype: :class:`~aquaduct.traj.paths.MasterPath`
         :return: Average path as :class:`~aquaduct.traj.paths.MasterPath` object or `None` if creation of master path failed.
-        '''
+        """
         # prepare worker
         worker = CTypeSpathsCollectionWorker(spaths=self.spaths, ctype=self.ctype, bias_long=self.bias_long,
-                                             smooth=smooth,lock=self.lock)
+                                             smooth=smooth, lock=self.lock)
         # add some spaths precalcualted properties to worker
         worker.lens_cache = self.lens_cache
         worker.lens_real_cache = self.lens_real_cache
         worker.lens_norm_cache = self.lens_norm_cache
         worker.full_size_cache = self.full_size_cache
-        #worker.lock_required = GCS.cachemem or GCS.cachedir
+        # worker.lock_required = GCS.cachemem or GCS.cachedir
 
         # desired full size of path
         full_size = self.full_size_cache
@@ -417,7 +418,7 @@ class CTypeSpathsCollection(object):
             chunk_size = int(full_size / self.threads ** 2)
             if chunk_size == 0:
                 chunk_size = 1
-            #map_fun = partial(pool.imap_unordered, chunksize=chunk_size)
+            # map_fun = partial(pool.imap_unordered, chunksize=chunk_size)
             map_fun = partial(pool.imap, chunksize=chunk_size)
 
         # TODO: it is possible to add pbar support here!
@@ -474,14 +475,14 @@ class CTypeSpathsCollection(object):
 
         with clui.tictoc('generic paths in %s' % str(self.ctype)):
             # get and populate GenericPath
-            fsrs_cache.update({resid:FakeSingleResidueSelection(resid,frames,coords)})
-            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf,single_res_selection=fsrs_cache[resid])
+            fsrs_cache.update({resid: FakeSingleResidueSelection(resid, frames, coords)})
+            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf)
             for t, f in zip(types, frames):  # TODO: remove loop
                 gp.add_type(f, t)
         # now try to get first SinglePath, if unable issue WARNING
         with clui.tictoc('separate paths in %s' % str(self.ctype)):
             try:
-                sp = list(yield_single_paths([gp],passing=False))[0]
+                sp = list(yield_single_paths([gp], passing=False))[0]
             except IndexError:
                 logger.warning('No master path found for ctype %s' % str(self.ctype))
                 return None
@@ -490,24 +491,25 @@ class CTypeSpathsCollection(object):
         mp.add_width(widths)
         return mp
 
+
 # fake single residue type like object
 from aquaduct.traj.sandwich import SingleResidueSelection
 from aquaduct.utils.helpers import arrayify
 
+
 class FakeSingleResidueSelection(SingleResidueSelection):
-    def __init__(self,resid,frames,coords):
+    def __init__(self, resid, frames, coords):
         super(FakeSingleResidueSelection, self).__init__(resid)
         self._frames = frames
         self._coords = coords
 
     @arrayify(shape=(None, 3))
-    def coords(self,frames):
+    def coords(self, frames):
         # return coords for frames
         for f in frames:
             yield self._coords[self._frames.index(f)]
 
-
     # TODO: This part of the code is weak. Change it, here and as well as in sandwich.
-    def coords_smooth(self,sranges,smooth):
+    def coords_smooth(self, sranges, smooth):
         for srange in sranges:
             yield smooth(self.coords(srange.get()))

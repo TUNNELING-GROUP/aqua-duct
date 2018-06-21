@@ -16,11 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
+from aquaduct import logger
 
 from aquaduct.utils.helpers import SmartRangeIncrement
-
-logger = logging.getLogger(__name__)
 
 import os
 import cPickle as pickle
@@ -29,22 +27,25 @@ import numpy as np
 from collections import OrderedDict
 from importlib import import_module
 
-#from netCDF4 import Dataset
+# from netCDF4 import Dataset
 
 from aquaduct import version, version_nice, logger
-#from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
+# from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 from aquaduct.utils import clui
+
 
 class GlobalConfigStore(object):
     cachedir = None
     cachemem = False
 
+
 GCS = GlobalConfigStore()
+
 
 class CoordsRangeIndexCache(object):
     cache = {}
 
-    def get_frc(self,number,rid):
+    def get_frc(self, number, rid):
         # wrapper for get ranges from frc
         if number not in self.cache:
             self.cache.update({number: {}})
@@ -54,15 +55,16 @@ class CoordsRangeIndexCache(object):
             logger.debug("CRIC new rid %d", rid)
         return self.cache[number][rid]
 
-    def update_cric(self,cric):
-        for number,rid_frc in cric.cache.iteritems():
-            for rid,frc in rid_frc.iteritems():
-                this_frc = self.get_frc(number,rid)
+    def update_cric(self, cric):
+        for number, rid_frc in cric.cache.iteritems():
+            for rid, frc in rid_frc.iteritems():
+                this_frc = self.get_frc(number, rid)
                 for srange in frc.collection:
                     this_frc.append(srange)
 
 
 CRIC = CoordsRangeIndexCache()
+
 
 ################################################################################
 # CIRC save in cache dir
@@ -71,22 +73,24 @@ def get_cric_reader(mode='r'):
     if GCS.cachedir:
         try:
             data_file_name = GCS.cachedir + os.path.sep + 'cric.dump'
-            if mode=='r' and not os.path.exists(data_file_name):
+            if mode == 'r' and not os.path.exists(data_file_name):
                 return
-            if mode=='w' and not os.path.exists(GCS.cachedir):
+            if mode == 'w' and not os.path.exists(GCS.cachedir):
                 os.makedirs(GCS.cachedir)
             vda = get_vda_reader(data_file_name)
-            logger.debug("Preparing CRIC store with file %s",data_file_name)
-            return vda(mode=mode,data_file_name=data_file_name)
+            logger.debug("Preparing CRIC store with file %s", data_file_name)
+            return vda(mode=mode, data_file_name=data_file_name)
         except IOError:
             logger.warning("Unable to access CRIC data in cache dir [%s]." % GCS.cachedir)
             pass
+
 
 def save_cric():
     vda = get_cric_reader(mode='w')
     if vda:
         logger.debug("Saving CRIC data.")
-        vda.dump(**{"CRIC":CRIC.cache})
+        vda.dump(**{"CRIC": CRIC.cache})
+
 
 def load_cric():
     vda = get_cric_reader(mode='r')
@@ -96,18 +100,19 @@ def load_cric():
     else:
         CRIC.cache = {}
 
+
 ################################################################################
 # FRC
 
 class FramesRangeCollection(object):
     # currently it is assumed that samrt ranges increments only are possible
     def __init__(self):
-        self.collection = [] # order on this list does matter!
+        self.collection = []  # order on this list does matter!
 
-    def append(self,srange):
+    def append(self, srange):
         if not len(self.collection):
             self.collection.append(srange)
-            logger.debug("FRC append first srange %s",str(srange))
+            logger.debug("FRC append first srange %s", str(srange))
             return
         # there are V cases:
         #           |------|            sr
@@ -117,34 +122,38 @@ class FramesRangeCollection(object):
         # 4              |----|         it overlaps with sr but ends after
         # 24     |------------|         it overlabs with sr in 2 and 4 way
         # 5                  |----|     it is after sr
-        while (srange is not None):
-            for nr,sr in enumerate(self.collection):
+        while srange is not None:
+            for nr, sr in enumerate(self.collection):
                 # sr
-                if sr.overlaps_mutual(srange):# or srange.overlaps(sr):
+                if sr.overlaps_mutual(srange):  # or srange.overlaps(sr):
                     if sr.contains(srange):
                         # case 3
                         srange = None
                         break
                     if srange.first_element() < sr.first_element():
                         # case 2
-                        self.collection.insert(nr,SmartRangeIncrement(srange.first_element(),sr.first_element()-srange.first_element()))
-                        logger.debug("FRC case 2 insert srange %s at %d",str(SmartRangeIncrement(srange.first_element(),sr.first_element()-srange.first_element())),nr)
+                        self.collection.insert(nr, SmartRangeIncrement(srange.first_element(),
+                                                                       sr.first_element() - srange.first_element()))
+                        logger.debug("FRC case 2 insert srange %s at %d", str(
+                            SmartRangeIncrement(srange.first_element(), sr.first_element() - srange.first_element())),
+                                     nr)
                         if srange.last_element() > sr.last_element():
                             # case 24
-                            srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
+                            srange = SmartRangeIncrement(sr.last_element() + 1,
+                                                         srange.last_element() - sr.last_element())
                             break
                         else:
                             srange = None
                         break
                     if srange.last_element() > sr.last_element():
                         # case 4
-                        srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
+                        srange = SmartRangeIncrement(sr.last_element() + 1, srange.last_element() - sr.last_element())
                         continue
                 else:
                     if srange.last_element() < sr.first_element():
                         # case 1: insert it before sr
-                        self.collection.insert(nr,srange)
-                        logger.debug("FRC case 1 insert srange %s at %d",str(srange),nr)
+                        self.collection.insert(nr, srange)
+                        logger.debug("FRC case 1 insert srange %s at %d", str(srange), nr)
                         srange = None
                         break
                     if srange.first_element() > sr.last_element():
@@ -153,10 +162,10 @@ class FramesRangeCollection(object):
             # if something is left append it to the end
             if srange is not None and nr == len(self.collection) - 1:
                 self.collection.append(srange)
-                logger.debug("FRC append remaining srage %s",str(srange))
+                logger.debug("FRC append remaining srage %s", str(srange))
                 srange = None
 
-    def get_ranges(self,srange):
+    def get_ranges(self, srange):
         # yield sranges from collection and appropriate ranges for these sranges
         # assumes append was already called? call it!
         # after it is called only case 3 or 4 is possible or no overlap at all
@@ -165,12 +174,16 @@ class FramesRangeCollection(object):
             if sr.overlaps(srange):
                 if sr.contains(srange):
                     # case 3
-                    yield sr,xrange(srange.first_element()-sr.first_element(),srange.first_element()-sr.first_element()+len(srange))
+                    yield sr, xrange(srange.first_element() - sr.first_element(),
+                                     srange.first_element() - sr.first_element() + len(srange))
                     srange = None
                     break
                 # case 4
-                yield sr,xrange(srange.first_element()-sr.first_element(),srange.first_element()-sr.first_element()+sr.last_element()-srange.first_element()+1)
-                srange = SmartRangeIncrement(sr.last_element()+1,srange.last_element()-sr.last_element())
+                yield sr, xrange(srange.first_element() - sr.first_element(),
+                                 srange.first_element() - sr.first_element() +
+                                 sr.last_element() - srange.first_element() + 1)
+                srange = SmartRangeIncrement(sr.last_element() + 1,
+                                             srange.last_element() - sr.last_element())
 
 
 ################################################################################
@@ -229,15 +242,17 @@ class LoadDumpWrapper(object):
         return self.convert(self.fh.readline(*args, **kwargs))
 '''
 
+
 ################################################################################
 # VDA reader
 
 def get_vda_reader(filename):
     if os.path.splitext(filename)[-1].lower() in ['.dump']:
         return ValveDataAccess_pickle
-    elif os.path.splitext(filename)[-1].lower() in ['.nc','.aqnc']:
+    elif os.path.splitext(filename)[-1].lower() in ['.nc', '.aqnc']:
         return ValveDataAccess_nc
     raise ValueError('Unknown file type of %s file' % filename)
+
 
 ################################################################################
 # Data Access interface
@@ -293,7 +308,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
                 while True:
                     loaded_data = pickle.load(self.data_file)
                     self.data.update(loaded_data)
-            except:
+            except: # TODO: remove it!
                 pass
 
     def close(self):
@@ -314,17 +329,17 @@ class ValveDataAccess_pickle(ValveDataAccess):
                     # TODO: following is to overcome problems with missing names when data is <0.4
                     ################################################################################
                     if name == 'paths':
-                        for path_name,path in value.iteritems():
-                            if not hasattr(path,'name'):
+                        for path_name, path in value.iteritems():
+                            if not hasattr(path, 'name'):
                                 path.name = self.unknown_names
                     if name == 'spaths':
                         for spath in value:
-                            if not hasattr(spath.id,'name'):
+                            if not hasattr(spath.id, 'name'):
                                 spath.id.name = self.unknown_names
                     if name == 'inls':
-                        if not hasattr(value,'spheres'):
+                        if not hasattr(value, 'spheres'):
                             value.spheres = []
-                        if hasattr(value,'refs'):
+                        if hasattr(value, 'refs'):
                             for r in value.refs:
                                 if not hasattr(r, 'name'):
                                     r.name = self.unknown_names
@@ -371,7 +386,6 @@ class ValveDataAccess_pickle(ValveDataAccess):
         assert self.mode == "r"
         value = self.data[name]
 
-
         return value
 
     def set_variable(self, name, value):
@@ -385,7 +399,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
         if 'options' in name:
             value = value._asdict()
         '''
-        if False: #hasattr(value,'simple_dump'):
+        if False:  # hasattr(value,'simple_dump'):
             pickle.dump({name: value.simple_dump()}, self.data_file)
         else:
             pickle.dump({name: value}, self.data_file)
@@ -412,6 +426,8 @@ class ValveDataAccessRoots(object):
 VDAR = ValveDataAccessRoots()
 
 '''
+
+
 def get_object_name(something):
     name_ = something.__module__
     if hasattr(something, '__name__'):
@@ -477,5 +493,3 @@ class ValveDataAccess_nc(ValveDataAccess):
 # default way
 
 ValveDataAccess = ValveDataAccess_pickle
-
-

@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
+"""
 Smooth module defines methods for smoothing of trajectories.
 
 Available methods:
@@ -32,7 +32,7 @@ Available methods:
     WindowOverMaxStepSmooth
     DistanceWindowOverMaxStepSmooth
     ActiveWindowOverMaxStepSmooth
-'''
+"""
 
 import numpy as np
 from scipy.signal import savgol_filter
@@ -43,27 +43,29 @@ from aquaduct.geom import traces
 from aquaduct.utils.helpers import arrayify
 from aquaduct.apps.data import get_object_from_name, get_object_name
 
+
 class Smooth(object):
-    '''
+    """
     Base class for all smoothing methods.
-    '''
+    """
+
     def __init__(self, recursive=None, **kwargs):
-        '''
+        """
         :param int recursive: Number of recursions of the method, everything evaluated to ``False`` is equivalent to 1.
-        '''
+        """
         super(Smooth, self).__init__()
         self.recursive = recursive
 
     def smooth(self, coords):
-        '''
+        """
         Abstract method for smoothing method implementation.
 
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         raise NotImplementedError("This is an abstract method.")
 
     def __call__(self, coords):
-        '''
+        """
         Call method for all smoothing methods.
 
         Input coordinates should be iterable and each element should be numpy.ndarray. If length of :attr:`coords` is less then 3 smoothing method is not run and coordinates are returned unchanged.
@@ -73,7 +75,7 @@ class Smooth(object):
         :param Iterable coords: Input coordinates to be smoothed.
         :rtype: numpy.ndarray
         :return: Smoothed coordinates.
-        '''
+        """
         if len(coords) < 3:
             # this make no sense if coords length is less than 3
             return coords
@@ -89,26 +91,27 @@ class Smooth(object):
 
 
 class GeneralWindow(object):
-    '''
+    """
     Base class for window based smoothing methods.
-    '''
-    def __init__(self, function=np.mean, **kwargs):
-        '''
-        :param function function: Function to be used for averaging coordinates within a window.
-        '''
+    """
+
+    def __init__(self, fun=np.mean, **kwargs):
+        """
+        :param function fun: Function to be used for averaging coordinates within a window.
+        """
         super(GeneralWindow, self).__init__()
-        self.function = function
+        self.function = fun
 
     @staticmethod
     def max_window_at_pos(pos, size):
-        '''
+        """
         Method returns maximal possible window at given position of the list with given size of the list. Returned window fits in to the list of given size and is symmetrical.
 
         :param int pos: Position in question.
         :param int size: Length of the list.
         :rtype: 2 element tuple of int
         :return: Lowest possible bound and highest possible bound of the window.
-        '''
+        """
         # size is length
         # pos is zero based
         min_dist_to_edge = min((pos - 0, size - pos - 1))
@@ -122,7 +125,7 @@ class GeneralWindow(object):
         return lo, hi
 
     def check_bounds_at_max_window_at_pos(self, lb, ub, pos, size):
-        '''
+        """
         Method checks if window fits in to maximal possible window calculated according to :meth:`max_window_at_pos`. If not window is corrected.
 
         :param int lb: Lower bound of the window in question.
@@ -131,7 +134,7 @@ class GeneralWindow(object):
         :param int size: Length of the list.
         :rtype: 2 element tuple of int
         :return: Lowest possible bound and highest possible bound of the window corrected to maximal possible window.
-        '''
+        """
         assert ub > pos
         lo, hi = self.max_window_at_pos(pos, size)
         if (pos - 0) <= (size - pos - 1):
@@ -145,48 +148,47 @@ class GeneralWindow(object):
 
 
 class IntWindow(GeneralWindow):
-    '''
+    """
     Base class for all window smoothing methods that require integer window.
-    '''
+    """
+
     def __init__(self, window=5, **kwargs):
-        '''
+        """
         :param int window: One side size of the window.
-        '''
+        """
         super(IntWindow, self).__init__(**kwargs)
         self.window = int(window)
 
 
 class FloatWindow(GeneralWindow):
-    '''
+    """
     Base class for all window smoothing methods that require float window.
-    '''
+    """
+
     def __init__(self, window=5., **kwargs):
-        '''
+        """
         :param float window: Size of the window.
-        '''
+        """
         super(FloatWindow, self).__init__(**kwargs)
         self.window = float(window)
 
 
 class WindowSmooth(Smooth, IntWindow):
-    '''
+    """
     Defined size window smoothing.
 
     For each coordinate a symmetrical (if possible) window of size defined by :attr:`window` is created.
     In case of coordinates at the edges created window is truncated to the edges. Next, all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.
-    '''
+    """
 
     def __init__(self, **kwargs):
         super(WindowSmooth, self).__init__(**kwargs)
 
-
-
-
     @arrayify()
     def smooth(self, coords):
-        '''
+        """
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         n = len(coords)
         for pos in xrange(n):
             lo, hi = self.max_window_at_pos(pos, n)
@@ -198,7 +200,7 @@ class WindowSmooth(Smooth, IntWindow):
 
 
 class DistanceWindowSmooth(Smooth, FloatWindow):
-    '''
+    """
     Distance defined size window smoothing.
 
     This is modification of :class:`WindowSmooth` method.
@@ -206,17 +208,16 @@ class DistanceWindowSmooth(Smooth, FloatWindow):
 
     Next, for each coordinate a symmetrical (if possible) window of size calculated in the first step is created.
     In case of coordinates at the edges created window is truncated to the edges. Next, all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.
-    '''
+    """
 
     def __init__(self, **kwargs):
         super(DistanceWindowSmooth, self).__init__(**kwargs)
 
-
     @arrayify()
     def smooth(self, coords):
-        '''
+        """
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         n = len(coords)
 
         cdiff = traces.diff(coords)
@@ -238,22 +239,20 @@ class DistanceWindowSmooth(Smooth, FloatWindow):
 
 
 class ActiveWindowSmooth(Smooth, FloatWindow):
-    '''
+    """
     Active size window smoothing.
 
     Similarly to :class:`DistanceWindowSmooth` method the window size is defined as a distance. The difference is that the actual window size is calculated for each point separately. Thus, for each coordinate the window is calculated by examining the distance differences between points. In this method window is not necessarily symmetrical. Once window is calculated all coordinates within the window are averaged with a function defined by :attr:`function`. Resulting value(s) are the smoothed coordinates.
-    '''
+    """
+
     def __init__(self, **kwargs):
         super(ActiveWindowSmooth, self).__init__(**kwargs)
 
-
-
-
     @arrayify()
     def smooth(self, coords):
-        '''
+        """
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         n = len(coords)
         d = traces.diff(coords)
 
@@ -278,22 +277,21 @@ class ActiveWindowSmooth(Smooth, FloatWindow):
 
 
 class MaxStepSmooth(Smooth):
-    '''
+    """
     Maximal step smoothing.
 
     This method moves thorough coordinates and calculates distance over the traversed path. If it is then :attr:`step` the coordinate is used as a "cardinal point". The beginning and the end of the path are also added to the list of cardinal points. Next, all cardinal points and points of linear interpolation between cardinal points are returned as smoothed coordinates. Number of interpolated points is in accordance to points skipped between cardinal points.
-    '''
+    """
+
     def __init__(self, step=1., **kwargs):
         super(MaxStepSmooth, self).__init__(**kwargs)
         self.step = step
 
-
-
     @arrayify()
     def smooth(self, coords):
-        '''
+        """
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         n = len(coords)
 
         for pos in xrange(n):
@@ -328,88 +326,88 @@ class MaxStepSmooth(Smooth):
 
 
 class SavgolSmooth(Smooth):
-    '''
+    """
     Savitzky-Golay based smoothing.
 
     Method uses 1D filter available in SciPy, see  :func:`~scipy.signal.savgol_filter`.
     For each dimension filter is applied separately. Only :attr:`window_length` and :attr:`polyorder` attributes are used.
-    '''
-    def __init__(self,window_length=5, polyorder=2, **kwargs):
-        '''
+    """
+
+    def __init__(self, window_length=5, polyorder=2, **kwargs):
+        """
         :param: int window_length: Size of the window, odd number.
         :param: int polyorder: Polynomial order.
-        '''
+        """
         super(SavgolSmooth, self).__init__(**kwargs)
-        self.window_length =  window_length
+        self.window_length = window_length
         self.polyorder = polyorder
         self.additional_kwargs = kwargs
         self.savgol = self.set_savgol_function()
 
-
     def set_savgol_function(self):
-        return partial(savgol_filter, window_length=self.window_length, polyorder=self.polyorder, axis=0, **self.additional_kwargs)
+        return partial(savgol_filter, window_length=self.window_length, polyorder=self.polyorder, axis=0,
+                       **self.additional_kwargs)
 
     @arrayify()
     def smooth(self, coords):
-        '''
+        """
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         return make_default_array(self.savgol(make_default_array(coords)))
 
 
 class WindowOverMaxStepSmooth(Smooth):
-    '''
+    """
     Window smoothing over maximal step smoothing.
 
     First, :class:`MaxStepSmooth` is applied, and then :class:`WindowSmooth`.
-    '''
+    """
+
     def __init__(self, **kwargs):
         super(WindowOverMaxStepSmooth, self).__init__(**kwargs)
         self.window = WindowSmooth(**kwargs)
         self.mss = MaxStepSmooth(**kwargs)
 
-
-
     def smooth(self, coords):
-        '''
+        """
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         return self.window.smooth(self.mss.smooth(coords))
 
 
 class ActiveWindowOverMaxStepSmooth(Smooth):
-    '''
+    """
     Active window smoothing over maximal step smoothing.
 
     First, :class:`MaxStepSmooth` is applied, and then :class:`ActiveWindowSmooth`.
-    '''
+    """
+
     def __init__(self, **kwargs):
         super(ActiveWindowOverMaxStepSmooth, self).__init__(**kwargs)
         self.window = ActiveWindowSmooth(**kwargs)
         self.mss = MaxStepSmooth(**kwargs)
 
-
     def smooth(self, coords):
-        '''
+        """
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         return self.window.smooth(self.mss.smooth(coords))
 
 
 class DistanceWindowOverMaxStepSmooth(Smooth):
-    '''
+    """
     Distance window smoothing over maximal step smoothing.
 
     First, :class:`MaxStepSmooth` is applied, and then :class:`DistanceWindowSmooth`.
-    '''
+    """
+
     def __init__(self, **kwargs):
         super(DistanceWindowOverMaxStepSmooth, self).__init__(**kwargs)
         self.window = DistanceWindowSmooth(**kwargs)
         self.mss = MaxStepSmooth(**kwargs)
 
-
     def smooth(self, coords):
-        '''
+        """
         :param Iterable coords: Input coordinates to be smoothed.
-        '''
+        """
         return self.window.smooth(self.mss.smooth(coords))

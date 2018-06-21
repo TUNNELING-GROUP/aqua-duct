@@ -611,20 +611,20 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     def get_inlets(self):
         if self.has_in:
             yield Inlet(coords=self.coords_in[0],
-                        type=(InletTypeCodes.surface, InletTypeCodes.incoming),
+                        inlet_type=(InletTypeCodes.surface, InletTypeCodes.incoming),
                         reference=self.id,
                         frame=self.path_in[0])
             yield Inlet(coords=self.coords_in[-1],
-                        type=(InletTypeCodes.internal, InletTypeCodes.incoming),
+                        inlet_type=(InletTypeCodes.internal, InletTypeCodes.incoming),
                         reference=self.id,
                         frame=self.path_in[-1])
         if self.has_out:
             yield Inlet(coords=self.coords_out[0],
-                        type=(InletTypeCodes.internal, InletTypeCodes.outgoing),
+                        inlet_type=(InletTypeCodes.internal, InletTypeCodes.outgoing),
                         reference=self.id,
                         frame = self.path_out[0])
             yield Inlet(coords=self.coords_out[-1],
-                        type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
+                        inlet_type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
                         reference=self.id,
                         frame=self.path_out[-1])
 
@@ -898,12 +898,12 @@ class PassingPath(MacroMolPath):
         # how to check it?
         if self.has_in:
             yield Inlet(coords=self.coords[0][0],
-                        type=(InletTypeCodes.surface, InletTypeCodes.incoming),
+                        inlet_type=(InletTypeCodes.surface, InletTypeCodes.incoming),
                         reference=self.id,
                         frame=self.paths_first_in)
         if self.has_out:
             yield Inlet(coords=self.coords[0][-1],
-                        type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
+                        inlet_type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
                         reference=self.id,
                         frame=self.paths_last_out)
 

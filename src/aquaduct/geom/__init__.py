@@ -17,8 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import logging
-logger = logging.getLogger(__name__)
+from aquaduct import logger
 
 from collections import namedtuple
 
@@ -28,11 +27,13 @@ import copy
 
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import lind
+from aquaduct import __mail__
+
 
 class Sphere(namedtuple('Sphere', 'center radius nr')):
-    '''
+    """
     Simple sphere class.
-    '''
+    """
 
     def is_point_within(self, point):
         return self.radius > cdist(np.matrix(self.center), np.matrix(point), metric='euclidean')
@@ -44,6 +45,7 @@ class Sphere(namedtuple('Sphere', 'center radius nr')):
     def is_sphere_cloud(self, sphere):
         center, radius = sphere
         return self.radius > cdist(np.matrix(self.center), np.matrix(center), metric='euclidean') - radius
+
 
 def do_cut_thyself(spheres_passed, progress=False):
     # returns noredundant spheres
@@ -80,7 +82,8 @@ def do_cut_thyself(spheres_passed, progress=False):
             spheres = lind(spheres, to_keep_ids)
             # add big to non redundant
             noredundat_spheres.append(big)
-            if progress: pbar.update(N - len(spheres))
+            if progress:
+                pbar.update(N - len(spheres))
             logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
                 len(noredundat_spheres), len(spheres)))
         if len(noredundat_spheres) == noredundat_spheres_count:
@@ -90,7 +93,8 @@ def do_cut_thyself(spheres_passed, progress=False):
         else:
             noredundat_spheres_count = len(noredundat_spheres)
             spheres = noredundat_spheres
-    if progress: pbar.finish()
+    if progress:
+        pbar.finish()
 
     assert len(noredundat_spheres) + len(
         redundat_spheres) == N, "Inconsistent number of not and redundant spheres. Please send a bug report to the developer(s): %s" % __mail__

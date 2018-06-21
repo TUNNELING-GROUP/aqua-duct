@@ -18,6 +18,7 @@
 
 import logging
 logger = logging.getLogger(__name__)
+
 from os import unlink
 
 import MDAnalysis as mda

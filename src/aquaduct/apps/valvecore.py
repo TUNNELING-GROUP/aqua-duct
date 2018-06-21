@@ -17,34 +17,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-#import ipdb as pdb
-
+from aquaduct import logger
 
 import ConfigParser
-import copy
-import multiprocessing as mp
-import numpy as np
 import operator
 import os
 import re
-import shlex
 import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps, partial
-from itertools import izip_longest, izip, imap, chain
+from itertools import izip_longest, izip, chain
 from keyword import iskeyword
 from multiprocessing import Pool, Queue, Process
 
-import array
-
+import numpy as np
 from scipy.spatial.distance import cdist
 from scipy.stats import ttest_ind
 
-from aquaduct.utils.clui import roman
-
 from aquaduct import greetings as greetings_aquaduct
-from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
 from aquaduct.apps.data import get_vda_reader, GCS, CRIC, save_cric
 from aquaduct.geom import traces
@@ -54,19 +44,17 @@ from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation
 from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
-from aquaduct.traj.barber import WhereToCut,barber_paths
-from aquaduct.traj.dumps import TmpDumpWriterOfMDA
+from aquaduct.traj.barber import WhereToCut, barber_paths
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath, SinglePath
 from aquaduct.traj.paths import yield_generic_paths
-# from aquaduct.traj.reader import ReadViaMDA
-# from aquaduct.traj.selections import CompactSelectionMDA
+from aquaduct.traj.sandwich import ResidueSelection, Reader, open_traj_reader
 from aquaduct.utils import clui
-from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or, SmartRange
-from aquaduct.utils.multip import optimal_threads
-from aquaduct.traj.sandwich import ResidueSelection, Reader,open_traj_reader, SingleResidueSelection
+from aquaduct.utils.clui import roman
 from aquaduct.utils.helpers import iterate_or_die
+from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
+from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
 
 __mail__ = 'info@aquaduct.pl'
@@ -422,7 +410,8 @@ class ValveConfig(ConfigSpecialNames):
             # get default clusterization method
             defmet = self.config.get(section, 'method')
             for method in available_clusterization_methods:
-                if method == defmet: continue
+                if method == defmet:
+                    continue
                 out.append('method = %s' % method)
                 params = get_required_params(method)
                 if params:
@@ -468,23 +457,28 @@ class ValveConfig(ConfigSpecialNames):
                 if comment:
                     output.extend(['# %s' % line for line in comment])
             for key, value in opts._asdict().iteritems():  # loop over options
-                if key in skip_list: continue
+                if key in skip_list:
+                    continue
                 # comment scope etc. in stage II if dump_template
                 if dump_template and name == self.stage_names(1):
                     if key in self.common_traj_data_config_names():
                         key = '#' + key
                 output.append('%s = %s' % (key, value2str(value)))
-            if not concise: output.append('')
+            if not concise:
+                output.append('')
 
         # is something missing? another loop over all additional sections
         for miss in self.config.sections():
-            if miss in names: continue  # skip if it was already dumped in the loop above
+            if miss in names:
+                continue  # skip if it was already dumped in the loop above
             output.append('[%s]' % miss)
             for key in self.config.options(miss):  # loop over options in section miss
-                if key in skip_list: continue
+                if key in skip_list:
+                    continue
                 value = self.config.get(miss, key)
                 output.append('%s = %s' % (key, value2str(value)))
-            if not concise: output.append('')
+            if not concise:
+                output.append('')
         while not len(output[-1].strip()):
             output.pop()
         return output
@@ -862,9 +856,8 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
 ################################################################################
 # stages run
 
-def stage_I_worker_q(input_queue,results_queue,pbar_queue):
-
-    for input_data in iter(input_queue.get,None):
+def stage_I_worker_q(input_queue, results_queue, pbar_queue):
+    for input_data in iter(input_queue.get, None):
         layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, progress_freq = input_data
 
         center_of_system = np.zeros(3)
@@ -876,7 +869,7 @@ def stage_I_worker_q(input_queue,results_queue,pbar_queue):
             scope = traj_reader.parse_selection(scope)
 
         progress = 0
-        progress_freq_flex = min(1,progress_freq)
+        progress_freq_flex = min(1, progress_freq)
         frame_rid_in_object = []
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
@@ -904,7 +897,7 @@ def stage_I_worker_q(input_queue,results_queue,pbar_queue):
             if progress == progress_freq_flex:
                 pbar_queue.put(progress)
                 progress = 0
-                progress_freq_flex = min(progress_freq_flex*2,progress_freq)
+                progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
         # sent results
         results_queue.put({layer_number: (all_res, frame_rid_in_object, center_of_system)})
         pbar_queue.put(progress)
@@ -931,31 +924,35 @@ def stage_I_run(config, options,
     input_queue = Queue()
 
     # prepare and start pool of workers
-    pool = [Process(target=stage_I_worker_q,args=(input_queue,results_queue,pbar_queue)) for dummy in xrange(optimal_threads.threads_count)]
+    pool = [Process(target=stage_I_worker_q, args=(input_queue, results_queue, pbar_queue)) for dummy in
+            xrange(optimal_threads.threads_count)]
     [p.start() for p in pool]
 
     # feed input_queue with data
-    for results_count,(number, traj_reader) in enumerate(Reader.iterate(number=True)):
-        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,max(1,Reader.number_of_frames()/500)))
+    for results_count, (number, traj_reader) in enumerate(Reader.iterate(number=True)):
+        input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
+                         options.object, max(1, Reader.number_of_frames() / 500)))
 
     # display progress
     progress = 0
     progress_target = Reader.number_of_frames()
-    for p in iter(pbar_queue.get,None):
+    for p in iter(pbar_queue.get, None):
         pbar.next(p)
         progress += p
-        if progress == progress_target: break
+        if progress == progress_target:
+            break
     # [stop workers]
     [input_queue.put(None) for p in pool]
     pbar.finish()
 
     # collect results
-    pbar = clui.pbar((results_count+1)*2+1,'Collecting results from layers:')
+    pbar = clui.pbar((results_count + 1) * 2 + 1, 'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
         results.update(result)
         pbar.next()
-        if nr == results_count: break
+        if nr == results_count:
+            break
     for key in sorted(results.keys()):
         _all_res, _frame_rid_in_object, _center_of_system = results.pop(key)
         center_of_system += center_of_system
@@ -987,10 +984,9 @@ def stage_I_run(config, options,
 
 ################################################################################
 
-def stage_II_worker_q(input_queue,results_queue,pbar_queue):
-
-    for input_data in iter(input_queue.get,None):
-        layer_number,traj_reader_proto,scope_everyframe,scope,scope_convexhull,object_selection,all_res_this_layer,frame_rid_in_object,is_number_frame_rid_in_object,progress_freq = input_data
+def stage_II_worker_q(input_queue, results_queue, pbar_queue):
+    for input_data in iter(input_queue.get, None):
+        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
 
         traj_reader = open_traj_reader(traj_reader_proto)
         number_of_frames = traj_reader.number_of_frames()
@@ -1007,7 +1003,7 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
 
         paths_this_layer = (GenericPaths(resid,
                                          name_of_res=resname,
-                                         min_pf=0, max_pf=number_of_frames-1)
+                                         min_pf=0, max_pf=number_of_frames - 1)
                             for resid, resname in izip(all_res_this_ids,
                                                        all_res_this_layer.names()))
 
@@ -1016,7 +1012,7 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
                                              dtype=np.int8)
 
         progress = 0
-        progress_freq_flex = min(1,progress_freq)
+        progress_freq_flex = min(1, progress_freq)
         # the loop over frames, use izip otherwise iteration over frames does not work
         for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
                                          traj_reader.iterate_over_frames()):
@@ -1034,22 +1030,22 @@ def stage_II_worker_q(input_queue,results_queue,pbar_queue):
             is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
                                                       known_true=None)  # known_true could be rid_in_object
 
-            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)), dtype=np.int8)
+            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
+                                                           dtype=np.int8)
 
             progress += 1
             if progress == progress_freq_flex:
                 pbar_queue.put(progress)
                 progress = 0
-                progress_freq_flex = min(progress_freq_flex*2,progress_freq)
+                progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
 
         paths = []
-        for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
+        for pat, nfos in izip(paths_this_layer, number_frame_object_scope.T):
             pat.add_012(nfos)
             paths.append(pat)
 
-
         # sent results
-        results_queue.put({layer_number:paths})
+        results_queue.put({layer_number: paths})
         pbar_queue.put(progress)
         # termination
 
@@ -1153,20 +1149,20 @@ def stage_II_run(config, options,
 
     is_number_frame_rid_in_object = bool(number_frame_rid_in_object)
 
-    unsandwitchize = not Reader.sandwich_mode and len(all_res.numbers())>1
+    unsandwitchize = not Reader.sandwich_mode and len(all_res.numbers()) > 1
     if unsandwitchize:
         with clui.fbm("Unsandwitchize traced residues"):
             # all_res, each layer should comprise of the same res
             all_res_ids = sorted(set([i[-1] for i in all_res.ids()]))
             for number in all_res.numbers():
-                all_res.add(ResidueSelection({number:all_res_ids}))
+                all_res.add(ResidueSelection({number: all_res_ids}))
                 all_res.uniquify()
 
     number_of_frames = Reader.number_of_frames(onelayer=True)
     clui.message("Trajectory scan:")
     pbar = clui.pbar(Reader.number_of_frames())
 
-    #pbar = clui.pbar(len(all_res),"Trajectory scan over traced residues:")
+    # pbar = clui.pbar(len(all_res),"Trajectory scan over traced residues:")
 
     # prepare queues
     pbar_queue = Queue()
@@ -1174,24 +1170,29 @@ def stage_II_run(config, options,
     input_queue = Queue()
 
     # prepare and start pool of workers
-    pool = [Process(target=stage_II_worker_q,args=(input_queue,results_queue,pbar_queue)) for dummy in xrange(optimal_threads.threads_count)]
+    pool = [Process(target=stage_II_worker_q, args=(input_queue, results_queue, pbar_queue)) for dummy in
+            xrange(optimal_threads.threads_count)]
     [p.start() for p in pool]
 
     # feed input_queue with data
-    for results_count,(frame_rid_in_object, (number, traj_reader)) in enumerate(izip(iterate_or_die(number_frame_rid_in_object,
-                                                                                                    times=Reader.number_of_layers()),
-                                                                                     Reader.iterate(number=True))):
+    for results_count, (frame_rid_in_object, (number, traj_reader)) in enumerate(
+            izip(iterate_or_die(number_frame_rid_in_object,
+                                times=Reader.number_of_layers()),
+                 Reader.iterate(number=True))):
         all_res_layer = all_res.layer(number)
-        input_queue.put((number,traj_reader,options.scope_everyframe,options.scope,options.scope_convexhull,options.object,all_res_layer,frame_rid_in_object,is_number_frame_rid_in_object,max(1,optimal_threads.threads_count)))
+        input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
+                         options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
+                         max(1, optimal_threads.threads_count)))
 
     # display progress
     progress = 0
     progress_target = Reader.number_of_frames()
-    #progress_target = len(all_res)
-    for p in iter(pbar_queue.get,None):
+    # progress_target = len(all_res)
+    for p in iter(pbar_queue.get, None):
         pbar.next(p)
         progress += p
-        if progress == progress_target: break
+        if progress == progress_target:
+            break
     # [stop workers]
     [input_queue.put(None) for p in pool]
     pbar.finish()
@@ -1199,14 +1200,15 @@ def stage_II_run(config, options,
     paths = []
     # collect results
     if not unsandwitchize:
-        pbar = clui.pbar((results_count+1)*2+1, 'Collecting results from layers:')
+        pbar = clui.pbar((results_count + 1) * 2 + 1, 'Collecting results from layers:')
     else:
-        pbar = clui.pbar((results_count + 1)+1, 'Collecting results from layers:')
+        pbar = clui.pbar((results_count + 1) + 1, 'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
         results.update(result)
         pbar.next()
-        if nr == results_count: break
+        if nr == results_count:
+            break
     if not unsandwitchize:
         for key in sorted(results.keys()):
             paths.extend(results.pop(key))
@@ -1225,27 +1227,23 @@ def stage_II_run(config, options,
         # paths names, paths
 
         max_pf = Reader.number_of_frames() - 1
-        frames_offset = np.cumsum([0]+frames_offset).tolist()[:len(numbers)]
+        frames_offset = np.cumsum([0] + frames_offset).tolist()[:len(numbers)]
 
         pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
 
-
-        def isum(l,a):
-            return (ll+a for ll in l)
-
+        def isum(l, a):
+            return (ll + a for ll in l)
 
         # do one loop over all paths
         for ps in ([results[n][pnr] for n in numbers] for pnr in xrange(len(all_res_ids))):
-            new_p = GenericPaths((0,ps[0].id[-1]),
-                                 name_of_res=ps[0].name,min_pf=0, max_pf=max_pf)
-            frames = chain(*[isum(p.frames,fo) for p,fo in izip(ps,frames_offset)])
+            new_p = GenericPaths((0, ps[0].id[-1]),
+                                 name_of_res=ps[0].name, min_pf=0, max_pf=max_pf)
+            frames = chain(*[isum(p.frames, fo) for p, fo in izip(ps, frames_offset)])
             types = chain(*[p.types_promise for p in ps])
-            new_p.add_frames_types(frames,types)
+            new_p.add_frames_types(frames, types)
             paths.append(new_p)
             pbar.next()
     pbar.finish()
-
-
 
     clui.message("Number of paths: %d" % len(paths))
 
@@ -1254,12 +1252,13 @@ def stage_II_run(config, options,
 
 ################################################################################
 
-def discard_short_etc(spaths,short_paths=None,short_object=None,short_logic=None):
+def discard_short_etc(spaths, short_paths=None, short_object=None, short_logic=None):
     # worker for discarding paths, can be time consuming because of filling coords cache
     if short_object is not None:
-        return len(spaths),[sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)],CRIC
+        return len(spaths), [sp for sp in spaths if
+                             short_logic(sp.size > short_paths, sp.object_len > short_object)], CRIC
     else:
-        return len(spaths),[sp for sp in spaths if sp.size > short_paths]
+        return len(spaths), [sp for sp in spaths if sp.size > short_paths]
 
 
 class ABSphere(namedtuple('ABSphere', 'center radius')):
@@ -1280,32 +1279,32 @@ def stage_III_run(config, options,
     ######################################################################
 
     if options.discard_empty_paths:
-        with clui.pbar(maxval=len(paths),mess="Discard residues with empty paths:") as pbar:
+        with clui.pbar(maxval=len(paths), mess="Discard residues with empty paths:") as pbar:
             paths = [pat for pat in paths if len(pat.frames) > 0 if pbar.next() is None]
 
     ######################################################################
 
-    with clui.pbar(len(paths),"Create separate paths:") as pbar:
+    with clui.pbar(len(paths), "Create separate paths:") as pbar:
         pool = Pool(processes=optimal_threads.threads_count)
-        ysp = partial(yield_single_paths,progress=True,passing=options.allow_passing_paths)
-        n = max(1,optimal_threads.threads_count)
+        ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
+        n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
-        for sps_nrs in pool.imap_unordered(ysp,(paths[i:i + n] for i in xrange(0, len(paths), n))):
-            for sp,nr in sps_nrs:
+        for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+            for sp, nr in sps_nrs:
                 spaths.append(sp)
-                pbar.update(nr_all+nr+1)
+                pbar.update(nr_all + nr + 1)
             nr_all += nr + 1
         pool.close()
         pool.join()
 
     clui.message("Created %d separate paths out of %d raw paths" %
-                 (len(spaths),len(paths)))
+                 (len(spaths), len(paths)))
 
     ######################################################################
 
-    with  clui.pbar(len(spaths),"Removing unused parts of paths:") as pbar:
-        paths = yield_generic_paths(spaths,progress=pbar)
+    with  clui.pbar(len(spaths), "Removing unused parts of paths:") as pbar:
+        paths = yield_generic_paths(spaths, progress=pbar)
 
     ######################################################################
 
@@ -1328,31 +1327,34 @@ def stage_III_run(config, options,
             short_logic_name = "OR"
             if options.discard_short_logic != 'or':
                 logger.warning("Invalid discard_short_logic '%s', using %s by default." % (
-                options.discard_short_logic, short_logic_name))
+                    options.discard_short_logic, short_logic_name))
         # make message
         if short_paths is not None and short_object is not None:
             discard_message = "Discard paths shorter than %d %s object shorter than %0.2f" % (
-            short_paths, short_logic_name, short_object)
+                short_paths, short_logic_name, short_object)
         elif short_paths is None and short_object is not None:
             discard_message = "Discard paths object shorter than %0.2f" % short_object
         elif short_paths is not None and short_object is None:
             discard_message = "Discard paths shorter than %d" % short_paths
         # do calculations
         if short_paths is not None or short_object is not None:
-            with clui.pbar(len(spaths),discard_message) as pbar:
+            with clui.pbar(len(spaths), discard_message) as pbar:
                 spaths_nr = len(spaths)
                 pool = Pool(processes=optimal_threads.threads_count)
-                dse = partial(discard_short_etc,short_paths=short_paths,short_object=short_object,short_logic=short_logic)
-                n = max(1,optimal_threads.threads_count)
-                spaths_new = pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
+                              short_logic=short_logic)
+                n = max(1, optimal_threads.threads_count)
+                spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
                 # CRIC AWARE MP!
                 if short_object is not None:
-                    spaths = list(chain.from_iterable((sps for nr,sps,cric in spaths_new if (pbar.next(step=nr) is None) and (CRIC.update_cric(cric) is None))))
+                    spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
+                                                       (pbar.next(step=nr) is None) and (
+                                                                   CRIC.update_cric(cric) is None))))
                 else:
-                    spaths = list(chain.from_iterable((sps for nr,sps in spaths_new if pbar.next(step=nr) is None)))
+                    spaths = list(chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
                 pool.close()
                 pool.join()
-            #del spaths
+            # del spaths
             spaths_nr_new = len(spaths)
             if spaths_nr == spaths_nr_new:
                 clui.message("No paths were discarded.")
@@ -1374,9 +1376,9 @@ def stage_III_run(config, options,
         # cut thyself!
         wtc.cut_thyself()
 
-        with clui.pbar(maxval=len(paths),mess="AutoBarber in action:") as pbar:
+        with clui.pbar(maxval=len(paths), mess="AutoBarber in action:") as pbar:
             pool = Pool(processes=optimal_threads.threads_count)
-            bp = partial(barber_paths,spheres=wtc.spheres)
+            bp = partial(barber_paths, spheres=wtc.spheres)
             n = max(1, optimal_threads.threads_count)
             paths_new = pool.imap_unordered(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
             paths_ = []
@@ -1396,7 +1398,7 @@ def stage_III_run(config, options,
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
         pool = Pool(processes=optimal_threads.threads_count)
-        #ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
+        # ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
         n = max(1, len(paths) / optimal_threads.threads_count / 3)
         spaths = []
         nr_all = 0
@@ -1415,17 +1417,18 @@ def stage_III_run(config, options,
 
         if options.discard_short_paths or options.discard_short_object:
             if short_paths is not None or short_object is not None:
-                with clui.pbar(len(spaths),discard_message) as pbar:
+                with clui.pbar(len(spaths), discard_message) as pbar:
                     spaths_nr = len(spaths)
                     pool = Pool(processes=optimal_threads.threads_count)
-                    dse = partial(discard_short_etc,short_paths=short_paths,short_object=short_object,short_logic=short_logic)
-                    n = max(1,optimal_threads.threads_count)
-                    spaths_new = pool.imap_unordered(dse,(spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                    dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
+                                  short_logic=short_logic)
+                    n = max(1, optimal_threads.threads_count)
+                    spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
                     # CRIC AWARE MP!
                     if short_object is not None:
                         spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
                                                            (pbar.next(step=nr) is None) and (
-                                                                       CRIC.update_cric(cric) is None))))
+                                                                   CRIC.update_cric(cric) is None))))
                     else:
                         spaths = list(
                             chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
@@ -1455,9 +1458,11 @@ def stage_III_run(config, options,
     # apply smoothing?
     # it is no longer necessary
     if options.apply_smoothing:
-        logger.warning("Hard smoothing is not available in the current version but may be available in the future. Stay tuned!")
+        logger.warning(
+            "Hard smoothing is not available in the current version but may be available in the future. Stay tuned!")
     if options.apply_soft_smoothing:
-        logger.warning("Soft smoothing option is not available any more. Soft smoothing is enabled by default if --cache-dir or --cache-mem options are used.")
+        logger.warning(
+            "Soft smoothing option is not available any more. Soft smoothing is enabled by default if --cache-dir or --cache-mem options are used.")
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 
@@ -1467,7 +1472,8 @@ def stage_III_run(config, options,
 ################################################################################
 
 def get_allow_size_function(rt=None):
-    if not isinstance(rt, str): return None
+    if not isinstance(rt, str):
+        return None
     assert re.compile('^[<>=]+[0-9.]+$').match(rt) is not None, "Wrong threshold definition: %s" % rt
     op = re.compile('[<>=]+')
     op = ''.join(sorted(op.findall(rt)[0]))
@@ -1551,7 +1557,6 @@ def stage_IV_run(config, options,
     # enable real cache of ort
     Reader.reset()
 
-
     coptions = config.get_cluster_options()
     rcoptions = config.get_recluster_options()
     soptions = config.get_smooth_options()
@@ -1560,10 +1565,11 @@ def stage_IV_run(config, options,
     assert max_level >= 0
 
     # new style clustering
-    #with clui.fbm("Create inlets"):
+    # with clui.fbm("Create inlets"):
     # here we can check center of system
-    pbar = clui.SimpleProgressBar(maxval=len(spaths),mess="Create inlets")
-    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clusterization, pbar=pbar)
+    pbar = clui.SimpleProgressBar(maxval=len(spaths), mess="Create inlets")
+    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clusterization,
+                  pbar=pbar)
     pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
 
@@ -1641,7 +1647,7 @@ def stage_IV_run(config, options,
         # TODO: Move it after master paths!
         # ***** ADD PASSING PATHS TO CLUSTERS *****
         if options.exclude_passing_in_clusterization and options.add_passing_to_clusters:
-            with clui.fbm("Adding passing paths inlets to clusters",cont=False):
+            with clui.fbm("Adding passing paths inlets to clusters", cont=False):
                 # passing paths were excluded and they are meant to be added
                 # one need loop over clusters and then all passing paths have to checked
                 # it is assumed taht adding method is barber
@@ -1663,13 +1669,15 @@ def stage_IV_run(config, options,
                     # loop over clusters
                     for cluster in inls.clusters_list:
                         added_to_cluster = 0
-                        if cluster == 0: continue
+                        if cluster == 0:
+                            continue
                         clui.message("Current cluster: %d." % cluster)
                         # sps = inls.lim2clusters(cluster).limspaths2(spaths_single)
                         # chull = inls.lim2clusters(cluster).get_chull()
                         wtc = WhereToCut(inlets=inls.lim2clusters(cluster), **ab_options)
                         wtc.cut_thyself()
-                        pbar = clui.SimpleProgressBar(len(passing_inlets_ids),"Loop over available passing paths inlets:")
+                        pbar = clui.SimpleProgressBar(len(passing_inlets_ids),
+                                                      "Loop over available passing paths inlets:")
                         for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
                             inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
                             sphere = wtc.inlet2sphere(inlet)
@@ -1703,9 +1711,11 @@ def stage_IV_run(config, options,
             with clui.fbm("Master paths calculations", cont=False):
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
-                    pbar = clui.pbar(len(spaths)*2, mess='Building coords cache')
-                    [sp.get_coords(smooth=None) for sp in spaths if pbar.next() is None and not isinstance(sp, PassingPath)]
-                    [sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None and not isinstance(sp, PassingPath)]
+                    pbar = clui.pbar(len(spaths) * 2, mess='Building coords cache')
+                    [sp.get_coords(smooth=None) for sp in spaths if
+                     pbar.next() is None and not isinstance(sp, PassingPath)]
+                    [sp.get_coords(smooth=smooth) for sp in spaths if
+                     pbar.next() is None and not isinstance(sp, PassingPath)]
                     pbar.finish()
                     use_threads = optimal_threads.threads_count
                 else:
@@ -1721,11 +1731,11 @@ def stage_IV_run(config, options,
                         logger.debug('CType %s (%d)' % (str(ct), nr))
                         sps = lind(spaths, what2what(ctypes_generic, [ct]))
                         # no passing paths are allowed
-                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)] # no PassingPaths!
+                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)]  # no PassingPaths!
                         if not len(sps):
                             logger.debug(
                                 'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
-                                str(ct), nr,))
+                                    str(ct), nr,))
                             continue
                         logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
                         # print len(sps),ct
@@ -1954,13 +1964,12 @@ def spath_basic_info_header():
 
 @add_path_id
 def spath_basic_info(spath):
-    line = []
-    line.append(spath.begins)
+    line = [spath.begins]
     if not isinstance(spath, PassingPath):
         line.extend(map(len, (spath.path_in, spath.path_object)))
         line.append(spath.path_object_strict_len)
         line.append(len(spath.path_out))
-        #line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
+        # line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
     else:
         line += [float('nan')] * 3
     line.append(spath.ends)
@@ -2379,7 +2388,6 @@ def stage_V_run(config, options,
     # enable real cache of ort
     Reader.reset()
 
-
     # file handle?
     head_nr = False
     line_nr = head_nr
@@ -2642,15 +2650,19 @@ def stage_V_run(config, options,
         # traced names, paths types, clusters cluster types, part of paths, column name
         for tname, sptype, c_ct, part, col_name in iter_over_all():
             # check if column fits to the requirements
-            if not sp.id.name in tname: continue
-            if not isinstance(sp, sptype): continue
+            if not sp.id.name in tname:
+                continue
+            if not isinstance(sp, sptype):
+                continue
             # c or ct
             it_is_ct = False
             if isinstance(c_ct[0], InletClusterGenericType):
                 it_is_ct = True
-                if not ct.generic in c_ct: continue
+                if not ct.generic in c_ct:
+                    continue
             else:
-                if len(intersection_full(ct.generic.clusters, c_ct)) == 0: continue
+                if len(intersection_full(ct.generic.clusters, c_ct)) == 0:
+                    continue
             # this is more than that...
             # if c_ct is not InletClusterGenericType then:
             # if 'in' in part only incoming paths in ct are used
@@ -2658,7 +2670,8 @@ def stage_V_run(config, options,
             col_index = header.index(col_name)
             if 'walk' in part:
                 h[sp.paths_cont, col_index] += 1
-            if isinstance(sp, PassingPath): continue
+            if isinstance(sp, PassingPath):
+                continue
             if 'in' in part:
                 if not it_is_ct:
                     if not ct.input in c_ct:
@@ -2796,7 +2809,6 @@ def stage_VI_run(config, options,
                  **kwargs):
     # enable real cache of ort
     Reader.reset()
-
 
     from aquaduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
     # from aquaduct.visual.pymol_connector import cmd as pymol_cmd

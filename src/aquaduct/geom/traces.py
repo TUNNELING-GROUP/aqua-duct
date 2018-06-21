@@ -21,6 +21,7 @@ from scipy.spatial.distance import pdist
 
 from aquaduct.utils.maths import make_default_array
 
+
 ################################################################################
 # traces utils and helpers
 
@@ -147,6 +148,7 @@ def derrivative(values):
         else:
             yield (diff[nr - 1] + diff[nr]) / 2. - correction
 
+
 # todo : aby zaoszczedzic na obliczeniach mozna pomijac takie katy(lub zwracac 0), ktorych zwracane wartosci są bardzo,bardzo małe (rzedu np 10**-4)-> np kat 0.005 rad to 0,29stopnia miary łukowej
 # wektory: promień atomu wodoru to 0.529A
 
@@ -255,7 +257,7 @@ def vectors_angle(A, B):
 
 
 def vectors_angle_alt(A, B):
-    '''
+    """
     This function calculates the angle between two given vectors (starting from the [0,0,0] to the given coordinates
 
     * alternative method.
@@ -263,7 +265,7 @@ def vectors_angle_alt(A, B):
     :param A: coordinates of the first point which is the end of the vector
     :param B: coordinates of the second point which is the end of the vector
     :return: the angle between vectors in question (in radians)
-    '''
+    """
     return np.arccos(np.clip(np.dot(A / vector_norm(A), B / vector_norm(B)), -1.0, 1.0))
 
 
@@ -380,7 +382,7 @@ class LinearizeRecursive(object):
         sp = 0
         ep = size - 1
         mp = np.argwhere(lengths > max(lengths) / 2)
-        if len(mp): # in case lenghs are zeros
+        if len(mp):  # in case lenghs are zeros
             mp = int(mp[0])
         else:
             mp = (sp + ep) / 2

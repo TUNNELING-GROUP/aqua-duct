@@ -16,22 +16,18 @@
 # You should have received a copy of the GNU General Public License
 #
 
-'''
+"""
 Module implements AutoBarber generation of spheres.
-'''
+"""
 
-import logging
-logger = logging.getLogger(__name__)
-
-import copy
+from aquaduct import logger
 from scipy.spatial.distance import cdist
 import numpy as np
 
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import listify
-#from aquaduct.traj.reader import atom2vdw_radius
-from aquaduct.utils.helpers import lind,SmartRange
-from aquaduct.traj.sandwich import ReaderAccess,Reader
+from aquaduct.utils.helpers import lind, SmartRange
+from aquaduct.traj.sandwich import ReaderAccess, Reader
 from aquaduct.geom import Sphere, do_cut_thyself
 from aquaduct.utils.multip import optimal_threads
 from multiprocessing import Pool
@@ -43,8 +39,7 @@ __mail__ = 'info@aquaduct.pl'
 
 
 @listify
-def spaths2spheres(spaths,minmax=None,selection=None,tovdw=None,forceempty=None):
-
+def spaths2spheres(spaths, minmax=None, selection=None, tovdw=None, forceempty=None):
     mincut, mincut_val, maxcut, maxcut_val, mincut_level, maxcut_level = minmax
     for sp in spaths:
 
@@ -97,9 +92,9 @@ def spaths2spheres(spaths,minmax=None,selection=None,tovdw=None,forceempty=None)
                 yield (center.flatten(), 0)
     yield CRIC
 
-@listify
-def inlets2spheres(inlets,minmax=None,selection=None,tovdw=None,forceempty=None):
 
+@listify
+def inlets2spheres(inlets, minmax=None, selection=None, tovdw=None, forceempty=None):
     mincut, mincut_val, maxcut, maxcut_val, mincut_level, maxcut_level = minmax
     for inlet in inlets:
 
@@ -110,7 +105,6 @@ def inlets2spheres(inlets,minmax=None,selection=None,tovdw=None,forceempty=None)
 
         center = inlet.coords
         frame = inlet.frame
-
 
         make_sphere = True
         if make_sphere:
@@ -225,22 +219,23 @@ class WhereToCut(ReaderAccess):
         else:
             pbar = clui.pbar(len(spaths))
             n_add = len(spaths)
-        minmax = self.check_minmaxcuts() + (self.mincut_level,self.maxcut_level)
+        minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
 
         pool = Pool(processes=optimal_threads.threads_count)
         n = max(1, optimal_threads.threads_count)
-        chunks = (n if chunk <= (n_add /n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
+        chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
 
-        add_function = partial(spaths2spheres,minmax=minmax,selection=self.selection,tovdw=self.tovdw,forceempty=self.forceempty)
+        add_function = partial(spaths2spheres, minmax=minmax, selection=self.selection, tovdw=self.tovdw,
+                               forceempty=self.forceempty)
         _spaths = chain(spaths)
         spheres_new = pool.imap(add_function, ([_spaths.next() for cc in xrange(c)] for c in chunks))
 
         nr = 0
         for spheres in spheres_new:
             for center_radius_or_cric in spheres:
-                if isinstance(center_radius_or_cric,tuple):
-                    center,radius = center_radius_or_cric
-                    self.spheres.append(Sphere(center=center,radius=radius,nr=self.get_current_nr()))
+                if isinstance(center_radius_or_cric, tuple):
+                    center, radius = center_radius_or_cric
+                    self.spheres.append(Sphere(center=center, radius=radius, nr=self.get_current_nr()))
                 else:
                     CRIC.update_cric(center_radius_or_cric)
             nr += n
@@ -260,22 +255,23 @@ class WhereToCut(ReaderAccess):
         else:
             pbar = clui.pbar(len(inlets.inlets_list))
             n_add = len(inlets.inlets_list)
-        minmax = self.check_minmaxcuts() + (self.mincut_level,self.maxcut_level)
+        minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
 
         pool = Pool(processes=optimal_threads.threads_count)
         n = max(1, optimal_threads.threads_count)
-        chunks = (n if chunk <= (n_add /n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
+        chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
 
-        add_function = partial(inlets2spheres,minmax=minmax,selection=self.selection,tovdw=self.tovdw,forceempty=self.forceempty)
+        add_function = partial(inlets2spheres, minmax=minmax, selection=self.selection, tovdw=self.tovdw,
+                               forceempty=self.forceempty)
         _inlets = chain(inlets)
         spheres_new = pool.imap(add_function, ([_inlets.next() for cc in xrange(c)] for c in chunks))
 
         nr = 0
         for spheres in spheres_new:
             for center_radius_or_cric in spheres:
-                if isinstance(center_radius_or_cric,tuple):
-                    center,radius = center_radius_or_cric
-                    self.spheres.append(Sphere(center=center,radius=radius,nr=self.get_current_nr()))
+                if isinstance(center_radius_or_cric, tuple):
+                    center, radius = center_radius_or_cric
+                    self.spheres.append(Sphere(center=center, radius=radius, nr=self.get_current_nr()))
                 else:
                     CRIC.update_cric(center_radius_or_cric)
             nr += n
@@ -287,10 +283,9 @@ class WhereToCut(ReaderAccess):
         pool.join()
         pbar.finish()
 
-
     def get_current_nr(self):
         if len(self.spheres):
-            #nr = max((sphe.nr for sphe in self.spheres))
+            # nr = max((sphe.nr for sphe in self.spheres))
             nr = self.spheres[-1].nr
             nr += 1
         else:
@@ -298,7 +293,7 @@ class WhereToCut(ReaderAccess):
         assert nr >= len(self.spheres), "Inconsistent number of spheres."
         return nr
 
-    def inlet2sphere(self,inlet):
+    def inlet2sphere(self, inlet):
         traj_reader = Reader.get_reader_by_id(inlet.reference.id).open()
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
@@ -306,7 +301,6 @@ class WhereToCut(ReaderAccess):
 
         center = inlet.coords
         frame = inlet.frame
-
 
         make_sphere = True
         if make_sphere:
@@ -340,7 +334,6 @@ class WhereToCut(ReaderAccess):
             logger.debug('Added sphere of radius 0')
             return Sphere(center.flatten(), 0, self.get_current_nr())
 
-
     def spath2spheres(self, sp):
 
         traj_reader = self.get_reader_by_id(sp.id.id)
@@ -365,7 +358,7 @@ class WhereToCut(ReaderAccess):
                 distances = cdist(np.matrix(center), np.matrix(list(barber.coords())), metric='euclidean').flatten()
                 if self.tovdw:
                     vdwradius = list(barber.ix(np.argmin(distances)).vdw())[0]
-                    logger.debug('VdW correction %0.2f',vdwradius)
+                    logger.debug('VdW correction %0.2f', vdwradius)
                 radius = min(distances) - vdwradius
                 if radius <= 0:
                     logger.debug('VdW correction resulted in <= 0 radius.')
@@ -391,12 +384,10 @@ class WhereToCut(ReaderAccess):
                 logger.debug('Added sphere of radius 0')
                 yield Sphere(center.flatten(), 0, self.get_current_nr())
 
-
-
     def cut_thyself(self):
         self.spheres = do_cut_thyself(self.spheres, progress=True)[0]
 
-    def is_overlaping_with_cloud(self,sphere):
+    def is_overlaping_with_cloud(self, sphere):
         spheres_coords = np.array([sphe.center for sphe in self.spheres])
         spheres_radii = np.array([sphe.radius for sphe in self.spheres])
         center, radius, nr = sphere
@@ -441,7 +432,8 @@ class WhereToCut(ReaderAccess):
             else:
                 current_id = 0
             clouds.update({current_id: current_cloud})
-            if progress: pbar.next()
+            if progress:
+                pbar.next()
 
         # chnage nrs id to global ids; add redundant spheres
         nrs_gids = [nrs.nr for nrs in noredundant_spheres]
@@ -464,14 +456,15 @@ class WhereToCut(ReaderAccess):
                 if current_cloud:
                     cloud.append(nr)
                     redundant_spheres.pop(rs_id)
-                    if progress: pbar.next()
+                    if progress:
+                        pbar.next()
 
             clouds.update({cloud_id: cloud})
 
-        if progress: pbar.finish()
+        if progress:
+            pbar.finish()
 
         return clouds
-
 
 
 def barber_with_spheres(coords, spheres):
@@ -483,11 +476,12 @@ def barber_with_spheres(coords, spheres):
         return np.argwhere((cdist(np.array(list(coords)), [s.center for s in spheres], metric='euclidean') > np.matrix(
             [[s.radius for s in spheres]])).all(1).A1).flatten().tolist()
 
+
 @listify
-def barber_paths(paths,spheres=None):
+def barber_paths(paths, spheres=None):
     for path in paths:
-        tokeep = barber_with_spheres(path.coords,spheres)
-        path.update_types_frames(SmartRange(lind(path.types, tokeep)),SmartRange(lind(path.frames, tokeep)))
+        tokeep = barber_with_spheres(path.coords, spheres)
+        path.update_types_frames(SmartRange(lind(path.types, tokeep)), SmartRange(lind(path.frames, tokeep)))
         yield path
     yield CRIC
 
