@@ -202,6 +202,7 @@ def check_versions(version_dict):
 ################################################################################
 # Pickle compatibility with earlier versions
 
+'''
 class LoadDumpWrapper(object):
     """This is wrapper for pickled data that provides compatibility
     with earlier versions of Aqua-Duct.
@@ -226,6 +227,7 @@ class LoadDumpWrapper(object):
 
     def readline(self, *args, **kwargs):
         return self.convert(self.fh.readline(*args, **kwargs))
+'''
 
 ################################################################################
 # VDA reader
@@ -283,14 +285,13 @@ class ValveDataAccess_pickle(ValveDataAccess):
             pickle.dump({'version': version(),
                          'aquaduct_version': version()}, self.data_file)
         elif mode == 'r':
-            data_file = LoadDumpWrapper(self.data_file)
-            versions = pickle.load(data_file)
+            versions = pickle.load(self.data_file)
             check_versions(versions)
             # loaded data!
             self.data = {}
             try:
                 while True:
-                    loaded_data = pickle.load(data_file)
+                    loaded_data = pickle.load(self.data_file)
                     self.data.update(loaded_data)
             except:
                 pass
