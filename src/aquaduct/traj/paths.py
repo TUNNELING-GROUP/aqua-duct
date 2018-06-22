@@ -874,6 +874,13 @@ class PassingPath(MacroMolPath):
     def paths_last_out(self):
         return self.path_in[-1]
 
+    @property
+    def types(self):
+        # spath types
+        return ([self.path_walk_code] * len(self._path_in),
+                [],
+                [])
+
     '''
     def get_coords(self, smooth=None):
         # TODO: it is not used to get smooth coords but to get coords in general, conditionally smoothed
