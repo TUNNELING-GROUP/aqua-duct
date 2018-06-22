@@ -131,6 +131,26 @@ def lind(l, ind):
     return ll
 
 
+def glind(l, ind):
+    """
+    Indexes lists using iterable of integers as identificators.
+    For example::
+
+        glind(['a','b','c','d','e'],[1,4,2])
+
+    returns::
+
+        ['b', 'e', 'c']
+
+    :param list l: List to be indexed.
+    :param list ind: Integer indexes.
+    :return: Reindexed list.
+    :rtype: list
+
+    """
+    return (l[i] for i in ind)
+
+
 class Auto:
     """
     Auto type definition.

@@ -91,6 +91,13 @@ class GenericPaths(GenericPathTypeCodes):
         if isinstance(types, SmartRange) and isinstance(frames, SmartRange):
             self._types = types
             self._frames = array('i', list(frames.get()))
+        elif isinstance(types, SmartRange) and isinstance(frames, array):
+            self._types = types
+            self._frames = frames
+        # make it from "any" iterable
+        else:
+            self._types = SmartRange(types)
+            self._frames = array('i', frames)
 
     def __getstate__(self):
         return self.id, self.name, self._types, self._frames, self.max_possible_frame, self.min_possible_frame
@@ -136,11 +143,11 @@ class GenericPaths(GenericPathTypeCodes):
 
     @property
     def max_frame(self):
-        return self._frames.max()
+        return max(self._frames)
 
     @property
     def min_frame(self):
-        return self._frames.min()
+        return min(self._frames)
 
     # add methods
 

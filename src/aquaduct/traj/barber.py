@@ -32,7 +32,7 @@ from aquaduct.geom import Sphere, do_cut_thyself
 from aquaduct.utils.multip import optimal_threads
 from multiprocessing import Pool
 from functools import partial
-from itertools import chain, izip
+from itertools import chain, izip, imap
 from aquaduct.apps.data import CRIC
 
 __mail__ = 'info@aquaduct.pl'
@@ -228,6 +228,7 @@ class WhereToCut(ReaderAccess):
         add_function = partial(spaths2spheres, minmax=minmax, selection=self.selection, tovdw=self.tovdw,
                                forceempty=self.forceempty)
         _spaths = chain(spaths)
+        Reader.reset()
         spheres_new = pool.imap(add_function, ([_spaths.next() for cc in xrange(c)] for c in chunks))
 
         nr = 0
@@ -257,14 +258,17 @@ class WhereToCut(ReaderAccess):
             n_add = len(inlets.inlets_list)
         minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
 
-        pool = Pool(processes=optimal_threads.threads_count)
+        #pool = Pool(processes=optimal_threads.threads_count)
+        pool = Pool(processes=1)
         n = max(1, optimal_threads.threads_count)
         chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
 
         add_function = partial(inlets2spheres, minmax=minmax, selection=self.selection, tovdw=self.tovdw,
                                forceempty=self.forceempty)
         _inlets = chain(inlets)
-        spheres_new = pool.imap(add_function, ([_inlets.next() for cc in xrange(c)] for c in chunks))
+        Reader.reset()
+        spheres_new = pool.imap(add_function, [[_inlets.next() for cc in xrange(c)] for c in chunks])
+        #spheres_new = imap(add_function, ([_inlets.next() for cc in xrange(c)] for c in chunks))
 
         nr = 0
         for spheres in spheres_new:

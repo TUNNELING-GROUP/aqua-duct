@@ -53,7 +53,7 @@ from aquaduct.traj.sandwich import ResidueSelection, Reader, open_traj_reader
 from aquaduct.utils import clui
 from aquaduct.utils.clui import roman
 from aquaduct.utils.helpers import iterate_or_die
-from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
+from aquaduct.utils.helpers import range2int, Auto, what2what, lind, glind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
 
@@ -1269,7 +1269,6 @@ class ABSphere(namedtuple('ABSphere', 'center radius')):
 def stage_III_run(config, options,
                   paths=None,
                   **kwargs):
-    Reader.reset()
 
     soptions = config.get_smooth_options()
 
@@ -1304,7 +1303,14 @@ def stage_III_run(config, options,
     ######################################################################
 
     with  clui.pbar(len(spaths), "Removing unused parts of paths:") as pbar:
+        # because paths stores now frames as array and produces smartranges on demand with fast_array option
+        # it is required to keep frames (and types) in order, otherwise smartranges are wrong
         paths = yield_generic_paths(spaths, progress=pbar)
+    with  clui.pbar(len(paths), "Reorder frames and types in paths:") as pbar:
+        for p in paths:
+            new_order = np.argsort(p.frames)
+            p.update_types_frames(glind(p.types,new_order),glind(p.frames,new_order))
+            pbar.next()
 
     ######################################################################
 
@@ -1347,6 +1353,7 @@ def stage_III_run(config, options,
                 spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
                 # CRIC AWARE MP!
                 if short_object is not None:
+                    Reader.reset()
                     spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
                                                        (pbar.next(step=nr) is None) and (
                                                                    CRIC.update_cric(cric) is None))))
@@ -1377,10 +1384,12 @@ def stage_III_run(config, options,
         wtc.cut_thyself()
 
         with clui.pbar(maxval=len(paths), mess="AutoBarber in action:") as pbar:
+            Reader.reset()
             pool = Pool(processes=optimal_threads.threads_count)
             bp = partial(barber_paths, spheres=wtc.spheres)
             n = max(1, optimal_threads.threads_count)
             paths_new = pool.imap_unordered(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
+            #paths_new = map(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
             paths_ = []
             for paths_new_list in paths_new:
                 CRIC.update_cric(paths_new_list.pop(-1))
@@ -1426,6 +1435,7 @@ def stage_III_run(config, options,
                     spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
                     # CRIC AWARE MP!
                     if short_object is not None:
+                        Reader.reset()
                         spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
                                                            (pbar.next(step=nr) is None) and (
                                                                    CRIC.update_cric(cric) is None))))
@@ -1971,7 +1981,7 @@ def spath_basic_info(spath):
         line.append(len(spath.path_out))
         # line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
     else:
-        line += [float('nan')] * 3
+        line += [float('nan')] * 4
     line.append(spath.ends)
     return line
 
@@ -2062,21 +2072,21 @@ def spath_steps_info_header(total=None):
 def spath_steps_info(spath, total=None):
     line = []
     if not total:
-        for t in traces.midpoints(spath.coords):
-            if len(t) > 0:
-                line.extend(traces.length_step_std(t)[1:])
-            else:
-                line.extend([float('nan'), float('nan')])
+        if not isinstance(spath, PassingPath):
+            for t in traces.midpoints(spath.coords):
+                if len(t) > 0:
+                    line.extend(traces.length_step_std(t)[1:])
+                else:
+                    line.extend([float('nan'), float('nan')])
+        else:
+            line += [float('nan'), float('nan')] * 3
         return line
     line += spath_steps_info(spath, add_id=False, total=False)
-    if not isinstance(spath, PassingPath):
-        t = traces.midpoints((spath.coords_cont,)).next()
-        if len(t) > 0:
-            line = list(traces.length_step_std(t)[1:]) + line
-        else:
-            line = [float('nan'), float('nan')] + line
+    t = traces.midpoints((spath.coords_cont,)).next()
+    if len(t) > 0:
+        line = list(traces.length_step_std(t)[1:]) + line
     else:
-        line += [float('nan'), float('nan')] * 3
+        line = [float('nan'), float('nan')] + line
     return line
 
 
@@ -2462,8 +2472,9 @@ def stage_V_run(config, options,
     if pbar:
         # calculate number of tnspt
         nr_tnspt = [nr for nr,dummy in enumerate(iter_over_tnspt())][-1] + 1
-        tnspt_update = 47
-        pbar = clui.pbar(maxval=nr_tnspt*2*tnspt_update+len(spaths),mess="Calculating stats")
+        nr_f = (1 if len(traced_names) == 1 else 2) * (1 if len(spaths_types) == 1 else 2)
+
+        pbar = clui.pbar(maxval=nr_tnspt*2 + nr_f * 2 * len(spaths) + len(spaths),mess="Calculating stats")
 
     ############
 
@@ -2505,6 +2516,8 @@ def stage_V_run(config, options,
                 cl)
             pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
         pa.tend(header_line)
+        if pbar:
+            pbar.next()
 
     ############
     ############
@@ -2545,7 +2558,7 @@ def stage_V_run(config, options,
                 pbar.heartbeat()
         pa.tend(header_line)
         if pbar:
-            pbar.next(tnspt_update)
+            pbar.next()
 
 
     ############
@@ -2562,6 +2575,7 @@ def stage_V_run(config, options,
         ctypes_size.append(len(sps))
     ctypes_generic_list = [ctypes_generic_list[i] for i in np.argsort(ctypes_size)[::-1]]
 
+
     for tname, sptype, message in iter_over_tnspt():
         pa("Separate paths clusters types summary - mean lengths of paths%s" % message)
         pa.thead(header_line)
@@ -2574,7 +2588,7 @@ def stage_V_run(config, options,
             if len(sps) > 0:
                 pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size, show="len")), nr=nr)
             if pbar:
-                pbar.heartbeat()
+                pbar.next(len(sps))
         pa.tend(header_line)
         pa("Separate paths clusters types summary - mean number of frames of paths%s" % message)
         pa.thead(header_line)
@@ -2586,10 +2600,8 @@ def stage_V_run(config, options,
                 pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size, show="frames")),
                    nr=nr)
             if pbar:
-                pbar.heartbeat()
+                pbar.next(len(sps))
         pa.tend(header_line)
-        if pbar:
-            pbar.next(tnspt_update)
 
     ############
     pa.sep()

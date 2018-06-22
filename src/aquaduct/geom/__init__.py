@@ -83,7 +83,8 @@ def do_cut_thyself(spheres_passed, progress=False):
             # add big to non redundant
             noredundat_spheres.append(big)
             if progress:
-                pbar.update(N - len(spheres))
+                #pbar.update(N - len(spheres))
+                pbar.update(len(redundat_spheres))
             logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
                 len(noredundat_spheres), len(spheres)))
         if len(noredundat_spheres) == noredundat_spheres_count:
