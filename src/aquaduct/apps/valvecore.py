@@ -1809,10 +1809,18 @@ def get_header_line_and_line_template(header_line_and_line_template, head_nr=Fal
 
     return header_line, line_template
 
+class SpathIdHeader(object):
+    name = 'ID'
+    format = '%9s'
 
+    def __call__(self):
+        return [self.name],[self.format]
+
+'''
 def spath_id_header():
     return ['ID'], ['%9s']
-
+'''
+spath_id_header = SpathIdHeader()
 
 def spath_name_header():
     return ['RES'], ['%4s']
@@ -1945,7 +1953,7 @@ class PrintAnalysis(object):
 
     def __call__(self, info2print, nr=None):
         if self.line_nr and nr is not None:
-            info2print = (self.nr_template % nr) + info2print
+            info2print = (self.nr_template % (nr + 1)) + info2print
         if self.output2stderr:
             clui.message(info2print)
         print >> self.filehandle, info2print
@@ -2399,7 +2407,7 @@ def stage_V_run(config, options,
     Reader.reset()
 
     # file handle?
-    head_nr = False
+    head_nr = True
     line_nr = head_nr
     pa = PrintAnalysis(options.save, line_nr=line_nr)
 
@@ -2417,6 +2425,15 @@ def stage_V_run(config, options,
     pa.sep()
     pa('Aqua-Duct analysis')
     pa(clui.get_str_timestamp())
+
+    ############
+    # format for path ID
+    max_ID_len = 0
+    for sp in spaths:
+        n = len(str(sp.id))
+        if n > max_ID_len:
+            max_ID_len = n
+    spath_id_header.format = '%%%ds' % (max_ID_len + 1)
 
     ############
     if options.dump_config:
@@ -2474,7 +2491,7 @@ def stage_V_run(config, options,
         nr_tnspt = [nr for nr,dummy in enumerate(iter_over_tnspt())][-1] + 1
         nr_f = (1 if len(traced_names) == 1 else 2) * (1 if len(spaths_types) == 1 else 2)
 
-        pbar = clui.pbar(maxval=nr_tnspt*2 + nr_f * 2 * len(spaths) + len(spaths),mess="Calculating stats")
+        pbar = clui.pbar(maxval=nr_tnspt*2 + nr_f * 2 * len(spaths) + len(spaths),mess="Calculating stats:")
 
     ############
 
@@ -2686,7 +2703,7 @@ def stage_V_run(config, options,
     h = np.zeros((max_frame, len(header)))
     # loop over spaths
     pbar = clui.pbar(maxval=len(spaths),
-                     mess='Calculating histograms')
+                     mess='Calculating histograms:')
     # loop over paths and ctypes
     for sp, ct in zip(spaths, ctypes):
         # loop over columns

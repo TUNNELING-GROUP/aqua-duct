@@ -221,6 +221,7 @@ class WhereToCut(ReaderAccess):
             n_add = len(spaths)
         minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
 
+        Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
         n = max(1, optimal_threads.threads_count)
         chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
