@@ -1367,8 +1367,13 @@ def stage_III_run(config, options,
                 clui.message("No paths were discarded.")
             else:
                 clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
+                with clui.pbar(len(spaths), "Removing (again) unused parts of paths:") as pbar:
+                    # because paths stores now frames as array and produces smartranges on demand with fast_array option
+                    # it is required to keep frames (and types) in order, otherwise smartranges are wrong
+                    paths = yield_generic_paths(spaths, progress=pbar)
         else:
             clui.message("No paths were discarded - no values were set.")
+
 
     ######################################################################
 
