@@ -258,15 +258,15 @@ class WhereToCut(ReaderAccess):
             n_add = len(inlets.inlets_list)
         minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
 
-        #pool = Pool(processes=optimal_threads.threads_count)
-        pool = Pool(processes=1)
+        Reader.reset()
+        pool = Pool(processes=optimal_threads.threads_count)
+        #pool = Pool(processes=1)
         n = max(1, optimal_threads.threads_count)
         chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
 
         add_function = partial(inlets2spheres, minmax=minmax, selection=self.selection, tovdw=self.tovdw,
                                forceempty=self.forceempty)
         _inlets = chain(inlets)
-        Reader.reset()
         spheres_new = pool.imap(add_function, [[_inlets.next() for cc in xrange(c)] for c in chunks])
         #spheres_new = imap(add_function, ([_inlets.next() for cc in xrange(c)] for c in chunks))
 

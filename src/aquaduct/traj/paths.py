@@ -467,14 +467,15 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
 def yield_generic_paths(spaths, progress=None):
     rid_seen = OrderedDict()
     number_of_frames = Reader.number_of_frames(onelayer=True) - 1
+    t_object = GenericPathTypeCodes.object_name
     for sp in spaths:
         current_rid = sp.id.id
         if current_rid not in rid_seen:
             rid_seen.update(
                 {current_rid: GenericPaths(current_rid, name_of_res=sp.id.name, min_pf=0, max_pf=number_of_frames)})
         # TODO: following loop is not an optimal solution, it is better to add types and frames in one call
-        for t, f in zip(sp.types_cont, sp.paths_cont):
-            if t == sp.path_object_code:
+        for t, f in zip(sp.gtypes_cont, sp.paths_cont):
+            if t == t_object:
                 rid_seen[current_rid].add_object(f)
             else:
                 rid_seen[current_rid].add_scope(f)

@@ -1302,11 +1302,11 @@ def stage_III_run(config, options,
 
     ######################################################################
 
-    with  clui.pbar(len(spaths), "Removing unused parts of paths:") as pbar:
+    with clui.pbar(len(spaths), "Removing unused parts of paths:") as pbar:
         # because paths stores now frames as array and produces smartranges on demand with fast_array option
         # it is required to keep frames (and types) in order, otherwise smartranges are wrong
         paths = yield_generic_paths(spaths, progress=pbar)
-    with  clui.pbar(len(paths), "Reorder frames and types in paths:") as pbar:
+    with clui.pbar(len(paths), "Reorder frames and types in paths:") as pbar:
         for p in paths:
             new_order = np.argsort(p.frames)
             p.update_types_frames(glind(p.types,new_order),glind(p.frames,new_order))
