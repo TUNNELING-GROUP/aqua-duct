@@ -27,7 +27,7 @@ import numpy as np
 from scipy.spatial.distance import cdist
 from aquaduct.geom import traces
 from aquaduct.traj.inlets import Inlet, InletTypeCodes
-from aquaduct.utils.helpers import is_number, lind, \
+from aquaduct.utils.helpers import is_number, lind, glind, \
     SmartRange  # smart ranges are required here to provide bacward compatibility with v0.3
 from aquaduct.utils.sets import intersection, glue, left, right
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
@@ -481,6 +481,13 @@ def yield_generic_paths(spaths, progress=None):
                 rid_seen[current_rid].add_scope(f)
         if progress:
             progress.next()
+    # because paths stores now frames as array and produces smartranges on demand with fast_array option
+    # it is required to keep frames (and types) in order, otherwise smartranges are wrong
+    for p in rid_seen.itervalues():
+        new_order = np.argsort(p.frames)
+        p.update_types_frames(glind(p.types,new_order),glind(p.frames,new_order))
+        progress.next()
+
     return rid_seen.values()
 
 

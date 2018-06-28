@@ -1290,6 +1290,7 @@ def stage_III_run(config, options,
         spaths = []
         nr_all = 0
         for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+            nr = 0 # if no spaths were returned
             for sp, nr in sps_nrs:
                 spaths.append(sp)
                 pbar.update(nr_all + nr + 1)
@@ -1302,15 +1303,8 @@ def stage_III_run(config, options,
 
     ######################################################################
 
-    with clui.pbar(len(spaths), "Removing unused parts of paths:") as pbar:
-        # because paths stores now frames as array and produces smartranges on demand with fast_array option
-        # it is required to keep frames (and types) in order, otherwise smartranges are wrong
+    with clui.pbar(len(spaths)+len(paths), "Removing unused parts of paths:") as pbar:
         paths = yield_generic_paths(spaths, progress=pbar)
-    with clui.pbar(len(paths), "Reorder frames and types in paths:") as pbar:
-        for p in paths:
-            new_order = np.argsort(p.frames)
-            p.update_types_frames(glind(p.types,new_order),glind(p.frames,new_order))
-            pbar.next()
 
     ######################################################################
 
@@ -1367,9 +1361,7 @@ def stage_III_run(config, options,
                 clui.message("No paths were discarded.")
             else:
                 clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
-                with clui.pbar(len(spaths), "Removing (again) unused parts of paths:") as pbar:
-                    # because paths stores now frames as array and produces smartranges on demand with fast_array option
-                    # it is required to keep frames (and types) in order, otherwise smartranges are wrong
+                with clui.pbar(len(spaths)+len(paths), "Removing (again) unused parts of paths:") as pbar:
                     paths = yield_generic_paths(spaths, progress=pbar)
         else:
             clui.message("No paths were discarded - no values were set.")
@@ -1396,7 +1388,7 @@ def stage_III_run(config, options,
                 n = max(1, optimal_threads.threads_count)
                 paths_new = pool.imap_unordered(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
                 #paths_new = map(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
-                paths_ = []
+                paths_ = list()
                 for paths_new_list in paths_new:
                     CRIC.update_cric(paths_new_list.pop(-1))
                     paths_.extend(paths_new_list)
