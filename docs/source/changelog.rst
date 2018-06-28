@@ -1,6 +1,17 @@
 Aqua-Duct changelog
 ===================
 
+* 0.6.3 (28.06.2018) not released yet
+    * GREAT speedup of Stage I, II, and III calculations: they run in parallel; IO can be a bottleneck though.
+    * Substantial speedup of SinglePaths generation: it runs in parallel and uses fastest routines.
+    * Substantial speedup of AutoBarber procedures: it runs in parallel; IO can be a bottleneck though.
+    * Improvements in analysis stage. Additional info displayed in tables and added progress bar, WIP.
+    * portal.py script for calculating sizes of selection(s) using convex hull approximation.
+    * Improvements in dir-cache handling.
+    * Small speedup of master paths calculations, more to come.
+    * Paths, SinglePaths and other objects use less memory.
+    * Newest MDAnalysis can be used (ie 0.17, 0.18) however it is recommended to stay with 0.16.2.
+    * Many other minor improvements and bug fixes.
 * 0.5.9 (12.03.2018)
     * Rewritten module for MD data access. Sandwich mode added.
     * Coordinates can be stored in cache directory, in memory or generated on demand.

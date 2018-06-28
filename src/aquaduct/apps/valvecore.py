@@ -1827,12 +1827,13 @@ def spath_name_header():
 
 
 def add_path_id_head(gen):
-    sph, splt = zip(spath_id_header(), spath_name_header())
-    sph = [e[0] for e in sph]
-    splt = [e[0] for e in splt]
 
     @wraps(gen)
     def patched(*args, **kwargs):
+        sph, splt = zip(spath_id_header(), spath_name_header())
+        sph = [e[0] for e in sph]
+        splt = [e[0] for e in splt]
+
         add_id = True
         if 'add_id' in kwargs:
             add_id = kwargs.pop('add_id')
@@ -2433,7 +2434,7 @@ def stage_V_run(config, options,
         n = len(str(sp.id))
         if n > max_ID_len:
             max_ID_len = n
-    spath_id_header.format = '%%%ds' % (max_ID_len + 1)
+    spath_id_header.format = '%%%ds' % (max_ID_len + 2)
 
     ############
     if options.dump_config:
