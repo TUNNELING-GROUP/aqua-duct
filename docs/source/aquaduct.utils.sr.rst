@@ -1,6 +1,6 @@
-aquaduct.geom.pca module
+aquaduct.utils.sr module
 ========================
 
-.. automodule:: aquaduct.geom.pca
+.. automodule:: aquaduct.utils.sr
     :members:
     :show-inheritance:

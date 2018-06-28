@@ -1,5 +1,5 @@
-aquaduct\.geom package
-======================
+aquaduct.geom package
+=====================
 
 Submodules
 ----------
@@ -8,6 +8,7 @@ Submodules
 
    aquaduct.geom.cluster
    aquaduct.geom.convexhull
+   aquaduct.geom.convexhull_c
    aquaduct.geom.master
    aquaduct.geom.pca
    aquaduct.geom.smooth

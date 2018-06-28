@@ -1,5 +1,5 @@
-aquaduct\.utils package
-=======================
+aquaduct.utils package
+======================
 
 Submodules
 ----------
@@ -10,6 +10,8 @@ Submodules
    aquaduct.utils.helpers
    aquaduct.utils.maths
    aquaduct.utils.multip
+   aquaduct.utils.sets
+   aquaduct.utils.sr
 
 Module contents
 ---------------

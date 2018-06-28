@@ -1,6 +1,6 @@
-aquaduct.traj.dumps module
+aquaduct.utils.sets module
 ==========================
 
-.. automodule:: aquaduct.traj.dumps
+.. automodule:: aquaduct.utils.sets
     :members:
     :show-inheritance:
