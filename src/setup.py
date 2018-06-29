@@ -40,7 +40,7 @@ with open('README','r') as fh:
 
 setup(name='aquaduct',
       version=version,
-      description='Tracing residues in MD simulation',
+      description='Tracing molecules in MD simulation',
       long_description=long_description,
       long_description_content_type="text/rest",
       author=author,
