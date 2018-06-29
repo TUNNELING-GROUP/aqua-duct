@@ -35,7 +35,7 @@ def install_requires_nice(level=0):
 
 author = __import__('aquaduct').__author__  # version str
 
-with open('README','r') as fh:
+with open('README.md','r') as fh:
     long_description = fh.read()
 
 setup(name='aquaduct',
