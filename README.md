@@ -24,6 +24,8 @@ residues in MD simulation. *valve* is a driver Python script. It uses
 
 Source code is available at [github.com/tljm/aqua-duct](https://github.com/tljm/aqua-duct).
 
+Summary of the most important changes is available in our [changelog](docs/source/changelog.rst).
+
 ## Installation
 
 *Aqua-Duct* can be easily installed via PyPi::
