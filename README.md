@@ -21,6 +21,7 @@ residues in MD simulation. *valve* is a driver Python script. It uses
 
 *Aqua-Duct* is licensed under
 `GNU GPL v3 license <https://www.gnu.org/licenses/gpl-3.0.en.html>`.
+
 Source code is available at [github.com/tljm/aqua-duct](https://github.com/tljm/aqua-duct).
 
 ## Installation
