@@ -26,6 +26,15 @@ from aquaduct import version
 from aquaduct.apps.data import logger, check_versions, VDAR
 
 
+def get_vda_reader(filename):
+    if os.path.splitext(filename)[-1].lower() in ['.dump']:
+        return ValveDataAccess_pickle
+    elif os.path.splitext(filename)[-1].lower() in ['.nc','.aqnc']:
+        return ValveDataAccess_nc
+    raise ValueError('Unknown file type of %s file' % filename)
+
+
+
 class LoadDumpWrapper(object):
     """This is wrapper for pickled data that provides compatibility
     with earlier versions of Aqua-Duct.
@@ -289,13 +298,6 @@ class ValveDataAccessRoots(object):
     def __del__(self):
         self.close_all()
 
-
-def get_vda_reader(filename):
-    if os.path.splitext(filename)[-1].lower() in ['.dump']:
-        return ValveDataAccess_pickle
-    elif os.path.splitext(filename)[-1].lower() in ['.nc','.aqnc']:
-        return ValveDataAccess_nc
-    raise ValueError('Unknown file type of %s file' % filename)
 
 
 class ValveDataAccess_nc(ValveDataAccess):
