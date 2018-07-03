@@ -27,6 +27,8 @@ import numpy as np
 from collections import OrderedDict
 from importlib import import_module
 
+import json
+
 from netCDF4 import Dataset
 
 from aquaduct import version, version_nice, logger
@@ -142,6 +144,8 @@ def get_vda_reader(filename):
 
 class ValveDataAccess(object):
 
+    unknown_names = 'UNK'
+
     def __init__(self, mode=None, data_file_name=None, reader=None):
         logger.debug('Opening file %s in mode %s' % (data_file_name, mode))
         self.data_file_name = data_file_name
@@ -169,11 +173,89 @@ class ValveDataAccess(object):
 
 
 ################################################################################
+# numpy way
+
+class ValveDataAccess_numpy(ValveDataAccess):
+    pass
+
+    def open(self, data_file_name, mode):
+        # open file
+        self.data_file = gzip.open(data_file_name, mode=mode, compresslevel=9)
+        # if mode is w save header with version etc
+        if mode == 'w':
+            map(self.save_object,self.version_object)
+        elif mode == 'r':
+            versions = self.version_load()
+            check_versions(versions)
+
+    def save_object(self,obj):
+        np.save(self.data_file,obj,allow_pickle=False)
+
+    def load_next(self):
+        return np.load(self.data_file)
+
+    def load_iter(self):
+        while True:
+            try:
+                yield self.load_next()
+            except IOError:
+                pass
+
+
+    def version_object(self):
+        yield "version"
+        yield version()
+        yield "aquaduct_version"
+        yield version()
+
+    def version_load(self):
+        return {str(self.load_next()):tuple(self.load_next()),
+                str(self.load_next()): tuple(self.load_next())}
+
+    def close(self):
+        self.data_file.close()
+
+
+    def load(self):
+        for name in self.load_iter():
+            name = str(name)
+            assert name in 'all_res center_of_system number_frame_rid_in_object'.split(), "Unknown data %s" % name
+            if name == 'all_res':
+                value = {}
+                # 1) keys in selected
+                yield   for k in list(self.load_next()):
+
+                N = keys.pop(0)
+                # 2) save each selection
+                map(self.save_object,value.selected.values())
+
+
+    def dump(self, **kwargs):
+        for name, value in kwargs.iteritems():
+            assert name in 'all_res center_of_system number_frame_rid_in_object'.split(), "Unknown data %s" % name
+            self.save_object(str(name))
+            if name == 'all_res':
+                # 1) keys in selected
+                self.save_object(value.selected.keys())
+                # 2) save each selection
+                map(self.save_object,value.selected.values())
+            if name == 'center_of_system':
+                self.save_object(value)
+            if name == 'number_frame_rid_in_object':
+                # 1) number of layers
+                self.save_object(len(value))
+                # 2) for each layer start with number of frames and then frames
+                for layer in value:
+                    self.save_object(len(layer))
+                    map(self.save_object,layer)
+
+
+
+################################################################################
 # Pickle way
 
 class ValveDataAccess_pickle(ValveDataAccess):
     mimic_old_var_name = 'aq_data_to_save'
-    unknown_names = 'UNK'
 
     def open(self, data_file_name, mode):
         # open file
