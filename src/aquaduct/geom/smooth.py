@@ -41,7 +41,6 @@ from functools import partial
 from aquaduct.utils.maths import make_default_array
 from aquaduct.geom import traces
 from aquaduct.utils.helpers import arrayify
-from aquaduct.apps.data import get_object_from_name, get_object_name
 
 class Smooth(object):
     '''
