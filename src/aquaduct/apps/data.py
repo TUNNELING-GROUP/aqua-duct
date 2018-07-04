@@ -22,12 +22,7 @@ logger = logging.getLogger(__name__)
 import os
 import gzip
 import cPickle as pickle
-import numpy as np
 from importlib import import_module
-
-from aquaduct import version, logger
-
-#from aquaduct.traj.selections import CompactSelectionMDA, SelectionMDA
 
 ################################################################################
 
