@@ -28,14 +28,14 @@ Summary of the most important changes is available in our [changelog](docs/sourc
 
 ## Installation
 
-*Aqua-Duct* can be easily installed via PyPi::
+*Aqua-Duct* can be easily installed via PyPi:
 
     pip install aquaduct
 
 Detailed instructions on *Aqua-Duct* installation are available at
 [aquaduct.pl/installation](http://www.aquaduct.pl/installation/).
 
-To start using Aqua-Duct type::
+To start using Aqua-Duct type:
 
     valve.py --help
 
