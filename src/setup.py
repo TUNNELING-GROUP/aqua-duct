@@ -42,7 +42,7 @@ setup(name='aquaduct',
       version=version,
       description='Tracing molecules in MD simulation',
       long_description=long_description,
-      long_description_content_type="text/rest",
+      long_description_content_type="text/markdown",
       url='http://aquaduct.pl',
       project_urls={
           'Documentation': 'http://aquaduct.pl/documentation/',

@@ -1,5 +1,5 @@
-aquaduct\.geom\.convexhull module
-=================================
+aquaduct.geom.convexhull module
+===============================
 
 .. automodule:: aquaduct.geom.convexhull
     :members:

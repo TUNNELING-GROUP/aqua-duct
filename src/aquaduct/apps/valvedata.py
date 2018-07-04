@@ -16,66 +16,73 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+import logging
+logger = logging.getLogger(__name__)
+
 import cPickle as pickle
 import gzip
 import os
+from collections import OrderedDict
 
 import numpy as np
 
 from aquaduct import version
-from aquaduct.apps.data import logger, check_versions, VDAR
 
 
-def get_vda_reader(filename):
+################################################################################
+# Version checking
+
+def check_version_compliance(current, loaded, what):
+    if current[0] > loaded[0]:
+        logger.error('Loaded data has %s major version lower then the application.' % what)
+    if current[0] < loaded[0]:
+        logger.error('Loaded data has %s major version higher then the application.' % what)
+    if current[0] != loaded[0]:
+        logger.error('Possible problems with API compliance.')
+    if current[1] > loaded[1]:
+        logger.warning('Loaded data has %s minor version lower then the application.' % what)
+    if current[1] < loaded[1]:
+        logger.warning('Loaded data has %s minor version higher then the application.' % what)
+    if current[1] != loaded[1]:
+        logger.warning('Possible problems with API compliance.')
+
+
+def check_versions(version_dict):
+    assert isinstance(version_dict, (dict, OrderedDict)), "File is corrupted, cannot read version data."
+    assert 'version' in version_dict, "File is corrupted, cannot read version data."
+    assert 'aquaduct_version' in version_dict, "File is corrupted, cannot read version data."
+    check_version_compliance(version(), version_dict['aquaduct_version'], 'Aqua-Duct')
+    check_version_compliance(version(), version_dict['version'], 'Valve')
+
+
+################################################################################
+
+def get_vda_reader(filename,mode="r"):
     if os.path.splitext(filename)[-1].lower() in ['.dump']:
-        return ValveDataAccess_pickle
+        return ValveDataAccess_pickle(mode=mode,data_file_name=filename)
+    elif os.path.splitext(filename)[-1].lower() in ['.npaq']:
+        return ValveDataAccess_numpy(mode=mode, data_file_name=filename)
     elif os.path.splitext(filename)[-1].lower() in ['.nc','.aqnc']:
-        return ValveDataAccess_nc
+        return ValveDataAccess_nc(mode=mode,data_file_name=filename)
     raise ValueError('Unknown file type of %s file' % filename)
 
-
-
-class LoadDumpWrapper(object):
-    """This is wrapper for pickled data that provides compatibility
-    with earlier versions of Aqua-Duct.
-
-    Conversions in use:
-
-    1) replace 'aquaduct.' by 'aquaduct.'
-
-    """
-
-    def __init__(self, filehandle):
-        self.fh = filehandle
-
-    def convert(self, s):
-        new_s = s
-        new_s = new_s.replace('aqueduct.', 'aquaduct.')
-        new_s = new_s.replace('aqueduct_version', 'aquaduct_version')
-        return new_s
-
-    def read(self, *args, **kwargs):
-        return self.convert(self.fh.read(*args, **kwargs))
-
-    def readline(self, *args, **kwargs):
-        return self.convert(self.fh.readline(*args, **kwargs))
-
+################################################################################
 
 class ValveDataAccess(object):
 
     unknown_names = 'UNK'
 
-    def __init__(self, mode=None, data_file_name=None, reader=None):
+    def __init__(self, mode=None, data_file_name=None):
         logger.debug('Opening file %s in mode %s' % (data_file_name, mode))
         self.data_file_name = data_file_name
         self.data_file = None
         self.data = None
         assert mode in 'rw'
         self.mode = mode  # r, w
-        self.reader = reader
-        self.open(self.data_file_name, self.mode)
+        self.open()
 
-    def open(self, data_file_name, mode):
+    def open(self):
         raise NotImplementedError()
 
     def close(self):
@@ -90,6 +97,7 @@ class ValveDataAccess(object):
     def dump(self, **kwargs):
         raise NotImplementedError()
 
+################################################################################
 
 class ValveDataAccess_numpy(ValveDataAccess):
     pass
@@ -166,25 +174,26 @@ class ValveDataAccess_numpy(ValveDataAccess):
                     map(self.save_object,layer)
 
 
+################################################################################
+
 class ValveDataAccess_pickle(ValveDataAccess):
     mimic_old_var_name = 'aq_data_to_save'
 
-    def open(self, data_file_name, mode):
+    def open(self):
         # open file
-        self.data_file = gzip.open(data_file_name, mode=mode, compresslevel=9)
+        self.data_file = gzip.open(self.data_file_name, mode=self.mode, compresslevel=9)
         # if mode is w save header with version etc
-        if mode == 'w':
+        if self.mode == 'w':
             pickle.dump({'version': version(),
                          'aquaduct_version': version()}, self.data_file)
-        elif mode == 'r':
-            data_file = LoadDumpWrapper(self.data_file)
-            versions = pickle.load(data_file)
+        elif self.mode == 'r':
+            versions = pickle.load(self.data_file)
             check_versions(versions)
             # loaded data!
             self.data = {}
             try:
                 while True:
-                    loaded_data = pickle.load(data_file)
+                    loaded_data = pickle.load(self.data_file)
                     self.data.update(loaded_data)
             except:
                 pass

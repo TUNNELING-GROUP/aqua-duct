@@ -837,8 +837,8 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                 # S A V E #
                 ###########
                 with clui.fbm('Saving data dump in %s file' % options.dump):
-                    vda = get_vda_reader(options.dump)
-                    vda(mode='w', data_file_name=options.dump).dump(**result)
+                    vda = get_vda_reader(options.dump,mode='w')
+                    vda.dump(**result)
                 # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
@@ -847,8 +847,8 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                 ###########
                 if options.dump:
                     with clui.fbm('Loading data dump from %s file' % options.dump):
-                        vda = get_vda_reader(options.dump)
-                        result = vda(mode='r', data_file_name=options.dump).load()
+                        vda = get_vda_reader(options.dump,mode='r')
+                        result = vda.load()
                         # result = load_stage_dump(options.dump, reader=reader)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
