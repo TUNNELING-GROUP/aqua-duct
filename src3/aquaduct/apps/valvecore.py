@@ -46,7 +46,8 @@ from aquaduct.utils.clui import roman
 from aquaduct import greetings as greetings_aquaduct
 from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
-from aquaduct.apps.data import get_vda_reader, GCS, CRIC, save_cric
+from aquaduct.apps.data import GCS, CRIC, save_cric
+from aquaduct.apps.valvedata import get_vda_reader
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.geom.cluster import PerformClustering, DBSCAN, AffinityPropagation, MeanShift, KMeans, Birch, \
