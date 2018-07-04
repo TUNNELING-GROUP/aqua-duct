@@ -17,10 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 from setuptools import find_packages, setup
-#from distutils.core import setup
-from Cython.Build import cythonize
 
 version = __import__('aquaduct').version_nice()  # version str
 
@@ -38,10 +35,14 @@ def install_requires_nice(level=0):
 
 author = __import__('aquaduct').__author__  # version str
 
+with open('README.md','r') as fh:
+    long_description = fh.read()
 
 setup(name='aquaduct',
       version=version,
-      description='Tracing residues in MD simulation',
+      description='Tracing molecules in MD simulation',
+      long_description=long_description,
+      long_description_content_type="text/rest",
       author=author,
       author_email='info@aquaduct.pl',
       url='http://aquaduct.pl',
@@ -58,5 +59,4 @@ setup(name='aquaduct',
                    'Operating System :: POSIX',
                    'Programming Language :: Python :: 2.7',
                    ],
-      ext_modules = cythonize("aquaduct/geom/convexhull_c.pyx")
       )
