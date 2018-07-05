@@ -29,7 +29,7 @@ from scipy.io import netcdf
 import numpy as np
 
 from aquaduct import version
-
+from aquaduct.utils.helpers import dictify
 
 ################################################################################
 # Version checking
@@ -116,7 +116,7 @@ class ValveDataCodec(object):
     @staticmethod
     def varname(name,*suffix):
         suff = '.'.join(map(str,suffix))
-        return '%s.%s' % map(str,(name,suff))
+        return '%s.%s' % (name,suff)
 
     @staticmethod
     def encode(name,value):
@@ -124,11 +124,11 @@ class ValveDataCodec(object):
             yield name,np.array(value)
         if name == 'all_res':
             # save layers
-            layers = np.array(value.selected.keys())
+            layers = np.array(value.selected.keys(),dtype=np.int32)
             yield ValveDataCodec.varname(name,'layers'),layers
             # save each layer as separate array
             for l in layers:
-                yield ValveDataCodec.varname(name,'layer',l),np.array(value.selected[l])
+                yield ValveDataCodec.varname(name,'layer',l),np.array(value.selected[l],dtype=np.int32)
         if name == 'number_frame_rid_in_object':
             # make one long array
             # number of layers,
@@ -139,7 +139,7 @@ class ValveDataCodec(object):
                               (len(layer) for layer in value),
                               chain(*((len(row) for row in layer) for layer in value)),
                               chain(*(chain(*(row for row in layer)) for layer in value)))
-            yield name,np.fromiter(data_iter)
+            yield name,np.fromiter(data_iter,dtype=np.int32)
 
     @staticmethod
     def decode(name,data):
@@ -176,16 +176,17 @@ class ValveDataAccess_nc(ValveDataAccess):
     def open(self):
         self.data_file = netcdf.netcdf_file(self.data_file_name,self.mode)
         if self.mode == 'w':
-            self.set_variable('version',np.array(version()))
-            self.set_variable('aquaduct_version',np.array(version()))
+            self.set_variable('version',np.array(version(),dtype=np.int16))
+            self.set_variable('aquaduct_version',np.array(version(),dtype=np.int16))
         elif self.mode == 'r':
-            versions = map(tuple,(self.get_variable('version'),self.get_variable('aquaduct_version')))
+            versions =  dict([(k,tuple(v)) for k,v in zip(['version','aquaduct_version'],(self.get_variable('version'),self.get_variable('aquaduct_version')))])
             check_versions(versions)
 
     def close(self):
         self.data_file.close()
 
     def get_variable(self, name):
+        print name
         return self.data_file.variables[name]
 
     def set_variable(self, name, value):
@@ -208,14 +209,15 @@ class ValveDataAccess_nc(ValveDataAccess):
             for nname,vvalue in ValveDataCodec.encode(name,value):
                 self.set_variable(nname,vvalue)
 
+    @dictify
     def load(self):
         # names of data objects
         names = list(set([name.split('.')[0] for name in self.data_file.variables.keys() if name not in ['version','aquaduct_version']]))
         all_names = [name for name in self.data_file.variables.keys() if name not in ['version','aquaduct_version']]
         for name in names:
             # read all parts of object and decode
-            this_object = ({n:self.get_variable(n)} for n in all_names if name in n)
-            yield {name:ValveDataCodec.decode(name,dict(this_object))}
+            this_object = ((n,self.get_variable(n)) for n in all_names if name in n)
+            yield name,ValveDataCodec.decode(name,dict(this_object))
 
 ################################################################################
 

@@ -378,6 +378,27 @@ def tupleify(gen):
 
     return patched
 
+def dictify(gen):
+    """
+    Decorator to convert functions' outputs into a tuple. If the output is iterable it is converted in to a tuple
+    of apropriate length. If the output is not iterable it is converted in to a tuple of length 1.
+
+    Written on the basis of :func:`listify`.
+
+    :returns: Output of decorated function converted to a tuple.
+    :rtype: tuple
+    """
+
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        obj = gen(*args, **kwargs)
+        if isinstance(obj, Iterable):
+            return dict(obj)
+        return dict({0:obj})
+
+    return patched
+
+
 class arrayify(object):
 
     def __init__(self,shape=None):
