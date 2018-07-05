@@ -25,6 +25,7 @@ import gzip
 import os
 from collections import OrderedDict
 
+from scipy.io import netcdf
 import numpy as np
 
 from aquaduct import version
@@ -97,81 +98,129 @@ class ValveDataAccess(object):
     def dump(self, **kwargs):
         raise NotImplementedError()
 
+    def get_variable(self, name):
+        raise NotImplementedError()
+
+    def set_variable(self, name, value):
+        raise NotImplementedError()
+
 ################################################################################
 
-class ValveDataAccess_numpy(ValveDataAccess):
-    pass
+from aquaduct.traj.sandwich import ResidueSelection
+from itertools import chain
 
-    def open(self, data_file_name, mode):
-        # open file
-        self.data_file = gzip.open(data_file_name, mode=mode, compresslevel=9)
-        # if mode is w save header with version etc
-        if mode == 'w':
-            map(self.save_object,self.version_object)
-        elif mode == 'r':
-            versions = self.version_load()
+
+class ValveDataCodec(object):
+    # this is in fact definition of data format
+
+    @staticmethod
+    def varname(name,*suffix):
+        suff = '.'.join(map(str,suffix))
+        return '%s.%s' % map(str,(name,suff))
+
+    @staticmethod
+    def encode(name,value):
+        if name == 'center_of_system':
+            yield name,np.array(value)
+        if name == 'all_res':
+            # save layers
+            layers = np.array(value.selected.keys())
+            yield ValveDataCodec.varname(name,'layers'),layers
+            # save each layer as separate array
+            for l in layers:
+                yield ValveDataCodec.varname(name,'layer',l),np.array(value.selected[l])
+        if name == 'number_frame_rid_in_object':
+            # make one long array
+            # number of layers,
+            # size of each layer
+            # sizes of all rows
+            # rows
+            data_iter = chain([len(value)],
+                              (len(layer) for layer in value),
+                              chain(*((len(row) for row in layer) for layer in value)),
+                              chain(*(chain(*(row for row in layer)) for layer in value)))
+            yield name,np.fromiter(data_iter)
+
+    @staticmethod
+    def decode(name,data):
+        if name == 'center_of_system':
+            yield data[name][:].copy()
+        if name == 'all_res':
+            # create empty all_res object
+            # read layers
+            layers = data[ValveDataCodec.varname(name,'layers')]
+            yield ResidueSelection(((l,data[ValveDataCodec.varname(name,'layer',l)]) for l in layers))
+        if name == 'number_frame_rid_in_object':
+            seek = 0
+            layers_nr = int(data[name][seek])
+            seek += 1
+            layers_size = data[name][seek:seek + layers_nr]
+            seek += layers_nr
+            rows_size = data[name][seek:seek + sum(layers_size)]
+            seek += sum(layers_size)
+            out = []
+            ls_cum = 0
+            for l,ls in zip(xrange(layers_nr),layers_size):
+                out.append([])
+                for rs in rows_size[ls_cum:ls_cum+ls]:
+                    row = data[name][seek:seek+rs]
+                    seek += rs
+                    out[-1].append(list(row))
+            yield out
+
+
+
+class ValveDataAccess_nc(ValveDataAccess):
+
+
+    def open(self):
+        self.data_file = netcdf.netcdf_file(self.data_file_name,self.mode)
+        if self.mode == 'w':
+            self.set_variable('version',np.array(version()))
+            self.set_variable('aquaduct_version',np.array(version()))
+        elif self.mode == 'r':
+            versions = map(tuple,(self.get_variable('version'),self.get_variable('aquaduct_version')))
             check_versions(versions)
-
-    def save_object(self,obj):
-        np.save(self.data_file,obj,allow_pickle=False)
-
-    def load_next(self):
-        return np.load(self.data_file)
-
-    def load_iter(self):
-        while True:
-            try:
-                yield self.load_next()
-            except IOError:
-                pass
-
-
-    def version_object(self):
-        yield "version"
-        yield version()
-        yield "aquaduct_version"
-        yield version()
-
-    def version_load(self):
-        return {str(self.load_next()):tuple(self.load_next()),
-                str(self.load_next()): tuple(self.load_next())}
 
     def close(self):
         self.data_file.close()
 
+    def get_variable(self, name):
+        return self.data_file.variables[name]
 
-    def load(self):
-        for name in self.load_iter():
-            name = str(name)
-            assert name in 'all_res center_of_system number_frame_rid_in_object'.split(), "Unknown data %s" % name
-            if name == 'all_res':
-                value = {}
-                # 1) keys in selected
-                #for k in list(self.load_next()):
-
-                #N = keys.pop(0)
-                # 2) save each selection
-                map(self.save_object,value.selected.values())
-
+    def set_variable(self, name, value):
+        print name,value
+        assert self.mode == "w"
+        # value has to be ndarray
+        assert isinstance(value,np.ndarray)
+        # create dimensions
+        dimenstions = []
+        for nr,d in enumerate(value.shape):
+            dimenstions.append("%s%d" % (name,nr))
+            self.data_file.createDimension(dimenstions[-1],d)
+        # create variable
+        v = self.data_file.createVariable(name,value.dtype,tuple(dimenstions))
+        # fill variable
+        v[:] = value
 
     def dump(self, **kwargs):
         for name, value in kwargs.iteritems():
-            assert name in 'all_res center_of_system number_frame_rid_in_object'.split(), "Unknown data %s" % name
-            self.save_object(str(name))
-            if name == 'all_res':
-                # 1) keys in selected
-                self.save_object(value.selected.keys())
-                # 2) save each selection
-                map(self.save_object,value.selected.values())
-            if name == 'center_of_system':
-                self.save_object(value)
-            if name == 'number_frame_rid_in_object':
-                # 1) number of layers
-                self.save_object(len(value))
-                # 2) for each layer start with number of frames and then frames
-                for layer in value:
-                    self.save_object(len(layer))
-                    map(self.save_object,layer)
+            for nname,vvalue in ValveDataCodec.encode(name,value):
+                self.set_variable(nname,vvalue)
+
+    def load(self):
+        # names of data objects
+        names = list(set([name.split('.')[0] for name in self.data_file.variables.keys() if name not in ['version','aquaduct_version']]))
+        all_names = [name for name in self.data_file.variables.keys() if name not in ['version','aquaduct_version']]
+        for name in names:
+            # read all parts of object and decode
+            this_object = ({n:self.get_variable(n)} for n in all_names if name in n)
+            yield {name:ValveDataCodec.decode(name,dict(this_object))}
+
+################################################################################
+
+class ValveDataAccess_numpy(ValveDataAccess):
+    pass
 
 
 ################################################################################
@@ -292,29 +341,3 @@ class ValveDataAccess_pickle(ValveDataAccess):
         else:
             pickle.dump({name: value}, self.data_file)
 
-
-class ValveDataAccessRoots(object):
-    roots = []
-
-    def open(self, data_file_name, mode):
-        self.roots.append(Dataset(data_file_name, mode, format="NETCDF4"))
-        return self.roots[-1]
-
-    def close_all(self):
-        for root in self.roots:
-            root.close()
-
-    def __del__(self):
-        self.close_all()
-
-
-
-class ValveDataAccess_nc(ValveDataAccess):
-
-    def __init__(self,*args,**kwargs):
-        super(self,ValveDataAccess_nc).__init__(*args,**kwargs)
-        self.root = None
-
-    def open(self, data_file_name, mode):
-        self.root = VDAR.open(data_file_name, mode)
-        logger.debug('Dataset created')
