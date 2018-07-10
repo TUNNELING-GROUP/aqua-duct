@@ -112,6 +112,7 @@ from itertools import chain
 
 class ValveDataCodec(object):
     # this is in fact definition of data format
+    # it assumes data is dictionary with scipy netcdf variables, would it work with netcdf4?
 
     @staticmethod
     def varname(name,*suffix):
@@ -144,29 +145,29 @@ class ValveDataCodec(object):
     @staticmethod
     def decode(name,data):
         if name == 'center_of_system':
-            yield data[name][:].copy()
+            return data[name][:].copy()
         if name == 'all_res':
             # create empty all_res object
             # read layers
-            layers = data[ValveDataCodec.varname(name,'layers')]
-            yield ResidueSelection(((l,data[ValveDataCodec.varname(name,'layer',l)]) for l in layers))
+            layers = data[ValveDataCodec.varname(name,'layers')][:].copy()
+            return ResidueSelection(((l,data[ValveDataCodec.varname(name,'layer',l)]) for l in layers))
         if name == 'number_frame_rid_in_object':
             seek = 0
-            layers_nr = int(data[name][seek])
+            layers_nr = int(data[name][seek].copy())
             seek += 1
-            layers_size = data[name][seek:seek + layers_nr]
+            layers_size = data[name][seek:seek + layers_nr].copy()
             seek += layers_nr
-            rows_size = data[name][seek:seek + sum(layers_size)]
+            rows_size = data[name][seek:seek + sum(layers_size)].copy()
             seek += sum(layers_size)
             out = []
             ls_cum = 0
             for l,ls in zip(xrange(layers_nr),layers_size):
                 out.append([])
                 for rs in rows_size[ls_cum:ls_cum+ls]:
-                    row = data[name][seek:seek+rs]
+                    row = data[name][seek:seek+rs].copy()
                     seek += rs
                     out[-1].append(list(row))
-            yield out
+            return out
 
 
 
@@ -179,14 +180,18 @@ class ValveDataAccess_nc(ValveDataAccess):
             self.set_variable('version',np.array(version(),dtype=np.int16))
             self.set_variable('aquaduct_version',np.array(version(),dtype=np.int16))
         elif self.mode == 'r':
-            versions =  dict([(k,tuple(v)) for k,v in zip(['version','aquaduct_version'],(self.get_variable('version'),self.get_variable('aquaduct_version')))])
+            versions =  dict([(k,tuple(v)) for k,v in zip(['version','aquaduct_version'],
+                                                          (self.get_variable('version'),
+                                                           self.get_variable('aquaduct_version')))])
             check_versions(versions)
 
     def close(self):
         self.data_file.close()
 
-    def get_variable(self, name):
+    def get_variable(self, name,copy=True):
         print name
+        if copy:
+            return self.data_file.variables[name][:].copy()
         return self.data_file.variables[name]
 
     def set_variable(self, name, value):
@@ -195,12 +200,12 @@ class ValveDataAccess_nc(ValveDataAccess):
         # value has to be ndarray
         assert isinstance(value,np.ndarray)
         # create dimensions
-        dimenstions = []
+        dimensions = []
         for nr,d in enumerate(value.shape):
-            dimenstions.append("%s%d" % (name,nr))
-            self.data_file.createDimension(dimenstions[-1],d)
+            dimensions.append("%s%d" % (name,nr))
+            self.data_file.createDimension(dimensions[-1],d)
         # create variable
-        v = self.data_file.createVariable(name,value.dtype,tuple(dimenstions))
+        v = self.data_file.createVariable(name,value.dtype,tuple(dimensions))
         # fill variable
         v[:] = value
 
@@ -216,8 +221,11 @@ class ValveDataAccess_nc(ValveDataAccess):
         all_names = [name for name in self.data_file.variables.keys() if name not in ['version','aquaduct_version']]
         for name in names:
             # read all parts of object and decode
-            this_object = ((n,self.get_variable(n)) for n in all_names if name in n)
-            yield name,ValveDataCodec.decode(name,dict(this_object))
+            this_object = dict(((n,self.get_variable(n,copy=False)) for n in all_names if name in n))
+            yield name,ValveDataCodec.decode(name,this_object)
+            for k in this_object.keys():
+                v = this_object.pop(k)[:].copy()
+                del v
 
 ################################################################################
 
