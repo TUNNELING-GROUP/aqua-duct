@@ -115,6 +115,8 @@ class ValveDataCodec(object):
     # this is in fact definition of data format
     # it assumes data is dictionary with scipy netcdf variables, would it work with netcdf4?
 
+    version = 0,0,1
+
     @staticmethod
     def varname(name,*suffix):
         suff = '.'.join(map(str,suffix))
@@ -206,6 +208,7 @@ class ValveDataAccess_nc(ValveDataAccess):
         if self.mode == 'w':
             self.set_variable('version',np.array(version(),dtype=np.int16))
             self.set_variable('aquaduct_version',np.array(version(),dtype=np.int16))
+            self.set_variable('ValveDataCodec',np.array(ValveDataCodec.version,dtype=np.int16)) # not used right now
         elif self.mode == 'r':
             versions =  dict([(k,tuple(v)) for k,v in zip(['version','aquaduct_version'],
                                                           (self.get_variable('version'),

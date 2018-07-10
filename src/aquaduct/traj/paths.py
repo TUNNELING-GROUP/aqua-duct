@@ -29,7 +29,8 @@ from aquaduct.traj.inlets import Inlet, InletTypeCodes
 from aquaduct.utils.helpers import is_number, lind, SmartRange, SmartRangeDecrement, SmartRangeEqual, SmartRangeFunction, SmartRangeIncrement # smart ranges are required here to provide bacward compatibility with v0.3
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
-from aquaduct.traj.sandwich import Reader
+from aquaduct.traj.sandwich import Reader, SingleResidueSelection
+
 
 ########################################################################################################################
 # paths/list manipulations
@@ -115,9 +116,11 @@ class GenericPaths(object, GenericPathTypeCodes):
         # id is any type of object; it is used as identifier
         # single_res_selection is object which have coords method that accepts frames and returns coordinates
 
-        assert single_res_selection is not None
-
-        self.single_res_selection = single_res_selection
+        #assert single_res_selection is not None
+        if single_res_selection is None:
+            self.single_res_selection = SingleResidueSelection(id_of_res)
+        else:
+            self.single_res_selection = single_res_selection
 
         self.id = id_of_res
         if name_of_res is not None:
