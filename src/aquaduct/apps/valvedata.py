@@ -108,6 +108,7 @@ class ValveDataAccess(object):
 
 from aquaduct.traj.sandwich import ResidueSelection
 from itertools import chain
+import netCDF4 as nc4
 
 
 class ValveDataCodec(object):
@@ -131,16 +132,26 @@ class ValveDataCodec(object):
             for l in layers:
                 yield ValveDataCodec.varname(name,'layer',l),np.array(value.selected[l],dtype=np.int32)
         if name == 'number_frame_rid_in_object':
+            # number of layers
+            layers = len(value)
+            yield ValveDataCodec.varname(name,'layers'),np.array(layers,dtype=np.int32)
+            for nr,layer in enumerate(value):
+                # for each layer make sizes array
+                yield ValveDataCodec.varname(name,'layer',nr,'sizes'),np.fromiter((len(row) for row in layer),dtype=np.int32)
+                # then save layer
+                yield ValveDataCodec.varname(name, 'layer', nr), np.fromiter(chain(*(row for row in layer)),dtype=np.int32)
             # make one long array
             # number of layers,
             # size of each layer
             # sizes of all rows
             # rows
+            '''
             data_iter = chain([len(value)],
                               (len(layer) for layer in value),
                               chain(*((len(row) for row in layer) for layer in value)),
                               chain(*(chain(*(row for row in layer)) for layer in value)))
             yield name,np.fromiter(data_iter,dtype=np.int32)
+            '''
 
     @staticmethod
     def decode(name,data):
@@ -152,6 +163,20 @@ class ValveDataCodec(object):
             layers = data[ValveDataCodec.varname(name,'layers')][:].copy()
             return ResidueSelection(((l,data[ValveDataCodec.varname(name,'layer',l)]) for l in layers))
         if name == 'number_frame_rid_in_object':
+            out = []
+            # number of layers
+            layers = int(data[ValveDataCodec.varname(name,'layers')][:].copy())
+            for nr in xrange(layers):
+                out_ = []
+                sizes = data[ValveDataCodec.varname(name,'layer',nr,'sizes')]
+                layer = data[ValveDataCodec.varname(name,'layer',nr)]
+                seek = 0
+                for s in sizes:
+                    out_.append(layer[seek:seek+s].copy())
+                    seek += s
+                out.append(out_)
+
+            '''                    
             seek = 0
             layers_nr = int(data[name][seek].copy())
             seek += 1
@@ -167,6 +192,7 @@ class ValveDataCodec(object):
                     row = data[name][seek:seek+rs].copy()
                     seek += rs
                     out[-1].append(list(row))
+            '''
             return out
 
 
@@ -175,7 +201,8 @@ class ValveDataAccess_nc(ValveDataAccess):
 
 
     def open(self):
-        self.data_file = netcdf.netcdf_file(self.data_file_name,self.mode)
+        #self.data_file = netcdf.netcdf_file(self.data_file_name,self.mode)
+        self.data_file = nc4.Dataset(self.data_file_name,self.mode)
         if self.mode == 'w':
             self.set_variable('version',np.array(version(),dtype=np.int16))
             self.set_variable('aquaduct_version',np.array(version(),dtype=np.int16))
@@ -205,7 +232,7 @@ class ValveDataAccess_nc(ValveDataAccess):
             dimensions.append("%s%d" % (name,nr))
             self.data_file.createDimension(dimensions[-1],d)
         # create variable
-        v = self.data_file.createVariable(name,value.dtype,tuple(dimensions))
+        v = self.data_file.createVariable(name,value.dtype,tuple(dimensions),zlib=True)
         # fill variable
         v[:] = value
 
