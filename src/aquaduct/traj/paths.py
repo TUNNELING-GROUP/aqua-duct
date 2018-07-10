@@ -20,6 +20,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+from itertools import chain
 from collections import OrderedDict
 from aquaduct.utils import clui
 import numpy as np
@@ -142,6 +143,26 @@ class GenericPaths(object, GenericPathTypeCodes):
         return list(self.__types.get())
 
     @property
+    def frames_of_object(self):
+        def get_foo():
+            frame = self.__frames.first_element()
+            for sr in self.__types.raw:
+                if sr.element == self.object_name:
+                    yield xrange(frame,frame+sr.times)
+                frame += sr.times
+        return chain(*get_foo())
+
+    @property
+    def frames_of_scope(self):
+        def get_fos():
+            frame = self.__frames.first_element()
+            for sr in self.__types.raw:
+                if sr.element == self.scope_name:
+                    yield xrange(frame,frame+sr.times)
+                frame += sr.times
+        return chain(*get_fos())
+
+    @property
     def frames(self):
         return list(self.__frames.get())
 
@@ -158,6 +179,27 @@ class GenericPaths(object, GenericPathTypeCodes):
         return self.__frames.min()
 
     # add methods
+    def add_foos(self,foo,fos):
+        foo_ = None
+        fos_ = None
+        while len(foo)+len(fos):
+            if len(foo) and foo_ is None:
+                foo_ = foo.pop(0)
+            if len(fos) and fos_ is None:
+                fos_ = fos.pop(0)
+            if foo_ is None:
+                self.add_scope(fos_)
+                fos_ = None
+            elif fos_ is None:
+                self.add_object(foo_)
+                foo_ = None
+            elif foo_ > fos_:
+                self.add_scope(fos_)
+                fos_ = None
+            elif fos_ > foo_:
+                self.add_object(foo_)
+                foo_ = None
+
 
     def add_012(self, os_in_frames):
         for frame,os_type in enumerate(os_in_frames):
