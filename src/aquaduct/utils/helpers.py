@@ -91,7 +91,7 @@ def robust_or(a,b):
 
 
 def is_number(s):
-    # http://pythoncentral.org/how-to-check-if-a-strfing-is-a-number-in-python-including-unicode/
+    # http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/
     if isinstance(s, bool):
         return False
     try:
@@ -396,6 +396,27 @@ def tupleify(gen):
         return (obj,)
 
     return patched
+
+def dictify(gen):
+    """
+    Decorator to convert functions' outputs into a tuple. If the output is iterable it is converted in to a tuple
+    of apropriate length. If the output is not iterable it is converted in to a tuple of length 1.
+
+    Written on the basis of :func:`listify`.
+
+    :returns: Output of decorated function converted to a tuple.
+    :rtype: tuple
+    """
+
+    @wraps(gen)
+    def patched(*args, **kwargs):
+        obj = gen(*args, **kwargs)
+        if isinstance(obj, Iterable):
+            return dict(obj)
+        return dict({0:obj})
+
+    return patched
+
 
 class arrayify(object):
 
@@ -804,6 +825,31 @@ class SmartRange(object):
                 yield SmartRangeEqual(element, 1)
             else:
                 yield element
+
+    @property
+    def raw_equal(self):
+        for element in self._elements:
+            if not isinstance(element, SmartRangeFunction):
+                yield SmartRangeEqual(element, 1)
+            elif isinstance(element, SmartRangeEqual):
+                yield element
+            else:
+                for e in element.get():
+                    yield SmartRangeEqual(e, 1)
+
+    @property
+    def raw_increment(self):
+        for element in self._elements:
+            if not isinstance(element, SmartRangeFunction):
+                yield SmartRangeIncrement(element, 1)
+            elif isinstance(element, SmartRangeIncrement):
+                yield element
+            else:
+                for e in element.get():
+                    yield SmartRangeIncrement(e, 1)
+
+
+
 
     def append(self, element):
         assert not isinstance(element, SmartRangeFunction)
