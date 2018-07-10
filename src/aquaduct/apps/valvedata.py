@@ -107,7 +107,9 @@ class ValveDataAccess(object):
 ################################################################################
 
 from aquaduct.traj.sandwich import ResidueSelection
-from itertools import chain
+from aquaduct.traj.paths import GenericPaths
+
+from itertools import chain,izip
 import netCDF4 as nc4
 
 
@@ -142,18 +144,19 @@ class ValveDataCodec(object):
                 yield ValveDataCodec.varname(name,'layer',nr,'sizes'),np.fromiter((len(row) for row in layer),dtype=np.int32)
                 # then save layer
                 yield ValveDataCodec.varname(name, 'layer', nr), np.fromiter(chain(*(row for row in layer)),dtype=np.int32)
-            # make one long array
-            # number of layers,
-            # size of each layer
-            # sizes of all rows
-            # rows
-            '''
-            data_iter = chain([len(value)],
-                              (len(layer) for layer in value),
-                              chain(*((len(row) for row in layer) for layer in value)),
-                              chain(*(chain(*(row for row in layer)) for layer in value)))
-            yield name,np.fromiter(data_iter,dtype=np.int32)
-            '''
+        if name == 'paths':
+            N = len(value)
+            # paths ids
+            yield ValveDataCodec.varname(name, 'ids'), np.fromiter(chain(*(p.id for p in value)),dtype=np.int32).reshape(N,2)
+            # paths names, 3 characters each!
+            yield ValveDataCodec.varname(name, 'names'), np.fromiter((p.name for p in value),dtype='S3')
+            # paths min, max frames
+            yield ValveDataCodec.varname(name, 'min_max_frames'),\
+                  np.fromiter(chain(*((p.min_possible_frame,p.max_possible_frame) for p in value)), dtype=np.int32).reshape(N,2)
+            # for each paths save foo and fos
+            for nr,p in enumerate(value):
+                yield ValveDataCodec.varname(name, nr, 'object'), np.fromiter(p.frames_of_object,dtype=np.int32)
+                yield ValveDataCodec.varname(name, nr, 'scope'), np.fromiter(p.frames_of_scope,dtype=np.int32)
 
     @staticmethod
     def decode(name,data):
@@ -177,30 +180,27 @@ class ValveDataCodec(object):
                     out_.append(layer[seek:seek+s].copy())
                     seek += s
                 out.append(out_)
-
-            '''                    
-            seek = 0
-            layers_nr = int(data[name][seek].copy())
-            seek += 1
-            layers_size = data[name][seek:seek + layers_nr].copy()
-            seek += layers_nr
-            rows_size = data[name][seek:seek + sum(layers_size)].copy()
-            seek += sum(layers_size)
-            out = []
-            ls_cum = 0
-            for l,ls in zip(xrange(layers_nr),layers_size):
-                out.append([])
-                for rs in rows_size[ls_cum:ls_cum+ls]:
-                    row = data[name][seek:seek+rs].copy()
-                    seek += rs
-                    out[-1].append(list(row))
-            '''
             return out
-
+        if name == 'paths':
+            out = []
+            # paths ids
+            ids = data[ValveDataCodec.varname(name, 'ids')]
+            # paths names, 3 characters each!
+            names = data[ValveDataCodec.varname(name, 'names')]
+            # paths min, max frames
+            min_max_frames = data[ValveDataCodec.varname(name, 'min_max_frames')]
+            # for each paths get foo and fos
+            for nr,(i,n,mmf) in enumerate(izip(ids,names,min_max_frames)):
+                foo = data[ValveDataCodec.varname(name, nr, 'object')][:].copy().tolist()
+                fos = data[ValveDataCodec.varname(name, nr, 'scope')][:].copy().tolist()
+                out.append(GenericPaths(tuple(map(int,i)),name_of_res=str(n),min_pf=int(mmf[0]),max_pf=int(mmf[1])))
+                out[-1].add_foos(foo,fos)
+            return out
 
 
 class ValveDataAccess_nc(ValveDataAccess):
 
+    not_variable = ['version','aquaduct_version', 'ValveDataCodec']
 
     def open(self):
         #self.data_file = netcdf.netcdf_file(self.data_file_name,self.mode)
@@ -247,8 +247,8 @@ class ValveDataAccess_nc(ValveDataAccess):
     @dictify
     def load(self):
         # names of data objects
-        names = list(set([name.split('.')[0] for name in self.data_file.variables.keys() if name not in ['version','aquaduct_version']]))
-        all_names = [name for name in self.data_file.variables.keys() if name not in ['version','aquaduct_version']]
+        names = list(set([name.split('.')[0] for name in self.data_file.variables.keys() if name not in self.not_variable]))
+        all_names = [name for name in self.data_file.variables.keys() if name not in self.not_variable]
         for name in names:
             # read all parts of object and decode
             this_object = dict(((n,self.get_variable(n,copy=False)) for n in all_names if name in n))

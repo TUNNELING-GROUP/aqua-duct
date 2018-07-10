@@ -128,6 +128,9 @@ class GenericPaths(object, GenericPathTypeCodes):
             self.name = name_of_res
         else:
             self.name = 'UNK'  # FIXME: magic constant
+        assert isinstance(self.name,str)
+        assert len(self.name) == 3
+
         self.__types = SmartRange()
         self.__frames = SmartRange()
 
