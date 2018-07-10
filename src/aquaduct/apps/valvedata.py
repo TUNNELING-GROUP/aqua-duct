@@ -107,7 +107,7 @@ class ValveDataAccess(object):
 ################################################################################
 
 from aquaduct.traj.sandwich import ResidueSelection
-from aquaduct.traj.paths import GenericPaths
+from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath,SinglePathID, GenericPathTypeCodes
 
 from itertools import chain,izip
 import netCDF4 as nc4
@@ -157,6 +157,23 @@ class ValveDataCodec(object):
             for nr,p in enumerate(value):
                 yield ValveDataCodec.varname(name, nr, 'object'), np.fromiter(p.frames_of_object,dtype=np.int32)
                 yield ValveDataCodec.varname(name, nr, 'scope'), np.fromiter(p.frames_of_scope,dtype=np.int32)
+        if name == 'spaths':
+            N = len(value)
+            # paths ids: layer, id, number
+            yield ValveDataCodec.varname(name, 'ids'), np.fromiter(chain(*(p.id.id+(p.id.nr,) for p in value)),dtype=np.int32).reshape(N,3)
+            # paths names, 3 characters each!
+            yield ValveDataCodec.varname(name, 'names'), np.fromiter((p.id.name for p in value),dtype='S3')
+            # is single
+            yield ValveDataCodec.varname(name, 'single'), np.fromiter((p.is_single() for p in value), dtype='i1') # i1 instead of bool
+            # for each paths save paths and types in object!
+            for nr,p in enumerate(value):
+                if p.is_single():
+                    yield ValveDataCodec.varname(name, nr, 'in'), np.fromiter(p.path_in,dtype=np.int32)
+                    yield ValveDataCodec.varname(name, nr, 'object'), np.fromiter(p.path_object,dtype=np.int32)
+                    yield ValveDataCodec.varname(name, nr, 'object','strict'), np.fromiter(p.path_object_strict(),dtype=np.int32)
+                    yield ValveDataCodec.varname(name, nr, 'out'), np.fromiter(p.path_out, dtype=np.int32)
+                else:
+                    yield ValveDataCodec.varname(name, nr, 'path'), np.fromiter(p.path,dtype=np.int32)
 
     @staticmethod
     def decode(name,data):
@@ -196,6 +213,29 @@ class ValveDataCodec(object):
                 out.append(GenericPaths(tuple(map(int,i)),name_of_res=str(n),min_pf=int(mmf[0]),max_pf=int(mmf[1])))
                 out[-1].add_foos(foo,fos)
             return out
+        if name == 'spaths':
+            out = []
+            # paths ids: layer, id, number
+            ids = data[ValveDataCodec.varname(name, 'ids')]
+            # paths names, 3 characters each!
+            names = data[ValveDataCodec.varname(name, 'names')]
+            # is single
+            is_single = data[ValveDataCodec.varname(name, 'single')]
+            # for each paths save paths and types in object!
+            for nr,(i,n,iss) in enumerate(izip(ids,names,is_single)):
+                pid = SinglePathID(path_id=(tuple(map(int,i[:2]))), nr=int(i[-1]), name=str(n))
+                if iss:
+                    out.append(SinglePath(pid, [[],[],[]], [[],[],[]],))
+                    path_in = data[ValveDataCodec.varname(name, nr, 'in')][:].copy()
+                    path_object = data[ValveDataCodec.varname(name, nr, 'object')][:].copy()
+                    path_object_strict = data[ValveDataCodec.varname(name, nr, 'object','strict')][:].copy()
+                    path_out = data[ValveDataCodec.varname(name, nr, 'out')][:].copy()
+                    out[-1].add_paths4(path_in,path_object,path_object_strict,path_out)
+                else:
+                    path = data[ValveDataCodec.varname(name, nr, 'path')][:].copy()
+                    out.append(PassingPath(pid, path, [GenericPathTypeCodes.scope_name]*len(path)))
+            return out
+
 
 
 class ValveDataAccess_nc(ValveDataAccess):

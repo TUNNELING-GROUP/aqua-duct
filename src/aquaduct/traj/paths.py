@@ -20,7 +20,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from itertools import chain
+from itertools import chain,izip
 from collections import OrderedDict
 from aquaduct.utils import clui
 import numpy as np
@@ -531,8 +531,10 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
 
     def __init__(self, path_id, paths, types, single_res_selection = None):
 
-        assert single_res_selection is not None
-        self.single_res_selection = single_res_selection
+        if single_res_selection is None:
+            self.single_res_selection = SingleResidueSelection(path_id.id)
+        else:
+            self.single_res_selection = single_res_selection
 
         self.id = path_id
         # for paths use SmartRanges and then provide methods to read them
@@ -550,6 +552,16 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
         self.__object_len = None
+
+    def add_paths4(self,path_in,path_object,path_object_strict,path_out):
+        # init empty path
+        self.__path_in, self.__path_object, self.__path_out = map(SmartRange, (path_in,path_object,path_out))
+        self.__types_in = SmartRange([GenericPathTypeCodes.scope_name]*len(path_in))
+        self.__types_out = SmartRange([GenericPathTypeCodes.scope_name]*len(path_out))
+
+        tobj = np.array([GenericPathTypeCodes.scope_name]*len(path_object))
+        tobj[[nr for nr,f in enumerate(path_object) if f in path_object_strict]] = GenericPathTypeCodes.object_name
+        self.__types_object = SmartRange(tobj.tolist())
 
     def __object_len_calculate(self):
         for nr,real_coords in enumerate(traces.midpoints(self.coords)):
@@ -588,6 +600,12 @@ class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     @property
     def path_object(self):
         return list(self.__path_object.get())
+
+
+    def path_object_strict(self):
+        for f,t in izip(self.path_object,self.types_object):
+            if t == GenericPathTypeCodes.object_name:
+                yield f
 
     @property
     def path_out(self):
@@ -846,8 +864,10 @@ class PassingPath(MacroMolPath):
     def __init__(self, path_id, paths, types, single_res_selection = None):
     #def __init__(self, path_id, path, coords, types):
 
-        assert single_res_selection is not None
-        self.single_res_selection = single_res_selection
+        if single_res_selection is None:
+            self.single_res_selection = SingleResidueSelection(path_id.id)
+        else:
+            self.single_res_selection = single_res_selection
 
         self.id = path_id
 
