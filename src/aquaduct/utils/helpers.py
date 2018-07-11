@@ -734,7 +734,7 @@ class SmartRangeDecrement(SmartRangeFunction):
 class SmartRange(object):
     __slots__ = '_elements _len _min _max'.split()
 
-    def __init__(self, iterable=None, fast_array=None):
+    def __init__(self, iterable=None, fast_array=None, fast_mono_incr=None):
         self._elements = []
         self._len = 0
         self._min = None
@@ -747,6 +747,11 @@ class SmartRange(object):
             self._len = len(fast_array)
             self._min = min(fast_array)
             self._max = max(fast_array)
+        if fast_mono_incr is not None:
+            self._elements = [SmartRangeIncrement(e,t) for e,t in fast_mono_incr]
+            self._len = sum((t for e,t in self.raw2pairs(self._elements)))
+            self._min = self._elements[0].element
+            self._max = sum((e*t for e,t in self.raw2pairs(self._elements)))
 
     @staticmethod
     def _a2e(a):
@@ -799,6 +804,10 @@ class SmartRange(object):
             return element.times
         return 1
 
+    @staticmethod
+    def raw2pairs(raw):
+        return ((srf.element,srf.times) for srf in raw)
+
     @property
     def raw(self):
         for element in self._elements:
@@ -820,6 +829,7 @@ class SmartRange(object):
 
     @property
     def raw_increment(self):
+        # it may results in wrong sequence if range is not  monotonically increasing
         for element in self._elements:
             if not isinstance(element, SmartRangeFunction):
                 yield SmartRangeIncrement(element, 1)
