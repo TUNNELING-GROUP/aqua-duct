@@ -26,6 +26,7 @@ from functools import wraps
 from os import close
 from tempfile import mkstemp
 from functools import partial,total_ordering
+from itertools import chain
 from aquaduct.utils.maths import defaults
 
 
@@ -734,7 +735,7 @@ class SmartRangeDecrement(SmartRangeFunction):
 class SmartRange(object):
     __slots__ = '_elements _len _min _max'.split()
 
-    def __init__(self, iterable=None, fast_array=None, fast_mono_incr=None):
+    def __init__(self, iterable=None, fast_array=None, fast_minc_pairs=None, fast_minc_seq=None):
         self._elements = []
         self._len = 0
         self._min = None
@@ -745,13 +746,19 @@ class SmartRange(object):
         if fast_array is not None:
             self._elements = list(self._a2e(fast_array))
             self._len = len(fast_array)
-            self._min = min(fast_array)
-            self._max = max(fast_array)
-        if fast_mono_incr is not None:
-            self._elements = [SmartRangeIncrement(e,t) for e,t in fast_mono_incr]
+            if self._len:
+                self._min = min(fast_array)
+                self._max = max(fast_array)
+        if fast_minc_pairs is not None or fast_minc_seq is not None:
+            if fast_minc_pairs is not None:
+                self._elements = [SmartRangeIncrement(e,t) for e,t in fast_minc_pairs]
+            else:
+                fms = chain(fast_minc_seq)
+                self._elements = [SmartRangeIncrement(e, t) for e, t in ((ee,fms.next()) for ee in fms)]
             self._len = sum((t for e,t in self.raw2pairs(self._elements)))
-            self._min = self._elements[0].element
-            self._max = sum((e*t for e,t in self.raw2pairs(self._elements)))
+            if self._len:
+                self._min = self._elements[0].element
+                self._max = max((e+t-1 for e,t in self.raw2pairs(self._elements)))
 
     @staticmethod
     def _a2e(a):
@@ -807,6 +814,9 @@ class SmartRange(object):
     @staticmethod
     def raw2pairs(raw):
         return ((srf.element,srf.times) for srf in raw)
+    @staticmethod
+    def raw2sequence(raw):
+        return chain(*((srf.element,srf.times) for srf in raw))
 
     @property
     def raw(self):
