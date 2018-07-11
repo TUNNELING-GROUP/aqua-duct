@@ -107,8 +107,9 @@ class ValveDataAccess(object):
 ################################################################################
 
 from aquaduct.traj.sandwich import ResidueSelection
-from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath,SinglePathID, GenericPathTypeCodes
+from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath,SinglePathID, GenericPathTypeCodes, MasterPath
 from aquaduct.utils.helpers import SmartRange
+from aquaduct.traj.inlets import InletClusterExtendedType, InletClusterGenericType
 from itertools import chain,izip
 import netCDF4 as nc4
 
@@ -126,10 +127,12 @@ class ValveDataCodec(object):
 
     @staticmethod
     def encode(name,value):
+
         if name == 'center_of_system':
             # center_of_system: (3,)*float
 
             yield name,np.array(value)
+
         if name == 'all_res':
             # all_res.layers: (L,)*int
             #   L is a number of layers
@@ -143,6 +146,7 @@ class ValveDataCodec(object):
             # save each layer as separate array
             for l in layers:
                 yield ValveDataCodec.varname(name,'layer',l),np.array(value.selected[l],dtype=np.int32)
+
         if name == 'number_frame_rid_in_object':
             # number_frame_rid_in_object.layers: (1,)*int
             #   number of layers
@@ -162,6 +166,7 @@ class ValveDataCodec(object):
                 yield ValveDataCodec.varname(name,'layer',nr,'sizes'),np.fromiter((len(row) for row in layer),dtype=np.int32)
                 # then save layer
                 yield ValveDataCodec.varname(name, 'layer', nr), np.fromiter(chain(*(row for row in layer)),dtype=np.int32)
+
         if name == 'paths':
             # paths.layers:  (L,)*int
             #   L is a number of layers
@@ -195,6 +200,7 @@ class ValveDataCodec(object):
                 oors = [SmartRange(p.frames_of_scope) for p in value if p.id[0] == N]
                 yield ValveDataCodec.varname(name,'layer', N, 'scope','sizes'), np.fromiter((2*len(list(o.raw_increment)) for o in oors),dtype=np.int32)
                 yield ValveDataCodec.varname(name,'layer', N, 'scope'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in oors)),dtype=np.int32)
+
         if name == 'spaths':
             # spaths.layers:  (L,)*int
             #   L is a number of layers
@@ -225,6 +231,37 @@ class ValveDataCodec(object):
                 osf = [SmartRange(p.path_object_strict()) for p in value if p.id.id[0] == N and p.is_single()]
                 yield ValveDataCodec.varname(name,'layer', N, 'object','sizes'), np.fromiter((2*len(list(o.raw_increment)) for o in osf),dtype=np.int32)
                 yield ValveDataCodec.varname(name,'layer', N, 'object'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in osf)),dtype=np.int32)
+
+        if name == 'ctypes':
+            # ctypes: (P,4)*int
+            #   None is replaced by -1
+
+            yield ValveDataCodec.varname(name), np.fromiter(chain(*(map(lambda c: -1 if c is None else c,ct.clusters) for ct in value)),dtype=np.int32).reshape(len(value),4)
+
+        if name in ['master_paths', 'master_paths_smooth']:
+            # master_paths*.keys: (M,2)*int
+            #   M is a number of mater paths
+            #   keys are ctypes generic
+            # master_paths*.names: (M,)*str
+            #   M is a number of mater paths
+            # master_paths*.ids: (M,2)*int
+            #   M is a number of mater paths
+            # master_paths*.frames: (M,5)*int
+            #   M is a number of mater paths
+            #   table of (begining,end,in,object,out)
+            # master_paths*.widths: (MS,)*float
+            #   MS is a sum of lenghts of all master paths
+            # master_paths*.object.sizes: (M,)*int
+            #   M is a number of mater paths
+            # master_paths*.object: (MOS*2,)*int
+            #   MOS is a number of pairs (start,times) decoding strict obejct frames of master paths
+
+            M = len(value)
+            yield ValveDataCodec.varname(name,'keys'), np.fromiter(chain(*(map(lambda c: -1 if c is None else c,ct.clusters) for ct in value.keys())),dtype=np.int32).reshape(len(value),2)
+            yield ValveDataCodec.varname(name,'names'), np.fromiter((p.id.name for p in value.values()),dtype='S3')
+            yield ValveDataCodec.varname(name,'ids'), np.fromiter(chain(*((p.id.id[-1], p.id.nr) for p in value.values())), dtype=np.int32).reshape(M, 2)
+            yield ValveDataCodec.varname(name,'frames'), np.fromiter(chain(*((p.begins, p.ends) + tuple(p.sizes) for p in value.values())), dtype=np.int32).reshape(M, 5)
+            yield ValveDataCodec.varname(name,'widths'), np.fromiter(chain(*(p.width_cont for p in value.values())), dtype=np.float32)
 
     @staticmethod
     def decode(name,data):
@@ -285,7 +322,7 @@ class ValveDataCodec(object):
                     spid = SinglePathID(path_id=tuple(map(int, (N,pid[0]))), nr=int(pid[-1]), name=str(n))
                     path = range(ft[0],ft[1]+1)
                     if iss:
-                        out.append(SinglePath(spid, [[], [], []], [[], [], []], ))
+                        out.append(SinglePath(spid, [[], [], []], [[], [], []]))
                         seek = 0
                         path_in = path[seek:seek+ft[2]]
                         seek += ft[2]
@@ -302,6 +339,35 @@ class ValveDataCodec(object):
                         out.append(PassingPath(spid, path, [GenericPathTypeCodes.scope_name]*len(path)))
             return out
 
+        if name == 'ctypes':
+            ctypes = data[ValveDataCodec.varname(name)]
+            return map(lambda cc: InletClusterExtendedType(cc[0],cc[2],cc[3],cc[1]) (map(lambda c: None if c == -1 else c, ct) for ct in ctypes))
+
+        if name in ['master_paths', 'master_paths_smooth']:
+            out = {}
+            keys = data[ValveDataCodec.varname(name,'keys')]
+            names = data[ValveDataCodec.varname(name,'names')]
+            ids = data[ValveDataCodec.varname(name,'ids')]
+            frames_table = data[ValveDataCodec.varname(name,'frames')]
+            widths = data[ValveDataCodec.varname(name,'widths')]
+            seek_widths = 0
+            for k,n,pid,ft in izip(keys,names,ids,frames_table):
+                key = InletClusterGenericType(*map(lambda c: None if c == -1 else c, k))
+                spid = SinglePathID(path_id=tuple(map(int, (0, pid[0]))), nr=int(pid[-1]), name=str(n))
+                path = range(ft[0], ft[1] + 1)
+                mp = MasterPath(spid, [[], [], []], [[], [], []])
+                seek = 0
+                path_in = path[seek:seek + ft[2]]
+                seek += ft[2]
+                path_object = path[seek:seek + ft[3]]
+                seek += ft[3]
+                path_out = path[seek:seek + ft[4]]
+                seek += ft[4]
+                mp.add_paths4(path_in, path_object, [], path_out)
+                mp.add_width(widths[seek_widths:seek_widths+ft[1]-ft[0]+1])
+                seek_widths += (ft[1]-ft[0]+1)
+                out.update({key:mp})
+            return out
 
 class ValveDataAccess_nc(ValveDataAccess):
 
