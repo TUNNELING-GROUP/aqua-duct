@@ -936,7 +936,7 @@ class PassingPath(MacroMolPath):
 
     @property
     def sizes(self):
-        return 0, len(self.__path), 0
+        return len(self.__path), 0, 0
 
     @property
     def _paths(self):

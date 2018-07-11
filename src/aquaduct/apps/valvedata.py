@@ -108,7 +108,7 @@ class ValveDataAccess(object):
 
 from aquaduct.traj.sandwich import ResidueSelection
 from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath,SinglePathID, GenericPathTypeCodes
-
+from aquaduct.utils.helpers import SmartRange
 from itertools import chain,izip
 import netCDF4 as nc4
 
@@ -127,8 +127,16 @@ class ValveDataCodec(object):
     @staticmethod
     def encode(name,value):
         if name == 'center_of_system':
+            # center_of_system: (3,)*float
+
             yield name,np.array(value)
         if name == 'all_res':
+            # all_res.layers: (L,)*int
+            #   L is a number of layers
+            # all_res.layer.N: (S,)*int
+            #   N is a consecutive layer number
+            #   S is a number of traced molecules in N layer
+
             # save layers
             layers = np.array(value.selected.keys(),dtype=np.int32)
             yield ValveDataCodec.varname(name,'layers'),layers
@@ -136,6 +144,16 @@ class ValveDataCodec(object):
             for l in layers:
                 yield ValveDataCodec.varname(name,'layer',l),np.array(value.selected[l],dtype=np.int32)
         if name == 'number_frame_rid_in_object':
+            # number_frame_rid_in_object.layers: (1,)*int
+            #   number of layers
+            # number_frame_rid_in_object.layer.N.sizes: (F,)*int
+            #   N is a consecutive layer number
+            #   F is a number of frames in layer N
+            # number_frame_rid_in_object.layer.N: (Q,)*int
+            #   Q is a number of molecules in in object in all frames,
+            #   it is a sum of number_frame_rid_in_object.layer.N.sizes
+
+            # TODO It can be further improved because there is no sense to store repeated information for frames.
             # number of layers
             layers = len(value)
             yield ValveDataCodec.varname(name,'layers'),np.array(layers,dtype=np.int32)
@@ -145,35 +163,68 @@ class ValveDataCodec(object):
                 # then save layer
                 yield ValveDataCodec.varname(name, 'layer', nr), np.fromiter(chain(*(row for row in layer)),dtype=np.int32)
         if name == 'paths':
-            N = len(value)
-            # paths ids
-            yield ValveDataCodec.varname(name, 'ids'), np.fromiter(chain(*(p.id for p in value)),dtype=np.int32).reshape(N,2)
-            # paths names, 3 characters each!
-            yield ValveDataCodec.varname(name, 'names'), np.fromiter((p.name for p in value),dtype='S3')
-            # paths min, max frames
-            yield ValveDataCodec.varname(name, 'min_max_frames'),\
-                  np.fromiter(chain(*((p.min_possible_frame,p.max_possible_frame) for p in value)), dtype=np.int32).reshape(N,2)
-            # for each paths save foo and fos
-            for nr,p in enumerate(value):
-                yield ValveDataCodec.varname(name, nr, 'object'), np.fromiter(p.frames_of_object,dtype=np.int32)
-                yield ValveDataCodec.varname(name, nr, 'scope'), np.fromiter(p.frames_of_scope,dtype=np.int32)
+            # paths.layers:  (L,)*int
+            #   L is a number of layers
+            # paths.layer.N.names: (P,)*str
+            #   N is a consecutive layer number
+            #   P is a number of paths in N layer
+            # paths.layer.N.ids: (P,)*int
+            #   N is a consecutive layer number
+            #   P is a number of paths in N layer
+            # paths.layer.N.min_max_frames: (1,2)*int
+            # paths.layer.N.object.sizes: (P,)*int
+            #   P is a number of paths in N layer
+            # paths.layer.N.scope.sizes: (P,)*int
+            #   P is a number of paths in N layer
+            # paths.layer.N.object: (PO*2,)*int
+            #   PO is a number of pairs (start,times) decoding object paths for all paths in N layer
+            # paths.layer.N.scope: (PS*2,)*int
+            #   PO is a number of pairs (start,times) decoding scope paths for all paths in N layer
+
+            # get all layers
+            layers = sorted(set((p.id[0] for p in value)))
+            yield ValveDataCodec.varname(name, 'layers'), np.array(layers,dtype=np.int32)
+            for N in layers:
+                yield ValveDataCodec.varname(name,'layer',N,'names'), np.fromiter((p.name for p in value if p.id[0] == N),dtype='S3')
+                yield ValveDataCodec.varname(name,'layer',N,'ids'), np.fromiter((p.id[-1] for p in value if p.id[0] == N),dtype=np.int32)
+                mmf = (p for p in value if p.id[0] == N).next()
+                yield ValveDataCodec.varname(name, 'layer', N, 'min_max_frames'), np.array((mmf.min_possible_frame,mmf.max_possible_frame),dtype=np.int32)
+                oors = [SmartRange(p.frames_of_object) for p in value if p.id[0] == N]
+                yield ValveDataCodec.varname(name,'layer', N, 'object','sizes'), np.fromiter((2*len(list(o.raw_increment)) for o in oors),dtype=np.int32)
+                yield ValveDataCodec.varname(name,'layer', N, 'object'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in oors)),dtype=np.int32)
+                oors = [SmartRange(p.frames_of_scope) for p in value if p.id[0] == N]
+                yield ValveDataCodec.varname(name,'layer', N, 'scope','sizes'), np.fromiter((2*len(list(o.raw_increment)) for o in oors),dtype=np.int32)
+                yield ValveDataCodec.varname(name,'layer', N, 'scope'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in oors)),dtype=np.int32)
         if name == 'spaths':
-            N = len(value)
-            # paths ids: layer, id, number
-            yield ValveDataCodec.varname(name, 'ids'), np.fromiter(chain(*(p.id.id+(p.id.nr,) for p in value)),dtype=np.int32).reshape(N,3)
-            # paths names, 3 characters each!
-            yield ValveDataCodec.varname(name, 'names'), np.fromiter((p.id.name for p in value),dtype='S3')
-            # is single
-            yield ValveDataCodec.varname(name, 'single'), np.fromiter((p.is_single() for p in value), dtype='i1') # i1 instead of bool
-            # for each paths save paths and types in object!
-            for nr,p in enumerate(value):
-                if p.is_single():
-                    yield ValveDataCodec.varname(name, nr, 'in'), np.fromiter(p.path_in,dtype=np.int32)
-                    yield ValveDataCodec.varname(name, nr, 'object'), np.fromiter(p.path_object,dtype=np.int32)
-                    yield ValveDataCodec.varname(name, nr, 'object','strict'), np.fromiter(p.path_object_strict(),dtype=np.int32)
-                    yield ValveDataCodec.varname(name, nr, 'out'), np.fromiter(p.path_out, dtype=np.int32)
-                else:
-                    yield ValveDataCodec.varname(name, nr, 'path'), np.fromiter(p.path,dtype=np.int32)
+            # spaths.layers:  (L,)*int
+            #   L is a number of layers
+            # spaths.layer.N.names: (P,)*str
+            #   N is a consecutive layer number
+            #   P is a number of paths in N layer
+            # spaths.layer.N.ids: (P,2)*int
+            #   N is a consecutive layer number
+            #   P is a number of paths in N layer
+            # spaths.layer.N.single: (P,)*int
+            #   P is a number of paths in N layer
+            # spaths.layer.N.frames: (P,5)*int
+            #   P is a number of paths in N layer
+            #   table of (begining,end,in,object,out)
+            # spaths.layer.N.object.sizes: (PSO,)*int
+            #   PSO is a number of paths in N layer that are not PassingPaths
+            # spaths.layer.N.object: (PSOS*2,)*int
+            #   PSOS is a number of pairs (start,times) decoding strict obejct frames of non PassingPaths for all paths in N layer
+
+            layers = sorted(set((p.id.id[0] for p in value)))
+            yield ValveDataCodec.varname(name, 'layers'), np.array(layers,dtype=np.int32)
+            for N in layers:
+                P = sum((1 for p in value if p.id.id[0] == N)) # number of paths in N
+                yield ValveDataCodec.varname(name,'layer',N,'names'), np.fromiter((p.id.name for p in value if p.id.id[0] == N),dtype='S3')
+                yield ValveDataCodec.varname(name,'layer',N,'ids'), np.fromiter(chain(*((p.id.id[-1], p.id.nr) for p in value if p.id.id[0] == N)),dtype=np.int32).reshape(P, 2)
+                yield ValveDataCodec.varname(name,'layer',N,'single'), np.fromiter((p.is_single() for p in value if p.id.id[0] == N),dtype='i1')  # i1 instead of bool
+                yield ValveDataCodec.varname(name,'layer',N,'frames'), np.fromiter(chain(*((p.begins,p.ends)+tuple(p.sizes) for p in value if p.id.id[0] == N)),dtype=np.int32).reshape(P,5)
+                osf = [SmartRange(p.path_object_strict()) for p in value if p.id.id[0] == N and p.is_single()]
+                yield ValveDataCodec.varname(name,'layer', N, 'object','sizes'), np.fromiter((2*len(list(o.raw_increment)) for o in osf),dtype=np.int32)
+                yield ValveDataCodec.varname(name,'layer', N, 'object'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in osf)),dtype=np.int32)
 
     @staticmethod
     def decode(name,data):
@@ -200,42 +251,56 @@ class ValveDataCodec(object):
             return out
         if name == 'paths':
             out = []
-            # paths ids
-            ids = data[ValveDataCodec.varname(name, 'ids')]
-            # paths names, 3 characters each!
-            names = data[ValveDataCodec.varname(name, 'names')]
-            # paths min, max frames
-            min_max_frames = data[ValveDataCodec.varname(name, 'min_max_frames')]
-            # for each paths get foo and fos
-            for nr,(i,n,mmf) in enumerate(izip(ids,names,min_max_frames)):
-                foo = data[ValveDataCodec.varname(name, nr, 'object')][:].copy().tolist()
-                fos = data[ValveDataCodec.varname(name, nr, 'scope')][:].copy().tolist()
-                out.append(GenericPaths(tuple(map(int,i)),name_of_res=str(n),min_pf=int(mmf[0]),max_pf=int(mmf[1])))
-                out[-1].add_foos(foo,fos)
+            layers = data[ValveDataCodec.varname(name, 'layers')]
+            for N in layers:
+                names = data[ValveDataCodec.varname(name,'layer',N,'names')]
+                ids = data[ValveDataCodec.varname(name,'layer',N,'ids')]
+                mmf = data[ValveDataCodec.varname(name, 'layer', N, 'min_max_frames')]
+                object_sizes = data[ValveDataCodec.varname(name,'layer', N, 'object','sizes')]
+                object_frames = data[ValveDataCodec.varname(name,'layer', N, 'object')]
+                scope_sizes = data[ValveDataCodec.varname(name,'layer', N, 'scope','sizes')]
+                scope_frames = data[ValveDataCodec.varname(name,'layer', N, 'scope')]
+                seek_object = 0
+                seek_scope = 0
+                for osize,ssize,n,pid in izip(object_sizes,scope_sizes,names,ids):
+                    out.append(GenericPaths(tuple(map(int,(N,pid))), name_of_res=str(n), min_pf=int(mmf[0]), max_pf=int(mmf[1])))
+                    foo = list(SmartRange(fast_minc_seq=object_frames[seek_object:seek_object+osize]).get())
+                    seek_object += osize
+                    fos = list(SmartRange(fast_minc_seq=scope_frames[seek_scope:seek_scope+ssize]).get())
+                    seek_scope += ssize
+                    out[-1].add_foos(foo, fos)
             return out
         if name == 'spaths':
             out = []
-            # paths ids: layer, id, number
-            ids = data[ValveDataCodec.varname(name, 'ids')]
-            # paths names, 3 characters each!
-            names = data[ValveDataCodec.varname(name, 'names')]
-            # is single
-            is_single = data[ValveDataCodec.varname(name, 'single')]
-            # for each paths save paths and types in object!
-            for nr,(i,n,iss) in enumerate(izip(ids,names,is_single)):
-                pid = SinglePathID(path_id=(tuple(map(int,i[:2]))), nr=int(i[-1]), name=str(n))
-                if iss:
-                    out.append(SinglePath(pid, [[],[],[]], [[],[],[]],))
-                    path_in = data[ValveDataCodec.varname(name, nr, 'in')][:].copy()
-                    path_object = data[ValveDataCodec.varname(name, nr, 'object')][:].copy()
-                    path_object_strict = data[ValveDataCodec.varname(name, nr, 'object','strict')][:].copy()
-                    path_out = data[ValveDataCodec.varname(name, nr, 'out')][:].copy()
-                    out[-1].add_paths4(path_in,path_object,path_object_strict,path_out)
-                else:
-                    path = data[ValveDataCodec.varname(name, nr, 'path')][:].copy()
-                    out.append(PassingPath(pid, path, [GenericPathTypeCodes.scope_name]*len(path)))
+            layers = data[ValveDataCodec.varname(name, 'layers')]
+            for N in layers:
+                names = data[ValveDataCodec.varname(name,'layer',N,'names')]
+                ids = data[ValveDataCodec.varname(name,'layer',N,'ids')]
+                is_single = data[ValveDataCodec.varname(name,'layer',N,'single')]
+                frames_table = data[ValveDataCodec.varname(name,'layer',N,'frames')]
+                object_strict = data[ValveDataCodec.varname(name, 'layer', N, 'object')]
+                single_path_nr = 0
+                seek_object = 0
+                for n,pid,ft,iss in izip(names,ids,frames_table,is_single):
+                    spid = SinglePathID(path_id=tuple(map(int, (N,pid[0]))), nr=int(pid[-1]), name=str(n))
+                    path = range(ft[0],ft[1]+1)
+                    if iss:
+                        out.append(SinglePath(spid, [[], [], []], [[], [], []], ))
+                        seek = 0
+                        path_in = path[seek:seek+ft[2]]
+                        seek += ft[2]
+                        path_object = path[seek:seek+ft[3]]
+                        seek += ft[3]
+                        path_out = path[seek:seek+ft[4]]
+                        seek += ft[4]
+                        path_object_strict_size = data[ValveDataCodec.varname(name,'layer', N, 'object','sizes')][single_path_nr]
+                        single_path_nr += 1
+                        path_object_strict = list(SmartRange(fast_minc_seq=object_strict[seek_object:seek_object+path_object_strict_size]).get())
+                        seek_object += path_object_strict_size
+                        out[-1].add_paths4(path_in, path_object, path_object_strict, path_out)
+                    else:
+                        out.append(PassingPath(spid, path, [GenericPathTypeCodes.scope_name]*len(path)))
             return out
-
 
 
 class ValveDataAccess_nc(ValveDataAccess):
@@ -291,7 +356,7 @@ class ValveDataAccess_nc(ValveDataAccess):
         all_names = [name for name in self.data_file.variables.keys() if name not in self.not_variable]
         for name in names:
             # read all parts of object and decode
-            this_object = dict(((n,self.get_variable(n,copy=False)) for n in all_names if name in n))
+            this_object = dict(((n,self.get_variable(n,copy=False)) for n in all_names if name == n[:len(name)]))
             yield name,ValveDataCodec.decode(name,this_object)
             for k in this_object.keys():
                 v = this_object.pop(k)[:].copy()
