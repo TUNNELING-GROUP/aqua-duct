@@ -262,6 +262,9 @@ class ValveDataCodec(object):
             yield ValveDataCodec.varname(name,'ids'), np.fromiter(chain(*((p.id.id[-1], p.id.nr) for p in value.values())), dtype=np.int32).reshape(M, 2)
             yield ValveDataCodec.varname(name,'frames'), np.fromiter(chain(*((p.begins, p.ends) + tuple(p.sizes) for p in value.values())), dtype=np.int32).reshape(M, 5)
             yield ValveDataCodec.varname(name,'widths'), np.fromiter(chain(*(p.width_cont for p in value.values())), dtype=np.float32)
+            osf = [SmartRange(p.path_object_strict()) for p in value.values()]
+            yield ValveDataCodec.varname(name,'object', 'sizes'), np.fromiter((2 * len(list(o.raw_increment)) for o in osf), dtype=np.int32)
+            yield ValveDataCodec.varname(name,'object'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in osf)), dtype=np.int32)
 
     @staticmethod
     def decode(name,data):
@@ -341,7 +344,7 @@ class ValveDataCodec(object):
 
         if name == 'ctypes':
             ctypes = data[ValveDataCodec.varname(name)]
-            return map(lambda cc: InletClusterExtendedType(cc[0],cc[2],cc[3],cc[1]) (map(lambda c: None if c == -1 else c, ct) for ct in ctypes))
+            return map(lambda cc: InletClusterExtendedType(cc[0],cc[2],cc[3],cc[1]), (map(lambda c: None if c == -1 else c, ct) for ct in ctypes))
 
         if name in ['master_paths', 'master_paths_smooth']:
             out = {}
@@ -350,12 +353,14 @@ class ValveDataCodec(object):
             ids = data[ValveDataCodec.varname(name,'ids')]
             frames_table = data[ValveDataCodec.varname(name,'frames')]
             widths = data[ValveDataCodec.varname(name,'widths')]
+            object_strict = data[ValveDataCodec.varname(name,'object')]
             seek_widths = 0
-            for k,n,pid,ft in izip(keys,names,ids,frames_table):
+            seek_object = 0
+            for mpnr,(k,n,pid,ft) in enumerate(izip(keys,names,ids,frames_table)):
                 key = InletClusterGenericType(*map(lambda c: None if c == -1 else c, k))
                 spid = SinglePathID(path_id=tuple(map(int, (0, pid[0]))), nr=int(pid[-1]), name=str(n))
                 path = range(ft[0], ft[1] + 1)
-                mp = MasterPath(spid, [[], [], []], [[], [], []])
+                mp = SinglePath(spid, [[], [], []], [[], [], []])
                 seek = 0
                 path_in = path[seek:seek + ft[2]]
                 seek += ft[2]
@@ -363,7 +368,13 @@ class ValveDataCodec(object):
                 seek += ft[3]
                 path_out = path[seek:seek + ft[4]]
                 seek += ft[4]
-                mp.add_paths4(path_in, path_object, [], path_out)
+
+                path_object_strict_size = data[ValveDataCodec.varname(name,'object','sizes')][mpnr]
+                path_object_strict = list(SmartRange(fast_minc_seq=object_strict[seek_object:seek_object + path_object_strict_size]).get())
+                seek_object += path_object_strict_size
+
+                mp.add_paths4(path_in, path_object, path_object_strict, path_out)
+                mp = MasterPath(mp)
                 mp.add_width(widths[seek_widths:seek_widths+ft[1]-ft[0]+1])
                 seek_widths += (ft[1]-ft[0]+1)
                 out.update({key:mp})
@@ -422,7 +433,7 @@ class ValveDataAccess_nc(ValveDataAccess):
         all_names = [name for name in self.data_file.variables.keys() if name not in self.not_variable]
         for name in names:
             # read all parts of object and decode
-            this_object = dict(((n,self.get_variable(n,copy=False)) for n in all_names if name == n[:len(name)]))
+            this_object = dict(((n,self.get_variable(n,copy=False)) for n in all_names if name == n or (name+'.') == n[:len(name)+1]))
             yield name,ValveDataCodec.decode(name,this_object)
             for k in this_object.keys():
                 v = this_object.pop(k)[:].copy()
