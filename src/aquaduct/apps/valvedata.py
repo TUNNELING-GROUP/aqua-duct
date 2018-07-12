@@ -112,7 +112,7 @@ from aquaduct.utils.helpers import SmartRange
 from aquaduct.traj.inlets import InletClusterExtendedType, InletClusterGenericType
 from itertools import chain,izip
 import netCDF4 as nc4
-
+import json
 
 class ValveDataCodec(object):
     # this is in fact definition of data format
@@ -265,6 +265,47 @@ class ValveDataCodec(object):
             osf = [SmartRange(p.path_object_strict()) for p in value.values()]
             yield ValveDataCodec.varname(name,'object', 'sizes'), np.fromiter((2 * len(list(o.raw_increment)) for o in osf), dtype=np.int32)
             yield ValveDataCodec.varname(name,'object'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in osf)), dtype=np.int32)
+
+        if name == 'inls':
+            # inls is a complicated object
+            #
+            # inls.center_of_system: (3,)*float
+            # inls.onlytype: (1,)*str
+            # inls.inlets_list.coords: (I,3)*float
+            # inls.inlets_list.frame: (I,)*int
+            # inls.inlets_list.type: (I,)*int
+            #   it references onlytype
+            # inls.inlets_list.reference.id: (I,2)*int
+            # inls.inlets_list.reference.name: (I,)*str
+            # inls.inlets_list.reference.nr: (I,)*int
+            # inls.inlets_ids: (I,)*int
+            #   I is a number of inlets
+            # inls.clusters: (I,)*int
+            #   I is a number of inlets
+            # inls.number_of_clustered_inlets: (1,)*int
+            # inls.spheres: (I,4)*float
+            #   I is a number of inlets
+            # inls.spheres.nr: (I,)*int
+            #   I is a number of inlets
+            # inls.passing: (1,)*int
+            # inls.tree: (1,)*str
+
+            if value.center_of_system is not None:
+                yield ValveDataCodec.varname(name,'center_of_system'), np.array(value.center_of_system)
+            yield ValveDataCodec.varname(name,'onlytype'), np.array(json.dumps(value.onlytype))
+            yield ValveDataCodec.varname(name,'inlets_list','coords'), np.array([i.coords for i in value.inlets_list])
+            yield ValveDataCodec.varname(name,'inlets_list','frame'), np.array([i.frame for i in value.inlets_list],dtype=np.int32)
+            yield ValveDataCodec.varname(name,'inlets_list','type'), np.array([value.onlytype.index(i.type) for i in value.inlets_list],dtype=np.int32)
+            yield ValveDataCodec.varname(name,'inlets_list','reference','id'), np.array([i.reference.id for i in value.inlets_list],dtype=np.int32)
+            yield ValveDataCodec.varname(name,'inlets_list','reference','name'), np.array([i.reference.name for i in value.inlets_list])
+            yield ValveDataCodec.varname(name,'inlets_list','reference','nr'), np.array([i.reference.nr for i in value.inlets_list],dtype=np.int32)
+            yield ValveDataCodec.varname(name,'inlets_ids'), np.array(value.inlets_ids,dtype=np.int32)
+            yield ValveDataCodec.varname(name,'number_of_clustered_inlets'), np.array(value.number_of_clustered_inlets,dtype=np.int32)
+            yield ValveDataCodec.varname(name,'spheres'), np.array([s.center.tolist()+[s.radius] for s in value.spheres])
+            yield ValveDataCodec.varname(name,'spheres','nr'), np.array([s.nr for s in value.spheres],dtype=np.int32)
+            yield ValveDataCodec.varname(name,'passing'), np.array(value.passing,dtype='i1')
+            yield ValveDataCodec.varname(name,'tree'), np.array(repr(value.tree))
+
 
     @staticmethod
     def decode(name,data):
