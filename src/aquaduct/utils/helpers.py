@@ -109,6 +109,9 @@ def is_number(s):
         pass
     return False
 
+def is_float(s):
+    # assumes it is a number
+    return '.' in s or 'e' in s or 'E' in s
 
 def lind(l, ind):
     """
