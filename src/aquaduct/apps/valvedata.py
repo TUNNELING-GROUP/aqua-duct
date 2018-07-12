@@ -18,6 +18,9 @@
 
 
 import logging
+
+from aquaduct.utils.clui import SimpleTree
+
 logger = logging.getLogger(__name__)
 
 import cPickle as pickle
@@ -109,7 +112,9 @@ class ValveDataAccess(object):
 from aquaduct.traj.sandwich import ResidueSelection
 from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath,SinglePathID, GenericPathTypeCodes, MasterPath
 from aquaduct.utils.helpers import SmartRange
-from aquaduct.traj.inlets import InletClusterExtendedType, InletClusterGenericType
+from aquaduct.traj.inlets import InletClusterExtendedType, InletClusterGenericType, Inlet, Inlets
+from aquaduct.traj.barber import Sphere
+
 from itertools import chain,izip
 import netCDF4 as nc4
 import json
@@ -244,7 +249,7 @@ class ValveDataCodec(object):
             #   keys are ctypes generic
             # master_paths*.names: (M,)*str
             #   M is a number of mater paths
-            # master_paths*.ids: (M,2)*int
+            # master_paths*.ids: (M,3)*int
             #   M is a number of mater paths
             # master_paths*.frames: (M,5)*int
             #   M is a number of mater paths
@@ -259,7 +264,7 @@ class ValveDataCodec(object):
             M = len(value)
             yield ValveDataCodec.varname(name,'keys'), np.fromiter(chain(*(map(lambda c: -1 if c is None else c,ct.clusters) for ct in value.keys())),dtype=np.int32).reshape(len(value),2)
             yield ValveDataCodec.varname(name,'names'), np.fromiter((p.id.name for p in value.values()),dtype='S3')
-            yield ValveDataCodec.varname(name,'ids'), np.fromiter(chain(*((p.id.id[-1], p.id.nr) for p in value.values())), dtype=np.int32).reshape(M, 2)
+            yield ValveDataCodec.varname(name,'ids'), np.fromiter(chain(*((p.id.id[0],p.id.id[-1], p.id.nr) for p in value.values())), dtype=np.int32).reshape(M, 3)
             yield ValveDataCodec.varname(name,'frames'), np.fromiter(chain(*((p.begins, p.ends) + tuple(p.sizes) for p in value.values())), dtype=np.int32).reshape(M, 5)
             yield ValveDataCodec.varname(name,'widths'), np.fromiter(chain(*(p.width_cont for p in value.values())), dtype=np.float32)
             osf = [SmartRange(p.path_object_strict()) for p in value.values()]
@@ -275,9 +280,8 @@ class ValveDataCodec(object):
             # inls.inlets_list.frame: (I,)*int
             # inls.inlets_list.type: (I,)*int
             #   it references onlytype
-            # inls.inlets_list.reference.id: (I,2)*int
+            # inls.inlets_list.reference.ids: (I,3)*int
             # inls.inlets_list.reference.name: (I,)*str
-            # inls.inlets_list.reference.nr: (I,)*int
             # inls.inlets_ids: (I,)*int
             #   I is a number of inlets
             # inls.clusters: (I,)*int
@@ -296,10 +300,10 @@ class ValveDataCodec(object):
             yield ValveDataCodec.varname(name,'inlets_list','coords'), np.array([i.coords for i in value.inlets_list])
             yield ValveDataCodec.varname(name,'inlets_list','frame'), np.array([i.frame for i in value.inlets_list],dtype=np.int32)
             yield ValveDataCodec.varname(name,'inlets_list','type'), np.array([value.onlytype.index(i.type) for i in value.inlets_list],dtype=np.int32)
-            yield ValveDataCodec.varname(name,'inlets_list','reference','id'), np.array([i.reference.id for i in value.inlets_list],dtype=np.int32)
+            yield ValveDataCodec.varname(name,'inlets_list','reference','ids'), np.array([list(i.reference.id) + [i.reference.nr] for i in value.inlets_list],dtype=np.int32)
             yield ValveDataCodec.varname(name,'inlets_list','reference','name'), np.array([i.reference.name for i in value.inlets_list])
-            yield ValveDataCodec.varname(name,'inlets_list','reference','nr'), np.array([i.reference.nr for i in value.inlets_list],dtype=np.int32)
             yield ValveDataCodec.varname(name,'inlets_ids'), np.array(value.inlets_ids,dtype=np.int32)
+            yield ValveDataCodec.varname(name,'clusters'), np.array(value.clusters,dtype=np.int32)
             yield ValveDataCodec.varname(name,'number_of_clustered_inlets'), np.array(value.number_of_clustered_inlets,dtype=np.int32)
             yield ValveDataCodec.varname(name,'spheres'), np.array([s.center.tolist()+[s.radius] for s in value.spheres])
             yield ValveDataCodec.varname(name,'spheres','nr'), np.array([s.nr for s in value.spheres],dtype=np.int32)
@@ -399,7 +403,7 @@ class ValveDataCodec(object):
             seek_object = 0
             for mpnr,(k,n,pid,ft) in enumerate(izip(keys,names,ids,frames_table)):
                 key = InletClusterGenericType(*map(lambda c: None if c == -1 else c, k))
-                spid = SinglePathID(path_id=tuple(map(int, (0, pid[0]))), nr=int(pid[-1]), name=str(n))
+                spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n))
                 path = range(ft[0], ft[1] + 1)
                 mp = SinglePath(spid, [[], [], []], [[], [], []])
                 seek = 0
@@ -420,6 +424,40 @@ class ValveDataCodec(object):
                 seek_widths += (ft[1]-ft[0]+1)
                 out.update({key:mp})
             return out
+
+        if name == 'inls':
+
+            if ValveDataCodec.varname(name,'center_of_system') in data:
+                center_of_system = data[ValveDataCodec.varname(name,'center_of_system')][:].copy()
+            else:
+                center_of_system = None
+            onlytype = json.loads(str(data[ValveDataCodec.varname(name,'onlytype')][:]))
+            onlytype = [tuple(ot) for ot in onlytype]
+            passing = bool(data[ValveDataCodec.varname(name,'passing')][:])
+            inls = Inlets([],center_of_system=center_of_system,passing=passing,onlytype=onlytype)
+
+            coords = data[ValveDataCodec.varname(name,'inlets_list','coords')]
+            frame = data[ValveDataCodec.varname(name,'inlets_list','frame')]
+            type_ = data[ValveDataCodec.varname(name,'inlets_list','type')]
+            ref_ids = data[ValveDataCodec.varname(name,'inlets_list','reference','ids')]
+            ref_name = data[ValveDataCodec.varname(name,'inlets_list','reference','name')]
+            for c,f,t,pid,n in izip(coords,frame,type_,ref_ids,ref_name):
+                spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n))
+                inls.inlets_list.append(Inlet(coords=c,type=onlytype[t],reference=spid,frame=f))
+
+            inls.inlets_ids = data[ValveDataCodec.varname(name,'inlets_ids')][:].copy().tolist()
+            inls.clusters = data[ValveDataCodec.varname(name, 'clusters')][:].copy().tolist()
+            inls.number_of_clustered_inlets = int(data[ValveDataCodec.varname(name,'number_of_clustered_inlets')][:].copy())
+
+            spheres = data[ValveDataCodec.varname(name,'spheres')]
+            spheres_nr = data[ValveDataCodec.varname(name,'spheres','nr')]
+            for s,nr in izip(spheres,spheres_nr):
+                inls.spheres.append(Sphere(s[:3],s[-1],nr))
+
+            inls.tree = SimpleTree(treestr=str(data[ValveDataCodec.varname(name,'tree')][:]))
+
+            return inls
+
 
 class ValveDataAccess_nc(ValveDataAccess):
 
@@ -477,7 +515,9 @@ class ValveDataAccess_nc(ValveDataAccess):
             this_object = dict(((n,self.get_variable(n,copy=False)) for n in all_names if name == n or (name+'.') == n[:len(name)+1]))
             yield name,ValveDataCodec.decode(name,this_object)
             for k in this_object.keys():
-                v = this_object.pop(k)[:].copy()
+                v = this_object.pop(k)[:]
+                if hasattr(v,'copy'):
+                    v.copy()
                 del v
 
 ################################################################################
