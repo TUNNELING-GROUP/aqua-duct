@@ -1,5 +1,5 @@
-aquaduct\.apps package
-======================
+aquaduct.apps package
+=====================
 
 Submodules
 ----------
@@ -8,6 +8,7 @@ Submodules
 
    aquaduct.apps.data
    aquaduct.apps.valvecore
+   aquaduct.apps.valvedata
 
 Module contents
 ---------------

@@ -39,10 +39,10 @@ def version():
     """
     Returns :mod:`aquaduct` version number.
 
-    :return: 3 element tuple of int numbers
+    :return: tuple of int numbers
     :rtype: tuple
     """
-    return 0, 5, 11 # towards exchange format - required for getting rid of pickle etc.
+    return 0, 5, 12 # towards exchange format - required for getting rid of pickle etc.
 
 
 def version_nice():
@@ -53,7 +53,7 @@ def version_nice():
     :rtype: str
     """
     #return '.'.join(map(str, version()[:2]))+'.dev%d' % version()[-1]
-    return '.'.join(map(str, version()[:3]))
+    return '.'.join(map(str, version()))
 
 
 __version__ = version_nice()

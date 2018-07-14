@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
 from setuptools import find_packages, setup
 #from distutils.core import setup
 from Cython.Build import cythonize
@@ -38,14 +37,26 @@ def install_requires_nice(level=0):
 
 author = __import__('aquaduct').__author__  # version str
 
+with open('README.md','r') as fh:
+    long_description = fh.read()
 
 setup(name='aquaduct',
       version=version,
-      description='Tracing residues in MD simulation',
+      description='Tracing molecules in MD simulation',
+      long_description=long_description,
+      long_description_content_type="text/markdown",
+      url='http://aquaduct.pl',
+      project_urls={
+          'Documentation': 'http://aquaduct.pl/documentation/',
+          'Source': 'https://github.com/tljm/aqua-duct/',
+          'Tracker': 'https://github.com/tljm/aqua-duct/issues/',
+      },
       author=author,
       author_email='info@aquaduct.pl',
-      url='http://aquaduct.pl',
+      license='GNU GPL v3',
+      keywords='molecular-dynamics solvent',
       packages=find_packages(include=['aquaduct*']),
+      python_requires='>=2.7, <4',
       install_requires=install_requires,
       extras_require={'full_pymol': ["pymol>=1.4"],
                       'graphs': ['matplotlib'],

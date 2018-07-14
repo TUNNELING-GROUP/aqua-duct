@@ -1,5 +1,5 @@
-aquaduct\.visual\.cmaps module
-==============================
+aquaduct.visual.cmaps module
+============================
 
 .. automodule:: aquaduct.visual.cmaps
     :members:

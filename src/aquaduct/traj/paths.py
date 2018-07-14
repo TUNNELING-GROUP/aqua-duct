@@ -20,7 +20,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from itertools import izip
+from itertools import chain,izip
 from collections import OrderedDict
 from aquaduct.utils import clui
 import numpy as np
@@ -30,8 +30,8 @@ from aquaduct.traj.inlets import Inlet, InletTypeCodes
 from aquaduct.utils.helpers import is_number, lind, SmartRange, SmartRangeDecrement, SmartRangeEqual, SmartRangeFunction, SmartRangeIncrement # smart ranges are required here to provide bacward compatibility with v0.3
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
-from aquaduct.traj.sandwich import Reader,SingleResidueSelection
-from aquaduct.utils.helpers import list_blocks_to_slices
+from aquaduct.traj.sandwich import Reader, SingleResidueSelection
+
 
 ########################################################################################################################
 # paths/list manipulations
@@ -114,7 +114,7 @@ class GenericPaths(GenericPathTypeCodes):
     # object to store paths... is it required?
     __slots__ = 'id single_res_selection name __types __frames max_possible_frame min_possible_frame'.split()
 
-    def __init__(self, id_of_res, name_of_res=None,
+    def __init__(self, id_of_res, name_of_res=None, single_res_selection = None,
                  min_pf=None, max_pf=None):
 
         super(GenericPaths, self).__init__()
@@ -122,14 +122,20 @@ class GenericPaths(GenericPathTypeCodes):
         # id is any type of object; it is used as identifier
         # single_res_selection is object which have coords method that accepts frames and returns coordinates
 
+        #assert single_res_selection is not None
+        if single_res_selection is None:
+            self.single_res_selection = SingleResidueSelection(id_of_res)
+        else:
+            self.single_res_selection = single_res_selection
 
         self.id = id_of_res
-        self.single_res_selection = SingleResidueSelection(self.id)
-
         if name_of_res is not None:
             self.name = name_of_res
         else:
             self.name = 'UNK'  # FIXME: magic constant
+        assert isinstance(self.name,str)
+        assert len(self.name) == 3
+
         self.__types = SmartRange()
         self.__frames = SmartRange()
 
@@ -150,6 +156,26 @@ class GenericPaths(GenericPathTypeCodes):
     @property
     def types(self):
         return list(self.__types.get())
+
+    @property
+    def frames_of_object(self):
+        def get_foo():
+            frame = self.__frames.first_element()
+            for sr in self.__types.raw:
+                if sr.element == self.object_name:
+                    yield xrange(frame,frame+sr.times)
+                frame += sr.times
+        return chain(*get_foo())
+
+    @property
+    def frames_of_scope(self):
+        def get_fos():
+            frame = self.__frames.first_element()
+            for sr in self.__types.raw:
+                if sr.element == self.scope_name:
+                    yield xrange(frame,frame+sr.times)
+                frame += sr.times
+        return chain(*get_fos())
 
     @property
     def types_promise(self):
@@ -176,6 +202,27 @@ class GenericPaths(GenericPathTypeCodes):
         return self.__frames.min()
 
     # add methods
+    def add_foos(self,foo,fos):
+        foo_ = None
+        fos_ = None
+        while len(foo)+len(fos):
+            if len(foo) and foo_ is None:
+                foo_ = foo.pop(0)
+            if len(fos) and fos_ is None:
+                fos_ = fos.pop(0)
+            if foo_ is None:
+                self.add_scope(fos_)
+                fos_ = None
+            elif fos_ is None:
+                self.add_object(foo_)
+                foo_ = None
+            elif foo_ > fos_:
+                self.add_scope(fos_)
+                fos_ = None
+            elif fos_ > foo_:
+                self.add_object(foo_)
+                foo_ = None
+
 
     def add_012(self, os_in_frames):
         for frame,os_type in enumerate(os_in_frames):
@@ -459,7 +506,7 @@ class SinglePathID(object):
             return self.id == other.id and self.nr == other.nr and self.name == other.name
         return False
 
-@listify
+
 def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
     # iterates over gps - list of GenericPaths objects and transforms them in to SinglePath objects
     nr_dict = {}
@@ -478,11 +525,11 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
 
                 if len(paths[1]) > 0:
                     # if everything is OK
-                    sp = SinglePath(pid, paths, types)
+                    sp = SinglePath(pid, paths, types, single_res_selection=gp.single_res_selection)
                 else:
                     # this is passing through
                     if passing:
-                        sp = PassingPath(pid, paths[0], types[0])
+                        sp = PassingPath(pid, paths[0], types[0], single_res_selection=gp.single_res_selection)
                         sp.has_in = sp.paths_first_in > gp.min_possible_frame
                         sp.has_out = sp.paths_last_out < gp.max_possible_frame
                     else:
@@ -498,7 +545,7 @@ def yield_generic_paths(spaths, progress=None):
     for sp in spaths:
         current_rid = sp.id.id
         if current_rid not in rid_seen:
-            rid_seen.update({current_rid:GenericPaths(current_rid,name_of_res=sp.id.name,min_pf=0,max_pf=number_of_frames)})
+            rid_seen.update({current_rid:GenericPaths(current_rid,name_of_res=sp.id.name,single_res_selection=sp.single_res_selection,min_pf=0,max_pf=number_of_frames)})
         # TODO: following loop is not an optimal solution, it is better to add types and frames in one call
         for t,f in zip(sp.gtypes_cont,sp.paths_cont):
             if t == sp.path_object_code:
@@ -518,13 +565,14 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     empty_coords = make_default_array(np.zeros((0, 3)))
 
-    def __init__(self, path_id, paths, types):
-
+    def __init__(self, path_id, paths, types, single_res_selection = None):
         super(MacroMolPath, self).__init__()
-
+        if single_res_selection is None:
+            self.single_res_selection = SingleResidueSelection(path_id.id)
+        else:
+            self.single_res_selection = single_res_selection
 
         self.id = path_id
-        self.single_res_selection = SingleResidueSelection(self.id.id)
         # for paths use SmartRanges and then provide methods to read them
         self.__path_in, self.__path_object, self.__path_out = map(SmartRange, paths)
         # similarly, do it with types
@@ -548,6 +596,15 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len = state
         self.single_res_selection = SingleResidueSelection(self.id.id)
 
+    def add_paths4(self,path_in,path_object,path_object_strict,path_out):
+        # init empty path
+        self.__path_in, self.__path_object, self.__path_out = map(SmartRange, (path_in,path_object,path_out))
+        self.__types_in = SmartRange([GenericPathTypeCodes.scope_name]*len(path_in))
+        self.__types_out = SmartRange([GenericPathTypeCodes.scope_name]*len(path_out))
+
+        tobj = np.array([GenericPathTypeCodes.scope_name]*len(path_object))
+        tobj[[nr for nr,f in enumerate(path_object) if f in path_object_strict]] = GenericPathTypeCodes.object_name
+        self.__types_object = SmartRange(tobj.tolist())
 
     def __object_len_calculate(self):
         for nr,real_coords in enumerate(traces.midpoints(self.coords)):
@@ -587,10 +644,11 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     def path_object(self):
         return list(self.__path_object.get())
 
-    @property
-    def path_object_strict_len(self):
-        # number of frames strictly in object
-        return self.etypes[1].count(self.etypes[1][0])
+
+    def path_object_strict(self):
+        for f,t in izip(self.path_object,self.types_object):
+            if t == GenericPathTypeCodes.object_name:
+                yield f
 
     @property
     def path_out(self):
@@ -851,9 +909,10 @@ class PassingPath(MacroMolPath):
     #def __init__(self, path_id, path, coords, types):
 
         super(PassingPath, self).__init__()
-
-        assert single_res_selection is not None
-        self.single_res_selection = single_res_selection
+        if single_res_selection is None:
+            self.single_res_selection = SingleResidueSelection(path_id.id)
+        else:
+            self.single_res_selection = single_res_selection
 
         self.id = path_id
 
@@ -922,7 +981,7 @@ class PassingPath(MacroMolPath):
 
     @property
     def sizes(self):
-        return 0, len(self.__path), 0
+        return len(self.__path), 0, 0
 
     @property
     def _paths(self):

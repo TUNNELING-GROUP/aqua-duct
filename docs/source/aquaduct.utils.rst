@@ -1,5 +1,5 @@
-aquaduct\.utils package
-=======================
+aquaduct.utils package
+======================
 
 Submodules
 ----------

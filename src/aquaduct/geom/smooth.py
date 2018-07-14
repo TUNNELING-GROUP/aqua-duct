@@ -41,7 +41,6 @@ from functools import partial
 from aquaduct.utils.maths import make_default_array
 from aquaduct.geom import traces
 from aquaduct.utils.helpers import arrayify
-from aquaduct.apps.data import get_object_from_name, get_object_name
 
 class Smooth(object):
     '''
@@ -354,7 +353,9 @@ class SavgolSmooth(Smooth):
         '''
         :param Iterable coords: Input coordinates to be smoothed.
         '''
-        return make_default_array(self.savgol(make_default_array(coords)))
+        if len(coords) > 4:
+            return make_default_array(self.savgol(make_default_array(coords)))
+        return make_default_array(coords)
 
 
 class WindowOverMaxStepSmooth(Smooth):
