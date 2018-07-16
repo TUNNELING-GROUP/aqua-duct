@@ -207,10 +207,7 @@ if __name__ == "__main__":
         # Open trajectory reader
         # trajectories are split with os.pathsep
         from os import pathsep
-        Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)],
-               window=frames_window,
-               sandwich=args.sandwich,
-               threads=optimal_threads.threads_count)  # trajectory reader
+        Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)], window=frames_window,sandwich=args.sandwich)  # trajectory reader
 
         #reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
 

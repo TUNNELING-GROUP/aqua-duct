@@ -20,12 +20,13 @@
 import re
 
 from os.path import splitext
-from collections import OrderedDict,namedtuple
+from collections import OrderedDict
 from itertools import izip_longest, imap
 
 import numpy as np
 
 import MDAnalysis as mda
+
 # FIXME: do it according to user options
 if mda.__version__ > '0.16.2':
     mda.core.flags['use_periodic_selections'] = False
@@ -33,7 +34,7 @@ if mda.__version__ > '0.16.2':
 from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import is_iterable
-from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull, are_points_within_convexhull
+from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull
 from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, \
                                    tupleify, SmartRangeIncrement
 from aquaduct.utils.maths import make_default_array
@@ -46,15 +47,19 @@ from aquaduct import logger
 
 if GCS.cachedir:
     from joblib import Memory
+
     memory_cache = Memory(cachedir=GCS.cachedir, verbose=0) # mmap have to be switched off, otherwise smoothing does not work properly
     #memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)
     memory = memory_cache.cache
 elif GCS.cachemem:
     from functools import wraps
+
+
     # TODO: rework this to adapt it accordingly, moce it to utils?
     # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
     def memory(func):
         cache = func.cache = {}
+
         @wraps(func)
         def memoized_func(*args, **kwargs):
             key = ','.join(map(str,args)) + '&' + ','.join(map(lambda kv: ':'.join(map(str,kv)),kwargs.iteritems()))
@@ -63,9 +68,11 @@ elif GCS.cachemem:
                 cache[key] = func(*args, **kwargs)
                 logger.debug("New key added to cache.")
             return cache[key]
+
         return memoized_func
 else:
     from aquaduct.utils.helpers import noaction as memory
+
 
 ################################################################################
 # trajectory window object
@@ -91,13 +98,6 @@ class Window(object):
         # lenght of window
         return len(self.range())
 
-    def split(self,slices=None):
-        assert slices>0
-        N = int(max(1,np.floor(self.len()/float(slices))))
-        for start in list(self.range())[::(N+1)]:
-            yield Window(start,min(self.stop,start+(N)*self.step),self.step)
-
-
 
 ################################################################################
 # MasterReader
@@ -107,29 +107,20 @@ class Window(object):
 # MDAnalysis
 # MDTraj
 
-class OpenReaderTraj(namedtuple('OpenReaderTraj','topology trajectory number window engine')):
-    def open(self):
-        # convenience function
-        return open_traj_reader(self)
-
-
 class MasterReader(object):
     # only one MasterReader object can be used
-    # it does not use ANY direct call to ANY MD access software
+    # it does not use ANY directo call to ANY MD access software
 
     open_reader_traj = {}
 
     topology = ''
     trajectory = ['']
-    window = None # this is full window
+    window = None
 
     sandwich_mode = None
     engine_name = 'mda'
-    threads = 1
-    threads_multiply = 1
 
-
-    def __call__(self, topology, trajectory, window=None, sandwich=False, threads=1):
+    def __call__(self, topology, trajectory, window=None, sandwich=False):
         '''
         :param str topology:  Topology file name.
         :param list trajectory: List of trajectories. Each element is a fine name.
@@ -146,12 +137,7 @@ class MasterReader(object):
         self.sandwich_mode = sandwich
 
         self.correct_window()  # this corrects window
-        self.reset() # assert window correction clear all opened trajs
-
-        self.threads = threads
-
-    def reset(self):
-        self.open_reader_traj = {}
+        self.open_reader_traj = {}  # aster window correction clear all opened trajs
 
     def __getstate__(self):
         # if pickle dump is required, this will not be used in the future
@@ -163,7 +149,6 @@ class MasterReader(object):
         self.__dict__ = state
         self.open_reader_traj = {}
 
-    '''
     @property
     def engine(self):
         # returns engine used for accessing trajectory
@@ -171,11 +156,6 @@ class MasterReader(object):
         if self.engine_name == 'mda':
             return ReaderTrajViaMDA
         raise NotImplementedError
-    '''
-
-    def engine(self,topology,trajectory,number,window):
-        assert self.engine_name in ['mda']
-        return OpenReaderTraj(topology,trajectory,number,window,self.engine_name)
 
     def correct_window(self):
         # corrects window object
@@ -220,35 +200,28 @@ class MasterReader(object):
         else:
             yield self.get_single_reader(0)
 
-    def strata(self, number=False):
-        # generates slices of baquette
-        for nr in xrange(self.threads*self.threads_multiply):
-            if number:
-                yield nr+1, self.get_single_reader(nr+1)
-            else:
-                yield self.get_single_reader(nr+1)
-
-    def iterate(self, number=False, threads=True):
+    def iterate(self, number=False):
         # iterates over trajectory readers
         # calls sandwich or baguette
         if self.sandwich_mode:
             return self.sandwich(number=number)
-        elif threads and self.threads>1:
-            return self.strata(number=number)
         return self.baguette(number=number)
 
     def get_single_reader(self, number):
         # returns single trajectory reader of number
         # is it is already opened it is returned directly
         # if not is opened and then recursive call is executed
-        if self.sandwich_mode:
-            return self.engine(self.topology, self.trajectory[number], number=number, window=self.window)
-        elif number > 0 and self.threads>1:
-            window = list(self.window.split(self.threads*self.threads_multiply))[number-1]
-            return self.engine(self.topology, self.trajectory, number=number, window=window)
+        if self.open_reader_traj.has_key(number):
+            return self.open_reader_traj[number]
         else:
-            assert number == 0
-            return self.engine(self.topology, self.trajectory, number=0, window=self.window)
+            if self.sandwich_mode:
+                self.open_reader_traj.update(
+                    {number: self.engine(self.topology, self.trajectory[number], number=number, window=self.window)})
+            else:
+                assert number == 0
+                self.open_reader_traj.update(
+                    {0: self.engine(self.topology, self.trajectory, number=0, window=self.window)})
+        return self.get_single_reader(number)
 
     def get_reader_by_id(self, someid):
         # returns trajectory reader of number in someid
@@ -259,7 +232,7 @@ class MasterReader(object):
         # returns number of frames in traj files
         # in sandwich it returns number of frames in first layer
         # in baguette it returns total number of frames (so it is also number of frames in layer 0)
-        return open_traj_reader(self.get_single_reader(0)).real_number_of_frames()
+        return self.get_single_reader(0).real_number_of_frames()
 
     def number_of_frames(self, onelayer=False):
         # number of frames in the window times number of layers
@@ -271,33 +244,19 @@ class MasterReader(object):
     def number_of_layers(self):
         if self.sandwich_mode:
             return len(self.trajectory)
-        return self.threads*self.threads_multiply
+        return 1
 
 # instance of MasterReader
 Reader = MasterReader()
-
-def open_traj_reader_engine(ort):
-    if ort.engine == 'mda':
-        return ReaderTrajViaMDA(ort.topology, ort.trajectory, number=ort.number, window=ort.window)
-    raise NotImplementedError
-
-def open_traj_reader(ort):
-    if ort.number not in Reader.open_reader_traj:
-        Reader.open_reader_traj.update({ort.number:open_traj_reader_engine(ort)})
-    return Reader.open_reader_traj[ort.number]
 
 
 class ReaderAccess(object):
     # ReaderAccess class provides reader property that returns current instance of MasterReader
 
-    def get_reader(self, number):
-        if number in Reader.open_reader_traj:
-            return Reader.open_reader_traj[number]
-        Reader.get_single_reader(number).open()
-        return self.get_reader(number)
+    @property
+    def reader(self):
+        return Reader
 
-    def get_reader_by_id(self,someid):
-        return self.get_reader(someid[0])
 
 ################################################################################
 # VdW radii
@@ -416,8 +375,7 @@ Package **mendeleev** is not used because it depends on too many other libraries
 ################################################################################
 # Reader Traj base class
 
-#class ReaderTraj(ReaderAccess):
-class ReaderTraj(object):
+class ReaderTraj(ReaderAccess):
     def __init__(self, topology, trajectory,
                  number=None, window=None):
         '''
@@ -454,9 +412,6 @@ class ReaderTraj(object):
             self.set_real_frame(real_frame)
             yield frame
 
-    def iterate(self):
-        return self.iterate_over_frames()
-
     def set_frame(self, frame):
         return self.set_real_frame(self.window.get_real(frame))
 
@@ -468,10 +423,6 @@ class ReaderTraj(object):
 
     def __del__(self):
         self.close_trajectory()
-
-    def number_of_frames(self):
-        # should return number of frames in this reader (window)
-        return self.window.len()
 
     def open_trajectory(self):
         # should return any object that can be further used to parse trajectory
@@ -632,21 +583,14 @@ class Selection(ReaderAccess):
             ix_current += len(ids)
         raise IndexError()
 
-    def single(self,selection_id):
-        # TODO: suboptimal and probably does not make any sense
-        if selection_id[0] in self.selected:
-            if selection_id[-1] in self.selected[selection_id[0]]:
-                return self.__class__({selection_id[0]: [selection_id[-1]]})
-        raise IndexError()
-
     def len(self):
         _len = 0
         for number, ids in self.selected.iteritems():
             _len += len(ids)
         return _len
 
-    def __len__(self):
-        return self.len()
+    def get_reader(self, number):
+        return self.reader.get_single_reader(number)
 
     def add(self, other):
 
@@ -655,7 +599,6 @@ class Selection(ReaderAccess):
                 self.selected[number] = self.selected[number] + list(ids)
             else:
                 self.selected.update({number: ids})
-
 
     def uniquify(self):
 
@@ -733,8 +676,7 @@ class AtomSelection(Selection):
                     kt_list.append(other_id)
             if convex_hull:
                 chull = self.chull()
-                #ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
-                ch_results = are_points_within_convexhull(other_coords, chull)
+                ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
             # final merging loop
             final_results = []
             for other_id in other_residues.ids():
@@ -749,8 +691,7 @@ class AtomSelection(Selection):
             if convex_hull:
                 other_coords = other_residues.coords()
                 chull = self.chull()
-                #return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
-                return are_points_within_convexhull(other_coords, chull)
+                return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
             else:
                 # check if other selection is empty
                 this_ids = list(self.residues().ids())
@@ -797,7 +738,7 @@ class ResidueSelection(Selection):
 @memory
 @arrayify(shape=(None, 3))
 def coords_range_core(srange, number, rid):
-    reader = Reader.get_single_reader(number).open()
+    reader = Reader.get_single_reader(number)
     for f in srange.get():
         reader.set_frame(f)
         yield reader.residues_positions([rid]).next()
@@ -936,6 +877,9 @@ class SingleResidueSelection(ReaderAccess):
         self.resid = resid[-1]
         self.number = resid[0]
 
+    def get_reader(self):
+        return self.reader.get_single_reader(self.number)
+
     def coords(self, frames):
         if isinstance(frames, SmartRange):
             if len(frames):
@@ -947,10 +891,9 @@ class SingleResidueSelection(ReaderAccess):
     @arrayify(shape=(None, 3))
     def _coords(self, frames):
         # return coords for frames
-        traj_reader = self.get_reader(self.number)
         for f in frames:
-            traj_reader.set_frame(f)
-            yield traj_reader.residues_positions([self.resid]).next()
+            self.get_reader().set_frame(f)
+            yield self.get_reader().residues_positions([self.resid]).next()
 
     def coords_smooth(self,sranges,smooth):
         for coord in smooth_coords_ranges(sranges, self.number, self.resid, smooth):

@@ -21,8 +21,10 @@ Module implements AutoBarber generation of spheres.
 '''
 
 import logging
+
 logger = logging.getLogger(__name__)
 
+from collections import namedtuple
 import copy
 from scipy.spatial.distance import cdist
 import numpy as np
@@ -31,9 +33,25 @@ from aquaduct.utils import clui
 #from aquaduct.traj.reader import atom2vdw_radius
 from aquaduct.utils.helpers import lind
 from aquaduct.traj.sandwich import ReaderAccess
-from aquaduct.geom import Sphere, do_cut_thyself
 
 __mail__ = 'info@aquaduct.pl'
+
+
+class Sphere(namedtuple('Sphere', 'center radius nr')):
+    '''
+    Simple sphere class.
+    '''
+
+    def is_point_within(self, point):
+        return self.radius > cdist(np.matrix(self.center), np.matrix(point), metric='euclidean')
+
+    def is_sphere_within(self, sphere):
+        center, radius = sphere
+        return self.radius > cdist(np.matrix(self.center), np.matrix(center), metric='euclidean') + radius
+
+    def is_sphere_cloud(self, sphere):
+        center, radius = sphere
+        return self.radius > cdist(np.matrix(self.center), np.matrix(center), metric='euclidean') - radius
 
 
 class WhereToCut(ReaderAccess):
@@ -143,7 +161,7 @@ class WhereToCut(ReaderAccess):
         return nr
 
     def inlet2sphere(self,inlet):
-        traj_reader = self.reader.get_reader_by_id(inlet.reference.id).open()
+        traj_reader = self.reader.get_reader_by_id(inlet.reference.id)
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0
@@ -187,7 +205,7 @@ class WhereToCut(ReaderAccess):
 
     def spath2spheres(self, sp):
 
-        traj_reader = self.get_reader_by_id(sp.id.id)
+        traj_reader = self.reader.get_reader_by_id(sp.id.id)
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
         vdwradius = 0
@@ -235,10 +253,62 @@ class WhereToCut(ReaderAccess):
                 logger.debug('Added sphere of radius 0')
                 yield Sphere(center.flatten(), 0, self.get_current_nr())
 
+    def _cut_thyself(self, spheres_passed, progress=False):
+        # returns noredundant spheres
+        # make a deep copy?
+        # TODO: this is not memory efficient?
+        spheres = copy.copy(spheres_passed)
+        N = len(spheres)
+        if progress:
+            clui.message("Barber, cut thyself:")
+            pbar = clui.pbar(N)
+        noredundat_spheres_count = 0
+        redundat_spheres = []
+        while True:
+            spheres.sort(key=lambda s: s.radius, reverse=True)
+            spheres_coords = np.array([sphe.center for sphe in spheres])
+            spheres_radii = np.array([sphe.radius for sphe in spheres])
+            noredundat_spheres = []
+            while spheres:
+                big = spheres.pop(0)
+                center, radius, nr = big
+                distances = cdist(np.matrix(center), spheres_coords[1:], metric='euclidean').flatten()
+                # add radii
+                distances += spheres_radii[1:]
+                # remove if distance <= radius
+                to_keep = distances > radius
+                to_remove = ~to_keep
+                # do keep
+                spheres_coords = spheres_coords[1:][to_keep]
+                spheres_radii = spheres_radii[1:][to_keep]
+                # do keep spheres
+                to_keep_ids = np.argwhere(to_keep).flatten().tolist()
+                to_remove_ids = np.argwhere(to_remove).flatten().tolist()
+                redundat_spheres.extend(lind(spheres, to_remove_ids))
+                spheres = lind(spheres, to_keep_ids)
+                # add big to non redundant
+                noredundat_spheres.append(big)
+                if progress: pbar.update(N - len(spheres))
+                logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
+                len(noredundat_spheres), len(spheres)))
+            if len(noredundat_spheres) == noredundat_spheres_count:
+                logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(
+                    noredundat_spheres))
+                break
+            else:
+                noredundat_spheres_count = len(noredundat_spheres)
+                spheres = noredundat_spheres
+        if progress: pbar.finish()
 
+        assert len(noredundat_spheres) + len(
+            redundat_spheres) == N, "Inconsistent number of not and redundant spheres. Please send a bug report to the developer(s): %s" % __mail__
+        # sorting
+        noredundat_spheres.sort(key=lambda s: s.nr)
+        redundat_spheres.sort(key=lambda s: s.nr)
+        return noredundat_spheres, redundat_spheres
 
     def cut_thyself(self):
-        self.spheres = do_cut_thyself(self.spheres, progress=True)[0]
+        self.spheres = self._cut_thyself(self.spheres, progress=True)[0]
 
     def is_overlaping_with_cloud(self,sphere):
         spheres_coords = np.array([sphe.center for sphe in self.spheres])
@@ -250,7 +320,7 @@ class WhereToCut(ReaderAccess):
 
     def cloud_groups(self, progress=False):
         # no redundant spheres
-        noredundant_spheres, redundant_spheres = do_cut_thyself(self.spheres, progress=progress)
+        noredundant_spheres, redundant_spheres = self._cut_thyself(self.spheres, progress=progress)
         if progress:
             clui.message("Barber, clouds clusters:")
             pbar = clui.pbar(len(self.spheres))

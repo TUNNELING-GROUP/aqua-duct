@@ -95,29 +95,24 @@ def right(a, b, smartr=True):
 ########################################################################################################################
 
 
-class PathTypesCodes(object):
-    __slots__ = ()
+class PathTypesCodes():
     path_in_code = 'i'
     path_object_code = 'c'
     path_out_code = 'o'
     path_walk_code = 'w'
 
 
-class GenericPathTypeCodes(object):
-    __slots__ = ()
+class GenericPathTypeCodes():
     object_name = 'c'
     scope_name = 's'
     out_name = 'n'
 
 
-class GenericPaths(GenericPathTypeCodes):
+class GenericPaths(object, GenericPathTypeCodes):
     # object to store paths... is it required?
-    __slots__ = 'id single_res_selection name __types __frames max_possible_frame min_possible_frame'.split()
 
     def __init__(self, id_of_res, name_of_res=None, single_res_selection = None,
                  min_pf=None, max_pf=None):
-
-        super(GenericPaths, self).__init__()
 
         # id is any type of object; it is used as identifier
         # single_res_selection is object which have coords method that accepts frames and returns coordinates
@@ -145,13 +140,6 @@ class GenericPaths(GenericPathTypeCodes):
         self.max_possible_frame = max_pf
         self.min_possible_frame = min_pf
 
-    def __getstate__(self):
-        return self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame
-
-    def __setstate__(self, state):
-        self.id,self.name,self.__types,self.__frames,self.max_possible_frame,self.min_possible_frame = state
-        self.single_res_selection = SingleResidueSelection(self.id)
-
     # info methods
     @property
     def types(self):
@@ -178,16 +166,8 @@ class GenericPaths(GenericPathTypeCodes):
         return chain(*get_fos())
 
     @property
-    def types_promise(self):
-        return self.__types.get()
-
-    @property
     def frames(self):
         return list(self.__frames.get())
-
-    @property
-    def frames_promise(self):
-        return self.__frames.get()
 
     @property
     def coords(self):
@@ -240,12 +220,6 @@ class GenericPaths(GenericPathTypeCodes):
     def add_type(self, frame, ftype):
         self.__types.append(ftype)
         self.__frames.append(frame)
-
-    def add_frames_types(self, frames, types):
-        for f,t in izip(frames,types):
-            self.__types.append(t)
-            self.__frames.append(f)
-
 
     def _gpt(self):
         # get, I'm just passing through
@@ -480,9 +454,6 @@ class GenericPaths(GenericPathTypeCodes):
 
 # SinglePathID = namedtuple('SinglePathID', 'id nr')
 class SinglePathID(object):
-
-    __slots__ = 'id nr name'.split()
-
     def __init__(self, path_id=None, nr=None, name=None):
         assert path_id is not None, "path_id connot be None."
         self.id = path_id
@@ -490,12 +461,6 @@ class SinglePathID(object):
         self.nr = nr
         assert name is not None, "name connot be None."
         self.name = name
-
-    def __getstate__(self):
-        return self.id,self.nr,self.name
-
-    def __setstate__(self,state):
-        self.id,self.nr,self.name = state
 
     def __str__(self):
         # by default name is not returned
@@ -557,16 +522,15 @@ def yield_generic_paths(spaths, progress=None):
 
 
 
-class MacroMolPath(PathTypesCodes, InletTypeCodes):
+
+class MacroMolPath(object, PathTypesCodes, InletTypeCodes):
     # special class
     # represents one path
-
-    __slots__ = "id __path_in __path_object __path_out __types_in __types_object __types_out __obejct_len single_res_selection".split()
 
     empty_coords = make_default_array(np.zeros((0, 3)))
 
     def __init__(self, path_id, paths, types, single_res_selection = None):
-        super(MacroMolPath, self).__init__()
+
         if single_res_selection is None:
             self.single_res_selection = SingleResidueSelection(path_id.id)
         else:
@@ -588,13 +552,6 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         # return np.vstack([c for c in self._coords if len(c) > 0])
 
         self.__object_len = None
-
-    def __getstate__(self):
-        return self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len
-
-    def __setstate__(self, state):
-        self.id, self.__path_in, self.__path_object, self.__path_out, self.__types_in, self.__types_object, self.__types_out, self.__object_len = state
-        self.single_res_selection = SingleResidueSelection(self.id.id)
 
     def add_paths4(self,path_in,path_object,path_object_strict,path_out):
         # init empty path
@@ -903,12 +860,10 @@ class SinglePath(MacroMolPath):
 # TODO: passing paths probably does not work at all
 class PassingPath(MacroMolPath):
 
-    __slots__ = "id __path __types __has_in __has_out __object_len".split()
 
     def __init__(self, path_id, paths, types, single_res_selection = None):
     #def __init__(self, path_id, path, coords, types):
 
-        super(PassingPath, self).__init__()
         if single_res_selection is None:
             self.single_res_selection = SingleResidueSelection(path_id.id)
         else:
@@ -1048,9 +1003,6 @@ class PassingPath(MacroMolPath):
 
 
 class MasterPath(MacroMolPath):
-
-    __slots__ = 'width_cont'.split()
-
     def __init__(self, sp):
         super(MasterPath, self).__init__(sp.id, sp.paths, sp.gtypes, single_res_selection = sp.single_res_selection)
         self.width_cont = None

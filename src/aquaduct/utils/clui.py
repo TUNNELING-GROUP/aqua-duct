@@ -104,17 +104,16 @@ class fbm(object):
 
     def __call__(self, info):
         if self.__cont:
-            message(info, cont=True)
+            message(linesep + '\t' + info + '...', cont=True)
         else:
-            message(info, cont=False)
+            message(info + '...', cont=False)
 
 
 class tictoc(object):
-    def __init__(self, mess, stdout=False):
+    def __init__(self, mess):
         self.__tic = 0
         self.__toc = 0
         self.__mess = mess
-        self.__stdout = stdout
 
     def __enter__(self):
         self.__tic = time.time()
@@ -123,15 +122,9 @@ class tictoc(object):
     def __exit__(self, typ, value, traceback):
         self.__toc = time.time()
         if typ is None:
-            if self.__stdout:
-                message('Execution time of [%s] %f' % (self.__mess, (self.__toc - self.__tic)))
-            else:
-                #logger.debug('Execution time of [%s] %s', self.__mess, smart_time_string(self.__toc - self.__tic))
-                logger.debug('Execution time of [%s] %f', self.__mess, (self.__toc - self.__tic))
+            #logger.debug('Execution time of [%s] %s', self.__mess, smart_time_string(self.__toc - self.__tic))
+            logger.debug('Execution time of [%s] %f', self.__mess, (self.__toc - self.__tic))
 
-    @property
-    def duration(self):
-        return self.__toc - self.__tic
 
 gregorian_year_in_days = 365.2425
 '''Length of Gregorian year in days. Average value. Source: https://en.wikipedia.org/wiki/Year'''
@@ -402,10 +395,8 @@ class SimpleProgressBar(object):
             self.tcurrent = time.time()
             self.show()
 
-    def next(self,step=None):
-        if step is None:
-            return self.update(self.current+1)
-        return self.update(self.current + step)
+    def next(self):
+        return self.update(self.current+1)
 
     def update(self, step):
         """
