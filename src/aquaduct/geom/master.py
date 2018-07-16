@@ -456,7 +456,7 @@ class CTypeSpathsCollection(object):
             types = self.types_prob_to_types(types)
 
         # make frames
-        frames = range(len(coords))
+        frames = xrange(len(coords))
 
         # finalize
 
@@ -503,8 +503,9 @@ class FakeSingleResidueSelection(SingleResidueSelection):
     @arrayify(shape=(None, 3))
     def coords(self,frames):
         # return coords for frames
+        # assume that frames are in _frames
         for f in frames:
-            yield self._coords[self._frames.index(f)]
+            yield self._coords[f]
 
 
     # TODO: This part of the code is weak. Change it, here and as well as in sandwich.

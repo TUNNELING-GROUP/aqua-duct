@@ -245,19 +245,21 @@ class ValveDataCodec(object):
 
         if name in ['master_paths', 'master_paths_smooth']:
             # master_paths*.keys: (M,2)*int
-            #   M is a number of mater paths
+            #   M is a number of master paths
             #   keys are ctypes generic
             # master_paths*.names: (M,)*str
-            #   M is a number of mater paths
+            #   M is a number of master paths
             # master_paths*.ids: (M,3)*int
-            #   M is a number of mater paths
+            #   M is a number of master paths
             # master_paths*.frames: (M,5)*int
-            #   M is a number of mater paths
+            #   M is a number of master paths
             #   table of (begining,end,in,object,out)
             # master_paths*.widths: (MS,)*float
             #   MS is a sum of lenghts of all master paths
+            # master_paths*.coords: (MS,3)*int
+            #   MS is a sum of lenghts of all master paths
             # master_paths*.object.sizes: (M,)*int
-            #   M is a number of mater paths
+            #   M is a number of master paths
             # master_paths*.object: (MOS*2,)*int
             #   MOS is a number of pairs (start,times) decoding strict obejct frames of master paths
 
@@ -267,6 +269,8 @@ class ValveDataCodec(object):
             yield ValveDataCodec.varname(name,'ids'), np.fromiter(chain(*((p.id.id[0],p.id.id[-1], p.id.nr) for p in value.values())), dtype=np.int32).reshape(M, 3)
             yield ValveDataCodec.varname(name,'frames'), np.fromiter(chain(*((p.begins, p.ends) + tuple(p.sizes) for p in value.values())), dtype=np.int32).reshape(M, 5)
             yield ValveDataCodec.varname(name,'widths'), np.fromiter(chain(*(p.width_cont for p in value.values())), dtype=np.float32)
+            MS = sum((p.size for p in value.values()))
+            yield ValveDataCodec.varname(name,'coords'), np.fromiter(chain(*chain(*(p.coords_cont for p in value.values()))).reshape(MS,3), dtype=np.float32)
             osf = [SmartRange(p.path_object_strict()) for p in value.values()]
             yield ValveDataCodec.varname(name,'object', 'sizes'), np.fromiter((2 * len(list(o.raw_increment)) for o in osf), dtype=np.int32)
             yield ValveDataCodec.varname(name,'object'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in osf)), dtype=np.int32)
