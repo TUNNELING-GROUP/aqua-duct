@@ -270,7 +270,7 @@ class ValveDataCodec(object):
             yield ValveDataCodec.varname(name,'frames'), np.fromiter(chain(*((p.begins, p.ends) + tuple(p.sizes) for p in value.values())), dtype=np.int32).reshape(M, 5)
             yield ValveDataCodec.varname(name,'widths'), np.fromiter(chain(*(p.width_cont for p in value.values())), dtype=np.float32)
             MS = sum((p.size for p in value.values()))
-            yield ValveDataCodec.varname(name,'coords'), np.fromiter(chain(*chain(*(p.coords_cont for p in value.values()))).reshape(MS,3), dtype=np.float32)
+            yield ValveDataCodec.varname(name,'coords'), np.fromiter(chain(*chain(*(p.coords_cont for p in value.values()))), dtype=np.float32).reshape(MS,3)
             osf = [SmartRange(p.path_object_strict()) for p in value.values()]
             yield ValveDataCodec.varname(name,'object', 'sizes'), np.fromiter((2 * len(list(o.raw_increment)) for o in osf), dtype=np.int32)
             yield ValveDataCodec.varname(name,'object'), np.fromiter(chain(*(o.raw2sequence(o.raw_increment) for o in osf)), dtype=np.int32)
