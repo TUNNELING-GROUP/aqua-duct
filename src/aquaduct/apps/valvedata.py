@@ -120,9 +120,13 @@ from aquaduct.traj.barber import Sphere
 from aquaduct.geom.master import FakeSingleResidueSelection
 
 from itertools import chain, izip
-import netCDF4 as nc4
 import json
 
+try:
+    raise ImportError()
+    #import netCDF4 as netcdf
+except ImportError:
+    from scipy.io import netcdf
 
 class ValveDataCodec(object):
     # this is in fact definition of data format
@@ -132,8 +136,10 @@ class ValveDataCodec(object):
 
     @staticmethod
     def varname(name, *suffix):
-        suff = '.'.join(map(str, suffix))
-        return '%s.%s' % (name, suff)
+        if len(suffix):
+            suff = '.'.join(map(str, suffix))
+            return '%s.%s' % (name, suff)
+        return '%s' % name
 
     @staticmethod
     def encode(name, value):
@@ -170,7 +176,7 @@ class ValveDataCodec(object):
             # TODO It can be further improved because there is no sense to store repeated information for frames.
             # number of layers
             layers = len(value)
-            yield ValveDataCodec.varname(name, 'layers'), np.array(layers, dtype=np.int32)
+            yield ValveDataCodec.varname(name, 'layers'), np.array([layers], dtype=np.int32)
             for nr, layer in enumerate(value):
                 # for each layer make sizes array
                 yield ValveDataCodec.varname(name, 'layer', nr, 'sizes'), np.fromiter((len(row) for row in layer),
@@ -182,7 +188,7 @@ class ValveDataCodec(object):
         if name == 'paths':
             # paths.layers:  (L,)*int
             #   L is a number of layers
-            # paths.layer.N.names: (P,)*str
+            # paths.layer.N.names: (P,3)*str
             #   N is a consecutive layer number
             #   P is a number of paths in N layer
             # paths.layer.N.ids: (P,)*int
@@ -202,8 +208,9 @@ class ValveDataCodec(object):
             layers = sorted(set((p.id[0] for p in value)))
             yield ValveDataCodec.varname(name, 'layers'), np.array(layers, dtype=np.int32)
             for N in layers:
+                P = sum((1 for p in value if p.id[0] == N))
                 yield ValveDataCodec.varname(name, 'layer', N, 'names'), np.fromiter(
-                    (p.name for p in value if p.id[0] == N), dtype='S3')
+                    chain(*(p.name for p in value if p.id[0] == N)), dtype='S1').reshape(P,3)
                 yield ValveDataCodec.varname(name, 'layer', N, 'ids'), np.fromiter(
                     (p.id[-1] for p in value if p.id[0] == N), dtype=np.int32)
                 mmf = (p for p in value if p.id[0] == N).next()
@@ -223,7 +230,7 @@ class ValveDataCodec(object):
         if name == 'spaths':
             # spaths.layers:  (L,)*int
             #   L is a number of layers
-            # spaths.layer.N.names: (P,)*str
+            # spaths.layer.N.names: (P,3)*str
             #   N is a consecutive layer number
             #   P is a number of paths in N layer
             # spaths.layer.N.ids: (P,2)*int
@@ -244,7 +251,7 @@ class ValveDataCodec(object):
             for N in layers:
                 P = sum((1 for p in value if p.id.id[0] == N))  # number of paths in N
                 yield ValveDataCodec.varname(name, 'layer', N, 'names'), np.fromiter(
-                    (p.id.name for p in value if p.id.id[0] == N), dtype='S3')
+                    chain(*(p.id.name for p in value if p.id.id[0] == N)), dtype='S1').reshape(P,3)
                 yield ValveDataCodec.varname(name, 'layer', N, 'ids'), np.fromiter(
                     chain(*((p.id.id[-1], p.id.nr) for p in value if p.id.id[0] == N)), dtype=np.int32).reshape(P, 2)
                 yield ValveDataCodec.varname(name, 'layer', N, 'single'), np.fromiter(
@@ -270,7 +277,7 @@ class ValveDataCodec(object):
             # master_paths*.keys: (M,2)*int
             #   M is a number of master paths
             #   keys are ctypes generic
-            # master_paths*.names: (M,)*str
+            # master_paths*.names: (M,3)*str
             #   M is a number of master paths
             # master_paths*.ids: (M,3)*int
             #   M is a number of master paths
@@ -290,7 +297,7 @@ class ValveDataCodec(object):
             yield ValveDataCodec.varname(name, 'keys'), np.fromiter(
                 chain(*(map(lambda c: -1 if c is None else c, ct.clusters) for ct in value.keys())),
                 dtype=np.int32).reshape(len(value), 2)
-            yield ValveDataCodec.varname(name, 'names'), np.fromiter((p.id.name for p in value.values()), dtype='S3')
+            yield ValveDataCodec.varname(name, 'names'), np.fromiter(chain(*(p.id.name for p in value.values())), dtype='S1').reshape(M,3)
             yield ValveDataCodec.varname(name, 'ids'), np.fromiter(
                 chain(*((p.id.id[0], p.id.id[-1], p.id.nr) for p in value.values())), dtype=np.int32).reshape(M, 3)
             yield ValveDataCodec.varname(name, 'frames'), np.fromiter(
@@ -316,7 +323,7 @@ class ValveDataCodec(object):
             # inls.inlets_list.type: (I,)*int
             #   it references onlytype
             # inls.inlets_list.reference.ids: (I,3)*int
-            # inls.inlets_list.reference.name: (I,)*str
+            # inls.inlets_list.reference.name: (I,3)*str
             # inls.inlets_ids: (I,)*int
             #   I is a number of inlets
             # inls.clusters: (I,)*int
@@ -331,7 +338,7 @@ class ValveDataCodec(object):
 
             if value.center_of_system is not None:
                 yield ValveDataCodec.varname(name, 'center_of_system'), np.array(value.center_of_system)
-            yield ValveDataCodec.varname(name, 'onlytype'), np.array(json.dumps(value.onlytype))
+            yield ValveDataCodec.varname(name, 'onlytype'), np.fromiter(json.dumps(value.onlytype),dtype='S1')
             yield ValveDataCodec.varname(name, 'inlets_list', 'coords'), np.array([i.coords for i in value.inlets_list])
             yield ValveDataCodec.varname(name, 'inlets_list', 'frame'), np.array([i.frame for i in value.inlets_list],
                                                                                  dtype=np.int32)
@@ -339,17 +346,18 @@ class ValveDataCodec(object):
                 [value.onlytype.index(i.type) for i in value.inlets_list], dtype=np.int32)
             yield ValveDataCodec.varname(name, 'inlets_list', 'reference', 'ids'), np.array(
                 [list(i.reference.id) + [i.reference.nr] for i in value.inlets_list], dtype=np.int32)
-            yield ValveDataCodec.varname(name, 'inlets_list', 'reference', 'name'), np.array(
-                [i.reference.name for i in value.inlets_list])
+            I = len(value.inlets_ids)
+            yield ValveDataCodec.varname(name, 'inlets_list', 'reference', 'name'), np.fromiter(
+                chain(*[i.reference.name for i in value.inlets_list]), dtype='S1').reshape(I,3)
             yield ValveDataCodec.varname(name, 'inlets_ids'), np.array(value.inlets_ids, dtype=np.int32)
             yield ValveDataCodec.varname(name, 'clusters'), np.array(value.clusters, dtype=np.int32)
-            yield ValveDataCodec.varname(name, 'number_of_clustered_inlets'), np.array(value.number_of_clustered_inlets,
+            yield ValveDataCodec.varname(name, 'number_of_clustered_inlets'), np.array([value.number_of_clustered_inlets],
                                                                                        dtype=np.int32)
             yield ValveDataCodec.varname(name, 'spheres'), np.array(
                 [s.center.tolist() + [s.radius] for s in value.spheres])
             yield ValveDataCodec.varname(name, 'spheres', 'nr'), np.array([s.nr for s in value.spheres], dtype=np.int32)
-            yield ValveDataCodec.varname(name, 'passing'), np.array(value.passing, dtype='i1')
-            yield ValveDataCodec.varname(name, 'tree'), np.array(repr(value.tree))
+            yield ValveDataCodec.varname(name, 'passing'), np.array([value.passing], dtype='i1')
+            yield ValveDataCodec.varname(name, 'tree'), np.fromiter(repr(value.tree),dtype='S1')
 
     @staticmethod
     def decode(name, data):
@@ -388,7 +396,7 @@ class ValveDataCodec(object):
                 seek_object = 0
                 seek_scope = 0
                 for osize, ssize, n, pid in izip(object_sizes, scope_sizes, names, ids):
-                    out.append(GenericPaths(tuple(map(int, (N, pid))), name_of_res=str(n), min_pf=int(mmf[0]),
+                    out.append(GenericPaths(tuple(map(int, (N, pid))), name_of_res=str(n.tostring()), min_pf=int(mmf[0]),
                                             max_pf=int(mmf[1])))
                     foo = list(SmartRange(fast_minc_seq=object_frames[seek_object:seek_object + osize]).get())
                     seek_object += osize
@@ -408,7 +416,7 @@ class ValveDataCodec(object):
                 single_path_nr = 0
                 seek_object = 0
                 for n, pid, ft, iss in izip(names, ids, frames_table, is_single):
-                    spid = SinglePathID(path_id=tuple(map(int, (N, pid[0]))), nr=int(pid[-1]), name=str(n))
+                    spid = SinglePathID(path_id=tuple(map(int, (N, pid[0]))), nr=int(pid[-1]), name=str(n.tostring()))
                     path = range(ft[0], ft[1] + 1)
                     if iss:
                         out.append(SinglePath(spid, [[], [], []], [[], [], []]))
@@ -448,7 +456,7 @@ class ValveDataCodec(object):
             seek_object = 0
             for mpnr, (k, n, pid, ft) in enumerate(izip(keys, names, ids, frames_table)):
                 key = InletClusterGenericType(*map(lambda c: None if c == -1 else c, k))
-                spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n))
+                spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n.tostring()))
                 path = range(ft[0], ft[1] + 1)
 
                 mp = SinglePath(spid, [[], [], []], [[], [], []])
@@ -471,21 +479,20 @@ class ValveDataCodec(object):
 
                 mp.add_paths4(path_in, path_object, path_object_strict, path_out)
                 mp = MasterPath(mp)
-                mp.add_width(widths[seek_widths:seek_widths + ft[1] - ft[0] + 1])
+                mp.add_width(widths[seek_widths:seek_widths + ft[1] - ft[0] + 1].copy())
                 seek_widths += (ft[1] - ft[0] + 1)
 
                 out.update({key: mp})
             return out
 
         if name == 'inls':
-
             if ValveDataCodec.varname(name, 'center_of_system') in data:
                 center_of_system = data[ValveDataCodec.varname(name, 'center_of_system')][:].copy()
             else:
                 center_of_system = None
-            onlytype = json.loads(str(data[ValveDataCodec.varname(name, 'onlytype')][:]))
+            onlytype = json.loads(str(data[ValveDataCodec.varname(name, 'onlytype')][:].copy().tostring()))
             onlytype = [tuple(ot) for ot in onlytype]
-            passing = bool(data[ValveDataCodec.varname(name, 'passing')][:])
+            passing = bool(data[ValveDataCodec.varname(name, 'passing')][:].copy())
             inls = Inlets([], center_of_system=center_of_system, passing=passing, onlytype=onlytype)
 
             coords = data[ValveDataCodec.varname(name, 'inlets_list', 'coords')]
@@ -494,7 +501,7 @@ class ValveDataCodec(object):
             ref_ids = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'ids')]
             ref_name = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'name')]
             for c, f, t, pid, n in izip(coords, frame, type_, ref_ids, ref_name):
-                spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n))
+                spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n.tostring()))
                 inls.inlets_list.append(Inlet(coords=c, type=onlytype[t], reference=spid, frame=f))
 
             inls.inlets_ids = data[ValveDataCodec.varname(name, 'inlets_ids')][:].copy().tolist()
@@ -507,7 +514,7 @@ class ValveDataCodec(object):
             for s, nr in izip(spheres, spheres_nr):
                 inls.spheres.append(Sphere(s[:3], s[-1], nr))
 
-            inls.tree = SimpleTree(treestr=str(data[ValveDataCodec.varname(name, 'tree')][:]))
+            inls.tree = SimpleTree(treestr=str(data[ValveDataCodec.varname(name, 'tree')][:].copy().tostring()))
 
             return inls
 
@@ -516,8 +523,12 @@ class ValveDataAccess_nc(ValveDataAccess):
     not_variable = ['version', 'aquaduct_version', 'ValveDataCodec']
 
     def open(self):
-        # self.data_file = netcdf.netcdf_file(self.data_file_name,self.mode)
-        self.data_file = nc4.Dataset(self.data_file_name, self.mode)
+        if hasattr(netcdf,'Dataset'):
+            # netcdf4
+            self.data_file = netcdf.Dataset(self.data_file_name, self.mode)
+        else:
+            # scipy
+            self.data_file = netcdf.netcdf_file(self.data_file_name,self.mode)
         if self.mode == 'w':
             self.set_variable('version', np.array(version(), dtype=np.int16))
             self.set_variable('aquaduct_version', np.array(version(), dtype=np.int16))
@@ -548,7 +559,10 @@ class ValveDataAccess_nc(ValveDataAccess):
             dimensions.append("%s%d" % (name, nr))
             self.data_file.createDimension(dimensions[-1], d)
         # create variable
-        v = self.data_file.createVariable(name, value.dtype, tuple(dimensions), zlib=True)
+        if hasattr(netcdf,'Dataset'):
+            v = self.data_file.createVariable(name, value.dtype, tuple(dimensions), zlib=True)
+        else:
+            v = self.data_file.createVariable(name, value.dtype, tuple(dimensions))
         # fill variable
         v[:] = value
 
@@ -564,6 +578,7 @@ class ValveDataAccess_nc(ValveDataAccess):
             set([name.split('.')[0] for name in self.data_file.variables.keys() if name not in self.not_variable]))
         all_names = [name for name in self.data_file.variables.keys() if name not in self.not_variable]
         for name in names:
+            #if 'inls' in name: continue
             # read all parts of object and decode
             this_object = dict(((n, self.get_variable(n, copy=False)) for n in all_names if
                                 name == n or (name + '.') == n[:len(name) + 1]))

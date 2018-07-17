@@ -88,7 +88,7 @@ def get_cric_reader(mode='r'):
     # returns file object
     if GCS.cachedir:
         try:
-            data_file_name = GCS.cachedir + os.path.sep + 'cric.dump'  # TODO: magic constant
+            data_file_name = GCS.cachedir + os.path.sep + 'cric.json'  # TODO: magic constant
             if mode == 'r' and not os.path.exists(data_file_name):
                 return
             if mode == 'w' and not os.path.exists(GCS.cachedir):
@@ -122,7 +122,7 @@ def load_cric():
 ################################################################################
 # FRC
 
-# TMP: duplicate!
+# TODO: remove it in the future release (if any); DUPLICATE
 class FramesRangeCollection(object):
     # currently it is assumed that samrt ranges increments only are possible
     def __init__(self):
