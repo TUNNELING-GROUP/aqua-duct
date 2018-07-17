@@ -39,7 +39,7 @@ class BasicPymolCGO(object):
         self.previous = None
         self.clean()
 
-    def clean(self,empty=False):
+    def clean(self, empty=False):
         self.previous = None
         self.cgo_entity = []
         if not empty:
@@ -314,17 +314,17 @@ def load_pdb(filename,name,state):
             state = 1
         if self.connection_type == self.ct_pymol:
             self.cmd.load(filename, state=state, object=name)
-            self.cmd.show_as('cartoon',name)
-            self.cmd.color('silver',name)
+            self.cmd.show_as('cartoon', name)
+            self.cmd.color('silver', name)
         elif self.connection_type == self.ct_file:
             # save pdblile as string
             filename_new = '%s_%d.pdb' % (name, state)
             self.data_fh.save_file2tar(filename, filename_new)
             self.script_fh.write('''load_pdb("%s","%s",%d)''' % (filename_new, name, state))
             self.script_fh.write(os.linesep)
-            self.script_fh.write('''if proceed("%s"): cmd.show_as('cartoon','%s')''' % (name,name))
+            self.script_fh.write('''if proceed("%s"): cmd.show_as('cartoon','%s')''' % (name, name))
             self.script_fh.write(os.linesep)
-            self.script_fh.write('''if proceed("%s"): cmd.color('silver','%s')''' % (name,name))
+            self.script_fh.write('''if proceed("%s"): cmd.color('silver','%s')''' % (name, name))
             self.script_fh.write(os.linesep)
 
     def orient_on(self, name):
@@ -406,8 +406,9 @@ class SinglePathPlotter(object):
                     et = et[0]
                 # plot, if allowed
                 if (plot_in and t == PathTypesCodes.path_in_code) or (
-                            plot_object and t == PathTypesCodes.path_object_code) or (
-                            plot_out and t == PathTypesCodes.path_out_code) or (plot_walk and t == PathTypesCodes.path_walk_code):
+                        plot_object and t == PathTypesCodes.path_object_code) or (
+                        plot_out and t == PathTypesCodes.path_out_code) or (
+                        plot_walk and t == PathTypesCodes.path_walk_code):
                     # get color
                     c = color_codes(et)
                     # now, it is possible to linearize!

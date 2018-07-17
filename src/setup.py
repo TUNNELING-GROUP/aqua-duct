@@ -69,5 +69,4 @@ setup(name='aquaduct',
                    'Operating System :: POSIX',
                    'Programming Language :: Python :: 2.7',
                    ],
-      ext_modules = cythonize("aquaduct/geom/convexhull_c.pyx")
       )

@@ -21,6 +21,7 @@ Module comprises convieniences functions and definitios for different operations
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 from aquaduct import logger as root_logger
@@ -33,27 +34,30 @@ import numpy as np
 from aquaduct.utils.helpers import is_number, is_float
 import json
 
+
 # roman emulation
 class roman_emulation(object):
-    def toRoman(self,nr):
+    def toRoman(self, nr):
         out = ''
         if nr < 0:
             out += '-'
             nr = -nr
         assert nr <= 10, 'Only values 0-10 are supported'
-        if nr >=1 and nr <=3:
-            out += 'I'*nr
+        if nr >= 1 and nr <= 3:
+            out += 'I' * nr
         if nr == 4:
             out += 'IV'
         if nr >= 5 and nr <= 8:
-            out += 'V' + self.toRoman(nr-5)
+            out += 'V' + self.toRoman(nr - 5)
         if nr == 9:
             out += 'IX'
         if nr == 10:
             out += 'X'
         return out
 
+
 roman = roman_emulation()
+
 
 def emit_message_to_file_in_root_logger(mess):
     # emits message to the file used by file handler in the root logger
@@ -122,7 +126,7 @@ class tictoc(object):
     def __exit__(self, typ, value, traceback):
         self.__toc = time.time()
         if typ is None:
-            #logger.debug('Execution time of [%s] %s', self.__mess, smart_time_string(self.__toc - self.__tic))
+            # logger.debug('Execution time of [%s] %s', self.__mess, smart_time_string(self.__toc - self.__tic))
             logger.debug('Execution time of [%s] %f', self.__mess, (self.__toc - self.__tic))
 
 
@@ -266,7 +270,7 @@ class SimpleProgressBar(object):
         :param str mess: Optional message displayed at progress bar initialization.
         """
 
-        #self.lock = Manager().Lock()
+        # self.lock = Manager().Lock()
 
         assert isinstance(maxval,
                           (int, long)), 'Parameter maxval should be of int or long type, %r given instead.' % type(
@@ -322,8 +326,8 @@ class SimpleProgressBar(object):
         """
         if self.current == 0:
             return '?'
-        if len(self.tictoclist)>2:
-            diff = (np.median(np.diff(self.tictoclist))/(self.maxval/100.)) * self.current
+        if len(self.tictoclist) > 2:
+            diff = (np.median(np.diff(self.tictoclist)) / (self.maxval / 100.)) * self.current
         else:
             diff = self.tcurrent - self.begin
         periteration = diff / self.current
@@ -390,13 +394,13 @@ class SimpleProgressBar(object):
                 self.tens.append(int(percent) / 10)
 
     def heartbeat(self):
-        #with self.lock:
+        # with self.lock:
         if time.time() - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!
             self.tcurrent = time.time()
             self.show()
 
     def next(self):
-        return self.update(self.current+1)
+        return self.update(self.current + 1)
 
     def update(self, step):
         """
@@ -408,12 +412,12 @@ class SimpleProgressBar(object):
         :param int step: update step
         """
         # TODO: change logic of step == 1 vs step > 1 - add or set?
-        #with self.lock:
+        # with self.lock:
         if step > 0:
             self.current = step
         self.tcurrent = time.time()
         if (step == self.maxval) or (
-                        self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
+                self.tcurrent - self.last_rotate_time > 1. / 4):  # FIXME: magic constant, remove it!
             # TODO: check for last_rotate_time is done twice, SimpleProgressBar code needs revision
             self.show()
 
@@ -449,9 +453,8 @@ def get_str_timestamp():
     return str(datetime.datetime(*tuple(time.localtime())[:6]))
 
 
-
 class SimpleTree(object):
-    def __init__(self,name=None,message=None,treestr=None):
+    def __init__(self, name=None, message=None, treestr=None):
         # assert no {}[], are in name or message
 
         if treestr is not None:
@@ -462,7 +465,7 @@ class SimpleTree(object):
             self.add_message(message)
             self.branches = []
 
-    def _init_str(self,s):
+    def _init_str(self, s):
         d = json.loads(s)
         self.name = str(d['name'])
         if is_number(self.name):
@@ -470,33 +473,32 @@ class SimpleTree(object):
                 self.name = float(self.name)
             else:
                 self.name = int(self.name)
-        self.message = map(str,d['message'])
-        self.branches = map(lambda treestr: SimpleTree(treestr=treestr),map(str,d['branches']))
+        self.message = map(str, d['message'])
+        self.branches = map(lambda treestr: SimpleTree(treestr=treestr), map(str, d['branches']))
 
     def __repr__(self):
         # this can be used to rebuild
-        return json.dumps({'name':self.name,'message':self.message,'branches':map(repr,self.branches)})
+        return json.dumps({'name': self.name, 'message': self.message, 'branches': map(repr, self.branches)})
 
     def __str__(self):
-        return "%s {%s} %s" % (str(self.name), "; ".join(self.message),str(map(str,self.branches)))
+        return "%s {%s} %s" % (str(self.name), "; ".join(self.message), str(map(str, self.branches)))
 
     def is_leaf(self):
-        return len(self.branches)==0
+        return len(self.branches) == 0
 
     @property
     def leafs_names(self):
         return [leaf.name for leaf in self.branches]
 
-    def get_leaf(self,name):
+    def get_leaf(self, name):
         assert name in self.leafs_names
         return [leaf for leaf in self.branches if name == leaf.name][0]
 
-
-    def add_message(self,message=None,toleaf=None,replace=False):
+    def add_message(self, message=None, toleaf=None, replace=False):
         if toleaf is not None:
-            return self.add_message_to_leaf(message=message,toleaf=toleaf,replace=replace)
+            return self.add_message_to_leaf(message=message, toleaf=toleaf, replace=replace)
         if message is not None:
-            if isinstance(message,list):
+            if isinstance(message, list):
                 if replace:
                     self.message = message
                 else:
@@ -507,38 +509,39 @@ class SimpleTree(object):
                 else:
                     self.message += [message]
 
-    def add_message_to_leaf(self,message=None,toleaf=None,replace=False):
+    def add_message_to_leaf(self, message=None, toleaf=None, replace=False):
         if toleaf in self.leafs_names:
             leaf = self.get_leaf(toleaf)
-            return leaf.add_message(message,replace=replace)
+            return leaf.add_message(message, replace=replace)
         else:
             for leaf in self.branches:
-                leaf.add_message_to_leaf(message=message,toleaf=toleaf,replace=replace)
+                leaf.add_message_to_leaf(message=message, toleaf=toleaf, replace=replace)
 
-    def add_leaf(self,name=None,message=None,toleaf=None):
+    def add_leaf(self, name=None, message=None, toleaf=None):
         if toleaf is not None:
-            return self.add_leaf_to_leaf(name=name,message=message,toleaf=toleaf)
-        leaf = SimpleTree(name=name,message=message)
+            return self.add_leaf_to_leaf(name=name, message=message, toleaf=toleaf)
+        leaf = SimpleTree(name=name, message=message)
         self.branches.append(leaf)
 
-    def add_leaf_to_leaf(self,name=None,message=None,toleaf=None):
+    def add_leaf_to_leaf(self, name=None, message=None, toleaf=None):
         if toleaf in self.leafs_names:
             leaf = self.get_leaf(toleaf)
-            return leaf.add_leaf(name=name,message=message)
+            return leaf.add_leaf(name=name, message=message)
         else:
             for leaf in self.branches:
-                leaf.add_leaf_to_leaf(name=name,message=message,toleaf=toleaf)
+                leaf.add_leaf_to_leaf(name=name, message=message, toleaf=toleaf)
 
 
-def print_simple_tree(st,prefix=None,multiple=False,concise=True):
+def print_simple_tree(st, prefix=None, multiple=False, concise=True):
     _l = '|'
     _t = ' '
-    _c = '-+'+_t
+    _c = '-+' + _t
 
     def name_str(name):
         if name is None:
             return ''
         return str(name)
+
     def name_len(name):
         return len(name_str(name))
 
@@ -560,15 +563,15 @@ def print_simple_tree(st,prefix=None,multiple=False,concise=True):
         out += message_str(st.message)
         out += linesep
         if multiple:
-            new_prefix = prefix_+_l+(_t*(name_len(st.name)-1))
+            new_prefix = prefix_ + _l + (_t * (name_len(st.name) - 1))
         else:
-            new_prefix = prefix_+(_t*(name_len(st.name)))
+            new_prefix = prefix_ + (_t * (name_len(st.name)))
         new_prefix += _t
         if not concise:
-            out += new_prefix+_l+linesep
+            out += new_prefix + _l + linesep
         out_rec = []
-        for nr,branch in enumerate(st.branches):
-            out_rec.append(partial(print_simple_tree,prefix=new_prefix, multiple=len(st.branches) - nr > 1)(branch))
+        for nr, branch in enumerate(st.branches):
+            out_rec.append(partial(print_simple_tree, prefix=new_prefix, multiple=len(st.branches) - nr > 1)(branch))
         out += ''.join(out_rec)
         if st.branches[-1].is_leaf() and not concise:
             out += new_prefix.rstrip(_t) + linesep

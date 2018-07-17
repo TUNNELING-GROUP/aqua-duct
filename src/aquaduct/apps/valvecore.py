@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-#import ipdb as pdb
+# import ipdb as pdb
 
 
 import ConfigParser
@@ -837,7 +837,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                 # S A V E #
                 ###########
                 with clui.fbm('Saving data dump in %s file' % options.dump):
-                    vda = get_vda_reader(options.dump,mode='w')
+                    vda = get_vda_reader(options.dump, mode='w')
                     vda.dump(**result)
                 # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
@@ -847,7 +847,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                 ###########
                 if options.dump:
                     with clui.fbm('Loading data dump from %s file' % options.dump):
-                        vda = get_vda_reader(options.dump,mode='r')
+                        vda = get_vda_reader(options.dump, mode='r')
                         result = vda.load()
                         # result = load_stage_dump(options.dump, reader=reader)
         else:
@@ -973,9 +973,9 @@ def stage_II_run(config, options,
         chunk_size = all_res.len() / Reader.number_of_layers() / (optimal_threads.threads_count ** 1) - 1
         if chunk_size <= 0:
             chunk_size = 1
-        logger.debug("Chunk size %d.",chunk_size)
+        logger.debug("Chunk size %d.", chunk_size)
         map_fun = partial(pool.imap, chunksize=chunk_size)
-        #map_fun = pool.map
+        # map_fun = pool.map
     # clear in object info if required
     if options.clear_in_object_info:
         clui.message('Clear data on residues in object over frames.')
@@ -1021,7 +1021,8 @@ def stage_II_run(config, options,
                                                                 all_res_this_layer.single_residues()))
 
         # big container for 012 path data
-        number_frame_object_scope = np.zeros((Reader.number_of_frames(onelayer=True), all_res_this_layer.len()), dtype=np.int8)
+        number_frame_object_scope = np.zeros((Reader.number_of_frames(onelayer=True), all_res_this_layer.len()),
+                                             dtype=np.int8)
         # the loop over frames, use izip otherwise iteration over frames does not work
         for rid_in_object, frame in izip(
                 iterate_or_die(frame_rid_in_object, times=Reader.number_of_frames(onelayer=True)),
@@ -1041,17 +1042,18 @@ def stage_II_run(config, options,
                                                       map_fun=map_fun,
                                                       known_true=None)  # known_true could be rid_in_object
 
-            number_frame_object_scope[frame,:] = np.array(map(sum,izip(is_res_in_object,is_res_in_scope)),dtype=np.int8)
+            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
+                                                           dtype=np.int8)
             pbar.next()
 
-        #number_frame_object_scope = np.array(number_frame_object_scope,dtype=np.int8).T
+        # number_frame_object_scope = np.array(number_frame_object_scope,dtype=np.int8).T
         # another loop over this columns
-        for pat,nfos in izip(paths_this_layer,number_frame_object_scope.T):
+        for pat, nfos in izip(paths_this_layer, number_frame_object_scope.T):
             pat.add_012(nfos)
             paths.append(pat)
         del number_frame_object_scope
 
-        #paths.extend(paths_this_layer)
+        # paths.extend(paths_this_layer)
 
     # destroy pool of workers
     if optimal_threads.threads_count > 1:
@@ -1093,9 +1095,9 @@ def stage_III_run(config, options,
                                                   passing=options.allow_passing_paths) if pbar.update(nr + 1) is None]
     pbar.finish()
     clui.message("Created %d separate paths out of %d raw paths" %
-                 (len(spaths),len(paths)))
-    pbar = clui.pbar(len(spaths),"Removing unused parts of paths:")
-    paths = yield_generic_paths(spaths,progress=pbar)
+                 (len(spaths), len(paths)))
+    pbar = clui.pbar(len(spaths), "Removing unused parts of paths:")
+    paths = yield_generic_paths(spaths, progress=pbar)
     pbar.finish()
 
     if options.discard_short_paths or options.discard_short_object:
@@ -1116,11 +1118,11 @@ def stage_III_run(config, options,
             short_logic_name = "OR"
             if options.discard_short_logic != 'or':
                 logger.warning("Invalid discard_short_logic '%s', using %s by default." % (
-                options.discard_short_logic, short_logic_name))
+                    options.discard_short_logic, short_logic_name))
         # make message
         if short_paths is not None and short_object is not None:
             discard_message = "Discard paths shorter than %d %s object shorter than %0.2f" % (
-            short_paths, short_logic_name, short_object)
+                short_paths, short_logic_name, short_object)
         elif short_paths is None and short_object is not None:
             discard_message = "Discard paths object shorter than %0.2f" % short_object
         elif short_paths is not None and short_object is None:
@@ -1191,9 +1193,11 @@ def stage_III_run(config, options,
     # apply smoothing?
     # it is no longer necessary
     if options.apply_smoothing:
-        logger.warning("Hard smoothing is not available in the current version but may be available in the future. Stay tuned!")
+        logger.warning(
+            "Hard smoothing is not available in the current version but may be available in the future. Stay tuned!")
     if options.apply_soft_smoothing:
-        logger.warning("Soft smoothing option is not available any more. Soft smoothing is enabled by default if --cache-dir or --cache-mem options are used.")
+        logger.warning(
+            "Soft smoothing option is not available any more. Soft smoothing is enabled by default if --cache-dir or --cache-mem options are used.")
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 
@@ -1292,10 +1296,11 @@ def stage_IV_run(config, options,
     assert max_level >= 0
 
     # new style clustering
-    #with clui.fbm("Create inlets"):
+    # with clui.fbm("Create inlets"):
     # here we can check center of system
-    pbar = clui.SimpleProgressBar(maxval=len(spaths),mess="Create inlets")
-    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clusterization, pbar=pbar)
+    pbar = clui.SimpleProgressBar(maxval=len(spaths), mess="Create inlets")
+    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clusterization,
+                  pbar=pbar)
     pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
 
@@ -1373,7 +1378,7 @@ def stage_IV_run(config, options,
         # TODO: Move it after master paths!
         # ***** ADD PASSING PATHS TO CLUSTERS *****
         if options.exclude_passing_in_clusterization and options.add_passing_to_clusters:
-            with clui.fbm("Adding passing paths inlets to clusters",cont=False):
+            with clui.fbm("Adding passing paths inlets to clusters", cont=False):
                 # passing paths were excluded and they are meant to be added
                 # one need loop over clusters and then all passing paths have to checked
                 # it is assumed taht adding method is barber
@@ -1401,7 +1406,8 @@ def stage_IV_run(config, options,
                         # chull = inls.lim2clusters(cluster).get_chull()
                         wtc = WhereToCut(inlets=inls.lim2clusters(cluster), **ab_options)
                         wtc.cut_thyself()
-                        pbar = clui.SimpleProgressBar(len(passing_inlets_ids),"Loop over available passing paths inlets:")
+                        pbar = clui.SimpleProgressBar(len(passing_inlets_ids),
+                                                      "Loop over available passing paths inlets:")
                         for passing_inlet_nr in range(len(passing_inlets_ids))[::-1]:
                             inlet = inls.inlets_list[passing_inlets_ids[passing_inlet_nr]]
                             sphere = wtc.inlet2sphere(inlet)
@@ -1435,9 +1441,11 @@ def stage_IV_run(config, options,
             with clui.fbm("Master paths calculations", cont=False):
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
-                    pbar = clui.pbar(len(spaths)*2, mess='Building coords cache')
-                    [sp.get_coords(smooth=None) for sp in spaths if pbar.next() is None and not isinstance(sp, PassingPath)]
-                    [sp.get_coords(smooth=smooth) for sp in spaths if pbar.next() is None and not isinstance(sp, PassingPath)]
+                    pbar = clui.pbar(len(spaths) * 2, mess='Building coords cache')
+                    [sp.get_coords(smooth=None) for sp in spaths if
+                     pbar.next() is None and not isinstance(sp, PassingPath)]
+                    [sp.get_coords(smooth=smooth) for sp in spaths if
+                     pbar.next() is None and not isinstance(sp, PassingPath)]
                     pbar.finish()
                     use_threads = optimal_threads.threads_count
                 else:
@@ -1453,11 +1461,11 @@ def stage_IV_run(config, options,
                         logger.debug('CType %s (%d)' % (str(ct), nr))
                         sps = lind(spaths, what2what(ctypes_generic, [ct]))
                         # no passing paths are allowed
-                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)] # no PassingPaths!
+                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)]  # no PassingPaths!
                         if not len(sps):
                             logger.debug(
                                 'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
-                                str(ct), nr,))
+                                    str(ct), nr,))
                             continue
                         logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
                         # print len(sps),ct

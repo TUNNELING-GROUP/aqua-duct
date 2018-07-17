@@ -38,7 +38,6 @@ from aquaduct.traj.inlets import InletClusterGenericType, InletClusterExtendedTy
 from aquaduct.traj.paths import PassingPath
 from aquaduct.apps.data import GCS
 
-
 ################################################################################
 part2type_dict = {0: GenericPathTypeCodes.scope_name,
                   1: GenericPathTypeCodes.object_name,
@@ -51,7 +50,6 @@ parts = (0, 1, 2)
 '''
 Parts enumerate.
 '''
-
 
 ################################################################################
 
@@ -87,8 +85,7 @@ class CTypeSpathsCollectionWorker(object):
         self.full_size_cache = None
 
         self.lock = lock
-        #self.lock_required = False
-
+        # self.lock_required = False
 
     def coords_types_prob_widths(self, sp_slices_):
         '''
@@ -124,12 +121,12 @@ class CTypeSpathsCollectionWorker(object):
         # get zz coords, zz means zip_zip - for all spaths
         coords_zz = []
         for sp, sl in zip(self.spaths, sp_slices_):
-            #self.lock.acquire()
+            # self.lock.acquire()
             coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
             coords_zz.append(coords_zz_element[sl])
-            #self.lock.release()
+            # self.lock.release()
 
-        #with self.lock:
+        # with self.lock:
         #    coords_zz = [sp.get_coords_cont(smooth=self.smooth)[sl] for sp, sl in zip(self.spaths, sp_slices_)]
 
         # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
@@ -203,7 +200,7 @@ class CTypeSpathsCollection(object):
         '''
         self.pbar = pbar
         self.threads = threads
-        #self.threads = 1 # force one thread
+        # self.threads = 1 # force one thread
         logger.debug("Threads passed %d", threads)
 
         self.spaths = spaths
@@ -223,7 +220,6 @@ class CTypeSpathsCollection(object):
 
         self.manager = multiprocessing.Manager()
         self.lock = self.manager.Lock()
-
 
     def beat(self):
         '''
@@ -369,7 +365,7 @@ class CTypeSpathsCollection(object):
                  in types_prob]
         return types
 
-    def get_master_path(self, smooth=None, resid=(0,0)):
+    def get_master_path(self, smooth=None, resid=(0, 0)):
         '''
         .. _master_path_generation:
 
@@ -389,13 +385,13 @@ class CTypeSpathsCollection(object):
         '''
         # prepare worker
         worker = CTypeSpathsCollectionWorker(spaths=self.spaths, ctype=self.ctype, bias_long=self.bias_long,
-                                             smooth=smooth,lock=self.lock)
+                                             smooth=smooth, lock=self.lock)
         # add some spaths precalcualted properties to worker
         worker.lens_cache = self.lens_cache
         worker.lens_real_cache = self.lens_real_cache
         worker.lens_norm_cache = self.lens_norm_cache
         worker.full_size_cache = self.full_size_cache
-        #worker.lock_required = GCS.cachemem or GCS.cachedir
+        # worker.lock_required = GCS.cachemem or GCS.cachedir
 
         # desired full size of path
         full_size = self.full_size_cache
@@ -417,7 +413,7 @@ class CTypeSpathsCollection(object):
             chunk_size = int(full_size / self.threads ** 2)
             if chunk_size == 0:
                 chunk_size = 1
-            #map_fun = partial(pool.imap_unordered, chunksize=chunk_size)
+            # map_fun = partial(pool.imap_unordered, chunksize=chunk_size)
             map_fun = partial(pool.imap, chunksize=chunk_size)
 
         # TODO: it is possible to add pbar support here!
@@ -474,14 +470,14 @@ class CTypeSpathsCollection(object):
 
         with clui.tictoc('generic paths in %s' % str(self.ctype)):
             # get and populate GenericPath
-            fsrs_cache.update({resid:FakeSingleResidueSelection(resid,frames,coords)})
-            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf,single_res_selection=fsrs_cache[resid])
+            fsrs_cache.update({resid: FakeSingleResidueSelection(resid, frames, coords)})
+            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf, single_res_selection=fsrs_cache[resid])
             for t, f in zip(types, frames):  # TODO: remove loop
                 gp.add_type(f, t)
         # now try to get first SinglePath, if unable issue WARNING
         with clui.tictoc('separate paths in %s' % str(self.ctype)):
             try:
-                sp = list(yield_single_paths([gp],passing=False))[0]
+                sp = list(yield_single_paths([gp], passing=False))[0]
             except IndexError:
                 logger.warning('No master path found for ctype %s' % str(self.ctype))
                 return None
@@ -490,25 +486,26 @@ class CTypeSpathsCollection(object):
         mp.add_width(widths)
         return mp
 
+
 # fake single residue type like object
 from aquaduct.traj.sandwich import SingleResidueSelection
 from aquaduct.utils.helpers import arrayify
 
+
 class FakeSingleResidueSelection(SingleResidueSelection):
-    def __init__(self,resid,frames,coords):
+    def __init__(self, resid, frames, coords):
         super(FakeSingleResidueSelection, self).__init__(resid)
         self._frames = frames
         self._coords = coords
 
     @arrayify(shape=(None, 3))
-    def coords(self,frames):
+    def coords(self, frames):
         # return coords for frames
         # assume that frames are in _frames
         for f in frames:
             yield self._coords[f]
 
-
     # TODO: This part of the code is weak. Change it, here and as well as in sandwich.
-    def coords_smooth(self,sranges,smooth):
+    def coords_smooth(self, sranges, smooth):
         for srange in sranges:
             yield smooth(self.coords(srange.get()))

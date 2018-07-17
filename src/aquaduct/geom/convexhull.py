@@ -68,4 +68,3 @@ def is_point_within_convexhull(point_chull):
     # This is helper function to check if point is within convex hull.
     # point_chull is a tuple where first element holds a point and the second is a ConvexHull object.
     return point_chull[-1].point_within(point_chull[0])
-

@@ -30,7 +30,7 @@ from scipy.spatial.distance import cdist
 import numpy as np
 
 from aquaduct.utils import clui
-#from aquaduct.traj.reader import atom2vdw_radius
+# from aquaduct.traj.reader import atom2vdw_radius
 from aquaduct.utils.helpers import lind
 from aquaduct.traj.sandwich import ReaderAccess
 
@@ -152,7 +152,7 @@ class WhereToCut(ReaderAccess):
 
     def get_current_nr(self):
         if len(self.spheres):
-            #nr = max((sphe.nr for sphe in self.spheres))
+            # nr = max((sphe.nr for sphe in self.spheres))
             nr = self.spheres[-1].nr
             nr += 1
         else:
@@ -160,7 +160,7 @@ class WhereToCut(ReaderAccess):
         assert nr >= len(self.spheres), "Inconsistent number of spheres."
         return nr
 
-    def inlet2sphere(self,inlet):
+    def inlet2sphere(self, inlet):
         traj_reader = self.reader.get_reader_by_id(inlet.reference.id)
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
@@ -168,7 +168,6 @@ class WhereToCut(ReaderAccess):
 
         center = inlet.coords
         frame = inlet.frame
-
 
         make_sphere = True
         if make_sphere:
@@ -202,7 +201,6 @@ class WhereToCut(ReaderAccess):
             logger.debug('Added sphere of radius 0')
             return Sphere(center.flatten(), 0, self.get_current_nr())
 
-
     def spath2spheres(self, sp):
 
         traj_reader = self.reader.get_reader_by_id(sp.id.id)
@@ -227,7 +225,7 @@ class WhereToCut(ReaderAccess):
                 distances = cdist(np.matrix(center), np.matrix(list(barber.coords())), metric='euclidean').flatten()
                 if self.tovdw:
                     vdwradius = list(barber.ix(np.argmin(distances)).vdw())[0]
-                    logger.debug('VdW correction %0.2f',vdwradius)
+                    logger.debug('VdW correction %0.2f', vdwradius)
                 radius = min(distances) - vdwradius
                 if radius <= 0:
                     logger.debug('VdW correction resulted in <= 0 radius.')
@@ -290,7 +288,7 @@ class WhereToCut(ReaderAccess):
                 noredundat_spheres.append(big)
                 if progress: pbar.update(N - len(spheres))
                 logger.debug("Removal of redundant cutting places: done %d, to analyze %d" % (
-                len(noredundat_spheres), len(spheres)))
+                    len(noredundat_spheres), len(spheres)))
             if len(noredundat_spheres) == noredundat_spheres_count:
                 logger.debug("Removal of redundant cutting places done. %d non redundant spheres found." % len(
                     noredundat_spheres))
@@ -310,7 +308,7 @@ class WhereToCut(ReaderAccess):
     def cut_thyself(self):
         self.spheres = self._cut_thyself(self.spheres, progress=True)[0]
 
-    def is_overlaping_with_cloud(self,sphere):
+    def is_overlaping_with_cloud(self, sphere):
         spheres_coords = np.array([sphe.center for sphe in self.spheres])
         spheres_radii = np.array([sphe.radius for sphe in self.spheres])
         center, radius, nr = sphere

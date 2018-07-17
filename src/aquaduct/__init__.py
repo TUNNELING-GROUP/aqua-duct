@@ -42,7 +42,7 @@ def version():
     :return: tuple of int numbers
     :rtype: tuple
     """
-    return 0, 5, 12 # towards exchange format - required for getting rid of pickle etc.
+    return 0, 5, 12  # towards exchange format - required for getting rid of pickle etc.
 
 
 def version_nice():
@@ -52,7 +52,7 @@ def version_nice():
     :return: string composed on the basis of the number returned by :func:`version`.
     :rtype: str
     """
-    #return '.'.join(map(str, version()[:2]))+'.dev%d' % version()[-1]
+    # return '.'.join(map(str, version()[:2]))+'.dev%d' % version()[-1]
     return '.'.join(map(str, version()))
 
 
@@ -61,6 +61,7 @@ __mail__ = 'info@aquaduct.pl'
 
 __author__ = u'Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk'
 __author_doc__ = u'Tomasz Magdziarz, Karolina Mitusińska, Agata Raczyńska, Artur Góra'
+
 
 def greetings():
     """

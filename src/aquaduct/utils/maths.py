@@ -23,10 +23,11 @@ class NumpyDefaultsStorageTypes(object):
     float_default = np.float64
     int_default = np.int64
 
+
 defaults = NumpyDefaultsStorageTypes()
 
 
 def make_default_array(array_like):
-    if isinstance(array_like,np.ndarray):
+    if isinstance(array_like, np.ndarray):
         return array_like.astype(defaults.float_default)
     return np.array(array_like).astype(defaults.float_default)

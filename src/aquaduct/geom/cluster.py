@@ -32,7 +32,8 @@ from scipy.spatial.distance import cdist
 # MeanShift:           n > 6
 
 
-AVAILABLE_METHODS = ['dbscan','kmeans', 'affprop', 'meanshift', 'birch','barber']
+AVAILABLE_METHODS = ['dbscan', 'kmeans', 'affprop', 'meanshift', 'birch', 'barber']
+
 
 def get_required_params(method):
     if method == 'kmeans':
@@ -43,17 +44,21 @@ from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
 from aquaduct.traj.barber import WhereToCut
 
+
 class BarberClusterResult(object):
     '''
     Helper class for results of barber clusterization.
     '''
-    def __init__(self,labels_):
+
+    def __init__(self, labels_):
         self.labels_ = np.array(labels_)
+
 
 class BarberCluster(object):
     '''
     Wrapper class that implements *barber* clusterization.
     '''
+
     def fit(self, coords, spheres=None):
         '''
         :param Iterable coords: Input coordinates of points to be clustered.
@@ -65,7 +70,7 @@ class BarberCluster(object):
         # clouds to labels!
         labels = np.zeros(len(spheres))
         spheres_id = [s.nr for s in spheres]
-        for cloud_id,cloud in clouds.iteritems():
+        for cloud_id, cloud in clouds.iteritems():
             labels[[spheres_id.index(c) for c in cloud]] = cloud_id
         return BarberClusterResult(labels)
 
@@ -78,7 +83,8 @@ def MeanShiftBandwidth(X, **kwargs):
     '''
     if 'bandwidth' in kwargs:
         if kwargs['bandwidth'] is Auto:
-            bandwidth = estimate_bandwidth(np.array(X), quantile=0.5)  # TODO: change it to the default value of 0.3 or use it as option?
+            bandwidth = estimate_bandwidth(np.array(X),
+                                           quantile=0.5)  # TODO: change it to the default value of 0.3 or use it as option?
             kwargs.update({'bandwidth': bandwidth})
             clui.message("Meanshift automatic bandwidth calculation: bandwidth = %f" % float(
                 bandwidth))  # TODO: make it properly
@@ -89,6 +95,7 @@ class PerformClustering(object):
     '''
     Helper class for clusterization.
     '''
+
     # aqeuduct clustering helper class
 
     def __init__(self, method, **kwargs):
@@ -132,7 +139,8 @@ class PerformClustering(object):
             if self.method is MeanShift:
                 if len(coords) < 6:
                     self.clusters = self._get_noclusters(len(coords))
-                    clui.message("Number of objects %d < 6 is too small for MeanShift method. Skipping." % (len(coords)))
+                    clui.message(
+                        "Number of objects %d < 6 is too small for MeanShift method. Skipping." % (len(coords)))
                     return self.clusters
                 method = self.method(**MeanShiftBandwidth(coords, **self.method_kwargs))
             else:

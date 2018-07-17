@@ -30,6 +30,7 @@ from aquaduct.utils import clui
 from aquaduct.utils.maths import make_default_array
 from aquaduct.geom.convexhull import SciPyConvexHull
 
+
 class ProtoInletTypeCodes:
     surface = 'surface'
     internal = 'internal'
@@ -73,7 +74,7 @@ class InletClusterGenericType(object):
     @property
     def output(self):
         return self.clusters[1]
-        #return self.clusters[-1]
+        # return self.clusters[-1]
 
     @staticmethod
     def cluster2str(cl):
@@ -156,7 +157,7 @@ class InletClusterExtendedType(InletClusterGenericType):
         return InletClusterGenericType(*self.clusters[:2])
 
 
-#InletOLD = namedtuple('Inlet', 'coords type reference frame') # for backward compatibility
+# InletOLD = namedtuple('Inlet', 'coords type reference frame') # for backward compatibility
 
 class Inlet(object):
     def __init__(self, coords=None, type=None, reference=None, frame=None):
@@ -224,7 +225,6 @@ class Inlets(object):
             added_list.append(nr)
             nr += 1
         return added_list
-
 
     def add_cluster_annotations(self, clusters):
         # this replaces clusters!
