@@ -490,7 +490,8 @@ class ValveDataCodec(object):
                 center_of_system = data[ValveDataCodec.varname(name, 'center_of_system')][:].copy()
             else:
                 center_of_system = None
-            onlytype = json.loads(str(data[ValveDataCodec.varname(name, 'onlytype')][:].copy().tostring()))
+            onlytype = data[ValveDataCodec.varname(name, 'onlytype')][:].copy()
+            onlytype = json.loads(str(onlytype.tostring()))
             onlytype = [tuple(ot) for ot in onlytype]
             passing = bool(data[ValveDataCodec.varname(name, 'passing')][:].copy())
             inls = Inlets([], center_of_system=center_of_system, passing=passing, onlytype=onlytype)
@@ -501,8 +502,8 @@ class ValveDataCodec(object):
             ref_ids = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'ids')]
             ref_name = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'name')]
             for c, f, t, pid, n in izip(coords, frame, type_, ref_ids, ref_name):
-                spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n.tostring()))
-                inls.inlets_list.append(Inlet(coords=c, type=onlytype[t], reference=spid, frame=f))
+                spid = SinglePathID(path_id=tuple(map(int, pid[:2].copy())), nr=int(pid[-1].copy()), name=str(n.copy().tostring()))
+                inls.inlets_list.append(Inlet(coords=c.copy(), type=onlytype[t.copy()], reference=spid, frame=f.copy()))
 
             inls.inlets_ids = data[ValveDataCodec.varname(name, 'inlets_ids')][:].copy().tolist()
             inls.clusters = data[ValveDataCodec.varname(name, 'clusters')][:].copy().tolist()
@@ -512,7 +513,7 @@ class ValveDataCodec(object):
             spheres = data[ValveDataCodec.varname(name, 'spheres')]
             spheres_nr = data[ValveDataCodec.varname(name, 'spheres', 'nr')]
             for s, nr in izip(spheres, spheres_nr):
-                inls.spheres.append(Sphere(s[:3], s[-1], nr))
+                inls.spheres.append(Sphere(s[:3].copy(), s[-1].copy(), nr.copy()))
 
             inls.tree = SimpleTree(treestr=str(data[ValveDataCodec.varname(name, 'tree')][:].copy().tostring()))
 
