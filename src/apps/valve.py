@@ -95,16 +95,6 @@ if __name__ == "__main__":
         args = parser.parse_args()
 
         ############################################################################
-        # cache dir & netcdf
-        GCS.cachedir = args.cachedir
-        GCS.cachemem = args.cachemem
-        GCS.netcdf = args.use_netcdf
-        load_cric()
-
-        from aquaduct.traj.sandwich import Reader,Window
-        from aquaduct.apps.valvecore import *
-
-        ############################################################################
         # debug
         # at this stage logger is the AQ root logger
         if args.debug:
@@ -122,6 +112,17 @@ if __name__ == "__main__":
         # finally, get valve logger
         logger = logging.getLogger(logger_name + '.valve')
         logger.info('Initialization of Valve logging done.')
+
+        ############################################################################
+        # cache dir & netcdf
+        GCS.cachedir = args.cachedir
+        GCS.cachemem = args.cachemem
+        GCS.netcdf = args.use_netcdf
+        load_cric()
+
+        from aquaduct.traj.sandwich import Reader,Window
+        from aquaduct.apps.valvecore import *
+
 
         ############################################################################
         # single precision storage

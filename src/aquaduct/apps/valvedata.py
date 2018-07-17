@@ -16,23 +16,38 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-import logging
+from aquaduct import logger
+#import logging
+#logger = logging.getLogger(__name__)
 
 from aquaduct.utils.clui import SimpleTree
-
-logger = logging.getLogger(__name__)
-
 import cPickle as pickle
 import gzip
 import os
 from collections import OrderedDict
 
-from scipy.io import netcdf
+try:
+    #raise ImportError()
+    import netCDF4 as netcdf
+    logger.debug('NetCDF AQ format: Imported netCDF4')
+except ImportError:
+    from scipy.io import netcdf
+    logger.debug('NetCDF AQ format: Imported scipy.io.netcdf')
+
 import numpy as np
 
 from aquaduct import version
 from aquaduct.utils.helpers import dictify
+
+from aquaduct.traj.sandwich import ResidueSelection
+from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath, SinglePathID, GenericPathTypeCodes, MasterPath
+from aquaduct.utils.helpers import SmartRange
+from aquaduct.traj.inlets import InletClusterExtendedType, InletClusterGenericType, Inlet, Inlets
+from aquaduct.traj.barber import Sphere
+from aquaduct.geom.master import FakeSingleResidueSelection
+
+from itertools import chain, izip
+import json
 
 
 ################################################################################
@@ -112,21 +127,7 @@ class ValveDataAccess(object):
 
 ################################################################################
 
-from aquaduct.traj.sandwich import ResidueSelection
-from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath, SinglePathID, GenericPathTypeCodes, MasterPath
-from aquaduct.utils.helpers import SmartRange
-from aquaduct.traj.inlets import InletClusterExtendedType, InletClusterGenericType, Inlet, Inlets
-from aquaduct.traj.barber import Sphere
-from aquaduct.geom.master import FakeSingleResidueSelection
 
-from itertools import chain, izip
-import json
-
-try:
-    raise ImportError()
-    #import netCDF4 as netcdf
-except ImportError:
-    from scipy.io import netcdf
 
 class ValveDataCodec(object):
     # this is in fact definition of data format
