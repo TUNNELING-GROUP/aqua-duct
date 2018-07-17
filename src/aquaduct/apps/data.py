@@ -34,6 +34,7 @@ from aquaduct.utils.helpers import SmartRange, SmartRangeIncrement
 class GlobalConfigStore(object):
     cachedir = None
     cachemem = False
+    netcdf = False
 
 
 GCS = GlobalConfigStore()

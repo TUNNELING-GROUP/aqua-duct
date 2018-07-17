@@ -234,7 +234,10 @@ class ValveConfig(object, ConfigSpecialNames):
                 if setting == 'execute':
                     value = 'runonce'
                 elif setting == 'dump':
-                    value = '%d_%s_data.dump' % (snr + 1, section)
+                    if GCS.netcdf:
+                        value = '%d_%s_data.nc' % (snr + 1, section)
+                    else:
+                        value = '%d_%s_data.dump' % (snr + 1, section)
                 if value is None:
                     config.set(section, setting)
                 else:
@@ -808,7 +811,7 @@ def valve_begin_stage(stage, config):
     return options
 
 
-def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
+def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, force_save=None,
                      **kwargs):
     with clui.tictoc('Stage %s (%s)' % (roman.toRoman(stage + 1), config.stage_names(stage))):
 
@@ -850,6 +853,17 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                         vda = get_vda_reader(options.dump, mode='r')
                         result = vda.load()
                         # result = load_stage_dump(options.dump, reader=reader)
+                    if force_save:
+                        ######################
+                        # F O R C E  S A V E #
+                        ######################
+                        if force_save in ['dump','nc']:
+                            fs_fname = os.path.extsep.join([os.path.splitext(options.dump)[0],force_save])
+                        else:
+                            fs_fname = options.dump
+                        with clui.fbm('Saving (forced) data dump in %s file' % fs_fname):
+                            vda = get_vda_reader(fs_fname, mode='w')
+                            vda.dump(**result)
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
         # remove options stuff

@@ -85,13 +85,20 @@ if __name__ == "__main__":
                             help="Prints versions and exits.")
         parser.add_argument("--license", action="store_true", dest="print_license", required=False,
                             help="Prints short license info and exits.")
+        parser.add_argument("--netcdf", action="store_true", dest="use_netcdf", required=False,
+                            help="Use AQ NetCDF format as default.")
+        parser.add_argument("--force-save", action="store_true", dest="force_save", required=False,
+                            help="Force saving results.")
+        parser.add_argument("--force-netcdf", action="store_true", dest="force_netcdf", required=False,
+                            help="Force saving results in AQ NetCDF format.")
 
         args = parser.parse_args()
 
         ############################################################################
-        # cache dir!
+        # cache dir & netcdf
         GCS.cachedir = args.cachedir
         GCS.cachemem = args.cachemem
+        GCS.netcdf = args.use_netcdf
         load_cric()
 
         from aquaduct.traj.sandwich import Reader,Window
@@ -217,28 +224,30 @@ if __name__ == "__main__":
         if args.sandwich:
             clui.message("Sandwich mode with %d layers." % len(Reader.trajectory))
 
-        ## TODO: Is it reported correctly?
-        # clui.message("Using %d of %d available frames." % (max_frame + 1, reader.max_frame + 1))
+        # force_save
+        force_save = args.force_save
+        if force_save and args.force_netcdf:
+            force_save = 'nc'
 
         # container for collecting whether particular stage was executed
         run_status = {}
 
         # STAGE I
-        result1 = valve_exec_stage(0, config, stage_I_run,
+        result1 = valve_exec_stage(0, config, stage_I_run, force_save=force_save,
                                    run_status=run_status)
 
         # STAGE II
-        result2 = valve_exec_stage(1, config, stage_II_run,
+        result2 = valve_exec_stage(1, config, stage_II_run, force_save=force_save,
                                    run_status=run_status,
                                    **result1)
 
         # STAGE III
-        result3 = valve_exec_stage(2, config, stage_III_run,
+        result3 = valve_exec_stage(2, config, stage_III_run, force_save=force_save,
                                    run_status=run_status,
                                    **result2)
 
         # STAGE IV
-        result4 = valve_exec_stage(3, config, stage_IV_run,
+        result4 = valve_exec_stage(3, config, stage_IV_run, force_save=force_save,
                                    run_status=run_status,
                                    **result3)
 
