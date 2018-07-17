@@ -114,6 +114,7 @@ from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath,SinglePath
 from aquaduct.utils.helpers import SmartRange
 from aquaduct.traj.inlets import InletClusterExtendedType, InletClusterGenericType, Inlet, Inlets
 from aquaduct.traj.barber import Sphere
+from aquaduct.geom.master import FakeSingleResidueSelection
 
 from itertools import chain,izip
 import netCDF4 as nc4
@@ -402,6 +403,7 @@ class ValveDataCodec(object):
             ids = data[ValveDataCodec.varname(name,'ids')]
             frames_table = data[ValveDataCodec.varname(name,'frames')]
             widths = data[ValveDataCodec.varname(name,'widths')]
+            coords = data[ValveDataCodec.varname(name,'coords')] # corrds use the same seek as widths
             object_strict = data[ValveDataCodec.varname(name,'object')]
             seek_widths = 0
             seek_object = 0
@@ -409,6 +411,9 @@ class ValveDataCodec(object):
                 key = InletClusterGenericType(*map(lambda c: None if c == -1 else c, k))
                 spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n))
                 path = range(ft[0], ft[1] + 1)
+
+
+
                 mp = SinglePath(spid, [[], [], []], [[], [], []])
                 seek = 0
                 path_in = path[seek:seek + ft[2]]
@@ -422,10 +427,14 @@ class ValveDataCodec(object):
                 path_object_strict = list(SmartRange(fast_minc_seq=object_strict[seek_object:seek_object + path_object_strict_size]).get())
                 seek_object += path_object_strict_size
 
+                fsrs = FakeSingleResidueSelection(spid.id, xrange(ft[0], ft[1] + 1), coords[seek_widths:seek_widths+ft[1]-ft[0]+1].copy())
+                mp = SinglePath(spid, [[], [], []], [[], [], []],single_res_selection=fsrs)
+
                 mp.add_paths4(path_in, path_object, path_object_strict, path_out)
                 mp = MasterPath(mp)
                 mp.add_width(widths[seek_widths:seek_widths+ft[1]-ft[0]+1])
                 seek_widths += (ft[1]-ft[0]+1)
+
                 out.update({key:mp})
             return out
 
