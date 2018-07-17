@@ -738,7 +738,7 @@ class SmartRangeDecrement(SmartRangeFunction):
 class SmartRange(object):
     __slots__ = '_elements _len _min _max'.split()
 
-    def __init__(self, iterable=None, fast_array=None, fast_minc_pairs=None, fast_minc_seq=None):
+    def __init__(self, iterable=None,fast_raw=None, fast_array=None, fast_minc_pairs=None, fast_minc_seq=None):
         self._elements = []
         self._len = 0
         self._min = None
@@ -746,6 +746,9 @@ class SmartRange(object):
 
         if iterable is not None:
             map(self.append, iterable)
+        if fast_raw is not None:
+            # make it from raw collection
+            map(self.append, chain(*(r.get() for r in fast_raw)))
         if fast_array is not None:
             self._elements = list(self._a2e(fast_array))
             self._len = len(fast_array)
