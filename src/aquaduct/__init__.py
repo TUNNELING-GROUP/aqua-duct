@@ -42,7 +42,7 @@ def version():
     :return: tuple of int numbers
     :rtype: tuple
     """
-    return 0, 5, 12  # towards exchange format - required for getting rid of pickle etc.
+    return 0, 5, 13  # exchange format almost ready
 
 
 def version_nice():
