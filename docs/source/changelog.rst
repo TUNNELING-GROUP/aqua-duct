@@ -12,6 +12,12 @@ Aqua-Duct changelog
     * Paths, SinglePaths and other objects use less memory.
     * Newest MDAnalysis can be used (ie 0.17, 0.18) however it is recommended to stay with 0.16.2.
     * Many other minor improvements and bug fixes.
+* 0.5.13 (18.07.2018) RC version, not released yet
+    * Results can be saved in NetCDF format that will be supported by future releases.
+    * Added --force-save option that allows rewrite results files.
+    * Recommended MDAnalysis is set to >=0.16 and <0.17. Versions >=0.17 are fully supported.
+    * Docs update.
+    * Various performance improvements and few minor bug fixes.
 * 0.5.9 (12.03.2018)
     * Rewritten module for MD data access. Sandwich mode added.
     * Coordinates can be stored in cache directory, in memory or generated on demand.
