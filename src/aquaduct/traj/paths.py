@@ -980,8 +980,9 @@ class PassingPath(MacroMolPath):
 class MasterPath(MacroMolPath):
     __slots__ = 'width_cont'.split()
 
-    def __init__(self, sp):
+    def __init__(self, sp, single_res_selection=None):
         super(MasterPath, self).__init__(sp.id, sp.paths, sp.gtypes)
+        self.single_res_selection = single_res_selection
         self.width_cont = None
 
     def add_width(self, width):

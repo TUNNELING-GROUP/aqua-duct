@@ -475,7 +475,7 @@ class CTypeSpathsCollection(object):
         with clui.tictoc('generic paths in %s' % str(self.ctype)):
             # get and populate GenericPath
             fsrs_cache.update({resid: FakeSingleResidueSelection(resid, frames, coords)})
-            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf, single_res_selection=fsrs_cache[resid])
+            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf)
             for t, f in zip(types, frames):  # TODO: remove loop
                 gp.add_type(f, t)
         # now try to get first SinglePath, if unable issue WARNING
@@ -486,7 +486,7 @@ class CTypeSpathsCollection(object):
                 logger.warning('No master path found for ctype %s' % str(self.ctype))
                 return None
         # finally get MasterPath and add widths
-        mp = MasterPath(sp)
+        mp = MasterPath(sp, single_res_selection=fsrs_cache[resid])
         mp.add_width(widths)
         return mp
 
