@@ -343,7 +343,7 @@ class ValveDataCodec(object):
 
             if value.center_of_system is not None:
                 yield ValveDataCodec.varname(name, 'center_of_system'), np.array(value.center_of_system)
-            yield ValveDataCodec.varname(name, 'onlytype'), np.fromiter(json.dumps(value.onlytype),dtype='S1')
+            #yield ValveDataCodec.varname(name, 'onlytype'), np.fromiter(json.dumps(value.onlytype),dtype='S1')
             yield ValveDataCodec.varname(name, 'inlets_list', 'coords'), np.array([i.coords for i in value.inlets_list])
             yield ValveDataCodec.varname(name, 'inlets_list', 'frame'), np.array([i.frame for i in value.inlets_list],
                                                                                  dtype=np.int32)
@@ -495,9 +495,9 @@ class ValveDataCodec(object):
                 center_of_system = data[ValveDataCodec.varname(name, 'center_of_system')][:].copy()
             else:
                 center_of_system = None
-            onlytype = data[ValveDataCodec.varname(name, 'onlytype')][:].copy()
-            onlytype = json.loads(str(onlytype.tostring()))
-            onlytype = [tuple(ot) for ot in onlytype]
+            #onlytype = data[ValveDataCodec.varname(name, 'onlytype')][:].copy()
+            #onlytype = json.loads(str(onlytype.tostring()))
+            #onlytype = [tuple(ot) for ot in onlytype]
             passing = bool(data[ValveDataCodec.varname(name, 'passing')][:].copy())
             inls = Inlets([], center_of_system=center_of_system, passing=passing, onlytype=onlytype)
 
@@ -508,7 +508,8 @@ class ValveDataCodec(object):
             ref_name = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'name')]
             for c, f, t, pid, n in izip(coords, frame, type_, ref_ids, ref_name):
                 spid = SinglePathID(path_id=tuple(map(int, pid[:2].copy())), nr=int(pid[-1].copy()), name=str(n.copy().tostring()))
-                inls.inlets_list.append(Inlet(coords=c.copy(), type=onlytype[t.copy()], reference=spid, frame=f.copy()))
+                #inls.inlets_list.append(Inlet(coords=c.copy(), type=onlytype[t.copy()], reference=spid, frame=f.copy()))
+                inls.inlets_list.append(Inlet(coords=c.copy(), reference=spid, frame=f.copy()))
 
             inls.inlets_ids = data[ValveDataCodec.varname(name, 'inlets_ids')][:].copy().tolist()
             inls.clusters = data[ValveDataCodec.varname(name, 'clusters')][:].copy().tolist()
@@ -549,13 +550,13 @@ class ValveDataAccess_nc(ValveDataAccess):
         self.data_file.close()
 
     def get_variable(self, name, copy=True):
-        print name
+        #print name
         if copy:
             return self.data_file.variables[name][:].copy()
         return self.data_file.variables[name]
 
     def set_variable(self, name, value):
-        print name, value
+        #print name, value
         assert self.mode == "w"
         # value has to be ndarray
         assert isinstance(value, np.ndarray)
