@@ -4,6 +4,7 @@ import numpy as np
 import types
 from itertools import islice
 
+
 class TestAbsOneWay2(TestCase):
     def test_here0(self):
         A = [0, 2, 0]

@@ -43,8 +43,6 @@ def get_required_params(method):
         return ['n_clusters']
 
 
-
-
 class BarberClusterResult(object):
     """
     Helper class for results of barber clustering.

@@ -95,4 +95,4 @@ class TestVectors_angle_anorm(TestCase):
         res = np.arccos(np.clip(np.dot(A, B) / (10.4 * 2.82), -1, 1))
         roundo = round(outp, 3)
         roundr = round(res, 3)
-        self.assertAlmostEqual(outp, res,0)
+        self.assertAlmostEqual(outp, res, 0)

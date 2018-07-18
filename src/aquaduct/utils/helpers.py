@@ -69,21 +69,22 @@ def combine(seqin):
 
 
 def are_rows_uniq(some_array):
-    #http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
+    # http://stackoverflow.com/questions/16970982/find-unique-rows-in-numpy-array
     ca = np.ascontiguousarray(some_array).view(np.dtype((np.void, some_array.dtype.itemsize * some_array.shape[1])))
     return np.unique(ca).shape[0] == ca.shape[0]
 
 
 ########################################################################
 
-def robust_and(a,b):
+def robust_and(a, b):
     if a is None:
         return bool(b)
     if b is None:
         return bool(a)
     return a and b
 
-def robust_or(a,b):
+
+def robust_or(a, b):
     if a is None:
         return bool(b)
     if b is None:
@@ -344,8 +345,8 @@ def uniqify(gen):
 
     return patched
 
-def noaction(gen):
 
+def noaction(gen):
     @wraps(gen)
     def patched(*args, **kwargs):
         return gen(*args, **kwargs)
@@ -398,6 +399,7 @@ def tupleify(gen):
 
     return patched
 
+
 def dictify(gen):
     """
     Decorator to convert functions' outputs into a tuple. If the output is iterable it is converted in to a tuple
@@ -414,17 +416,17 @@ def dictify(gen):
         obj = gen(*args, **kwargs)
         if isinstance(obj, Iterable):
             return dict(obj)
-        return dict({0:obj})
+        return dict({0: obj})
 
     return patched
 
 
 class arrayify(object):
 
-    def __init__(self,shape=None):
+    def __init__(self, shape=None):
         self.shape = shape
 
-    def __call__(self,gen):
+    def __call__(self, gen):
         """
         Decorator to convert functions' outputs into a 2D numpy array. If the output is iterable it is converted in to a 2D numpy array
         of appropriate shape. If the output is not iterable it is converted in to a 2D numpy array of shape 1x1.
@@ -434,16 +436,17 @@ class arrayify(object):
         :returns: Output of decorated function converted to a 2D numpy array.
         :rtype: numpy.ndarray
         """
+
         @wraps(gen)
         def patched(*args, **kwargs):
             obj = gen(*args, **kwargs)
             if isinstance(obj, Iterable):
-                result = np.matrix(list(obj),dtype=defaults.float_default).A
+                result = np.matrix(list(obj), dtype=defaults.float_default).A
             else:
-                result = np.matrix([obj],dtype=defaults.float_default).A
+                result = np.matrix([obj], dtype=defaults.float_default).A
             if self.shape is None: return result
             new_shape = []
-            for ds,s in zip(self.shape,result.shape):
+            for ds, s in zip(self.shape, result.shape):
                 if ds is None:
                     if result.size:
                         new_shape.append(s)
@@ -455,8 +458,6 @@ class arrayify(object):
             return result
 
         return patched
-
-
 
 
 def arrayify1(gen):
@@ -474,8 +475,8 @@ def arrayify1(gen):
     def patched(*args, **kwargs):
         obj = gen(*args, **kwargs)
         if isinstance(obj, Iterable):
-            return np.matrix(list(obj),dtype=defaults.float_default).A1
-        return np.matrix([obj],dtype=defaults.float_default).A1
+            return np.matrix(list(obj), dtype=defaults.float_default).A1
+        return np.matrix([obj], dtype=defaults.float_default).A1
 
     return patched
 
@@ -504,7 +505,8 @@ def list_blocks_to_slices(l):
             prev_nr = nr + 1
         yield slice(prev_nr, nr + 2, 1)
 
-def split_list(l,s):
+
+def split_list(l, s):
     # l is list
     # s is element to split
     if s not in l:
@@ -514,12 +516,11 @@ def split_list(l,s):
         i = -1
         b = 0
         while n:
-            i = l.index(s,i+1)
+            i = l.index(s, i + 1)
             yield l[b:i]
-            b = i+1
+            b = i + 1
             n -= 1
         yield l[b:]
-
 
 
 @tupleify
@@ -552,7 +553,8 @@ def make_iterable(something):
         return [something]
     return something
 
-def iterate_or_die(something,times=None):
+
+def iterate_or_die(something, times=None):
     if is_iterable(something):
         return something
     return (something for dummy in xrange(times))
@@ -629,6 +631,7 @@ def xzip_xzip(*args, **kwargs):
         yield tuple(this_yield)
         position = next_position
 
+
 def concatenate(*args):
     '''
     Concatenates input iterable arguments in to one generator.
@@ -637,11 +640,13 @@ def concatenate(*args):
         for e in a:
             yield e
 
+
 class Bunch(object):
     """
     http://code.activestate.com/recipes/52308
     foo=Bunch(a=1,b=2)
     """
+
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
@@ -663,15 +668,15 @@ class SmartRangeFunction(object):
         return self.times
 
     def __getstate__(self):
-        return self.element,self.times
+        return self.element, self.times
 
     def __setstate__(self, state):
         # FIXME: tmp solution
-        if isinstance(state,dict):
+        if isinstance(state, dict):
             self.element = state['element']
             self.times = state['times']
         else:
-            self.element,self.times = state
+            self.element, self.times = state
 
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
@@ -701,8 +706,8 @@ class SmartRangeFunction(object):
 
 
 class SmartRangeEqual(SmartRangeFunction):
-    #__slots__ = "element times".split()
-    #type = 'e'
+    # __slots__ = "element times".split()
+    # type = 'e'
 
     def get(self):
         return [self.element] * self.times
@@ -718,8 +723,8 @@ class SmartRangeEqual(SmartRangeFunction):
 
 
 class SmartRangeIncrement(SmartRangeFunction):
-    #__slots__ = "element times".split()
-    #type = 'i'
+    # __slots__ = "element times".split()
+    # type = 'i'
 
     def get(self):
         return (self.element + i for i in xrange(self.times))
@@ -735,8 +740,8 @@ class SmartRangeIncrement(SmartRangeFunction):
 
 
 class SmartRangeDecrement(SmartRangeFunction):
-    #__slots__ = "element times".split()
-    #type = 'd'
+    # __slots__ = "element times".split()
+    # type = 'd'
 
     def get(self):
         return (self.element - i for i in xrange(self.times))
@@ -770,29 +775,29 @@ class SmartRange(object):
                 self._max = max(fast_array)
         if fast_minc_pairs is not None or fast_minc_seq is not None:
             if fast_minc_pairs is not None:
-                self._elements = [SmartRangeIncrement(e,t) for e,t in fast_minc_pairs]
+                self._elements = [SmartRangeIncrement(e, t) for e, t in fast_minc_pairs]
             else:
                 fms = chain(fast_minc_seq)
-                self._elements = [SmartRangeIncrement(e, t) for e, t in ((ee,fms.next()) for ee in fms)]
-            self._len = sum((t for e,t in self.raw2pairs(self._elements)))
+                self._elements = [SmartRangeIncrement(e, t) for e, t in ((ee, fms.next()) for ee in fms)]
+            self._len = sum((t for e, t in self.raw2pairs(self._elements)))
             if self._len:
                 self._min = self._elements[0].element
-                self._max = max((e+t-1 for e,t in self.raw2pairs(self._elements)))
+                self._max = max((e + t - 1 for e, t in self.raw2pairs(self._elements)))
 
     @staticmethod
     def _a2e(a):
         prev = 0
-        for i in np.argwhere(np.diff(a)>1).flatten():
-            yield SmartRangeIncrement(a[prev],i-prev+1)
-            prev = i+1
-        yield SmartRangeIncrement(a[prev],a[-1]-a[prev]+1)
+        for i in np.argwhere(np.diff(a) > 1).flatten():
+            yield SmartRangeIncrement(a[prev], i - prev + 1)
+            prev = i + 1
+        yield SmartRangeIncrement(a[prev], a[-1] - a[prev] + 1)
 
     def __getstate__(self):
         return self._elements, self._len, self._min, self._max
 
     def __setstate__(self, state):
         # FIXME: tmp solution
-        if isinstance(state,dict):
+        if isinstance(state, dict):
             self._elements = state['_elements']
             self._len = state['_len']
             self._max = state['_max']
@@ -832,10 +837,11 @@ class SmartRange(object):
 
     @staticmethod
     def raw2pairs(raw):
-        return ((srf.element,srf.times) for srf in raw)
+        return ((srf.element, srf.times) for srf in raw)
+
     @staticmethod
     def raw2sequence(raw):
-        return chain(*((srf.element,srf.times) for srf in raw))
+        return chain(*((srf.element, srf.times) for srf in raw))
 
     @property
     def raw(self):
@@ -867,9 +873,6 @@ class SmartRange(object):
             else:
                 for e in element.get():
                     yield SmartRangeIncrement(e, 1)
-
-
-
 
     def append(self, element):
         assert not isinstance(element, SmartRangeFunction)

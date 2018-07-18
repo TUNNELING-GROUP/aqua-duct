@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
 
+
 def is_number(s):
-    #http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/
-    if isinstance(s,bool):
+    # http://pythoncentral.org/how-to-check-if-a-string-is-a-number-in-python-including-unicode/
+    if isinstance(s, bool):
         return False
     try:
         float(s)
@@ -18,12 +19,13 @@ def is_number(s):
         pass
     return False
 
+
 class TestIs_number(TestCase):
 
     def test_is_number(self):
-        s= {1,"a","%","3.15"}
-        Oczekiwany= {True, False, False, True}
-        current =is_number(s)
+        s = {1, "a", "%", "3.15"}
+        Oczekiwany = {True, False, False, True}
+        current = is_number(s)
 
-        if ( current != Oczekiwany):
+        if (current != Oczekiwany):
             Exception("test failed")

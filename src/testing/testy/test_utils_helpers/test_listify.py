@@ -3,13 +3,13 @@ from unittest import TestCase
 from aquaduct.utils.helpers import listify
 
 
-
 class TestListify(TestCase):
     pass
 
+
 class TestingListyfy(TestCase):
     def test_if_list(self):
-        #does it work?
+        # does it work?
         def corvus_generator():
             corvus = ['jackdaw', 'magpie', 'raven', 'crow']
             for bird in corvus:
@@ -21,10 +21,11 @@ class TestingListyfy(TestCase):
         # if function returns list it works well
         @listify
         def corvus_listificator(my_string):
-            output=my_string.split(' ')
-            return([output])
+            output = my_string.split(' ')
+            return ([output])
+
         corvus = 'jackdaw magpie raven crow'
-        funk=corvus_listificator(corvus)
+        funk = corvus_listificator(corvus)
         self.assertTrue(isinstance(funk, list))
 
     def test_length(self):
@@ -34,6 +35,7 @@ class TestingListyfy(TestCase):
         def corvus_listificator(my_string):
             output = my_string.split(' ')
             return (output)
+
         corvus = 'jackdaw magpie raven crow'
         funk = corvus_listificator(corvus)
-        self.assertTrue(len(funk)==4)
+        self.assertTrue(len(funk) == 4)

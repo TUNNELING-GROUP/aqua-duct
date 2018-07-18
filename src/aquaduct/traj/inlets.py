@@ -43,13 +43,13 @@ class ProtoInletTypeCodes(object):
 class InletTypeCodes(ProtoInletTypeCodes):
     # TODO: Rework this and make it coherent with barber create_spheres.
     all_surface = tuple(((ProtoInletTypeCodes.surface, itype) for itype in
-                   (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing)))
+                         (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing)))
     all_internal = tuple(((ProtoInletTypeCodes.internal, itype) for itype in
-                    (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing)))
+                          (ProtoInletTypeCodes.incoming, ProtoInletTypeCodes.outgoing)))
     all_incoming = tuple(((itype, ProtoInletTypeCodes.incoming) for itype in
-                    (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal)))
+                          (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal)))
     all_outgoing = tuple(((itype, ProtoInletTypeCodes.outgoing) for itype in
-                    (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal)))
+                          (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.internal)))
 
     surface_incoming = (ProtoInletTypeCodes.surface, ProtoInletTypeCodes.incoming)
     internal_incoming = (ProtoInletTypeCodes.internal, ProtoInletTypeCodes.incoming)

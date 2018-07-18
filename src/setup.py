@@ -21,21 +21,23 @@ from setuptools import find_packages, setup
 
 version = __import__('aquaduct').version_nice()  # version str
 
-install_requires =['numpy>=1.10.0', # this is required by MDA
-                  'scipy>=0.17.1',
-                  'scikit-learn>=0.16.0',
-                  'MDAnalysis[amber]>=0.16.0,<0.17.0',
-                  'joblib>=0.10'
-                  ]
+install_requires = ['numpy>=1.10.0',  # this is required by MDA
+                    'scipy>=0.17.1',
+                    'scikit-learn>=0.16.0',
+                    'MDAnalysis[amber]>=0.16.0,<0.17.0',
+                    'joblib>=0.10'
+                    ]
+
 
 def install_requires_nice(level=0):
-      import re
-      for ir in install_requires:
-            print ("    "*level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)',ir))
+    import re
+    for ir in install_requires:
+        print ("    " * level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)', ir))
+
 
 author = __import__('aquaduct').__author__  # version str
 
-with open('README.md','r') as fh:
+with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(name='aquaduct',

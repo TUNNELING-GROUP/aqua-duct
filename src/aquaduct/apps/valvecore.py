@@ -833,7 +833,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                 # S A V E #
                 ###########
                 with clui.fbm('Saving data dump in %s file' % options.dump):
-                    vda = get_vda_reader(options.dump,mode='w')
+                    vda = get_vda_reader(options.dump, mode='w')
                     vda.dump(**result)
                 # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
@@ -843,7 +843,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None,
                 ###########
                 if options.dump:
                     with clui.fbm('Loading data dump from %s file' % options.dump):
-                        vda = get_vda_reader(options.dump,mode='r')
+                        vda = get_vda_reader(options.dump, mode='r')
                         result = vda.load()
                         # result = load_stage_dump(options.dump, reader=reader)
         else:
@@ -1270,7 +1270,6 @@ class ABSphere(namedtuple('ABSphere', 'center radius')):
 def stage_III_run(config, options,
                   paths=None,
                   **kwargs):
-
     soptions = config.get_smooth_options()
 
     if options.allow_passing_paths:
@@ -1291,7 +1290,7 @@ def stage_III_run(config, options,
         spaths = []
         nr_all = 0
         for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
-            nr = 0 # if no spaths were returned
+            nr = 0  # if no spaths were returned
             for sp, nr in sps_nrs:
                 spaths.append(sp)
                 pbar.update(nr_all + nr + 1)
@@ -1304,7 +1303,7 @@ def stage_III_run(config, options,
 
     ######################################################################
 
-    with clui.pbar(len(spaths)+len(paths), "Removing unused parts of paths:") as pbar:
+    with clui.pbar(len(spaths) + len(paths), "Removing unused parts of paths:") as pbar:
         paths = yield_generic_paths(spaths, progress=pbar)
 
     ######################################################################
@@ -1351,7 +1350,7 @@ def stage_III_run(config, options,
                     Reader.reset()
                     spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
                                                        (pbar.next(step=nr) is None) and (
-                                                                   CRIC.update_cric(cric) is None))))
+                                                               CRIC.update_cric(cric) is None))))
                 else:
                     spaths = list(chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
                 pool.close()
@@ -1362,11 +1361,10 @@ def stage_III_run(config, options,
                 clui.message("No paths were discarded.")
             else:
                 clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
-                with clui.pbar(len(spaths)+len(paths), "Removing (again) unused parts of paths:") as pbar:
+                with clui.pbar(len(spaths) + len(paths), "Removing (again) unused parts of paths:") as pbar:
                     paths = yield_generic_paths(spaths, progress=pbar)
         else:
             clui.message("No paths were discarded - no values were set.")
-
 
     ######################################################################
 
@@ -1388,7 +1386,7 @@ def stage_III_run(config, options,
                 bp = partial(barber_paths, spheres=wtc.spheres)
                 n = max(1, optimal_threads.threads_count)
                 paths_new = pool.imap_unordered(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
-                #paths_new = map(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
+                # paths_new = map(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
                 paths_ = list()
                 for paths_new_list in paths_new:
                     CRIC.update_cric(paths_new_list.pop(-1))
@@ -1810,12 +1808,14 @@ def get_header_line_and_line_template(header_line_and_line_template, head_nr=Fal
 
     return header_line, line_template
 
+
 class SpathIdHeader(object):
     name = 'ID'
     format = '%9s'
 
     def __call__(self):
-        return [self.name],[self.format]
+        return [self.name], [self.format]
+
 
 '''
 def spath_id_header():
@@ -1823,12 +1823,12 @@ def spath_id_header():
 '''
 spath_id_header = SpathIdHeader()
 
+
 def spath_name_header():
     return ['RES'], ['%4s']
 
 
 def add_path_id_head(gen):
-
     @wraps(gen)
     def patched(*args, **kwargs):
         sph, splt = zip(spath_id_header(), spath_name_header())
@@ -2490,10 +2490,10 @@ def stage_V_run(config, options,
 
     if pbar:
         # calculate number of tnspt
-        nr_tnspt = [nr for nr,dummy in enumerate(iter_over_tnspt())][-1] + 1
+        nr_tnspt = [nr for nr, dummy in enumerate(iter_over_tnspt())][-1] + 1
         nr_f = (1 if len(traced_names) == 1 else 2) * (1 if len(spaths_types) == 1 else 2)
 
-        pbar = clui.pbar(maxval=nr_tnspt*2 + nr_f * 2 * len(spaths) + len(spaths),mess="Calculating stats:")
+        pbar = clui.pbar(maxval=nr_tnspt * 2 + nr_f * 2 * len(spaths) + len(spaths), mess="Calculating stats:")
 
     ############
 
@@ -2579,7 +2579,6 @@ def stage_V_run(config, options,
         if pbar:
             pbar.next()
 
-
     ############
     pa.sep()
     header_line, line_template = get_header_line_and_line_template(ctypes_spaths_info_header(), head_nr=head_nr)
@@ -2593,7 +2592,6 @@ def stage_V_run(config, options,
         sps = lind(spaths, what2what(ctypes_generic, [ct]))
         ctypes_size.append(len(sps))
     ctypes_generic_list = [ctypes_generic_list[i] for i in np.argsort(ctypes_size)[::-1]]
-
 
     for tname, sptype, message in iter_over_tnspt():
         pa("Separate paths clusters types summary - mean lengths of paths%s" % message)

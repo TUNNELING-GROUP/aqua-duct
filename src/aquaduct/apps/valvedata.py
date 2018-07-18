@@ -18,6 +18,7 @@
 
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import cPickle as pickle
@@ -58,19 +59,19 @@ def check_versions(version_dict):
 
 ################################################################################
 
-def get_vda_reader(filename,mode="r"):
+def get_vda_reader(filename, mode="r"):
     if os.path.splitext(filename)[-1].lower() in ['.dump']:
-        return ValveDataAccess_pickle(mode=mode,data_file_name=filename)
+        return ValveDataAccess_pickle(mode=mode, data_file_name=filename)
     elif os.path.splitext(filename)[-1].lower() in ['.npaq']:
         return ValveDataAccess_numpy(mode=mode, data_file_name=filename)
-    elif os.path.splitext(filename)[-1].lower() in ['.nc','.aqnc']:
-        return ValveDataAccess_nc(mode=mode,data_file_name=filename)
+    elif os.path.splitext(filename)[-1].lower() in ['.nc', '.aqnc']:
+        return ValveDataAccess_nc(mode=mode, data_file_name=filename)
     raise ValueError('Unknown file type of %s file' % filename)
+
 
 ################################################################################
 
 class ValveDataAccess(object):
-
     unknown_names = 'UNK'
 
     def __init__(self, mode=None, data_file_name=None):
@@ -97,6 +98,7 @@ class ValveDataAccess(object):
     def dump(self, **kwargs):
         raise NotImplementedError()
 
+
 ################################################################################
 
 class ValveDataAccess_pickle(ValveDataAccess):
@@ -119,7 +121,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
                 while True:
                     loaded_data = pickle.load(self.data_file)
                     self.data.update(loaded_data)
-            except: # TODO: remove it!
+            except:  # TODO: remove it!
                 pass
 
     def close(self):

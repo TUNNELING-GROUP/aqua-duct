@@ -38,7 +38,7 @@ logger.addHandler(ch)
 
 ################################################################################
 
-from aquaduct.apps.data import GCS,load_cric
+from aquaduct.apps.data import GCS, load_cric
 
 ################################################################################
 
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         GCS.cachemem = args.cachemem
         load_cric()
 
-        from aquaduct.traj.sandwich import Reader,Window
+        from aquaduct.traj.sandwich import Reader, Window
         from aquaduct.apps.valvecore import *
 
         ############################################################################
@@ -203,16 +203,16 @@ if __name__ == "__main__":
         # Maximal frame checks
         frames_window = Window(args.min_frame, args.max_frame, args.step_frame)
 
-
         # Open trajectory reader
         # trajectories are split with os.pathsep
         from os import pathsep
+
         Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)],
                window=frames_window,
                sandwich=args.sandwich,
                threads=optimal_threads.threads_count)  # trajectory reader
 
-        #reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
+        # reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
 
         clui.message("Frames window: %d:%d step %d" % (Reader.window.start,
                                                        Reader.window.stop,
@@ -226,29 +226,24 @@ if __name__ == "__main__":
         # container for collecting whether particular stage was executed
         run_status = {}
 
-
         # STAGE I
         result1 = valve_exec_stage(0, config, stage_I_run,
                                    run_status=run_status)
-
 
         # STAGE II
         result2 = valve_exec_stage(1, config, stage_II_run,
                                    run_status=run_status,
                                    **result1)
 
-
         # STAGE III
         result3 = valve_exec_stage(2, config, stage_III_run,
                                    run_status=run_status,
                                    **result2)
 
-
         # STAGE IV
         result4 = valve_exec_stage(3, config, stage_IV_run,
                                    run_status=run_status,
                                    **result3)
-
 
         # STAGE V
         results = {}
@@ -274,4 +269,3 @@ if __name__ == "__main__":
 
         valve_end()
         logger.info('Valve calulations finished.')
-

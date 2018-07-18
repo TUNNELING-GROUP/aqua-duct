@@ -17,6 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import os
@@ -24,6 +25,7 @@ import gzip
 import cPickle as pickle
 from importlib import import_module
 from aquaduct.utils.helpers import SmartRangeIncrement
+
 
 ################################################################################
 
@@ -66,12 +68,12 @@ def get_cric_reader(mode='r'):
     # returns file object
     if GCS.cachedir:
         try:
-            data_file_name = GCS.cachedir + os.path.sep + 'cric.dump' # TODO: magic constant
-            if mode=='r' and not os.path.exists(data_file_name):
+            data_file_name = GCS.cachedir + os.path.sep + 'cric.dump'  # TODO: magic constant
+            if mode == 'r' and not os.path.exists(data_file_name):
                 return
-            if mode=='w' and not os.path.exists(GCS.cachedir):
+            if mode == 'w' and not os.path.exists(GCS.cachedir):
                 os.makedirs(GCS.cachedir)
-            logger.debug("Preparing CRIC store with file %s",data_file_name)
+            logger.debug("Preparing CRIC store with file %s", data_file_name)
             return gzip.open(data_file_name, mode=mode, compresslevel=9)
         except IOError:
             logger.warning("Unable to access CRIC data in cache dir [%s]." % GCS.cachedir)
@@ -82,8 +84,9 @@ def save_cric():
     vda = get_cric_reader(mode='w')
     if vda:
         logger.debug("Saving CRIC data.")
-        pickle.dump(CRIC.cache,vda)
+        pickle.dump(CRIC.cache, vda)
         vda.close()
+
 
 def load_cric():
     vda = get_cric_reader(mode='r')
@@ -198,7 +201,5 @@ def get_object_from_name(name):
     object_name = name.split('.')[-1]
     module = import_module(module_name)
     return getattr(module, object_name)
-
-
 
 ################################################################################

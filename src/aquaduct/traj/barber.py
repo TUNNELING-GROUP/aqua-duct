@@ -261,7 +261,7 @@ class WhereToCut(ReaderAccess):
 
         Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
-        #pool = Pool(processes=1)
+        # pool = Pool(processes=1)
         n = max(1, optimal_threads.threads_count)
         chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
 
@@ -269,7 +269,7 @@ class WhereToCut(ReaderAccess):
                                forceempty=self.forceempty)
         _inlets = chain(inlets)
         spheres_new = pool.imap(add_function, [[_inlets.next() for cc in xrange(c)] for c in chunks])
-        #spheres_new = imap(add_function, ([_inlets.next() for cc in xrange(c)] for c in chunks))
+        # spheres_new = imap(add_function, ([_inlets.next() for cc in xrange(c)] for c in chunks))
 
         nr = 0
         for spheres in spheres_new:

@@ -17,4 +17,4 @@ class TestTracepoints(TestCase):
     def test_traces1p_more(self):
         A = np.array([0, 2, 0])
         B = np.array([2, 2, 0])
-        self.assertTrue((tracepoints(A, B, 3) == np.array([[0.5, 2, 0],[1,2,0],[1.5,2,0]])).all())
+        self.assertTrue((tracepoints(A, B, 3) == np.array([[0.5, 2, 0], [1, 2, 0], [1.5, 2, 0]])).all())

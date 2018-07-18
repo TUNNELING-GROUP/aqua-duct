@@ -20,9 +20,10 @@
 
 import multiprocessing as mp
 
+
 class CpuThreadsCount(object):
     cpu_count = mp.cpu_count()
     threads_count = None
 
-optimal_threads = CpuThreadsCount()
 
+optimal_threads = CpuThreadsCount()

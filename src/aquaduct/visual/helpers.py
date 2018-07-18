@@ -38,11 +38,13 @@ _cl2rgba = {'b': (0.0, 0.0, 1.0, 1.0),
             's': (0.5, 0.5, 0.5, 1.0)}
 
 
-def euclidean(A,B):
+def euclidean(A, B):
     return distance.cdist(A, B, 'euclidean')
 
-def cityblock(A,B):
+
+def cityblock(A, B):
     return distance.cdist(A, B, 'cityblock')
+
 
 # cc = lambda c, alpha=1.0: colorConverter.to_rgb(c)
 
@@ -102,72 +104,72 @@ def get_cmap(size):
 
 
 class ColorMapDistMap(object):
-
     grey = (0.5, 0.5, 0.5, 1)
 
     def __init__(self):
         self.cmap = default_cmap
         self.cmap = self.__do_cadex()
 
-    def distance(self,E1,E2):
+    def distance(self, E1, E2):
         # E1 and E2 are RGBs matrices
         D = []
         for e1 in E1:
             DD = []
             for e2 in E2:
-                DD.append(self.color_distance(e1,e2))
+                DD.append(self.color_distance(e1, e2))
             D.append(DD)
         return np.array(D)
 
     @staticmethod
-    def color_distance(e1,e2):
+    def color_distance(e1, e2):
         # e1 and e2 are colors defs of rgb components in this order
         # Taken from http://www.compuphase.com/cmetric.htm
         # scale them to 0-255 range
         def to0255(E):
-            return [int(e*255) for e in E]
+            return [int(e * 255) for e in E]
+
         e1 = to0255(e1)
         e2 = to0255(e2)
 
-        rmean = (e1[0]+e2[0])/2
-        r = e1[0]-e2[0]
-        g = e1[1]-e2[1]
-        b = e1[2]-e2[2]
+        rmean = (e1[0] + e2[0]) / 2
+        r = e1[0] - e2[0]
+        g = e1[1] - e2[1]
+        b = e1[2] - e2[2]
         return np.sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8))
 
     def __do_cadex(self):
-        m = len(self.cmap) # number of objects
+        m = len(self.cmap)  # number of objects
         k = len(self.cmap)
         # indices
-        mi = [] # model
-        ti = range(m) # test
+        mi = []  # model
+        ti = range(m)  # test
         # FIRST OBJECT
         # get distance to mean object
-        Xm = np.array(self.cmap).mean(axis=0) # mean object
-        Xm.shape = (1,Xm.shape[0]) # fix shape
-        Dm = self.distance(Xm,np.array(self.cmap))
-        D = self.distance(np.array(self.cmap),np.array(self.cmap))
+        Xm = np.array(self.cmap).mean(axis=0)  # mean object
+        Xm.shape = (1, Xm.shape[0])  # fix shape
+        Dm = self.distance(Xm, np.array(self.cmap))
+        D = self.distance(np.array(self.cmap), np.array(self.cmap))
         # min value will be the first object
-        #mi.append(ti.pop(Dm.argmin()))
+        # mi.append(ti.pop(Dm.argmin()))
         mi.append(ti.pop(-1))
         if k > 1:
             # SECOND OBJECT
             Xm = np.array(self.cmap)[mi[-1]]
-            Xm.shape = (1,Xm.shape[0]) # fix shape
-            Dm = self.distance(Xm,np.array(self.cmap)[ti,:])
+            Xm.shape = (1, Xm.shape[0])  # fix shape
+            Dm = self.distance(Xm, np.array(self.cmap)[ti, :])
             # max value will be the first object
             mi.append(ti.pop(Dm.argmax()))
             if k > 2:
-                while (len(mi)<k):
-                    Dm = D[:,ti][mi,:]
+                while (len(mi) < k):
+                    Dm = D[:, ti][mi, :]
                     mi.append(ti.pop(Dm.min(axis=0).argmax()))
-        return lind(self.cmap,mi+ti)
+        return lind(self.cmap, mi + ti)
 
     def __call__(self, node):
         if 0 < node:
             # cycle...
-            return self.cmap[(node-1) % len(self.cmap)][:3]
-            #return self.cmap[int(np.round(self.cm_size * f_like(node)))][:3]
+            return self.cmap[(node - 1) % len(self.cmap)][:3]
+            # return self.cmap[int(np.round(self.cm_size * f_like(node)))][:3]
         # return grey otherwise
         return self.grey[:3]
 

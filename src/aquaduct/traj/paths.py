@@ -485,7 +485,7 @@ def yield_generic_paths(spaths, progress=None):
     # it is required to keep frames (and types) in order, otherwise smartranges are wrong
     for p in rid_seen.itervalues():
         new_order = np.argsort(p.frames)
-        p.update_types_frames(glind(p.types,new_order),glind(p.frames,new_order))
+        p.update_types_frames(glind(p.types, new_order), glind(p.frames, new_order))
         progress.next()
 
     return rid_seen.values()

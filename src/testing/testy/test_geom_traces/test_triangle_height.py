@@ -24,11 +24,11 @@ class TestTriangle_height(TestCase):
         B = 2, 2, 2
         C = 2, 4, 2
         case = triangle_height(A, B, C)
-        self.assertAlmostEqual(case, 2.828427,6)
+        self.assertAlmostEqual(case, 2.828427, 6)
 
     def test_zero(self):
         A = 0, 0, 0
         B = 0, 0, 0
         C = 0, 0, 0
         case = triangle_height(A, B, C)
-        self.assertEquals(case,0)
+        self.assertEquals(case, 0)

@@ -132,7 +132,6 @@ class CTypeSpathsCollectionWorker(object):
             coords_zz.append(coords_zz_element[sl])
             # self.lock.release()
 
-
         # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
         lens_zz = []
         for l, coord_z in zip(self.lens_cache, coords_zz):

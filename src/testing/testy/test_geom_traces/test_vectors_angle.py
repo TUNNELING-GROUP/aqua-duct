@@ -5,10 +5,10 @@ from math import pi
 
 class TestVectors_angle(TestCase):
     def test_Vectors_angle_right(self):
-        A = (1,1,0)
-        B = (0,0,1)
-        case = vectors_angle(A,B)
-        self.assertEqual(case,pi/2)
+        A = (1, 1, 0)
+        B = (0, 0, 1)
+        case = vectors_angle(A, B)
+        self.assertEqual(case, pi / 2)
 
     def test_Vectors_angle_acute(self):
         A = (1, 1, 0)
