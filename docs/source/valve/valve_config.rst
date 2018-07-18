@@ -67,6 +67,11 @@ dump        [dump file name]    File name of dump data. It is used to save resul
                                 * 2_raw_paths_data.(dump|nc)
                                 * 3_separate_paths_data.(dump|nc)
                                 * 4_inlets_clusterization_data.(dump|nc)
+
+                                If file name ends with *dump* extension results are saved as
+                                Gzipped Python :mod:`cPickle` files. However, if it ends with *nc*
+                                extension new NetCDF based format will be used. See also
+                                :ref:`netcdf_option`.
 ========    =================   ===================================================================
 
 Stages 5-6 also uses **execute** option, however, since they do not perform calculations `per se` in stead of **dump** option they use **save**.

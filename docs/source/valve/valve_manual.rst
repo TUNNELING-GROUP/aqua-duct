@@ -97,9 +97,9 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
 Results files format
 """"""""""""""""""""
 
-Results of each stage can be saved into files and later reused to speedup calculations. Default format is Gzipped Python :mod:`pickle` files.
+Results of each stage can be saved into files and later reused to speedup calculations. Default format is Gzipped Python :mod:`cPickle` files.
 In order to improve portability of *Valve* results one can use ``--netcdf`` or ``--netcdf4`` options. This will change
-default format to NetCDF based. See also :ref:`dump_options`
+default format to NetCDF based. See also :ref:`dump_options`.
 
 .. note::
 
@@ -107,7 +107,9 @@ default format to NetCDF based. See also :ref:`dump_options`
 
 .. warning::
 
-    Saving results in Gzipped Python :mod:`pickle` file will not be supported in future releases.
+    Saving results in Gzipped Python :mod:`cPickle` file will not be supported in future releases.
+
+If ``--netcdf`` option is used NetCDF files will be saved with :mod:`scipy.io.netcdf` module. Alternatively, if ``--netcdf4`` option is used and `netCDF4 module <http://unidata.github.io/netcdf4-python/>`_ is installed it will be used instead of SciPy one.
 
 Single precision storage
 """"""""""""""""""""""""
@@ -121,7 +123,7 @@ Storage of coordinates for all paths for very long MD trajectories requires huge
 
 .. note::
 
-    If no cache is used (memory or dir) :ref:`master_paths_manual` cannot be calculated. 
+    If no cache is used (memory or dir) :ref:`master_paths_manual` cannot be calculated.
 
 .. _sandwich_option:
 
@@ -150,7 +152,7 @@ If config file is provided (option ``-c``) *Valve* parse it quickly and regular 
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-In the first stage of calculation *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In :ref:`sandwich_option <sandwich>` mode this is repeated for each layer.
+In the first stage of calculation *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In :ref:`sandwich <sandwich_option>` mode this is repeated for each layer.
 
 The search of *traceable residues* is done according to user provided specifications. Two requirements have to be met to append residue to the list:
 
@@ -386,7 +388,7 @@ Results starts with general summary.
 * Names of traced molecules.
     .. note::
 
-        If more than one name is on the list all consecutive sections of *Analysis* results are provided for each name separately and, as well as, for all names. 
+        If more than one name is on the list all consecutive sections of *Analysis* results are provided for each name separately and, as well as, for all names.
 * Number of traceable residues.
 * Number of separate paths.
 * Number of inlets.
@@ -441,7 +443,7 @@ Clusters statistics
 
 Clusters types statistics
 """""""""""""""""""""""""
-        
+
 * Separate paths clusters types summary. Tables with 11 columns.
     * Mean length of paths:
         #. **CType**: Separate path Cluster Type.
@@ -514,7 +516,7 @@ In addition to general summary Aqua-Duct calculates frames dependent parameters.
 
 Calculated numbers of traced paths can be used to visualize behavior of the system in question. For example, one can analyze number of paths is two different clusters:
 
-.. figure:: figure_16_6.png 
+.. figure:: figure_16_6.png
    :align:  center
 
 The above plot shows number of water molecules (or paths) in cluster 16 and 6 throughout the simulation. One can observe that number of molecules in cluster 6 diminishes approximately in the middle. This kind of plot can be easily generated with additional CSV data.
@@ -534,7 +536,7 @@ All the above listed categories are combined together, and the final number of c
 Size of *Object* and *Scope*
 ############################
 
-If option ``calculate_scope_object_size`` is set ``True`` and values of ``scope_chull`` and ``object_chull`` correspond to appropriate molecular entities, Aqua-Duct calculates area and volume of *Scope* and *Object*. Calculated sizes are estimates as resulting from convex hull approximations. 
+If option ``calculate_scope_object_size`` is set ``True`` and values of ``scope_chull`` and ``object_chull`` correspond to appropriate molecular entities, Aqua-Duct calculates area and volume of *Scope* and *Object*. Calculated sizes are estimates as resulting from convex hull approximations.
 
 
 Visualization
@@ -603,7 +605,7 @@ Options can be used simultaneously, order does matter:
 For example, in order to display molecule, clusters, and only raw master paths, one can use following command::
 
     python 6_visualize_results.py --keep 'molecule cluster master' --discard 'smooth'
-    
+
 .. note::
 
     Options ``--keep`` and ``--discard`` accepts both full and partial object names.
