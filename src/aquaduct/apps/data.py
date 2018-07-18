@@ -22,9 +22,11 @@ logger = logging.getLogger(__name__)
 
 import os
 import gzip
-import cPickle as pickle
 from importlib import import_module
-from aquaduct.utils.helpers import SmartRangeIncrement
+import json
+import collections
+
+from aquaduct.utils.helpers import SmartRange, SmartRangeIncrement
 
 
 ################################################################################
@@ -32,6 +34,8 @@ from aquaduct.utils.helpers import SmartRangeIncrement
 class GlobalConfigStore(object):
     cachedir = None
     cachemem = False
+    netcdf = False
+    nc4 = False
 
 
 GCS = GlobalConfigStore()
@@ -57,6 +61,24 @@ class CoordsRangeIndexCache(object):
                 for srange in frc.collection:
                     this_frc.append(srange)
 
+    def setstate(self, state):
+
+        for number, rid_frc in state:
+            for rid, frc in rid_frc:
+                this_frc = self.get_frc(number, rid)
+                for srange in SmartRange(fast_minc_seq=frc).raw:
+                    this_frc.append(srange)
+
+    def reset(self):
+        self.cache = {}
+
+    def getstate(self):
+        # this is saved as json so it constitutes format
+        return ((int(k),
+                 ((int(kk), map(int, SmartRange.raw2sequence(SmartRange(fast_raw=vv.collection).raw_increment))) for
+                  kk, vv
+                  in v.iteritems())) for k, v in self.cache.iteritems())
+
 
 CRIC = CoordsRangeIndexCache()
 
@@ -68,7 +90,7 @@ def get_cric_reader(mode='r'):
     # returns file object
     if GCS.cachedir:
         try:
-            data_file_name = GCS.cachedir + os.path.sep + 'cric.dump'  # TODO: magic constant
+            data_file_name = GCS.cachedir + os.path.sep + 'cric.json'  # TODO: magic constant
             if mode == 'r' and not os.path.exists(data_file_name):
                 return
             if mode == 'w' and not os.path.exists(GCS.cachedir):
@@ -84,7 +106,7 @@ def save_cric():
     vda = get_cric_reader(mode='w')
     if vda:
         logger.debug("Saving CRIC data.")
-        pickle.dump(CRIC.cache, vda)
+        json.dump(CRIC.getstate(), vda, cls=IterEncoder, indent=None, separators=(',', ':'))
         vda.close()
 
 
@@ -92,10 +114,11 @@ def load_cric():
     vda = get_cric_reader(mode='r')
     if vda:
         logger.debug("Loading CRIC data.")
-        CRIC.cache = pickle.load(vda)
+        CRIC.reset()
+        CRIC.setstate(json.load(vda))
         vda.close()
     else:
-        CRIC.cache = {}
+        CRIC.reset()
 
 
 ################################################################################
@@ -181,6 +204,13 @@ class FramesRangeCollection(object):
                                  sr.last_element() - srange.first_element() + 1)
                 srange = SmartRangeIncrement(sr.last_element() + 1,
                                              srange.last_element() - sr.last_element())
+
+class IterEncoder(json.JSONEncoder):
+
+    def default(self, o):
+        if isinstance(o, collections.Iterable):
+            return list(o)
+        return super(IterEncoder, self).default(o)
 
 
 ################################################################################
