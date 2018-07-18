@@ -150,13 +150,11 @@ class ValveDataCodec(object):
     @staticmethod
     def varname(name, *suffix):
         '''
-        Name of variable made by combining base name and suffixes (if any).
-        Base name and suffixes are joined with dot '.'.
-
-        :param name: Base for variable name.
+        :param str name: Base for variable name.
         :param suffix: Optional suffixes.
         :return: Name of variable made by combining base name and suffixes (if any).
-        Base name and suffixes are joined with dot '.'.
+                 Base name and suffixes are joined with dot '.'.
+        :rtype: str
         '''
         if len(suffix):
             suff = '.'.join(map(str, suffix))
@@ -165,6 +163,33 @@ class ValveDataCodec(object):
 
     @staticmethod
     def encode(name, value):
+        '''
+        Method encodes objects into collection of :class:`numpy.ndarray`.
+        Objects are identified by name; method does not check if provided value
+        is instance of particular classes.
+
+        Following objects are supported:
+
+        * `center_of_system`
+        * `all_res`
+        * `number_frame_rid_in_object`
+        * `paths`
+        * `spaths`
+        * `ctypes`
+        * `master_paths`
+        * `master_paths_smooth`
+        * `inls`
+
+        Actual structure of the above listed objects is not important and can
+        be subject of change in the future. The primary objective of this method
+        is to encode *information* stored in these object in a strictly defined manner.
+
+        :param str name: Object name.
+        :param value: Acctual object.
+
+        :return: Two element tuple of variable name and :class:`numpy.ndarray`.
+        :rtupe: generator
+        '''
 
         if name == 'center_of_system':
             # center_of_system: (3,)*float
