@@ -36,8 +36,10 @@ import json
 
 try:
     from termcolor import colored
+
+
     def bold(mess):
-        return colored(mess,attrs=['bold'])
+        return colored(mess, attrs=['bold'])
 except ImportError:
     def bold(mess):
         return mess
@@ -321,7 +323,7 @@ class SimpleProgressBar(object):
             bar += self.rotate[self.last_rotate_idx]
         bar += ' ' * self.barlenght
         return '[%s]' % bar[:self.barlenght]
-        #return bold('[') + ('%s' % bar[:self.barlenght]) + bold(']')
+        # return bold('[') + ('%s' % bar[:self.barlenght]) + bold(']')
 
     def ETA(self):
         """

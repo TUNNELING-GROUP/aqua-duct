@@ -38,7 +38,7 @@ logger.addHandler(ch)
 
 ################################################################################
 
-from aquaduct.apps.data import GCS,load_cric
+from aquaduct.apps.data import GCS, load_cric
 
 ################################################################################
 
@@ -123,9 +123,8 @@ if __name__ == "__main__":
         GCS.nc4 = args.use_netcdf4
         load_cric()
 
-        from aquaduct.traj.sandwich import Reader,Window
+        from aquaduct.traj.sandwich import Reader, Window
         from aquaduct.apps.valvecore import *
-
 
         ############################################################################
         # single precision storage
@@ -214,13 +213,14 @@ if __name__ == "__main__":
         # Maximal frame checks
         frames_window = Window(args.min_frame, args.max_frame, args.step_frame)
 
-
         # Open trajectory reader
         # trajectories are split with os.pathsep
         from os import pathsep
-        Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)], window=frames_window,sandwich=args.sandwich)  # trajectory reader
 
-        #reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
+        Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)], window=frames_window,
+               sandwich=args.sandwich)  # trajectory reader
+
+        # reader = valve_read_trajectory(goptions.top, goptions.trj, frames_window=frames_window,sandwich=args.sandwich)  # trajectory reader
 
         clui.message("Frames window: %d:%d step %d" % (Reader.window.start,
                                                        Reader.window.stop,

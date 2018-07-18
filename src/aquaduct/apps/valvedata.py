@@ -17,8 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from aquaduct import logger
-#import logging
-#logger = logging.getLogger(__name__)
+# import logging
+# logger = logging.getLogger(__name__)
 
 from aquaduct.utils.clui import SimpleTree
 import cPickle as pickle
@@ -31,11 +31,13 @@ from aquaduct.apps.data import GCS
 try:
     if GCS.nc4:
         import netCDF4 as netcdf
+
         logger.debug('NetCDF AQ format: Imported netCDF4')
     else:
         raise ImportError()
 except ImportError:
     from scipy.io import netcdf
+
     logger.debug('NetCDF AQ format: Imported scipy.io.netcdf')
 
 import numpy as np
@@ -130,7 +132,6 @@ class ValveDataAccess(object):
 
 
 ################################################################################
-
 
 
 class ValveDataCodec(object):
@@ -232,7 +233,7 @@ class ValveDataCodec(object):
             for N in layers:
                 P = sum((1 for p in value if p.id[0] == N))
                 yield ValveDataCodec.varname(name, 'layer', N, 'names'), np.fromiter(
-                    chain(*(p.name for p in value if p.id[0] == N)), dtype='S1').reshape(P,3)
+                    chain(*(p.name for p in value if p.id[0] == N)), dtype='S1').reshape(P, 3)
                 yield ValveDataCodec.varname(name, 'layer', N, 'ids'), np.fromiter(
                     (p.id[-1] for p in value if p.id[0] == N), dtype=np.int32)
                 mmf = (p for p in value if p.id[0] == N).next()
@@ -273,7 +274,7 @@ class ValveDataCodec(object):
             for N in layers:
                 P = sum((1 for p in value if p.id.id[0] == N))  # number of paths in N
                 yield ValveDataCodec.varname(name, 'layer', N, 'names'), np.fromiter(
-                    chain(*(p.id.name for p in value if p.id.id[0] == N)), dtype='S1').reshape(P,3)
+                    chain(*(p.id.name for p in value if p.id.id[0] == N)), dtype='S1').reshape(P, 3)
                 yield ValveDataCodec.varname(name, 'layer', N, 'ids'), np.fromiter(
                     chain(*((p.id.id[-1], p.id.nr) for p in value if p.id.id[0] == N)), dtype=np.int32).reshape(P, 2)
                 yield ValveDataCodec.varname(name, 'layer', N, 'single'), np.fromiter(
@@ -319,7 +320,8 @@ class ValveDataCodec(object):
             yield ValveDataCodec.varname(name, 'keys'), np.fromiter(
                 chain(*(map(lambda c: -1 if c is None else c, ct.clusters) for ct in value.keys())),
                 dtype=np.int32).reshape(len(value), 2)
-            yield ValveDataCodec.varname(name, 'names'), np.fromiter(chain(*(p.id.name for p in value.values())), dtype='S1').reshape(M,3)
+            yield ValveDataCodec.varname(name, 'names'), np.fromiter(chain(*(p.id.name for p in value.values())),
+                                                                     dtype='S1').reshape(M, 3)
             yield ValveDataCodec.varname(name, 'ids'), np.fromiter(
                 chain(*((p.id.id[0], p.id.id[-1], p.id.nr) for p in value.values())), dtype=np.int32).reshape(M, 3)
             yield ValveDataCodec.varname(name, 'frames'), np.fromiter(
@@ -360,7 +362,7 @@ class ValveDataCodec(object):
 
             if value.center_of_system is not None:
                 yield ValveDataCodec.varname(name, 'center_of_system'), np.array(value.center_of_system)
-            #yield ValveDataCodec.varname(name, 'onlytype'), np.fromiter(json.dumps(value.onlytype),dtype='S1')
+            # yield ValveDataCodec.varname(name, 'onlytype'), np.fromiter(json.dumps(value.onlytype),dtype='S1')
             yield ValveDataCodec.varname(name, 'inlets_list', 'coords'), np.array([i.coords for i in value.inlets_list])
             yield ValveDataCodec.varname(name, 'inlets_list', 'frame'), np.array([i.frame for i in value.inlets_list],
                                                                                  dtype=np.int32)
@@ -370,16 +372,17 @@ class ValveDataCodec(object):
                 [list(i.reference.id) + [i.reference.nr] for i in value.inlets_list], dtype=np.int32)
             I = len(value.inlets_ids)
             yield ValveDataCodec.varname(name, 'inlets_list', 'reference', 'name'), np.fromiter(
-                chain(*[i.reference.name for i in value.inlets_list]), dtype='S1').reshape(I,3)
+                chain(*[i.reference.name for i in value.inlets_list]), dtype='S1').reshape(I, 3)
             yield ValveDataCodec.varname(name, 'inlets_ids'), np.array(value.inlets_ids, dtype=np.int32)
             yield ValveDataCodec.varname(name, 'clusters'), np.array(value.clusters, dtype=np.int32)
-            yield ValveDataCodec.varname(name, 'number_of_clustered_inlets'), np.array([value.number_of_clustered_inlets],
-                                                                                       dtype=np.int32)
+            yield ValveDataCodec.varname(name, 'number_of_clustered_inlets'), np.array(
+                [value.number_of_clustered_inlets],
+                dtype=np.int32)
             yield ValveDataCodec.varname(name, 'spheres'), np.array(
                 [s.center.tolist() + [s.radius] for s in value.spheres])
             yield ValveDataCodec.varname(name, 'spheres', 'nr'), np.array([s.nr for s in value.spheres], dtype=np.int32)
             yield ValveDataCodec.varname(name, 'passing'), np.array([value.passing], dtype='i1')
-            yield ValveDataCodec.varname(name, 'tree'), np.fromiter(repr(value.tree),dtype='S1')
+            yield ValveDataCodec.varname(name, 'tree'), np.fromiter(repr(value.tree), dtype='S1')
 
     @staticmethod
     def decode(name, data):
@@ -418,8 +421,9 @@ class ValveDataCodec(object):
                 seek_object = 0
                 seek_scope = 0
                 for osize, ssize, n, pid in izip(object_sizes, scope_sizes, names, ids):
-                    out.append(GenericPaths(tuple(map(int, (N, pid))), name_of_res=str(n.tostring()), min_pf=int(mmf[0]),
-                                            max_pf=int(mmf[1])))
+                    out.append(
+                        GenericPaths(tuple(map(int, (N, pid))), name_of_res=str(n.tostring()), min_pf=int(mmf[0]),
+                                     max_pf=int(mmf[1])))
                     foo = list(SmartRange(fast_minc_seq=object_frames[seek_object:seek_object + osize]).get())
                     seek_object += osize
                     fos = list(SmartRange(fast_minc_seq=scope_frames[seek_scope:seek_scope + ssize]).get())
@@ -512,9 +516,9 @@ class ValveDataCodec(object):
                 center_of_system = data[ValveDataCodec.varname(name, 'center_of_system')][:].copy()
             else:
                 center_of_system = None
-            #onlytype = data[ValveDataCodec.varname(name, 'onlytype')][:].copy()
-            #onlytype = json.loads(str(onlytype.tostring()))
-            #onlytype = [tuple(ot) for ot in onlytype]
+            # onlytype = data[ValveDataCodec.varname(name, 'onlytype')][:].copy()
+            # onlytype = json.loads(str(onlytype.tostring()))
+            # onlytype = [tuple(ot) for ot in onlytype]
             passing = bool(data[ValveDataCodec.varname(name, 'passing')][:].copy())
             inls = Inlets([], center_of_system=center_of_system, passing=passing, onlytype=onlytype)
 
@@ -524,8 +528,9 @@ class ValveDataCodec(object):
             ref_ids = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'ids')]
             ref_name = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'name')]
             for c, f, t, pid, n in izip(coords, frame, type_, ref_ids, ref_name):
-                spid = SinglePathID(path_id=tuple(map(int, pid[:2].copy())), nr=int(pid[-1].copy()), name=str(n.copy().tostring()))
-                #inls.inlets_list.append(Inlet(coords=c.copy(), type=onlytype[t.copy()], reference=spid, frame=f.copy()))
+                spid = SinglePathID(path_id=tuple(map(int, pid[:2].copy())), nr=int(pid[-1].copy()),
+                                    name=str(n.copy().tostring()))
+                # inls.inlets_list.append(Inlet(coords=c.copy(), type=onlytype[t.copy()], reference=spid, frame=f.copy()))
                 inls.inlets_list.append(Inlet(coords=c.copy(), reference=spid, frame=f.copy()))
 
             inls.inlets_ids = data[ValveDataCodec.varname(name, 'inlets_ids')][:].copy().tolist()
@@ -547,12 +552,12 @@ class ValveDataAccess_nc(ValveDataAccess):
     not_variable = ['version', 'aquaduct_version', 'ValveDataCodec']
 
     def open(self):
-        if hasattr(netcdf,'Dataset'):
+        if hasattr(netcdf, 'Dataset'):
             # netcdf4
             self.data_file = netcdf.Dataset(self.data_file_name, self.mode)
         else:
             # scipy
-            self.data_file = netcdf.netcdf_file(self.data_file_name,self.mode)
+            self.data_file = netcdf.netcdf_file(self.data_file_name, self.mode)
         if self.mode == 'w':
             self.set_variable('version', np.array(version(), dtype=np.int16))
             self.set_variable('aquaduct_version', np.array(version(), dtype=np.int16))
@@ -567,13 +572,13 @@ class ValveDataAccess_nc(ValveDataAccess):
         self.data_file.close()
 
     def get_variable(self, name, copy=True):
-        #print name
+        # print name
         if copy:
             return self.data_file.variables[name][:].copy()
         return self.data_file.variables[name]
 
     def set_variable(self, name, value):
-        #print name, value
+        # print name, value
         assert self.mode == "w"
         # value has to be ndarray
         assert isinstance(value, np.ndarray)
@@ -583,7 +588,7 @@ class ValveDataAccess_nc(ValveDataAccess):
             dimensions.append("%s%d" % (name, nr))
             self.data_file.createDimension(dimensions[-1], d)
         # create variable
-        if hasattr(netcdf,'Dataset'):
+        if hasattr(netcdf, 'Dataset'):
             v = self.data_file.createVariable(name, value.dtype, tuple(dimensions), zlib=True)
         else:
             v = self.data_file.createVariable(name, value.dtype, tuple(dimensions))
@@ -602,7 +607,7 @@ class ValveDataAccess_nc(ValveDataAccess):
             set([name.split('.')[0] for name in self.data_file.variables.keys() if name not in self.not_variable]))
         all_names = [name for name in self.data_file.variables.keys() if name not in self.not_variable]
         for name in names:
-            #if 'inls' in name: continue
+            # if 'inls' in name: continue
             # read all parts of object and decode
             this_object = dict(((n, self.get_variable(n, copy=False)) for n in all_names if
                                 name == n or (name + '.') == n[:len(name) + 1]))

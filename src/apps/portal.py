@@ -65,15 +65,16 @@ if __name__ == "__main__":
 
         areas = args.areas.split(';')
 
-        from aquaduct.traj.sandwich import Reader,Window
+        from aquaduct.traj.sandwich import Reader, Window
         from os import pathsep
-        Reader(args.top, [trj.strip() for trj in args.tra.split(pathsep)],Window(None,None,1))  # trajectory reader
+
+        Reader(args.top, [trj.strip() for trj in args.tra.split(pathsep)], Window(None, None, 1))  # trajectory reader
 
         from aquaduct.geom.convexhull import SciPyConvexHull
 
         print "frame",
-        for nr,area in enumerate(areas):
-            print ("a%da" % (nr+1)),("a%dv" % (nr+1)),
+        for nr, area in enumerate(areas):
+            print ("a%da" % (nr + 1)), ("a%dv" % (nr + 1)),
         print ""
 
         for traj_reader in Reader.iterate():
@@ -81,5 +82,5 @@ if __name__ == "__main__":
                 print frame,
                 for area in areas:
                     chull = traj_reader.parse_selection(area).chull()
-                    print chull.area,chull.volume,
+                    print chull.area, chull.volume,
                 print ""

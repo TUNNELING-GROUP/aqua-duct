@@ -774,9 +774,9 @@ def get_linearize_method(loption):
 
 def valve_begin():
     greet = greetings_aquaduct()
-    greet = greet.replace('@',clui.bold('@'))
-    greet = greet.replace('=',clui.bold('='))
-    greet = greet.replace('~',clui.bold('~'))
+    greet = greet.replace('@', clui.bold('@'))
+    greet = greet.replace('=', clui.bold('='))
+    greet = greet.replace('~', clui.bold('~'))
     clui.message(greet)  # nice greetings
     clui.message('Aqua-Duct version %s' % aquaduct_version_nice())
     # clui.message('Valve driver version %s' % version_nice())
@@ -861,8 +861,8 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
                         ######################
                         # F O R C E  S A V E #
                         ######################
-                        if force_save in ['dump','nc']:
-                            fs_fname = os.path.extsep.join([os.path.splitext(options.dump)[0],force_save])
+                        if force_save in ['dump', 'nc']:
+                            fs_fname = os.path.extsep.join([os.path.splitext(options.dump)[0], force_save])
                         else:
                             fs_fname = options.dump
                         with clui.fbm('Saving (forced) data dump in %s file' % fs_fname):

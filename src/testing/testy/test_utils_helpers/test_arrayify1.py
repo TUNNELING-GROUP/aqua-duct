@@ -6,7 +6,7 @@ import numpy
 
 class TestArrayify1(TestCase):
     def test_arrayify1(self):
-        #chceck the type of output
+        # chceck the type of output
         @arrayify1
         def do_sth_with_table(tables):
             tables = tables * 10
@@ -32,7 +32,6 @@ class TestArrayify1(TestCase):
         obj2 = do_sth_with_table(tables2)
         self.assertEquals(obj.shape, res)
         self.assertEquals(obj2.shape, res)
-
 
     def test_non_iterable(self):
         # non iterable output of internal function

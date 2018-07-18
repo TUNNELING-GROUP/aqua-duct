@@ -2,14 +2,16 @@
 from unittest import TestCase
 from aquaduct.utils.helpers import tupleify
 
+
 class TestTupleify(TestCase):
     def test_tupleify(self):
-    # does it work?
+        # does it work?
         @tupleify
         def corvus_generator():
             corvus = ['jackdaw', 'magpie', 'raven', 'crow']
             for bird in corvus:
                 yield '{0}'.format(bird)
+
         self.assertTrue(isinstance(tupleify(corvus_generator)(), tuple))
 
     def test_tupleify_string(self):
@@ -43,15 +45,16 @@ class TestTupleify(TestCase):
         self.assertTrue(isinstance(tupleify(corvus_generator4)(), tuple))
 
     def test_correct_length_of_tuple(self):
-        #if argument is list of tuples output is a tuple with number of elements equal to the number of
-        #elements in list
+        # if argument is list of tuples output is a tuple with number of elements equal to the number of
+        # elements in list
         @tupleify
         def corvus_generator5(corvus):
             for bird in corvus:
                 yield '{0}'.format(bird)
+
         black = ("raven", 'crow', 'jackdaw')
         blackandwhite = ("magpie")
         corvus = [black, blackandwhite]
-        objectos=corvus_generator5(corvus)
-        self.assertTrue(len(objectos)==2)
-        self.assertTrue(isinstance(objectos,tuple))
+        objectos = corvus_generator5(corvus)
+        self.assertTrue(len(objectos) == 2)
+        self.assertTrue(isinstance(objectos, tuple))

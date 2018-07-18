@@ -2,6 +2,7 @@ from unittest import TestCase
 from aquaduct.geom.traces import vectors_angle_alt
 from math import pi
 
+
 class TestVectors_angle_alt(TestCase):
     def test_Vectors_angle_alt_right(self):
         A = (1, 1, 0)

@@ -2,6 +2,8 @@
 from unittest import TestCase
 from aquaduct.geom.traces import triangle_angles_last
 import math
+
+
 class TestTriangle_angles_last(TestCase):
     def test_type(self):
         A = 1
@@ -26,7 +28,7 @@ class TestTriangle_angles_last(TestCase):
         case = triangle_angles_last(A, B, C)
         # output is not rounded assertEqual to raw output returns false
         myRoundedList = [round(elem, 2) for elem in case]
-        result = [ math.pi / 2]
+        result = [math.pi / 2]
         myRoundedResult = [round(elem, 2) for elem in result]
         self.assertEqual(myRoundedList, myRoundedResult)
 
@@ -37,7 +39,7 @@ class TestTriangle_angles_last(TestCase):
         C = (2, 3)
         case = triangle_angles_last(A, B, C)
         myRoundedList = [round(elem, 1) for elem in case]
-        result = [ math.pi / 2]
+        result = [math.pi / 2]
         myRoundedResult = [round(elem, 1) for elem in result]
         self.assertEqual(myRoundedList, myRoundedResult)
 
@@ -65,4 +67,4 @@ class TestTriangle_angles_last(TestCase):
         A = [0, 0, 0]
         B = [2, 2, 0]
         C = [0, 0, 0]
-        self.assertRises(ZeroDivisionError,triangle_angles_last(A, B, C))
+        self.assertRises(ZeroDivisionError, triangle_angles_last(A, B, C))
