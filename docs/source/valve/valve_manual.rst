@@ -22,7 +22,8 @@ It should display following information::
                     [--dump-template-config] [-t THREADS] [-c CONFIG_FILE] [--sps]
                     [--max-frame MAX_FRAME] [--min-frame MIN_FRAME]
                     [--step-frame STEP_FRAME] [--sandwich] [--cache-dir CACHEDIR]
-                    [--cache-mem] [--version] [--license]
+                    [--cache-mem] [--version] [--license] [--netcdf] [--netcdf4]
+                    [--force-save] [--force-netcdf]
 
     Valve, Aquaduct driver
 
@@ -50,7 +51,12 @@ It should display following information::
       --cache-mem           Switch on memory caching. (default: False)
       --version             Prints versions and exits. (default: False)
       --license             Prints short license info and exits. (default: False)
-
+      --netcdf              Use AQ NetCDF format as default. (default: False)
+      --netcdf4             Use AQ NetCDF format as default using netCDF4 if
+                            available. (default: False)
+      --force-save          Force saving results. (default: False)
+      --force-netcdf        Force saving results in AQ NetCDF format. (default:
+                            False)
 
 Configuration file template
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -85,6 +91,23 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
 .. note::
 
     Options ``--min-frame``, ``--max-frame``, and ``--step-frame`` can be used to limit calculations to specific part of trajectory. For example, to run calculations for 1000 frames starting from frame 5000 use following options: ``--min-frame 4999 --max-frame 5999``; to run calculations for every 5th frame use: ``--step-frame 5``.
+
+.. _netcdf_option:
+
+Results files format
+""""""""""""""""""""
+
+Results of each stage can be saved into files and later reused to speedup calculations. Default format is Gzipped Python :mod:`pickle` files.
+In order to improve portability of *Valve* results one can use ``--netcdf`` or ``--netcdf4`` options. This will change
+default format to NetCDF based. See also :ref:`dump_options`
+
+.. note::
+
+    NetCDF format will became default format staring form next release.
+
+.. warning::
+
+    Saving results in Gzipped Python :mod:`pickle` file will not be supported in future releases.
 
 Single precision storage
 """"""""""""""""""""""""

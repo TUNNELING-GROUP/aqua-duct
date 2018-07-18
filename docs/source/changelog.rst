@@ -1,6 +1,12 @@
 Aqua-Duct changelog
 ===================
 
+* 0.5.13 (18.07.2018)
+    * Results can be saved in NetCDF format that will be supported by future releases.
+    * Added --force-save option that allows rewrite results files.
+    * Recommended MDAnalysis is set to >=0.16 and <0.17. Versions >=0.17 are fully supported.
+    * Docs update.
+    * Various performance improvements and few minor bug fixes.
 * 0.5.9 (12.03.2018)
     * Rewritten module for MD data access. Sandwich mode added.
     * Coordinates can be stored in cache directory, in memory or generated on demand.

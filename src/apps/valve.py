@@ -87,6 +87,8 @@ if __name__ == "__main__":
                             help="Prints short license info and exits.")
         parser.add_argument("--netcdf", action="store_true", dest="use_netcdf", required=False,
                             help="Use AQ NetCDF format as default.")
+        parser.add_argument("--netcdf4", action="store_true", dest="use_netcdf4", required=False,
+                            help="Use AQ NetCDF format as default using netCDF4 if available.")
         parser.add_argument("--force-save", action="store_true", dest="force_save", required=False,
                             help="Force saving results.")
         parser.add_argument("--force-netcdf", action="store_true", dest="force_netcdf", required=False,
@@ -117,7 +119,8 @@ if __name__ == "__main__":
         # cache dir & netcdf
         GCS.cachedir = args.cachedir
         GCS.cachemem = args.cachemem
-        GCS.netcdf = args.use_netcdf
+        GCS.netcdf = args.use_netcdf or args.use_netcdf4
+        GCS.nc4 = args.use_netcdf4
         load_cric()
 
         from aquaduct.traj.sandwich import Reader,Window

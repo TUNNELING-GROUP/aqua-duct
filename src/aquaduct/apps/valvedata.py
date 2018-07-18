@@ -26,10 +26,14 @@ import gzip
 import os
 from collections import OrderedDict
 
+from aquaduct.apps.data import GCS
+
 try:
-    #raise ImportError()
-    import netCDF4 as netcdf
-    logger.debug('NetCDF AQ format: Imported netCDF4')
+    if GCS.nc4:
+        import netCDF4 as netcdf
+        logger.debug('NetCDF AQ format: Imported netCDF4')
+    else:
+        raise ImportError()
 except ImportError:
     from scipy.io import netcdf
     logger.debug('NetCDF AQ format: Imported scipy.io.netcdf')

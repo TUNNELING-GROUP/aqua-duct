@@ -35,6 +35,7 @@ class GlobalConfigStore(object):
     cachedir = None
     cachemem = False
     netcdf = False
+    nc4 = False
 
 
 GCS = GlobalConfigStore()

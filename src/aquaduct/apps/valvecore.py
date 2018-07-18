@@ -773,7 +773,11 @@ def get_linearize_method(loption):
 ################################################################################
 
 def valve_begin():
-    clui.message(greetings_aquaduct())  # nice greetings
+    greet = greetings_aquaduct()
+    greet = greet.replace('@',clui.bold('@'))
+    greet = greet.replace('=',clui.bold('='))
+    greet = greet.replace('~',clui.bold('~'))
+    clui.message(greet)  # nice greetings
     clui.message('Aqua-Duct version %s' % aquaduct_version_nice())
     # clui.message('Valve driver version %s' % version_nice())
     clui.message(sep())

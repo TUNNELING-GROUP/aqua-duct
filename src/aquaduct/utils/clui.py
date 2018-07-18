@@ -34,6 +34,14 @@ import numpy as np
 from aquaduct.utils.helpers import is_number, is_float
 import json
 
+try:
+    from termcolor import colored
+    def bold(mess):
+        return colored(mess,attrs=['bold'])
+except ImportError:
+    def bold(mess):
+        return mess
+
 
 # roman emulation
 class roman_emulation(object):
@@ -313,6 +321,7 @@ class SimpleProgressBar(object):
             bar += self.rotate[self.last_rotate_idx]
         bar += ' ' * self.barlenght
         return '[%s]' % bar[:self.barlenght]
+        #return bold('[') + ('%s' % bar[:self.barlenght]) + bold(']')
 
     def ETA(self):
         """
@@ -378,7 +387,7 @@ class SimpleProgressBar(object):
             mess_spec = "%d iterations out of %d. Total time: %s" % (self.current, self.maxval, self.ttime())
             mess = "\r" + mess_spec
         elif not self.overrun:
-            mess_spec = "%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA())
+            mess_spec = "%s%% %s ETA: %s" % (bold('%3d' % self.percent()), self.bar(), self.ETA())
             mess = "\r" + mess_spec + "\033[K"  # FIXME: magic constant!
 
         stderr.write(mess)

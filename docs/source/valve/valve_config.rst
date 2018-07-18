@@ -37,6 +37,7 @@ Option **trj** can be used to provide list of trajectory files separated by stan
 
     Options **top** and **trj** are mandatory.
 
+.. _dump_options:
 
 Common settings of stage sections
 ---------------------------------
@@ -58,13 +59,14 @@ execute     runonce             Option controls stage execution. It can have one
                                 is set data is loaded from the file.
 dump        [dump file name]    File name of dump data. It is used to save results of calculations
                                 or to load previously calculated data - this depends on **execute**
-                                option. Default value of this option depends on the stage and for
-                                stages 1 to 4 is one of the following (listed in order):
+                                option. Default value of this option depends on the stage and
+                                options used by user. For stages 1 to 4 is one of the following
+                                (listed in order):
 
-                                * 1_traceable_residues_data.dump
-                                * 2_raw_paths_data.dump
-                                * 3_separate_paths_data.dump
-                                * 4_inlets_clusterization_data.dump
+                                * 1_traceable_residues_data.(dump|nc)
+                                * 2_raw_paths_data.(dump|nc)
+                                * 3_separate_paths_data.(dump|nc)
+                                * 4_inlets_clusterization_data.(dump|nc)
 ========    =================   ===================================================================
 
 Stages 5-6 also uses **execute** option, however, since they do not perform calculations `per se` in stead of **dump** option they use **save**.
