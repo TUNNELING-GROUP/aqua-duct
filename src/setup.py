@@ -24,7 +24,7 @@ version = __import__('aquaduct').version_nice()  # version str
 install_requires = ['numpy>=1.10.0',  # this is required by MDA
                     'scipy>=0.17.1',
                     'scikit-learn>=0.16.0',
-                    'MDAnalysis[amber]>=0.16.0,<0.17.0',
+                    'MDAnalysis[amber]>=0.16.0',
                     'joblib>=0.10'
                     ]
 
@@ -44,11 +44,19 @@ setup(name='aquaduct',
       version=version,
       description='Tracing molecules in MD simulation',
       long_description=long_description,
-      long_description_content_type="text/rest",
+      long_description_content_type="text/markdown",
+      url='http://aquaduct.pl',
+      project_urls={
+          'Documentation': 'http://aquaduct.pl/documentation/',
+          'Source': 'https://github.com/tljm/aqua-duct/',
+          'Tracker': 'https://github.com/tljm/aqua-duct/issues/',
+      },
       author=author,
       author_email='info@aquaduct.pl',
-      url='http://aquaduct.pl',
+      license='GNU GPL v3',
+      keywords='molecular-dynamics solvent',
       packages=find_packages(include=['aquaduct*']),
+      python_requires='>=2.7, <3',
       install_requires=install_requires,
       extras_require={'full_pymol': ["pymol>=1.4"],
                       'graphs': ['matplotlib'],

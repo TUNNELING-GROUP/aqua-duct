@@ -24,18 +24,25 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from collections import OrderedDict
 from aquaduct import logger as root_logger
-from aquaduct import __mail__ as mail
 import datetime
 import time
-from os import linesep
 from sys import stderr
 from os import linesep
 from functools import partial
 import numpy as np
-from multiprocessing import Queue, Manager, Lock, Value, Process
-from collections import OrderedDict
+from aquaduct.utils.helpers import is_number, is_float
+import json
+
+try:
+    from termcolor import colored
+
+
+    def bold(mess):
+        return colored(mess, attrs=['bold'])
+except ImportError:
+    def bold(mess):
+        return mess
 
 
 # roman emulation
@@ -408,7 +415,7 @@ class SimpleProgressBar(object):
             mess_spec = "%d iterations out of %d. Total time: %s" % (self.current, self.maxval, self.ttime())
             mess = "\r" + mess_spec
         elif not self.overrun:
-            mess_spec = "%3d%% %s ETA: %s" % (self.percent(), self.bar(), self.ETA())
+            mess_spec = "%s%% %s ETA: %s" % (bold('%3d' % self.percent()), self.bar(), self.ETA())
             mess = "\r" + mess_spec + "\033[K"  # FIXME: magic constant!
 
         stderr.write(mess)
@@ -486,14 +493,34 @@ def get_str_timestamp():
 
 
 class SimpleTree(object):
-    def __init__(self, name=None, message=None):
-        self.name = name
-        self.message = []
-        self.add_message(message)
-        self.branches = []
+    def __init__(self, name=None, message=None, treestr=None):
+        # assert no {}[], are in name or message
+
+        if treestr is not None:
+            self._init_str(treestr)
+        else:
+            self.name = name
+            self.message = []
+            self.add_message(message)
+            self.branches = []
+
+    def _init_str(self, s):
+        d = json.loads(s)
+        self.name = str(d['name'])
+        if is_number(self.name):
+            if is_float(self.name):
+                self.name = float(self.name)
+            else:
+                self.name = int(self.name)
+        self.message = map(str, d['message'])
+        self.branches = map(lambda treestr: SimpleTree(treestr=treestr), map(str, d['branches']))
 
     def __repr__(self):
-        return "%s {%s} %s" % (str(self.name), "; ".join(self.message), str(self.branches))
+        # this can be used to rebuild
+        return json.dumps({'name': self.name, 'message': self.message, 'branches': map(repr, self.branches)})
+
+    def __str__(self):
+        return "%s {%s} %s" % (str(self.name), "; ".join(self.message), str(map(str, self.branches)))
 
     def is_leaf(self):
         return len(self.branches) == 0

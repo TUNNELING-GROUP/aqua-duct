@@ -456,7 +456,7 @@ class CTypeSpathsCollection(object):
             types = self.types_prob_to_types(types)
 
         # make frames
-        frames = range(len(coords))
+        frames = xrange(len(coords))
 
         # finalize
 
@@ -475,7 +475,7 @@ class CTypeSpathsCollection(object):
         with clui.tictoc('generic paths in %s' % str(self.ctype)):
             # get and populate GenericPath
             fsrs_cache.update({resid: FakeSingleResidueSelection(resid, frames, coords)})
-            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf)
+            gp = GenericPaths(resid, min_pf=min_pf, max_pf=max_pf, single_res_selection=fsrs_cache[resid])
             for t, f in zip(types, frames):  # TODO: remove loop
                 gp.add_type(f, t)
         # now try to get first SinglePath, if unable issue WARNING
@@ -505,8 +505,9 @@ class FakeSingleResidueSelection(SingleResidueSelection):
     @arrayify(shape=(None, 3))
     def coords(self, frames):
         # return coords for frames
+        # assume that frames are in _frames
         for f in frames:
-            yield self._coords[self._frames.index(f)]
+            yield self._coords[f]
 
     # TODO: This part of the code is weak. Change it, here and as well as in sandwich.
     def coords_smooth(self, sranges, smooth):

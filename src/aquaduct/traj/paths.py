@@ -77,6 +77,8 @@ class GenericPaths(GenericPathTypeCodes):
             self.name = name_of_res
         else:
             self.name = 'UNK'  # FIXME: magic constant
+        assert isinstance(self.name, str)
+        assert len(self.name) == 3
         self._types = SmartRange()
         # self._frames = SmartRange()
         self._frames = array('i')
@@ -125,6 +127,28 @@ class GenericPaths(GenericPathTypeCodes):
         return self._types.get()
 
     @property
+    def frames_of_object(self):
+        def get_foo():
+            frame = self._frames.first_element()
+            for sr in self._types.raw:
+                if sr.element == self.object_name:
+                    yield xrange(frame, frame + sr.times)
+                frame += sr.times
+
+        return chain(*get_foo())
+
+    @property
+    def frames_of_scope(self):
+        def get_fos():
+            frame = self._frames.first_element()
+            for sr in self._types.raw:
+                if sr.element == self.scope_name:
+                    yield xrange(frame, frame + sr.times)
+                frame += sr.times
+
+        return chain(*get_fos())
+
+    @property
     def frames(self):
         # return list(self._frames.get())
         return list(self._frames)
@@ -150,6 +174,26 @@ class GenericPaths(GenericPathTypeCodes):
         return min(self._frames)
 
     # add methods
+    def add_foos(self, foo, fos):
+        foo_ = None
+        fos_ = None
+        while len(foo) + len(fos):
+            if len(foo) and foo_ is None:
+                foo_ = foo.pop(0)
+            if len(fos) and fos_ is None:
+                fos_ = fos.pop(0)
+            if foo_ is None:
+                self.add_scope(fos_)
+                fos_ = None
+            elif fos_ is None:
+                self.add_object(foo_)
+                foo_ = None
+            elif foo_ > fos_:
+                self.add_scope(fos_)
+                fos_ = None
+            elif fos_ > foo_:
+                self.add_object(foo_)
+                foo_ = None
 
     def add_012(self, os_in_frames):
         for frame, os_type in enumerate(os_in_frames):
@@ -527,6 +571,16 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
     def __setstate__(self, state):
         self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len = state
         self.single_res_selection = SingleResidueSelection(self.id.id)
+
+    def add_paths4(self, path_in, path_object, path_object_strict, path_out):
+        # init empty path
+        self.__path_in, self.__path_object, self.__path_out = map(SmartRange, (path_in, path_object, path_out))
+        self.__types_in = SmartRange([GenericPathTypeCodes.scope_name] * len(path_in))
+        self.__types_out = SmartRange([GenericPathTypeCodes.scope_name] * len(path_out))
+
+        tobj = np.array([GenericPathTypeCodes.scope_name] * len(path_object))
+        tobj[[nr for nr, f in enumerate(path_object) if f in path_object_strict]] = GenericPathTypeCodes.object_name
+        self.__types_object = SmartRange(tobj.tolist())
 
     def _object_len_calculate(self):
         for nr, real_coords in enumerate(traces.midpoints(self.coords)):
