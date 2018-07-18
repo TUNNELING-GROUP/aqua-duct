@@ -134,13 +134,30 @@ class ValveDataAccess(object):
 
 
 class ValveDataCodec(object):
+    '''
+    Class defines format of encoding AQ objects into NetCDF format.
+    Encoding defined here can be also used to store AQ objects as NumPy arrays.
+    '''
+
     # this is in fact definition of data format
     # it assumes data is dictionary with scipy netcdf variables, would it work with netcdf4?
 
     version = 0, 0, 1
+    '''
+    Current version of :class:`ValveDataCodec`
+    '''
 
     @staticmethod
     def varname(name, *suffix):
+        '''
+        Name of variable made by combining base name and suffixes (if any).
+        Base name and suffixes are joined with dot '.'.
+
+        :param name: Base for variable name.
+        :param suffix: Optional suffixes.
+        :return: Name of variable made by combining base name and suffixes (if any).
+        Base name and suffixes are joined with dot '.'.
+        '''
         if len(suffix):
             suff = '.'.join(map(str, suffix))
             return '%s.%s' % (name, suff)
