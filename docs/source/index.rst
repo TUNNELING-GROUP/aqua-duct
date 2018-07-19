@@ -14,6 +14,7 @@ Welcome to Aqua-Duct's documentation!
     Valve manual <valve/valve_manual>
     Valve configuration <valve/valve_config>
     Valve tutorial <valve/valve_tutorial>
+    Valve data <valve/valve_data>
     Aqua-Duct API documentation <modules>
     Changelog <changelog>
 
