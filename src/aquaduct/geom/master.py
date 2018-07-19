@@ -292,7 +292,7 @@ class CTypeSpathsCollection(object):
             lens = make_default_array([float(sp.sizes[part]) for sp in self.spaths])
             if np.max(lens) > 0:
                 lens /= np.max(lens)  # normalization
-                lens = lens ** self.bias_long  # scale them by increasing weights of long paths
+                #lens = lens ** self.bias_long  # scale them by increasing weights of long paths
             if sum(lens) == 0:
                 sizes.append(0)
             else:
