@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from unittest import TestCase
-import shutil, tempfile
 import os
-from os import path
+import tempfile
+from unittest import TestCase
+
 from aquaduct.utils.helpers import create_tmpfile
 
 

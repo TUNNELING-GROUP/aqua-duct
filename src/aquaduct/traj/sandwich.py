@@ -18,14 +18,12 @@
 
 
 import re
-
-from os.path import splitext
 from collections import OrderedDict
 from itertools import izip_longest, imap
-
-import numpy as np
+from os.path import splitext
 
 import MDAnalysis as mda
+import numpy as np
 
 # FIXME: do it according to user options
 if mda.__version__ > '0.16.2':
@@ -33,7 +31,6 @@ if mda.__version__ > '0.16.2':
 
 from MDAnalysis.topology.core import guess_atom_element
 
-from aquaduct.utils.helpers import is_iterable
 from aquaduct.geom.convexhull import SciPyConvexHull, is_point_within_convexhull
 from aquaduct.utils.helpers import arrayify, SmartRange, create_tmpfile, \
     tupleify, SmartRangeIncrement

@@ -1,5 +1,4 @@
 from unittest import TestCase
-from aquaduct.geom.traces import LinearizeOneWay
 
 
 class TestLinearizeOneWay(TestCase):

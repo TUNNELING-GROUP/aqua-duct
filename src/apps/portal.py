@@ -25,7 +25,8 @@ This is a magic portal detector.
 # reuse AQ logger
 
 import logging
-from aquaduct import logger, logger_name
+
+from aquaduct import logger
 
 formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'
 # create and add console handler with WARNING level to the AQ logger
@@ -69,8 +70,6 @@ if __name__ == "__main__":
         from os import pathsep
 
         Reader(args.top, [trj.strip() for trj in args.tra.split(pathsep)], Window(None, None, 1))  # trajectory reader
-
-        from aquaduct.geom.convexhull import SciPyConvexHull
 
         print "frame",
         for nr, area in enumerate(areas):

@@ -16,22 +16,20 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
-logger = logging.getLogger(__name__)
-
-from itertools import chain, izip
 from collections import OrderedDict
-from aquaduct.utils import clui
+from itertools import chain, izip
+
 import numpy as np
 from scipy.spatial.distance import cdist
+
 from aquaduct.geom import traces
 from aquaduct.traj.inlets import Inlet, InletTypeCodes
-from aquaduct.utils.helpers import is_number, lind, SmartRange, SmartRangeDecrement, SmartRangeEqual, \
-    SmartRangeFunction, SmartRangeIncrement  # smart ranges are required here to provide bacward compatibility with v0.3
+from aquaduct.traj.sandwich import Reader, SingleResidueSelection
+from aquaduct.utils import clui
+from aquaduct.utils.helpers import is_number, lind, \
+    SmartRange  # smart ranges are required here to provide bacward compatibility with v0.3
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array
-from aquaduct.traj.sandwich import Reader, SingleResidueSelection
 
 
 ########################################################################################################################
@@ -141,6 +139,14 @@ class GenericPaths(object, GenericPathTypeCodes):
         self.max_possible_frame = max_pf
         self.min_possible_frame = min_pf
 
+    def update_types_frames(self, types, frames):
+        if isinstance(types, SmartRange) and isinstance(frames, SmartRange):
+            self.__types = types
+            self.__frames = frames
+        else:
+            self.__types = SmartRange(types)
+            self.__frames = SmartRange(frames)
+
     # info methods
     @property
     def types(self):
@@ -186,6 +192,11 @@ class GenericPaths(object, GenericPathTypeCodes):
 
     # add methods
     def add_foos(self, foo, fos):
+        os_in_frames = np.zeros(self.max_possible_frame + 1)
+        os_in_frames[fos] = 1
+        os_in_frames[foo] = 2
+        self.add_012(os_in_frames)
+        '''
         foo_ = None
         fos_ = None
         while len(foo) + len(fos):
@@ -205,13 +216,15 @@ class GenericPaths(object, GenericPathTypeCodes):
             elif fos_ > foo_:
                 self.add_object(foo_)
                 foo_ = None
+        '''
 
     def add_012(self, os_in_frames):
         for frame, os_type in enumerate(os_in_frames):
-            if os_type == 2:
-                self.add_object(frame)
-            elif os_type == 1:
-                self.add_scope(frame)
+            if os_type:
+                if os_type == 2:
+                    self.add_object(frame)
+                elif os_type == 1:
+                    self.add_scope(frame)
 
     def add_object(self, frame):
         self.add_type(frame, self.object_name)

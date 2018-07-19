@@ -16,14 +16,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
-logger = logging.getLogger(__name__)
 from os import unlink
 
 import MDAnalysis as mda
 
-from aquaduct.utils import clui
+from aquaduct import logger
 from aquaduct.utils.helpers import create_tmpfile
 
 

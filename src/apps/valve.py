@@ -26,6 +26,7 @@ This is a driver for Aqua-Duct.
 # reuse AQ logger
 
 import logging
+
 from aquaduct import logger, logger_name
 
 formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]: %(message)s'

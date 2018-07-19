@@ -1,6 +1,8 @@
 from unittest import TestCase
-from aquaduct.geom.traces import VectorLinearize
+
 import numpy as np
+
+from aquaduct.geom.traces import VectorLinearize
 
 
 class TestVectorLinearize(TestCase):

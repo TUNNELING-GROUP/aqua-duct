@@ -16,17 +16,17 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from aquaduct import logger
-# import logging
-# logger = logging.getLogger(__name__)
-
-from aquaduct.utils.clui import SimpleTree
 import cPickle as pickle
 import gzip
 import os
 from collections import OrderedDict
 
+from aquaduct import logger
 from aquaduct.apps.data import GCS
+from aquaduct.utils.clui import SimpleTree
+
+# import logging
+# logger = logging.getLogger(__name__)
 
 try:
     if GCS.nc4:
@@ -44,7 +44,6 @@ import numpy as np
 
 from aquaduct import version
 from aquaduct.utils.helpers import dictify
-
 from aquaduct.traj.sandwich import ResidueSelection
 from aquaduct.traj.paths import GenericPaths, SinglePath, PassingPath, SinglePathID, GenericPathTypeCodes, MasterPath
 from aquaduct.utils.helpers import SmartRange
@@ -53,7 +52,6 @@ from aquaduct.traj.barber import Sphere
 from aquaduct.geom.master import FakeSingleResidueSelection
 
 from itertools import chain, izip
-import json
 
 
 ################################################################################
@@ -414,7 +412,7 @@ class ValveDataCodec(object):
 
     @staticmethod
     def decode(name, data):
-        logger.debug('Decoding %s variable',name)
+        logger.debug('Decoding %s variable', name)
         if name == 'center_of_system':
             return data[name][:].copy()
         if name == 'all_res':
@@ -450,7 +448,7 @@ class ValveDataCodec(object):
                 seek_object = 0
                 seek_scope = 0
                 for osize, ssize, n, pid in izip(object_sizes, scope_sizes, names, ids):
-                    logger.debug('Processing path %r.',pid)
+                    logger.debug('Processing path %r.', pid)
                     out.append(
                         GenericPaths(tuple(map(int, (N, pid))), name_of_res=str(n.tostring()), min_pf=int(mmf[0]),
                                      max_pf=int(mmf[1])))
@@ -560,8 +558,8 @@ class ValveDataCodec(object):
             for c, f, t, pid, n in izip(coords, frame, type_, ref_ids, ref_name):
                 spid = SinglePathID(path_id=tuple(map(int, pid[:2].copy())), nr=int(pid[-1].copy()),
                                     name=str(n.copy().tostring()))
-                # inls.inlets_list.append(Inlet(coords=c.copy(), type=onlytype[t.copy()], reference=spid, frame=f.copy()))
-                inls.inlets_list.append(Inlet(coords=c.copy(), reference=spid, frame=f.copy()))
+                inls.inlets_list.append(Inlet(coords=c.copy(), type=inls.onlytype, reference=spid, frame=f.copy()))
+                # inls.inlets_list.append(Inlet(coords=c.copy(), reference=spid, frame=f.copy()))
 
             inls.inlets_ids = data[ValveDataCodec.varname(name, 'inlets_ids')][:].copy().tolist()
             inls.clusters = data[ValveDataCodec.varname(name, 'clusters')][:].copy().tolist()

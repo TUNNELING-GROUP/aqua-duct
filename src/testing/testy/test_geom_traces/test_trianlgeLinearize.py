@@ -1,7 +1,8 @@
 from unittest import TestCase
-from aquaduct.geom.traces import TriangleLinearize
+
 import numpy as np
-import math
+
+from aquaduct.geom.traces import TriangleLinearize
 
 
 class TestTrianlgeLinearize(TestCase):

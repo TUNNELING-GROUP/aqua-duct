@@ -1,8 +1,9 @@
-from unittest import TestCase
-from aquaduct.geom.traces import LinearizeOneWayTriangle
-import numpy as np
 import types
-from itertools import islice
+from unittest import TestCase
+
+import numpy as np
+
+from aquaduct.geom.traces import LinearizeOneWayTriangle
 
 
 class TestAbspoprOneWay(TestCase):

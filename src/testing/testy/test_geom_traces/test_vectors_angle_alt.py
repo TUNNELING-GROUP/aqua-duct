@@ -1,6 +1,7 @@
-from unittest import TestCase
-from aquaduct.geom.traces import vectors_angle_alt
 from math import pi
+from unittest import TestCase
+
+from aquaduct.geom.traces import vectors_angle_alt
 
 
 class TestVectors_angle_alt(TestCase):

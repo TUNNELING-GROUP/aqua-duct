@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from aquaduct.utils.helpers import arrayify1
+
 import numpy
+
+from aquaduct.utils.helpers import arrayify1
 
 
 class TestArrayify1(TestCase):

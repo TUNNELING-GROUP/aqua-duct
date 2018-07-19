@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from unittest import TestCase
-from aquaduct.geom.traces import vector_norm
 import math
+from unittest import TestCase
+
+from aquaduct.geom.traces import vector_norm
 
 
 class TestVector_norm(TestCase):

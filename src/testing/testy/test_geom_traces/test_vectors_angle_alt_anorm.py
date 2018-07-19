@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-import numpy as np
 from unittest import TestCase
+
+import numpy as np
 
 from aquaduct.geom.traces import vectors_angle_alt_anorm, vector_norm
 

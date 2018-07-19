@@ -1,7 +1,9 @@
-from unittest import TestCase
-import numpy as np
-from aquaduct.geom.traces import diff
 from math import sqrt
+from unittest import TestCase
+
+import numpy as np
+
+from aquaduct.geom.traces import diff
 
 
 class TestDiff(TestCase):

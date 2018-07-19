@@ -20,13 +20,14 @@
 Collection of helpers - functions and decorators.
 """
 
-import numpy as np
 from collections import Iterable
 from functools import wraps
+from itertools import chain
 from os import close
 from tempfile import mkstemp
-from functools import partial, total_ordering
-from itertools import chain
+
+import numpy as np
+
 from aquaduct.utils.maths import defaults
 
 

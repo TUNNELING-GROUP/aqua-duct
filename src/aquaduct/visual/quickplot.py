@@ -16,9 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
-
 import matplotlib.pyplot as plt
+import numpy as np
 
 from aquaduct.geom import traces
 from aquaduct.utils.helpers import list_blocks_to_slices

@@ -18,25 +18,19 @@
 
 # this modlue is a prototype and have to be rewritten
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 import multiprocessing
-from multiprocessing import Queue, Manager, Lock, Value, Process
-from itertools import izip_longest
 from functools import partial
 
 import numpy as np
 from scipy.spatial.distance import cdist, pdist
 
-from aquaduct.traj.paths import GenericPathTypeCodes, GenericPaths, yield_single_paths, MasterPath
-from aquaduct.utils.helpers import list_blocks_to_slices, strech_zip, zip_zip, xzip_xzip, concatenate
-from aquaduct.utils import clui
-from aquaduct.utils.maths import make_default_array, defaults
+from aquaduct import logger
 from aquaduct.traj.inlets import InletClusterGenericType, InletClusterExtendedType
+from aquaduct.traj.paths import GenericPathTypeCodes, GenericPaths, yield_single_paths, MasterPath
 from aquaduct.traj.paths import PassingPath
-from aquaduct.apps.data import GCS
+from aquaduct.utils import clui
+from aquaduct.utils.helpers import list_blocks_to_slices, xzip_xzip, concatenate
+from aquaduct.utils.maths import make_default_array
 
 ################################################################################
 part2type_dict = {0: GenericPathTypeCodes.scope_name,

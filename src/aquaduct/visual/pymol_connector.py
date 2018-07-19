@@ -16,18 +16,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import numpy as np
 import cPickle as pickle
 import os
 import tarfile
 
-import aquaduct.visual.pymol_cgo as cgo
+import numpy as np
 
+import aquaduct.visual.pymol_cgo as cgo
 from aquaduct.geom import traces
 from aquaduct.traj.paths import PathTypesCodes
+from aquaduct.utils.helpers import create_tmpfile, listify
 from aquaduct.utils.helpers import list_blocks_to_slices
 from aquaduct.visual.helpers import color_codes, cc
-from aquaduct.utils.helpers import create_tmpfile, listify
 
 
 class BasicPymolCGO(object):

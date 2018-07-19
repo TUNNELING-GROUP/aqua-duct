@@ -22,30 +22,24 @@
 
 
 import ConfigParser
-import copy
 import multiprocessing as mp
-import numpy as np
 import operator
 import os
 import re
-import shlex
 import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps, partial
-from itertools import izip_longest, izip, imap
+from itertools import izip_longest, izip
 from keyword import iskeyword
 
-import array
-
+import numpy as np
 from scipy.spatial.distance import cdist
 from scipy.stats import ttest_ind
-
-from aquaduct.utils.clui import roman
 
 from aquaduct import greetings as greetings_aquaduct
 from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
-from aquaduct.apps.data import GCS, CRIC, save_cric
+from aquaduct.apps.data import GCS, save_cric
 from aquaduct.apps.valvedata import get_vda_reader
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods
@@ -55,18 +49,16 @@ from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.geom.smooth import WindowSmooth, MaxStepSmooth, WindowOverMaxStepSmooth, ActiveWindowSmooth, \
     ActiveWindowOverMaxStepSmooth, DistanceWindowSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
 from aquaduct.traj.barber import WhereToCut
-from aquaduct.traj.dumps import TmpDumpWriterOfMDA
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets, InletTypeCodes
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, PassingPath, SinglePath
 from aquaduct.traj.paths import union_full, yield_generic_paths
-# from aquaduct.traj.reader import ReadViaMDA
-# from aquaduct.traj.selections import CompactSelectionMDA
+from aquaduct.traj.sandwich import Reader
 from aquaduct.utils import clui
+from aquaduct.utils.clui import roman
+from aquaduct.utils.helpers import iterate_or_die
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
-from aquaduct.traj.sandwich import ResidueSelection, Reader
-from aquaduct.utils.helpers import SmartRange, iterate_or_die
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()

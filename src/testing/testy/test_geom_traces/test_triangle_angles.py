@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from unittest import TestCase
-from aquaduct.geom.traces import triangle_angles
 import math
+from unittest import TestCase
+
+from aquaduct.geom.traces import triangle_angles
 
 
 class TestTriangle_angles(TestCase):

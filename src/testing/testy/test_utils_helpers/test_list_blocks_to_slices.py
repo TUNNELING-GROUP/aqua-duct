@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from unittest import TestCase
-from aquaduct.utils.helpers import list_blocks_to_slices
 import types
-from aquaduct.utils.helpers import listify
+from unittest import TestCase
+
+from aquaduct.utils.helpers import list_blocks_to_slices
 
 
 class TestList_blocks_to_slices(TestCase):

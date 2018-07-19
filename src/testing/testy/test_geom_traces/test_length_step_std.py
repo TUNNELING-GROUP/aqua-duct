@@ -1,7 +1,9 @@
-from unittest import TestCase
-from aquaduct.geom.traces import length_step_std
-import numpy as np
 import math
+from unittest import TestCase
+
+import numpy as np
+
+from aquaduct.geom.traces import length_step_std
 
 
 class TestLength_step_std(TestCase):

@@ -17,11 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-
 from scipy.spatial import ConvexHull as SciPyConvexHull
 
 from aquaduct.utils.helpers import uniqify
-from scipy.spatial.distance import cdist, pdist
 
 
 def _vertices_ids(convexhull):

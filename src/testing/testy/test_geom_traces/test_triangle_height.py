@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
-from math import sqrt
+
 from aquaduct.geom.traces import triangle_height
 
 

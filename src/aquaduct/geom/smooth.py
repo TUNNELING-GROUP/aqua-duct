@@ -34,13 +34,14 @@ Available methods:
     ActiveWindowOverMaxStepSmooth
 '''
 
-import numpy as np
-from scipy.signal import savgol_filter
 from functools import partial
 
-from aquaduct.utils.maths import make_default_array
+import numpy as np
+from scipy.signal import savgol_filter
+
 from aquaduct.geom import traces
 from aquaduct.utils.helpers import arrayify
+from aquaduct.utils.maths import make_default_array
 
 
 class Smooth(object):

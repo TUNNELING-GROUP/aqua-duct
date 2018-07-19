@@ -1,7 +1,8 @@
 from unittest import TestCase
-from aquaduct.geom.traces import LinearizeRecursiveTriangle
+
 import numpy as np
-import types
+
+from aquaduct.geom.traces import LinearizeRecursiveTriangle
 
 
 class TestAbsLinearizeRecursive(TestCase):

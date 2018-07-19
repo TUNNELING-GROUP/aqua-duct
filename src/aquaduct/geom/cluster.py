@@ -22,8 +22,15 @@ Clusterization is done by :mod:`scikit-learn` module.
 """
 
 import numpy as np
-from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShift, estimate_bandwidth
-from scipy.spatial.distance import cdist
+try:
+    from sklearn.cluster import KMeans, MeanShift, DBSCAN, AffinityPropagation, Birch, MeanShift, estimate_bandwidth
+    #from sklearn.cluster import KMeans, MeanShift, DBSCAN, AffinityPropagation, Birch, MeanShift, estimate_bandwidth
+except ImportError as e:
+    raise e
+
+from aquaduct.utils.helpers import Auto
+from aquaduct.utils import clui
+from aquaduct.traj.barber import WhereToCut
 
 # problems with clustering methods and size of set
 # DBSCAN:              n > 0
@@ -38,11 +45,6 @@ AVAILABLE_METHODS = ['dbscan', 'kmeans', 'affprop', 'meanshift', 'birch', 'barbe
 def get_required_params(method):
     if method == 'kmeans':
         return ['n_clusters']
-
-
-from aquaduct.utils.helpers import Auto
-from aquaduct.utils import clui
-from aquaduct.traj.barber import WhereToCut
 
 
 class BarberClusterResult(object):

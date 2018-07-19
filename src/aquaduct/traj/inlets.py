@@ -16,19 +16,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
-
-logger = logging.getLogger(__name__)
-import numpy as np
-from collections import namedtuple, OrderedDict
-from scipy.spatial.distance import pdist, squareform
-import copy
 from itertools import izip_longest
 
-from aquaduct.utils.helpers import is_iterable, listify, lind
-from aquaduct.utils import clui
-from aquaduct.utils.maths import make_default_array
+import numpy as np
+from scipy.spatial.distance import pdist
+
+from aquaduct import logger
 from aquaduct.geom.convexhull import SciPyConvexHull
+from aquaduct.utils import clui
+from aquaduct.utils.helpers import is_iterable, listify
+from aquaduct.utils.maths import make_default_array
 
 
 class ProtoInletTypeCodes:
