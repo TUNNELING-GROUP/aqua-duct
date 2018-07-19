@@ -75,6 +75,100 @@ Types of data saved in the Stage IV:
 * `master_paths_smooth` - List of smooth master paths for `ctypes`.
 * `inls` - List of inlets and clusters.
 
+Common methods for concise data storing
+---------------------------------------
+
+Lists of monotically increasing integers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Lists of such types can be represented as collections of continous ranges.
+Therefore, they can be stored as list of 2 element tuples (E,T).
+Each tuple encodes one continous range. First element *E* is the starting value,
+second element *T* is the lenght of the range.
+
+For example, following list of lenght 10::
+
+    [3, 4, 5, 7, 8, 9, 20, 30, 31, 32]
+
+can be stored as matrix 4x2 (8 elements)::
+
+    [[3, 3],
+     [7, 3],
+     [20, 1],
+     [30, 3]]
+
+
+.. _list_list_monoincr:
+
+Lists of lists of monotically increasing integers
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to store lists of the above described lists of monotically increasing integers
+in one matrix Nx2 additional array is needed to store sizes of inner lists.
+To make it even more efficient, additional array can store number of pairs used to encode
+lists instead of true lists lenghts.
+
+For example, following 3 lists, 20 elements in total::
+
+    [[3, 4, 5, 7, 8, 9, 20, 30, 31, 32],
+     [3, 4, 5, 6, 7],
+     [10, 11, 12, 20, 21]]
+
+can be stored as 7x2 matrix::
+
+    [[3, 3],
+     [7, 3],
+     [20, 1],
+     [30, 3],
+     [3, 5],
+     [10, 3],
+     [20, 2]]
+
+and as additional array of lenght 3::
+
+    [4, 1, 2]
+
+This makes in total 15 elements.
+
+.. _list_arrays_matrices:
+
+Lists of arrays or matrices
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In similar manner lists of arrays (1 dimension) or matrices (having the same all dimenstions but one).
+
+Arrays and matrices can be concatenated. Additional array with lenghts of
+concatenated arrays/matrices is needed to allow decoding concatenated data.
+
+For example, 3 matrices Mx3::
+
+    [[1.1, 2.5, 3.7],
+     [0.8, 2.3, 3.6],
+     [0.3, 2.9, 3.8]]
+
+    [[7.8, 8.5, 4.4],
+     [8.0, 9.2, 4.6]]
+
+    [[6.3, 9.5, 3.1],
+     [5.9, 9.3, 2.9],
+     [5.9, 8.8, 2.7],
+     [6.1, 8.5, 2.6]]
+
+can be concateneted to::
+
+    [[1.1, 2.5, 3.7],
+     [0.8, 2.3, 3.6],
+     [0.3, 2.9, 3.8],
+     [7.8, 8.5, 4.4],
+     [8.0, 9.2, 4.6],
+     [6.3, 9.5, 3.1],
+     [5.9, 9.3, 2.9],
+     [5.9, 8.8, 2.7],
+     [6.1, 8.5, 2.6]]
+
+and additional array with lengths is created::
+
+    [3, 2, 4]
+
 
 Format of data
 --------------
@@ -128,11 +222,13 @@ all_res.layer.N     (S,)    int     List of residues IDs in layer *N*.
 `number_frame_rid_in_object`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Lists of IDs of residues identified in consecutive layers are stored as :ref:`list_arrays_matrices`.
+
 ====================    ======  ======  ===================================================================
 Matrix name             Shape   Type    Description
 ====================    ======  ======  ===================================================================
 nfrio.layers            (1,)    int     Number of layers.
-nfrio.layer.N.sizes     (F,)    int     List of numbers of residues indetified in the object area in
+nfrio.layer.N.sizes     (F,)    int     Array of numbers of residues indetified in the object area in
                                         frames.
 
                                         * *N* is a consecutive layer number.
@@ -147,12 +243,16 @@ nfrio.layer.N           (Q,)    int     IDs of residues indetified in the object
                                           frames in layer *N*; it is a sum of nfrio.layer.N.sizes.
 ====================    ======  ======  ===================================================================
 
+
 `paths`
 ^^^^^^^
 
+Lists of frames in which paths are in the object and scope areas are stored as :ref:`list_list_monoincr`.
+
+
 =============================   ========    ======  ===================================================================
 Matrix name                     Shape       Type    Description
-=============================   ======      ======  ===================================================================
+=============================   ========    ======  ===================================================================
 paths.layers                    (L,)        int     List of layers.
 
                                                     * *L* is a number of layers.
@@ -172,17 +272,17 @@ paths.layer.N.ids               (P,)        int     List of IDs of residues that
                                                     * *N* is a consecutive layer number.
                                                     * *P* is a number of paths in N layer
 
-paths.layer.N.object.sizes      (P,)        int     List of numbers of farmes in wich paths are in the object area
-                                                    in layer *N*.
+paths.layer.N.object.sizes      (P,)        int     Array of numbers of pairs encoding farmes in wich paths are in
+                                                    the object area in layer *N*.
 
                                                     * *N* is a consecutive layer number.
 
-paths.layer.N.scope.sizes       (P,)        int     List of numbers of farmes in wich paths are in the scope area.
-                                                    in layer *N*.
+paths.layer.N.scope.sizes       (P,)        int     Array of numbers of pairs encoding farmes in wich paths are in
+                                                    the scope area in layer *N*.
 
                                                     * *N* is a consecutive layer number.
 
-paths.layer.N.object            (PO,)     int     List of pairs that encodes frames in the object in paths in
+paths.layer.N.object            (PO,)       int     List of pairs that encodes frames in the object in paths in
                                                     layer *N*.
 =============================   ========    ======  ===================================================================
 
