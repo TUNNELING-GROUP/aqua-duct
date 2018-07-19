@@ -16,6 +16,179 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+*Valve* data
+============
+
+Description of data saved by *Valve* in stages 1-4 of calculations and the format of data.
+
+Types of data
+-------------
+
+Each of 6 stages of *Valve* calculations can save certain type of data. Each type of data has its unique *name*.
+Different stages can save the same type of data by using the same *name*.
+
+Following sections give brief description of saved data.
+
+Stage I **traceable_residues**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Types of data saved in the Stage I:
+
+* `center_of_system` - Coordinates of the center of all atoms of the scope area.
+
+    .. note::
+
+        *Scope* can be redefined in stage II but in the current version
+        the center of the system is calculated only in stage I.
+
+* `all_res` - List of all traced residues in all layers.
+* `number_frame_rid_in_object` IDs of traced residues that are in the object in each frame in all layers.
+
+
+Stage II **raw_paths**
+^^^^^^^^^^^^^^^^^^^^^^
+
+Types of data saved in the Stage II:
+
+* `all_res` - List of all traced residues in all layers.
+* `paths` - List of paths found for each traced residues.
+
+
+Stage III **separate_paths**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Types of data saved in the Stage III:
+
+* `paths` - List of paths found for each traced residues.
+* `spaths` - List of separate paths foud for list of paths. Sepeare paths can be of two types:
+    * `single` - Paths that overlap with the object area.
+    * `passing` - Paths that do not overlap with the obejct area.
+
+Stage IV **inlets_clusterization**
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Types of data saved in the Stage IV:
+
+* `ctypes` - List of cluster-cluster types detected.
+* `master_paths` - List of master paths for `ctypes`.
+* `master_paths_smooth` - List of smooth master paths for `ctypes`.
+* `inls` - List of inlets and clusters.
+
+
+Format of data
+--------------
+
+Data *name* is unambiguously related with data *type*. Each data *type* can be saved as one or more
+matrices. Each matrix can be of following types:
+
+* int
+* float
+* str
+
+If several matrices have to be used to encode particular data *type*, each of them has its own name. Matrix name stems from data *name* plus some suffixes. If only one matrix is used its name is equal to data *name*.
+
+Following data *types* can be currently encoded:
+
+* `center_of_system`
+* `all_res`
+* `number_frame_rid_in_object`
+* `paths`
+* `spaths`
+* `ctypes`
+* `master_paths`
+* `master_paths_smooth`
+* `inls`
+
+`center_of_system`
+^^^^^^^^^^^^^^^^^^
+
+=================   ======  ======   ===================================================================
+Matrix name         Shape   Type     Description
+=================   ======  ======   ===================================================================
+center_of_system    (3,)    float    Cartesian X,Y,Z coordinates of the center of the scope.
+=================   ======  ======   ===================================================================
+
+`all_res`
+^^^^^^^^^
+
+=================   ======  ======  ===================================================================
+Matrix name         Shape   Type    Description
+=================   ======  ======  ===================================================================
+all_res.layers      (L,)    int     List of layers.
+
+                                    * *L* is a number of layers.
+
+all_res.layer.N     (S,)    int     List of residues IDs in layer *N*.
+
+                                    * *N* is a layer number.
+                                    * *S* is a number of residues in layer *N*.
+=================   ======  ======  ===================================================================
+
+`number_frame_rid_in_object`
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+====================    ======  ======  ===================================================================
+Matrix name             Shape   Type    Description
+====================    ======  ======  ===================================================================
+nfrio.layers            (1,)    int     Number of layers.
+nfrio.layer.N.sizes     (F,)    int     List of numbers of residues indetified in the object area in
+                                        frames.
+
+                                        * *N* is a consecutive layer number.
+                                        * *F* Number of frames in layer *N*.
+
+nfrio.layer.N           (Q,)    int     IDs of residues indetified in the object area in frames in layer
+                                        *N*. It is storead as one list and have to be divieded in to chunks
+                                        corresponding to consecutive frames. Sizes of chunks are stored
+                                        in nfrio.layer.N matrix
+
+                                        * *Q* is a number of molecules identified in the object in all
+                                          frames in layer *N*; it is a sum of nfrio.layer.N.sizes.
+====================    ======  ======  ===================================================================
+
+`paths`
+^^^^^^^
+
+=============================   ========    ======  ===================================================================
+Matrix name                     Shape       Type    Description
+=============================   ======      ======  ===================================================================
+paths.layers                    (L,)        int     List of layers.
+
+                                                    * *L* is a number of layers.
+
+paths.layer.N.min_max_frames    (1,2)       int     Minimal and maximal frame number possible in layer *N*.
+
+                                                    * *N* is a consecutive layer number.
+
+paths.layer.N.names             (P,3)       str     List of residue names corresponding to paths. Each name can
+                                                    have only 3 charcters.
+
+                                                    * *N* is a consecutive layer number.
+                                                    * *P* is a number of paths in N layer
+
+paths.layer.N.ids               (P,)        int     List of IDs of residues that correspond to paths.
+
+                                                    * *N* is a consecutive layer number.
+                                                    * *P* is a number of paths in N layer
+
+paths.layer.N.object.sizes      (P,)        int     List of numbers of farmes in wich paths are in the object area
+                                                    in layer *N*.
+
+                                                    * *N* is a consecutive layer number.
+
+paths.layer.N.scope.sizes       (P,)        int     List of numbers of farmes in wich paths are in the scope area.
+                                                    in layer *N*.
+
+                                                    * *N* is a consecutive layer number.
+
+paths.layer.N.object            (PO,)     int     List of pairs that encodes frames in the object in paths in
+                                                    layer *N*.
+=============================   ========    ======  ===================================================================
+
+
+"""
+
 import cPickle as pickle
 import gzip
 import os
