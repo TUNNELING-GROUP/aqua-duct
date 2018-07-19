@@ -161,8 +161,11 @@ class ValveDataCodec(object):
         '''
         if len(suffix):
             suff = '.'.join(map(str, suffix))
-            return '%s.%s' % (name, suff)
-        return '%s' % name
+            vname = '%s.%s' % (name, suff)
+        else:
+            vname = '%s' % name
+        logger.debug('Requested variable %s', vname)
+        return vname
 
     @staticmethod
     def encode(name, value):
@@ -386,6 +389,7 @@ class ValveDataCodec(object):
 
     @staticmethod
     def decode(name, data):
+        logger.debug('Decoding %s variable',name)
         if name == 'center_of_system':
             return data[name][:].copy()
         if name == 'all_res':
@@ -421,6 +425,7 @@ class ValveDataCodec(object):
                 seek_object = 0
                 seek_scope = 0
                 for osize, ssize, n, pid in izip(object_sizes, scope_sizes, names, ids):
+                    logger.debug('Processing path %r.',pid)
                     out.append(
                         GenericPaths(tuple(map(int, (N, pid))), name_of_res=str(n.tostring()), min_pf=int(mmf[0]),
                                      max_pf=int(mmf[1])))
@@ -439,10 +444,12 @@ class ValveDataCodec(object):
                 is_single = data[ValveDataCodec.varname(name, 'layer', N, 'single')]
                 frames_table = data[ValveDataCodec.varname(name, 'layer', N, 'frames')]
                 object_strict = data[ValveDataCodec.varname(name, 'layer', N, 'object')]
+                object_strict_size = data[ValveDataCodec.varname(name, 'layer', N, 'object', 'sizes')]
                 single_path_nr = 0
                 seek_object = 0
                 for n, pid, ft, iss in izip(names, ids, frames_table, is_single):
                     spid = SinglePathID(path_id=tuple(map(int, (N, pid[0]))), nr=int(pid[-1]), name=str(n.tostring()))
+                    logger.debug('Processing spath %s.', spid)
                     path = range(ft[0], ft[1] + 1)
                     if iss:
                         out.append(SinglePath(spid, [[], [], []], [[], [], []]))
@@ -453,8 +460,7 @@ class ValveDataCodec(object):
                         seek += ft[3]
                         path_out = path[seek:seek + ft[4]]
                         seek += ft[4]
-                        path_object_strict_size = data[ValveDataCodec.varname(name, 'layer', N, 'object', 'sizes')][
-                            single_path_nr]
+                        path_object_strict_size = object_strict_size[single_path_nr]
                         single_path_nr += 1
                         path_object_strict = list(SmartRange(
                             fast_minc_seq=object_strict[seek_object:seek_object + path_object_strict_size]).get())
@@ -520,8 +526,7 @@ class ValveDataCodec(object):
             # onlytype = json.loads(str(onlytype.tostring()))
             # onlytype = [tuple(ot) for ot in onlytype]
             passing = bool(data[ValveDataCodec.varname(name, 'passing')][:].copy())
-            inls = Inlets([], center_of_system=center_of_system, passing=passing, onlytype=onlytype)
-
+            inls = Inlets([], center_of_system=center_of_system, passing=passing)
             coords = data[ValveDataCodec.varname(name, 'inlets_list', 'coords')]
             frame = data[ValveDataCodec.varname(name, 'inlets_list', 'frame')]
             type_ = data[ValveDataCodec.varname(name, 'inlets_list', 'type')]
