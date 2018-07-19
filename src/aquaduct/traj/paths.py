@@ -35,6 +35,7 @@ from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader, SingleResidueSelection
 from array import array
 
+from itertools import chain
 
 class PathTypesCodes(object):
     __slots__ = ()  # "path_in_code path_object_code path_out_code path_walk_code".split()
