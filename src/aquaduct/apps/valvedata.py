@@ -42,8 +42,8 @@ Types of data saved in the Stage I:
         *Scope* can be redefined in stage II but in the current version
         the center of the system is calculated only in stage I.
 
-* `all_res` - List of all traced residues in all layers.
-* `number_frame_rid_in_object` IDs of traced residues that are in the object in each frame in all layers.
+* `all_res` - List of IDs of all traced residues in all layers.
+* `number_frame_rid_in_object`  - Lists of IDs of traced residues that are in the object in each frame in all layers.
 
 
 Stage II **raw_paths**
@@ -51,8 +51,8 @@ Stage II **raw_paths**
 
 Types of data saved in the Stage II:
 
-* `all_res` - List of all traced residues in all layers.
-* `paths` - List of paths found for each traced residues.
+* `all_res` - List of IDs of all traced residues in all layers.
+* `paths` - L found for each traced residues.
 
 
 Stage III **separate_paths**
@@ -215,19 +215,22 @@ all_res.layers      (L,)    int     List of layers.
 
 all_res.layer.N     (S,)    int     List of residues IDs in layer *N*.
 
-                                    * *N* is a layer number.
+                                    * *N* is a layer id.
                                     * *S* is a number of residues in layer *N*.
 =================   ======  ======  ===================================================================
 
 `number_frame_rid_in_object`
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Lists of IDs of residues identified in consecutive layers are stored as :ref:`list_arrays_matrices`.
+.. note::
+
+    IDs of traced residues that are in the object in each frame in all layers are stored as
+    :ref:`list_arrays_matrices`: see nfrio.layer.N.sizes and nfrio.layer.N matrices.
 
 ====================    ======  ======  ===================================================================
 Matrix name             Shape   Type    Description
 ====================    ======  ======  ===================================================================
-nfrio.layers            (1,)    int     Number of layers.
+nfrio.layers.nr         (1,)    int     Number of layers.
 nfrio.layer.N.sizes     (F,)    int     Array of numbers of residues indetified in the object area in
                                         frames.
 
@@ -235,9 +238,9 @@ nfrio.layer.N.sizes     (F,)    int     Array of numbers of residues indetified 
                                         * *F* Number of frames in layer *N*.
 
 nfrio.layer.N           (Q,)    int     IDs of residues indetified in the object area in frames in layer
-                                        *N*. It is storead as one list and have to be divieded in to chunks
-                                        corresponding to consecutive frames. Sizes of chunks are stored
-                                        in nfrio.layer.N matrix
+                                        *N*. It is storead as one list and have to be divieded in to
+                                        chunks corresponding to consecutive frames. Sizes of chunks are
+                                        stored in nfrio.layer.N matrix
 
                                         * *Q* is a number of molecules identified in the object in all
                                           frames in layer *N*; it is a sum of nfrio.layer.N.sizes.
@@ -247,7 +250,9 @@ nfrio.layer.N           (Q,)    int     IDs of residues indetified in the object
 `paths`
 ^^^^^^^
 
-Lists of frames in which paths are in the object and scope areas are stored as :ref:`list_list_monoincr`.
+.. note::
+
+    Lists of frames in which paths are in the object and scope areas are stored as :ref:`list_list_monoincr`.
 
 
 =============================   ========    ======  ===================================================================
