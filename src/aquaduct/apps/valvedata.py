@@ -225,7 +225,7 @@ all_res.layer.N     (S,)    int     List of residues IDs in layer *N*.
 .. note::
 
     IDs of traced residues that are in the object in each frame in all layers are stored as
-    :ref:`list_arrays_matrices`: see nfrio.layer.N.sizes and nfrio.layer.N matrices.
+    :ref:`list_arrays_matrices`: see **nfrio.layer.N.sizes** and **nfrio.layer.N** matrices.
 
 ====================    ======  ======  ===================================================================
 Matrix name             Shape   Type    Description
@@ -252,7 +252,8 @@ nfrio.layer.N           (Q,)    int     IDs of residues indetified in the object
 
 .. note::
 
-    Lists of frames in which paths are in the object and scope areas are stored as :ref:`list_list_monoincr`.
+    Lists of frames in which paths are in the object and scope areas are stored as :ref:`list_list_monoincr`:
+    see **
 
 
 =============================   ========    ======  ===================================================================
