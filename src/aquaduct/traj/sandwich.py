@@ -33,7 +33,7 @@ if mda.__version__ > '0.16.2':
 
 from MDAnalysis.topology.core import guess_atom_element
 
-from aquaduct.utils.helpers import SmartRange
+from aquaduct.utils.helpers import SmartRange, SmartRangeFunction, SmartRangeIncrement
 from aquaduct.geom.convexhull import SciPyConvexHull, are_points_within_convexhull
 from aquaduct.utils.helpers import arrayify, create_tmpfile, \
     tupleify
@@ -49,7 +49,7 @@ if GCS.cachedir:
     from joblib import Memory
 
     memory_cache = Memory(cachedir=GCS.cachedir,
-                          verbose=0)  # mmap have to be switched off, otherwise smoothing does not work properly
+                          verbose=1)  # mmap have to be switched off, otherwise smoothing does not work properly
     # memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)
     memory = memory_cache.cache
 elif GCS.cachemem:
@@ -804,19 +804,21 @@ class ResidueSelection(Selection):
 ################################################################################
 
 @memory
-@arrayify(shape=(None, 3))
 def coords_range_core(srange, number, rid):
-    reader = Reader.get_single_reader(number).open()
-    for f in srange.get():
-        reader.set_frame(f)
-        yield reader.residues_positions([rid]).next()
-
+    assert isinstance(srange,SmartRangeIncrement)
+    @arrayify(shape=(None, 3))
+    def coords_range_core_inner(srange, number, rid):
+        reader = Reader.get_single_reader(number).open()
+        for f in srange.get():
+            reader.set_frame(f)
+            yield reader.residues_positions([rid]).next()
+    return coords_range_core_inner(srange, number, rid)
 
 def coords_range(srange, number, rid):
     # srange is SmartRangeIncrement, it cannot be anything else
     # wrapper to limit number of calls to coords_range_core
     # CRIC cache is {number:{rid:FramesRangeCollection}}
-    logger.debug("CRIC request %d:%d %s", number, rid, str(srange))
+    logger.debug("CRIC global request %d:%d %s", number, rid, str(srange))
     '''
     if number not in CRIC.cache:
         CRIC.cache.update({number:{}})
@@ -829,6 +831,7 @@ def coords_range(srange, number, rid):
     # call get_ranges and stack array, do it in comprehension? nested function?
     def get_coords_from_cache():
         for sr, xr in CRIC.get_frc(number, rid).get_ranges(srange):
+            logger.debug("CRIC partial request %d:%d %s", number, rid, str(sr))
             yield coords_range_core(sr, number, rid)[xr, :]
 
     return np.vstack(get_coords_from_cache())
@@ -837,28 +840,30 @@ def coords_range(srange, number, rid):
 ################################################################################
 
 @memory
-@tupleify
 def smooth_coords_ranges(sranges, number, rid, smooth):
-    # here, sranges are list of SmartRange objects whereas coords_range accepts SmartRangeIncrement
-    # first get all coords and make in continous
-    def sranges2coords_cont():
-        for srange in sranges:
-            for srangei in srange.raw:
-                yield coords_range(srangei, number, rid)
+    @tupleify
+    def smooth_coords_ranges_inner(sranges, number, rid, smooth):
+        # here, sranges are list of SmartRange objects whereas coords_range accepts SmartRangeIncrement
+        # first get all coords and make in continous
+        def sranges2coords_cont():
+            for srange in sranges:
+                for srangei in srange.raw:
+                    yield coords_range(srangei, number, rid)
 
-    coords_cont = make_default_array(np.vstack([c for c in sranges2coords_cont() if len(c) > 0]))
-    # call smooth
-    coords_cont = smooth(coords_cont)
-    # split coords_cont
-    # now lets return tupple of coords
-    nr = 0
-    for path in sranges:
-        if len(path) > 0:
-            yield make_default_array(coords_cont[nr:nr + len(path)])
-            nr += len(path)
-        else:
-            # TODO: reuse some kind of empty coords
-            yield make_default_array(np.zeros((0, 3)))
+        coords_cont = make_default_array(np.vstack([c for c in sranges2coords_cont() if len(c) > 0]))
+        # call smooth
+        coords_cont = smooth(coords_cont)
+        # split coords_cont
+        # now lets return tupple of coords
+        nr = 0
+        for path in sranges:
+            if len(path) > 0:
+                yield make_default_array(coords_cont[nr:nr + len(path)])
+                nr += len(path)
+            else:
+                # TODO: reuse some kind of empty coords
+                yield make_default_array(np.zeros((0, 3)))
+    return smooth_coords_ranges_inner(sranges, number, rid, smooth)
 
 
 ################################################################################

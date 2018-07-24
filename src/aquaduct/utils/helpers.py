@@ -683,6 +683,14 @@ class SmartRangeFunction(object):
         else:
             self.element, self.times = state
 
+    def __eq__(self, other):
+        if isinstance(other,self.__class__):
+            return self.element == other.element and self.times == other.times
+        return False
+
+    def __hash__(self):
+        return hash((self.element,self.times))
+
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')
 
@@ -774,7 +782,16 @@ class SmartRange(object):
             map(self.append, iterable)
         if fast_raw is not None:
             # make it from raw collection
-            map(self.append, chain(*(r.get() for r in fast_raw)))
+            self._min = []
+            self._max = []
+            for r in fast_raw:
+                self._len += len(r)
+                self._elements.append(r)
+                self._min.append(min(r.get()))
+                self._max.append(max(r.get()))
+            self._min = min(self._min)
+            self._max = max(self._max)
+
         if fast_array is not None:
             self._elements = list(self._a2e(fast_array))
             self._len = len(fast_array)
