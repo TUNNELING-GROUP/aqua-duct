@@ -989,3 +989,9 @@ class MasterPath(MacroMolPath):
     def add_width(self, width):
         assert len(width) == self.size
         self.width_cont = width
+
+    def __getstate__(self):
+        return super(MasterPath, self).__getstate__() + (self.width_cont,self.single_res_selection)
+
+    def __setstate__(self, state):
+        self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len, self.width_cont, self.single_res_selection = state
