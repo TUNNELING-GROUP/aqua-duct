@@ -42,7 +42,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 6, 3  # passing paths works reasonable
+    return 0, 6, 4  # passing paths works reasonable
 
 
 def version_nice():
@@ -72,12 +72,13 @@ def greetings():
                   ~ ~ ~ A Q U A - D U C T ~ ~ ~
         ################################################
         ####        ########        ########        ####
-        =@            @==@            @==@            @=
+        =@            \%%/            (==)            @=
         #              ##              ##              #
         #              ##              ##              #
         #              ##              ##              #
         #              ##              ##              #
         ------------------------------------------------
+
 
     :return: :mod:`aquaduct` fancy greetings.
     :rtype: str
@@ -86,11 +87,12 @@ def greetings():
           ~ ~ ~ A Q U A - D U C T ~ ~ ~
 ################################################
 ####        ########        ########        ####
-=@            @==@            @==@            @=
+=@            \%%/            (==)            @=
 #              ##              ##              #
 #              ##              ##              #
 #              ##              ##              #
 #              ##              ##              #
 ------------------------------------------------'''
-
+#          C l a s s i c a l  o r d e r
+#------------------------------------------------'''
     return greet
