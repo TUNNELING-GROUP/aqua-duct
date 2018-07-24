@@ -18,9 +18,7 @@
 
 # this modlue is a prototype and have to be rewritten
 
-import logging
-
-logger = logging.getLogger(__name__)
+from aquaduct import logger
 
 import multiprocessing
 from multiprocessing import Queue, Manager, Lock, Value, Process
@@ -302,12 +300,13 @@ class CTypeSpathsCollection(object):
             lens = make_default_array([float(sp.sizes[part]) for sp in self.spaths])
             if np.max(lens) > 0:
                 lens /= np.max(lens)  # normalization
-                lens = lens ** self.bias_long  # scale them by increasing weights of long paths
+                lens = lens# ** self.bias_long  # scale them by increasing weights of long paths
             if sum(lens) == 0:
                 sizes.append(0)
             else:
                 # weighted average by paths lengths
                 sizes.append(int(np.average([len(sp.types[part]) for sp in self.spaths], 0, lens)))
+            logger.debug("Full size is %d.",max(30, sum(sizes) / 3))
         return max(30, sum(sizes) / 3)  # total size (desired), min 30 - a good low limit default?
 
     @staticmethod
