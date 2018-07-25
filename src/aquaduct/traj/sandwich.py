@@ -805,7 +805,7 @@ class ResidueSelection(Selection):
 
 @memory
 def coords_range_core(srange, number, rid):
-    assert isinstance(srange,SmartRangeIncrement)
+    assert isinstance(srange,SmartRangeIncrement),"Expecting SmartRangeIncrement, got %r" % type(srange)
     @arrayify(shape=(None, 3))
     def coords_range_core_inner(srange, number, rid):
         reader = Reader.get_single_reader(number).open()

@@ -26,7 +26,7 @@ import re
 import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps, partial
-from itertools import izip_longest, izip, chain
+from itertools import izip_longest, izip, chain, imap
 from keyword import iskeyword
 from multiprocessing import Pool, Queue, Process
 
@@ -1358,7 +1358,8 @@ def stage_III_run(config, options,
                 dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                               short_logic=short_logic)
                 n = max(1, optimal_threads.threads_count)
-                spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                #spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                spaths_new = imap(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
                 # CRIC AWARE MP!
                 if short_object is not None:
                     Reader.reset()

@@ -26,7 +26,7 @@ from importlib import import_module
 import json
 import collections
 
-from aquaduct.utils.helpers import SmartRange, SmartRangeIncrement
+from aquaduct.utils.helpers import SmartRange, SmartRangeIncrement, SmartRangeEqual
 
 
 ################################################################################
@@ -130,6 +130,9 @@ class FramesRangeCollection(object):
         self.collection = []  # order on this list does matter!
 
     def append(self, srange):
+        # TODO: remove it later
+        if isinstance(srange,SmartRangeEqual):
+            srange = SmartRangeIncrement(srange.element,srange.times)
         if not len(self.collection):
             self.collection.append(srange)
             logger.debug("FRC append first srange %s", str(srange))
@@ -192,6 +195,9 @@ class FramesRangeCollection(object):
         self.append(srange)
         for sr in self.collection:
             if sr.overlaps(srange):
+                # TODO: remove it later
+                if isinstance(sr, SmartRangeEqual):
+                    sr = SmartRangeIncrement(sr.element, sr.times)
                 if sr.contains(srange):
                     # case 3
                     yield sr, xrange(srange.first_element() - sr.first_element(),
