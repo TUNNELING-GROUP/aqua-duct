@@ -970,7 +970,7 @@ def stage_I_run(config, options,
             break
     for key in sorted(results.keys()):
         _all_res, _frame_rid_in_object, _center_of_system = results.pop(key)
-        center_of_system += center_of_system
+        center_of_system += _center_of_system
         if all_res:
             all_res.add(_all_res)
             all_res.uniquify()
@@ -1194,7 +1194,14 @@ def stage_II_run(config, options,
             izip(iterate_or_die(number_frame_rid_in_object,
                                 times=Reader.number_of_layers()),
                  Reader.iterate(number=True))):
+
         all_res_layer = all_res.layer(number)
+        #all_res_layer_ids = all_res.selected[number]
+
+        #n = max(1, optimal_threads.threads_count)
+        #for all_res_layer_chunk_ids in (all_res_layer_ids[i:i + n] for i in xrange(0, len(all_res_layer_ids), n)):
+        #    all_res_layer_chunk = ResidueSelection({number:all_res_layer_chunk_ids})
+
         input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
                          options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
                          max(1, optimal_threads.threads_count)))
@@ -1220,7 +1227,11 @@ def stage_II_run(config, options,
         pbar = clui.pbar((results_count + 1) + 1, 'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
-        results.update(result)
+        for rk in result.keys():
+            if rk not in results:
+                results.update({rk:result[rk]})
+            else:
+                results.update({rk:results[rk]+result[rk]})
         pbar.next()
         if nr == results_count:
             break
@@ -1244,7 +1255,8 @@ def stage_II_run(config, options,
         max_pf = Reader.number_of_frames() - 1
         frames_offset = np.cumsum([0] + frames_offset).tolist()[:len(numbers)]
 
-        pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
+        #pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
+        pbar = clui.pbar(len(all_res_ids), 'Sandwich deconvolution:')
 
         def isum(l, a):
             return (ll + a for ll in l)
