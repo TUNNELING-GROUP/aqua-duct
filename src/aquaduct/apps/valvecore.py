@@ -836,9 +836,8 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
                 # S A V E #
                 ###########
                 with clui.fbm('Saving data dump in %s file' % options.dump):
-                    pass
-                    #vda = get_vda_reader(options.dump, mode='w')
-                    #vda.dump(**result)
+                    vda = get_vda_reader(options.dump, mode='w')
+                    vda.dump(**result)
                 # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
