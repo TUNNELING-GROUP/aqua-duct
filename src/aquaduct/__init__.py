@@ -42,7 +42,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 6, 6  # chunks in stage II
+    return 0, 6, 7  # memmap in stage II
 
 
 def version_nice():

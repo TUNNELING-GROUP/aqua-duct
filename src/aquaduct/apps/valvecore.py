@@ -1058,7 +1058,7 @@ def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
         # cache???
         if GCS.cachedir:
             number_frame_object_scope.flush()
-            results_queue.put({layer_number: number_frame_object_scope.filename})
+            results_queue.put({layer_number: (number_frame_object_scope.filename,number_frame_object_scope.shape)})
             del number_frame_object_scope
         else:
             results_queue.put({layer_number: number_frame_object_scope})
@@ -1206,6 +1206,7 @@ def stage_II_run(config, options,
     Reader.reset()
 
     ####################################################################################################################
+    '''
     # FIXME: temporary solution, remove it later
     if 'res_ids_in_object_over_frames' in kwargs:
         res_ids_in_object_over_frames = kwargs['res_ids_in_object_over_frames']
@@ -1219,6 +1220,7 @@ def stage_II_run(config, options,
                 for layer in xrange(max(res_ids_in_object_over_frames[number].keys())):
                     frame_rid_in_object.append(res_ids_in_object_over_frames[number][layer])
                 number_frame_rid_in_object.append(frame_rid_in_object)
+    '''
     ####################################################################################################################
 
     # clear in object info if required
@@ -1237,12 +1239,12 @@ def stage_II_run(config, options,
             for number in all_res.numbers():
                 all_res.add(ResidueSelection({number: all_res_ids}))
                 all_res.uniquify()
+            # names
+            all_res_names = list(all_res.layer(number).names())
 
     number_of_frames = Reader.number_of_frames(onelayer=True)
     clui.message("Trajectory scan:")
     pbar = clui.pbar(Reader.number_of_frames())
-
-    # pbar = clui.pbar(len(all_res),"Trajectory scan over traced residues:")
 
     # prepare queues
     pbar_queue = Queue()
@@ -1261,11 +1263,6 @@ def stage_II_run(config, options,
                  Reader.iterate(number=True))):
 
         all_res_layer = all_res.layer(number)
-        #all_res_layer_ids = all_res.selected[number]
-
-        #n = max(1, optimal_threads.threads_count)
-        #for all_res_layer_chunk_ids in (all_res_layer_ids[i:i + n] for i in xrange(0, len(all_res_layer_ids), n)):
-        #    all_res_layer_chunk = ResidueSelection({number:all_res_layer_chunk_ids})
 
         input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
                          options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
@@ -1302,6 +1299,12 @@ def stage_II_run(config, options,
     pbar.finish()
     # now, results holds 012 matrices, make paths out of it
 
+    def results_n(rn):
+        if isinstance(rn,np.ndarray):
+            return rn
+        else:
+            return np.memmap(rn[0],mode='r',dtype=np.int8,shape=rn[1])
+
     if not unsandwitchize:
         with clui.pbar(len(all_res), 'Creating raw paths:') as pbar:
             paths = []
@@ -1314,37 +1317,36 @@ def stage_II_run(config, options,
                                     for resid, resname in izip(all_res_layer.ids(),
                                                                all_res_layer.names()))
 
-                for pat, nfos in izip(paths_this_layer, results[number].T):
+                for pat, nfos in izip(paths_this_layer, results_n(results[number]).T):
                     pat.add_012(nfos)
                     paths.append(pat)
                     pbar.next()
     elif unsandwitchize:
         # make coherent paths
-        frames_offset = []
-        numbers = []
-        for number, traj_reader in Reader.iterate(number=True):
-            frames_offset.append(traj_reader.window.len())
-            numbers.append(number)
+        #frames_offset = []
+        #numbers = []
+        #for number, traj_reader in Reader.iterate(number=True):
+        #    frames_offset.append(traj_reader.window.len())
+        #    numbers.append(number)
         # paths names, paths
         max_pf = Reader.number_of_frames() - 1
-        frames_offset = np.cumsum([0] + frames_offset).tolist()[:len(numbers)]
+        #frames_offset = np.cumsum([0] + frames_offset).tolist()[:len(numbers)]
 
-        #pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
-        pbar = clui.pbar(len(all_res_ids), 'Sandwich deconvolution:')
+        # pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
+        with clui.pbar(len(all_res_ids), 'Creating raw paths (sandwich deconvolution):') as pbar:
+            paths = []
+            for pnr in xrange(len(all_res_ids)):
+                new_p =  GenericPaths((0, all_res_ids[pnr]),
+                                      name_of_res=all_res_names[pnr],
+                                      min_pf=0, max_pf=max_pf)
 
-        def isum(l, a):
-            return (ll + a for ll in l)
+                new_p.add_012(np.fromiter(chain(*(results_n(results[n])[:,pnr] for n in sorted(results.keys()))),dtype=np.int8))
+                paths.append(new_p)
+                pbar.next()
 
-        # do one loop over all paths
-        for ps in ([results[n][pnr] for n in numbers if len(results[n])] for pnr in xrange(len(all_res_ids))):
-            new_p = GenericPaths((0, ps[0].id[-1]),
-                                 name_of_res=ps[0].name, min_pf=0, max_pf=max_pf)
-            frames = chain(*[isum(p.frames, fo) for p, fo in izip(ps, frames_offset)])
-            types = chain(*[p.types_promise for p in ps])
-            new_p.add_frames_types(frames, types)
-            paths.append(new_p)
-            pbar.next()
-    pbar.finish()
+    # rm tmp files
+    for rn in results.itervalues():
+        os.unlink(rn[0])
 
     clui.message("Number of paths: %d" % len(paths))
 
@@ -1444,8 +1446,8 @@ def stage_III_run(config, options,
                 dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                               short_logic=short_logic)
                 n = max(1, optimal_threads.threads_count)
-                #spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
-                spaths_new = imap(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                #spaths_new = imap(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
                 # CRIC AWARE MP!
                 if short_object is not None:
                     Reader.reset()
