@@ -836,8 +836,9 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
                 # S A V E #
                 ###########
                 with clui.fbm('Saving data dump in %s file' % options.dump):
-                    vda = get_vda_reader(options.dump, mode='w')
-                    vda.dump(**result)
+                    pass
+                    #vda = get_vda_reader(options.dump, mode='w')
+                    #vda.dump(**result)
                 # save_stage_dump(options.dump, **result)
         elif options.execute in ['skip'] or (options.execute in ['runonce'] and can_be_loaded):
             if not no_io:
@@ -985,8 +986,8 @@ def stage_I_run(config, options,
     [p.join(1) for p in pool]
     pbar.finish()
 
-    if all_res is None:
-        raise ValueError("No traceable residues was found.")
+    if all_res is None or all_res.len() == 0:
+        raise ValueError("No traceable residues were found.")
 
     clui.message("Number of residues to trace: %d" % all_res.len())
 
@@ -1262,7 +1263,7 @@ def stage_II_run(config, options,
             return (ll + a for ll in l)
 
         # do one loop over all paths
-        for ps in ([results[n][pnr] for n in numbers] for pnr in xrange(len(all_res_ids))):
+        for ps in ([results[n][pnr] for n in numbers if len(results[n])] for pnr in xrange(len(all_res_ids))):
             new_p = GenericPaths((0, ps[0].id[-1]),
                                  name_of_res=ps[0].name, min_pf=0, max_pf=max_pf)
             frames = chain(*[isum(p.frames, fo) for p, fo in izip(ps, frames_offset)])
