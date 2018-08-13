@@ -1206,22 +1206,6 @@ def stage_II_run(config, options,
     Reader.reset()
 
     ####################################################################################################################
-    '''
-    # FIXME: temporary solution, remove it later
-    if 'res_ids_in_object_over_frames' in kwargs:
-        res_ids_in_object_over_frames = kwargs['res_ids_in_object_over_frames']
-    else:
-        res_ids_in_object_over_frames = None
-    if number_frame_rid_in_object is None and res_ids_in_object_over_frames is not None:
-        with clui.fbm("Get number_frame_rid_in_object if possible"):
-            number_frame_rid_in_object = []
-            for number in xrange(max(res_ids_in_object_over_frames.keys())):
-                frame_rid_in_object = []
-                for layer in xrange(max(res_ids_in_object_over_frames[number].keys())):
-                    frame_rid_in_object.append(res_ids_in_object_over_frames[number][layer])
-                number_frame_rid_in_object.append(frame_rid_in_object)
-    '''
-    ####################################################################################################################
 
     # clear in object info if required
     if options.clear_in_object_info:
@@ -1323,11 +1307,6 @@ def stage_II_run(config, options,
                     pbar.next()
     elif unsandwitchize:
         # make coherent paths
-        #frames_offset = []
-        #numbers = []
-        #for number, traj_reader in Reader.iterate(number=True):
-        #    frames_offset.append(traj_reader.window.len())
-        #    numbers.append(number)
         # paths names, paths
         max_pf = Reader.number_of_frames() - 1
         #frames_offset = np.cumsum([0] + frames_offset).tolist()[:len(numbers)]
@@ -1346,7 +1325,8 @@ def stage_II_run(config, options,
 
     # rm tmp files
     for rn in results.itervalues():
-        os.unlink(rn[0])
+        if not isinstance(rn,np.ndarray):
+            os.unlink(rn[0])
 
     clui.message("Number of paths: %d" % len(paths))
 
