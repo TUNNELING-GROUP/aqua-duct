@@ -183,7 +183,7 @@ class Auto:
         return self.__repr__()
 
 
-def create_tmpfile(ext=None):
+def create_tmpfile(ext=None,dir=None):
     """
     Creates temporary file. File is created, closed and its file name is returned.
 
@@ -192,6 +192,7 @@ def create_tmpfile(ext=None):
         It is responsibility of the caller to delete the file.
 
     :param str ext: Optional extension of the file.
+    :param str dir: Optional path to the directory where the file should be created.
     :return: File name of created temporary file.
     :rtype: str
     """
@@ -199,7 +200,10 @@ def create_tmpfile(ext=None):
         suffix = ''
     else:
         suffix = ".%s" % str(ext).lower()
-    fd, name = mkstemp(suffix=suffix)
+    if dir is None:
+        fd, name = mkstemp(suffix=suffix)
+    else:
+        fd, name = mkstemp(suffix=suffix,dir=dir)
     close(fd)
     return name
 

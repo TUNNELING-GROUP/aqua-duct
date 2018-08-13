@@ -53,7 +53,7 @@ from aquaduct.traj.paths import yield_generic_paths
 from aquaduct.traj.sandwich import ResidueSelection, Reader, open_traj_reader
 from aquaduct.utils import clui
 from aquaduct.utils.clui import roman
-from aquaduct.utils.helpers import iterate_or_die
+from aquaduct.utils.helpers import iterate_or_die, create_tmpfile
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, glind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
@@ -999,6 +999,72 @@ def stage_I_run(config, options,
 
 ################################################################################
 
+def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
+    for input_data in iter(input_queue.get, None):
+        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
+
+        traj_reader = open_traj_reader(traj_reader_proto)
+        number_of_frames = traj_reader.number_of_frames()
+
+        # scope is evaluated only once before loop over frames so it cannot be frame dependent
+        if not scope_everyframe:
+            scope = traj_reader.parse_selection(scope)
+            logger.debug("Scope definition evaluated only once for given layer")
+        else:
+            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
+
+        # speed up!
+        all_res_this_ids = list(all_res_this_layer.ids())
+
+        # big container for 012 path data
+        #cache???
+        if GCS.cachedir:
+            number_frame_object_scope = np.memmap(create_tmpfile(ext='dat',dir=GCS.cachedir),dtype=np.int8,shape=(number_of_frames, all_res_this_layer.len()))
+        else:
+            number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
+                                             dtype=np.int8)
+
+        progress = 0
+        progress_freq_flex = min(1, progress_freq)
+        # the loop over frames, use izip otherwise iteration over frames does not work
+        for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
+                                         traj_reader.iterate_over_frames()):
+
+            # do we have object data?
+            if not is_number_frame_rid_in_object:
+                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
+            # assert rid_in_object is not None
+
+            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
+
+            if scope_everyframe:
+                scope = traj_reader.parse_selection(scope)
+            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
+            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
+                                                      known_true=None)  # known_true could be rid_in_object
+
+            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
+                                                           dtype=np.int8)
+
+            progress += 1
+            if progress == progress_freq_flex:
+                pbar_queue.put(progress)
+                progress = 0
+                progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
+                if GCS.cachedir:
+                    number_frame_object_scope.flush()
+
+        # sent results
+        # cache???
+        if GCS.cachedir:
+            number_frame_object_scope.flush()
+            results_queue.put({layer_number: number_frame_object_scope.filename})
+            del number_frame_object_scope
+        else:
+            results_queue.put({layer_number: number_frame_object_scope})
+        pbar_queue.put(progress)
+        # termination
+
 def stage_II_worker_q(input_queue, results_queue, pbar_queue):
     for input_data in iter(input_queue.get, None):
         layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
@@ -1063,7 +1129,6 @@ def stage_II_worker_q(input_queue, results_queue, pbar_queue):
         results_queue.put({layer_number: paths})
         pbar_queue.put(progress)
         # termination
-
 
 def stage_II_worker_q_alt(input_queue, results_queue, pbar_queue, direction='up'):
     for input_data in iter(input_queue.get, None):
@@ -1185,7 +1250,7 @@ def stage_II_run(config, options,
     input_queue = Queue()
 
     # prepare and start pool of workers
-    pool = [Process(target=stage_II_worker_q, args=(input_queue, results_queue, pbar_queue)) for dummy in
+    pool = [Process(target=stage_II_worker_q_lowmem, args=(input_queue, results_queue, pbar_queue)) for dummy in
             xrange(optimal_threads.threads_count)]
     [p.start() for p in pool]
 
@@ -1219,31 +1284,41 @@ def stage_II_run(config, options,
     [input_queue.put(None) for p in pool]
     pbar.finish()
 
-    paths = []
     # collect results
-    if not unsandwitchize:
-        pbar = clui.pbar((results_count + 1) * 2 + 1, 'Collecting results from layers:')
-    else:
-        pbar = clui.pbar((results_count + 1) + 1, 'Collecting results from layers:')
+    pbar = clui.pbar((results_count + 1) + 1, 'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
         for rk in result.keys():
             if rk not in results:
                 results.update({rk:result[rk]})
             else:
+                raise ValueError('Wrong results format; please send bug report.')
                 results.update({rk:results[rk]+result[rk]})
         pbar.next()
         if nr == results_count:
             break
-    if not unsandwitchize:
-        for key in sorted(results.keys()):
-            paths.extend(results.pop(key))
-            pbar.next()
     [p.join(1) for p in pool]
     pbar.next()
     pbar.finish()
+    # now, results holds 012 matrices, make paths out of it
 
-    if unsandwitchize:
+    if not unsandwitchize:
+        with clui.pbar(len(all_res), 'Creating raw paths:') as pbar:
+            paths = []
+            for number in sorted(results.keys()):
+                all_res_layer = all_res.layer(number)
+
+                paths_this_layer = (GenericPaths(resid,
+                                                 name_of_res=resname,
+                                                 min_pf=0, max_pf=number_of_frames - 1)
+                                    for resid, resname in izip(all_res_layer.ids(),
+                                                               all_res_layer.names()))
+
+                for pat, nfos in izip(paths_this_layer, results[number].T):
+                    pat.add_012(nfos)
+                    paths.append(pat)
+                    pbar.next()
+    elif unsandwitchize:
         # make coherent paths
         frames_offset = []
         numbers = []
@@ -1251,7 +1326,6 @@ def stage_II_run(config, options,
             frames_offset.append(traj_reader.window.len())
             numbers.append(number)
         # paths names, paths
-
         max_pf = Reader.number_of_frames() - 1
         frames_offset = np.cumsum([0] + frames_offset).tolist()[:len(numbers)]
 
