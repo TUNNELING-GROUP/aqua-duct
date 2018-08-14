@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from aquaduct import logger
-
 import ConfigParser
 import operator
 import os
@@ -26,7 +24,7 @@ import re
 import sys
 from collections import namedtuple, OrderedDict
 from functools import wraps, partial
-from itertools import izip_longest, izip, chain, imap
+from itertools import izip_longest, izip, chain
 from keyword import iskeyword
 from multiprocessing import Pool, Queue, Process
 
@@ -35,6 +33,7 @@ from scipy.spatial.distance import cdist
 from scipy.stats import ttest_ind
 
 from aquaduct import greetings as greetings_aquaduct
+from aquaduct import logger
 from aquaduct import version_nice as aquaduct_version_nice
 from aquaduct.apps.data import GCS, CRIC, save_cric
 from aquaduct.apps.valvedata import get_vda_reader
@@ -53,8 +52,8 @@ from aquaduct.traj.paths import yield_generic_paths
 from aquaduct.traj.sandwich import ResidueSelection, Reader, open_traj_reader
 from aquaduct.utils import clui
 from aquaduct.utils.clui import roman
-from aquaduct.utils.helpers import iterate_or_die, create_tmpfile, chunk, chop
-from aquaduct.utils.helpers import range2int, Auto, what2what, lind, glind, is_number, robust_and, robust_or
+from aquaduct.utils.helpers import iterate_or_die, create_tmpfile
+from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
 
@@ -993,9 +992,9 @@ def stage_I_run(config, options,
         with clui.fbm("Unsandwitchize traced residues"):
             # all_res, each layer should comprise of the same res
             all_res_ids = sorted(set([i[-1] for i in all_res.ids()]))
-            all_res = ResidueSelection({0:all_res_ids})
+            all_res = ResidueSelection({0: all_res_ids})
             # do similar operation with number_frame_rid_in_object
-            while(len(number_frame_rid_in_object)) > 1:
+            while (len(number_frame_rid_in_object)) > 1:
                 number_frame_rid_in_object[0].extend(number_frame_rid_in_object.pop(1))
 
     clui.message("Number of residues to trace: %d" % all_res.len())
@@ -1027,12 +1026,13 @@ def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
         all_res_this_ids = list(all_res_this_layer.ids())
 
         # big container for 012 path data
-        #cache???
+        # cache???
         if GCS.cachedir:
-            number_frame_object_scope = np.memmap(create_tmpfile(ext='dat',dir=GCS.cachedir),dtype=np.int8,shape=(number_of_frames, all_res_this_layer.len()))
+            number_frame_object_scope = np.memmap(create_tmpfile(ext='dat', dir=GCS.cachedir), dtype=np.int8,
+                                                  shape=(number_of_frames, all_res_this_layer.len()))
         else:
             number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
-                                             dtype=np.int8)
+                                                 dtype=np.int8)
 
         progress = 0
         progress_freq_flex = min(1, progress_freq)
@@ -1068,12 +1068,13 @@ def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
         # cache???
         if GCS.cachedir:
             number_frame_object_scope.flush()
-            results_queue.put({layer_number: (number_frame_object_scope.filename,number_frame_object_scope.shape)})
+            results_queue.put({layer_number: (number_frame_object_scope.filename, number_frame_object_scope.shape)})
             del number_frame_object_scope
         else:
             results_queue.put({layer_number: number_frame_object_scope})
         pbar_queue.put(progress)
         # termination
+
 
 def stage_II_worker_q(input_queue, results_queue, pbar_queue):
     for input_data in iter(input_queue.get, None):
@@ -1139,6 +1140,7 @@ def stage_II_worker_q(input_queue, results_queue, pbar_queue):
         results_queue.put({layer_number: paths})
         pbar_queue.put(progress)
         # termination
+
 
 def stage_II_worker_q_alt(input_queue, results_queue, pbar_queue, direction='up'):
     for input_data in iter(input_queue.get, None):
@@ -1227,7 +1229,7 @@ def stage_II_run(config, options,
 
     number_of_frames = Reader.number_of_frames(onelayer=True)
 
-    with clui.pbar(Reader.number_of_frames(),mess="Trajectory scan:") as pbar:
+    with clui.pbar(Reader.number_of_frames(), mess="Trajectory scan:") as pbar:
 
         # prepare queues
         pbar_queue = Queue()
@@ -1245,7 +1247,6 @@ def stage_II_run(config, options,
                     izip(iterate_or_die(number_frame_rid_in_object,
                                         times=Reader.number_of_layers()),
                          Reader.iterate(number=True))):
-
                 all_res_layer = all_res.layer(number)
 
                 input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
@@ -1256,9 +1257,9 @@ def stage_II_run(config, options,
             seek = 0
             frame_rid_in_object = None
             for results_count, (number, traj_reader) in enumerate(Reader.iterate(number=True)):
-                all_res_layer = ResidueSelection({number:all_res_ids})
+                all_res_layer = ResidueSelection({number: all_res_ids})
                 if is_number_frame_rid_in_object:
-                    frame_rid_in_object = number_frame_rid_in_object[0][seek:seek+traj_reader.window.len()]
+                    frame_rid_in_object = number_frame_rid_in_object[0][seek:seek + traj_reader.window.len()]
                     seek += traj_reader.window.len()
                 input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
                                  options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
@@ -1284,23 +1285,24 @@ def stage_II_run(config, options,
     for nr, result in enumerate(iter(results_queue.get, None)):
         for rk in result.keys():
             if rk not in results:
-                results.update({rk:result[rk]})
+                results.update({rk: result[rk]})
             else:
                 raise ValueError('Wrong results format; please send bug report.')
-                results.update({rk:results[rk]+result[rk]})
+                results.update({rk: results[rk] + result[rk]})
         pbar.next()
         if nr == results_count:
             break
     [p.join(1) for p in pool]
     pbar.next()
     pbar.finish()
+
     # now, results holds 012 matrices, make paths out of it
 
     def results_n(rn):
-        if isinstance(rn,np.ndarray):
+        if isinstance(rn, np.ndarray):
             return rn
         else:
-            return np.memmap(rn[0],mode='r',dtype=np.int8,shape=rn[1])
+            return np.memmap(rn[0], mode='r', dtype=np.int8, shape=rn[1])
 
     unsandwitchize = not Reader.sandwich_mode and len(results) > 1
     if not unsandwitchize:
@@ -1323,23 +1325,24 @@ def stage_II_run(config, options,
         # make coherent paths
         # paths names, paths
         max_pf = Reader.number_of_frames() - 1
-        #frames_offset = np.cumsum([0] + frames_offset).tolist()[:len(numbers)]
+        # frames_offset = np.cumsum([0] + frames_offset).tolist()[:len(numbers)]
 
         # pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
         with clui.pbar(len(all_res_ids), 'Creating raw paths (sandwich deconvolution):') as pbar:
             paths = []
             for pnr in xrange(len(all_res_ids)):
-                new_p =  GenericPaths((0, all_res_ids[pnr]),
-                                      name_of_res=all_res_names[pnr],
-                                      min_pf=0, max_pf=max_pf)
+                new_p = GenericPaths((0, all_res_ids[pnr]),
+                                     name_of_res=all_res_names[pnr],
+                                     min_pf=0, max_pf=max_pf)
 
-                new_p.add_012(np.fromiter(chain(*(results_n(results[n])[:,pnr] for n in sorted(results.keys()))),dtype=np.int8))
+                new_p.add_012(
+                    np.fromiter(chain(*(results_n(results[n])[:, pnr] for n in sorted(results.keys()))), dtype=np.int8))
                 paths.append(new_p)
                 pbar.next()
 
     # rm tmp files
     for rn in results.itervalues():
-        if not isinstance(rn,np.ndarray):
+        if not isinstance(rn, np.ndarray):
             os.unlink(rn[0])
 
     clui.message("Number of paths: %d" % len(paths))
@@ -1441,7 +1444,7 @@ def stage_III_run(config, options,
                               short_logic=short_logic)
                 n = max(1, optimal_threads.threads_count)
                 spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
-                #spaths_new = imap(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                # spaths_new = imap(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
                 # CRIC AWARE MP!
                 if short_object is not None:
                     Reader.reset()

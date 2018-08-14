@@ -805,14 +805,17 @@ class ResidueSelection(Selection):
 
 @memory
 def coords_range_core(srange, number, rid):
-    assert isinstance(srange,SmartRangeIncrement),"Expecting SmartRangeIncrement, got %r" % type(srange)
+    assert isinstance(srange, SmartRangeIncrement), "Expecting SmartRangeIncrement, got %r" % type(srange)
+
     @arrayify(shape=(None, 3))
     def coords_range_core_inner(srange, number, rid):
         reader = Reader.get_single_reader(number).open()
         for f in srange.get():
             reader.set_frame(f)
             yield reader.residues_positions([rid]).next()
+
     return coords_range_core_inner(srange, number, rid)
+
 
 def coords_range(srange, number, rid):
     # srange is SmartRangeIncrement, it cannot be anything else
@@ -863,6 +866,7 @@ def smooth_coords_ranges(sranges, number, rid, smooth):
             else:
                 # TODO: reuse some kind of empty coords
                 yield make_default_array(np.zeros((0, 3)))
+
     return smooth_coords_ranges_inner(sranges, number, rid, smooth)
 
 

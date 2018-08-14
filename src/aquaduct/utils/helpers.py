@@ -183,7 +183,7 @@ class Auto:
         return self.__repr__()
 
 
-def create_tmpfile(ext=None,dir=None):
+def create_tmpfile(ext=None, dir=None):
     """
     Creates temporary file. File is created, closed and its file name is returned.
 
@@ -203,7 +203,7 @@ def create_tmpfile(ext=None,dir=None):
     if dir is None:
         fd, name = mkstemp(suffix=suffix)
     else:
-        fd, name = mkstemp(suffix=suffix,dir=dir)
+        fd, name = mkstemp(suffix=suffix, dir=dir)
     close(fd)
     return name
 
@@ -290,7 +290,7 @@ def int2range(l):
     return out
 
 
-def chop(l,n=1):
+def chop(l, n=1):
     """
     :param list l: input list
     :return: Chunks of input list, each chunk is of maximal size of n.
@@ -299,7 +299,8 @@ def chop(l,n=1):
     assert n > 0
     return (l[i:i + n] for i in xrange(0, len(l), n))
 
-def chunk(l,n=1):
+
+def chunk(l, n=1):
     """
     :param list l: input list
     :return: n chunks of input list.
@@ -307,9 +308,8 @@ def chunk(l,n=1):
     """
     assert n > 0
     N = int(max(1, np.ceil(len(l) / float(n))))
-    for start in xrange(0,len(l),N):
-        yield l[start:start+N]
-
+    for start in xrange(0, len(l), N):
+        yield l[start:start + N]
 
 
 def is_iterable(l):
@@ -709,12 +709,12 @@ class SmartRangeFunction(object):
             self.element, self.times = state
 
     def __eq__(self, other):
-        if isinstance(other,self.__class__):
+        if isinstance(other, self.__class__):
             return self.element == other.element and self.times == other.times
         return False
 
     def __hash__(self):
-        return hash((self.element,self.times))
+        return hash((self.element, self.times))
 
     def get(self):
         raise NotImplementedError('This method should be implemented in a child class.')

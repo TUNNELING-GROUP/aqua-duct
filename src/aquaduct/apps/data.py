@@ -131,8 +131,8 @@ class FramesRangeCollection(object):
 
     def append(self, srange):
         # TODO: remove it later
-        if isinstance(srange,SmartRangeEqual):
-            srange = SmartRangeIncrement(srange.element,srange.times)
+        if isinstance(srange, SmartRangeEqual):
+            srange = SmartRangeIncrement(srange.element, srange.times)
         if not len(self.collection):
             self.collection.append(srange)
             logger.debug("FRC append first srange %s", str(srange))
@@ -210,6 +210,7 @@ class FramesRangeCollection(object):
                                  sr.last_element() - srange.first_element() + 1)
                 srange = SmartRangeIncrement(sr.last_element() + 1,
                                              srange.last_element() - sr.last_element())
+
 
 class IterEncoder(json.JSONEncoder):
 
