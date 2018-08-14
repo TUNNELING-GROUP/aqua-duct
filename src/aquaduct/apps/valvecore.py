@@ -988,7 +988,7 @@ def stage_I_run(config, options,
     if all_res is None or all_res.len() == 0:
         raise ValueError("No traceable residues were found.")
 
-    unsandwitchize = not Reader.sandwich_mode and len(all_res.numbers()) > 1
+    unsandwitchize = not Reader.sandwich_mode and len(number_frame_rid_in_object) > 1
     if unsandwitchize:
         with clui.fbm("Unsandwitchize traced residues"):
             # all_res, each layer should comprise of the same res
@@ -1252,18 +1252,18 @@ def stage_II_run(config, options,
                                  options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
                                  max(1, optimal_threads.threads_count)))
         else:
-
-
-
-        for results_count, (frame_rid_in_object, (number, traj_reader)) in enumerate(izip(iterate_or_die(number_frame_rid_in_object,
-                                                                                                         times=Reader.number_of_layers()),
-                                                                                          Reader.iterate(number=True))):
-
-            all_res_layer = all_res.layer(number)
-
-            input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
-                             options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
-                             max(1, optimal_threads.threads_count)))
+            all_res_ids = sorted(set([i[-1] for i in all_res.ids()]))
+            seek = 0
+            frame_rid_in_object = None
+            for results_count, (number, traj_reader) in enumerate(Reader.iterate(number=True)):
+                all_res_layer = ResidueSelection({number:all_res_ids})
+                if is_number_frame_rid_in_object:
+                    frame_rid_in_object = number_frame_rid_in_object[0][seek:seek+traj_reader.window.len()]
+                    seek += traj_reader.window.len()
+                input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
+                                 options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
+                                 max(1, optimal_threads.threads_count)))
+            all_res_names = list(all_res_layer.names())
 
         # display progress
         progress = 0
@@ -1277,8 +1277,6 @@ def stage_II_run(config, options,
 
         # [stop workers]
         [input_queue.put(None) for p in pool]
-
-
 
     # collect results
     pbar = clui.pbar((results_count + 1) + 1, 'Collecting results from layers:')
@@ -1304,6 +1302,7 @@ def stage_II_run(config, options,
         else:
             return np.memmap(rn[0],mode='r',dtype=np.int8,shape=rn[1])
 
+    unsandwitchize = not Reader.sandwich_mode and len(results) > 1
     if not unsandwitchize:
         with clui.pbar(len(all_res), 'Creating raw paths:') as pbar:
             paths = []
