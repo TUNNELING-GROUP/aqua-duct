@@ -53,7 +53,7 @@ from aquaduct.traj.paths import yield_generic_paths
 from aquaduct.traj.sandwich import ResidueSelection, Reader, open_traj_reader
 from aquaduct.utils import clui
 from aquaduct.utils.clui import roman
-from aquaduct.utils.helpers import iterate_or_die, create_tmpfile
+from aquaduct.utils.helpers import iterate_or_die, create_tmpfile, chunk, chop
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, glind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
@@ -988,6 +988,16 @@ def stage_I_run(config, options,
     if all_res is None or all_res.len() == 0:
         raise ValueError("No traceable residues were found.")
 
+    unsandwitchize = not Reader.sandwich_mode and len(all_res.numbers()) > 1
+    if unsandwitchize:
+        with clui.fbm("Unsandwitchize traced residues"):
+            # all_res, each layer should comprise of the same res
+            all_res_ids = sorted(set([i[-1] for i in all_res.ids()]))
+            all_res = ResidueSelection({0:all_res_ids})
+            # do similar operation with number_frame_rid_in_object
+            while(len(number_frame_rid_in_object)) > 1:
+                number_frame_rid_in_object[0].extend(number_frame_rid_in_object.pop(1))
+
     clui.message("Number of residues to trace: %d" % all_res.len())
 
     return {'all_res': all_res,
@@ -1215,55 +1225,60 @@ def stage_II_run(config, options,
 
     is_number_frame_rid_in_object = bool(number_frame_rid_in_object)
 
-    unsandwitchize = not Reader.sandwich_mode and len(all_res.numbers()) > 1
-    if unsandwitchize:
-        with clui.fbm("Unsandwitchize traced residues"):
-            # all_res, each layer should comprise of the same res
-            all_res_ids = sorted(set([i[-1] for i in all_res.ids()]))
-            for number in all_res.numbers():
-                all_res.add(ResidueSelection({number: all_res_ids}))
-                all_res.uniquify()
-            # names
-            all_res_names = list(all_res.layer(number).names())
-
     number_of_frames = Reader.number_of_frames(onelayer=True)
-    clui.message("Trajectory scan:")
-    pbar = clui.pbar(Reader.number_of_frames())
 
-    # prepare queues
-    pbar_queue = Queue()
-    results_queue = Queue()
-    input_queue = Queue()
+    with clui.pbar(Reader.number_of_frames(),mess="Trajectory scan:") as pbar:
 
-    # prepare and start pool of workers
-    pool = [Process(target=stage_II_worker_q_lowmem, args=(input_queue, results_queue, pbar_queue)) for dummy in
-            xrange(optimal_threads.threads_count)]
-    [p.start() for p in pool]
+        # prepare queues
+        pbar_queue = Queue()
+        results_queue = Queue()
+        input_queue = Queue()
 
-    # feed input_queue with data
-    for results_count, (frame_rid_in_object, (number, traj_reader)) in enumerate(
-            izip(iterate_or_die(number_frame_rid_in_object,
-                                times=Reader.number_of_layers()),
-                 Reader.iterate(number=True))):
+        # prepare and start pool of workers
+        pool = [Process(target=stage_II_worker_q_lowmem, args=(input_queue, results_queue, pbar_queue)) for dummy in
+                xrange(optimal_threads.threads_count)]
+        [p.start() for p in pool]
 
-        all_res_layer = all_res.layer(number)
+        # feed input_queue with data
+        if Reader.sandwich_mode:
+            for results_count, (frame_rid_in_object, (number, traj_reader)) in enumerate(
+                    izip(iterate_or_die(number_frame_rid_in_object,
+                                        times=Reader.number_of_layers()),
+                         Reader.iterate(number=True))):
 
-        input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
-                         options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
-                         max(1, optimal_threads.threads_count)))
+                all_res_layer = all_res.layer(number)
 
-    # display progress
-    progress = 0
-    progress_target = Reader.number_of_frames()
-    # progress_target = len(all_res)
-    for p in iter(pbar_queue.get, None):
-        pbar.next(p)
-        progress += p
-        if progress == progress_target:
-            break
-    # [stop workers]
-    [input_queue.put(None) for p in pool]
-    pbar.finish()
+                input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
+                                 options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
+                                 max(1, optimal_threads.threads_count)))
+        else:
+
+
+
+        for results_count, (frame_rid_in_object, (number, traj_reader)) in enumerate(izip(iterate_or_die(number_frame_rid_in_object,
+                                                                                                         times=Reader.number_of_layers()),
+                                                                                          Reader.iterate(number=True))):
+
+            all_res_layer = all_res.layer(number)
+
+            input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
+                             options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
+                             max(1, optimal_threads.threads_count)))
+
+        # display progress
+        progress = 0
+        progress_target = Reader.number_of_frames()
+        # progress_target = len(all_res)
+        for p in iter(pbar_queue.get, None):
+            pbar.next(p)
+            progress += p
+            if progress == progress_target:
+                break
+
+        # [stop workers]
+        [input_queue.put(None) for p in pool]
+
+
 
     # collect results
     pbar = clui.pbar((results_count + 1) + 1, 'Collecting results from layers:')
