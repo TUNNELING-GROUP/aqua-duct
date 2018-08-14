@@ -85,9 +85,14 @@ def MeanShiftBandwidth(X, **kwargs):
             bandwidth = estimate_bandwidth(np.array(X),
                                            quantile=0.5)
             # TODO: change it to the default value of 0.3 or use it as option?
+            if not bandwidth:
+                bandwidth = None
+                clui.message("Meanshift automatic bandwidth calculation returned 0; setting bandwidth to None.")
+            else:
+                clui.message("Meanshift automatic bandwidth calculation: bandwidth = %f" % float(
+                bandwidth))
             kwargs.update({'bandwidth': bandwidth})
-            clui.message("Meanshift automatic bandwidth calculation: bandwidth = %f" % float(
-                bandwidth))  # TODO: make it properly
+
     return kwargs
 
 

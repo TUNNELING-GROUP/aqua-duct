@@ -1371,6 +1371,9 @@ def stage_III_run(config, options,
                   **kwargs):
     soptions = config.get_smooth_options()
 
+    Reader.reset()
+
+
     if options.allow_passing_paths:
         logger.warning("Passing paths is a highly experimental feature. Please, analyze results with care.")
 
@@ -1383,6 +1386,7 @@ def stage_III_run(config, options,
     ######################################################################
 
     with clui.pbar(len(paths), "Create separate paths:") as pbar:
+        Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
         ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
         n = max(1, optimal_threads.threads_count)
@@ -1439,6 +1443,7 @@ def stage_III_run(config, options,
         if short_paths is not None or short_object is not None:
             with clui.pbar(len(spaths), discard_message) as pbar:
                 spaths_nr = len(spaths)
+                Reader.reset()
                 pool = Pool(processes=optimal_threads.threads_count)
                 dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                               short_logic=short_logic)
@@ -1505,6 +1510,7 @@ def stage_III_run(config, options,
 
         clui.message("Recreate separate paths:")
         pbar = clui.pbar(len(paths))
+        Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
         # ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
         n = max(1, len(paths) / optimal_threads.threads_count / 3)
@@ -1527,6 +1533,7 @@ def stage_III_run(config, options,
             if short_paths is not None or short_object is not None:
                 with clui.pbar(len(spaths), discard_message) as pbar:
                     spaths_nr = len(spaths)
+                    Reader.reset()
                     pool = Pool(processes=optimal_threads.threads_count)
                     dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                                   short_logic=short_logic)
@@ -1821,6 +1828,7 @@ def stage_IV_run(config, options,
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
                     pbar = clui.pbar(len(spaths) * 2, mess='Building coords cache')
+                    # TODO: do it in parallel
                     [sp.get_coords(smooth=None) for sp in spaths if
                      pbar.next() is None and not isinstance(sp, PassingPath)]
                     [sp.get_coords(smooth=smooth) for sp in spaths if
