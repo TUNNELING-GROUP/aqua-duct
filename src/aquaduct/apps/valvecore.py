@@ -249,6 +249,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'top')  # topology
         config.set(section, 'trj')  # trajectory
 
+        config.set(section, 'twoway', 'True')
         # config.set(section, 'pbar', 'simple')
 
         ################
@@ -863,6 +864,8 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
         else:
             raise NotImplementedError('exec mode %s not implemented' % options.execute)
         # remove options stuff
+        # GC!
+        gc.collect()
         if not no_io:
             if result is not None:
                 return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
@@ -1107,9 +1110,9 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
             number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
                                                  dtype=np.int8)
         # the loop over frames, use izip otherwise iteration over frames does not work
+        progress = 0
         for reverse in (False,True):
             # progress reported peridicaly
-            progress = 0
             progress_gc = 0
             progress_freq_flex = min(1, progress_freq)
             # which all_res should be evalated?
@@ -1153,7 +1156,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                     progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
                     if GCS.cachedir:
                         number_frame_object_scope.flush()
-                if progress_gc == progress_freq * 100:
+                if progress_gc > progress_freq * 100:
                     gc.collect()
                     progress_gc = 0
                 all_res_eval = np.zeros(len(all_res_this_ids), dtype=bool)
@@ -1167,10 +1170,9 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
             del number_frame_object_scope
         else:
             results_queue.put({layer_number: number_frame_object_scope})
-        if progress:
-            pbar_queue.put(progress*0.5)
-        # termination
         gc.collect()
+        pbar_queue.put(progress*0.5)
+        # termination
 
 
 
@@ -1269,12 +1271,16 @@ def stage_II_run(config, options,
         results_queue = Queue()
         input_queue = Queue()
 
-        sI = config.get_stage_options(0)
-        sII = config.get_stage_options(1)
-        sIII = config.get_stage_options(2)
+        allow_twoway = False
+        if config.get_global_options().twoway:
+            sI = config.get_stage_options(0)
+            sII = config.get_stage_options(1)
+            sIII = config.get_stage_options(2)
+            allow_twoway = (not Reader.sandwich_mode) and (sI.scope == sII.scope) and (sI.scope_convexhull == sII.scope_convexhull) and (sI.object == sII.object) and (sIII.allow_passing_paths == False)
+            logger.info('Twoway trajectory scan enabled.')
 
         # prepare and start pool of workers
-        if (not Reader.sandwich_mode) and (sI.scope == sII.scope) and (sI.scope_convexhull == sII.scope_convexhull) and (sI.object == sII.object) and (sIII.allow_passing_paths == False):
+        if allow_twoway:
             pool = [Process(target=stage_II_worker_q_twoways, args=(input_queue, results_queue, pbar_queue)) for dummy in
                     xrange(optimal_threads.threads_count)]
         else:
