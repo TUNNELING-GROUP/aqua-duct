@@ -22,6 +22,7 @@ import operator
 import os
 import re
 import sys
+import gc
 from collections import namedtuple, OrderedDict
 from functools import wraps, partial
 from itertools import izip_longest, izip, chain
@@ -1008,7 +1009,7 @@ def stage_I_run(config, options,
 
 ################################################################################
 
-def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
+def stage_II_worker_q(input_queue, results_queue, pbar_queue):
     # input queue loop
     for input_data in iter(input_queue.get, None):
         # get data
@@ -1035,6 +1036,7 @@ def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
                                                  dtype=np.int8)
         # progress reported peridicaly
         progress = 0
+        progress_gc = 0
         progress_freq_flex = min(1, progress_freq)
         # the loop over frames, use izip otherwise iteration over frames does not work
         for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
@@ -1055,12 +1057,16 @@ def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
                                                            dtype=np.int8)
             # increase progress counter and report progress if needed
             progress += 1
+            progress_gc += 1
             if progress == progress_freq_flex:
                 pbar_queue.put(progress)
                 progress = 0
                 progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
                 if GCS.cachedir:
                     number_frame_object_scope.flush()
+            if progress_gc == progress_freq * 100:
+                gc.collect()
+                progress_gc = 0
         # sent results to results_queue
         # cache???
         if GCS.cachedir:
@@ -1072,9 +1078,103 @@ def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
         if progress:
             pbar_queue.put(progress)
         # termination
+        gc.collect()
 
 
-def stage_II_worker_q(input_queue, results_queue, pbar_queue):
+def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
+    # input queue loop
+    for input_data in iter(input_queue.get, None):
+        # get data
+        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
+        # open trajectory and get number of frames
+        traj_reader = open_traj_reader(traj_reader_proto)
+        number_of_frames = traj_reader.number_of_frames()
+        # scope is evaluated only once before loop over frames so it cannot be frame dependent
+        if not scope_everyframe:
+            scope = traj_reader.parse_selection(scope)
+            logger.debug("Scope definition evaluated only once for given layer")
+        else:
+            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
+        # get ids only once
+        all_res_this_ids = list(all_res_this_layer.ids())
+        # big container for 012 path data
+        # cache???
+        if GCS.cachedir:
+            number_frame_object_scope = np.memmap(create_tmpfile(ext='dat', dir=GCS.cachedir),
+                                                  dtype=np.int8,
+                                                  shape=(number_of_frames, all_res_this_layer.len()))
+        else:
+            number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
+                                                 dtype=np.int8)
+        # the loop over frames, use izip otherwise iteration over frames does not work
+        for reverse in (False,True):
+            # progress reported peridicaly
+            progress = 0
+            progress_gc = 0
+            progress_freq_flex = min(1, progress_freq)
+            # which all_res should be evalated?
+            all_res_eval = np.ones(len(all_res_this_ids), dtype=bool)
+            for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames, reverse=reverse),
+                                             traj_reader.iterate_over_frames(reverse=reverse)):
+                # do we have object data?
+                if not is_number_frame_rid_in_object:
+                    rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
+                # assert rid_in_object is not None
+                is_res_in_object = np.fromiter((rid[-1] in rid_in_object for rid in all_res_this_ids),dtype=bool)
+                # if in object do not do scope check
+                all_res_eval[is_res_in_object] = False
+                if reverse:
+                    all_res_eval[number_frame_object_scope[frame, :]>0] = False
+                all_res_this_ids_eval = (i[-1] for te,i in izip(all_res_eval,all_res_this_ids) if te)
+                all_res_this_layer_eval = ResidueSelection({all_res_this_layer.numbers()[0]:list(all_res_this_ids_eval)})
+                # should scope be evaluated?
+                if scope_everyframe:
+                    scope = traj_reader.parse_selection(scope)
+                # check if all_res are in the scope, reuse res_ids_in_object_over_frames
+                is_res_in_scope_eval = scope.contains_residues(all_res_this_layer_eval, convex_hull=scope_convexhull,
+                                                               known_true=None)  # known_true could be rid_in_object
+                is_res_in_scope = np.zeros(len(all_res_this_ids),dtype=bool)
+                is_res_in_scope[[int(nr) for nr,iris in izip(np.argwhere(all_res_eval),is_res_in_scope_eval) if iris]] = True
+                if not reverse:
+                    is_res_in_scope[is_res_in_object] = True
+                # store results in the container
+                if reverse:
+                    number_frame_object_scope[frame, is_res_in_scope] = 1
+                    is_res_in_scope[is_res_in_object] = True
+                else:
+                    number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
+                                                                   dtype=np.int8)
+                # increase progress counter and report progress if needed
+                progress += 1
+                progress_gc += 1
+                if progress == progress_freq_flex:
+                    pbar_queue.put(progress*0.5)
+                    progress = 0
+                    progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
+                    if GCS.cachedir:
+                        number_frame_object_scope.flush()
+                if progress_gc == progress_freq * 100:
+                    gc.collect()
+                    progress_gc = 0
+                all_res_eval = np.zeros(len(all_res_this_ids), dtype=bool)
+                all_res_eval[is_res_in_scope] = True
+
+        # sent results to results_queue
+        # cache???
+        if GCS.cachedir:
+            number_frame_object_scope.flush()
+            results_queue.put({layer_number: (number_frame_object_scope.filename, number_frame_object_scope.shape)})
+            del number_frame_object_scope
+        else:
+            results_queue.put({layer_number: number_frame_object_scope})
+        if progress:
+            pbar_queue.put(progress*0.5)
+        # termination
+        gc.collect()
+
+
+
+def stage_II_worker_q_old(input_queue, results_queue, pbar_queue):
     for input_data in iter(input_queue.get, None):
         layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
 
@@ -1169,9 +1269,17 @@ def stage_II_run(config, options,
         results_queue = Queue()
         input_queue = Queue()
 
+        sI = config.get_stage_options(0)
+        sII = config.get_stage_options(1)
+        sIII = config.get_stage_options(2)
+
         # prepare and start pool of workers
-        pool = [Process(target=stage_II_worker_q_lowmem, args=(input_queue, results_queue, pbar_queue)) for dummy in
-                xrange(optimal_threads.threads_count)]
+        if (not Reader.sandwich_mode) and (sI.scope == sII.scope) and (sI.scope_convexhull == sII.scope_convexhull) and (sI.object == sII.object) and (sIII.allow_passing_paths == False):
+            pool = [Process(target=stage_II_worker_q_twoways, args=(input_queue, results_queue, pbar_queue)) for dummy in
+                    xrange(optimal_threads.threads_count)]
+        else:
+            pool = [Process(target=stage_II_worker_q, args=(input_queue, results_queue, pbar_queue)) for dummy in
+                    xrange(optimal_threads.threads_count)]
         [p.start() for p in pool]
 
         # feed input_queue with data
@@ -1208,6 +1316,8 @@ def stage_II_run(config, options,
             progress += p
             if progress == progress_target:
                 break
+            if progress % (max(1, optimal_threads.threads_count)**2 * 1000) == 0:
+                gc.collect()
 
         # [stop workers]
         [input_queue.put(None) for p in pool]

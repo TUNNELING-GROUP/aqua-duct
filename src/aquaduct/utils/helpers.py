@@ -584,8 +584,10 @@ def make_iterable(something):
     return something
 
 
-def iterate_or_die(something, times=None):
+def iterate_or_die(something, times=None, reverse=False):
     if is_iterable(something):
+        if reverse:
+            return reversed(something)
         return something
     return (something for dummy in xrange(times))
 
