@@ -1009,53 +1009,51 @@ def stage_I_run(config, options,
 ################################################################################
 
 def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
+    # input queue loop
     for input_data in iter(input_queue.get, None):
+        # get data
         layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
-
+        # open trajectory and get number of frames
         traj_reader = open_traj_reader(traj_reader_proto)
         number_of_frames = traj_reader.number_of_frames()
-
         # scope is evaluated only once before loop over frames so it cannot be frame dependent
         if not scope_everyframe:
             scope = traj_reader.parse_selection(scope)
             logger.debug("Scope definition evaluated only once for given layer")
         else:
             logger.debug("Scope definition evaluated in every frame, this might be very slow.")
-
-        # speed up!
+        # get ids only once
         all_res_this_ids = list(all_res_this_layer.ids())
-
         # big container for 012 path data
         # cache???
         if GCS.cachedir:
-            number_frame_object_scope = np.memmap(create_tmpfile(ext='dat', dir=GCS.cachedir), dtype=np.int8,
+            number_frame_object_scope = np.memmap(create_tmpfile(ext='dat', dir=GCS.cachedir),
+                                                  dtype=np.int8,
                                                   shape=(number_of_frames, all_res_this_layer.len()))
         else:
             number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
                                                  dtype=np.int8)
-
+        # progress reported peridicaly
         progress = 0
         progress_freq_flex = min(1, progress_freq)
         # the loop over frames, use izip otherwise iteration over frames does not work
         for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
                                          traj_reader.iterate_over_frames()):
-
             # do we have object data?
             if not is_number_frame_rid_in_object:
                 rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
             # assert rid_in_object is not None
-
             is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
-
+            # should scope be evaluated?
             if scope_everyframe:
                 scope = traj_reader.parse_selection(scope)
             # check if all_res are in the scope, reuse res_ids_in_object_over_frames
             is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
                                                       known_true=None)  # known_true could be rid_in_object
-
+            # store results in the container
             number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
                                                            dtype=np.int8)
-
+            # increase progress counter and report progress if needed
             progress += 1
             if progress == progress_freq_flex:
                 pbar_queue.put(progress)
@@ -1063,8 +1061,7 @@ def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
                 progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
                 if GCS.cachedir:
                     number_frame_object_scope.flush()
-
-        # sent results
+        # sent results to results_queue
         # cache???
         if GCS.cachedir:
             number_frame_object_scope.flush()
@@ -1072,7 +1069,8 @@ def stage_II_worker_q_lowmem(input_queue, results_queue, pbar_queue):
             del number_frame_object_scope
         else:
             results_queue.put({layer_number: number_frame_object_scope})
-        pbar_queue.put(progress)
+        if progress:
+            pbar_queue.put(progress)
         # termination
 
 
@@ -1141,71 +1139,6 @@ def stage_II_worker_q(input_queue, results_queue, pbar_queue):
         pbar_queue.put(progress)
         # termination
 
-
-def stage_II_worker_q_alt(input_queue, results_queue, pbar_queue, direction='up'):
-    for input_data in iter(input_queue.get, None):
-        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
-
-        traj_reader = traj_reader_proto.open()
-        number_of_frames = traj_reader.number_of_frames()
-
-        # scope is evaluated only once before loop over frames so it cannot be frame dependent
-        if not scope_everyframe:
-            scope = traj_reader.parse_selection(scope)
-            logger.debug("Scope definition evaluated only once for given layer")
-        else:
-            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
-
-        # speed up!
-        all_res_this_ids = list(all_res_this_layer.ids())
-
-        paths_this_layer = (GenericPaths(resid,
-                                         name_of_res=resname,
-                                         min_pf=0, max_pf=number_of_frames - 1)
-                            for resid, resname in izip(all_res_this_ids,
-                                                       all_res_this_layer.names()))
-
-        # big container for 012 path data
-        number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
-                                             dtype=np.int8)
-
-        progress = 0
-        progress_freq_flex = min(1, progress_freq)
-        # the loop over frames, use izip otherwise iteration over frames does not work
-        for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
-                                         traj_reader.iterate_over_frames()):
-
-            # do we have object data?
-            if not is_number_frame_rid_in_object:
-                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
-            # assert rid_in_object is not None
-
-            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
-
-            if scope_everyframe:
-                scope = traj_reader.parse_selection(scope)
-            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
-                                                      known_true=None)  # known_true could be rid_in_object
-
-            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
-                                                           dtype=np.int8)
-
-            progress += 1
-            if progress == progress_freq_flex:
-                pbar_queue.put(progress)
-                progress = 0
-                progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
-
-        paths = []
-        for pat, nfos in izip(paths_this_layer, number_frame_object_scope.T):
-            pat.add_012(nfos)
-            paths.append(pat)
-
-        # sent results
-        results_queue.put({layer_number: paths})
-        pbar_queue.put(progress)
-        # termination
 
 
 # raw_paths

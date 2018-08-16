@@ -87,8 +87,10 @@ class Window(object):
     def __repr__(self):
         return "Window(%r:%r:%r)" % (self.start, self.stop, self.step)
 
-    def range(self):
+    def range(self,reverse=False):
         # returns range object
+        if reverse:
+            return xrange(self.stop, self.start - 1, -1 * self.step)
         return xrange(self.start, self.stop + 1, self.step)
 
     def get_real(self, frame):
@@ -459,13 +461,17 @@ class ReaderTraj(object):
         return "%s(%s,%s,%d,%r)" % (
             self.__class__.__name__, self.topology, "[%s]" % (','.join(self.trajectory)), self.number, self.window)
 
-    def iterate_over_frames(self):
-        for frame, real_frame in enumerate(self.window.range()):
+    def iterate_over_frames(self, reverse=False):
+        window_len = self.window.len()
+        for frame, real_frame in enumerate(self.window.range(reverse=reverse)):
             self.set_real_frame(real_frame)
-            yield frame
+            if reverse:
+                yield window_len - frame - 1
+            else:
+                yield frame
 
-    def iterate(self):
-        return self.iterate_over_frames()
+    def iterate(self, reverse=False):
+        return self.iterate_over_frames(reverse=reverse)
 
     def set_frame(self, frame):
         return self.set_real_frame(self.window.get_real(frame))
