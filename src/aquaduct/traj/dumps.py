@@ -16,42 +16,64 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
+from aquaduct import logger
+import os
 
-logger = logging.getLogger(__name__)
+class WritePDB(object):
 
-from os import unlink
+    def __init__(self,pdbfile,csvfile=None,scale_bf=0.1):
 
-import MDAnalysis as mda
+        self.current_atom = 1
+        self.scale_bf = scale_bf
 
-from aquaduct.utils import clui
-from aquaduct.utils.helpers import create_tmpfile
+        self.fh = open(pdbfile,'w')
+        self.fh_csv = None
+        if csvfile:
+            self.fh_csv = open(csvfile,'w')
 
+    def print_atom_line(self,xyz,bf):
+        atom = "%5d" % self.current_atom
+        x = ((" "*8)+("%0.3f" % xyz[0])[:8])[-8:]
+        y = ((" "*8)+("%0.3f" % xyz[1])[:8])[-8:]
+        z = ((" "*8)+("%0.3f" % xyz[2])[:8])[-8:]
+        #x = ("        %0.3f" % xyz[0])[-8:]
+        #y = ("        %0.3f" % xyz[1])[-8:]
+        #z = ("        %0.3f" % xyz[2])[-8:]
+        b = ((" "*4)+("%0.2f" % (bf*self.scale_bf))[:4])[-4:]
+        return ("ATOM  %s  H   FIL T   1    %s%s%s        %s" % (atom,x,y,z,b))+os.linesep
 
-class TmpDumpWriterOfMDA(object):
-    def __init__(self):
+    def print_conect_line(self,a1,a2):
+        atom1 = "%5d" % a1
+        atom2 = "%5d" % a2
+        return ("CONECT%s%s" % (atom1,atom2))+os.linesep
 
-        # creates tmp file
-        self.pdbfile = create_tmpfile(ext='pdb')
+    def write_connected(self, line, bf):
+        conect = None
+        for xyz,b in zip(line, bf):
+            self.fh.write(self.print_atom_line(xyz,b))
+            if conect:
+                self.fh.write(self.print_conect_line(conect,self.current_atom))
+            elif self.fh_csv is not None:
+                self.fh_csv.write("X,Y,Z"+os.linesep) # header
+            if self.fh_csv is not None:
+                self.fh_csv.write(("%f,%f,%f"+os.linesep) % tuple(xyz))
+            conect = self.current_atom
+            self.current_atom += 1
 
-        # create mda writer
-        self.mdawriter = mda.Writer(self.pdbfile, multiframe=True)
+    def write_scatter(self, scatter, bf):
+        for xyz,b in zip(scatter, bf):
+            self.fh.write(self.print_atom_line(xyz,b))
+            self.current_atom += 1
 
-    def dump_frames(self, reader, frames, selection='protein'):
+    def __enter__(self):
+        return self
 
-        to_dump = reader.parse_selection(selection)
+    def __exit__(self, typ, value, traceback):
+        if typ is None:
+            self.__del__()
 
-        for frame in frames:
-            if frame < reader.number_of_frames:
-                reader.set_real_frame(frame)
-                self.mdawriter.write(to_dump)
-            else:
-                logger.error(
-                    'Requested frame %d exceeded available number of frames %d.' % (frame, reader.number_of_frames - 1))
-
-    def close(self):
-        self.mdawriter.close()
-        return self.pdbfile
 
     def __del__(self):
-        unlink(self.pdbfile)
+        self.fh.close()
+        if self.fh_csv is not None:
+            self.fh_csv.close()

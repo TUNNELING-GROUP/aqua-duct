@@ -57,6 +57,7 @@ from aquaduct.utils.helpers import iterate_or_die, create_tmpfile
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
+from aquaduct.traj.dumps import WritePDB
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
@@ -1950,6 +1951,65 @@ def stage_IV_run(config, options,
         master_paths = {}
         master_paths_smooth = {}
 
+    ################################################################################
+
+    W = 5
+    with clui.pbar(len(spaths)*(1+W+1),mess='Calculating pockets:') as pbar:
+        def get_spc(sp,window=None):
+            if window is None:
+                return sp.coords_cont
+            i = (np.array(sp.paths_cont)>=window[0]) & (np.array(sp.paths_cont)<=window[1])
+            return sp.coords_cont[i]
+
+        number_of_frames = Reader.number_of_frames(onelayer=True)
+
+
+        A = 1./1 # grid size in A
+        AS = 1 / A
+
+        minc = np.array([float('inf')]*3)
+        maxc = np.array([float('-inf')]*3)
+        for sp in spaths:
+            sp_minc = get_spc(sp).min(0)
+            minc_i = minc > sp_minc
+            minc[minc_i] = sp_minc[minc_i]
+            sp_maxc = get_spc(sp).max(0)
+            maxc_i = maxc < sp_maxc
+            maxc[maxc_i] = sp_maxc[maxc_i]
+            pbar.next()
+        minc = np.floor(minc)
+        maxc = np.ceil(maxc)
+        e = [np.linspace(mi,ma,int((ma-mi)*AS)+1)  for mi,ma in zip(minc,maxc)]
+
+        H = np.zeros(map(int,(maxc-minc)*AS))
+
+
+        for wnr,window in enumerate([(0,number_of_frames-1)] + zip(np.linspace(0,number_of_frames-1,W+1)[:-1],np.linspace(0,number_of_frames-1,W+1)[1:])):
+
+            for sp in spaths:
+                H += np.histogramdd(get_spc(sp,window=tuple(window)),bins=e)[0]
+                pbar.next()
+
+            mg = [ee[:-1]+(1./(AS+1)) for ee in e]
+            x,y,z = np.meshgrid(*mg,indexing='ij')
+            pocket = H > H[H>0].mean()
+            pocket = H > 0
+            H /= float(number_of_frames)
+            HH = H / H[H>0].mean()
+            H /= H[H>0].mean()
+
+
+
+            for fiona in np.linspace(0,1,6)[:-1]:
+                pocket_fiona = (HH > fiona) & (HH < fiona + 1./5)
+
+                pocket = pocket_fiona
+                pdb_name = 'grid_window%d_core%0.1f.pdb' % (wnr,fiona)
+                with WritePDB(pdb_name,scale_bf=1.) as wpdb:
+                    wpdb.write_scatter(np.vstack((x[pocket],y[pocket],z[pocket])).T,H[pocket])
+
+
+    ################################################################################
 
     return {'inls': inls,
             'ctypes': ctypes,
