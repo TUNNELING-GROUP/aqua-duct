@@ -27,6 +27,7 @@ from scipy.spatial.distance import cdist
 from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
 from aquaduct.traj.barber import WhereToCut
+from aquaduct.geom import Sphere
 
 # problems with clustering methods and size of set
 # DBSCAN:              n > 0
@@ -58,13 +59,19 @@ class BarberCluster(object):
     '''
 
     @staticmethod
-    def fit(coords, spheres=None):
+    def fit(coords, spheres=None, radii=None):
         '''
         :param Iterable coords: Input coordinates of points to be clustered.
-        :param Iterable spheres: Input spheres for each point.
+        :param Iterable spheres: Input spheres for each point. Each sphere has center and radius.
+        :param Iterable radii: Radii to create spheres using coords.
         '''
         wtc = WhereToCut()
-        wtc.spheres = spheres
+        if spheres is not None:
+            wtc.spheres = spheres
+        elif radii is not None:
+            wtc.spheres = [Sphere(center=center,radius=radius) for center,radius in izip(coords,radii)]
+        else:
+            raise TypeError('Either spheres or radii have to be specified.')
         clouds = wtc.cloud_groups(progress=True)
         # clouds to labels!
         labels = np.zeros(len(spheres))
