@@ -1981,11 +1981,11 @@ def stage_IV_run(config, options,
         maxc = np.ceil(maxc)
         e = [np.linspace(mi,ma,int((ma-mi)*AS)+1)  for mi,ma in zip(minc,maxc)]
 
-        H = np.zeros(map(int,(maxc-minc)*AS))
 
 
         for wnr,window in enumerate([(0,number_of_frames-1)] + zip(np.linspace(0,number_of_frames-1,W+1)[:-1],np.linspace(0,number_of_frames-1,W+1)[1:])):
 
+            H = np.zeros(map(int, (maxc - minc) * AS))
             for sp in spaths:
                 H += np.histogramdd(get_spc(sp,window=tuple(window)),bins=e)[0]
                 pbar.next()
@@ -1999,14 +1999,18 @@ def stage_IV_run(config, options,
             H /= H[H>0].mean()
 
 
-
             for fiona in np.linspace(0,1,6)[:-1]:
                 pocket_fiona = (HH > fiona) & (HH < fiona + 1./5)
-
                 pocket = pocket_fiona
                 pdb_name = 'grid_window%d_core%0.1f.pdb' % (wnr,fiona)
                 with WritePDB(pdb_name,scale_bf=1.) as wpdb:
                     wpdb.write_scatter(np.vstack((x[pocket],y[pocket],z[pocket])).T,H[pocket])
+            fiona = 1.
+            pocket_fiona = HH > fiona
+            pocket = pocket_fiona
+            pdb_name = 'grid_window%d_core%0.1f.pdb' % (wnr,fiona)
+            with WritePDB(pdb_name,scale_bf=1.) as wpdb:
+                wpdb.write_scatter(np.vstack((x[pocket],y[pocket],z[pocket])).T,H[pocket])
 
 
     ################################################################################
