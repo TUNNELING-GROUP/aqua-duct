@@ -19,12 +19,49 @@
 from aquaduct import logger
 import os
 
+class WriteMOL2(object):
+
+    def __init__(self,mol2file):
+
+        self.current_atom = 1
+        self.fh = open(mol2file,'w')
+
+    def print_atom_line(self,xyz,bf):
+        atom = "%7d  H         %3.4f   %3.4f    %3.4f H       1  FIL1        %3.4f" % (self.current_atom,xyz[0],xyz[1],xyz[2],bf)
+        return atom+os.linesep
+
+
+    def write_scatter(self, scatter, bf):
+        self.fh.write("@<TRIPOS>MOLECULE"+os.linesep)
+        self.fh.write("pocket"+os.linesep)
+        self.fh.write((" %d 0 0 0" % len(scatter)) + os.linesep)
+        self.fh.write("SMALL" + os.linesep)
+        self.fh.write("GASTEIGER" + os.linesep + os.linesep)
+        self.fh.write("@<TRIPOS>ATOM"+os.linesep)
+        for xyz,b in zip(scatter, bf):
+            self.fh.write(self.print_atom_line(xyz,b))
+            self.current_atom += 1
+        self.fh.write("@<TRIPOS>BOND"+os.linesep)
+        self.current_atom = 1
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, typ, value, traceback):
+        if typ is None:
+            self.__del__()
+
+    def __del__(self):
+        self.fh.close()
+
+
 class WritePDB(object):
 
-    def __init__(self,pdbfile,csvfile=None,scale_bf=0.1):
+    def __init__(self,pdbfile,csvfile=None,scale_bf=1):
 
         self.current_atom = 1
         self.scale_bf = scale_bf
+        self.current_model = 0
 
         self.fh = open(pdbfile,'w')
         self.fh_csv = None
@@ -59,11 +96,22 @@ class WritePDB(object):
                 self.fh_csv.write(("%f,%f,%f"+os.linesep) % tuple(xyz))
             conect = self.current_atom
             self.current_atom += 1
+        if self.current_model:
+            self.fh.write('ENDMDL'+os.linesep)
+
+
+    def next_model(self):
+        self.current_model += 1
+        self.fh.write(('MODEL     %4d' % (self.current_model))+os.linesep)
+        self.current_atom = 1
+
 
     def write_scatter(self, scatter, bf):
         for xyz,b in zip(scatter, bf):
             self.fh.write(self.print_atom_line(xyz,b))
             self.current_atom += 1
+        if self.current_model:
+            self.fh.write('ENDMDL'+os.linesep)
 
     def __enter__(self):
         return self

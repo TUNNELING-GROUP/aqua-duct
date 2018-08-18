@@ -17,6 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import numpy as np
+
 def get_spc(sp,window=None):
     '''
     :param MacromolPath sp: Single path like object.
@@ -52,7 +54,7 @@ def find_minmax(spaths,pbar=None):
     maxc = np.ceil(maxc)
     return minc,maxc
 
-def find_edges(spaths,grid_size=1.,pabr=None):
+def find_edges(spaths,grid_size=1.,pbar=None):
     '''
     :param list spaths: List of single like path objects.
     :param float grid_size: Size of grid cell in A.
@@ -60,7 +62,7 @@ def find_edges(spaths,grid_size=1.,pabr=None):
     :rtype: list of numpy.ndarrays
     :return: Edges of bins of grid spanning all submited paths.
     '''
-    return [np.linspace(mi,ma,int((ma-mi)*grid_size)+1) for mi,ma in zip(find_minmax(spaths,pbar=pbar)]
+    return [np.linspace(mi,ma,int((ma-mi)*grid_size)+1) for mi,ma in zip(*find_minmax(spaths,pbar=pbar))]
 
 def distribution(spaths,grid_size=1.,edges=None,window=None,pbar=None):
     '''
@@ -76,9 +78,10 @@ def distribution(spaths,grid_size=1.,edges=None,window=None,pbar=None):
     minc = np.array(map(min,edges))
     H = np.zeros(map(int, (maxc - minc) * grid_size))
     for sp in spaths:
-        H += np.histogramdd(get_spc(sp,window=tuple(window)),bins=e)[0]
-        pbar.next()
-    mg = [ee[:-1]+(1./(grid_size+1)) for ee in e]
+        H += np.histogramdd(get_spc(sp,window=window),bins=edges)[0]
+        if pbar:
+            pbar.next()
+    mg = [ee[:-1]+(1./(grid_size+1)) for ee in edges]
     x,y,z = np.meshgrid(*mg,indexing='ij')
     pocket = H > 0
     return np.vstack((x[pocket],y[pocket],z[pocket])).T,H[pocket]
@@ -91,6 +94,24 @@ def outer_inner(H):
     '''
     OI = H / H[H>0].mean()
     return OI<1,OI>=1
+
+def windows(frames,windows=None,size=None):
+    yield (0.,frames - 1.) # full window
+    if windows:
+        if size:
+            begs = np.linspace(0, frames- size, windows)
+            ends = np.array([b+size-1 for b in begs])
+            if ends[-1] > frames - 1:
+                ends[-1] = frames - 1
+        else:
+            begs = np.linspace(0, frames, windows + 1)[:-1]
+            ends = np.linspace(-1,frames-1,windows+1)[1:]
+            if ends[-1] < frames - 1:
+                ends[-1] = frames - 1
+        for b,e in zip(begs,ends):
+            yield np.floor(b),np.floor(e)
+
+
 
 '''
 
