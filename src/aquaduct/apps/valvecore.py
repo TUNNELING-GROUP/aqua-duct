@@ -1511,6 +1511,7 @@ def stage_III_run(config, options,
                                                                CRIC.update_cric(cric) is None))))
                 else:
                     spaths = list(chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
+                save_cric()
                 pool.close()
                 pool.join()
                 gc.collect()
@@ -1551,14 +1552,22 @@ def stage_III_run(config, options,
                     CRIC.update_cric(paths_new_list.pop(-1))
                     paths_.extend(paths_new_list)
                     pbar.next(step=len(paths_new_list))
+                save_cric()
                 # now, it might be that some of paths are empty
-                paths = [pat for pat in paths_ if len(pat.frames) > 0]
+                paths = []
+                while len(paths_):
+                    pat = paths_.pop(0)
+                    if len(pat.frames) > 0:
+                        paths.append(pat)
+                del paths_,paths_new,paths_new_list
                 pool.close()
                 pool.join()
                 gc.collect()
         else:
             clui.message('AutoBarber procedure skip, no spheres detected.')
 
+    ######################################################################
+    # following procedures are run only if autobarber
     ######################################################################
 
     if options.auto_barber:
@@ -1604,19 +1613,18 @@ def stage_III_run(config, options,
                     else:
                         spaths = list(
                             chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
+                    save_cric()
                     pool.close()
                     pool.join()
                     gc.collect()
-                '''
-                with clui.fbm(discard_message):
-                    spaths_nr = len(spaths)
-                    spaths = [sp for sp in spaths if short_logic(sp.size > short_paths, sp.object_len > short_object)]
-                '''
+                # del spathsqq
                 spaths_nr_new = len(spaths)
                 if spaths_nr == spaths_nr_new:
                     clui.message("No paths were discarded.")
                 else:
                     clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
+                    with clui.pbar(len(spaths) + len(paths), "Removing (again) unused parts of paths:") as pbar:
+                        paths = yield_generic_paths(spaths, progress=pbar)
             else:
                 clui.message("No paths were discarded - no values were set.")
 
