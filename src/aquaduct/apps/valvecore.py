@@ -2986,8 +2986,17 @@ def stage_V_run(config, options,
 
         for number, traj_reader in Reader.iterate(number=True):
             traj_reader = traj_reader.open()
-            scope_size.append([])
-            object_size.append([])
+            if Reader.sandwich_mode:
+                header += map(lambda s: '%s_%d' % (s, number),
+                              ['scope_area', 'scope_volume', 'object_area', 'object_volume'])
+                fmt += ['%0.3f', '%0.2f'] * 2
+            elif not len(scope_size):
+                header += map(lambda s: '%s' % s,
+                              ['scope_area', 'scope_volume', 'object_area', 'object_volume'])
+                fmt += ['%0.3f', '%0.2f'] * 2
+            if Reader.sandwich_mode or not len(scope_size):
+                scope_size.append([])
+                object_size.append([])
             for frame in traj_reader.iterate_over_frames():
                 scope = traj_reader.parse_selection(options.scope_chull)
                 ch = scope.chull()
@@ -2996,9 +3005,6 @@ def stage_V_run(config, options,
                 ch = res.chull()
                 object_size[-1].append((ch.area, ch.volume))
                 pbar.next()
-            header += map(lambda s: '%s_%d' % (s, number),
-                          ['scope_area', 'scope_volume', 'object_area', 'object_volume'])
-            fmt += ['%0.3f', '%0.2f'] * 2
         for s_s, o_s in zip(scope_size, object_size):
             h = np.hstack((h, s_s, o_s))
         pbar.finish()
