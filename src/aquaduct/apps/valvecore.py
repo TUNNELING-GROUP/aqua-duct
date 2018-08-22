@@ -1636,36 +1636,6 @@ def stage_III_run(config, options,
 
     ######################################################################
 
-    '''
-    def get_spc(sp):
-        return sp.coords_cont
-
-    A = 1./1 # grid size in A
-    AS = 1 / A
-
-    minc = np.array([float('inf')]*3)
-    maxc = np.array([float('-inf')]*3)
-    for sp in spaths:
-        sp_minc = get_spc(sp).min(0)
-        minc_i = minc > sp_minc
-        minc[minc_i] = sp_minc[minc_i]
-        sp_maxc = get_spc(sp).max(0)
-        maxc_i = maxc < sp_maxc
-        maxc[maxc_i] = sp_maxc[maxc_i]
-    minc = np.floor(minc)
-    maxc = np.ceil(maxc)
-    e = [np.linspace(mi,ma,int((ma-mi)*AS)+1)  for mi,ma in zip(minc,maxc)]
-    H = np.zeros(map(int,(maxc-minc)*AS))
-    for sp in spaths:
-        H += np.histogramdd(get_spc(sp),bins=e)[0]
-
-    mg = [ee[:-1]+(1./(AS+1)) for ee in e]
-    x,y,z = np.meshgrid(*mg,indexing='ij')
-    pocket = H > H[H>0].mean()
-    '''
-
-    ######################################################################
-
     # apply smoothing?
     # it is no longer necessary
     if options.apply_smoothing:
@@ -1964,11 +1934,6 @@ def stage_IV_run(config, options,
         ctypes = inls.spaths2ctypes(spaths)
         master_paths = {}
         master_paths_smooth = {}
-
-    ################################################################################
-
-
-
 
     ################################################################################
 
