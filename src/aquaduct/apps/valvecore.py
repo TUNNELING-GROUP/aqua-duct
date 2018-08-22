@@ -1113,7 +1113,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                                                  dtype=np.int8)
         # the loop over frames, use izip otherwise iteration over frames does not work
         progress = 0
-        for reverse in (False,True):
+        for reverse in (False, True):
             # progress reported peridicaly
             progress_gc = 0
             progress_freq_flex = min(1, progress_freq)
@@ -1125,12 +1125,12 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                 if not is_number_frame_rid_in_object:
                     rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
                 # assert rid_in_object is not None
-                is_res_in_object = np.fromiter((rid[-1] in rid_in_object for rid in all_res_this_ids),dtype=bool)
+                is_res_in_object = np.fromiter((rid[-1] in rid_in_object for rid in all_res_this_ids), dtype=bool)
                 # if in object do not do scope check
                 all_res_eval[is_res_in_object] = False
                 if reverse:
                     all_res_eval[number_frame_object_scope[frame, :]>0] = False
-                all_res_this_ids_eval = (i[-1] for te,i in izip(all_res_eval,all_res_this_ids) if te)
+                all_res_this_ids_eval = (i[-1] for te,i in izip(all_res_eval, all_res_this_ids) if te)
                 all_res_this_layer_eval = ResidueSelection({all_res_this_layer.numbers()[0]:list(all_res_this_ids_eval)})
                 # should scope be evaluated?
                 if scope_everyframe:
@@ -1138,7 +1138,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                 # check if all_res are in the scope, reuse res_ids_in_object_over_frames
                 is_res_in_scope_eval = scope.contains_residues(all_res_this_layer_eval, convex_hull=scope_convexhull,
                                                                known_true=None)  # known_true could be rid_in_object
-                is_res_in_scope = np.zeros(len(all_res_this_ids),dtype=bool)
+                is_res_in_scope = np.zeros(len(all_res_this_ids), dtype=bool)
                 is_res_in_scope[[int(nr) for nr,iris in izip(np.argwhere(all_res_eval),is_res_in_scope_eval) if iris]] = True
                 if not reverse:
                     is_res_in_scope[is_res_in_object] = True
@@ -1349,7 +1349,7 @@ def stage_II_run(config, options,
     pbar.finish()
 
     # now, results holds 012 matrices, make paths out of it
-
+    # TODO: Following could be easily written in parallel.
     def results_n(rn):
         if isinstance(rn, np.ndarray):
             return rn
@@ -1413,10 +1413,6 @@ def discard_short_etc(spaths, short_paths=None, short_object=None, short_logic=N
         return len(spaths), [sp for sp in spaths if sp.size > short_paths]
 
 
-class ABSphere(namedtuple('ABSphere', 'center radius')):
-    pass
-
-
 # separate_paths
 def stage_III_run(config, options,
                   paths=None,
@@ -1424,7 +1420,6 @@ def stage_III_run(config, options,
     soptions = config.get_smooth_options()
 
     Reader.reset()
-
 
     if options.allow_passing_paths:
         logger.warning("Passing paths is a highly experimental feature. Please, analyze results with care.")
@@ -1509,9 +1504,10 @@ def stage_III_run(config, options,
                     spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
                                                        (pbar.next(step=nr) is None) and (
                                                                CRIC.update_cric(cric) is None))))
+                    save_cric()
                 else:
                     spaths = list(chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
-                save_cric()
+
                 pool.close()
                 pool.join()
                 gc.collect()
@@ -1590,6 +1586,10 @@ def stage_III_run(config, options,
         gc.collect()
         pbar.finish()
 
+    clui.message("(Re)Created %d separate paths out of %d raw paths" %
+                 (len(spaths), len(paths)))
+
+
     ######################################################################
 
     if options.auto_barber:
@@ -1639,10 +1639,10 @@ def stage_III_run(config, options,
     '''
     def get_spc(sp):
         return sp.coords_cont
-    
+
     A = 1./1 # grid size in A
     AS = 1 / A
-    
+
     minc = np.array([float('inf')]*3)
     maxc = np.array([float('-inf')]*3)
     for sp in spaths:
@@ -1658,7 +1658,7 @@ def stage_III_run(config, options,
     H = np.zeros(map(int,(maxc-minc)*AS))
     for sp in spaths:
         H += np.histogramdd(get_spc(sp),bins=e)[0]
-    
+
     mg = [ee[:-1]+(1./(AS+1)) for ee in e]
     x,y,z = np.meshgrid(*mg,indexing='ij')
     pocket = H > H[H>0].mean()
