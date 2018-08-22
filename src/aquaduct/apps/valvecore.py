@@ -1967,26 +1967,6 @@ def stage_IV_run(config, options,
 
     ################################################################################
 
-    W = 100
-    WS = 1000
-    grid_size = 1.
-    with clui.pbar(len(spaths)*(1+W+1),mess='Calculating pockets:') as pbar:
-        edges = pocket.find_edges(spaths,grid_size=grid_size,pbar=pbar)
-        number_of_frames = Reader.number_of_frames(onelayer=True)
-
-
-        wmol2 = [WriteMOL2('outer.mol2'), WriteMOL2('inner.mol2')]
-        for wnr,window in enumerate(pocket.windows(number_of_frames,windows=W,size=WS)):
-            D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
-            if wnr:
-                H = D[-1] / M
-                for I,mol2 in zip(pocket.outer_inner(D[-1]),wmol2):
-                    mol2.write_scatter(D[0][I],H[I])
-            else:
-                M = D[-1].mean() * float(WS) / number_of_frames
-        for mol2 in wmol2:
-            del mol2
-
 
 
 

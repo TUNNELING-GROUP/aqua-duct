@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+POCKET=$(which portal.py)
+env LD_LIBRARY_PATH="" $POCKET $@
+

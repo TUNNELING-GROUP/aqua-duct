@@ -255,7 +255,7 @@ class MasterReader(object):
             window = list(self.window.split(self.threads * self.threads_multiply))[number - 1]
             return self.engine(self.topology, self.trajectory, number=number, window=window)
         else:
-            assert number == 0
+            assert number == 0, "Sandwich/baguette mismatch. Try use/not use --sandwich option."
             return self.engine(self.topology, self.trajectory, number=0, window=self.window)
 
     def get_reader_by_id(self, someid):
