@@ -953,6 +953,8 @@ def stage_I_run(config, options,
             xrange(optimal_threads.threads_count)]
     [p.start() for p in pool]
 
+    if options.scope_convexhull_inflate:
+        logger.info("Inflate convex hull by %0.1f" % float(options.scope_convexhull_inflate))
     # feed input_queue with data
     for results_count, (number, traj_reader) in enumerate(Reader.iterate(number=True)):
         input_queue.put((number, traj_reader,
@@ -1228,6 +1230,8 @@ def stage_II_run(config, options,
                     xrange(optimal_threads.threads_count)]
         [p.start() for p in pool]
 
+        if options.scope_convexhull_inflate:
+            logger.info("Inflate convex hull by %0.1f" % float(options.scope_convexhull_inflate))
         # feed input_queue with data
         if Reader.sandwich_mode:
             for results_count, (frame_rid_in_object, (number, traj_reader)) in enumerate(
@@ -2861,6 +2865,10 @@ def stage_V_run(config, options,
         pbar.next()
     pbar.finish()
 
+
+    if options.scope_chull_inflate:
+        logger.info("Inflate convex hull by %0.1f" % float(options.scope_chull_inflate))
+
     # scope/object size?
     if options.calculate_scope_object_size:
         scope_size = []
@@ -3029,6 +3037,8 @@ def stage_VI_run(config, options,
                 # it would be nice to plot convexhull
     if options.show_scope_chull:
         with clui.fbm("Convexhull"):
+            if options.show_scope_chull_inflate:
+                logger.info("Inflate convex hull by %0.1f" % float(options.show_scope_chull_inflate))
             for nr, traj_reader in enumerate(Reader.iterate(threads=False)):
                 traj_reader = traj_reader.open()
                 frames_to_show = range2int(options.show_scope_chull_frames)

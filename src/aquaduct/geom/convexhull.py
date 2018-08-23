@@ -36,7 +36,6 @@ class SciPyConvexHull(ConvexHull):
         # at this stage we have chull
         if inflate:
             inflate = float(inflate)
-            logger.info("Inflate convex hull by %0.1f" % inflate)
             center = np.mean(self.vertices_points,0)
             # redo chull but inflate its vertices
             new_points = (vector_change_len(p-center,inflate)+center for p in points)
