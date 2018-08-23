@@ -57,8 +57,6 @@ from aquaduct.utils.helpers import iterate_or_die, create_tmpfile
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
-from aquaduct.traj.dumps import WritePDB, WriteMOL2
-from aquaduct.geom import pocket
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
@@ -116,7 +114,7 @@ class ValveConfig(ConfigSpecialNames):
         # scope - scope definition
         # scope_convexhull - take convex hull of scope, true of false
         # object - object definition
-        return 'scope scope_convexhull scope_everyframe object'.split()
+        return 'scope scope_convexhull scope_everyframe scope_convexhull_inflate object'.split()
 
     @staticmethod
     def global_name():
@@ -264,6 +262,7 @@ class ValveConfig(ConfigSpecialNames):
         common(section)
         common_traj_data(section)
         config.set(section, 'scope_everyframe', 'False')
+        config.set(section, 'scope_convexhull_inflate', 'None')
 
         ################
         snr += 1
@@ -353,6 +352,7 @@ class ValveConfig(ConfigSpecialNames):
 
         config.set(section, 'calculate_scope_object_size', 'False')
         config.set(section, 'scope_chull', 'None')
+        config.set(section, 'scope_chull_inflate', 'None')
         config.set(section, 'object_chull', 'None')
 
         config.set(section, 'dump_config', 'True')
@@ -392,6 +392,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'show_molecule', 'None')
         config.set(section, 'show_molecule_frames', '0')
         config.set(section, 'show_scope_chull', 'None')
+        config.set(section, 'show_scope_chull_inflate', 'None')
         config.set(section, 'show_scope_chull_frames', '0')
         config.set(section, 'show_object_chull', 'None')
         config.set(section, 'show_object_chull_frames', '0')
@@ -878,7 +879,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
 
 def stage_I_worker_q(input_queue, results_queue, pbar_queue):
     for input_data in iter(input_queue.get, None):
-        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, progress_freq = input_data
+        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, scope_convexhull_inflate, object_selection, progress_freq = input_data
 
         center_of_system = np.zeros(3)
         all_res = None
@@ -900,7 +901,7 @@ def stage_I_worker_q(input_queue, results_queue, pbar_queue):
             # current res selection
             res = traj_reader.parse_selection(object_selection).residues()
             # find matching residues, ie those which are in the scope:
-            res_new = scope.containing_residues(res, convex_hull=scope_convexhull)
+            res_new = scope.containing_residues(res, convex_hull=scope_convexhull, convex_hull_inflate=scope_convexhull_inflate)
             res_new.uniquify()  # here is a list of residues in this layer that are in the object and in the scope
             # adds them to all_res
             if all_res:
@@ -950,7 +951,8 @@ def stage_I_run(config, options,
 
     # feed input_queue with data
     for results_count, (number, traj_reader) in enumerate(Reader.iterate(number=True)):
-        input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
+        input_queue.put((number, traj_reader,
+                         options.scope_everyframe, options.scope, options.scope_convexhull, options.scope_convexhull_inflate,
                          options.object, max(1, Reader.number_of_frames() / 500)))
 
     # display progress
@@ -1018,7 +1020,7 @@ def stage_II_worker_q(input_queue, results_queue, pbar_queue):
     # input queue loop
     for input_data in iter(input_queue.get, None):
         # get data
-        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
+        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, scope_convexhull_inflate, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
         # open trajectory and get number of frames
         traj_reader = open_traj_reader(traj_reader_proto)
         number_of_frames = traj_reader.number_of_frames()
@@ -1055,7 +1057,7 @@ def stage_II_worker_q(input_queue, results_queue, pbar_queue):
             if scope_everyframe:
                 scope = traj_reader.parse_selection(scope)
             # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
+            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull, convex_hull_inflate=scope_convexhull_inflate,
                                                       known_true=None)  # known_true could be rid_in_object
             # store results in the container
             number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
@@ -1090,7 +1092,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
     # input queue loop
     for input_data in iter(input_queue.get, None):
         # get data
-        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
+        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, scope_convexhull_inflate, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
         # open trajectory and get number of frames
         traj_reader = open_traj_reader(traj_reader_proto)
         number_of_frames = traj_reader.number_of_frames()
@@ -1136,7 +1138,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                 if scope_everyframe:
                     scope = traj_reader.parse_selection(scope)
                 # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-                is_res_in_scope_eval = scope.contains_residues(all_res_this_layer_eval, convex_hull=scope_convexhull,
+                is_res_in_scope_eval = scope.contains_residues(all_res_this_layer_eval, convex_hull=scope_convexhull, convex_hull_inflate=scope_convexhull_inflate,
                                                                known_true=None)  # known_true could be rid_in_object
                 is_res_in_scope = np.zeros(len(all_res_this_ids), dtype=bool)
                 is_res_in_scope[[int(nr) for nr,iris in izip(np.argwhere(all_res_eval),is_res_in_scope_eval) if iris]] = True
@@ -1175,75 +1177,6 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
         gc.collect()
         pbar_queue.put(progress*0.5)
         # termination
-
-
-
-def stage_II_worker_q_old(input_queue, results_queue, pbar_queue):
-    for input_data in iter(input_queue.get, None):
-        layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, object_selection, all_res_this_layer, frame_rid_in_object, is_number_frame_rid_in_object, progress_freq = input_data
-
-        traj_reader = open_traj_reader(traj_reader_proto)
-        number_of_frames = traj_reader.number_of_frames()
-
-        # scope is evaluated only once before loop over frames so it cannot be frame dependent
-        if not scope_everyframe:
-            scope = traj_reader.parse_selection(scope)
-            logger.debug("Scope definition evaluated only once for given layer")
-        else:
-            logger.debug("Scope definition evaluated in every frame, this might be very slow.")
-
-        # speed up!
-        all_res_this_ids = list(all_res_this_layer.ids())
-
-        paths_this_layer = (GenericPaths(resid,
-                                         name_of_res=resname,
-                                         min_pf=0, max_pf=number_of_frames - 1)
-                            for resid, resname in izip(all_res_this_ids,
-                                                       all_res_this_layer.names()))
-
-        # big container for 012 path data
-        number_frame_object_scope = np.zeros((number_of_frames, all_res_this_layer.len()),
-                                             dtype=np.int8)
-
-        progress = 0
-        progress_freq_flex = min(1, progress_freq)
-        # the loop over frames, use izip otherwise iteration over frames does not work
-        for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
-                                         traj_reader.iterate_over_frames()):
-
-            # do we have object data?
-            if not is_number_frame_rid_in_object:
-                rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
-            # assert rid_in_object is not None
-
-            is_res_in_object = (rid[-1] in rid_in_object for rid in all_res_this_ids)
-
-            if scope_everyframe:
-                scope = traj_reader.parse_selection(scope)
-            # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
-                                                      known_true=None)  # known_true could be rid_in_object
-
-            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
-                                                           dtype=np.int8)
-
-            progress += 1
-            if progress == progress_freq_flex:
-                pbar_queue.put(progress)
-                progress = 0
-                progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
-
-        paths = []
-        for pat, nfos in izip(paths_this_layer, number_frame_object_scope.T):
-            pat.add_012(nfos)
-            paths.append(pat)
-
-        # sent results
-        results_queue.put({layer_number: paths})
-        pbar_queue.put(progress)
-        # termination
-
-
 
 # raw_paths
 def stage_II_run(config, options,
@@ -1299,7 +1232,8 @@ def stage_II_run(config, options,
                          Reader.iterate(number=True))):
                 all_res_layer = all_res.layer(number)
 
-                input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
+                input_queue.put((number, traj_reader,
+                                 options.scope_everyframe, options.scope, options.scope_convexhull, options.scope_convexhull_inflate,
                                  options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
                                  max(1, optimal_threads.threads_count)))
         else:
@@ -1311,7 +1245,8 @@ def stage_II_run(config, options,
                 if is_number_frame_rid_in_object:
                     frame_rid_in_object = number_frame_rid_in_object[0][seek:seek + traj_reader.window.len()]
                     seek += traj_reader.window.len()
-                input_queue.put((number, traj_reader, options.scope_everyframe, options.scope, options.scope_convexhull,
+                input_queue.put((number, traj_reader,
+                                 options.scope_everyframe, options.scope, options.scope_convexhull, options.scope_convexhull_inflate,
                                  options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
                                  max(1, optimal_threads.threads_count)))
             all_res_names = list(all_res_layer.names())
@@ -2979,7 +2914,7 @@ def stage_V_run(config, options,
                 object_size.append([])
             for frame in traj_reader.iterate_over_frames():
                 scope = traj_reader.parse_selection(options.scope_chull)
-                ch = scope.chull()
+                ch = scope.chull(inflate=options.scope_chull_inflate)
                 scope_size[-1].append((ch.area, ch.volume))
                 res = traj_reader.parse_selection(options.object_chull)
                 ch = res.chull()
@@ -3131,7 +3066,7 @@ def stage_VI_run(config, options,
                 for frame in frames_to_show:
                     traj_reader.set_frame(frame)
                     scope = traj_reader.parse_selection(options.show_scope_chull)
-                    chull = scope.chull()
+                    chull = scope.chull(inflate=options.show_scope_chull_inflate)
                     spp.convexhull(chull, name='scope_shape%d' % nr, state=frame + 1)
 
     if options.show_object_chull:

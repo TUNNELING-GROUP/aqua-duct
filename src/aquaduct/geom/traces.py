@@ -155,9 +155,26 @@ def derrivative(values):
 ################################################################################
 # vectors, triangles and angles helpers
 
+
+def vector_one(V):
+    """
+    :param V: a vector in a form of array-like object, tuple or a list
+    :return: vector in the same direction but of lenght 1
+    """
+    return V/vector_norm(V)
+
+def vector_change_len(V,l):
+    """
+    :param V: a vector in a form of array-like object, tuple or a list
+    :param float l: lenght by wich vectro should be increased (decreased if negative)
+    :return: vector in the same direction but of altered lenght
+    """
+    V1 = vector_one(V)*float(l)
+    return V + V1
+
+
 def vector_norm(V):
     """
-
     :param V: a vector in a form of array-like object, tuple or a list
     :return: normalized length of a vector
     """

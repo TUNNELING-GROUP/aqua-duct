@@ -726,7 +726,7 @@ class AtomSelection(Selection):
             center += (masses * self.get_reader(number).atoms_positions(ids)).sum(0)
         return center / total_mass
 
-    def contains_residues(self, other_residues, convex_hull=False, map_fun=None, known_true=None):
+    def contains_residues(self, other_residues, convex_hull=False, convex_hull_inflate=None, map_fun=None, known_true=None):
         # FIXME: known_true slows down!
         # known_true are only ix!
         assert isinstance(other_residues, ResidueSelection)
@@ -747,7 +747,7 @@ class AtomSelection(Selection):
                 elif other_id in this_ids:
                     kt_list.append(other_id)
             if convex_hull:
-                chull = self.chull()
+                chull = self.chull(inflate=convex_hull_inflate)
                 # ch_results = map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
                 ch_results = are_points_within_convexhull(other_coords, chull)
             # final merging loop
@@ -763,7 +763,7 @@ class AtomSelection(Selection):
         else:
             if convex_hull:
                 other_coords = other_residues.coords()
-                chull = self.chull()
+                chull = self.chull(inflate=convex_hull_inflate)
                 # return map_fun(is_point_within_convexhull, izip_longest(other_coords, [], fillvalue=chull))
                 return are_points_within_convexhull(other_coords, chull)
             else:
@@ -783,8 +783,8 @@ class AtomSelection(Selection):
                     other_new.update({number: [resid]})
         return ResidueSelection(other_new)
 
-    def chull(self):
-        return SciPyConvexHull(list(self.coords()))
+    def chull(self,inflate=None):
+        return SciPyConvexHull(list(self.coords()),inflate=inflate)
 
 
 ################################################################################
