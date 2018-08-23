@@ -53,7 +53,7 @@ from aquaduct.traj.paths import yield_generic_paths
 from aquaduct.traj.sandwich import ResidueSelection, Reader, open_traj_reader
 from aquaduct.utils import clui
 from aquaduct.utils.clui import roman
-from aquaduct.utils.helpers import iterate_or_die, create_tmpfile
+from aquaduct.utils.helpers import iterate_or_die, create_tmpfile, fractionof
 from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
@@ -368,12 +368,14 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'save', '%d_%s_results.py' % (snr + 1, section))
 
         config.set(section, 'simply_smooths', 'RecursiveVector')
+
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'False')
         config.set(section, 'all_paths_smooth', 'False')
         config.set(section, 'all_paths_split', 'False')  # split by in obj out
         config.set(section, 'all_paths_raw_io', 'False')
         config.set(section, 'all_paths_smooth_io', 'False')
+        config.set(section, 'all_paths_amount', 'None')
 
         # visualize spaths, separate objects
         config.set(section, 'paths_raw', 'False')
@@ -384,9 +386,11 @@ class ValveConfig(ConfigSpecialNames):
 
         config.set(section, 'ctypes_raw', 'False')
         config.set(section, 'ctypes_smooth', 'False')
+        config.set(section, 'ctypes_amount', 'None')
 
         # visualize clusters
         config.set(section, 'inlets_clusters', 'False')
+        config.set(section, 'inlets_clusters_amount', 'None')
 
         # show protein
         config.set(section, 'show_molecule', 'None')
@@ -3046,6 +3050,18 @@ def stage_VI_run(config, options,
                     spp.convexhull(chull, name='object_shape%d' % nr, color=np.array([255, 153, 0]) / 255.,
                                    state=frame + 1)  # orange
 
+
+    def make_fracion(frac,size):
+        if frac is not None:
+            frac = float(frac)
+            if frac > 1:
+                frac = frac / size
+                if frac >= 1:
+                    frac = None
+        return frac
+
+    fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount,len(sp)))))
+
     if options.inlets_clusters:
         with clui.fbm("Clusters"):
             # TODO: require stage V for that?
@@ -3058,18 +3074,20 @@ def stage_VI_run(config, options,
                     c_name = 'out'
                 else:
                     c_name = str(int(c))
-                spp.scatter(ics, color=cmap(c), name="cluster_%s" % c_name)
+                spp.scatter(fof(ics), color=cmap(c), name="cluster_%s" % c_name)
                 if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
                     radii = inls.lim2clusters(c).radii
                     if len(radii) > 0:
                         spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
+
+    fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount,len(sp)))))
 
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):
             for nr, ct in enumerate(ctypes_generic_list):
                 clui.message(str(ct), cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                plot_spaths_traces(sps, name=str(ct) + '_raw', split=False, spp=spp)
+                plot_spaths_traces(fof(sps), name=str(ct) + '_raw', split=False, spp=spp)
                 if ct in master_paths:
                     if master_paths[ct] is not None:
                         plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp,
@@ -3080,7 +3098,7 @@ def stage_VI_run(config, options,
             for nr, ct in enumerate(ctypes_generic_list):
                 clui.message(str(ct), cont=True)
                 sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                plot_spaths_traces(sps, name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
+                plot_spaths_traces(fof(sps), name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
                 if ct in master_paths_smooth:
                     if master_paths_smooth[ct] is None: continue
                     plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
@@ -3090,19 +3108,21 @@ def stage_VI_run(config, options,
                     plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
                                        smooth=smooth)
 
+    fof = lambda sp: list(fractionof(sp, f=make_fracion(options.all_paths_amount,len(sp))))
+
     if options.all_paths_raw:
         with clui.fbm("All raw paths"):
-            plot_spaths_traces(spaths, name='all_raw', split=options.all_paths_split, spp=spp)
+            plot_spaths_traces(fof(spaths), name='all_raw', split=options.all_paths_split, spp=spp)
     if options.all_paths_raw_io:
         with clui.fbm("All raw paths io"):
-            plot_spaths_inlets(spaths, name='all_raw_paths_io', spp=spp)
+            plot_spaths_inlets(fof(spaths), name='all_raw_paths_io', spp=spp)
 
     if options.all_paths_smooth:
         with clui.fbm("All smooth paths"):
-            plot_spaths_traces(spaths, name='all_smooth', split=options.all_paths_split, spp=spp, smooth=smooth)
+            plot_spaths_traces(fof(spaths), name='all_smooth', split=options.all_paths_split, spp=spp, smooth=smooth)
     if options.all_paths_smooth_io:
         with clui.fbm("All smooth paths io"):
-            plot_spaths_inlets(spaths, name='all_smooth_paths_io', spp=spp)
+            plot_spaths_inlets(fof(spaths), name='all_smooth_paths_io', spp=spp)
 
     with clui.fbm("Paths as states"):
         if options.paths_raw:

@@ -290,6 +290,22 @@ def int2range(l):
     return out
 
 
+def fractionof(l,f=None):
+    """
+    :param list l: input list
+    :param float f: fraction
+    :return: Fraction of input list.
+    :rtype: generator
+    """
+    if f is None:
+        for ch in l:
+            yield ch
+    else:
+        n = int(max(1,np.ceil(len(l) * f)))
+        for ch in chunk(l,n):
+            yield ch[0]
+
+
 def chop(l, n=1):
     """
     :param list l: input list
