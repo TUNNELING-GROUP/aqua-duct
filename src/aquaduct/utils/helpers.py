@@ -323,9 +323,17 @@ def chunk(l, n=1):
     :rtype: generator
     """
     assert n > 0
-    N = int(max(1, np.ceil(len(l) / float(n))))
-    for start in xrange(0, len(l), N):
-        yield l[start:start + N]
+    seek = 0
+    true_seek = 0.
+    N = max(1, len(l) / float(n))
+    nr = 0
+    while (nr<len(l)):
+        while (np.ceil(true_seek)<=seek):
+            true_seek += N
+        new_seek = int(np.ceil(true_seek))
+        yield l[seek:new_seek]
+        nr += new_seek - seek
+        seek = new_seek
 
 
 def is_iterable(l):
