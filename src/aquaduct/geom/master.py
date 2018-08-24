@@ -22,7 +22,7 @@ from aquaduct import logger
 
 import multiprocessing
 from multiprocessing import Queue, Manager, Lock, Value, Process
-from itertools import izip_longest
+from itertools import izip_longest, izip
 from functools import partial
 
 import numpy as np
@@ -124,15 +124,16 @@ class CTypeSpathsCollectionWorker(object):
 
         # get zz coords, zz means zip_zip - for all spaths
         coords_zz = []
-        for sp, sl in zip(self.spaths, sp_slices_):
+        for sp, sl in izip(self.spaths, sp_slices_):
             # self.lock.acquire()
-            coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
-            coords_zz.append(coords_zz_element[sl])
+            #coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
+            #coords_zz.append(coords_zz_element[sl])
+            coords_zz.append(sp.get_coords_cont(smooth=self.smooth)[sl])
             # self.lock.release()
 
         # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
         lens_zz = []
-        for l, coord_z in zip(self.lens_cache, coords_zz):
+        for l, coord_z in izip(self.lens_cache, coords_zz):
             # l is lenght for one spath
             # coord_z are coordinates of this path (sliced to current chunk)
             if len(coord_z) > 0:
@@ -164,7 +165,7 @@ class CTypeSpathsCollectionWorker(object):
         del coords_zz_cat
 
         # concatenate zip_zip gtypes
-        types_zz_cat = list(concatenate(*[sp.gtypes_cont[sl] for sp, sl in zip(self.spaths, sp_slices_)]))
+        types_zz_cat = list(concatenate(*[sp.gtypes_cont[sl] for sp, sl in izip(self.spaths, sp_slices_)]))
         del sp_slices_
         # append type porbability to types
 

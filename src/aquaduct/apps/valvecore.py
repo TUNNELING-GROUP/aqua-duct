@@ -1716,6 +1716,7 @@ def stage_IV_run(config, options,
         #    clustering_function = get_clustering_method(coptions)
         #    inls.perform_clustering(clustering_function)
         clui.message('Number of outliers: %d' % noo())
+        gc.collect()
         # ***** OUTLIERS DETECTION *****
         if options.detect_outliers:
             with clui.fbm("Detecting outliers", cont=False):
@@ -1743,6 +1744,7 @@ def stage_IV_run(config, options,
                 inls.add_outliers_annotations(clusters)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
+        gc.collect()
         # ***** RECLUSTERIZATION *****
         if options.recluster_outliers:
             with clui.fbm("Performing reclusterization of outliers", cont=False):
@@ -1761,6 +1763,7 @@ def stage_IV_run(config, options,
                 inls.recluster_cluster(clustering_function, 0)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
+        gc.collect()
         # ***** SINGLETONS REMOVAL *****
         if options.singletons_outliers:
             with clui.fbm("Removing clusters of size %d" % int(options.singletons_outliers)):
@@ -1769,6 +1772,7 @@ def stage_IV_run(config, options,
             clui.message('Number of outliers: %d' % noo())
 
         # TODO: Move it after master paths!
+        gc.collect()
         # ***** ADD PASSING PATHS TO CLUSTERS *****
         if options.exclude_passing_in_clusterization and options.add_passing_to_clusters:
             with clui.fbm("Adding passing paths inlets to clusters", cont=False):
@@ -1820,6 +1824,8 @@ def stage_IV_run(config, options,
                     if len(passing_inlets_ids):
                         inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids), toleaf=0)
 
+        gc.collect()
+
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
 
@@ -1870,7 +1876,7 @@ def stage_IV_run(config, options,
                         master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
                         del ctspc
                     pbar.finish()
-
+        gc.collect()
     else:
         clui.message("No inlets found. Clusterization skipped.")
         # make empty results

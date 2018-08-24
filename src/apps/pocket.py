@@ -68,14 +68,20 @@ if __name__ == "__main__":
                             help="Sandwich mode for multiple trajectories.")
         parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
                             help="Directory for coordinates caching.")
-        parser.add_argument("--version", action="store_true", dest="print_version", required=False,
-                            help="Prints versions and exits.")
-        parser.add_argument("--license", action="store_true", dest="print_license", required=False,
-                            help="Prints short license info and exits.")
+        parser.add_argument("--window-full", action="store_true", dest="wfull", required=False,
+                            help="Return full windows.")
         parser.add_argument("--windows", action="store", dest="windows", type=int, required=True,
                             help="Number of windows to calculate.")
         parser.add_argument("--wsize", action="store", dest="wsize", type=int, required=False, default=None,
                             help="Size of window in frames.")
+        parser.add_argument("--reference", action="store", dest="ref", type=str, required=False, default=None,
+                            help="Selection of reference in the first frame of trajectory.")
+        parser.add_argument("--reference-radius", action="store", dest="ref_radius", type=float, required=False, default=2.,
+                            help="Radius of reference.")
+        parser.add_argument("--reference-mol", action="store", dest="ref_mol", type=str, required=False, default='resname WAT',
+                            help="Selection of reference molecules.")
+        parser.add_argument("--temperature", action="store", dest="temp", type=float, required=False, default=300.,
+                            help="Simulation temperature.")
 
         args = parser.parse_args()
 
@@ -125,12 +131,44 @@ if __name__ == "__main__":
         ############################################################################
         # run pockets?
 
+        import numpy as np
+
+        ref = None
+        # caclulte n_z for reference
+        if args.ref:
+            for traj_reader in Reader.iterate():
+                traj_reader = traj_reader.open()
+                for frame in traj_reader.iterate():
+                    ref_sel = traj_reader.parse_selection(args.ref)
+                    com = ref_sel.center_of_mass()
+                    break
+                break
+            del traj_reader
+
+            with clui.pbar(Reader.number_of_frames(onelayer=True),mess="Calculating density in reference:") as pbar:
+                ref = 0.
+                for traj_reader in Reader.iterate():
+                    traj_reader = traj_reader.open()
+                    ref_sel = '(%s) and (point %f %f %f %f)' % ((args.ref_mol,)+tuple(map(float,com))+(args.ref_radius,))
+                    for frame in traj_reader.iterate():
+                        ref += len(list(traj_reader.parse_selection(ref_sel).residues().ids()))
+                        pbar.next()
+
+            ref /= Reader.number_of_frames(onelayer=True)
+            ref /= 4./3.*np.pi*(float(args.ref_radius)**3)
+
+            # B constant
+            k = 0.0019872041 # kcal/mol/K
+            ref = -k*args.temp*np.log(ref)
+
+
         from aquaduct.geom import pocket
         from aquaduct.traj.dumps import WriteMOL2
 
         W = args.windows
         WS = args.wsize
         grid_size = 1.
+        grid_area = grid_size ** 3
         with clui.pbar(len(spaths) * (1 + W + 1), mess='Calculating pockets:') as pbar:
             edges = pocket.find_edges(spaths, grid_size=grid_size, pbar=pbar)
             number_of_frames = Reader.number_of_frames(onelayer=True)
@@ -140,13 +178,22 @@ if __name__ == "__main__":
                 WSf = float(WS)
             wmol2 = [WriteMOL2('outer.mol2'), WriteMOL2('inner.mol2')]
             for wnr, window in enumerate(pocket.windows(number_of_frames, windows=W, size=WS)):
-                D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
                 if wnr:
-                    H = D[-1] / M
+                    D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
+                    H = (D[-1] / WSf)/grid_area
+                    if ref:
+                        H = -k*args.temp*np.log(H) - ref
                     for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                         mol2.write_scatter(D[0][I], H[I])
                 else:
-                    M = D[-1].mean() * (WSf / float(number_of_frames))
+                    D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
+                    H = (D[-1] / float(number_of_frames))/grid_area
+                    if ref:
+                        H = -k*args.temp*np.log(H) - ref
+                    for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2('outer_full.mol2'), WriteMOL2('inner_full.mol2')]):
+                        mol2.write_scatter(D[0][I], H[I])
+                        del mol2
+
             for mol2 in wmol2:
                 del mol2
 
