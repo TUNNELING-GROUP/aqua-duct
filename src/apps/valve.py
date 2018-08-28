@@ -124,7 +124,7 @@ if __name__ == "__main__":
         load_cric()
 
         from aquaduct.traj.sandwich import Reader, Window
-        from aquaduct.apps.valvecore import *
+        from apps.valve.core import *
 
         ############################################################################
         # single precision storage

@@ -97,8 +97,8 @@ if __name__ == "__main__":
         load_cric()
 
         from aquaduct.traj.sandwich import Reader, Window
-        from aquaduct.apps.valvecore import ValveConfig, valve_load_config
-        from aquaduct.apps.valvedata import get_vda_reader
+        from aquaduct.apps.valve.core import valve_load_config, ValveConfig
+        from aquaduct.apps.valve.data import get_vda_reader
 
         ############################################################################
         # config
