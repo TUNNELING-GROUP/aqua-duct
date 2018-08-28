@@ -18,6 +18,9 @@
 
 
 import numpy as np
+from itertools import izip
+
+from scipy import spatial
 
 def get_spc(sp,window=None):
     '''
@@ -112,3 +115,30 @@ def windows(frames,windows=None,size=None):
             yield np.floor(b),np.floor(e)
 
 
+def sphere(spaths,centers=None,radii=None,window=None,pbar=None):
+
+    #>> > x, y = np.mgrid[0:4, 0:4]
+    #>> > points = np.c_[x.ravel(), y.ravel()]
+    #>> > tree = spatial.cKDTree(points)
+    #>> > tree.query_ball_point([2, 0], 1)
+    #[4, 8, 9, 12]
+
+    H = np.zeros(len(centers),dtype=np.int32)
+    for sp in spaths:
+        coords = get_spc(sp,window=window)
+        D = spatial.distance.cdist(coords,centers)
+        for nr,radius in enumerate(radii):
+            D[:,nr] 
+
+
+        H += np.histogramdd(get_spc(sp,window=window),bins=edges)[0]
+        if pbar:
+            pbar.next()
+
+
+
+    for c,r in izip(centers,radii):
+
+
+
+    pass

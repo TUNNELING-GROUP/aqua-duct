@@ -82,6 +82,8 @@ if __name__ == "__main__":
                             help="Selection of reference molecules.")
         parser.add_argument("--temperature", action="store", dest="temp", type=float, required=False, default=300.,
                             help="Simulation temperature.")
+        parser.add_argument("--gsize", action="store", dest="grid_size", type=float, required=False, default=1.,
+                            help="Size of grid's cells.")
 
         args = parser.parse_args()
 
@@ -145,7 +147,7 @@ if __name__ == "__main__":
                 break
             del traj_reader
 
-            with clui.pbar(Reader.number_of_frames(onelayer=True),mess="Calculating density in reference:") as pbar:
+            with clui.pbar(Reader.number_of_frames(onelayer=True),mess="Calculating density in the reference area:") as pbar:
                 ref = 0.
                 for traj_reader in Reader.iterate():
                     traj_reader = traj_reader.open()
@@ -167,7 +169,7 @@ if __name__ == "__main__":
 
         W = args.windows
         WS = args.wsize
-        grid_size = 1.
+        grid_size = args.grid_size
         grid_area = grid_size ** 3
         with clui.pbar(len(spaths) * (1 + W + 1), mess='Calculating pockets:') as pbar:
             edges = pocket.find_edges(spaths, grid_size=grid_size, pbar=pbar)
@@ -202,3 +204,12 @@ if __name__ == "__main__":
         clui.message("what it's got in its nassty little pocketses?")
 
         ############################################################################
+
+        # load spaths
+
+        # get stage IV options
+        options4 = config.get_stage_options(3)
+
+        with clui.fbm('Loading data dump from %s file' % options4.dump):
+            vda = get_vda_reader(options4.dump, mode='r')
+            result4 = vda.load()
