@@ -69,8 +69,8 @@ if __name__ == "__main__":
         parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
                             help="Directory for coordinates caching.")
         parser.add_argument("--window-full", action="store_true", dest="wfull", required=False,
-                            help="Return full windows.")
-        parser.add_argument("--windows", action="store", dest="windows", type=int, required=True,
+                            help="Return full window if windows is used.")
+        parser.add_argument("--windows", action="store", dest="windows", type=int, required=False, default=1,
                             help="Number of windows to calculate.")
         parser.add_argument("--wsize", action="store", dest="wsize", type=int, required=False, default=None,
                             help="Size of window in frames.")
@@ -84,12 +84,17 @@ if __name__ == "__main__":
                             help="Simulation temperature.")
         parser.add_argument("--gsize", action="store", dest="grid_size", type=float, required=False, default=1.,
                             help="Size of grid's cells.")
+        parser.add_argument("--pockets", action="store_true", dest="pockets", required=False,
+                            help="Calculate pockets.")
+        parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False,
+                            help="Calculate profiles for master paths with giwen radius.")
+        parser.add_argument("--master-radii", action="store_true", dest="master_radii", required=False,
+                            help="Calculate profiles for master paths using width as radii.")
 
         args = parser.parse_args()
 
         ############################################################################
 
-        clui.message('What have I got in my pocket?')
 
         ############################################################################
         # cache dir & netcdf
@@ -122,13 +127,14 @@ if __name__ == "__main__":
         ############################################################################
         # load spaths
 
-        # get stage III options
-        options3 = config.get_stage_options(2)
+        if args.pockets or args.master_radii or args.master_radius:
+            # get stage III options
+            options3 = config.get_stage_options(2)
 
-        with clui.fbm('Loading data dump from %s file' % options3.dump):
-            vda = get_vda_reader(options3.dump, mode='r')
-            result3 = vda.load()
-            spaths = result3.pop('spaths')
+            with clui.fbm('Loading data dump from %s file' % options3.dump):
+                vda = get_vda_reader(options3.dump, mode='r')
+                result3 = vda.load()
+                spaths = result3.pop('spaths')
 
         ############################################################################
         # run pockets?
@@ -167,49 +173,118 @@ if __name__ == "__main__":
         from aquaduct.geom import pocket
         from aquaduct.traj.dumps import WriteMOL2
 
-        W = args.windows
-        WS = args.wsize
-        grid_size = args.grid_size
-        grid_area = grid_size ** 3
-        with clui.pbar(len(spaths) * (1 + W + 1), mess='Calculating pockets:') as pbar:
-            edges = pocket.find_edges(spaths, grid_size=grid_size, pbar=pbar)
-            number_of_frames = Reader.number_of_frames(onelayer=True)
-            if WS is None:
-                WSf = float(number_of_frames/float(W))
-            else:
-                WSf = float(WS)
-            wmol2 = [WriteMOL2('outer.mol2'), WriteMOL2('inner.mol2')]
-            for wnr, window in enumerate(pocket.windows(number_of_frames, windows=W, size=WS)):
-                if wnr:
-                    D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
-                    H = (D[-1] / WSf)/grid_area
-                    if ref:
-                        H = -k*args.temp*np.log(H) - ref
-                    for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
-                        mol2.write_scatter(D[0][I], H[I])
+        ############################################################################
+
+        if args.pockets:
+
+            clui.message('What have I got in my pocket?')
+
+            W = args.windows
+            WS = args.wsize
+            grid_size = args.grid_size
+            grid_area = grid_size ** 3
+            with clui.pbar(len(spaths) * (1 + W + 1), mess='Calculating pockets:') as pbar:
+                edges = pocket.find_edges(spaths, grid_size=grid_size, pbar=pbar)
+                number_of_frames = Reader.number_of_frames(onelayer=True)
+                if WS is None:
+                    WSf = float(number_of_frames/float(W))
                 else:
-                    D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
-                    H = (D[-1] / float(number_of_frames))/grid_area
-                    if ref:
-                        H = -k*args.temp*np.log(H) - ref
-                    for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2('outer_full.mol2'), WriteMOL2('inner_full.mol2')]):
-                        mol2.write_scatter(D[0][I], H[I])
-                        del mol2
+                    WSf = float(WS)
+                wmol2 = [WriteMOL2('outer.mol2'), WriteMOL2('inner.mol2')]
+                for wnr, window in enumerate(pocket.windows(number_of_frames, windows=W, size=WS)):
+                    if wnr:
+                        D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
+                        H = (D[-1] / WSf)/grid_area
+                        if ref:
+                            H = -k*args.temp*np.log(H) - ref
+                        for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
+                            mol2.write_scatter(D[0][I], H[I])
+                    else:
+                        D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
+                        H = (D[-1] / float(number_of_frames))/grid_area
+                        if ref:
+                            H = -k*args.temp*np.log(H) - ref
+                        for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2('outer_full.mol2'), WriteMOL2('inner_full.mol2')]):
+                            mol2.write_scatter(D[0][I], H[I])
+                            del mol2
 
-            for mol2 in wmol2:
-                del mol2
+                for mol2 in wmol2:
+                    del mol2
+
+
+            clui.message("what it's got in its nassty little pocketses?")
 
         ############################################################################
 
-        clui.message("what it's got in its nassty little pocketses?")
+        from aquaduct.apps.valve.helpers import get_linearize_method
+        from aquaduct.geom import traces
+        from itertools import izip
+        import os
 
-        ############################################################################
+        from aquaduct.geom.smooth import SavgolSmooth
 
-        # load spaths
+        if args.master_radii or args.master_radius:
 
-        # get stage IV options
-        options4 = config.get_stage_options(3)
+            # get stage IV options
+            options4 = config.get_stage_options(3)
 
-        with clui.fbm('Loading data dump from %s file' % options4.dump):
-            vda = get_vda_reader(options4.dump, mode='r')
-            result4 = vda.load()
+            with clui.fbm('Loading data dump from %s file' % options4.dump):
+                vda = get_vda_reader(options4.dump, mode='r')
+                result4 = vda.load()
+                mps = result4.pop('master_paths_smooth')
+
+            options6 = config.get_stage_options(5)
+
+            linmet = get_linearize_method(options6.simply_smooths)
+
+        if args.master_radii or args.master_radius:
+
+            pbar_len = len(spaths)*len(mps)
+            if args.master_radii and args.master_radius:
+                pbar_len *= 2
+
+            with clui.pbar(pbar_len, mess='Calculating master paths profiles:') as pbar:
+
+                number_of_frames = Reader.number_of_frames(onelayer=True)
+
+                for ctype,mp in mps.iteritems():
+                    fname = str(ctype).replace(':','-')
+
+                    centers, ids = linmet(mp.coords_cont, ids=True)
+
+                    if args.master_radius:
+                        D = pocket.sphere_radius(spaths,centers=centers,radius=args.master_radius,pbar=pbar)
+                        H = D / float(number_of_frames) / (4./3. * np.pi * args.master_radius**3)
+                        if ref:
+                            H = -k*args.temp*np.log(H) - ref
+                        with WriteMOL2("mp_%s_radius.mol2" % fname) as mol2:
+                            mol2.write_connected(centers,H)
+
+                        with open("mp_%s_radius.dat" % fname,'w') as dat:
+                            dat.write('len\tE'+os.linesep)
+                            L = np.hstack((0.,np.cumsum(traces.diff(centers))))
+                            for l,E in izip(L,H):
+                                dat.write('%f\t%f%s' % (l,E,os.linesep))
+
+
+                    if args.master_radii:
+                        wl = len(ids)/10
+                        if not wl % 2:
+                            wl -= 1
+
+                        smooth = SavgolSmooth(window_length=wl, polyorder=5)
+
+                        radii = smooth.smooth(np.array(map(float,mp.width_cont))[ids]).flatten()
+
+                        D = pocket.sphere_radii(spaths,centers=centers,radii=radii,pbar=pbar)
+                        H = D / float(number_of_frames) / (4./3. * np.pi * radii**3)
+                        if ref:
+                            H = -k*args.temp*np.log(H) - ref
+                        with WriteMOL2("mp_%s_radii.mol2" % fname) as mol2:
+                            mol2.write_connected(centers,H)
+
+                        with open("mp_%s_radii.dat" % fname,'w') as dat:
+                            dat.write('len\tE'+os.linesep)
+                            L = np.hstack((0.,np.cumsum(traces.diff(centers))))
+                            for l,E in izip(L,H):
+                                dat.write('%f\t%f%s' % (l,E,os.linesep))

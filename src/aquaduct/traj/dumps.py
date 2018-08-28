@@ -30,6 +30,10 @@ class WriteMOL2(object):
         atom = "%7d  H         %3.4f   %3.4f    %3.4f H       1  FIL1        %3.4f" % (self.current_atom,xyz[0],xyz[1],xyz[2],bf)
         return atom+os.linesep
 
+    def print_bond_line(self,bid,ba,bb,btype='1'):
+        bond = "%6d%6d%6d%6s" % (bid,ba,bb,btype)
+        return bond+os.linesep
+
 
     def write_scatter(self, scatter, bf):
         self.fh.write("@<TRIPOS>MOLECULE"+os.linesep)
@@ -42,6 +46,22 @@ class WriteMOL2(object):
             self.fh.write(self.print_atom_line(xyz,b))
             self.current_atom += 1
         self.fh.write("@<TRIPOS>BOND"+os.linesep)
+        self.current_atom = 1
+
+
+    def write_connected(self, scatter, bf):
+        self.fh.write("@<TRIPOS>MOLECULE"+os.linesep)
+        self.fh.write("pocket"+os.linesep)
+        self.fh.write((" %d %d 0 0" % (len(scatter),len(scatter)-1)) + os.linesep)
+        self.fh.write("SMALL" + os.linesep)
+        self.fh.write("GASTEIGER" + os.linesep + os.linesep)
+        self.fh.write("@<TRIPOS>ATOM"+os.linesep)
+        for xyz,b in zip(scatter, bf):
+            self.fh.write(self.print_atom_line(xyz,b))
+            self.current_atom += 1
+        self.fh.write("@<TRIPOS>BOND"+os.linesep)
+        for b in xrange(1,len(scatter)):
+            self.fh.write(self.print_bond_line(b,b,b+1))
         self.current_atom = 1
 
     def __enter__(self):

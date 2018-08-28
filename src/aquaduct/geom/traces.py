@@ -354,7 +354,7 @@ class LinearizeHobbit(LinearizeOneWay):
         size = len(coords)
         return (size - e - 1 for e in self.here(coords[::-1]))
 
-    def __call__(self, coords):
+    def __call__(self, coords, ids=False):
         # coords - 3D coordintates of a trace
         # wrapper that uses here and and_back_again methods to get merged uniq and sorted indices of coords that spans linear fragments of the trace
         # returns these points from coords that are linear simplification of coords
@@ -362,6 +362,8 @@ class LinearizeHobbit(LinearizeOneWay):
         here = self.here(coords)
         and_back_again = self.and_back_again(coords)
         linearize = sorted(list(set(list(here) + list(and_back_again))))
+        if ids:
+            return coords[linearize],linearize
         return coords[linearize]
 
 
@@ -414,10 +416,12 @@ class LinearizeRecursive(object):
         return sorted(
             list(set(self.here(coords[:mp + 1], depth=depth) + [e + mp for e in self.here(coords[mp:], depth=depth)])))
 
-    def __call__(self, coords):
+    def __call__(self, coords,ids=False):
         # returns these points from coords that are linear simplification of coords
         # __call__ is required by child classes
         here = self.here(coords)
+        if ids:
+            return coords[here],here
         return coords[here]
 
 
