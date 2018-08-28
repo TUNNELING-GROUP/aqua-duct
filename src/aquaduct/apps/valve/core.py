@@ -49,7 +49,7 @@ from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, 
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
 
-from aquaduct.apps.valve.worker import stage_I_worker_q, stage_II_worker_q, stage_II_worker_q_twoways
+from aquaduct.apps.valve.worker import stage_I_worker_q, stage_II_worker_q, stage_II_worker_q_twoways, assign_paths
 
 from aquaduct.apps.valve.helpers import *
 from aquaduct.apps.valve.spath import *
@@ -823,10 +823,10 @@ def stage_II_run(config, options,
                                     for resid, resname in izip(all_res_layer.ids(),
                                                                all_res_layer.names()))
 
-                for pat, nfos in izip(paths_this_layer, results_n(results[number]).T):
-                    pat.add_012(nfos)
-                    paths.append(pat)
-                    pbar.next()
+                pool = Pool(processes=optimal_threads.threads_count)
+                r = pool.map_async(assign_paths(pbar), izip(paths_this_layer, results_n(results[number]).T), callback=paths.extend)
+                r.wait()
+
     elif unsandwitchize:
         # make coherent paths
         # paths names, paths
