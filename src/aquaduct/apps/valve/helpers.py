@@ -23,7 +23,7 @@ import re
 import sys
 import numpy as np
 
-from apps.data import CRIC
+from aquaduct.apps.data import CRIC
 from aquaduct import logger
 from aquaduct.geom import traces
 from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods, BarberCluster, PerformClustering
