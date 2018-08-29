@@ -878,7 +878,7 @@ def stage_III_run(config, options,
     Reader.reset()
 
     if options.allow_passing_paths:
-        logger.warning("Passing paths is a highly experimental feature. Please, analyze results with care.")
+        logger.warning("Passing paths is a experimental feature. Please, analyze results with care.")
 
     ######################################################################
 

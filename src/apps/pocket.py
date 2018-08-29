@@ -271,10 +271,11 @@ if __name__ == "__main__":
                         wl = len(ids)/10
                         if not wl % 2:
                             wl -= 1
-
-                        smooth = SavgolSmooth(window_length=wl, polyorder=5)
-
-                        radii = smooth.smooth(np.array(map(float,mp.width_cont))[ids]).flatten()
+                        if wl > 5:
+                            smooth = SavgolSmooth(window_length=wl, polyorder=5)
+                            radii = smooth.smooth(np.array(map(float,mp.width_cont))[ids]).flatten()
+                        else:
+                            radii = np.array(map(float,mp.width_cont))[ids]
 
                         D = pocket.sphere_radii(spaths,centers=centers,radii=radii,pbar=pbar)
                         H = D / float(number_of_frames) / (4./3. * np.pi * radii**3)
