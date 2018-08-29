@@ -27,6 +27,26 @@ from setuptools import find_packages, setup
 from aquaduct.traj.sandwich import open_traj_reader, ResidueSelection
 from aquaduct.utils.helpers import create_tmpfile, iterate_or_die
 
+class assign_paths(object):
+    """
+    Worker which assign paths to object container
+    """
+    def __init__(self, pbar):
+        """
+        Constructor
+        :param pbar: progress bar
+        """
+        self.pbar = pbar
+
+    def __call__(self, args):
+        """
+        :param args: tuple with object and paths
+        :return: aquaduct.traj.paths.GenericPaths
+        """
+        pat, nfos = args
+        pat.add_012(nfos)
+        self.pbar.next()
+        return pat
 
 def stage_I_worker_q(input_queue, results_queue, pbar_queue):
     for input_data in iter(input_queue.get, None):
