@@ -482,3 +482,10 @@ class PrintAnalysis(object):
 
     def under(self, info2print):
         self(clui.underline(info2print))
+
+
+def results_n(rn):
+    if isinstance(rn, np.ndarray):
+        return rn
+    else:
+        return np.memmap(rn[0], mode='r', dtype=np.int8, shape=rn[1])
