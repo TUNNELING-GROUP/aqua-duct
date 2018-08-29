@@ -261,6 +261,8 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'scope_everyframe', 'False')
         config.set(section, 'scope_convexhull_inflate', 'None')
 
+        config.set(section, 'add_passing', 'None')
+
         ################
         snr += 1
         # stage II
@@ -673,6 +675,14 @@ def stage_I_run(config, options,
     if all_res is None or all_res.len() == 0:
         raise ValueError("No traceable residues were found.")
 
+    if options.add_passing:
+        with clui.fbm("Add possible passing paths mols"):
+            for traj_reader in Reader.iterate():
+                traj_reader = traj_reader.open()
+                passing = traj_reader.parse_selection(options.add_passing).residues()
+                all_res.add(passing)
+                all_res.uniquify()
+
     unsandwitchize = not Reader.sandwich_mode and len(number_frame_rid_in_object) > 1
     if unsandwitchize:
         with clui.fbm("Unsandwitchize traced residues"):
@@ -730,10 +740,10 @@ def stage_II_run(config, options,
             sIII = config.get_stage_options(2)
             # TODO: enable twoway in sandwich mode
             allow_twoway = (not Reader.sandwich_mode) and (sI.scope == sII.scope) and (sI.scope_convexhull == sII.scope_convexhull) and (sI.object == sII.object) and (sIII.allow_passing_paths == False)
-            logger.info('Twoway trajectory scan enabled.')
 
         # prepare and start pool of workers
         if allow_twoway:
+            logger.info('Twoway trajectory scan enabled.')
             pool = [Process(target=stage_II_worker_q_twoways, args=(input_queue, results_queue, pbar_queue)) for dummy in
                     xrange(optimal_threads.threads_count)]
         else:
