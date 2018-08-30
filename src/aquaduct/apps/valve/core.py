@@ -49,8 +49,8 @@ from aquaduct.utils.helpers import range2int, Auto, what2what, lind, is_number, 
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
 
-from aquaduct.apps.valve.worker import stage_I_worker_q, stage_II_worker_q, stage_II_worker_q_twoways, assign_paths
-
+from aquaduct.apps.valve.worker import stage_I_worker_q, stage_II_worker_q, stage_II_worker_q_twoways, \
+    assign_nonsandwiched_paths, assign_sandwiched_paths
 from aquaduct.apps.valve.helpers import *
 from aquaduct.apps.valve.spath import *
 from aquaduct.apps.valve.clusters import *
@@ -814,11 +814,6 @@ def stage_II_run(config, options,
 
     # now, results holds 012 matrices, make paths out of it
     # TODO: Following could be easily written in parallel.
-    def results_n(rn):
-        if isinstance(rn, np.ndarray):
-            return rn
-        else:
-            return np.memmap(rn[0], mode='r', dtype=np.int8, shape=rn[1])
 
     unsandwitchize = not Reader.sandwich_mode and len(results) > 1
     if not unsandwitchize:
@@ -834,7 +829,10 @@ def stage_II_run(config, options,
                                                                all_res_layer.names()))
 
                 pool = Pool(processes=optimal_threads.threads_count)
-                r = pool.map_async(assign_paths(pbar), izip(paths_this_layer, results_n(results[number]).T), callback=paths.extend)
+                r = pool.map_async(
+                    assign_nonsandwiched_paths(pbar),
+                    izip(paths_this_layer, results_n(results[number]).T),
+                    callback=paths.extend)
                 r.wait()
 
     elif unsandwitchize:
@@ -846,15 +844,14 @@ def stage_II_run(config, options,
         # pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
         with clui.pbar(len(all_res_ids), 'Creating raw paths (sandwich deconvolution):') as pbar:
             paths = []
-            for pnr in xrange(len(all_res_ids)):
-                new_p = GenericPaths((0, all_res_ids[pnr]),
-                                     name_of_res=all_res_names[pnr],
-                                     min_pf=0, max_pf=max_pf)
 
-                new_p.add_012(
-                    np.fromiter(chain(*(results_n(results[n])[:, pnr] for n in sorted(results.keys()))), dtype=np.int8))
-                paths.append(new_p)
-                pbar.next()
+            pool_func = assign_sandwiched_paths(all_res_ids, all_res_names, max_pf, results, pbar)
+
+            pool = Pool(processes=optimal_threads.threads_count)
+            r = pool.map_async(
+                pool_func, xrange(len(all_res_ids)),
+                callback=paths.extend)
+            r.wait()
 
     # rm tmp files
     for rn in results.itervalues():

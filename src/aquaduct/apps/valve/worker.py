@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gc
-from itertools import izip
+from itertools import izip, chain
 
 import numpy as np
 from aquaduct.apps.data import GCS
@@ -27,9 +27,13 @@ from setuptools import find_packages, setup
 from aquaduct.traj.sandwich import open_traj_reader, ResidueSelection
 from aquaduct.utils.helpers import create_tmpfile, iterate_or_die
 
-class assign_paths(object):
+from aquaduct.apps.valve.core import GenericPaths
+from aquaduct.apps.valve.helpers import results_n
+
+
+class assign_nonsandwiched_paths(object):
     """
-    Worker which assign paths to object container
+    Worker which assign non-sandwiched paths to object container
     """
     def __init__(self, pbar):
         """
@@ -47,6 +51,43 @@ class assign_paths(object):
         pat.add_012(nfos)
         self.pbar.next()
         return pat
+
+
+class assign_sandwiched_paths(object):
+    """
+    Worker which assign sandwiched paths to object container
+    """
+    def __init__(self, all_res_ids, all_res_names, max_pf, results, pbar):
+        """
+        Constructor
+        :param all_res_ids: residues ids
+        :param all_res_names: residues names
+        :param max_pf: maximum possible frame
+        :param results: residue coords
+        :param pbar: progress bar
+        """
+        self.all_res_ids = all_res_ids
+        self.all_res_names = all_res_names
+        self.max_pf = max_pf
+        self.results = results
+        self.pbar = pbar
+
+    def __call__(self, pnr):
+        """
+        :param pnr: residue id
+        :return: aquaduct.traj.paths.GenericPaths
+        """
+        new_p = GenericPaths((0, self.all_res_ids[pnr]),
+                             name_of_res=self.all_res_names[pnr],
+                             min_pf=0, max_pf=self.max_pf)
+
+        new_p.add_012(
+            np.fromiter(
+                chain(*(results_n(self.results[n])[:, pnr] for n in sorted(self.results.keys()))),
+                dtype=np.int8))
+
+        self.pbar.next()
+        return new_p
 
 def stage_I_worker_q(input_queue, results_queue, pbar_queue):
     for input_data in iter(input_queue.get, None):
