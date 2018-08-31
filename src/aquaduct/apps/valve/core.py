@@ -296,6 +296,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'sort_by_id', 'True')
         config.set(section, 'apply_smoothing', 'False')
         config.set(section, 'apply_soft_smoothing', 'True')
+        config.set(section, 'remove_unused_parts', 'True')
 
         config.set(section, 'discard_short_paths', '20')
         config.set(section, 'discard_short_object', '2.0')
@@ -912,8 +913,9 @@ def stage_III_run(config, options,
 
     ######################################################################
 
-    with clui.pbar(len(spaths) + len(paths), "Removing unused parts of paths:") as pbar:
-        paths = yield_generic_paths(spaths, progress=pbar)
+    if options.remove_unused_parts:
+        with clui.pbar(len(spaths) + len(paths), "Removing unused parts of paths:") as pbar:
+            paths = yield_generic_paths(spaths, progress=pbar)
 
     ######################################################################
 
@@ -975,8 +977,9 @@ def stage_III_run(config, options,
                 clui.message("No paths were discarded.")
             else:
                 clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
-                with clui.pbar(len(spaths) + len(paths), "Removing (again) unused parts of paths:") as pbar:
-                    paths = yield_generic_paths(spaths, progress=pbar)
+                if options.remove_unused_parts:
+                    with clui.pbar(len(spaths) + len(paths), "Removing (again) unused parts of paths:") as pbar:
+                        paths = yield_generic_paths(spaths, progress=pbar)
         else:
             clui.message("No paths were discarded - no values were set.")
 
@@ -1081,8 +1084,9 @@ def stage_III_run(config, options,
                     clui.message("No paths were discarded.")
                 else:
                     clui.message("%d paths were discarded." % (spaths_nr - spaths_nr_new))
-                    with clui.pbar(len(spaths) + len(paths), "Removing (again) unused parts of paths:") as pbar:
-                        paths = yield_generic_paths(spaths, progress=pbar)
+                    if options.remove_unused_parts:
+                        with clui.pbar(len(spaths) + len(paths), "Removing (again) unused parts of paths:") as pbar:
+                            paths = yield_generic_paths(spaths, progress=pbar)
             else:
                 clui.message("No paths were discarded - no values were set.")
 

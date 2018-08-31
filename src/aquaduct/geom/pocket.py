@@ -19,7 +19,7 @@
 from aquaduct.traj.paths import GenericPaths
 
 import numpy as np
-from itertools import izip
+from itertools import izip,imap
 
 from scipy import spatial
 
@@ -64,7 +64,33 @@ def find_minmax(spaths,pbar=None):
     maxc = np.ceil(maxc)
     return minc,maxc
 
-def find_edges(spaths,grid_size=1.,pbar=None):
+def find_minmax_single(sp):
+    coords = get_spc(sp)
+    return coords.min(0),coords.max(0)
+
+def find_minmax_map(spaths,pbar=None,map_fun=None):
+    '''
+    :param list spaths: List of single like path objects.
+    :param pbar: Optional progress object providing next() method.
+    :rtype: 2 element tuple of numpy.ndarray each of shape (3,)
+    :return: Minimal and maximal boundaries of coordinates used in pocket calulations of spaths.
+    '''
+    minc = np.array([float('inf')]*3)
+    maxc = np.array([float('-inf')]*3)
+    if map_fun is None:
+        map_fun = imap
+    for sp_minc,sp_maxc in map_fun(find_minmax_single,spaths):
+        minc_i = minc > sp_minc
+        minc[minc_i] = sp_minc[minc_i]
+        maxc_i = maxc < sp_maxc
+        maxc[maxc_i] = sp_maxc[maxc_i]
+        if pbar:
+            pbar.next()
+    minc = np.floor(minc)
+    maxc = np.ceil(maxc)
+    return minc,maxc
+
+def find_edges(spaths,grid_size=1.,pbar=None,map_fun=None):
     '''
     :param list spaths: List of single like path objects.
     :param float grid_size: Size of grid cell in A.
@@ -72,9 +98,16 @@ def find_edges(spaths,grid_size=1.,pbar=None):
     :rtype: list of numpy.ndarrays
     :return: Edges of bins of grid spanning all submited paths.
     '''
-    return [np.linspace(mi,ma,int((ma-mi)*grid_size)+1) for mi,ma in zip(*find_minmax(spaths,pbar=pbar))]
+    return [np.linspace(mi,ma,int((ma-mi)*grid_size)+1) for mi,ma in zip(*find_minmax_map(spaths,pbar=pbar,map_fun=map_fun))]
 
-def distribution(spaths,grid_size=1.,edges=None,window=None,pbar=None):
+class distribution_worker(object):
+    def __init__(self,edges=None,window=None):
+        self.edges = edges
+        self.window = window
+    def __call__(self,sp):
+        return np.histogramdd(get_spc(sp,window=self.window),bins=self.edges)[0]
+
+def distribution(spaths,grid_size=1.,edges=None,window=None,pbar=None,map_fun=None):
     '''
     :param list spaths: List of single like path objects.
     :param float grid_size: Size of grid cell in A.
@@ -87,8 +120,11 @@ def distribution(spaths,grid_size=1.,edges=None,window=None,pbar=None):
     maxc = np.array(map(max,edges))
     minc = np.array(map(min,edges))
     H = np.zeros(map(int, (maxc - minc) * grid_size))
-    for sp in spaths:
-        H += np.histogramdd(get_spc(sp,window=window),bins=edges)[0]
+    if map_fun is None:
+        map_fun = map
+    map_worker = distribution_worker(edges=edges,window=window)
+    for h in map_fun(map_worker,spaths):
+        H += h
         if pbar:
             pbar.next()
     mg = [ee[:-1]+(1./(grid_size+1)) for ee in edges]
@@ -122,9 +158,13 @@ def windows(frames,windows=None,size=None):
             yield np.floor(b),np.floor(e)
 
 
-def sphere_radii(spaths,centers=None,radii=None,window=None,pbar=None):
+def sphere_radii(spaths,centers=None,radii=None,window=None,pbar=None,map_fun=None):
 
     H = np.zeros(len(centers),dtype=np.int32)
+
+    if map_fun is None:
+        map_fun = imap
+
     for sp in spaths:
         coords = get_spc(sp,window=window)
         D = spatial.distance.cdist(coords,centers)
@@ -134,13 +174,25 @@ def sphere_radii(spaths,centers=None,radii=None,window=None,pbar=None):
             pbar.next()
     return H
 
-def sphere_radius(spaths,centers=None,radius=2.,window=None,pbar=None):
+class sphere_radius_worker(object):
+    def __init__(self,window,centers,radius):
+        self.window = window
+        self.centers = centers
+        self.radius = radius
+    def __call__(self,sp):
+        coords = get_spc(sp,window=self.window)
+        D = spatial.distance.cdist(coords,self.centers) <= self.radius
+        return np.count_nonzero(D,0)
+
+def sphere_radius(spaths,centers=None,radius=2.,window=None,pbar=None,map_fun=None):
 
     H = np.zeros(len(centers),dtype=np.int32)
-    for sp in spaths:
-        coords = get_spc(sp,window=window)
-        D = spatial.distance.cdist(coords,centers) <= radius
-        H += np.count_nonzero(D,0)
+
+    if map_fun is None:
+        map_fun = imap
+    map_worker = sphere_radius_worker(window,centers,radius)
+    for h in map_fun(map_worker,spaths):
+        H += h
         if pbar:
             pbar.next()
     return H

@@ -37,6 +37,24 @@ logger.addHandler(ch)
 
 ################################################################################
 
+from aquaduct.apps.data import GCS, load_cric
+from aquaduct.traj.sandwich import Reader, Window
+from aquaduct.apps.valve.core import valve_load_config, ValveConfig
+from aquaduct.apps.valve.data import get_vda_reader
+from aquaduct.utils.multip import optimal_threads
+from os import pathsep
+import numpy as np
+from multiprocessing import Pool,Manager
+from aquaduct.geom import pocket
+from aquaduct.traj.dumps import WriteMOL2
+from aquaduct.apps.valve.helpers import get_linearize_method
+from aquaduct.geom import traces
+from itertools import izip
+import os
+from aquaduct.geom.smooth import SavgolSmooth
+
+
+################################################################################
 
 class count_ref(object):
 
@@ -54,7 +72,7 @@ class count_ref(object):
         return ref
 
 
-from aquaduct.apps.data import GCS, load_cric
+################################################################################
 
 
 if __name__ == "__main__":
@@ -63,8 +81,9 @@ if __name__ == "__main__":
 
     with clui.tictoc('What have I got in my pocket?'):
 
-        ############################################################################
+        #----------------------------------------------------------------------#
         # argument parsing
+
         import argparse
         from aquaduct import version_nice as aquaduct_version_nice
 
@@ -114,19 +133,13 @@ if __name__ == "__main__":
 
         args = parser.parse_args()
 
-        ############################################################################
 
-
-        ############################################################################
-        # cache dir & netcdf
+        #----------------------------------------------------------------------#
+        # cache dir
         GCS.cachedir = args.cachedir
         load_cric()
 
-        from aquaduct.traj.sandwich import Reader, Window
-        from aquaduct.apps.valve.core import valve_load_config, ValveConfig
-        from aquaduct.apps.valve.data import get_vda_reader
-
-        ############################################################################
+        #----------------------------------------------------------------------#
         # config
         config = ValveConfig()  # config template
         valve_load_config(args.config_file, config)
@@ -134,13 +147,12 @@ if __name__ == "__main__":
         # get global options
         goptions = config.get_global_options()
 
-        from aquaduct.utils.multip import optimal_threads
 
         if args.threads is None:
             optimal_threads.threads_count = optimal_threads.cpu_count + 1
         else:
             optimal_threads.threads_count = int(args.threads)
-        clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads.threads_count)
+        clui.message("Number of threads Pool is allowed to use: %d" % optimal_threads.threads_count)
         if (1 < optimal_threads.threads_count < 3) or (optimal_threads.threads_count - 1 > optimal_threads.cpu_count):
             clui.message(
                 "Number of threads is not optimal; CPU count reported by system: %d" % optimal_threads.cpu_count)
@@ -156,14 +168,13 @@ if __name__ == "__main__":
 
         # Open trajectory reader
         # trajectories are split with os.pathsep
-        from os import pathsep
 
         Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)],
                window=frames_window,
                sandwich=args.sandwich,
                threads=optimal_threads.threads_count) # trajectory reader
 
-        ############################################################################
+        #----------------------------------------------------------------------#
         # load paths
 
         if args.pockets or args.master_radii or args.master_radius:
@@ -183,13 +194,11 @@ if __name__ == "__main__":
                 with clui.fbm('Loading data dump from %s file' % options2.dump):
                     vda = get_vda_reader(options2.dump, mode='r')
                     result2 = vda.load()
+                    # discar empty
                     paths = [p for p in result2.pop('paths') if len(p.frames)]
 
-        ############################################################################
+        #----------------------------------------------------------------------#
         # run pockets?
-
-        import numpy as np
-        from multiprocessing import Pool,Manager
 
         ref = None
         # caclulte n_z for reference
@@ -224,6 +233,8 @@ if __name__ == "__main__":
                     if progress == goal:
                         break
                 r.wait()
+                pool.close()
+                pool.join()
 
             ref = float(sum(ref))
 
@@ -234,10 +245,8 @@ if __name__ == "__main__":
             k = 0.0019872041 # kcal/mol/K
             ref = -k*args.temp*np.log(ref)
 
-        from aquaduct.geom import pocket
-        from aquaduct.traj.dumps import WriteMOL2
 
-        ############################################################################
+        #----------------------------------------------------------------------#
 
         if args.pockets:
 
@@ -248,7 +257,10 @@ if __name__ == "__main__":
             grid_size = args.grid_size
             grid_area = grid_size ** 3
             with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
-                edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar)
+
+                pool = Pool(processes=optimal_threads.threads_count)
+
+                edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar,map_fun=pool.imap_unordered)
                 number_of_frames = Reader.number_of_frames(onelayer=True)
                 if WS is None:
                     WSf = float(number_of_frames/float(W))
@@ -257,20 +269,22 @@ if __name__ == "__main__":
                 wmol2 = [WriteMOL2('outer.mol2'), WriteMOL2('inner.mol2')]
                 for wnr, window in enumerate(pocket.windows(number_of_frames, windows=W, size=WS)):
                     if wnr:
-                        D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
+                        D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
                         H = (D[-1] / WSf)/grid_area
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
                         for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                             mol2.write_scatter(D[0][I], H[I])
                     elif args.wfull:
-                        D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
+                        D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
                         H = (D[-1] / float(number_of_frames))/grid_area
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
                         for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2('outer_full.mol2'), WriteMOL2('inner_full.mol2')]):
                             mol2.write_scatter(D[0][I], H[I])
                             del mol2
+                pool.close()
+                pool.join()
 
                 for mol2 in wmol2:
                     del mol2
@@ -278,14 +292,11 @@ if __name__ == "__main__":
 
             clui.message("what it's got in its nassty little pocketses?")
 
-        ############################################################################
+        #----------------------------------------------------------------------#
+        # hot spots...
 
-        from aquaduct.apps.valve.helpers import get_linearize_method
-        from aquaduct.geom import traces
-        from itertools import izip
-        import os
-
-        from aquaduct.geom.smooth import SavgolSmooth
+        #----------------------------------------------------------------------#
+        # load mater paths data
 
         if args.master_radii or args.master_radius:
 
@@ -301,7 +312,13 @@ if __name__ == "__main__":
 
             linmet = get_linearize_method(options6.simply_smooths)
 
-        if args.master_radii or args.master_radius:
+        #----------------------------------------------------------------------#
+        # master paths profiles
+
+        if (args.master_radii or args.master_radius) and len(mps) == 0:
+            clui.message("No master paths data.")
+
+        if (args.master_radii or args.master_radius) and len(mps):
 
             pbar_len = len(paths)*len(mps)
             if args.master_radii and args.master_radius:
@@ -309,7 +326,7 @@ if __name__ == "__main__":
 
             with clui.pbar(pbar_len, mess='Calculating master paths profiles:') as pbar:
 
-                number_of_frames = Reader.number_of_frames(onelayer=True)
+                number_of_frames = Reader.number_of_frames(onelayer=False)
 
                 for ctype,mp in mps.iteritems():
                     fname = str(ctype).replace(':','-')
@@ -355,4 +372,8 @@ if __name__ == "__main__":
                                 dat.write('%f\t%f%s' % (l,E,os.linesep))
 
 
-    Reader.reset()
+        #----------------------------------------------------------------------#
+
+        Reader.reset()
+
+        #----------------------------------------------------------------------#
