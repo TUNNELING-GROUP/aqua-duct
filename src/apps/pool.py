@@ -42,7 +42,7 @@ class count_ref(object):
 
     def __init__(self,pbar,ref_sel):
 
-        self.pbar = pabr
+        self.pbar = pbar # queue
         self.ref_sel = ref_sel
 
     def __call__(self,traj_reader):
@@ -50,7 +50,8 @@ class count_ref(object):
         ref = 0.
         for frame in traj_reader.iterate():
             ref += len(list(traj_reader.parse_selection(self.ref_sel).residues().ids()))
-            pbar.next()
+            self.pbar.put(1)
+            #self.pbar.next()
         return ref
 
 
@@ -177,7 +178,7 @@ if __name__ == "__main__":
         # run pockets?
 
         import numpy as np
-        from multiprocessing import Pool
+        from multiprocessing import Pool,Lock,Queue
 
         ref = None
         # caclulte n_z for reference
@@ -191,17 +192,35 @@ if __name__ == "__main__":
                 break
             del traj_reader
 
-            with clui.pbar(Reader.number_of_frames(onelayer=False),mess="Calculating density in the reference area:") as pbar:
+
+            goal = Reader.number_of_frames(onelayer=False)
+            with clui.pbar(goal,mess="Calculating density in the reference area:") as pbar:
                 ref = []
                 ref_sel = '(%s) and (point %f %f %f %f)' % ((args.ref_mol,)+tuple(map(float,com))+(args.ref_radius,))
 
+                pbar_queue = Queue()
                 pool = Pool(processes=optimal_threads.threads_count)
+
                 r = pool.map_async(
-                    count_ref(pbar,ref_sel),
+                    count_ref(pbar_queue,ref_sel),
                     Reader.iterate(),
-                    callback=ref.append)
+                    callback=ref.extend)
+                r.wait(timeout=1)
+                pool.close()
+                pool.join()
+
+                print "progress"
+
+                progress = 0
+                for p in iter(pbar_queue.get,None):
+                    print p
+                    progress += p
+                    pbar.next(p)
+                    if progress == goal:
+                        break
                 r.wait()
 
+            print ref
             ref = sum(ref)
 
             ref /= Reader.number_of_frames(onelayer=True)

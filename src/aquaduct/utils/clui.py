@@ -31,8 +31,10 @@ from sys import stderr
 from os import linesep
 from functools import partial
 import numpy as np
-from aquaduct.utils.helpers import is_number, is_float
+from aquaduct.utils.helpers import is_number, is_float, is_iterable
 import json
+
+from multiprocessing import Manager
 
 try:
     from termcolor import colored
@@ -288,7 +290,7 @@ class SimpleProgressBar(object):
         :param str mess: Optional message displayed at progress bar initialization.
         """
 
-        # self.lock = Manager().Lock()
+        #self.lock = Manager().Lock()
 
         if maxval is None and is_iterable(iterable):
             maxval = len(iterable)
@@ -329,7 +331,7 @@ class SimpleProgressBar(object):
         if typ is None:
             self.finish()
 
-    def iter(finish=False):
+    def iter(self,finish=False):
         for e in self.iterable:
             yield e
             self.next()
