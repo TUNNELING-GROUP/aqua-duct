@@ -274,6 +274,7 @@ class ValveConfig(ConfigSpecialNames):
         common_traj_data(section)
 
         config.set(section, 'clear_in_object_info', 'False')
+        config.set(section, 'discard_empty_paths', 'True')
 
         ################
         snr += 1
@@ -857,6 +858,10 @@ def stage_II_run(config, options,
     for rn in results.itervalues():
         if not isinstance(rn, np.ndarray):
             os.unlink(rn[0])
+
+    if options.discard_empty_paths:
+        with clui.pbar(maxval=len(paths), mess="Discard residues with empty paths:") as pbar:
+            paths = [pat for pat in paths if len(pat.frames) > 0 if pbar.next() is None]
 
     clui.message("Number of paths: %d" % len(paths))
 

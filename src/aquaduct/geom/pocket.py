@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from aquaduct.traj.paths import GenericPaths
 
 import numpy as np
 from itertools import izip
@@ -24,15 +25,21 @@ from scipy import spatial
 
 def get_spc(sp,window=None):
     '''
-    :param MacromolPath sp: Single path like object.
+    :param sp: Single path like object or Generic path.
     :param tuple window: Optional frames window.
     :rtype: numpy.ndarray
     :return: Coordinates of path; to be used in pocket calculation.
     '''
-    if window is None:
-        return sp.coords_cont
-    i = (np.array(sp.paths_cont)>=window[0]) & (np.array(sp.paths_cont)<=window[1])
-    return get_spc(sp)[i]
+    if isinstance(sp,GenericPaths):
+        if window is None:
+            return sp.coords
+        i = (np.array(sp.frames)>=window[0]) & (np.array(sp.frames)<=window[1])
+        return get_spc(sp)[i]
+    else:
+        if window is None:
+            return sp.coords_cont
+        i = (np.array(sp.paths_cont)>=window[0]) & (np.array(sp.paths_cont)<=window[1])
+        return get_spc(sp)[i]
 
 
 def find_minmax(spaths,pbar=None):

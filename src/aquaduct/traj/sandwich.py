@@ -137,6 +137,9 @@ class MasterReader(object):
     threads = 1
     threads_multiply = 1
 
+    def __del__(self):
+        self.reset()
+
     def __call__(self, topology, trajectory, window=None, sandwich=False, threads=1):
         """
         :param str topology:  Topology file name.

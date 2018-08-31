@@ -50,8 +50,7 @@ class count_ref(object):
         ref = 0.
         for frame in traj_reader.iterate():
             ref += len(list(traj_reader.parse_selection(self.ref_sel).residues().ids()))
-            self.pbar.put(1)
-            #self.pbar.next()
+            self.pbar.put(1) # report one frame a time
         return ref
 
 
@@ -84,6 +83,8 @@ if __name__ == "__main__":
                             help="Minimal number of frame.")
         parser.add_argument("--step-frame", action="store", dest="step_frame", type=int, required=False,
                             help="Frames step.")
+        parser.add_argument("--raw", action="store_true", dest="raw", required=False,
+                            help="Use raw data from paths instead of single paths.")
         parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
                             help="Sandwich mode for multiple trajectories.")
         parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
@@ -163,22 +164,32 @@ if __name__ == "__main__":
                threads=optimal_threads.threads_count) # trajectory reader
 
         ############################################################################
-        # load spaths
+        # load paths
 
         if args.pockets or args.master_radii or args.master_radius:
-            # get stage III options
-            options3 = config.get_stage_options(2)
 
-            with clui.fbm('Loading data dump from %s file' % options3.dump):
-                vda = get_vda_reader(options3.dump, mode='r')
-                result3 = vda.load()
-                spaths = result3.pop('spaths')
+            if not args.raw:
+                # get stage III options
+                options3 = config.get_stage_options(2)
+
+                with clui.fbm('Loading data dump from %s file' % options3.dump):
+                    vda = get_vda_reader(options3.dump, mode='r')
+                    result3 = vda.load()
+                    paths = result3.pop('spaths')
+            else:
+                # get stage II options
+                options2 = config.get_stage_options(1)
+
+                with clui.fbm('Loading data dump from %s file' % options2.dump):
+                    vda = get_vda_reader(options2.dump, mode='r')
+                    result2 = vda.load()
+                    paths = [p for p in result2.pop('paths') if len(p.frames)]
 
         ############################################################################
         # run pockets?
 
         import numpy as np
-        from multiprocessing import Pool,Lock,Queue
+        from multiprocessing import Pool,Manager
 
         ref = None
         # caclulte n_z for reference
@@ -190,46 +201,38 @@ if __name__ == "__main__":
                     com = ref_sel.center_of_mass()
                     break
                 break
-            del traj_reader
-
+            Reader.reset()
 
             goal = Reader.number_of_frames(onelayer=False)
             with clui.pbar(goal,mess="Calculating density in the reference area:") as pbar:
                 ref = []
                 ref_sel = '(%s) and (point %f %f %f %f)' % ((args.ref_mol,)+tuple(map(float,com))+(args.ref_radius,))
 
-                pbar_queue = Queue()
+                manager = Manager()
+                pbar_queue = manager.Queue()
                 pool = Pool(processes=optimal_threads.threads_count)
 
                 r = pool.map_async(
                     count_ref(pbar_queue,ref_sel),
                     Reader.iterate(),
                     callback=ref.extend)
-                r.wait(timeout=1)
-                pool.close()
-                pool.join()
-
-                print "progress"
 
                 progress = 0
                 for p in iter(pbar_queue.get,None):
-                    print p
                     progress += p
-                    pbar.next(p)
+                    pbar.next(step=p)
                     if progress == goal:
                         break
                 r.wait()
 
-            print ref
-            ref = sum(ref)
+            ref = float(sum(ref))
 
-            ref /= Reader.number_of_frames(onelayer=True)
+            ref /= Reader.number_of_frames(onelayer=False) # if sandwich mean value will be correct
             ref /= 4./3.*np.pi*(float(args.ref_radius)**3)
 
             # B constant
             k = 0.0019872041 # kcal/mol/K
             ref = -k*args.temp*np.log(ref)
-
 
         from aquaduct.geom import pocket
         from aquaduct.traj.dumps import WriteMOL2
@@ -244,8 +247,8 @@ if __name__ == "__main__":
             WS = args.wsize
             grid_size = args.grid_size
             grid_area = grid_size ** 3
-            with clui.pbar(len(spaths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
-                edges = pocket.find_edges(spaths, grid_size=grid_size, pbar=pbar)
+            with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
+                edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar)
                 number_of_frames = Reader.number_of_frames(onelayer=True)
                 if WS is None:
                     WSf = float(number_of_frames/float(W))
@@ -254,14 +257,14 @@ if __name__ == "__main__":
                 wmol2 = [WriteMOL2('outer.mol2'), WriteMOL2('inner.mol2')]
                 for wnr, window in enumerate(pocket.windows(number_of_frames, windows=W, size=WS)):
                     if wnr:
-                        D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
+                        D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
                         H = (D[-1] / WSf)/grid_area
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
                         for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                             mol2.write_scatter(D[0][I], H[I])
                     elif args.wfull:
-                        D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
+                        D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
                         H = (D[-1] / float(number_of_frames))/grid_area
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
@@ -274,10 +277,6 @@ if __name__ == "__main__":
 
 
             clui.message("what it's got in its nassty little pocketses?")
-
-        ############################################################################
-
-
 
         ############################################################################
 
@@ -304,7 +303,7 @@ if __name__ == "__main__":
 
         if args.master_radii or args.master_radius:
 
-            pbar_len = len(spaths)*len(mps)
+            pbar_len = len(paths)*len(mps)
             if args.master_radii and args.master_radius:
                 pbar_len *= 2
 
@@ -318,7 +317,7 @@ if __name__ == "__main__":
                     centers, ids = linmet(mp.coords_cont, ids=True)
 
                     if args.master_radius:
-                        D = pocket.sphere_radius(spaths,centers=centers,radius=args.master_radius,pbar=pbar)
+                        D = pocket.sphere_radius(paths,centers=centers,radius=args.master_radius,pbar=pbar)
                         H = D / float(number_of_frames) / (4./3. * np.pi * args.master_radius**3)
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
@@ -342,7 +341,7 @@ if __name__ == "__main__":
                         else:
                             radii = np.array(map(float,mp.width_cont))[ids]
 
-                        D = pocket.sphere_radii(spaths,centers=centers,radii=radii,pbar=pbar)
+                        D = pocket.sphere_radii(paths,centers=centers,radii=radii,pbar=pbar)
                         H = D / float(number_of_frames) / (4./3. * np.pi * radii**3)
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
@@ -354,3 +353,6 @@ if __name__ == "__main__":
                             L = np.hstack((0.,np.cumsum(traces.diff(centers))))
                             for l,E in izip(L,H):
                                 dat.write('%f\t%f%s' % (l,E,os.linesep))
+
+
+    Reader.reset()
