@@ -58,6 +58,8 @@ if __name__ == "__main__":
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
         parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
+        parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
+                            help="Limit Aqua-Duct calculations to given number of threads.")
         parser.add_argument("--max-frame", action="store", dest="max_frame", type=int, required=False,
                             help="Maximal number of frame.")
         parser.add_argument("--min-frame", action="store", dest="min_frame", type=int, required=False,
@@ -113,6 +115,23 @@ if __name__ == "__main__":
         # get global options
         goptions = config.get_global_options()
 
+        from aquaduct.utils.multip import optimal_threads
+
+        if args.threads is None:
+            optimal_threads.threads_count = optimal_threads.cpu_count + 1
+        else:
+            optimal_threads.threads_count = int(args.threads)
+        clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads.threads_count)
+        if (1 < optimal_threads.threads_count < 3) or (optimal_threads.threads_count - 1 > optimal_threads.cpu_count):
+            clui.message(
+                "Number of threads is not optimal; CPU count reported by system: %d" % optimal_threads.cpu_count)
+        # because it is used by mp.Pool it should be -1???
+        if optimal_threads.threads_count > 1:
+            optimal_threads.threads_count -= 1
+            clui.message("Main process would use 1 thread.")
+            clui.message("Concurent calculations would use %d threads." % optimal_threads.threads_count)
+
+
         # Maximal frame checks
         frames_window = Window(args.min_frame, args.max_frame, args.step_frame)
 
@@ -122,7 +141,8 @@ if __name__ == "__main__":
 
         Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)],
                window=frames_window,
-               sandwich=args.sandwich)  # trajectory reader
+               sandwich=args.sandwich,
+               threads=optimal_threads.threads_count) # trajectory reader
 
         ############################################################################
         # load spaths
@@ -183,7 +203,7 @@ if __name__ == "__main__":
             WS = args.wsize
             grid_size = args.grid_size
             grid_area = grid_size ** 3
-            with clui.pbar(len(spaths) * (1 + W + 1), mess='Calculating pockets:') as pbar:
+            with clui.pbar(len(spaths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
                 edges = pocket.find_edges(spaths, grid_size=grid_size, pbar=pbar)
                 number_of_frames = Reader.number_of_frames(onelayer=True)
                 if WS is None:
@@ -199,7 +219,7 @@ if __name__ == "__main__":
                             H = -k*args.temp*np.log(H) - ref
                         for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                             mol2.write_scatter(D[0][I], H[I])
-                    else:
+                    elif args.wfull:
                         D = pocket.distribution(spaths, grid_size=grid_size, edges=edges, window=window, pbar=pbar)
                         H = (D[-1] / float(number_of_frames))/grid_area
                         if ref:
@@ -213,6 +233,10 @@ if __name__ == "__main__":
 
 
             clui.message("what it's got in its nassty little pocketses?")
+
+        ############################################################################
+
+
 
         ############################################################################
 
