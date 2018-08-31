@@ -37,6 +37,23 @@ logger.addHandler(ch)
 
 ################################################################################
 
+
+class count_ref(object):
+
+    def __init__(self,pbar,ref_sel):
+
+        self.pbar = pabr
+        self.ref_sel = ref_sel
+
+    def __call__(self,traj_reader):
+        traj_reader = traj_reader.open()
+        ref = 0.
+        for frame in traj_reader.iterate():
+            ref += len(list(traj_reader.parse_selection(self.ref_sel).residues().ids()))
+            pbar.next()
+        return ref
+
+
 from aquaduct.apps.data import GCS, load_cric
 
 
@@ -160,6 +177,7 @@ if __name__ == "__main__":
         # run pockets?
 
         import numpy as np
+        from multiprocessing import Pool
 
         ref = None
         # caclulte n_z for reference
@@ -173,14 +191,18 @@ if __name__ == "__main__":
                 break
             del traj_reader
 
-            with clui.pbar(Reader.number_of_frames(onelayer=True),mess="Calculating density in the reference area:") as pbar:
-                ref = 0.
-                for traj_reader in Reader.iterate():
-                    traj_reader = traj_reader.open()
-                    ref_sel = '(%s) and (point %f %f %f %f)' % ((args.ref_mol,)+tuple(map(float,com))+(args.ref_radius,))
-                    for frame in traj_reader.iterate():
-                        ref += len(list(traj_reader.parse_selection(ref_sel).residues().ids()))
-                        pbar.next()
+            with clui.pbar(Reader.number_of_frames(onelayer=False),mess="Calculating density in the reference area:") as pbar:
+                ref = []
+                ref_sel = '(%s) and (point %f %f %f %f)' % ((args.ref_mol,)+tuple(map(float,com))+(args.ref_radius,))
+
+                pool = Pool(processes=optimal_threads.threads_count)
+                r = pool.map_async(
+                    count_ref(pbar,ref_sel),
+                    Reader.iterate(),
+                    callback=ref.append)
+                r.wait()
+
+            ref = sum(ref)
 
             ref /= Reader.number_of_frames(onelayer=True)
             ref /= 4./3.*np.pi*(float(args.ref_radius)**3)

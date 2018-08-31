@@ -49,7 +49,7 @@ if __name__ == "__main__":
         from aquaduct import version_nice as aquaduct_version_nice
 
         description_version = '''Aquaduct library version %s''' % (aquaduct_version_nice(),)
-        description = '''Magic Portal'''
+        description = '''Magic Portal (debugging tool, not for regular use)'''
 
         parser = argparse.ArgumentParser(description=description,
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
