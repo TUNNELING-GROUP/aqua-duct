@@ -96,6 +96,7 @@ if __name__ == "__main__":
         parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
         parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
                             help="Limit Aqua-Duct calculations to given number of threads.")
+        parser.add_argument("-r", action="store", dest="results_dir", required=False, help="Path to results directory",default="",type=str)
         parser.add_argument("--max-frame", action="store", dest="max_frame", type=int, required=False,
                             help="Maximal number of frame.")
         parser.add_argument("--min-frame", action="store", dest="min_frame", type=int, required=False,
@@ -106,6 +107,8 @@ if __name__ == "__main__":
                             help="Use raw data from paths instead of single paths.")
         parser.add_argument("--raw-master", action="store_true", dest="raw_master", required=False,
                             help="Use raw data from paths instead of single paths, only in master paths calculations.")
+        parser.add_argument("--raw-discard-singletons", action="store", dest="raw_singl", required=False, type=int, default=1,
+                            help="Discard short scope only segments from raw data.")
         parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
                             help="Sandwich mode for multiple trajectories.")
         parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
@@ -144,6 +147,14 @@ if __name__ == "__main__":
         # cache dir
         GCS.cachedir = args.cachedir
         load_cric()
+
+        #----------------------------------------------------------------------#
+        # results dir
+        rdir = ""
+        if len(args.results_dir):
+            if not os.path.exists(rdir):
+                os.makedirs(rdir)
+            rdir += os.path.sep
 
         #----------------------------------------------------------------------#
         # config
@@ -199,8 +210,9 @@ if __name__ == "__main__":
                     result2 = vda.load()
                 with clui.fbm('Preparing raw data'):
                     paths = result2.pop('paths')
-                    for p in paths:
-                        p.discard_singletons(singl=3)
+                    if args.raw_singl:
+                        for p in paths:
+                            p.discard_singletons(singl=args.raw_singl)
                     paths = [p for p in paths if len(p.frames)]
 
         #----------------------------------------------------------------------#
@@ -222,7 +234,7 @@ if __name__ == "__main__":
             with clui.pbar(goal,mess="Calculating density in the reference area:") as pbar:
                 ref = []
                 ref_sel = '(%s) and (point %f %f %f %f)' % ((args.ref_mol,)+tuple(map(float,com))+(args.ref_radius,))
-
+                #ref_sel = '(%s) and (sphzone %f %s)' % (args.ref_mol, args.ref_radius, args.ref)
                 manager = Manager()
                 pbar_queue = manager.Queue()
                 pool = Pool(processes=optimal_threads.threads_count)
@@ -244,8 +256,12 @@ if __name__ == "__main__":
 
             ref = float(sum(ref))
 
-            ref /= Reader.number_of_frames(onelayer=False) # if sandwich mean value will be correct
+            clui.message('Reference number of molecules: %d [molecules].' % int(ref))
+
+            ref /= float(Reader.number_of_frames(onelayer=False)) # if sandwich mean value will be correct
+
             ref /= 4./3.*np.pi*(float(args.ref_radius)**3)
+            clui.message('Reference density: %0.4f [molecules/A^3].' % ref)
 
             # B constant
             k = 0.0019872041 # kcal/mol/K
@@ -264,18 +280,16 @@ if __name__ == "__main__":
             grid_size = args.grid_size
             grid_area = grid_size ** 3
             with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
-
                 pool = Pool(processes=optimal_threads.threads_count)
-
                 edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar,map_fun=pool.imap_unordered)
                 number_of_frames = Reader.number_of_frames(onelayer=True)
                 if WS is None:
                     WSf = float(number_of_frames/float(W))
                 else:
                     WSf = float(WS)
-                wmol2 = [WriteMOL2('outer.mol2'), WriteMOL2('inner.mol2')]
+                wmol2 = [WriteMOL2(rdir+'outer.mol2'), WriteMOL2(rdir+'inner.mol2')]
                 if args.hotspots:
-                    hsmol2 = WriteMOL2('hotspots.mol2')
+                    hsmol2 = WriteMOL2(rdir+'hotspots.mol2')
                 for wnr, window in enumerate(pocket.windows(number_of_frames, windows=W, size=WS)):
                     if wnr:
                         D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
@@ -298,7 +312,7 @@ if __name__ == "__main__":
                         H = (D[-1] / float(number_of_frames))/grid_area
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
-                        for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2('outer_full.mol2'), WriteMOL2('inner_full.mol2')]):
+                        for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2(rdir+'outer_full.mol2'), WriteMOL2(rdir+'inner_full.mol2')]):
                             mol2.write_scatter(D[0][I], H[I])
                             del mol2
                     save_cric()
@@ -341,8 +355,9 @@ if __name__ == "__main__":
                 result2 = vda.load()
             with clui.fbm('Preparing raw data'):
                 paths = result2.pop('paths')
-                for p in paths:
-                    p.discard_singletons(singl=3)
+                if args.raw_singl:
+                    for p in paths:
+                        p.discard_singletons(singl=args.raw_singl)
                 paths = [p for p in paths if len(p.frames)]
 
         #----------------------------------------------------------------------#
@@ -377,28 +392,43 @@ if __name__ == "__main__":
 
                 number_of_frames = Reader.number_of_frames(onelayer=False)
                 #window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
-                window = None
+                many_windows = W > 1 and (WS is not None)
+                many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
 
-                for ctype,mp in mps.iteritems():
+                for wnr,window in pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS):
 
-                    fname = str(ctype).replace(':','-')
+                    if wnr or args.wfull:
 
-                    centers, ids = linmet(mp.coords_cont, ids=True)
+                        for ctype,mp in mps.iteritems():
 
-                    if args.master_radius:
-                        D = pocket.sphere_radius(paths,centers=centers,radius=args.master_radius,window=window,pbar=pbar,map_fun=pool.imap_unordered)
-                        H = D / float(number_of_frames) / (4./3. * np.pi * args.master_radius**3)
-                        if ref:
-                            H = -k*args.temp*np.log(H) - ref
-                        with WriteMOL2("mp_%s_radius.mol2" % fname) as mol2:
-                            mol2.write_connected(centers,H)
+                            fname_window = ""
+                            fname = str(ctype).replace(':','-')
+                            if not wnr and args.full:
+                                fname += '_full'
+                            elif wnr and many_windows:
+                                fname_window = '_W%d' % wnr
 
-                        with open("mp_%s_radius.dat" % fname,'w') as dat:
-                            dat.write('len\tE'+os.linesep)
-                            L = np.hstack((0.,np.cumsum(traces.diff(centers))))
-                            for l,E in izip(L,H):
-                                dat.write('%f\t%f%s' % (l,E,os.linesep))
-                    save_cric()
+                            mode = 'w'
+                            if wnr > 1:
+                                mode = 'a'
+
+                            centers, ids = linmet(mp.coords_cont, ids=True)
+
+                            if args.master_radius:
+                                D = pocket.sphere_radius(paths,centers=centers,radius=args.master_radius,window=window,pbar=pbar,map_fun=pool.imap_unordered)
+                                H = D / float(number_of_frames) / (4./3. * np.pi * float(args.master_radius)**3)
+                                if ref:
+                                    H = -k*args.temp*np.log(H) - ref
+                                with WriteMOL2(rdir+"mp_%s_radius.mol2" % fname,mode=mode) as mol2:
+                                    mol2.write_connected(centers,H)
+
+                                with open(rdir+"mp_%s%s_radius.dat" % (fname,fname_window),'w') as dat:
+                                    dat.write('len\tE'+os.linesep)
+                                    L = np.hstack((0.,np.cumsum(traces.diff(centers))))
+                                    for l,E in izip(L,H):
+                                        dat.write('%f\t%f%s' % (l,E,os.linesep))
+                        save_cric()
+
             pool.close()
             pool.join()
 
