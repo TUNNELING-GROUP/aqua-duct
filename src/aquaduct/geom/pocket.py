@@ -197,3 +197,13 @@ def sphere_radius(spaths,centers=None,radius=2.,window=None,pbar=None,map_fun=No
             pbar.next()
     return H
 
+
+def hot_spots(H,bins=10,level=2):
+    if level:
+        his = np.histogram(H,bins=bins)
+        print his,bins,level
+        hs = np.argwhere(his[0]==0)
+        if len(hs):
+            return his[1][hs][0]
+        else:
+            return hot_spots(H,bins=int(bins*2),level=level-1)

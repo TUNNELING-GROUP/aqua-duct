@@ -126,6 +126,8 @@ if __name__ == "__main__":
                             help="Size of grid's cells.")
         parser.add_argument("--pockets", action="store_true", dest="pockets", required=False,
                             help="Calculate pockets.")
+        parser.add_argument("--hotspots", action="store_true", dest="hotspots", required=False,
+                            help="Calculates hotspots if pockets are calculated.")
         parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False,
                             help="Calculate profiles for master paths with giwen radius.")
         parser.add_argument("--master-radii", action="store_true", dest="master_radii", required=False,
@@ -267,12 +269,21 @@ if __name__ == "__main__":
                 else:
                     WSf = float(WS)
                 wmol2 = [WriteMOL2('outer.mol2'), WriteMOL2('inner.mol2')]
+                if args.hotspots:
+                    hsmol2 = WriteMOL2('hotspots.mol2')
                 for wnr, window in enumerate(pocket.windows(number_of_frames, windows=W, size=WS)):
                     if wnr:
                         D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
                         H = (D[-1] / WSf)/grid_area
+                        hs = pocket.hot_spots(H)
+                        if hs is not None:
+                            hs = H >= hs
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
+                        if hs is not None:
+                            hsmol2.write_scatter(D[0][hs], H[hs])
+                        else:
+                            hsmol2.write_scatter([], [])
                         for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                             mol2.write_scatter(D[0][I], H[I])
                     elif args.wfull:
@@ -288,6 +299,8 @@ if __name__ == "__main__":
 
                 for mol2 in wmol2:
                     del mol2
+                if args.hotspots:
+                    del hsmol2
 
 
             clui.message("what it's got in its nassty little pocketses?")

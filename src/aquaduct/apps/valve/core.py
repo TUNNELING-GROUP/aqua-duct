@@ -1009,6 +1009,7 @@ def stage_III_run(config, options,
                     CRIC.update_cric(paths_new_list.pop(-1))
                     paths_.extend(paths_new_list)
                     pbar.next(step=len(paths_new_list))
+                    gc.collect()
                 save_cric()
                 # now, it might be that some of paths are empty
                 paths = []
