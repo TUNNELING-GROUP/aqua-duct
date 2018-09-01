@@ -163,6 +163,25 @@ class GenericPaths(GenericPathTypeCodes):
     # def frames_promise(self):
     #    return self._frames.get()
 
+    def discard_singletons(self,singl=1,skiptype=GenericPathTypeCodes.object_name):
+        # singl is chunk size to discard
+        types = self.types
+        new_types = []
+        new_frames = []
+        seek = 0
+        # loop over frames chunks:
+        for chunksr in self._frames_sr.raw:
+            if len(chunksr)<=singl:
+                if skiptype not in types[seek:seek+len(chunksr)]:
+                    continue
+
+            new_frames.append(chunksr)
+            new_types.extend(types[seek:seek+len(chunksr)])
+            seek += len(chunksr)
+
+        self._types = SmartRange(new_types)
+        self._frames = array('i',chain(*(ch.get() for ch in new_frames)))
+
     @property
     def coords(self):
         return self.single_res_selection.coords(self._frames_sr)

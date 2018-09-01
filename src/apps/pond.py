@@ -32,12 +32,12 @@ formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]:
 formatter = logging.Formatter(formatter_string)
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)
-ch.setLevel(logging.DEBUG)  # default level is WARNING
+ch.setLevel(logging.WARNING)  # default level is WARNING
 logger.addHandler(ch)
 
 ################################################################################
 
-from aquaduct.apps.data import GCS, load_cric
+from aquaduct.apps.data import GCS, load_cric, save_cric
 from aquaduct.traj.sandwich import Reader, Window
 from aquaduct.apps.valve.core import valve_load_config, ValveConfig
 from aquaduct.apps.valve.data import get_vda_reader
@@ -181,23 +181,30 @@ if __name__ == "__main__":
 
         if args.pockets or args.master_radii or args.master_radius:
 
-            # get stage III options
-            options3 = config.get_stage_options(2)
-            with clui.fbm('Loading data dump from %s file' % options3.dump):
-                vda = get_vda_reader(options3.dump, mode='r')
-                result3 = vda.load()
-
             if not args.raw:
+                # get stage III options
+                options3 = config.get_stage_options(2)
+                with clui.fbm('Loading data dump from %s file' % options3.dump):
+                    vda = get_vda_reader(options3.dump, mode='r')
+                    result3 = vda.load()
                 paths = result3.pop('spaths')
             else:
+                # get stage III options
+                options2 = config.get_stage_options(1)
+                with clui.fbm('Loading data dump from %s file' % options2.dump):
+                    vda = get_vda_reader(options2.dump, mode='r')
+                    result2 = vda.load()
                 with clui.fbm('Preparing raw data'):
-                    paths = [p for p in result3.pop('paths') if len(p.frames)]
+                    paths = result2.pop('paths')
+                    for p in paths:
+                        p.discard_singletons(singl=3)
+                    paths = [p for p in paths if len(p.frames)]
 
         #----------------------------------------------------------------------#
         # run pockets?
 
         ref = None
-        # caclulte n_z for reference
+        # calculate n_z for reference
         if args.ref:
             for traj_reader in Reader.iterate():
                 traj_reader = traj_reader.open()
@@ -290,6 +297,7 @@ if __name__ == "__main__":
                         for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2('outer_full.mol2'), WriteMOL2('inner_full.mol2')]):
                             mol2.write_scatter(D[0][I], H[I])
                             del mol2
+                    save_cric()
                 pool.close()
                 pool.join()
 
@@ -330,9 +338,16 @@ if __name__ == "__main__":
             if args.master_radii and args.master_radius:
                 pbar_len *= 2
 
+            W = args.windows
+            WS = args.wsize
+
+            pool = Pool(processes=optimal_threads.threads_count)
+
             with clui.pbar(pbar_len, mess='Calculating master paths profiles:') as pbar:
 
                 number_of_frames = Reader.number_of_frames(onelayer=False)
+                #window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
+                window = None
 
                 for ctype,mp in mps.iteritems():
                     fname = str(ctype).replace(':','-')
@@ -340,7 +355,7 @@ if __name__ == "__main__":
                     centers, ids = linmet(mp.coords_cont, ids=True)
 
                     if args.master_radius:
-                        D = pocket.sphere_radius(paths,centers=centers,radius=args.master_radius,pbar=pbar)
+                        D = pocket.sphere_radius(paths,centers=centers,radius=args.master_radius,window=window,pbar=pbar,map_fun=pool.imap_unordered)
                         H = D / float(number_of_frames) / (4./3. * np.pi * args.master_radius**3)
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
@@ -376,7 +391,9 @@ if __name__ == "__main__":
                             L = np.hstack((0.,np.cumsum(traces.diff(centers))))
                             for l,E in izip(L,H):
                                 dat.write('%f\t%f%s' % (l,E,os.linesep))
-
+                    save_cric()
+            pool.close()
+            pool.join()
 
         #----------------------------------------------------------------------#
 

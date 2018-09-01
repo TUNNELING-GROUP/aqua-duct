@@ -274,6 +274,7 @@ class ValveConfig(ConfigSpecialNames):
         common_traj_data(section)
 
         config.set(section, 'clear_in_object_info', 'False')
+        config.set(section, 'discard_singletons', 1)
         config.set(section, 'discard_empty_paths', 'True')
 
         ################
@@ -863,6 +864,12 @@ def stage_II_run(config, options,
     for rn in results.itervalues():
         if not isinstance(rn, np.ndarray):
             os.unlink(rn[0])
+
+    if options.discard_singletons:
+        with clui.pbar(maxval=len(paths), mess="Discard singletons (%d) paths:" % int(options.discard_singletons)) as pbar:
+            for pat in paths:
+                pat.discard_singletons(singl=int(options.discard_singletons))
+                pbar.next()
 
     if options.discard_empty_paths:
         with clui.pbar(maxval=len(paths), mess="Discard residues with empty paths:") as pbar:

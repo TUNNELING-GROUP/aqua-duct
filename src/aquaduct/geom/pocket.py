@@ -33,12 +33,14 @@ def get_spc(sp,window=None):
     if isinstance(sp,GenericPaths):
         if window is None:
             return sp.coords
-        i = (np.array(sp.frames)>=window[0]) & (np.array(sp.frames)<=window[1])
+        f = np.array(sp.frames)
+        i = (f>=window[0]) & (f<=window[1])
         return get_spc(sp)[i]
     else:
         if window is None:
             return sp.coords_cont
-        i = (np.array(sp.paths_cont)>=window[0]) & (np.array(sp.paths_cont)<=window[1])
+        f = np.array(sp.paths_cont)
+        i = (f>=window[0]) & (f<=window[1])
         return get_spc(sp)[i]
 
 
