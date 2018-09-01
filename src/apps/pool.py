@@ -32,7 +32,7 @@ formatter_string = '%(name)s:%(levelname)s:[%(module)s|%(funcName)s@%(lineno)d]:
 formatter = logging.Formatter(formatter_string)
 ch = logging.StreamHandler()
 ch.setFormatter(formatter)
-ch.setLevel(logging.WARNING)  # default level is WARNING
+ch.setLevel(logging.DEBUG)  # default level is WARNING
 logger.addHandler(ch)
 
 ################################################################################
@@ -300,9 +300,6 @@ if __name__ == "__main__":
 
 
             clui.message("what it's got in its nassty little pocketses?")
-
-        #----------------------------------------------------------------------#
-        # hot spots...
 
         #----------------------------------------------------------------------#
         # load mater paths data

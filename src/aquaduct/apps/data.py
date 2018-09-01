@@ -185,7 +185,7 @@ class FramesRangeCollection(object):
             # if something is left append it to the end
             if srange is not None and nr == len(self.collection) - 1:
                 self.collection.append(srange)
-                logger.debug("FRC append remaining srage %s", str(srange))
+                logger.debug("FRC append remaining srange %s", str(srange))
                 srange = None
 
     def get_ranges(self, srange):

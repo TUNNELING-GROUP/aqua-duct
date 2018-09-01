@@ -836,6 +836,8 @@ def stage_II_run(config, options,
                     izip(paths_this_layer, results_n(results[number]).T),
                     callback=paths.extend)
                 r.wait()
+                pool.close()
+                pool.join()
 
     elif unsandwitchize:
         # make coherent paths
@@ -854,6 +856,8 @@ def stage_II_run(config, options,
                 pool_func, xrange(len(all_res_ids)),
                 callback=paths.extend)
             r.wait()
+            pool.close()
+            pool.join()
 
     # rm tmp files
     for rn in results.itervalues():

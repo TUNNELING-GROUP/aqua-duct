@@ -197,7 +197,10 @@ class GenericPaths(GenericPathTypeCodes):
                 self.add_object(foo_)
                 foo_ = None
 
-    def add_012(self, os_in_frames):
+    def add_012(self, os_in_frames, reset=False):
+        if reset:
+            self._types = SmartRange()
+            self._frames = array('i')
         for frame, os_type in enumerate(os_in_frames):
             if os_type == 2:
                 self.add_object(frame)
