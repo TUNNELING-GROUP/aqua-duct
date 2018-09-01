@@ -104,6 +104,8 @@ if __name__ == "__main__":
                             help="Frames step.")
         parser.add_argument("--raw", action="store_true", dest="raw", required=False,
                             help="Use raw data from paths instead of single paths.")
+        parser.add_argument("--raw-master", action="store_true", dest="raw_master", required=False,
+                            help="Use raw data from paths instead of single paths, only in master paths calculations.")
         parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
                             help="Sandwich mode for multiple trajectories.")
         parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
@@ -130,8 +132,10 @@ if __name__ == "__main__":
                             help="Calculates hotspots if pockets are calculated.")
         parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False,
                             help="Calculate profiles for master paths with giwen radius.")
-        parser.add_argument("--master-radii", action="store_true", dest="master_radii", required=False,
-                            help="Calculate profiles for master paths using width as radii.")
+        parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False,
+                            help="Limit calculations to given ctypes.")
+        #parser.add_argument("--master-radii", action="store_true", dest="master_radii", required=False,
+        #                    help="Calculate profiles for master paths using width as radii.")
 
         args = parser.parse_args()
 
@@ -154,7 +158,7 @@ if __name__ == "__main__":
             optimal_threads.threads_count = optimal_threads.cpu_count + 1
         else:
             optimal_threads.threads_count = int(args.threads)
-        clui.message("Number of threads Pool is allowed to use: %d" % optimal_threads.threads_count)
+        clui.message("Number of threads Pond is allowed to use: %d" % optimal_threads.threads_count)
         if (1 < optimal_threads.threads_count < 3) or (optimal_threads.threads_count - 1 > optimal_threads.cpu_count):
             clui.message(
                 "Number of threads is not optimal; CPU count reported by system: %d" % optimal_threads.cpu_count)
@@ -179,8 +183,7 @@ if __name__ == "__main__":
         #----------------------------------------------------------------------#
         # load paths
 
-        if args.pockets or args.master_radii or args.master_radius:
-
+        if (args.pockets or args.master_radius) and not (args.master_radius and not args.raw and args.raw_master):
             if not args.raw:
                 # get stage III options
                 options3 = config.get_stage_options(2)
@@ -189,7 +192,7 @@ if __name__ == "__main__":
                     result3 = vda.load()
                 paths = result3.pop('spaths')
             else:
-                # get stage III options
+                # get stage II options
                 options2 = config.get_stage_options(1)
                 with clui.fbm('Loading data dump from %s file' % options2.dump):
                     vda = get_vda_reader(options2.dump, mode='r')
@@ -201,7 +204,7 @@ if __name__ == "__main__":
                     paths = [p for p in paths if len(p.frames)]
 
         #----------------------------------------------------------------------#
-        # run pockets?
+        # reference value
 
         ref = None
         # calculate n_z for reference
@@ -248,8 +251,8 @@ if __name__ == "__main__":
             k = 0.0019872041 # kcal/mol/K
             ref = -k*args.temp*np.log(ref)
 
-
         #----------------------------------------------------------------------#
+        # calculate pockets
 
         if args.pockets:
 
@@ -312,7 +315,7 @@ if __name__ == "__main__":
         #----------------------------------------------------------------------#
         # load mater paths data
 
-        if args.master_radii or args.master_radius:
+        if args.master_radius:
 
             # get stage IV options
             options4 = config.get_stage_options(3)
@@ -327,15 +330,30 @@ if __name__ == "__main__":
             linmet = get_linearize_method(options6.simply_smooths)
 
         #----------------------------------------------------------------------#
+        # re load paths?
+
+        if args.master_radius and args.raw_master and (not args.raw):
+            # get stage II options
+            options2 = config.get_stage_options(1)
+            with clui.fbm('Loading data dump from %s file' % options2.dump):
+                vda = get_vda_reader(options2.dump, mode='r')
+                result2 = vda.load()
+            with clui.fbm('Preparing raw data'):
+                paths = result2.pop('paths')
+                for p in paths:
+                    p.discard_singletons(singl=3)
+                paths = [p for p in paths if len(p.frames)]
+
+        #----------------------------------------------------------------------#
         # master paths profiles
 
-        if (args.master_radii or args.master_radius) and len(mps) == 0:
+        if args.master_radius and len(mps) == 0:
             clui.message("No master paths data.")
 
-        if (args.master_radii or args.master_radius) and len(mps):
+        if args.master_radius and len(mps):
 
             pbar_len = len(paths)*len(mps)
-            if args.master_radii and args.master_radius:
+            if args.master_radius:
                 pbar_len *= 2
 
             W = args.windows
@@ -349,7 +367,12 @@ if __name__ == "__main__":
                 #window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
                 window = None
 
+                limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
+
                 for ctype,mp in mps.iteritems():
+                    if len(limit_ctypes) and str(ctype) not in limit_ctypes:
+                        continue
+
                     fname = str(ctype).replace(':','-')
 
                     centers, ids = linmet(mp.coords_cont, ids=True)
@@ -363,30 +386,6 @@ if __name__ == "__main__":
                             mol2.write_connected(centers,H)
 
                         with open("mp_%s_radius.dat" % fname,'w') as dat:
-                            dat.write('len\tE'+os.linesep)
-                            L = np.hstack((0.,np.cumsum(traces.diff(centers))))
-                            for l,E in izip(L,H):
-                                dat.write('%f\t%f%s' % (l,E,os.linesep))
-
-
-                    if args.master_radii:
-                        wl = len(ids)/10
-                        if not wl % 2:
-                            wl -= 1
-                        if wl > 5:
-                            smooth = SavgolSmooth(window_length=wl, polyorder=5)
-                            radii = smooth.smooth(np.array(map(float,mp.width_cont))[ids]).flatten()
-                        else:
-                            radii = np.array(map(float,mp.width_cont))[ids]
-
-                        D = pocket.sphere_radii(paths,centers=centers,radii=radii,pbar=pbar)
-                        H = D / float(number_of_frames) / (4./3. * np.pi * radii**3)
-                        if ref:
-                            H = -k*args.temp*np.log(H) - ref
-                        with WriteMOL2("mp_%s_radii.mol2" % fname) as mol2:
-                            mol2.write_connected(centers,H)
-
-                        with open("mp_%s_radii.dat" % fname,'w') as dat:
                             dat.write('len\tE'+os.linesep)
                             L = np.hstack((0.,np.cumsum(traces.diff(centers))))
                             for l,E in izip(L,H):
