@@ -275,15 +275,17 @@ if __name__ == "__main__":
                     if wnr:
                         D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
                         H = (D[-1] / WSf)/grid_area
-                        hs = pocket.hot_spots(H)
-                        if hs is not None:
-                            hs = H >= hs
+                        if args.hotspots:
+                            hs = pocket.hot_spots(H)
+                            if hs is not None:
+                                hs = H >= hs
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
-                        if hs is not None:
-                            hsmol2.write_scatter(D[0][hs], H[hs])
-                        else:
-                            hsmol2.write_scatter([], [])
+                        if args.hotspots:
+                            if hs is not None:
+                                hsmol2.write_scatter(D[0][hs], H[hs])
+                            else:
+                                hsmol2.write_scatter([], [])
                         for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                             mol2.write_scatter(D[0][I], H[I])
                     elif args.wfull:
