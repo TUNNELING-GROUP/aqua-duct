@@ -181,23 +181,17 @@ if __name__ == "__main__":
 
         if args.pockets or args.master_radii or args.master_radius:
 
+            # get stage III options
+            options3 = config.get_stage_options(2)
+            with clui.fbm('Loading data dump from %s file' % options3.dump):
+                vda = get_vda_reader(options3.dump, mode='r')
+                result3 = vda.load()
+
             if not args.raw:
-                # get stage III options
-                options3 = config.get_stage_options(2)
-
-                with clui.fbm('Loading data dump from %s file' % options3.dump):
-                    vda = get_vda_reader(options3.dump, mode='r')
-                    result3 = vda.load()
-                    paths = result3.pop('spaths')
+                paths = result3.pop('spaths')
             else:
-                # get stage II options
-                options2 = config.get_stage_options(1)
-
-                with clui.fbm('Loading data dump from %s file' % options2.dump):
-                    vda = get_vda_reader(options2.dump, mode='r')
-                    result2 = vda.load()
-                    # discar empty
-                    paths = [p for p in result2.pop('paths') if len(p.frames)]
+                with clui.fbm('Preparing raw data'):
+                    paths = [p for p in result3.pop('paths') if len(p.frames)]
 
         #----------------------------------------------------------------------#
         # run pockets?
