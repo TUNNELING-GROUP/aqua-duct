@@ -132,7 +132,7 @@ if __name__ == "__main__":
                             help="Calculates hotspots if pockets are calculated.")
         parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False,
                             help="Calculate profiles for master paths with giwen radius.")
-        parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False,
+        parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False, default="",
                             help="Limit calculations to given ctypes.")
         #parser.add_argument("--master-radii", action="store_true", dest="master_radii", required=False,
         #                    help="Calculate profiles for master paths using width as radii.")
@@ -250,6 +250,7 @@ if __name__ == "__main__":
             # B constant
             k = 0.0019872041 # kcal/mol/K
             ref = -k*args.temp*np.log(ref)
+            clui.message('Reference correction: %0.4f [kcal/mol/K].' % ref)
 
         #----------------------------------------------------------------------#
         # calculate pockets
@@ -347,14 +348,25 @@ if __name__ == "__main__":
         #----------------------------------------------------------------------#
         # master paths profiles
 
+        limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
+        if limit_ctypes != [""]:
+            clui.message('Limiting master paths data to %s ctypes.' % (' '.join(limit_ctypes)))
+            for ctk in mps.keys():
+                if str(ctk) not in limit_ctypes:
+                    mps.pop(ctk)
+
         if args.master_radius and len(mps) == 0:
             clui.message("No master paths data.")
 
         if args.master_radius and len(mps):
 
+            limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
+            if limit_ctypes != [""]:
+                for ctk in mps.keys():
+                    if str(ctk) not in limit_ctypes:
+                        mps.pop(ctk)
+
             pbar_len = len(paths)*len(mps)
-            if args.master_radius:
-                pbar_len *= 2
 
             W = args.windows
             WS = args.wsize
@@ -367,11 +379,7 @@ if __name__ == "__main__":
                 #window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
                 window = None
 
-                limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
-
                 for ctype,mp in mps.iteritems():
-                    if len(limit_ctypes) and str(ctype) not in limit_ctypes:
-                        continue
 
                     fname = str(ctype).replace(':','-')
 
