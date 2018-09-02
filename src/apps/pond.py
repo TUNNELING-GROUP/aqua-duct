@@ -293,6 +293,8 @@ if __name__ == "__main__":
                     WSf = float(number_of_frames/float(W))
                 else:
                     WSf = float(WS)
+                if Reader.sandwich_mode:
+                    WSf *= Reader.number_of_layers()
                 wmol2 = [WriteMOL2(rdir+'outer.mol2'), WriteMOL2(rdir+'inner.mol2')]
                 if args.hotspots:
                     hsmol2 = WriteMOL2(rdir+'hotspots.mol2')
