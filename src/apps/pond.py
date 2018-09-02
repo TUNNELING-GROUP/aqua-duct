@@ -37,21 +37,6 @@ logger.addHandler(ch)
 
 ################################################################################
 
-from aquaduct.apps.data import GCS, load_cric, save_cric
-from aquaduct.traj.sandwich import Reader, Window
-from aquaduct.apps.valve.core import valve_load_config, ValveConfig
-from aquaduct.apps.valve.data import get_vda_reader
-from aquaduct.utils.multip import optimal_threads
-from os import pathsep
-import numpy as np
-from multiprocessing import Pool,Manager
-from aquaduct.geom import pocket
-from aquaduct.traj.dumps import WriteMOL2
-from aquaduct.apps.valve.helpers import get_linearize_method
-from aquaduct.geom import traces
-from itertools import izip
-import os
-from aquaduct.geom.smooth import SavgolSmooth
 
 
 ################################################################################
@@ -145,16 +130,35 @@ if __name__ == "__main__":
 
         #----------------------------------------------------------------------#
         # cache dir
+        from aquaduct.apps.data import GCS, load_cric, save_cric
+
         GCS.cachedir = args.cachedir
         load_cric()
+
+        from aquaduct.traj.sandwich import Reader, Window
+        from aquaduct.apps.valve.core import valve_load_config, ValveConfig
+        from aquaduct.apps.valve.data import get_vda_reader
+        from aquaduct.utils.multip import optimal_threads
+        from os import pathsep
+        import numpy as np
+        from multiprocessing import Pool,Manager
+        from aquaduct.geom import pocket
+        from aquaduct.traj.dumps import WriteMOL2
+        from aquaduct.apps.valve.helpers import get_linearize_method
+        from aquaduct.geom import traces
+        from itertools import izip
+        import os
+        from aquaduct.geom.smooth import SavgolSmooth
+
 
         #----------------------------------------------------------------------#
         # results dir
         rdir = ""
         if len(args.results_dir):
-            if not os.path.exists(rdir):
-                os.makedirs(rdir)
-            rdir += os.path.sep
+            if not os.path.exists(args.results_dir):
+                os.makedirs(args.results_dir)
+            rdir = args.results_dir
+        rdir += os.path.sep
 
         #----------------------------------------------------------------------#
         # config
@@ -263,10 +267,12 @@ if __name__ == "__main__":
             ref /= 4./3.*np.pi*(float(args.ref_radius)**3)
             clui.message('Reference density: %0.4f [molecules/A^3].' % ref)
 
-            # B constant
-            k = 0.0019872041 # kcal/mol/K
+            # Boltzmann k constant
+            #k = 0.0019872041 # kcal/mol/K
+            k = 0.0083144621 # kJ/mol/K
+
             ref = -k*args.temp*np.log(ref)
-            clui.message('Reference correction: %0.4f [kcal/mol/K].' % ref)
+            clui.message('Reference correction: %0.4f [kJ/mol/K].' % ref)
 
         #----------------------------------------------------------------------#
         # calculate pockets
@@ -290,7 +296,11 @@ if __name__ == "__main__":
                 wmol2 = [WriteMOL2(rdir+'outer.mol2'), WriteMOL2(rdir+'inner.mol2')]
                 if args.hotspots:
                     hsmol2 = WriteMOL2(rdir+'hotspots.mol2')
-                for wnr, window in enumerate(pocket.windows(number_of_frames, windows=W, size=WS)):
+                for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
+                    number_of_frames = (window[-1]-window[0])
+                    if Reader.sandwich_mode:
+                        number_of_frames *= Reader.number_of_layers()
+
                     if wnr:
                         D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
                         H = (D[-1] / WSf)/grid_area
@@ -381,32 +391,42 @@ if __name__ == "__main__":
                     if str(ctk) not in limit_ctypes:
                         mps.pop(ctk)
 
-            pbar_len = len(paths)*len(mps)
 
             W = args.windows
             WS = args.wsize
+
+            many_windows = W > 1 or (W==1 and  (WS is not None))
+            many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
+
+            pbar_len = len(paths)*len(mps) * (W + int(args.wfull))
 
             pool = Pool(processes=optimal_threads.threads_count)
 
             with clui.pbar(pbar_len, mess='Calculating master paths profiles:') as pbar:
 
-                number_of_frames = Reader.number_of_frames(onelayer=False)
+                #number_of_frames = Reader.number_of_frames(onelayer=False)
                 #window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
-                many_windows = W > 1 and (WS is not None)
-                many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
 
-                for wnr,window in pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS):
+                for wnr,window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
 
-                    if wnr or args.wfull:
+                    #print many_windows,wnr,window
+
+                    number_of_frames = (window[-1]-window[0])
+                    if Reader.sandwich_mode:
+                        number_of_frames *= Reader.number_of_layers()
+
+                    if wnr or args.wfull: # or not many_windows:
 
                         for ctype,mp in mps.iteritems():
 
                             fname_window = ""
+                            fname_window_single = ""
                             fname = str(ctype).replace(':','-')
-                            if not wnr and args.full:
+                            if not wnr and args.wfull:
                                 fname += '_full'
                             elif wnr and many_windows:
                                 fname_window = '_W%d' % wnr
+                                fname_window_single = "_WX"
 
                             mode = 'w'
                             if wnr > 1:
@@ -414,19 +434,22 @@ if __name__ == "__main__":
 
                             centers, ids = linmet(mp.coords_cont, ids=True)
 
-                            if args.master_radius:
-                                D = pocket.sphere_radius(paths,centers=centers,radius=args.master_radius,window=window,pbar=pbar,map_fun=pool.imap_unordered)
-                                H = D / float(number_of_frames) / (4./3. * np.pi * float(args.master_radius)**3)
-                                if ref:
-                                    H = -k*args.temp*np.log(H) - ref
-                                with WriteMOL2(rdir+"mp_%s_radius.mol2" % fname,mode=mode) as mol2:
-                                    mol2.write_connected(centers,H)
+                            #print "fname: '%s' fname_window: '%s' mode: '%s'" % (fname,fname_window,mode)
 
-                                with open(rdir+"mp_%s%s_radius.dat" % (fname,fname_window),'w') as dat:
-                                    dat.write('len\tE'+os.linesep)
-                                    L = np.hstack((0.,np.cumsum(traces.diff(centers))))
-                                    for l,E in izip(L,H):
-                                        dat.write('%f\t%f%s' % (l,E,os.linesep))
+
+                            D = pocket.sphere_radius(paths,centers=centers,radius=args.master_radius,window=window,pbar=pbar,map_fun=pool.imap_unordered)
+                            #print number_of_frames
+                            H = D / float(number_of_frames) / (4./3. * np.pi * float(args.master_radius)**3)
+                            if ref:
+                                H = -k*args.temp*np.log(H) - ref
+                            with WriteMOL2(rdir+"mp_%s%s_radius.mol2" % (fname,fname_window_single),mode=mode) as mol2:
+                                mol2.write_connected(centers,H)
+
+                            with open(rdir+"mp_%s%s_radius.dat" % (fname,fname_window),'w') as dat:
+                                dat.write('len\tE'+os.linesep)
+                                L = np.hstack((0.,np.cumsum(traces.diff(centers))))
+                                for l,E in izip(L,H):
+                                    dat.write('%f\t%f%s' % (l,E,os.linesep))
                         save_cric()
 
             pool.close()
