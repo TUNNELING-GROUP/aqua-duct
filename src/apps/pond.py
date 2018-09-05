@@ -274,6 +274,25 @@ if __name__ == "__main__":
             ref = -k*args.temp*np.log(ref)
             clui.message('Reference correction: %0.4f [kJ/mol/K].' % ref)
 
+
+        #----------------------------------------------------------------------#
+        # windows
+
+        W = args.windows
+        WS = args.wsize
+
+        many_windows = W > 1 or (W==1 and  (WS is not None))
+        many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
+
+        clui.message("Calculation will be done for following windows:")
+        for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
+            middle = sum(window)/2
+            if wnr and many_windows:
+                print "W%d %d:%d middle: %d" % (wnr,window[0],window[1],middle)
+            elif (wnr == 0) and (args.wfull or (not many_windows)):
+                print "full %d:%d" % (window[0],window[1])
+
+
         #----------------------------------------------------------------------#
         # calculate pockets
 
