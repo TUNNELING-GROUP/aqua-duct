@@ -7,6 +7,7 @@ Submodules
 .. toctree::
 
    aquaduct.utils.clui
+   aquaduct.utils.filecache
    aquaduct.utils.helpers
    aquaduct.utils.maths
    aquaduct.utils.multip

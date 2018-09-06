@@ -8,9 +8,9 @@ Submodules
 
    aquaduct.geom.cluster
    aquaduct.geom.convexhull
-   aquaduct.geom.convexhull_c
    aquaduct.geom.master
    aquaduct.geom.pca
+   aquaduct.geom.pocket
    aquaduct.geom.smooth
    aquaduct.geom.traces
 

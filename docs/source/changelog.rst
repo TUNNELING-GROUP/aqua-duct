@@ -1,11 +1,13 @@
 Aqua-Duct changelog
 ===================
 
-* 0.6.3 (28.06.2018) not released yet
+* 0.6.16 (06.09.2018) not released yet
+    * New driver pond allows to calculate pockets and master paths energy profiles.
+    * Assorted improvements allowing better handling of passing paths.
     * GREAT speedup of Stage I, II, and III calculations: they run in parallel; IO can be a bottleneck though.
     * Substantial speedup of SinglePaths generation: it runs in parallel and uses fastest routines.
     * Substantial speedup of AutoBarber procedures: it runs in parallel; IO can be a bottleneck though.
-    * Improvements in analysis stage. Additional info displayed in tables and added progress bar, WIP.
+    * Improvements in analysis stage. Additional info displayed in tables and added progress bar.
     * portal.py script for calculating sizes of selection(s) using convex hull approximation.
     * Improvements in dir-cache handling.
     * Small speedup of master paths calculations, more to come.
@@ -21,7 +23,7 @@ Aqua-Duct changelog
 * 0.5.9 (12.03.2018)
     * Rewritten module for MD data access. Sandwich mode added.
     * Coordinates can be stored in cache directory, in memory or generated on demand.
-    * Support for long trajectories. 
+    * Support for long trajectories.
     * Passing through paths are supported.
     * Improvements in visualization script.
     * Coordinates of residues are calculated as center of geometry.
