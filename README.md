@@ -8,14 +8,16 @@ Visit our homepage at [aquaduct.pl](http://aquaduct.pl/).
 
 ## Overview
 
-*Aqua-Duct* comprises of two main elements:
+*Aqua-Duct* comprises of three main elements:
 
 1.  aquaduct,
-2.  valve.
+2.  valve,
+3.  pond.
 
 *aquaduct* is a Python module. It is a collection of tools to trace
 residues in MD simulation. *valve* is a driver Python script. It uses
-*aquaduct* to perform such a tracing.
+*aquaduct* to perform such a tracing. *pond* is also a driver Python script
+allowing for pocket, hotspots, and energy profiles calculations.
 
 ## Availability
 
@@ -46,3 +48,8 @@ contact us at [info@aquaduct.pl](mailto:info@aquaduct.pl?subject=Aqua-Duct). We 
 
 You can also contact us at [github.com/tljm/aqua-duct](https://github.com/tljm/aqua-duct).
 
+## Documentation
+
+Documentation can be found on our homepage [aquaduct.pl/documentation](http://aquaduct.pl/documentation/).
+
+The most recent documentation is also available at [tljm.github.io/aq](https://tljm.github.io/aq/).
