@@ -272,7 +272,7 @@ if __name__ == "__main__":
             k = 0.0083144621 # kJ/mol/K
 
             ref = -k*args.temp*np.log(ref)
-            clui.message('Reference correction: %0.4f [kJ/mol/K].' % ref)
+            clui.message('Reference correction: %0.4f [kJ/mol].' % ref)
 
 
         #----------------------------------------------------------------------#
@@ -341,10 +341,21 @@ if __name__ == "__main__":
                     elif args.wfull:
                         D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
                         H = (D[-1] / float(number_of_frames))/grid_area
+                        if args.hotspots:
+                            hs = pocket.hot_spots(H)
+                            if hs is not None:
+                                hs = H >= hs
                         if ref:
                             H = -k*args.temp*np.log(H) - ref
                         for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2(rdir+'outer_full.mol2'), WriteMOL2(rdir+'inner_full.mol2')]):
                             mol2.write_scatter(D[0][I], H[I])
+                            del mol2
+                        if args.hotspots:
+                            mol2 = WriteMOL2(rdir+'hotspots_full.mol2')
+                            if hs is not None:
+                                mol2.write_scatter(D[0][hs], H[hs])
+                            else:
+                                mol2.write_scatter([], [])
                             del mol2
                     save_cric()
                 pool.close()
