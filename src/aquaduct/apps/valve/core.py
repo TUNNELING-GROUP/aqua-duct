@@ -1820,7 +1820,10 @@ def stage_VI_run(config, options,
                     traj_reader.set_frame(frame)
                     scope = traj_reader.parse_selection(options.show_scope_chull)
                     chull = scope.chull(inflate=options.show_scope_chull_inflate)
-                    spp.convexhull(chull, name='scope_shape%d' % nr, state=frame + 1)
+                    if chull is not None:
+                        spp.convexhull(chull, name='scope_shape%d' % nr, state=frame + 1)
+                    else:
+                        logger.debug('Scope convex hull calculations failed for frame %d.' % frame)
 
     if options.show_object_chull:
         with clui.fbm("Object shape"):
@@ -1831,8 +1834,11 @@ def stage_VI_run(config, options,
                     traj_reader.set_frame(frame)
                     object_shape = traj_reader.parse_selection(options.show_object_chull)
                     chull = object_shape.chull()
-                    spp.convexhull(chull, name='object_shape%d' % nr, color=np.array([255, 153, 0]) / 255.,
-                                   state=frame + 1)  # orange
+                    if chull is not None:
+                        spp.convexhull(chull, name='object_shape%d' % nr, color=np.array([255, 153, 0]) / 255.,
+                                       state=frame + 1)  # orange
+                    else:
+                        logger.debug('Object convex hull calculations failed for frame %d.' % frame)
 
 
     def make_fracion(frac,size):

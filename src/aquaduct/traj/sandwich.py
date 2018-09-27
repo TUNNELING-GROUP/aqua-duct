@@ -787,7 +787,8 @@ class AtomSelection(Selection):
         return ResidueSelection(other_new)
 
     def chull(self,inflate=None):
-        return SciPyConvexHull(list(self.coords()),inflate=inflate)
+        if self.len() > 3:
+            return SciPyConvexHull(list(self.coords()),inflate=inflate)
 
 
 ################################################################################
