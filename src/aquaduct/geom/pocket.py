@@ -202,7 +202,7 @@ def sphere_radius(spaths,centers=None,radius=2.,window=None,pbar=None,map_fun=No
 def hot_spots(H):
     return hot_spots_his(H)
 
-def hot_spots_his(H,bins=(10,21)):
+def hot_spots_his(H,bins=(5,101)):
     bn = []
     for b in xrange(*bins):
         his = np.histogram(H,bins=b)
