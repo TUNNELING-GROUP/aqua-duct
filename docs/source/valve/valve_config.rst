@@ -276,16 +276,16 @@ Stage **visualize**
     ==========================  ================    ==========================================================================================
     Option                      Default value       Description
     ==========================  ================    ==========================================================================================
-    all_paths_raw               False               If True produces one object in PyMOL that holds all paths
+    all_paths_raw               False               If ``True`` produces one object in PyMOL that holds all paths
                                                     visualized by raw coordinates.
-    all_paths_smooth            False               If True produces one object in PyMOL that holds all paths
+    all_paths_smooth            False               If ``True`` produces one object in PyMOL that holds all paths
                                                     visualized by smooth coordinates.
-    all_paths_split             False               If is set True objects produced by **all_paths_raw** and
+    all_paths_split             False               If is set ``True`` objects produced by **all_paths_raw** and
                                                     **all_paths_smooth** are split into Incoming, Object, and
                                                     Outgoing parts and visualized as three different objects.
-    all_paths_raw_io            False               If set True arrows pointing beginning and end of paths are
+    all_paths_raw_io            False               If set ``True`` arrows pointing beginning and end of paths are
                                                     displayed oriented accordingly to raw paths orientation.
-    all_paths_smooth_io         False               If set True arrows pointing beginning and end of paths are
+    all_paths_smooth_io         False               If set ``True`` arrows pointing beginning and end of paths are
                                                     displayed oriented accordingly to smooth paths orientation.
     all_paths_amount            None                Allows to limit number of visualised paths. If it is a number
                                                     in range ``(0,1)`` then it is interpreted as percent number
@@ -308,19 +308,19 @@ Stage **visualize**
                                                     values of thresholds see appropriate documentation of each method.
                                                     Default values work well. This option is not case sensitive.
                                                     It is recommended to use default method or ``HobbitVector`` method.
-    paths_raw                   False               If set True raw paths are displayed as separate objects or as
+    paths_raw                   False               If set ``True`` raw paths are displayed as separate objects or as
                                                     one object with states corresponding to number of path.
-    paths_smooth                False               If set True smooth paths are displayed as separate objects or
+    paths_smooth                False               If set ``True`` smooth paths are displayed as separate objects or
                                                     as one object with states corresponding to number of path.
-    paths_raw_io                False               If set True arrows indicating beginning and end of paths,
+    paths_raw_io                False               If set ``True`` arrows indicating beginning and end of paths,
                                                     oriented accordingly to raw paths, are displayed as separate
                                                     objects or as one object with states corresponding to number
                                                     of paths.
-    paths_smooth_io             False               If set True arrows indicating beginning and end of paths,
+    paths_smooth_io             False               If set ``True`` arrows indicating beginning and end of paths,
                                                     oriented accordingly to smooth paths, are displayed as separate
                                                     objects or as one object with states corresponding to number
                                                     of paths.
-    paths_states                False               If True objects displayed by **paths_raw**, **paths_smooth**,
+    paths_states                False               If ``True`` objects displayed by **paths_raw**, **paths_smooth**,
                                                     **paths_raw_io**, and **paths_smooth_io** are displayed as one
                                                     object with states corresponding to number of paths.
                                                     Otherwise they are displayed as separate objects.
@@ -430,13 +430,13 @@ auto_barber                 str             This option allows to select molecul
                                             :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
 auto_barber_mincut          float           Minimal radius of spheres used in Auto Barber. If a sphere has
                                             radius smaller then this value it is not used to cut. This
-                                            option can be switched off by setting it to `None`.
+                                            option can be switched off by setting it to ``None``.
 auto_barber_maxcut          float           Maximal radius of spheres used in Auto Barber. If a sphere has
                                             radius greater then this value it is not used to cut. This
-                                            option can be switched off by setting it to `None`.
-auto_barber_mincut_level    bool            If set `True` spheres of radius less then **mincut** are
+                                            option can be switched off by setting it to ``None``.
+auto_barber_mincut_level    bool            If set ``True`` spheres of radius less then **mincut** are
                                             resized to **mincut** value.
-auto_barber_maxcut_level    bool            If set `True` spheres of radius greater then **maxcut** are
+auto_barber_maxcut_level    bool            If set ``True`` spheres of radius greater then **maxcut** are
                                             resized to **maxcut** value.
 auto_barber_tovdw           bool            Correct cutting sphere by decreasing its radius by VdW radius
                                             of the closest atom.

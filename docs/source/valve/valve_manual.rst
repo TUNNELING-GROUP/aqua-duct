@@ -186,14 +186,14 @@ No doubts, convex hull is a very rough approximation of SES. It has, however, on
 Convex hull inflation
 #####################
 
-AQ allows to alter size of the scope convex hulls by means of *inflate* options. Once *scope* is defined as convex hull of particular atoms, vertices of it can be interpreted as vectors orginating in the center og geometry of the convex hull. Value of inflate option can be added to such vectors and in consequence theirs leghts are increased (or decreased if added value is negative). Finally, convex hull is recalculated using points resulted from *inflated* vectors.
+AQ allows to alter size of the scope convex hulls by means of *inflate* options. Once *scope* is defined as convex hull of particular atoms, vertices of it can be interpreted as vectors originating in the center of geometry of the convex hull. Value of inflate option is added to such vectors and in consequence theirs leghts are increased (or decreased if added value is negative). Finally, convex hull is recalculated using points resulted from *inflated* vectors.
 
 In reference to the previous picture, consider following example:
 
 .. figure:: ch_vs_ses_inflate.png
    :align:  center
 
-On the left panel a) convex hull was deflated with negative value of *inflate* option, whareas on the right panel b) convex hull was inflated with positive value of *inflate* option.
+On the left panel **a)** convex hull was deflated with negative value of *inflate* option, whareas on the right panel **b)** convex hull was inflated with positive value of *inflate* option.
 
 This feautre is available in all stages where *scope* convex hull is used. For more details on configuration look for :ref:`inflate <inflate_options>` options in the configuration file.
 
@@ -345,15 +345,28 @@ Passing paths
 
 If *Passing paths* are allowed (see ``allow_passing_paths`` option in  :ref:`separate_paths configuration <separate_paths_options>`) they will be generated using list of *traceable residues* from the first stage of calculations. In usual settings, where *Object* and *Scope* definitions are the same in both I and II stage, this will result in relatively low number of passing paths. In particular this will not show the real number of traced molecules that enter *Scope* during the simulation.
 
-To get correct picture following options and settings have to be considered:
+To get correct picture configuration options have to be adjusted according to one of the following suggestions:
 
-* Stage **traceable_residues**
-	* ``object`` should be broad enough to encompass all molecules that should be traced. For example, if water is traced, ``object`` definition could be following: ``resname WAT``.
-* Stage **raw_paths**
-	* In order to retain default Aqua-Duct behavior of tracing molecules that flow through *Object* area, it have to be redefined to encompass the active site only - see :ref:`Object definition <object_definition>` discussion.
-	* ``clear_in_object_info`` should be set to ``True``. Otherwise, traceable molecules will be limited according to current ``object`` definition but *Object* boundaries from **traceable_residues** stage will be used.
-* Stage **separate_paths**
-	* ``allow_passing_paths`` should be set to ``True``. This allows generation of passing paths.
+#. Adding *passing* molecules [recommended]
+
+    * Stage **traceable_residues**
+        * ``add_passing`` should define all molecules to be traced. If water is traced this should be set to e.g. ``resname WAT HOH TIP``.
+    * Stage **separate_paths**
+        * ``allow_passing_paths`` should be set to ``True``. This allows generation of passing paths.
+
+
+#. Redefinition of *scope* and *object* areas
+
+    * Stage **traceable_residues**
+        * ``object`` should be broad enough to encompass all molecules that should be traced. For example, if water is traced, ``object`` definition could be following: ``resname WAT``.
+    * Stage **raw_paths**
+        * In order to retain default Aqua-Duct behavior of tracing molecules that flow through *Object* area, it have to be redefined to encompass the active site only - see :ref:`Object definition <object_definition>` discussion.
+        * ``clear_in_object_info`` should be set to ``True``. Otherwise, traceable molecules will be limited according to current ``object`` definition but *Object* boundaries from **traceable_residues** stage will be used.
+    * Stage **separate_paths**
+        * ``allow_passing_paths`` should be set to ``True``. This allows generation of passing paths.
+
+Clustering of passing paths
+"""""""""""""""""""""""""""
 
 Additionally, in stage **inlets_clusterization** following options could also be adjusted:
 
