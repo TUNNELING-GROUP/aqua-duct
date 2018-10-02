@@ -25,6 +25,7 @@ from functools import partial
 from itertools import izip_longest, izip, chain
 from keyword import iskeyword
 from multiprocessing import Pool, Queue, Process
+import time
 
 from scipy.spatial.distance import cdist
 
@@ -1008,29 +1009,31 @@ def stage_III_run(config, options,
         wtc.cut_thyself()
 
         if len(wtc.spheres):
-            with clui.pbar(maxval=len(paths), mess="AutoBarber in action:") as pbar:
+            n = max(1, optimal_threads.threads_count)
+            with clui.pbar(maxval=len(xrange(0, len(paths), n)), mess="AutoBarber in action:") as pbar:
                 Reader.reset()
                 pool = Pool(processes=optimal_threads.threads_count)
                 bp = partial(barber_paths, spheres=wtc.spheres)
-                n = max(1, optimal_threads.threads_count)
-                paths_new = pool.imap_unordered(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
-                # paths_new = map(bp, (paths[i:i + n] for i in xrange(0, len(paths), n)))
-                paths_ = list()
-                for paths_new_list in paths_new:
-                    CRIC.update_cric(paths_new_list.pop(-1))
-                    paths_.extend(paths_new_list)
-                    pbar.next(step=len(paths_new_list))
-                    gc.collect()
-                save_cric()
-                # now, it might be that some of paths are empty
-                paths = []
-                while len(paths_):
-                    pat = paths_.pop(0)
-                    if len(pat.frames) > 0:
-                        paths.append(pat)
-                del paths_,paths_new,paths_new_list
+
+                class NP(list):
+                    def callb_(self,result):
+                        CRIC.update_cric(result.pop(-1))
+                        self.extend(result)
+                        pbar.next()
+
+                new_paths = NP()
+                nr = 0
+                while len(paths):
+                    pool.apply_async(bp,args=(paths[:n],),callback=new_paths.callb_)
+                    paths = paths[n:]
+                    nr += 1
+                    if nr % n == 0:
+                        gc.collect()
+                gc.collect()
                 pool.close()
                 pool.join()
+                paths = new_paths
+                del new_paths
                 gc.collect()
         else:
             clui.message('AutoBarber procedure skip, no spheres detected.')
