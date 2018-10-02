@@ -320,6 +320,8 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'create_master_paths', 'False')
         config.set(section, 'exclude_passing_in_clusterization', 'True')
         config.set(section, 'add_passing_to_clusters', 'None')
+        config.set(section, 'renumber_clusters', 'False')
+        config.set(section, 'join_clusters', 'None')
 
         ################
         # smooth
@@ -1283,8 +1285,24 @@ def stage_IV_run(config, options,
 
         gc.collect()
 
+        # ***** JOIN & RENUMBER CLUSTERS *****
+        if options.join_clusters:
+            with clui.fbm("Join clusters") as emess:
+                for c2j in options.join_clusters.split():
+                    emess('%s' % c2j)
+                    c2j = map(int,c2j.split('+'))
+                    inls.join_clusters(c2j)
+        if options.renumber_clusters:
+            with clui.fbm("Renumber clusters"):
+                inls.renumber_clusters()
+
+        # ***** CLUSTERS' HISTORY *****
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
+
+        ###################
+        # CLUSTERING DONE #
+        ###################
 
         with clui.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)

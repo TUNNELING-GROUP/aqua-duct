@@ -406,11 +406,12 @@ class Inlets(object):
         if new_out:
             if 0 not in self.tree.leafs_names:
                 self.tree.add_leaf(name=0)
-            self.add_message_wrapper(message=['|%d| to outliers' % maxsize, 'new size %d' % self.clusters.count(0)],
+            self.add_message_wrapper(message=['|%d| to outliers' % maxsize, 'new size: %d' % self.clusters.count(0)],
                                      toleaf=0)
             # self.resize_leaf_0()
 
     def renumber_clusters(self):
+        old_clusters = list(self.clusters)
         if 0 in self.clusters_list:
             new_numbers = range(len(self.clusters_list))
         else:
@@ -420,6 +421,13 @@ class Inlets(object):
             for nr, c in enumerate(self.clusters):
                 self.clusters[nr] = new_numbers[old_numbers.index(c)]
         self.sort_clusters()
+        # make old new dict
+        ond = []
+        for o,n in zip(old_clusters,self.clusters):
+            if o not in ond:
+                ond.append(o)
+                self.add_message_wrapper(toleaf=o, message='new nr: %d' % n)
+
 
     def sort_clusters(self):
         old_numbers = self.clusters_list
@@ -457,6 +465,17 @@ class Inlets(object):
     @property
     def clusters_size(self):
         return map(self.clusters.count, self.clusters_list)
+
+    def join_clusters(self,clusters2join):
+        new_cluster = max(self.clusters_list) + 1
+        for nr,c in enumerate(self.clusters):
+            if c in clusters2join:
+                self.clusters[nr] = new_cluster
+        for c in clusters2join:
+            self.add_message_wrapper(toleaf=c,message='joined into: %d' % new_cluster)
+        nc_size = self.clusters.count(new_cluster)
+        self.add_leaf_wrapper(name=new_cluster,message='size: %d' % nc_size,toleaf=None)
+        self.add_message_wrapper(message='made of %s' % ('+'.join(map(str,clusters2join))),toleaf=new_cluster)
 
     @property
     @listify
