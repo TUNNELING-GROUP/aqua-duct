@@ -185,7 +185,7 @@ Convex hull concept is used to check if traced molecules are inside of the macro
 .. figure:: ch_vs_ses.png
    :align:  center
 
-Convex hull (red shape) of atoms (blue dots with VdW spheres) and SES (blue line): a) convex hull and SES cover roughly the same area, convex hull approximates SES; b) movement of one atom dramatically changes SES, however, interior of the molecule as approximated by convex hull remains stable.
+Convex hull (red shape) of atoms (blue dots with VdW spheres) and SES (blue line): **a)** convex hull and SES cover roughly the same area, convex hull approximates SES; **b)** movement of one atom dramatically changes SES, however, interior of the molecule as approximated by convex hull remains stable.
 
 No doubts, convex hull is a very rough approximation of SES. It has, however, one very important property when it is used to approximate interior of molecules: its interior does not considerably depend on the molecular conformation of a molecule (or molecular entity) in question.
 
