@@ -101,6 +101,9 @@ save        [save file name]    File name for saving results. Default value of t
 Stage **traceable_residues**
 ----------------------------
 
+.. _inflate_options:
+
+
 .. tabularcolumns:: |p{3.0cm}|p{2.5cm}|p{9.1cm}|
 
 =========================   ==============  ================================================================

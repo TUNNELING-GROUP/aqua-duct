@@ -183,6 +183,20 @@ Convex hull (red shape) of atoms (blue dots with VdW spheres) and SES (blue line
 
 No doubts, convex hull is a very rough approximation of SES. It has, however, one very important property when it is used to approximate interior of molecules: its interior does not considerably depend on the molecular conformation of a molecule (or molecular entity) in question.
 
+Convex hull inflation
+#####################
+
+AQ allows to alter size of the scope convex hulls by means of *inflate* options. Once *scope* is defined as convex hull of particular atoms, vertices of it can be interpreted as vectors orginating in the center og geometry of the convex hull. Value of inflate option can be added to such vectors and in consequence theirs leghts are increased (or decreased if added value is negative). Finally, convex hull is recalculated using points resulted from *inflated* vectors.
+
+In reference to the previous picture, consider following example:
+
+.. figure:: ch_vs_ses_inflate.png
+   :align:  center
+
+On the left panel a) convex hull was deflated with negative value of *inflate* option, whareas on the right panel b) convex hull was inflated with positive value of *inflate* option.
+
+This feautre is available in all stages where *scope* convex hull is used. For more details on configuration look for :ref:`inflate <inflate_options>` options in the configuration file.
+
 Raw paths
 ^^^^^^^^^
 

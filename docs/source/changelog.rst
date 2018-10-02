@@ -1,7 +1,8 @@
 Aqua-Duct changelog
 ===================
 
-* 0.6.16 (06.09.2018) not released yet
+* 0.6.17 (02.10.2018) not released yet
+    * Possibility to join clusters by ID and to sort and renumber cluster IDs.
     * New driver pond allows to calculate pockets and master paths energy profiles.
     * Assorted improvements allowing better handling of passing paths.
     * GREAT speedup of Stage I, II, and III calculations: they run in parallel; IO can be a bottleneck though.
