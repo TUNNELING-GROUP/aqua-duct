@@ -1296,14 +1296,16 @@ def stage_IV_run(config, options,
             with clui.fbm("Renumber clusters"):
                 inls.renumber_clusters()
 
-        # ***** CLUSTERS' HISTORY *****
-        clui.message('Clustering history:')
-        clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
-
         ###################
         # CLUSTERING DONE #
         ###################
 
+        # ***** CLUSTERS' HISTORY *****
+        clui.message('Clustering history:')
+        clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
+
+
+        # ***** CLUSTERS' TYPES *****
         with clui.fbm("Calculating cluster types"):
             ctypes = inls.spaths2ctypes(spaths)
 

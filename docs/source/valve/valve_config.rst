@@ -29,6 +29,7 @@ Option  Default value   Description
 ======  =============   ==========================================================================
 top     None            Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.
 trj     None            Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.
+twoway  True            Try to use *two-way* scanning in the stage II.
 ======  =============   ==========================================================================
 
 Option **trj** can be used to provide list of trajectory files separated by standard path separator '``:``' on POSIX platforms and '``;``' on Windows - see :obj:`os.pathsep`.
@@ -102,18 +103,22 @@ Stage **traceable_residues**
 
 .. tabularcolumns:: |p{3.0cm}|p{2.5cm}|p{9.1cm}|
 
-=================   ==============  ================================================================
-Option              Default value   Description
-=================   ==============  ================================================================
-scope               None            Definition of *Scope* of interest. See also
-                                    :ref:`scope_definition`.
-scope_convexhull    True            Flag to set if *Scope* is direct or convex hull definition.
-scope_everyframe    False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
-                                    evaluated in every frame. This make sense if the definition is
-                                    complex and depends on distances between molecular entities.
-object              None            Definition of *Object* of interest. See also
-                                    :ref:`object_definition`.
-=================   ==============  ================================================================
+=========================   ==============  ================================================================
+Option                      Default value   Description
+=========================   ==============  ================================================================
+scope                       None            Definition of *Scope* of interest. See also
+                                            :ref:`scope_definition`.
+scope_convexhull            True            Flag to set if *Scope* is direct or convex hull definition.
+scope_everyframe            False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
+                                            evaluated in every frame. This make sense if the definition is
+                                            complex and depends on distances between molecular entities.
+scope_convexhull_inflate    None            Increase (or if negative decrease) size of the scope convex
+                                            hull.
+object                      None            Definition of *Object* of interest. See also
+                                            :ref:`object_definition`.
+add_passing                 None            Definition of molecules that should be added to traced molecules
+                                            even if they were not present in *Object*.
+=========================   ==============  ================================================================
 
 
 .. note::
@@ -128,25 +133,29 @@ This stage also requires definition of the *Scope* and *Object*. If appropriate 
 
 .. tabularcolumns:: |p{3.0cm}|p{2.5cm}|p{9.1cm}|
 
-=====================   ==============  ================================================================
-Option                  Default value   Description
-=====================   ==============  ================================================================
-scope                   None            Definition of *Scope* of interest. See also
-                                        :ref:`scope_definition`. If ``None`` value form previous stage
-                                        is used.
-scope_convexhull        None            Flag to set if the *Scope* is direct or convex hull definition.
-scope_everyframe        False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
-                                        evaluated in every frame. This make sense if the definition is
-                                        complex and depends on distances between molecular entities.
-                                        If ``None`` value from previous stage is used.
-object                  None            Definition of *Object* of interest. See also
-                                        :ref:`object_definition`. If ``None`` value from the previous
-                                        stage is used
-clear_in_object_info    False           If it is set to ``True`` information on occupation of *Object*
-                                        site by traceable residues calculated in the previous stage is
-                                        cleared and have to be recalculated. This is useful if
-                                        definition of *Object* was changed.
-=====================   ==============  ================================================================
+=========================   ==============  ================================================================
+Option                      Default value   Description
+=========================   ==============  ================================================================
+scope                       None            Definition of *Scope* of interest. See also
+                                            :ref:`scope_definition`. If ``None`` value form previous stage
+                                            is used.
+scope_convexhull            None            Flag to set if the *Scope* is direct or convex hull definition.
+scope_everyframe            False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
+                                            evaluated in every frame. This make sense if the definition is
+                                            complex and depends on distances between molecular entities.
+                                            If ``None`` value from previous stage is used.
+scope_convexhull_inflate    None            Increase (or if negative decrease) size of the scope convex
+                                            hull. If ``None`` value from previous stage is used.
+object                      None            Definition of *Object* of interest. See also
+                                            :ref:`object_definition`. If ``None`` value from the previous
+                                            stage is used
+clear_in_object_info        False           If it is set to ``True`` information on occupation of *Object*
+                                            site by traceable residues calculated in the previous stage is
+                                            cleared and have to be recalculated. This is useful if
+                                            definition of *Object* was changed.
+discard_singletons          1               If ``> 0`` discards paths of given lenght.
+discard_empty_paths         True            If set to ``True`` empty paths are discarded.
+=========================   ==============  ================================================================
 
 .. _separate_paths_options:
 
@@ -220,6 +229,15 @@ add_passing_to_clusters             None            Allows to run procedure for 
                                                     clusters with Auto Barber method. To enable this the option
                                                     should be set to molecular entity that will be used by Auto
                                                     Barber.
+renumber_clusters                   False           If set ``True`` clusters have consecutive numbers starting from
+                                                    1 (or 0 if outliers are present) starting from the bigest
+                                                    cluster.
+join_clusters                       None            This option allows to join selected clusters. Clusters' IDs
+                                                    joined with ``+`` character lists clusters to be joined
+                                                    together. Several such blocks separated by space can be used.
+                                                    For example, if set to ``1+3+4 5+6`` clusters 1, 3, and 4 will
+                                                    be joined in one cluster and cluster 5, and 6 will be also
+                                                    joined in another one cluster.
 ==================================  ==============  ================================================================
 
 Stage **analysis**
@@ -237,6 +255,8 @@ calculate_scope_object_size     False           If set to ``True`` volumes and a
                                                 analyzed frames and saved in output CSV file.
 scope_chull                     None            Scope convex hull definition used in calculating volume and
                                                 area.
+scope_chull_inflate             None            Increase (or if negative decrease) size of the scope convex
+                                                hull.
 object_chull                    None            Object convex hull definition used in calculating volume and
                                                 area.
 ==============================  ==============  ================================================================
@@ -264,6 +284,10 @@ Stage **visualize**
                                                     displayed oriented accordingly to raw paths orientation.
     all_paths_smooth_io         False               If set True arrows pointing beginning and end of paths are
                                                     displayed oriented accordingly to smooth paths orientation.
+    all_paths_amount            None                Allows to limit number of visualised paths. If it is a number
+                                                    in range ``(0,1)`` then it is interpreted as percent number
+                                                    of paths to be visualized. It is is a integer number ``>= 1``
+                                                    it is total number of all_paths visualized.
     simply_smooths              RecursiveVector     Option indicates linear simplification method to be used in
                                                     plotting smooth paths. Simplification removes points which do
                                                     not (or almost do not) change the shape of smooth path.
@@ -303,6 +327,15 @@ Stage **visualize**
     ctypes_smooth               False               Displays smooth paths in a similar manner as non split
                                                     **all_paths_smooth** but each cluster type is displayed in
                                                     separate object.
+    ctypes_amount               None                Allows to limit number of visualised ctypes. If it is a number
+                                                    in range ``(0,1)`` then it is interpreted as percent number
+                                                    of ctypes to be visualized. It is is a integer number ``>= 1``
+                                                    it is total number of ctypes visualized.
+    inlets_clusters             False               If set ``True`` cluster of inlets are visualized.
+    inlets_clusters_amount      None                Allows to limit number of visualised inlets. If it is a number
+                                                    in range ``(0,1)`` then it is interpreted as percent number
+                                                    of inlets to be visualized. It is is a integer number ``>= 1``
+                                                    it is total number of inlets visualized.
     show_molecule               False               If is set to selection of some molecular object in the system,
                                                     for example to ``protein``, this object is displayed.
     show_molecule_frames        0                   Allows to indicate which frames of object defined by
@@ -312,6 +345,8 @@ Stage **visualize**
     show_scope_chull            False               If is set to selection of some molecular object in the system,
                                                     for example to ``protein``, convex hull of this object is
                                                     displayed.
+    show_scope_chull_inflate    None                Increase (or if negative decrease) size of the scope convex
+                                                    hull.
     show_scope_chull_frames     0                   Allows to indicate for which frames of object defined by
                                                     **show_chull** convex hull should be displayed. It is possible
                                                     to set several frames. In that case frames would be displayed
