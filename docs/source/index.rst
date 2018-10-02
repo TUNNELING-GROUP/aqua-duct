@@ -6,14 +6,26 @@
 Welcome to Aqua-Duct's documentation!
 =====================================
 
+End-user documentation
+----------------------
+
+
+.. toctree::
+    :maxdepth: 2
+    :titlesonly:
+
+    How does it work? <aquaduct_howdoesitwork>
+    Valve <valve/index>
+    Pond <pond/index>
+
+Technical documentation
+-----------------------
+
 .. toctree::
     :maxdepth: 1
     :titlesonly:
 
     Aqua-Duct installation <aquaduct_install>
-    Valve manual <valve/valve_manual>
-    Valve configuration <valve/valve_config>
-    Valve tutorial <valve/valve_tutorial>
     Aqua-Duct API documentation <modules>
     Changelog <changelog>
 

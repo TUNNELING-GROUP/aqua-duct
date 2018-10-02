@@ -18,45 +18,7 @@ Basic help of *Valve* usage can be displayed by following command::
 
 It should display following information::
 
-    usage: valve.py [-h] [--debug] [--debug-file DEBUG_FILE]
-                    [--dump-template-config] [-t THREADS] [-c CONFIG_FILE] [--sps]
-                    [--max-frame MAX_FRAME] [--min-frame MIN_FRAME]
-                    [--step-frame STEP_FRAME] [--sandwich] [--cache-dir CACHEDIR]
-                    [--cache-mem] [--version] [--license] [--netcdf] [--netcdf4]
-                    [--force-save] [--force-netcdf]
-    
-    Valve, Aquaduct driver
-    
-    optional arguments:
-      -h, --help            show this help message and exit
-      --debug               Prints debug info. (default: False)
-      --debug-file DEBUG_FILE
-                            Debug log file. (default: None)
-      --dump-template-config
-                            Dumps template config file. Suppress all other output
-                            or actions. (default: False)
-      -t THREADS            Limit Aqua-Duct calculations to given number of
-                            threads. (default: None)
-      -c CONFIG_FILE        Config file filename. (default: None)
-      --sps                 Use single precision to store data. (default: False)
-      --max-frame MAX_FRAME
-                            Maximal number of frame. (default: None)
-      --min-frame MIN_FRAME
-                            Minimal number of frame. (default: None)
-      --step-frame STEP_FRAME
-                            Frames step. (default: None)
-      --sandwich            Sandwich mode for multiple trajectories. (default:
-                            False)
-      --cache-dir CACHEDIR  Directory for coordinates caching. (default: None)
-      --cache-mem           Switch on memory caching. (default: False)
-      --version             Prints versions and exits. (default: False)
-      --license             Prints short license info and exits. (default: False)
-      --netcdf              Use AQ NetCDF format as default. (default: False)
-      --netcdf4             Use AQ NetCDF format as default using netCDF4 if
-                            available. (default: False)
-      --force-save          Force saving results. (default: False)
-      --force-netcdf        Force saving results in AQ NetCDF format. (default:
-                            False)
+HELP
 
 Configuration file template
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
