@@ -30,30 +30,6 @@ sed -i '/undoc/d' source/*.*.rst
 # ubuntu 14.04 helper
 cp ../src/ubuntu_mdanalysis_install_helper.sh source/
 
-#~ # installation pkg & RST file!
-#~ rm -rf ../aquaduct*.tar.gz
-#~ $( cd .. ; bash ./make_all_pkgs.sh )
-#~ rm -rf source/aquaduct*.tar.gz
-#~ mv ../aquaduct*.tar.gz source/
-#~ cd source
-#~ ls -1 aquaduct*.tar.gz | sort -r | awk '{print "* :download:`"$1"`"}' > aquaduct_download_list.rst
-#~ cd ..
-
-#~ # other versions docs
-#~ echo 'Documentation for other versions of Aqua-Duct:\n' > source/other_versions.rst
-#~ CURRENT='None'
-#~ for tag in $( git tag | sort -r | head -1 )
-#~ do
-    #~ if [ $CURRENT = 'None' ]
-    #~ then
-        #~ CURRENT=$tag
-        #~ echo '* `'$tag' <../current/index.html>`_ (current version)' >> source/other_versions.rst
-    #~ else
-        #~ echo '* `'$tag' <../'$tag'/index.html>`_' >> source/other_versions.rst
-    #~ fi
-#~ done
-#~ echo '* `development version <../devel/index.html>`_ (use with care)' >> source/other_versions.rst
-
 # AQ pip command
 #AQPIP="install --extra-index-url https:\/\/testpypi.python.org\/pypi aqueduct"
 AQPIP="install aquaduct"
@@ -64,14 +40,14 @@ echo "* Python 2.7 (CPython implementation)" > source/aquaduct_install_requires.
 printf 'install_requires_nice(1)' | python2.7 -i ../src/setup.py -n --name 2> /dev/null > source/aquaduct_install_requires.rst
 
 # valve HELP
-sed '1,/HELP/!d' source/valve/valve_manual.template.rst | sed '$ d' > source/valve/valve_manual.rst
+sed '1,/HELP/!d' source/valve/valve_manual.rst.template | sed '$ d' > source/valve/valve_manual.rst
 python2.7 ../src/apps/valve.py -h 2> /dev/null | awk '{print "    "$0}' >> source/valve/valve_manual.rst
-sed '1,/HELP/d' source/valve/valve_manual.template.rst >> source/valve/valve_manual.rst
+sed '1,/HELP/d' source/valve/valve_manual.rst.template >> source/valve/valve_manual.rst
 
 # pond HELP
-sed '1,/HELP/!d' source/pond/pond_manual.template.rst | sed '$ d' > source/pond/pond_manual.rst
+sed '1,/HELP/!d' source/pond/pond_manual.rst.template | sed '$ d' > source/pond/pond_manual.rst
 python2.7 ../src/apps/pond.py -h 2> /dev/null | awk '{print "    "$0}' >> source/pond/pond_manual.rst
-sed '1,/HELP/d' source/pond/pond_manual.template.rst >> source/pond/pond_manual.rst
+sed '1,/HELP/d' source/pond/pond_manual.rst.template >> source/pond/pond_manual.rst
 
 rm -rf -- build/html*
 $MAKE SPHINXBUILD="$SPHINXBUILD" html 

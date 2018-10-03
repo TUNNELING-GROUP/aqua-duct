@@ -37,6 +37,41 @@ For detailed explanation of the following options see :doc:`../valve/valve_manua
 * ``--sandwich`` Sandwich mode for multiple trajectories. (default: False)
 * ``--cache-dir CACHEDIR`` Directory for coordinates caching. (default: None)
 
-*Pond* reference density calculation
-------------------------------------
+
+*Pond* calculations options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Other options are used to setup *Pond* calculations and are described below.
+
+Pockets
+-------
+
+Pockets are calculated by analysis of paths found by *Valve*. A regular grid is constructed
+spanning all paths. Grid size by default is 1 Å and can be altered with ``--gsize`` option.
+
+.. note::
+
+    As for now, it is recommended that multiplicative inverse of grid size is an integer number.
+    Therefore, grid size can be safely set to 1, 0.5, 0.25, 0.1 etc.
+
+Next, number of paths crossing each of the grid cells is calculated over the entire trajectory and
+divided by the number of frames. This gives averaged density of traced molecules.
+
+Cells with null density are removed from the grid and resulted shape corresponds to maximal area
+penetrated by traced molecules.
+
+Inner pocket
+^^^^^^^^^^^^
+
+Distribution of denisites in the grid has strong positive skew.
+
+Outer pocket
+^^^^^^^^^^^^
+
+Hot-spots
+---------
+
+Energy profiles
+---------------
+
 
