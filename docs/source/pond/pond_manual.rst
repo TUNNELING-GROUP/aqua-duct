@@ -84,14 +84,174 @@ All options related to Molecular Dynamic simulation data, configuration file, an
 
 For detailed explanation of the following options see :doc:`../valve/valve_manual`:
 
-* ``-c CONFIG_FILE`` Config file filename. (default: None)
-* ``-t THREADS`` Limit Aqua-Duct calculations to given number of threads. (default: None)
-* ``--max-frame MAX_FRAME`` Maximal number of frame. (default: None)
-* ``--min-frame MIN_FRAME`` Minimal number of frame. (default: None)
-* ``--step-frame STEP_FRAME`` Frames step. (default: None)
-* ``--sandwich`` Sandwich mode for multiple trajectories. (default: False)
-* ``--cache-dir CACHEDIR`` Directory for coordinates caching. (default: None)
+* ``-c CONFIG_FILE`` - Configuration file name. *Pond* and *Valve* should use the same file.
+* ``-t THREADS`` - Limits Aqua-Duct calculations to given number of threads.
+* ``--max-frame MAX_FRAME`` - Maximal number of frame.
+* ``--min-frame MIN_FRAME`` - Minimal number of frame.
+* ``--step-frame STEP_FRAME`` - Frames step.
+* ``--sandwich`` - Sandwich mode for multiple trajectories.
+* ``--cache-dir CACHEDIR`` - Directory for coordinates caching. *Pond* can reuse cache directory made by *Valve*.
 
-*Pond* reference density calculation
-------------------------------------
+
+*Pond* calculations options
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Other options are used to start or adjust *Pond* calculations:
+
+* **Pockets**
+    Option ``--pockets`` triggers pocket calculations
+* **Hot-spots**
+    Option ``--hotspots`` triggers hot-spot calculations but it also requires ``--pockets``.
+* **Energy profiles**
+    Option ``--master-radius`` triggers free energy profiles calculations for master paths.
+    It requires float value of radius used in the calculations, value of 2.0 Å is a good default.
+
+Free energy estimation
+^^^^^^^^^^^^^^^^^^^^^^
+
+*Pond* can estimate free energy by using calculated density of traced molecules.
+It becomes particularly useful and relevent when traced molecules include solvent.
+
+Estimation of free energy is done according to Boltzmann inversion. Similar method
+was used in `Rao,S. et al. <http://dx.doi.org/10.1080/19336950.2017.1306163>`_
+(doi:10.1080/19336950.2017.1306163) paper.
+
+Following equation relates free energy with density of molecules:
+
+.. math::
+
+    n(z) = C \cdot e^{\left( \frac {-E(z) }{ kT} \right) }
+
+Where *z* is point in the space, preferably along some kind of path, *n(z)* is density of molecules
+in point *z*, *C* is a normalization constant, *E* is free energy, *k* is Boltzmann's constant,
+and *T* is temperature.
+
+One can easily transform the above equation to calculate energy:
+
+.. math::
+
+    E(z) = -kT\ln\left(n(z)\right) -kT\ln\left(C\right)
+
+Term :math:`kT\ln\left(C\right)` does not depend on *z* and can be determined by assumption that
+free energy in the bulk of traced molecules (solvent) is zero.
+
+Option ``--temperature`` allows to set desired temperature in Kelvins.
+
+.. note::
+
+    *Pond* returns energy in kJ/mol SI units.
+
+Bulk reference
+##############
+
+*Pond* can automatically calculate value of :math:`kT\ln\left(C\right)` term by analysis of the bulk of traced molecules
+(solvent):
+
+#. Coordinate of the bulk.
+    Option ``--reference`` allows to provide selection for which *Pond* calculates COG in the first
+    frame of simulation. Calculated COG is used as center of the bulk.
+#. Radius of the bulk around COG.
+    Option ``--reference-radius`` allows to set the radius of the sphere within which the bulk will be
+    scanned. The sphere is centered in COG. Radius should be selected in such a way that the sphere
+    does not overlaps with other molecules in the simulated system. Default value is 2.0 Å.
+#. Density of reference molecules.
+    Once COG if the bulk and radius are setup, *Pond* scans trajectory and looks for molecules.
+    Option ``--reference-mol`` allows to define molecules for which density should be calculated.
+
+.. note::
+
+    If no ``--reference`` option is used *Pond* skips estimation of free energy.
+
+Raw data
+^^^^^^^^
+
+Two types of data can by used by *Pond*:
+
+#. Separate paths (including passing paths if any), or
+#. Raw paths saved at stage II.
+
+By default separate paths are used. Option ``--raw`` makes *Pond* to use raw paths in all calculations,
+whereas ``--raw-master`` makes *Pond* to use raw paths only in estimation of free energy profiles and
+for pockets and hot-spots separate paths are used.
+
+.. note::
+
+    Best results of pockets calculation can be achievied with separate paths.
+
+.. warning::
+
+    Free energy estimation with separate paths may very likely lead to false results at the borders
+    of the scope.
+
+Windows
+^^^^^^^
+
+*Ponds* performs calculations for entire trajectory and/or for user defined windows:
+
+* ``--window-full`` ensures that results will be calculated for the entire trajectory.
+* ``--windows`` allows to set number of windows.
+* ``--wsize`` allows to change default size of windows.
+
+By default, windows' sizes are automatically set in such a way that entire trajectory is
+covered and windows do not overlap to each other. Option ``--wsize`` allows to set size of
+windows (in frames), therefore, windows can also overlap with each other or can span only
+selected sections of the trajectory.
+
+Pockets
+-------
+
+Pockets are calculated by analysis of paths found by *Valve*. A regular grid is constructed
+spanning all paths. Grid size by default is 1 Å and can be altered with ``--gsize`` option.
+
+.. note::
+
+    As for now, it is recommended that multiplicative inverse of grid size is an integer number.
+    Therefore, grid size can be safely set to 1, 0.5, 0.25, 0.1 etc.
+
+Next, number of paths crossing each of the grid cells is calculated over the entire trajectory and
+divided by the number of frames. This gives averaged density of traced molecules.
+
+Cells with null density are removed from the grid and resulted shape corresponds to maximal area
+penetrated by traced molecules.
+
+.. note::
+
+    If no estimation of free energy is performed values returned for pockets and hot-spots
+    are density (of traced molecules).
+
+.. warning::
+
+    Estimation of free energy for pockets calculated for non raw data may be unreliable.
+
+Inner & outer pocket
+^^^^^^^^^^^^^^^^^^^^
+
+Distribution of densities in the grid has positive skew. This suggest that pocket can be partitioned
+into areas of different overall distribution of traced molecules.
+
+Indeed, *Pond* saves two types of pockets depending on the distribution of densities in the grid:
+
+#. **Inner pocket**
+    This is part of the pocket for which densities are greater than mean value.
+#. **Outer pocket**
+    This is counter part for **Inner pocket**, i.e. the part of the pocket for which densities are less than mean value.
+
+Hot-spots
+^^^^^^^^^
+
+Further analysis of distribution of densities in the grid allows to select points of the highest densities.
+They are considered as **hot-spots**, i.e. points of particular importance at which traced molecules
+are atracted or trapped and stays for considerably long time.
+
+Currently **hot-spots** are detected as far right tail of the distribution of densities in the grid.
+
+Energy profiles
+---------------
+
+*Pond* estimates energy profiles of master paths.
+For each point of the master path density of paths of traced molecules is calculated within
+sphere of radius set by ``--master-radius`` option.
+
+Option ``--master-ctypes`` allows to select master paths ctypes for which free energy estimation is
+calculated.
 
