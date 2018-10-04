@@ -104,7 +104,7 @@ Stage **traceable_residues**
 .. _inflate_options:
 
 
-.. tabularcolumns:: |p{3.0cm}|p{2.5cm}|p{9.1cm}|
+.. tabularcolumns:: |p{3.6cm}|p{2.5cm}|p{8.5cm}|
 
 =========================   ==============  ================================================================
 Option                      Default value   Description
@@ -134,7 +134,7 @@ Stage **raw_paths**
 
 This stage also requires definition of the *Scope* and *Object*. If appropriate settings are not given, settings from the previous stage are used.
 
-.. tabularcolumns:: |p{3.0cm}|p{2.5cm}|p{9.1cm}|
+.. tabularcolumns:: |p{3.6cm}|p{2.5cm}|p{8.5cm}|
 
 =========================   ==============  ================================================================
 Option                      Default value   Description

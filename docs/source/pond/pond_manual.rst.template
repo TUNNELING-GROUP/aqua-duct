@@ -80,7 +80,7 @@ One can easily transform the above equation to calculate energy:
 Term :math:`kT\ln\left(C\right)` does not depend on *z* and can be determined by assumption that
 free energy in the bulk of traced molecules (solvent) is zero.
 
-Option ``--temperature`` allows to set desired temperature in Kelvins.
+Please note that option ``--temperature`` allows to set desired temperature in Kelvins.
 
 .. note::
 
