@@ -6,7 +6,7 @@
 
 *Valve* invocation
 ------------------
-BLABLA
+
 Once :mod:`aquaduct` module is installed (see :doc:`../aquaduct_install`) properly on the machine, *Valve* is available as ``valve.py`` command line tool.
 
 Usage
