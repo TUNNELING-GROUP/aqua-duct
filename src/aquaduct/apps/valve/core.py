@@ -1033,9 +1033,7 @@ def stage_III_run(config, options,
                         gc.collect()
                 pool.close()
                 pool.join()
-            del paths
             paths = new_paths
-            del new_paths
             gc.collect()
         else:
             clui.message('AutoBarber procedure skip, no spheres detected.')
