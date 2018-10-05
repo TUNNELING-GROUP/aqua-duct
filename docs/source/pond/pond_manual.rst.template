@@ -37,6 +37,13 @@ For detailed explanation of the following options see :doc:`../valve/valve_manua
 * ``--sandwich`` - Sandwich mode for multiple trajectories.
 * ``--cache-dir CACHEDIR`` - Directory for coordinates caching. *Pond* can reuse cache directory made by *Valve*.
 
+Results directory
+^^^^^^^^^^^^^^^^^
+
+*Pond* produces many results files, especially if windows options are used. For the sake of convenience,
+option ``-r`` allows to provide output directory.
+If provided directory does not exist it will be created without warning.
+Also, *Pond* will not warn if results files overwrites existing files.
 
 *Pond* calculations options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -121,7 +128,7 @@ for pockets and hot-spots separate paths are used.
 
 .. note::
 
-    Best results of pockets calculation can be achievied with separate paths.
+    Best results of pockets calculation can be achieved with separate paths.
 
 .. warning::
 
@@ -186,7 +193,7 @@ Hot-spots
 
 Further analysis of distribution of densities in the grid allows to select points of the highest densities.
 They are considered as **hot-spots**, i.e. points of particular importance at which traced molecules
-are atracted or trapped and stays for considerably long time.
+are attracted or trapped and stays for considerably long time.
 
 Currently **hot-spots** are detected as far right tail of the distribution of densities in the grid.
 
@@ -197,6 +204,6 @@ Energy profiles
 For each point of the master path density of paths of traced molecules is calculated within
 sphere of radius set by ``--master-radius`` option.
 
-Option ``--master-ctypes`` allows to select master paths ctypes for which free energy estimation is
+Option ``--master-ctypes`` allows to select master paths *ctypes* for which free energy estimation is
 calculated.
 
