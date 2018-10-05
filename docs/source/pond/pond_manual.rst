@@ -113,7 +113,7 @@ Free energy estimation
 It becomes particularly useful and relevent when traced molecules include solvent.
 
 Estimation of free energy is done according to Boltzmann inversion. Similar method
-was used in `Rao,S. et al. <http://dx.doi.org/10.1080/19336950.2017.1306163>`_
+was used in `Rao,S. et al. <https://dx.doi.org/10.1080/19336950.2017.1306163>`_
 (doi:10.1080/19336950.2017.1306163) paper.
 
 Following equation relates free energy with density of molecules:
@@ -135,7 +135,7 @@ One can easily transform the above equation to calculate energy:
 Term :math:`kT\ln\left(C\right)` does not depend on *z* and can be determined by assumption that
 free energy in the bulk of traced molecules (solvent) is zero.
 
-Option ``--temperature`` allows to set desired temperature in Kelvins.
+Please note that option ``--temperature`` allows to set desired temperature in Kelvins.
 
 .. note::
 

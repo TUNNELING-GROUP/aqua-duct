@@ -490,12 +490,3 @@ def barber_paths(paths, spheres=None):
         yield path
     yield CRIC
 
-
-if __name__ == "__main__":
-    wtc = WhereToCut()
-
-    coords = np.random.randn(100, 3)
-    radii = np.random.randn(100, 1) * 2
-
-    wtc.spheres = [Sphere(c, float(r)) for c, r in zip(coords, radii)]
-    wtc.cut_thyself()

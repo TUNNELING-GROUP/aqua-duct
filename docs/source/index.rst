@@ -30,3 +30,4 @@ Technical documentation
     Changelog <changelog>
 
 
+PDF version of the documentation is also `available <Aqua-Duct.pdf>`_.

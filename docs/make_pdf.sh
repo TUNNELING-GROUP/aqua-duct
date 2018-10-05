@@ -28,4 +28,7 @@ export PYTHONPATH=~/.local/lib/python2.7/site-packages:`pwd`/../src:$PYTHONPATH
 
 $MAKE SPHINXBUILD="$SPHINXBUILD" latexpdf
 
+cp build/latex/Aqua-Duct.pdf build/html
+
+rsync -avz -P --delete build/html/ 192.168.1.15:/home/tljm/public_html/aq/
 
