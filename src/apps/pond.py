@@ -120,7 +120,7 @@ if __name__ == "__main__":
                             help="Calculates hotspots if pockets are calculated.")
         parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False,
                             help="Calculate profiles for master paths with given radius.")
-        parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False, default=None,
+        parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False, default="",
                             help="Limit calculations to given ctypes.")
         #parser.add_argument("--master-radii", action="store_true", dest="master_radii", required=False,
         #                    help="Calculate profiles for master paths using width as radii.")
