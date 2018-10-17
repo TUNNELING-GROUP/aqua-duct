@@ -27,7 +27,7 @@ Configuration file used by *Valve* is of moderate length and complexity. It can 
 
     valve.py --dump-template-config
 
-Configuration file template can also be easily saved in to a file with::
+Configuration file template can also be easily saved as a file with::
 
     valve.py --dump-template-config > config.txt
 
@@ -46,19 +46,19 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
 
 .. note::
 
-    Specifying number of threads greater then available CPU cores is generally not optimal.
+    Specifying number of threads greater than the available CPU cores is generally not optimal.
 
-    However, in order to maximize usage of available CPU power it is recommended to set it as number of cores + 1. The reason is that *Valve* uses one thread for the main process and the excess over one for processes for parallel calculations. When parallel calculations are executed the main thread waits for results.
+    However, in order to maximize the usage of available CPU power it is recommended to set it as the actual number of cores + 1. It is caused by the fact that *Valve* uses one thread for the main process and the more than one threads for processes of parallel calculations. When parallel calculations are executed the main thread waits for results.
 
 .. note::
 
-    Options ``--min-frame``, ``--max-frame``, and ``--step-frame`` can be used to limit calculations to specific part of trajectory. For example, to run calculations for 1000 frames starting from frame 5000 use following options: ``--min-frame 4999 --max-frame 5999``; to run calculations for every 5th frame use: ``--step-frame 5``.
+    Options ``--min-frame``, ``--max-frame``, and ``--step-frame`` can be used to limit calculations to a specific part of trajectory. For example, in order to to run calculations for 1000 frames starting from frame 5000 use following options: ``--min-frame 4999 --max-frame 5999``; to run calculations for every 5th frame use: ``--step-frame 5``.
 
 Single precision storage
 """"""""""""""""""""""""
 
-Most of the calculation is *Valve* is performed by NumPy. By default, NumPy uses double precision floats.
-*Valve* does not change this behavior but has special option ``--sps`` which forces to store all data (both internal data stored in RAM and on the disk) in single precision. This spare a lot of RAM and is recommended what you perform calculation for long trajectories and you have limited amount of RAM.
+Most of the calculation in *Valve* is performed by NumPy. By default, NumPy uses double precision floats.
+*Valve* does not change this behavior but has special option ``--sps`` which forces to store all data (both internal data stored in RAM and on the disk) in single precision. This spares a lot of RAM and is recommended when you perform calculation for long trajectories and your amount of RAM is limited.
 
 Cache
 """""
@@ -73,38 +73,38 @@ Storage of coordinates for all paths for very long MD trajectories requires huge
 Sandwich
 """"""""
 
-Trajectory data can be provided as several files. By default these files are processed in sequential manner making one long trajectory. If option ``--sandwich`` is used trajectory files are read as layers. For each layer, search of traceable residues is done separately (stage I and II) but processing and analysis (stage III, IV, V, and VI) are done for all paths simultaneously. Usage of ``--sandwich`` option is further referenced as *sandwich* mode.
+Trajectory data can be provided as several files. By default these files are processed in sequential manner making one long trajectory. If option ``--sandwich`` is used trajectory files are read as layers. For each layer, search for traceable residues is done separately (stage I and II) but processing and analysis (stage III, IV, V, and VI) are done for all paths simultaneously. Usage of ``--sandwich`` option is further referenced as *sandwich* mode.
 
 
 Debugging
 """""""""
 
-*Valve* can output some debug information. Use ``--debug`` to see all debug information on the screen or use ``--debug-file`` with some file name to dump all debug messages to the given file. Beside debug messages standard messages will be saved in the file as well.
+*Valve* can output some debug information. Use ``--debug`` to see all debug information on the screen or use ``--debug-file`` with some file name to dump all debug messages to the given file. Beside debug messages, standard messages will be saved in the file as well.
 
 How does *Valve* work
 ---------------------
 
-Application starts with parsing input options. If ``--help`` or ``--dump-template-config`` options are used appropriate messages are printed on the screen and *Valve* quits with signal ``0``.
+Application starts with parsing input options. If ``--help`` or ``--dump-template-config`` options are used, appropriate messages are printed on the screen and *Valve* quits with signal ``0``.
 
 .. note::
 
 	In current version *Valve* does not check the validity of the config file.
 
-If config file is provided (option ``-c``) *Valve* parse it quickly and regular calculations starts according to its content. Calculations performed by *Valve* are done in six stages described in the next sections.
+If config file is provided (option ``-c``) *Valve* parses it quickly and regular calculations start according to their contents. Calculations performed by *Valve* are done in six stages which are described in the next sections.
 
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-In the first stage of calculation *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only if they are not already present on the list. In :ref:`sandwich_option <sandwich>` mode this is repeated for each layer.
+In the first stage of calculations *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only proveded that they are not already present on the list. In :ref:`sandwich_option <sandwich>` mode this is repeated for each layer.
 
-The search of *traceable residues* is done according to user provided specifications. Two requirements have to be met to append residue to the list:
+The search of *traceable residues* is done according to specifications provided by user. Two requirements have to be met to append residue to the list:
 
 #. The residue has to be found according to the *object* definition.
 #. The residue has to be within the *scope* of interest.
 
-The *object* definition encompasses usually the active site of the protein (or other region of interest of macromolecule in question). The *scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
+The *object* definition usually encompasses the active site of the protein (or other region of interest of macromolecule in question). The *scope* of interest defines, on the other hand, the boundaries in which residues are traced and is usually defined as protein.
 
-Since :mod:`aquaduct` in its current version uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *object* and *scope* have to be given as its *Selection Commands*.
+Since :mod:`aquaduct`, in its current version, uses `MDAnalysis <http://www.mdanalysis.org/>`_ Python module for reading, parsing and searching of MD trajectory data, definitions of *object* and *scope* have to be given as its *Selection Commands*.
 
 .. _object_definition:
 
@@ -116,11 +116,11 @@ Object definition
 #. It has to define residues to trace.
 #. It has to define spatial boundaries of the *object* site.
 
-For example, proper *object* definition could be following::
+For example, proper *object* definition could be as following::
 
     (resname WAT) and (sphzone 6.0 (resnum 99 or resnum 147))
 
-It defines ``WAT`` as residues that should be traced and defines spatial constrains of the *object* site as spherical zone within 6 Angstroms of the center of masses of residues with number 99 and 147.
+It defines ``WAT`` as residues that should be traced and defines spatial constrains of the *object* site as spherical zone within 6 Angstroms from the center of masses of residues with number 99 and 147.
 
 .. _scope_definition:
 
@@ -135,7 +135,7 @@ In the first case definition is very similar to *object* and it has to follow th
 
 It consequently has to define ``WAT`` as residues of interest and defines spatial constrains: all ``WAT`` residues that are within 2 Angstroms of the protein.
 
-If the *scope* is defined as the convex hull of selected molecular object (which is **recommended**), the definition itself have to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
+If the *scope* is defined as the convex hull of selected molecular object (which is **recommended**), the definition itself has to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
 
 Convex hulls of macromolecule atoms
 ###################################
