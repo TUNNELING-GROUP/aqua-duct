@@ -215,13 +215,13 @@ It is also possible that incoming and/or outgoing part of the separate path is e
 Auto Barber
 """""""""""
 
-After the initial search of *Separate Path* objects it is possible to run Auto Barber procedure which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This trimming is done by creating collection of spheres that have centers at the ends of paths and radii equal to the distance for the center to the nearest atom of user defined molecular entity. Next, parts of raw paths that are inside these spheres are removed and separate paths are recreated.
+After the initial search of *Separate Path* objects, it is possible to run Auto Barber procedure which trims paths down to the approximated surface of the macromolecule or other molecular entity defined by the user. This trimming is done by creating collection of spheres that have centers at the ends of paths and radii equal to the distance from the center to the nearest atom of user defined molecular entity. Next, parts of raw paths that are inside these spheres are removed and separate paths are recreated.
 
 Auto Barber procedure has several options, for example:
 
 * **auto_barber** allows to define molecular entity which is used to calculate radii of spheres used for trimming raw paths.
-* **auto_barber_mincut** allows to define minimal radius of spheres. Spheres of radius smaller then this value are not used in trimming.
-* **auto_barber_maxcut** allows to define maximal radius of spheres. Spheres of radius greater then this value are not used in trimming.
+* **auto_barber_mincut** allows to define minimal radius of spheres. Spheres of radius smaller than this value are not used in trimming.
+* **auto_barber_maxcut** allows to define maximal radius of spheres. Spheres of radius greater than this value are not used in trimming.
 * **auto_barber_tovdw** if set to `True` radii of spheres are corrected (decreased) by Van der Waals radius of the closest atom.
 
 See also :ref:`options of separate_paths <separate_paths_options>` stage.
@@ -229,7 +229,7 @@ See also :ref:`options of separate_paths <separate_paths_options>` stage.
 Smoothing
 """""""""
 
-Separate paths can be optionally smoothed. Current :mod:`aquaduct` version allows perform `soft` smoothing only, i.e. smoothing is used only for visualization purposes. Raw paths cannot be replaced by the smoothed.
+Separate paths can be optionally smoothed. Current :mod:`aquaduct` version allows to perform `soft` smoothing only, i.e. smoothing is used only for visualization purposes. Raw paths cannot be replaced by the smoothed.
 
 Available methods
 #################
@@ -247,18 +247,18 @@ Aqua-Duct implements several smoothing methods:
 
 For detailed information on available configuration options see configuration file :ref:`smooth section <smoothing_options>` description.
 
-.. _clusterization_of_inlets:
+.. _clustering_of_inlets:
 
-Clusterization of inlets
+Clustering of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. _inlets_def:
 
-Each of the separate paths has beginning and end. If they are at the boundaries of the *scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
+Each of the separate paths has beginning and end. If they are at the boundaries of the *scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which were simulated in the MD.
 
-Clusterization of inlets is performed in following steps:
+Clustering of inlets is performed in following steps:
 
-#. `Initial clusterization`: All inlets are submitted to selected clusterization method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
+#. `Initial clustering`: All inlets are submitted to selected clusterization method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
 #. [Optional] `Outliers detection`: Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
 
     #. `Automatic mode`: Inlet is considered to be an outlier if its distance from the centroid is greater than mean distance + 4 * standard deviation of all distances within the cluster.
