@@ -193,11 +193,11 @@ There are two types of *Separate Paths*:
 *Object Paths* are traces of molecules that visited *Object* area. *Passing Paths* are traces of molecules that entered *Scope* but did not entered *Object* area.
 
 *Passing paths* comprises of one part only.
-Each *object path* comprises of three parts:
+Each *object path* comprises of following parts:
 
 #. *Incoming* - Defined as a path that leads from the point in which residue enters the *scope* and enters the object for the first time.
 #. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time. 
-    *Out of active site* (optional) - Defined as a path between the *Object* paths that leads from the point in which residue leaves the *object* but stays within the *scope* and enters the *object* again.
+#. [Optional] *Out of active site* - Defined as a path between the *Object* paths that leads from the point in which residue leaves the *object* but stays within the *scope* and enters the *object* again.
 #. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *object* for the last time and leaves the *scope*.
 
 It is also possible that incoming and/or outgoing part of the separate path is empty.
@@ -254,46 +254,46 @@ Clustering of inlets
 
 .. _inlets_def:
 
-Each of the separate paths has beginning and end. If they are at the boundaries of the *scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which were simulated in the MD.
+Each of the separate paths has the beginning and end. If they are at the boundaries of the *scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enter or leave the *scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which were simulated in the MD.
 
 Clustering of inlets is performed in following steps:
 
-#. `Initial clustering`: All inlets are submitted to selected clusterization method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
-#. [Optional] `Outliers detection`: Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
+#. `Initial clustering`: All inlets are submitted to selected clustering method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
+#. [Optional] `Outliers detection`: Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit into cluster are detected and annotated as outliers. This step can be executed in two modes:
 
     #. `Automatic mode`: Inlet is considered to be an outlier if its distance from the centroid is greater than mean distance + 4 * standard deviation of all distances within the cluster.
     #. `Defined threshold`: Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater than the threshold.
 
-#. [Optional] `Reclusterization of outliers`: It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
+#. [Optional] `Reclustering of outliers`: It may happen that the outliers form actually clusters but it was not recognized in the initial clustering. In this step clustering is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
 
-Potentially recursive clusterization
+Potentially recursive clustering
 """"""""""""""""""""""""""""""""""""
 
-Both `Initial clusterization` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clusterization methods option *recursive_clusterization* is used appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clusterization (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*.
+Both `Initial clustering` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clustering methods option *recursive_clustering* is used, appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clustering (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*.
 
-For additional information see :ref:`clusterization sections <clusterization_options>` options.
+For additional information see :ref:`clustering sections <clustering_options>` options.
 
 Available methods
 """""""""""""""""
 
 Aqua-Duct implements several clustering methods. The recommended method is **barber** method which bases on :ref:`auto_barber_procedure` procedure. Rest of the methods are implemented with :mod:`sklearn.cluster` module:
 
-#. :class:`aquaduct.geom.cluster.BarberCluster` - default for `Initial clusterization`. It gives excellent results. For more information see :ref:`barber clusterization method <clusterization_barber>` description.
+#. :class:`aquaduct.geom.cluster.BarberCluster` - default for `Initial clustering`. It gives excellent results. For more information see :ref:`barber clustering method <clustering_barber>` description.
 #. :class:`~sklearn.cluster.MeanShift` - see also original publication `Mean shift: a robust approach toward feature space analysis <https://dx.doi.org/10.1109/34.1000236>`_ (doi:10.1109/34.1000236).
-#. :class:`~sklearn.cluster.DBSCAN` - default for `Reclusterization of outliers`, see also original publication `A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise <https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf>`_
+#. :class:`~sklearn.cluster.DBSCAN` - default for `Reclustering of outliers`, see also original publication `A Density-Based Algorithm for Discovering Clusters in Large Spatial Databases with Noise <https://www.aaai.org/Papers/KDD/1996/KDD96-037.pdf>`_
 #. :class:`~sklearn.cluster.AffinityPropagation` - see also original publication `Clustering by Passing Messages Between Data Points <https://dx.doi.org/10.1126/science.1136800>`_ (doi:10.1126/science.1136800)
 #. :class:`~sklearn.cluster.KMeans` - see also `k-means++: The advantages of careful seeding, Arthur, David, and Sergei Vassilvitskii <http://ilpubs.stanford.edu:8090/778/1/2006-13.pdf>`_ in Proceedings of the eighteenth annual ACM-SIAM symposium on Discrete algorithms, Society for Industrial and Applied Mathematics (2007), pages 1027-1035.
 #. :class:`~sklearn.cluster.Birch` - see also `Tian Zhang, Raghu Ramakrishnan, Maron Livny BIRCH: An efficient data clustering method for large databases <http://www.cs.sfu.ca/CourseCentral/459/han/papers/zhang96.pdf>`_ and `Roberto Perdisci JBirch - Java implementation of BIRCH clustering algorithm <https://code.google.com/archive/p/jbirch>`_.
 
 
-For additional information see :ref:`clusterization sections <clusterization_options>` options.
+For additional information see :ref:`clustering sections <clustering_options>` options.
 
 .. _master_paths_manual:
 
 Master paths
 """"""""""""
 
-At the end of clusterization stage it is possible to run procedure for `master path` generation. First, separate paths are grouped according to clusters. Paths that begin and end in particular clusters are grouped together. Next, for each group a `master path` (i.e., average path) is generated in following steps:
+At the end of clustering stage it is possible to run procedure for `master path` generation. First, separate paths are grouped according to the clusters. Paths that begin and end in particular clusters are grouped together. Next, for each group a `master path` (i.e., average path) is generated in following steps:
 
 #. First, length of `master path` is determined. Lengths of each parts (incoming, object, outgoing) for each separate paths are normalized with bias towards longest paths. These normalized lengths are then used for as weights in averaging not normalized lengths. Values for all parts are summed and resulting value is the desired length of `master path`.
 #. All separate paths are divided into chunks. Number of chunks is equal to the desired length of `master path` calculated in the previous step. Lengths of separate paths can be quite diverse, therefore, for different paths chunks are of different lengths.
@@ -337,9 +337,9 @@ To get correct picture configuration options have to be adjusted according to on
 Clustering of passing paths
 """""""""""""""""""""""""""
 
-Additionally, in stage **inlets_clusterization** following options could also be adjusted:
+Additionally, in stage **inlets_clustering** following options could also be adjusted:
 
-* ``exclude_passing_in_clusterization`` could be set to ``True``. This will exclude passing paths inlets from clusterization.
+* ``exclude_passing_in_clustering`` could be set to ``True``. This will exclude passing paths inlets from clustering.
 * If passing paths are not clustered they will be added as outliers. Option ``add_passing_to_clusters`` allows to add some of passing paths inlets to already existing clusters. This is done by Auto Barber method and therefore this option should define molecular entity used in Auto Barber procedure, for example ``protein``.
 
 Analysis
