@@ -129,18 +129,18 @@ Scope definition
 
 *Scope* can be defined in two ways: as *object* but with broader boundaries or as the convex hull of selected molecular object.
 
-In the first case definition is very similar to *object* and it has to follow the same limitations. For example, proper *scope* definition could be following::
+In the first case definition is very similar to *object* and it has to follow the same limitations. For example, a proper *scope* definition could be as follows::
 
     resname WAT and around 2.0 protein
 
 It consequently has to define ``WAT`` as residues of interest and defines spatial constrains: all ``WAT`` residues that are within 2 Angstroms of the protein.
 
-If the *scope* is defined as the convex hull of selected molecular object (which is **recommended**), the definition itself has to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they are within the convex hull of atoms of ``protein``.
+If the *scope* is defined as the convex hull of selected molecular object (which is **recommended**), the definition itself has to comprise of this molecular object only, for example ``protein``. In that case the scope is interpreted as the interior of the convex hull of atoms from the definition. Therefore, *traceable residues* would be in the scope only if they were within the convex hull of atoms of ``protein``.
 
 Convex hulls of macromolecule atoms
 ###################################
 
-AQ uses quickhull algorithm for convex hulls calculations (via SciPy class :class:`scipy.spatial.ConvexHull`, see also `<http://www.qhull.org/>`_ and original publication `The quickhull algorithm for convex hulls <http://dx.doi.org/10.1145/235815.235821>`_).
+AQ uses quickhull algorithm for convex hull calculations (via SciPy class :class:`scipy.spatial.ConvexHull`, see also `<http://www.qhull.org/>`_ and original publication `The quickhull algorithm for convex hulls <http://dx.doi.org/10.1145/235815.235821>`_).
 
 Convex hull concept is used to check if traced molecules are inside of the macromolecule. Convex hull can be considered as rough approximation of molecular surface. Following picture shows schematic comparison of convex hull and solvent excluded surface (SES):
 
@@ -154,9 +154,9 @@ No doubts, convex hull is a very rough approximation of SES. It has, however, on
 Convex hull inflation
 #####################
 
-AQ allows to alter size of the scope convex hulls by means of *inflate* options. Once *scope* is defined as convex hull of particular atoms, vertices of it can be interpreted as vectors originating in the center of geometry of the convex hull. Value of inflate option is added to such vectors and in consequence theirs leghts are increased (or decreased if added value is negative). Finally, convex hull is recalculated using points resulted from *inflated* vectors.
+AQ allows to alter size of the scope convex hulls by means of *inflate* options. Once *scope* is defined as convex hull of particular atoms, vertices of it can be interpreted as vectors originating in the center of geometry of the convex hull. Value of inflate option is added to such vectors and in consequence theirs leghts are increased (or decreased if added value is negative). Finally, convex hull is recalculated using points resulting from *inflated* vectors.
 
-In reference to the previous picture, consider following example:
+In reference to the previous picture, consider the following example:
 
 .. figure:: ch_vs_ses_inflate.png
    :align:  center
@@ -168,22 +168,22 @@ This feautre is available in all stages where *scope* convex hull is used. For m
 Raw paths
 ^^^^^^^^^
 
-The second stage of calculations uses the list of all traceable residues from the first stage and for each residue in each frame two checks are performed:
+The second stage of calculations uses the list of all traceable residues from the first stage and for every residue in each frame two checks are performed:
 
 #. Is the residue in the *scope* (this is always calculated according to the scope definition).
 #. Is the residue in the *object*. This information is partially calculated in the first stage and can be reused in the second. However, it is also possible to recalculate this data according to the new *object* definition.
 
-For each of the *traceable residues* a special *Path* object is created which stores frames in which a residue is in *scope* or in *object*.
+For each of the *traceable residues* a special *Path* object is created which stores frames in which a residue is in the *scope* or in the *object*.
 
 .. note::
 
-    Residue is in *object* only if it is also in *scope*.
+    Residue is in the *object* only if it is also in the *scope*.
 
 
 Separate paths
 ^^^^^^^^^^^^^^
 
-The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprise data for one residue. It may happen that the residue enters and leaves the *scope* and the *object* many times over the entire MD. Each such event is considered by *Valve* as a separate path.
+The third stage uses collection of *Path* objects to create *Separate Path* objects. Each *Path* comprises data for one residue. It may happen that the residue enters and leaves the *scope* and the *object* many times over the entire MD. Each such event is considered by *Valve* as a separate path.
 
 There are two types of *Separate Paths*:
 
@@ -196,7 +196,8 @@ There are two types of *Separate Paths*:
 Each *object path* comprises of three parts:
 
 #. *Incoming* - Defined as a path that leads from the point in which residue enters the *scope* and enters the object for the first time.
-#. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time.
+#. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time. 
+    *Out of active site* (optional) - Defined as a path between the *Object* paths that leads from the point in which residue leaves the *object* but stays within the *scope* and enters the *object* again.
 #. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *object* for the last time and leaves the *scope*.
 
 It is also possible that incoming and/or outgoing part of the separate path is empty.
