@@ -279,5 +279,6 @@ if __name__ == "__main__":
         ############################################################################
         # end!
 
+        Reader.reset() # clean close of readers
         valve_end()
         logger.info('Valve calulations finished.')
