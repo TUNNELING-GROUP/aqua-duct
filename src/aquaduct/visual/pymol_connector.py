@@ -207,7 +207,7 @@ parser.add_argument("--save-session",action="store",dest="session",required=Fals
 parser.add_argument("--discard",action="store",dest="discard",required=False,default='',help="Objects to discard.")
 parser.add_argument("--keep",action="store",dest="keep",required=False,default='',help="Objects to keep.")
 parser.add_argument("--force-color",action="store",dest="fc",required=False,default='',help="Force specific color.")
-parser.add_argument("--fast",action="store_true",dest="fast",required=False,help="Disable all objects while loading.")
+parser.add_argument("--fast",action="store_true",dest="fast",required=False,help="Hides all objects while loading.")
 args,unknown=parser.parse_known_args()
 import sys
 if unknown: print >> sys.stderr, "WARNING: Unknown options were used: "+" ".join(unknown)
