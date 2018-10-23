@@ -1017,10 +1017,12 @@ def stage_III_run(config, options,
                 pool = Pool(processes=optimal_threads.threads_count)
                 bp = partial(barber_paths, spheres=wtc.spheres)
 
-                class NP(list):
+                class NP(object):
+                    def __init__(self):
+                        self.paths = list()
                     def callb_(self,result):
                         CRIC.update_cric(result.pop(-1))
-                        self.extend(result)
+                        self.paths.extend(result)
                         pbar.next()
 
                 new_paths = NP()
@@ -1033,7 +1035,7 @@ def stage_III_run(config, options,
                         gc.collect()
                 pool.close()
                 pool.join()
-            paths = new_paths
+            paths = new_paths.paths
             gc.collect()
         else:
             clui.message('AutoBarber procedure skip, no spheres detected.')
