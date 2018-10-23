@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from aquaduct import logger
 import re
 
 from os.path import splitext
@@ -28,7 +28,13 @@ import numpy as np
 import MDAnalysis as mda
 
 # FIXME: do it according to user options
-if mda.__version__ > '0.16.2':
+if mda.__version__ < '0.16':
+    logger.error('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.', mda.__version__)
+    raise NotImplementedError('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.' % mda.__version__)
+
+if mda.__version__ >= '0.17' and mda.__version__ < '0.19':
+    logger.warning('Unsupported MDAnalysis version %s.',mda.__version__)
+    logger.warning('Trying to mitigate potential problems by setting `use_periodic_selections = False`.')
     mda.core.flags['use_periodic_selections'] = False
 
 from MDAnalysis.topology.core import guess_atom_element
@@ -40,7 +46,6 @@ from aquaduct.utils.helpers import arrayify, create_tmpfile, \
 from aquaduct.utils.maths import make_default_array
 from aquaduct.apps.data import GCS, CRIC, FramesRangeCollection
 from aquaduct.utils.maths import defaults
-from aquaduct import logger
 
 ################################################################################
 # memory decorator
