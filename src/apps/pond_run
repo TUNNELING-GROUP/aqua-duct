@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 POND=$(which pond.py)
-env LD_LIBRARY_PATH="" $POND $@
+env LD_LIBRARY_PATH="" $POND "$@"
 
