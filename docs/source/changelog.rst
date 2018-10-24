@@ -1,6 +1,8 @@
 Aqua-Duct changelog
 ===================
 
+* 0.5.14 (26.09.2018)
+    * Fixed problems with calculation convex hull shapes for empty selections.
 * 0.5.9 (12.03.2018)
     * Rewritten module for MD data access. Sandwich mode added.
     * Coordinates can be stored in cache directory, in memory or generated on demand.
