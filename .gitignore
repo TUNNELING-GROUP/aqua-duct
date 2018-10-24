@@ -39,3 +39,6 @@ src/dist
 src/*egg*
 ves
 tags
+
+set_python_paths.sh
+
