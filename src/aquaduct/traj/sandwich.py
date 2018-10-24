@@ -26,6 +26,17 @@ from itertools import izip_longest, imap
 import numpy as np
 
 import MDAnalysis as mda
+
+# FIXME: do it according to user options
+if mda.__version__ < '0.16':
+    logger.error('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.', mda.__version__)
+    raise NotImplementedError('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.' % mda.__version__)
+
+if mda.__version__ >= '0.17' and mda.__version__ < '0.19':
+    logger.warning('Unsupported MDAnalysis version %s.',mda.__version__)
+    logger.warning('Trying to mitigate potential problems by setting `use_periodic_selections = False`.')
+    mda.core.flags['use_periodic_selections'] = False
+
 from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import is_iterable
