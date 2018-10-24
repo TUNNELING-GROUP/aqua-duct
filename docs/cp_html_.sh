@@ -1,21 +1,21 @@
 #!/bin/sh
 
-rm -rf ../../tunneling-group.github.io/aqua-duct/*
-cp -R build/html/* ../../tunneling-group.github.io/aqua-duct
+rm -rf ../../TUNNELING-GROUP.github.io/aqua-duct/*
+cp -R build/html/* ../../TUNNELING-GROUP.github.io/aqua-duct
 
 CWD=`pwd`
 
-cd ../../tunneling-group.github.io/aqua-duct/
+cd ../../TUNNELING-GROUP.github.io/aqua-duct/
 
-mv static static
-mv images images
-mv modules modules
-mv sources sources
+mv _static static
+mv _images images
+mv _modules modules
+mv _sources sources
 
-sed -i 's/static/static/g' `grep -Rl 'static' *`
-sed -i 's/images/images/g' `grep -Rl 'images' *`
-sed -i 's/modules/modules/g' `grep -Rl 'modules' *`
-sed -i 's/sources/sources/g' `grep -Rl 'sources' *`
+sed -i 's/_static/static/g' `grep -Rl 'static' *`
+sed -i 's/_images/images/g' `grep -Rl 'images' *`
+sed -i 's/_modules/modules/g' `grep -Rl 'modules' *`
+sed -i 's/_sources/sources/g' `grep -Rl 'sources' *`
 
 git add .
 git commit --message "docs update $(date)"
