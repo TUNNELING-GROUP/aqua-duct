@@ -19,6 +19,16 @@
 import numpy as np
 import scipy.linalg
 
+class NullPrepocess(object):
+    def __init__(self, X):
+        pass
+
+    def __call__(self, X):
+        return X
+
+    def undo(self, X):
+        return X
+
 
 class Center(object):
     def __init__(self, X):
@@ -42,21 +52,21 @@ class Normalize(object):
         return X * self.std
 
 
-class Standartize(Center, Normalize):
+class Standartize(object):
     def __init__(self, X):
-        Center.__init__(self, X)
-        Normalize.__init__(self, X)
+        self.center = Center(X)
+        self.normalize = Normalize(X)
 
     def __call__(self, X):
-        return Normalize.__call__(self, Center.__call__(self, X))
+        return self.normalize(self.center(X))
 
     def undo(self, X):
-        return Center.undo(self, Normalize.undo(self.X))
+        return self.center.undo(self.normalize.undo(X))
 
 
 class PCA(object):
-    def __init__(self, X, prepro=None):
-        self.preprocess_method = prepro
+    def __init__(self, X, preprocess=NullPrepocess):
+        self.preprocess = preprocess(X)
         # SVD
         self.U, self.d, self.Pt = scipy.linalg.svd(self.preprocess(X), full_matrices=False)
         assert np.all(self.d[:-1] >= self.d[1:]), "SVD error."  # sorted
@@ -70,18 +80,8 @@ class PCA(object):
     def P(self):
         return self.Pt.T
 
-    def preprocess(self, X):
-        if self.preprocess_method is None:
-            return X
-        return self.preprocess_method(X)
-
-    def preprocess_undo(self, X):
-        if self.preprocess_method is None:
-            return X
-        return self.preprocess_method.undo(X)
-
     def __call__(self, X):
         return np.dot(self.preprocess(X), self.P)
 
     def undo(self, T):
-        return self.preprocess_undo(np.dot(T, self.Pt))
+        return self.preprocess.undo(np.dot(T, self.Pt))
