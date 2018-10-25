@@ -51,12 +51,12 @@ Option      Default value       Description
 ========    =================   ===================================================================
 execute     runonce             Option controls stage execution. It can have one of three possible
                                 values: ``run``, ``runonce``, and ``skip``. If it is set to ``run``
-                                calculations are always performed and if **dump** is set dump file
-                                is saved. If it is set to ``runonce`` calculations are performed
-                                if there is no dump file specified by **dump** option. If it is
-                                present calculations are skipped and data is loaded from the file.
-                                If it is set to ``skip`` calculations are skip and if **dump**
-                                is set data is loaded from the file.
+                                calculations are always performed and if **dump** is set, dump file
+                                is saved. If it is set to ``runonce``, calculations are performed
+                                when there is no dump file specified by **dump** option. If it is
+                                present, calculations are skipped and data is loaded from the file.
+                                If it is set to ``skip``, calculations are skipped and if **dump**
+                                is set, data is loaded from the file.
 dump        [dump file name]    File name of dump data. It is used to save results of calculations
                                 or to load previously calculated data - this depends on **execute**
                                 option. Default value of this option depends on the stage and for
@@ -68,7 +68,7 @@ dump        [dump file name]    File name of dump data. It is used to save resul
                                 * 4_inlets_clusterization_data.dump
 ========    =================   ===================================================================
 
-Stages 5-6 also uses **execute** option, however, since they do not perform calculations `per se` in stead of **dump** option they use **save**.
+Stages 5-6 also use **execute** option, however, since they do not perform calculations `per se`, instead of **dump** option, they use **save**.
 
 .. tabularcolumns:: |p{1.0cm}|p{2.5cm}|p{11.1cm}|
 
@@ -77,8 +77,8 @@ Option      Default value       Description
 ========    =================   ===================================================================
 execute     run                 Option controls stage execution. It can have one of three possible
                                 values: ``run``, ``runonce``, and ``skip``. If it is set to ``run``
-                                or ``runonce`` stage is executed and results is saved according to
-                                **save** option. If it is set to ``skip`` stage is skipped.
+                                or ``runonce``, stage is executed and results are saved according to
+                                the **save** option. If it is set to ``skip``, stage is skipped.
 save        [save file name]    File name for saving results. Default value of this option depends
                                 on the stage and for stages 1 to 4 is one of the following
                                 (listed in order):
@@ -86,7 +86,7 @@ save        [save file name]    File name for saving results. Default value of t
                                 * 5_analysis_results.txt & 5_analysis_results.txt.csv
                                 * 6_visualize_results.py & 6_visualize_results.tar.gz
 
-                                Stage 5 saves ``.txt`` file with analysis results and, if
+                                Stage 5 saves ``.txt`` file with analysis of results and, if
                                 requested, it saves additional ``.csv`` with various counts of
                                 traced molecules.
 
@@ -113,9 +113,9 @@ scope                       None            Definition of *Scope* of interest. S
                                             :ref:`scope_definition`.
 scope_convexhull            True            Flag to set if *Scope* is direct or convex hull definition.
 scope_everyframe            False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
-                                            evaluated in every frame. This make sense if the definition is
+                                            evaluated in every frame. This makes sense if the definition is
                                             complex and depends on distances between molecular entities.
-scope_convexhull_inflate    None            Increase (or if negative decrease) size of the scope convex
+scope_convexhull_inflate    None            Increase (or if negative - decrease) size of the scope convex
                                             hull.
 object                      None            Definition of *Object* of interest. See also
                                             :ref:`object_definition`.
@@ -140,24 +140,24 @@ This stage also requires definition of the *Scope* and *Object*. If appropriate 
 Option                      Default value   Description
 =========================   ==============  ================================================================
 scope                       None            Definition of *Scope* of interest. See also
-                                            :ref:`scope_definition`. If ``None`` value form previous stage
+                                            :ref:`scope_definition`. If ``None``, value from previous stage
                                             is used.
 scope_convexhull            None            Flag to set if the *Scope* is direct or convex hull definition.
 scope_everyframe            False           Flag to set *Scope* evaluation mode. If set ``True`` *Scope* is
-                                            evaluated in every frame. This make sense if the definition is
+                                            evaluated in every frame. This makes sense if the definition is
                                             complex and depends on distances between molecular entities.
-                                            If ``None`` value from previous stage is used.
-scope_convexhull_inflate    None            Increase (or if negative decrease) size of the scope convex
-                                            hull. If ``None`` value from previous stage is used.
+                                            If ``None``, value from previous stage is used.
+scope_convexhull_inflate    None            Increase (or if negative - decrease) size of the scope convex
+                                            hull. If ``None``, value from previous stage is used.
 object                      None            Definition of *Object* of interest. See also
-                                            :ref:`object_definition`. If ``None`` value from the previous
+                                            :ref:`object_definition`. If ``None``, value from previous
                                             stage is used
-clear_in_object_info        False           If it is set to ``True`` information on occupation of *Object*
+clear_in_object_info        False           If it is set to ``True``, information on occupation of *Object*
                                             site by traceable residues calculated in the previous stage is
-                                            cleared and have to be recalculated. This is useful if
+                                            cleared and has to be recalculated. This is useful if
                                             definition of *Object* was changed.
-discard_singletons          1               If ``> 0`` discards paths of given lenght.
-discard_empty_paths         True            If set to ``True`` empty paths are discarded.
+discard_singletons          1               If ``> 0``, discards paths of given lenght.
+discard_empty_paths         True            If set to ``True``, empty paths are discarded.
 =========================   ==============  ================================================================
 
 .. _separate_paths_options:
@@ -170,37 +170,37 @@ Stage **separate_paths**
 ========================    ==============  ================================================================
 Option                      Default value   Description
 ========================    ==============  ================================================================
-discard_empty_paths         True            If set to ``True`` empty paths are discarded.
-sort_by_id                  True            If set to ``True`` separate paths are sorted by ID. Otherwise
+discard_empty_paths         True            If set to ``True``, empty paths are discarded.
+sort_by_id                  True            If set to ``True``, separate paths are sorted by ID. Otherwise
                                             they are sorted in order of appearance.
 discard_short_paths         20              This option allows to discard paths which are shorter than the
-                                            threshold which is defined as total number of frames.
-discard_short_object        2.0             This option allows to discard paths which objects are shorter
-                                            than the threshold which is defined as total length in metric
+                                            threshold, which is defined as the total number of frames.
+discard_short_object        2.0             This option allows to discard paths whose objects are shorter
+                                            than the threshold, which is defined as total length in metric
                                             units.
 discard_short_logic         or              If both ``discard_short_paths`` and ``discard_short_object``
                                             options are used, this option allows to set combination logic.
-                                            If it is set ``or`` a path is discarded if any of discard
-                                            criterion is met. If it is set ``and`` both criteria have to
+                                            If it is set to ``or``, a path is discarded if any of discard
+                                            criterion is met. If it is set ``and``, both criteria have to
                                             be met to discard path.
 auto_barber                 None            This option allows to select molecular entity used in Auto
                                             Barber procedure. See also :ref:`auto_barber_procedure` and
                                             :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
 auto_barber_mincut          None            Minimal radius of spheres used in Auto Barber. If a sphere has
-                                            radius smaller then this value it is not used in AutoBarber
+                                            radius smaller than this value, it is not used in AutoBarber
                                             procedure. This option can be switched off by setting it to
                                             ``None``.
 auto_barber_maxcut          2.8             Maximal radius of spheres used in Auto Barber. If a sphere has
-                                            radius greater then this value it is not used in AutoBarber
+                                            radius greater than this value, it is not used in AutoBarber
                                             procedure. This option can be switched off by setting it to
                                             ``None``.
-auto_barber_mincut_level    True            If set ``True`` spheres of radius smaller than **mincut** are
+auto_barber_mincut_level    True            If set ``True``, spheres of radius smaller than **mincut** are
                                             resized to **mincut** value.
-auto_barber_maxcut_level    True            If set ``True`` spheres of radius greater than **maxcut** are
+auto_barber_maxcut_level    True            If set ``True``, spheres of radius greater than **maxcut** are
                                             resized to **maxcut** value.
-auto_barber_tovdw           True            Correct cutting sphere by decreasing its radius by VdW radius
-                                            of the closest atom.
-allow_passing_paths         False           If set ``True`` paths that do not enter the object are detected
+auto_barber_tovdw           True            If set ``True``, cutting of spheres is corrected by decreasing 
+                                            its radius by VdW radius of the closest atom.
+allow_passing_paths         False           If set ``True``, paths that do not enter the object are detected
                                             and added to the rest of paths as 'passing' paths.
 ========================    ==============  ================================================================
 
@@ -213,7 +213,7 @@ Stage **inlets_clusterization**
 ==================================  ==============  ================================================================
 Option                              Default value   Description
 ==================================  ==============  ================================================================
-recluster_outliers                  False           If set to ``True`` reclusterization of outliers is executed
+recluster_outliers                  False           If set to ``True``, reclusterization of outliers is executed
                                                     according to the method defined in **reclusterization** section.
 detect_outliers                     False           If set, detection of outliers is executed. It could be set as a
                                                     floating point distance threshold or set to ``Auto``. See
@@ -223,16 +223,16 @@ singletons_outliers                 False           Maximal size of cluster to b
                                                     are moved to outliers. See :ref:`clusterization_of_inlets` for
                                                     more details.
 max_level                           5               Maximal number of recursive clusterization levels.
-create_master_paths                 False           If set to ``True`` master paths are created (fast CPU and big
+create_master_paths                 False           If set to ``True``, master paths are created (fast CPU and big
                                                     RAM recommended; 50k frames long simulation may need ca 20GB of
                                                     memory)
-exclude_passing_in_clusterization   True            If set to ``True`` passing paths are not clustered with normal
+exclude_passing_in_clusterization   True            If set to ``True``, passing paths are not clustered with normal
                                                     paths.
 add_passing_to_clusters             None            Allows to run procedure for adding passing paths inlets to
                                                     clusters with Auto Barber method. To enable this the option
                                                     should be set to molecular entity that will be used by Auto
                                                     Barber.
-renumber_clusters                   False           If set ``True`` clusters have consecutive numbers starting from
+renumber_clusters                   False           If set ``True``, clusters have consecutive numbers starting from
                                                     1 (or 0 if outliers are present) starting from the bigest
                                                     cluster.
 join_clusters                       None            This option allows to join selected clusters. Clusters' IDs
@@ -240,7 +240,7 @@ join_clusters                       None            This option allows to join s
                                                     together. Several such blocks separated by space can be used.
                                                     For example, if set to ``1+3+4 5+6`` clusters 1, 3, and 4 will
                                                     be joined in one cluster and cluster 5, and 6 will be also
-                                                    joined in another one cluster.
+                                                    joined in another cluster.
 ==================================  ==============  ================================================================
 
 Stage **analysis**
@@ -251,14 +251,14 @@ Stage **analysis**
 ==============================  ==============  ================================================================
 Option                          Default value   Description
 ==============================  ==============  ================================================================
-dump_config                     True            If set to ``True`` configuration options, as seen by Valve, are
+dump_config                     True            If set to ``True``, configuration options, as seen by Valve, are
                                                 added to the head of results.
-calculate_scope_object_size     False           If set to ``True`` volumes and areas of object and scope
-                                                approximated by convex hulls will be calculated for each
+calculate_scope_object_size     False           If set to ``True``, volumes and areas of object and scope
+                                                approximated by convex hulls are calculated for each of the
                                                 analyzed frames and saved in output CSV file.
 scope_chull                     None            Scope convex hull definition used in calculating volume and
                                                 area.
-scope_chull_inflate             None            Increase (or if negative decrease) size of the scope convex
+scope_chull_inflate             None            Increase (or if negative - decrease) size of the scope convex
                                                 hull.
 object_chull                    None            Object convex hull definition used in calculating volume and
                                                 area.
@@ -276,19 +276,19 @@ Stage **visualize**
     ==========================  ================    ==========================================================================================
     Option                      Default value       Description
     ==========================  ================    ==========================================================================================
-    all_paths_raw               False               If ``True`` produces one object in PyMOL that holds all paths
+    all_paths_raw               False               If ``True``, produces one object in PyMOL that holds all paths
                                                     visualized by raw coordinates.
-    all_paths_smooth            False               If ``True`` produces one object in PyMOL that holds all paths
+    all_paths_smooth            False               If ``True``, produces one object in PyMOL that holds all paths
                                                     visualized by smooth coordinates.
-    all_paths_split             False               If is set ``True`` objects produced by **all_paths_raw** and
+    all_paths_split             False               If is set ``True``, objects produced by **all_paths_raw** and
                                                     **all_paths_smooth** are split into Incoming, Object, and
                                                     Outgoing parts and visualized as three different objects.
-    all_paths_raw_io            False               If set ``True`` arrows pointing beginning and end of paths are
+    all_paths_raw_io            False               If set ``True``, arrows pointing beginning and end of paths are
                                                     displayed oriented accordingly to raw paths orientation.
-    all_paths_smooth_io         False               If set ``True`` arrows pointing beginning and end of paths are
+    all_paths_smooth_io         False               If set ``True``, arrows pointing beginning and end of paths are
                                                     displayed oriented accordingly to smooth paths orientation.
     all_paths_amount            None                Allows to limit number of visualised paths. If it is a number
-                                                    in range ``(0,1)`` then it is interpreted as percent number
+                                                    in range ``(0,1)``, then it is interpreted as a percent number
                                                     of paths to be visualized. It is is a integer number ``>= 1``
                                                     it is total number of all_paths visualized.
     simply_smooths              RecursiveVector     Option indicates linear simplification method to be used in
@@ -308,44 +308,44 @@ Stage **visualize**
                                                     values of thresholds see appropriate documentation of each method.
                                                     Default values work well. This option is not case sensitive.
                                                     It is recommended to use default method or ``HobbitVector`` method.
-    paths_raw                   False               If set ``True`` raw paths are displayed as separate objects or as
+    paths_raw                   False               If set ``True``, raw paths are displayed as separate objects or as
                                                     one object with states corresponding to number of path.
-    paths_smooth                False               If set ``True`` smooth paths are displayed as separate objects or
+    paths_smooth                False               If set ``True``, smooth paths are displayed as separate objects or
                                                     as one object with states corresponding to number of path.
-    paths_raw_io                False               If set ``True`` arrows indicating beginning and end of paths,
+    paths_raw_io                False               If set ``True``, arrows indicating beginning and end of paths,
                                                     oriented accordingly to raw paths, are displayed as separate
                                                     objects or as one object with states corresponding to number
                                                     of paths.
-    paths_smooth_io             False               If set ``True`` arrows indicating beginning and end of paths,
+    paths_smooth_io             False               If set ``True``, arrows indicating beginning and end of paths,
                                                     oriented accordingly to smooth paths, are displayed as separate
                                                     objects or as one object with states corresponding to number
                                                     of paths.
-    paths_states                False               If ``True`` objects displayed by **paths_raw**, **paths_smooth**,
-                                                    **paths_raw_io**, and **paths_smooth_io** are displayed as one
-                                                    object with states corresponding to number of paths.
-                                                    Otherwise they are displayed as separate objects.
+    paths_states                False               If set ``True``, objects displayed by **paths_raw**, 
+                                                    **paths_smooth**, **paths_raw_io**, and **paths_smooth_io** are 
+                                                    displayed as one object with states corresponding to number of 
+                                                    paths. Otherwise they are displayed as separate objects.
     ctypes_raw                  False               Displays raw paths in a similar manner as non split
-                                                    **all_paths_raw** but each cluster type is displayed in
-                                                    separate object.
+                                                    **all_paths_raw** but each cluster type is displayed as
+                                                    a separate object.
     ctypes_smooth               False               Displays smooth paths in a similar manner as non split
-                                                    **all_paths_smooth** but each cluster type is displayed in
-                                                    separate object.
+                                                    **all_paths_smooth** but each cluster type is displayed as
+                                                    a separate object.
     ctypes_amount               None                Allows to limit number of visualised ctypes. If it is a number
-                                                    in range ``(0,1)`` then it is interpreted as percent number
-                                                    of ctypes to be visualized. It is is a integer number ``>= 1``
-                                                    it is total number of ctypes visualized.
-    inlets_clusters             False               If set ``True`` cluster of inlets are visualized.
+                                                    in range ``(0,1)``, then it is interpreted as percent number
+                                                    of ctypes to be visualized. It is is a integer number ``>= 1``,
+                                                    it is total number of visualized ctypes.
+    inlets_clusters             False               If set ``True``, clusters of inlets are visualized.
     inlets_clusters_amount      None                Allows to limit number of visualised inlets. If it is a number
                                                     in range ``(0,1)`` then it is interpreted as percent number
                                                     of inlets to be visualized. It is is a integer number ``>= 1``
-                                                    it is total number of inlets visualized.
-    show_molecule               False               If is set to selection of some molecular object in the system,
+                                                    it is total number of visualized inlets.
+    show_molecule               False               If set to selection of some molecular object in the system,
                                                     for example to ``protein``, this object is displayed.
     show_molecule_frames        0                   Allows to indicate which frames of object defined by
                                                     **show_molecule** should be displayed. It is possible to set
                                                     several frames. In that case frames would be displayed as
                                                     states.
-    show_scope_chull            False               If is set to selection of some molecular object in the system,
+    show_scope_chull            False               If set to selection of some molecular object in the system,
                                                     for example to ``protein``, convex hull of this object is
                                                     displayed.
     show_scope_chull_inflate    None                Increase (or if negative decrease) size of the scope convex
@@ -354,7 +354,7 @@ Stage **visualize**
                                                     **show_chull** convex hull should be displayed. It is possible
                                                     to set several frames. In that case frames would be displayed
                                                     as states.
-    show_object_chull           False               If is set to selection of some molecular object in the system
+    show_object_chull           False               If set to selection of some molecular object in the system,
                                                     convex hull of this object is displayed. This works exacly the
                                                     same way as **show_chull** but is meant to mark object shape.
                                                     It can be achieved by using `name * and` molecular object
@@ -369,15 +369,15 @@ Stage **visualize**
 
 .. note::
 
-    Possibly due to limitations of :mod:`MDAnalysis` only whole molecules can be displayed. If **show_molecule** is set to ``backbone`` complete protein will be displayed any way. This may change in future version of :mod:`MDAnalysis` and or :mod:`aquaduct`.
+    Possibly due to limitations of :mod:`MDAnalysis` only whole molecules can be displayed. If **show_molecule** is set to ``backbone`` complete protein will be displayed anyway. This may change in future version of :mod:`MDAnalysis` and or :mod:`aquaduct`.
 
 .. note::
 
-    If several frames are selected they are displayed as states which may interfere with other PyMOL objects displayed with several states.
+    If several frames are selected, they are displayed as states which may interfere with other PyMOL objects displayed with several states.
 
 .. note::
 
-    If several states are displayed protein tertiary structure data might be lost. This seems to be limitation of either :mod:`MDAnalysis` or PyMOL.
+    If several states are displayed, protein tertiary structure data might be lost. This seems to be limitation of either :mod:`MDAnalysis` or PyMOL.
 
 .. _clusterization_options:
 
@@ -395,14 +395,14 @@ method                      barber or       Name of clusterization method. It ha
                             dbscan          following: barber, dbscan, affprop, meanshift, birch, kmeans.
                                             Default value depends whether it is **clusterization** section
                                             (barber) or **reclusterization** section (dbscan).
-recursive_clusterization    clusterization  If it is set to name of some section that holds clusterization
-                            or None         method settings this method will be called in the next
+recursive_clusterization    clusterization  If set to name of some section that holds clusterization
+                            or None         method settings, this method is called in the next
                                             recursion of clusteriation. Default value for
                                             **reclusterization** is None.
 recursive_threshold         None            Allows to set threshold that excludes clusters of certain
                                             size from reclusterization. Value of this option comprises of
                                             `operator` and `value`. Operator can be one of the following:
-                                            >, >=, <=, <. Value have to be expressed as floating number and
+                                            >, >=, <=, <. Value has to be expressed as floating number and
                                             it have to be in the range of 0 to 1. One can use several
                                             definitions separated by a space character.
                                             Only clusters of size complying with all thresholds definitions
@@ -417,7 +417,7 @@ barber
 .. _clusterization_barber:
 
 
-Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** stage settings or according to parameters given in clasterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped in to clusters. Method **barber** supports the same settings as Auto Barber settings:
+Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** stage settings or according to parameters given in clasterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped into clusters. Method **barber** supports the same settings as Auto Barber settings:
 
 
 .. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|
@@ -429,23 +429,23 @@ auto_barber                 str             This option allows to select molecul
                                             Barber procedure. See also :ref:`auto_barber_procedure` and
                                             :meth:`~aquaduct.traj.paths.GenericPaths.barber_with_spheres`.
 auto_barber_mincut          float           Minimal radius of spheres used in Auto Barber. If a sphere has
-                                            radius smaller then this value it is not used to cut. This
+                                            radius smaller than this value, it is not used to cut. This
                                             option can be switched off by setting it to ``None``.
 auto_barber_maxcut          float           Maximal radius of spheres used in Auto Barber. If a sphere has
-                                            radius greater then this value it is not used to cut. This
+                                            radius greater than this value, it is not used to cut. This
                                             option can be switched off by setting it to ``None``.
-auto_barber_mincut_level    bool            If set ``True`` spheres of radius less then **mincut** are
+auto_barber_mincut_level    bool            If set ``True``, spheres of radius less than **mincut** are
                                             resized to **mincut** value.
-auto_barber_maxcut_level    bool            If set ``True`` spheres of radius greater then **maxcut** are
+auto_barber_maxcut_level    bool            If set ``True``, spheres of radius greater than **maxcut** are
                                             resized to **maxcut** value.
-auto_barber_tovdw           bool            Correct cutting sphere by decreasing its radius by VdW radius
-                                            of the closest atom.
+auto_barber_tovdw           bool            If set ``True``, cutting of spheres is corrected by decreasing 
+                                            its radius by VdW radius of the closest atom.
 ========================    ==============  ================================================================
 
 dbscan
 ^^^^^^
 
-For detailed description look at :class:`sklearn.cluster.DBSCAN` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+For detailed description look at :class:`sklearn.cluster.DBSCAN` documentation. The following table summarizes options available in `Valve` and is a copy of original documentation.
 
 .. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
@@ -478,7 +478,7 @@ leaf_size                   int             Leaf size passed to BallTree or cKDT
 affprop
 ^^^^^^^
 
-For detailed description look at :class:`~sklearn.cluster.AffinityPropagation` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+For detailed description look at :class:`~sklearn.cluster.AffinityPropagation` documentation. The following table summarizes options available in `Valve` and is a copy of original documentation.
 
 .. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
@@ -527,7 +527,7 @@ For detailed description look at :class:`~sklearn.cluster.Birch` documentation. 
 Option                      Value type      Description
 =========================   =============== ================================================================
 threshold                   float           The radius of the subcluster obtained by merging a new sample
-                                            and the closest subcluster should be lesser than the threshold.
+                                            and the closest subcluster should be smaller than the threshold.
                                             Otherwise a new subcluster is started.
 branching_factor            int             Maximum number of CF subclusters in each node.
 n_clusters                  int             Number of clusters after the final clustering step, which
@@ -539,7 +539,7 @@ n_clusters                  int             Number of clusters after the final c
 kmeans
 ^^^^^^
 
-For detailed description look at :class:`~sklearn.cluster.KMeans` documentation. Following table summarized options available in `Valve` and is a copy of original documentation.
+For detailed description look at :class:`~sklearn.cluster.KMeans` documentation. The following table summarized options available in `Valve` and is a copy of original documentation.
 
 .. tabularcolumns:: |p{2.5cm}|p{2.5cm}|p{9.6cm}|
 
@@ -550,7 +550,7 @@ n_clusters                  int             The number of clusters to form as we
                                             centroids to generate.
 max_iter                    int             Maximum number of iterations of the k-means algorithm for a
                                             single run.
-n_init                      int             Number of time the k-means algorithm will be run with different
+n_init                      int             Number of times the k-means algorithm will be run with different
                                             centroid seeds. The final results will be the best output of
                                             n_init consecutive runs in terms of inertia.
 init                        str             Method for initialization, defaults to ``k-means++``. Can be
@@ -564,7 +564,7 @@ tol                         float           Relative tolerance with regards to i
 Smooth section
 --------------
 
-Section **smooth** supports following options:
+Section **smooth** supports the following options:
 
 .. tabularcolumns:: |p{2.0cm}|p{2.0cm}|p{10.6cm}|
 
@@ -582,8 +582,8 @@ method                      str             Smoothing method. Can be one of the 
                                             * ``dwin_mss``, (see :class:`~aquaduct.geom.smooth.DistanceWindowOverMaxStepSmooth`)
                                             * ``savgol``. (see :class:`~aquaduct.geom.smooth.SavgolSmooth`)
 recursive                   int             Number of recursive runs of smoothing method.
-window                      int or float    In window based method defines window size. In plain ``window``
-                                            it has to be int number. In ``savgol`` it has to be odd integer.
+window                      int or float    In window-based method defines window size. In plain ``window``
+                                            it has to be an int number. In ``savgol`` it has to be odd integer.
 step                        int             In step based method defines size of the step.
 function                    str             In window based methods defines averaging function. Can be
                                             ``mean`` or ``median``.
