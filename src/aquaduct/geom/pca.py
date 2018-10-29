@@ -80,8 +80,12 @@ class PCA(object):
     def P(self):
         return self.Pt.T
 
-    def __call__(self, X):
+    def __call__(self, X, pc=None):
+        if pc:
+            return np.dot(self.preprocess(X), self.P[:,pc])
         return np.dot(self.preprocess(X), self.P)
 
-    def undo(self, T):
+    def undo(self, T, pc=None):
+        if pc:
+            return self.preprocess.undo(np.dot(T, self.Pt[pc,:]))
         return self.preprocess.undo(np.dot(T, self.Pt))

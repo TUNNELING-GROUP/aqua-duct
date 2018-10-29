@@ -25,6 +25,8 @@ import numpy as np
 from scipy.stats import gaussian_kde
 from aquaduct.geom.pca import PCA
 
+from matplotlib import _contour
+
 class HDR(object):
     def __init__(self, X, points=100):
 
@@ -45,7 +47,9 @@ class HDR(object):
         self.Z = np.reshape(self.values,self.X.shape)
 
         # one cell area
-        self.cell_area = ((self.pca.T.max(0) - self.pca.T.min(0))/self.points).prod()
+        self.cell_area = ((self.pca.T[:,:2].max(0) - self.pca.T[:,:2].min(0))/self.points).prod()
 
-    def area(self,percentile=90):
-        return self.cell_area * (self.values <= np.percentile(self.values,percentile)).sum()
+    def area(self,fraction=0.9):
+        return self.cell_area * (self.values >  self.Z.max()*(1-fraction)).sum()
+
+    def contour(self,
