@@ -165,7 +165,7 @@ long windows where an ovelap of a consecutive window with a next window is 4000 
         <-------->  "Window 3, frames 1999-6999"
     ^^              "etc..."
     ||
-    ++  "1000 frames shift"
+    ++"1000 frames shift"
 
 
 To calculate proper number of windows evenly spanning trajectory one can use following equation:
