@@ -40,3 +40,4 @@ src/dist
 src/*egg*
 ves
 tags
+.vimrc

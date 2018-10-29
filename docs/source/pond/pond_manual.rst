@@ -75,7 +75,7 @@ It should display following information::
                             Calculate profiles for master paths with given radius.
                             (default: None)
       --master-ctypes MASTER_CTYPES
-                            Limit calculations to given ctypes. (default: None)
+                            Limit calculations to given ctypes. (default: )
 
 Options common with *Valve*
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -92,6 +92,13 @@ For detailed explanation of the following options see :doc:`../valve/valve_manua
 * ``--sandwich`` - Sandwich mode for multiple trajectories.
 * ``--cache-dir CACHEDIR`` - Directory for coordinates caching. *Pond* can reuse cache directory made by *Valve*.
 
+Results directory
+^^^^^^^^^^^^^^^^^
+
+*Pond* produces many results files, especially if windows options are used. For the sake of convenience,
+option ``-r`` allows to provide output directory.
+If provided directory does not exist it will be created without warning.
+Also, *Pond* will not warn if results files overwrites existing files.
 
 *Pond* calculations options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -176,7 +183,7 @@ for pockets and hot-spots separate paths are used.
 
 .. note::
 
-    Best results of pockets calculation can be achievied with separate paths.
+    Best results of pockets calculation can be achieved with separate paths.
 
 .. warning::
 
@@ -186,7 +193,7 @@ for pockets and hot-spots separate paths are used.
 Windows
 ^^^^^^^
 
-*Ponds* performs calculations for entire trajectory and/or for user defined windows:
+*Pond* performs calculations for entire trajectory and/or for user defined windows:
 
 * ``--window-full`` ensures that results will be calculated for the entire trajectory.
 * ``--windows`` allows to set number of windows.
@@ -196,6 +203,41 @@ By default, windows' sizes are automatically set in such a way that entire traje
 covered and windows do not overlap to each other. Option ``--wsize`` allows to set size of
 windows (in frames), therefore, windows can also overlap with each other or can span only
 selected sections of the trajectory.
+
+For example, for 25 000 snaphots long trajectory one can perform calculations in 5000 frames
+long windows where an ovelap of a consecutive window with a next window is 4000 frames long - see following picture:
+
+.. aafig::
+    :aspect: 1
+    :scale: 100
+    :proportional:
+    :textual:
+
+    "0"      "5000"    "10 000"                      "25 000 frames"
+    -------------------------------------------------->
+    <-------->      "Window 1, frames    0-4999"
+      <-------->    "Window 2, frames  999-5999"
+        <-------->  "Window 3, frames 1999-6999"
+    ^^              "etc..."
+    ||
+    ++  "1000 frames shift"
+
+
+To calculate proper number of windows evenly spanning trajectory one can use following equation:
+
+.. math::
+
+    WINDOWS = \frac{TOTAL - WSIZE}{SHIFT} + 1
+
+Where *WINDOWS* is a diesired number of windows, *TOTAL* is total length of trajectory, and *SHIFT* is *WSIZE - OVERLAP*.
+
+In the above example *TOTAL* = 25 000, *WSIZE* = 5 000, *SHIFT* = *WSIZE* - *OVERLAP* = 5 000 - 4 000 = 1 000. Therefore:
+
+.. math::
+
+    WINDOWS = \frac{25 000 - 5000}{1 000} + 1 = 21.
+
+And *Pond* should be called with ``--windows 21 --wsize 5000`` options to get above described windows.
 
 Pockets
 -------
@@ -241,7 +283,7 @@ Hot-spots
 
 Further analysis of distribution of densities in the grid allows to select points of the highest densities.
 They are considered as **hot-spots**, i.e. points of particular importance at which traced molecules
-are atracted or trapped and stays for considerably long time.
+are attracted or trapped and stays for considerably long time.
 
 Currently **hot-spots** are detected as far right tail of the distribution of densities in the grid.
 
@@ -252,6 +294,6 @@ Energy profiles
 For each point of the master path density of paths of traced molecules is calculated within
 sphere of radius set by ``--master-radius`` option.
 
-Option ``--master-ctypes`` allows to select master paths ctypes for which free energy estimation is
+Option ``--master-ctypes`` allows to select master paths *ctypes* for which free energy estimation is
 calculated.
 
