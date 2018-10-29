@@ -42,7 +42,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
 ]
-
+extensions.append('aafigure.sphinxext')
 
 intersphinx_mapping = {'python': ('https://docs.python.org/2', None),
                        'numpy': ('https://docs.scipy.org/doc/numpy/', None),
