@@ -8,6 +8,7 @@ Submodules
 
    aquaduct.geom.cluster
    aquaduct.geom.convexhull
+   aquaduct.geom.hdr
    aquaduct.geom.master
    aquaduct.geom.pca
    aquaduct.geom.pocket
