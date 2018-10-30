@@ -157,15 +157,19 @@ long windows where an ovelap of a consecutive window with a next window is 4000 
     :scale: 100
     :proportional:
     :textual:
+    :foreground: #000
+
 
     "0"      "5000"    "10 000"                      "25 000 frames"
     -------------------------------------------------->
     <-------->      "Window 1, frames    0-4999"
       <-------->    "Window 2, frames  999-5999"
         <-------->  "Window 3, frames 1999-6999"
-    ^^              "etc..."
-    ||
-    ++"1000 frames shift"
+    ^^^      ^      "etc..."
+    |||      |
+    ||+------+"4000 frames overlap"
+    ++
+      "1000 frames shift"
 
 
 To calculate proper number of windows evenly spanning trajectory one can use following equation:
