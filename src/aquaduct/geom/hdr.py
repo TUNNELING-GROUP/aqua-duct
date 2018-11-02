@@ -25,21 +25,40 @@ import numpy as np
 from scipy.stats import gaussian_kde
 from aquaduct.geom.pca import PCA
 
-from matplotlib import _contour
-
 class HDR(object):
-    def __init__(self, X, points=100):
+    def __init__(self, X, points=10, expand_by=1.):
 
-        self.points = points
+        # expand_by in A is added to grid boudaries to expand it a bit
+
 
         # calcualte PCA
-        self.pca = PCA(X)
+        self.pca = PCA(X) # do not use any standardization!
         # get kernel for PC1 and PC2
         self.kernel = gaussian_kde(self.pca.T[:,[0,1]].T)
 
+        # find x and y ranges
+        #xyr = np.array([self.pca.T[:,:2].max(0),self.pca.T[:,:2].min(0)]).mean(0) # center of range
+        xyr = (self.pca.T[:,:2].max(0)-self.pca.T[:,:2].min(0) + expand_by) / 2. # 1/2 expanded range
+        xyr = np.array([np.array([self.pca.T[:,:2].max(0),self.pca.T[:,:2].min(0)]).mean(0) - xyr, np.array([self.pca.T[:,:2].max(0),self.pca.T[:,:2].min(0)]).mean(0) + xyr])
+
+        self.xyr = xyr
+
+        # desired number of points in the grid for each of two dimensions per A
+
+        # total number of cells is points^2
+
+        xy = self.xyr[1] - self.xyr[0]
+
+        points = xy.mean()*points
+
+        b = (((points**2)*xy[1])/(xy[1]*(xy[0]**2)))**0.5
+        a = xy[0]/xy[1]*b
+
+        self.points = (xy * np.array([a,b]))
+
         # calcualte spatial span
-        self.X, self.Y = np.mgrid[self.pca.T.min(0)[0]:self.pca.T.max(0)[0]:(self.points*1j),
-                                  self.pca.T.min(0)[1]:self.pca.T.max(0)[1]:(self.points*1j)]
+        self.X, self.Y = np.mgrid[self.pca.T.min(0)[0]:self.pca.T.max(0)[0]:(self.points[0]*1j),
+                                  self.pca.T.min(0)[1]:self.pca.T.max(0)[1]:(self.points[1]*1j)]
         self.positions = np.vstack([self.X.ravel(), self.Y.ravel()])
 
         self.values = self.kernel(self.positions)
@@ -52,4 +71,3 @@ class HDR(object):
     def area(self,fraction=0.9):
         return self.cell_area * (self.values >  self.Z.max()*(1-fraction)).sum()
 
-    def contour(self,

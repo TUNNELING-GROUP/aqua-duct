@@ -322,6 +322,8 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'add_passing_to_clusters', 'None')
         config.set(section, 'renumber_clusters', 'False')
         config.set(section, 'join_clusters', 'None')
+        config.set(section, 'cluster_area','True')
+        config.set(section, 'cluster_area_precision','10')
 
         ################
         # smooth
