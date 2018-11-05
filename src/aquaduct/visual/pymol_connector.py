@@ -491,6 +491,19 @@ class SinglePathPlotter(object):
 
         self.pymol_connector.add_cgo_object(name, self.cgo_spheres.get(), state=state)
 
+    def line(self, coords,color='r',name='line',state=None):
+
+        if isinstance(color, str):
+            color = cc(color)
+        if state is None:
+            state = 1
+
+        self.cgo_lines.clean()
+
+        self.cgo_lines.add(coords=coords,color=color)
+
+        self.pymol_connector.add_cgo_object(name, self.cgo_lines.get(), state=state)
+
     def convexhull(self, chull,
                    color='m',
                    name='convexhull',

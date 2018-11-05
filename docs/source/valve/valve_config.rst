@@ -241,16 +241,6 @@ join_clusters                       None            This option allows to join s
                                                     For example, if set to ``1+3+4 5+6`` clusters 1, 3, and 4 will
                                                     be joined in one cluster and cluster 5, and 6 will be also
                                                     joined in another cluster.
-cluster_area                        True            If set ``True``, clusters' areas are estimated with kernel
-                                                    density estimation method (KDE).
-cluster_area_precision              10              Precision of KDE method in clusters' areas estimation method.
-                                                    This options controls number of grid points per one
-                                                    square A as used in KDE. Higher values means better precision.
-                                                    Number of points can be calculated as $P^{2/3}$.
-cluster_area_expand                 1               Space occupied by clusters' points can be expanded before KDE
-                                                    calculation. This option controls amount of A by which the
-                                                    cluster space is expanded.
-                                                    Average amount of expansion can be calcualted as $E^{2/3}$.
 ==================================  ==============  ================================================================
 
 Stage **analysis**
@@ -272,6 +262,16 @@ scope_chull_inflate             None            Increase (or if negative - decre
                                                 hull.
 object_chull                    None            Object convex hull definition used in calculating volume and
                                                 area.
+cluster_area                    True            If set ``True``, clusters' areas are estimated with kernel
+                                                density estimation method (KDE).
+cluster_area_precision          10              Precision of KDE method in clusters' areas estimation method.
+                                                This options controls number of grid points per one
+                                                square A as used in KDE. Higher values means better precision.
+                                                Number of points can be calculated as $P^{2/3}$.
+cluster_area_expand             1               Space occupied by clusters' points can be expanded before KDE
+                                                calculation. This option controls amount of A by which the
+                                                cluster space is expanded.
+                                                Average amount of expansion can be calcualted as $E^{2/3}$.
 ==============================  ==============  ================================================================
 
 
@@ -374,6 +374,16 @@ Stage **visualize**
                                                     **show_object** convex hull should be displayed. It is possible
                                                     to set several frames. In that case frames would be displayed
                                                     as states.
+    cluster_area                True                If set ``True``, clusters' areas are estimated with kernel
+                                                    density estimation method (KDE) and plotted as countour.
+    cluster_area_precision      10                  Precision of KDE method in clusters' areas estimation method.
+                                                    This options controls number of grid points per one
+                                                    square A as used in KDE. Higher values means better precision.
+                                                    Number of points can be calculated as $P^{2/3}$.
+    cluster_area_expand         1                   Space occupied by clusters' points can be expanded before KDE
+                                                    calculation. This option controls amount of A by which the
+                                                    cluster space is expanded.
+                                                    Average amount of expansion can be calcualted as $E^{2/3}$.
     ==========================  ================    ==========================================================================================
 
 
