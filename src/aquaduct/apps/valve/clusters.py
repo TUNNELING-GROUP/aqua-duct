@@ -80,7 +80,7 @@ def clusters_area_header():
 @add_cluster_id
 def clusters_area(cluster, inlets, points=10, expand_by=1):
     #HDR
-    h = hdr.HDR(np.array(inlets.coords),points=points,expand_by=expand_by)
+    h = hdr.HDR(np.array(inlets.coords),points=points,expand_by=expand_by,center_of_system=inlets.center_of_system)
     line = list()
     for fraction in range(100,85,-5) + range(80,40,-10):
         line.append(h.area(fraction=fraction/100.))

@@ -1931,14 +1931,14 @@ def stage_VI_run(config, options,
                     c_name = str(int(c))
                 cmap = cmaps._cmap_jet_256
                 # calcualte hdr
-                h = hdr.HDR(np.array(ics),points=float(options.cluster_area_precision),expand_by=float(options.cluster_area_expand))
-                for fraction in range(100, 85, -5) + range(80, 40, -10):
-                    c_name += '_D%d' % fraction
-                    print c_name
+                print inls.center_of_system
+                h = hdr.HDR(np.array(ics),points=float(options.cluster_area_precision),expand_by=float(options.cluster_area_expand),center_of_system=inls.center_of_system)
+                for fraction in range(100, 5, -5): #range(100, 85, -5) + range(80, 40, -10):
+                    print c_name + '_D%d' % fraction
                     coords = hdr2contour(h,fraction=fraction/100.)
                     if coords is not None:
                         color = cmap[int(255*fraction/100.)]
-                        spp.line(coords,color=color,name=c_name)
+                        spp.line(coords,color=color,name=c_name + '_D%d' % fraction)
 
 
     fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount,len(sp)))))

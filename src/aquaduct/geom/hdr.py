@@ -23,16 +23,19 @@ as impelemented in :mod:`scipy.stats`.
 
 import numpy as np
 from scipy.stats import gaussian_kde
-from aquaduct.geom.pca import PCA
+from aquaduct.geom.pca import PCA,Polarize
 
 class HDR(object):
-    def __init__(self, X, points=10, expand_by=1.):
+    def __init__(self, X, points=10, expand_by=1.,center_of_system=None):
 
         # expand_by in A is added to grid boudaries to expand it a bit
 
+        self.center_of_system = center_of_system
 
         # calcualte PCA
-        self.pca = PCA(X) # do not use any standardization!
+        self.pca = PCA(preprocess=Polarize(center=center_of_system,rvar=0.001))
+        self.pca.build(X)
+
         # get kernel for PC1 and PC2
         self.kernel = gaussian_kde(self.pca.T[:,[0,1]].T)
 

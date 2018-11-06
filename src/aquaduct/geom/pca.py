@@ -20,7 +20,10 @@ import numpy as np
 import scipy.linalg
 
 class NullPrepocess(object):
-    def __init__(self, X):
+    def __init__(self):
+        pass
+
+    def build(self,X):
         pass
 
     def __call__(self, X):
@@ -31,7 +34,10 @@ class NullPrepocess(object):
 
 
 class Center(object):
-    def __init__(self, X):
+    def __init__(self):
+        pass
+
+    def build(self,X):
         self.mean = np.mean(X, 0)
 
     def __call__(self, X):
@@ -42,7 +48,10 @@ class Center(object):
 
 
 class Normalize(object):
-    def __init__(self, X):
+    def __init__(self):
+        pass
+
+    def build(self,X):
         self.std = np.std(X, 0)
 
     def __call__(self, X):
@@ -53,9 +62,13 @@ class Normalize(object):
 
 
 class Standartize(object):
-    def __init__(self, X):
-        self.center = Center(X)
-        self.normalize = Normalize(X)
+    def __init__(self):
+        self.center = Center()
+        self.normalize = Normalize()
+
+    def build(self,X):
+        self.center.build(X)
+        self.normalize.build(X)
 
     def __call__(self, X):
         return self.normalize(self.center(X))
@@ -63,10 +76,56 @@ class Standartize(object):
     def undo(self, X):
         return self.center.undo(self.normalize.undo(X))
 
+class Polarize(object):
+    def __init__(self,center=np.array([0,0,0]),rvar=0.1):
+        self.center = center
+        self.rvar = rvar
+
+    def build(self,X):
+        X = X - self.center
+        r = (X**2).sum(1)**0.5
+        t = np.arccos(X[:,2]/r)
+        f = np.arctan2(X[:,1],X[:,0]) + np.pi
+        # calculate mean values for polar components
+        self.tmean = (np.pi/2 - np.mean(t)) % np.pi
+        self.fmean = (np.pi - np.mean(f)) % (2*np.pi)
+
+    def __call__(self, X):
+        X = X - self.center
+        r = (X**2).sum(1)**0.5
+        t = np.arccos(X[:,2]/r)
+        f = np.arctan2(X[:,1],X[:,0]) + np.pi
+        # center t and f with appropriate mean values
+        t += self.tmean
+        f += self.fmean
+        # take care of polarity
+        t = t % np.pi
+        f = f % (2*np.pi)
+        return np.array([r*self.rvar,t,f]).T
+
+    def undo(self, X):
+
+        # remove centering
+        t = X[:,1] - self.tmean
+        f = X[:,2] - self.fmean
+        # take care of polarity
+        t = t % np.pi
+        f = f % (2*np.pi)
+        # correct f
+        f -= np.pi
+        # get xyz
+        x = X[:,0]/self.rvar*np.sin(t)*np.cos(f)
+        y = X[:,0]/self.rvar*np.sin(t)*np.sin(f)
+        z = X[:,0]/self.rvar*np.cos(t)
+        return np.array([x,y,z]).T + self.center
+
 
 class PCA(object):
-    def __init__(self, X, preprocess=NullPrepocess):
-        self.preprocess = preprocess(X)
+    def __init__(self, preprocess=NullPrepocess()):
+        self.preprocess = preprocess
+
+    def build(self,X):
+        self.preprocess.build(X)
         # SVD
         self.U, self.d, self.Pt = scipy.linalg.svd(self.preprocess(X), full_matrices=False)
         assert np.all(self.d[:-1] >= self.d[1:]), "SVD error."  # sorted
