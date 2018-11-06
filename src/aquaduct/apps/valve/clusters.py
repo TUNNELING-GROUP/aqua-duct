@@ -23,6 +23,7 @@ import numpy as np
 from scipy.stats import ttest_ind
 from aquaduct.traj.inlets import InletTypeCodes
 from aquaduct.apps.valve.spath import spath_lenght_total_info, spath_frames_info
+from aquaduct.geom import hdr
 
 
 def cluster_id_header():
@@ -66,6 +67,23 @@ def clusters_inlets(cluster, inlets):
     # line.append(inlets.lim2types([InletTypeCodes.internal_incoming]).size)
     # line.append(inlets.lim2types([InletTypeCodes.internal_outgoing]).size)
     line.append(inlets.lim2types([InletTypeCodes.surface_outgoing]).size)
+    return line
+
+
+@add_cluster_id_head
+def clusters_area_header():
+    header = ('D' + ' D'.join(map(str,range(100,85,-5) + range(80,40,-10)))).split()
+    line_template = ['%8.2f'] * len(header)
+    return header, line_template
+
+
+@add_cluster_id
+def clusters_area(cluster, inlets, points=10, expand_by=1):
+    #HDR
+    h = hdr.HDR(np.array(inlets.coords),points=points,expand_by=expand_by)
+    line = list()
+    for fraction in range(100,85,-5) + range(80,40,-10):
+        line.append(h.area(fraction=fraction/100.))
     return line
 
 

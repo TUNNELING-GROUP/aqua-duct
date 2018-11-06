@@ -55,6 +55,7 @@ from aquaduct.apps.valve.worker import stage_I_worker_q, stage_II_worker_q, stag
 from aquaduct.apps.valve.helpers import *
 from aquaduct.apps.valve.spath import *
 from aquaduct.apps.valve.clusters import *
+from aquaduct.visual import cmaps
 
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
@@ -322,8 +323,6 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'add_passing_to_clusters', 'None')
         config.set(section, 'renumber_clusters', 'False')
         config.set(section, 'join_clusters', 'None')
-        config.set(section, 'cluster_area','True')
-        config.set(section, 'cluster_area_precision','10')
 
         ################
         # smooth
@@ -362,6 +361,10 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'scope_chull_inflate', 'None')
         config.set(section, 'object_chull', 'None')
 
+        config.set(section, 'cluster_area','True')
+        config.set(section, 'cluster_area_precision','10')
+        config.set(section, 'cluster_area_expand', '1')
+
         config.set(section, 'dump_config', 'True')
 
         ################
@@ -398,6 +401,10 @@ class ValveConfig(ConfigSpecialNames):
         # visualize clusters
         config.set(section, 'inlets_clusters', 'False')
         config.set(section, 'inlets_clusters_amount', 'None')
+
+        config.set(section, 'cluster_area','True')
+        config.set(section, 'cluster_area_precision','10')
+        config.set(section, 'cluster_area_expand', '1')
 
         # show protein
         config.set(section, 'show_molecule', 'None')
@@ -1518,6 +1525,21 @@ def stage_V_run(config, options,
             pbar.next()
 
     ############
+    if options.cluster_area:
+        pa.sep()
+        header_line, line_template = get_header_line_and_line_template(clusters_area_header(), head_nr=head_nr)
+        for tname, sptype, message in iter_over_tnspt():
+            pa("Clusters summary - areas%s" % message)
+            pa.thead(header_line)
+            for nr, cl in enumerate(inls.clusters_list):
+                inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype)]).lim2rnames(tname).lim2clusters(
+                    cl)
+                pa(make_line(line_template, clusters_area(cl, inls_lim, points=float(options.cluster_area_precision), expand_by=float(options.cluster_area_expand))), nr=nr)
+            pa.tend(header_line)
+            if pbar:
+                pbar.next()
+
+    ############
     ############
     ############
     pa.sep()
@@ -1894,6 +1916,30 @@ def stage_VI_run(config, options,
                     radii = inls.lim2clusters(c).radii
                     if len(radii) > 0:
                         spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
+
+    if options.cluster_area:
+        from aquaduct.geom import hdr
+        from aquaduct.geom.hdr_contour import hdr2contour
+
+        with clui.fbm("Clusters contours"):
+            for c in inls.clusters_list:
+                # coords for current cluster
+                ics = inls.lim2clusters(c).coords
+                if c == 0:
+                    c_name = 'out'
+                else:
+                    c_name = str(int(c))
+                cmap = cmaps._cmap_jet_256
+                # calcualte hdr
+                h = hdr.HDR(np.array(ics),points=float(options.cluster_area_precision),expand_by=float(options.cluster_area_expand))
+                for fraction in range(100, 85, -5) + range(80, 40, -10):
+                    c_name += '_D%d' % fraction
+                    print c_name
+                    coords = hdr2contour(h,fraction=fraction/100.)
+                    if coords is not None:
+                        color = cmap[int(255*fraction/100.)]
+                        spp.line(coords,color=color,name=c_name)
+
 
     fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount,len(sp)))))
 
