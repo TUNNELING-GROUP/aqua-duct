@@ -49,7 +49,7 @@ intersphinx_mapping = {'python': ('https://docs.python.org/2', None),
                        'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
                        'sklearn': ('http://scikit-learn.org/stable', None)}
 
-aafig_format = dict(latex='pdf', html='png', text=None)
+aafig_format = dict(latex='png', html='png', text=None)
 
 autoclass_content = 'class'
 #autodoc_default_flags = ['members', 'undoc-members', 'private-members', 'special-members', 'show-inheritance']
