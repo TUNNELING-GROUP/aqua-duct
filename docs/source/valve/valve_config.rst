@@ -198,7 +198,7 @@ auto_barber_mincut_level    True            If set ``True``, spheres of radius s
                                             resized to **mincut** value.
 auto_barber_maxcut_level    True            If set ``True``, spheres of radius greater than **maxcut** are
                                             resized to **maxcut** value.
-auto_barber_tovdw           True            If set ``True``, cutting of spheres is corrected by decreasing 
+auto_barber_tovdw           True            If set ``True``, cutting of spheres is corrected by decreasing
                                             its radius by VdW radius of the closest atom.
 allow_passing_paths         False           If set ``True``, paths that do not enter the object are detected
                                             and added to the rest of paths as 'passing' paths.
@@ -246,11 +246,12 @@ cluster_area                        True            If set ``True``, clusters' a
 cluster_area_precision              10              Precision of KDE method in clusters' areas estimation method.
                                                     This options controls number of grid points per one
                                                     square A as used in KDE. Higher values means better precision.
-                                                    Number of points can be calculated as $P^{2/3}$.
+                                                    Number of points can be calculated as :math:`P^{2/3}`.
 cluster_area_expand                 1               Space occupied by clusters' points can be expanded before KDE
                                                     calculation. This option controls amount of A by which the
                                                     cluster space is expanded.
-                                                    Average amount of expansion can be calcualted as $E^{2/3}$.
+                                                    Average amount of expansion can be calcualted as
+                                                    :math:`E^{2/3}`.
 ==================================  ==============  ================================================================
 
 Stage **analysis**
@@ -330,9 +331,9 @@ Stage **visualize**
                                                     oriented accordingly to smooth paths, are displayed as separate
                                                     objects or as one object with states corresponding to number
                                                     of paths.
-    paths_states                False               If set ``True``, objects displayed by **paths_raw**, 
-                                                    **paths_smooth**, **paths_raw_io**, and **paths_smooth_io** are 
-                                                    displayed as one object with states corresponding to number of 
+    paths_states                False               If set ``True``, objects displayed by **paths_raw**,
+                                                    **paths_smooth**, **paths_raw_io**, and **paths_smooth_io** are
+                                                    displayed as one object with states corresponding to number of
                                                     paths. Otherwise they are displayed as separate objects.
     ctypes_raw                  False               Displays raw paths in a similar manner as non split
                                                     **all_paths_raw** but each cluster type is displayed as
@@ -448,7 +449,7 @@ auto_barber_mincut_level    bool            If set ``True``, spheres of radius l
                                             resized to **mincut** value.
 auto_barber_maxcut_level    bool            If set ``True``, spheres of radius greater than **maxcut** are
                                             resized to **maxcut** value.
-auto_barber_tovdw           bool            If set ``True``, cutting of spheres is corrected by decreasing 
+auto_barber_tovdw           bool            If set ``True``, cutting of spheres is corrected by decreasing
                                             its radius by VdW radius of the closest atom.
 ========================    ==============  ================================================================
 
