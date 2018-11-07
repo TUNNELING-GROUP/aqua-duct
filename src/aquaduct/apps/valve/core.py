@@ -362,8 +362,8 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'object_chull', 'None')
 
         config.set(section, 'cluster_area','True')
-        config.set(section, 'cluster_area_precision','10')
-        config.set(section, 'cluster_area_expand', '1')
+        config.set(section, 'cluster_area_precision','20')
+        config.set(section, 'cluster_area_expand', '2')
 
         config.set(section, 'dump_config', 'True')
 
@@ -403,8 +403,8 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'inlets_clusters_amount', 'None')
 
         config.set(section, 'cluster_area','True')
-        config.set(section, 'cluster_area_precision','10')
-        config.set(section, 'cluster_area_expand', '1')
+        config.set(section, 'cluster_area_precision','20')
+        config.set(section, 'cluster_area_expand', '2')
 
         # show protein
         config.set(section, 'show_molecule', 'None')
@@ -1934,12 +1934,14 @@ def stage_VI_run(config, options,
                 print inls.center_of_system,c_name,len(ics)
                 if len(ics) < 3: continue
                 h = hdr.HDR(np.array(ics),points=float(options.cluster_area_precision),expand_by=float(options.cluster_area_expand),center_of_system=inls.center_of_system)
-                for fraction in range(100, 5, -5): #range(100, 85, -5) + range(80, 40, -10):
+                spp.multiline_begin()
+                for fraction in range(100, 0, -5): #range(100, 85, -5) + range(80, 40, -10):
                     print c_name + '_D%d' % fraction
                     coords = hdr2contour(h,fraction=fraction/100.)
                     if coords is not None:
-                        color = cmap[int(255*fraction/100.)]
-                        spp.line(coords,color=color,name=c_name + '_D%d' % fraction)
+                        color = cmap[int(255*(1-fraction/100.))]
+                        spp.multiline_add(coords,color=color)
+                spp.multiline_end(name=c_name + '_DC')
 
 
     fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount,len(sp)))))

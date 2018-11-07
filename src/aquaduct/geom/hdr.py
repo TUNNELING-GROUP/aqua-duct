@@ -33,7 +33,7 @@ class HDR(object):
         self.center_of_system = center_of_system
 
         # calcualte PCA
-        self.pca = PCA(preprocess=Polarize(center=center_of_system,rvar=0.001))
+        self.pca = PCA(preprocess=Polarize(center=center_of_system,rvar=0.0001))
         self.pca.build(X)
 
         # get kernel for PC1 and PC2

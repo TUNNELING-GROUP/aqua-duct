@@ -81,42 +81,43 @@ class Polarize(object):
         self.center = center
         self.rvar = rvar
 
-    def build(self,X):
+    def _Xrtf(self,X):
         X = X - self.center
         r = (X**2).sum(1)**0.5
-        t = np.arccos(X[:,2]/r)
-        f = np.arctan2(X[:,1],X[:,0]) + np.pi
+        return X,r,np.arccos(X[:,2]/r),np.arctan2(X[:,1],X[:,0]) + np.pi
+
+    def _circle_tf(self,t,f):
+        return t % np.pi, f % (2*np.pi)
+
+    def build(self,X):
+        X,r,t,f = self._Xrtf(X)
         # calculate mean values for polar components
         self.tmean = (np.pi/2 - np.mean(t)) % np.pi
         self.fmean = (np.pi - np.mean(f)) % (2*np.pi)
+        tf_var = np.var(t)+np.var(f)
+        self.rvar_factor = ((tf_var*self.rvar)**0.5)*(1./np.std(r))
 
     def __call__(self, X):
-        X = X - self.center
-        r = (X**2).sum(1)**0.5
-        t = np.arccos(X[:,2]/r)
-        f = np.arctan2(X[:,1],X[:,0]) + np.pi
+        X,r,t,f = self._Xrtf(X)
         # center t and f with appropriate mean values
         t += self.tmean
         f += self.fmean
         # take care of polarity
-        t = t % np.pi
-        f = f % (2*np.pi)
-        return np.array([r*self.rvar,t,f]).T
+        t,f = self._circle_tf(t,f)
+        return np.array([r*self.rvar_factor,t,f]).T
 
     def undo(self, X):
-
         # remove centering
         t = X[:,1] - self.tmean
         f = X[:,2] - self.fmean
         # take care of polarity
-        t = t % np.pi
-        f = f % (2*np.pi)
-        # correct f
+        t,f = self._circle_tf(t,f)
+        # correct f to iso
         f -= np.pi
         # get xyz
-        x = X[:,0]/self.rvar*np.sin(t)*np.cos(f)
-        y = X[:,0]/self.rvar*np.sin(t)*np.sin(f)
-        z = X[:,0]/self.rvar*np.cos(t)
+        x = X[:,0]/self.rvar_factor*np.sin(t)*np.cos(f)
+        y = X[:,0]/self.rvar_factor*np.sin(t)*np.sin(f)
+        z = X[:,0]/self.rvar_factor*np.cos(t)
         return np.array([x,y,z]).T + self.center
 
 
