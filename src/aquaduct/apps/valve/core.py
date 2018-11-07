@@ -1931,7 +1931,8 @@ def stage_VI_run(config, options,
                     c_name = str(int(c))
                 cmap = cmaps._cmap_jet_256
                 # calcualte hdr
-                print inls.center_of_system
+                print inls.center_of_system,c_name,len(ics)
+                if len(ics) < 3: continue
                 h = hdr.HDR(np.array(ics),points=float(options.cluster_area_precision),expand_by=float(options.cluster_area_expand),center_of_system=inls.center_of_system)
                 for fraction in range(100, 5, -5): #range(100, 85, -5) + range(80, 40, -10):
                     print c_name + '_D%d' % fraction
