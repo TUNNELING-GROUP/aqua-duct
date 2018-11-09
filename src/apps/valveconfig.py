@@ -23,7 +23,7 @@ import ttk
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from tkFileDialog import askopenfile
 
-import apps.valveconfig.utils as utils
+import aquaduct.apps.valveconfig.utils as utils
 
 
 class ValveConfigApp(object):
