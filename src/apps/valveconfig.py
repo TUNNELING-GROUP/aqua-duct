@@ -28,6 +28,7 @@ import aquaduct.apps.valveconfig.utils as utils
 
 class ValveConfigApp(object):
     def __init__(self, parent):
+        """ Valve Configurator App """
         self.size = (600, 650)
 
         self.parent = parent
@@ -63,6 +64,7 @@ class ValveConfigApp(object):
         self.init_gui()
 
     def init_gui(self):
+        """ Prepare initial frame """
         # Logo
         logo = tk.PhotoImage(data=utils.LOGO_ENCODED)
 
@@ -97,6 +99,7 @@ class ValveConfigApp(object):
         self.init_frame.pack(expand=1, fill="both")
 
     def prepare_section_frames(self):
+        """ Parse DEFAULTS and depends on it create Notebook tabs and entries """
         if self.config_filename.get() is "":
             tkMessageBox.showerror("Error", "You must choose file")
             return
@@ -178,6 +181,11 @@ class ValveConfigApp(object):
         self.load_config_values()
 
     def callback_add_section(self, section_name):
+        """
+        Callback for button to create new recursive clusterization in clusterization/reclusterization frame
+
+        :param section_name: Config section name where new frames will be appended, allowed are "clusterization" or "reclusterization"
+        """
         # Find free name for new section
         index = 0
         while section_name + str(index) in self.values:
@@ -191,6 +199,12 @@ class ValveConfigApp(object):
         self.refresh_menus()
 
     def callback_remove_section(self, section_name, frame):
+        """
+        Callback for button to remove existing recursive clusterization in clusterization/reclusterization frame
+
+        :param section_name: Config section name to remove, allowed are "clusterization" or "reclusterization"
+        :param frame: frame Which contains options related to that section
+        """
         del self.values[section_name]
         del self.hiding_frames[section_name]
 
@@ -205,6 +219,13 @@ class ValveConfigApp(object):
         frame.grid_forget()
 
     def get_recursive_clustering_sections(self, section_name):
+        """
+        Finds recursively all section used in recursive_clusterization options
+
+        :param section_name: Config section name from which fetching will start.
+        :return Section names.
+        :rtype: list
+        """
         if section_name != "clusterization" and section_name != "reclusterization":
             raise RuntimeError(
                 "There is no possibility to get recursive clusterization from {} section".format(section_name))
@@ -229,6 +250,11 @@ class ValveConfigApp(object):
         return clustering_sections
 
     def append_entries(self, section_name):
+        """
+        Append new frame with copy of the parent's entires.
+
+        :param section_name: Config section name where new frames will be appended, allowed are "clusterization" or "reclusterization".
+        """
         if section_name.startswith("clusterization"):
             default_section_name = "clusterization"
             frame = self.frames[self.cluster_frame_index]
@@ -272,6 +298,20 @@ class ValveConfigApp(object):
             self.recluster_row += 1
 
     def entry_filler(self, parent, section_name, entries, row):
+        """
+        Creates entries depending on DEFAULTS values.
+
+        When no entry added it hide notebook tab.
+
+        Disables name option for clusterization, reclusterization and derivatives section.
+
+        Disables inlets_clusterization:max_level when it don't match the configuration level.
+
+        :param parent: Parent widget.
+        :param section_name: Config section name.
+        :param entries: List of entries.
+        :param row: Row number at which first entry will be shown.
+        """
         entries_appended = 0
         for entry in entries:
 
@@ -344,12 +384,21 @@ class ValveConfigApp(object):
             self.notebook.forget(self.scrolled_frames[parent])
 
     def refresh_menus(self):
+        """
+        Sets visible only hiding frames that are chosen by option menu.
+        """
         for menu in utils.MENUS:
             section_name, entry_name = menu.split(":")
 
             self.option_menu_changed(section_name, self.values[section_name][entry_name])
 
     def option_menu_changed(self, section, entry):
+        """
+        Callback for option menu that control hiding frames
+
+        :param section: Section name where hiding frame is located.
+        :param entry: Option menu widget, which control hiding frames in section.
+        """
         for method, hidden_frame in self.hiding_frames[section].iteritems():
             if method == entry.get():
                 hidden_frame.show()
@@ -357,10 +406,16 @@ class ValveConfigApp(object):
                 hidden_frame.grid_forget()
 
     def add_max_level(self, value):
+        """
+        Increments or decrements inlets_clusterization:max_level by value.
+
+        :param value: Number which will be added to max_level.
+        """
         current_value = self.values["inlets_clusterization"]["max_level"].get()
         self.values["inlets_clusterization"]["max_level"].set(current_value + value)
 
     def open_config_file(self):
+        """ Show dialog to choose config file and save its name """
         filetypes = (("text files", "*.txt"), ("config files", "*.cfg"), ("all files", "*.*"))
         try:
             with askopenfile("r", filetypes=filetypes) as config_file:
@@ -369,6 +424,12 @@ class ValveConfigApp(object):
             pass
 
     def load_config_values(self):
+        """
+        Load values to values dictionary for each option from config file.
+
+
+        Additionally it ask user if inlets_clusterization:max_level in config is different from found recursive_clusterization sections.
+        """
         with open(self.config_filename.get(), "r") as config_file:
             config = ConfigParser()
             config.readfp(config_file)
@@ -384,7 +445,7 @@ class ValveConfigApp(object):
                         if section_name == "inlets_clusterization" and entry_name == "max_level":
                             if self.values["inlets_clusterization"]["max_level"] != config_value:
                                 result = tkMessageBox.askyesno("Max level",
-                                                               "Config max_level value differ from number of clusterization section found.\n"
+                                                               "Config max_level value differs from number of clusterization section found.\n"
                                                                "Do you want to keep value from configure file?")
 
                         if not result:
@@ -397,11 +458,24 @@ class ValveConfigApp(object):
                         break
 
     def get_active_frame_name(self, section_name):
+        """
+        Return currently visible frame.
+
+        :param section_name: Section name in which hiding frames will be considered.
+        :return: Name of chosen option menu value.
+        """
         for method, frame in self.hiding_frames[section_name].iteritems():
             if any(frame.grid_info()):
                 return method
 
     def save_config(self, e):
+        """
+        Save all values to previously specified config file.
+
+        Used as callback to Save button.
+
+        :param e: Event informations.
+        """
         if not self.values["global"]["top"].get():
             tkMessageBox.showerror("Topology file name", "You must specify topology file")
             return

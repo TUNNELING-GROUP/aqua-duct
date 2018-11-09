@@ -7,14 +7,31 @@ from tkFileDialog import askopenfile
 
 
 class longstr(str):
+    """
+    Class used to specify type of default value.
+
+    Represents Text field.
+    """
     pass
 
 
 class filetype(object):
+    """
+    Class used to specify type of default value.
+
+    Represents Entry with file loading button.
+    """
     pass
 
 
 def get_widget_bg(widget):
+    """
+    Return background color of specified widget.
+
+    :param widget: Ttk widget.
+    :return: Background color.
+    :rtype: str
+    """
     try:
         return ttk.Style().lookup(widget["style"], "background")
     except tk.TclError:
@@ -23,6 +40,12 @@ def get_widget_bg(widget):
 
 
 def is_menu(section, option):
+    """
+    Determines if option in section control hiding frames.
+
+    :return: True if option control hiding frames, otherwise False.
+    :rtype: bool
+    """
     s = ":".join((section, option))
     for item in MENUS:
         if s == item:
@@ -32,18 +55,41 @@ def is_menu(section, option):
 
 
 def get_default_section(section_name):
+    """
+    Return default informations.
+
+    :param section_name: Name of section which informations are demaned.
+    :return: Default section informations.
+    :rtype: dict
+    """
     for section in DEFAULTS:
         if section_name == section["config_name"]:
             return section
 
 
 def get_default_entry(section, option):
+    """
+    Return default entries.
+
+    :param section: Name of section where option is located.
+    :param option: Option name which default values are demanded.
+    :return: tuple
+    """
     for entry in get_default_section(section)["entries"]:
         if option == entry[0]:
             return entry
 
 
 def widget_factory(parent, default, state=tk.NORMAL):
+    """
+    Creates widget depending on default argument.
+
+    :param parent: Parent of new widget.
+    :param default: Default widget value.
+    :param state: State of widget.
+    :return: Widget and variable attached to it.
+    :rtype: tuple
+    """
     if isinstance(default, longstr):  # Due to inheritance from str, longstr must be checked first
         v = tk.StringVar()
         v.set(default)
@@ -83,6 +129,17 @@ def widget_factory(parent, default, state=tk.NORMAL):
 
 
 def entry_factory(parent, row, entry_name_long, default, help, state=tk.NORMAL):
+    """
+    Determines which class is used to handle specified default value.
+
+    :param parent: Parent of widget.
+    :param row: Row number where first Entry will be grided.
+    :param entry_name_long: Readable entry name.
+    :param default: Default values of entry.
+    :param help: Text which will be displayed in tooltip.
+    :param state: State of widget.
+    :return: Entry based on default value.
+    """
     if isinstance(default, list):
         if len(default) > 2:
             raise RuntimeError("There can be only two values in config defaults({})".format(entry_name_long))
@@ -112,7 +169,13 @@ def entry_factory(parent, row, entry_name_long, default, help, state=tk.NORMAL):
 
 class Text(tk.Text, object):
     def __init__(self, parent, textvariable, **kwargs):
-        """Text widget with ability to assign content to variable"""
+        """
+         Text widget with ability to assign content to variable.
+
+        :param parent: Parent of widget.
+        :param textvariable: String variable to which will contain Text content.
+        :param kwargs: Arguments which will be passed to original tk.Text widget.
+        """
         super(Text, self).__init__(parent, **kwargs)
 
         self.var = textvariable
@@ -129,6 +192,11 @@ class Text(tk.Text, object):
             self.var.trace("w", self._on_var_update)
 
     def _on_update(self, e):
+        """
+        Text widget callback which assign its content to variable.
+
+        :param e: Event informations.
+        """
         if not self.block:
             self.block = True
 
@@ -137,6 +205,11 @@ class Text(tk.Text, object):
             self.block = False
 
     def _on_var_update(self, *args):
+        """
+        Variable callback which assign its content to Text widget.
+
+        :param args: Event informations.
+        """
         if not self.block:
             self.block = True
 
@@ -147,6 +220,11 @@ class Text(tk.Text, object):
 
 
 class Entry(object):
+    """
+    Abstract class for various Entries that manage different type of default values.
+
+    Represents single row of configuration option with Label and all input widgets.
+    """
     def __init__(self):
         self.input_var = None
         self.control_var = None
@@ -157,14 +235,34 @@ class Entry(object):
         self.label_sticky = "E"
 
     def get(self):
+        """
+        Gets Entry value.
+
+        :return: Entry value.
+        """
         raise NotImplementedError()
 
     def set(self, value):
+        """
+        Sets Entry value.
+
+        :param value: New value of Entry.
+        """
         raise NotImplementedError()
 
 
 class StandardEntry(Entry):
     def __init__(self, parent, row, entry_name_long, default, help, state):
+        """
+        Entry with standard widget.
+
+        :param parent: Parent of widgets.
+        :param row: Row where widgets will be grided.
+        :param entry_name_long: Readable entry name.
+        :param default: Default values of entry.
+        :param help: Text which will be displayed in tooltip.
+        :param state: State of widget.
+        """
         super(StandardEntry, self).__init__()
 
         ttk.Label(parent, text=entry_name_long, background=get_widget_bg(parent)).grid(sticky=self.label_sticky,
@@ -179,14 +277,34 @@ class StandardEntry(Entry):
         ToolTip.create(widget, help)
 
     def get(self):
+        """
+        Gets Entry value.
+
+        :return: Entry value.
+        """
         return self.input_var.get()
 
     def set(self, value):
+        """
+        Sets Entry value.
+
+        :param value: New value of Entry.
+        """
         self.input_var.set(value)
 
 
 class BoolEntry(Entry):
     def __init__(self, parent, row, entry_name_long, input_default, control_default, help):
+        """
+        Entry with Checkbox and Entry or text widget.
+
+        :param parent: Parent of widgets.
+        :param row: Row where widgets will be grided.
+        :param entry_name_long: Readable entry name.
+        :param default: Default values of entry.
+        :param help: Text which will be displayed in tooltip.
+        :param state: State of widget.
+        """
         super(BoolEntry, self).__init__()
 
         self.entry_name_long = entry_name_long
@@ -207,12 +325,24 @@ class BoolEntry(Entry):
         ToolTip.create(control_widget, help)
 
     def get(self):
+        """
+        Get Entry value.
+
+        :return: If Checkbox is checked it return input widget value, otherwise False.
+        """
         if self.control_var.get():
             return self.input_var.get()
         else:
             return False
 
     def set(self, value):
+        """
+        Set Entry value.
+
+        :param value: Value that input widget will be set too.
+        If False it will set only Checkbox value to False and input widget to "".
+        If value have str type it will set Checkbox to True and input widget to that value.
+        """
         if value == "False" or value == False:  # If value = 0 expression should be true
             self.control_var.set(False)
             self.input_var.set("")
@@ -223,6 +353,16 @@ class BoolEntry(Entry):
 
 class FileEntry(Entry):
     def __init__(self, parent, row, entry_name_long, default, help):
+        """
+        Entry with Entry widget and button to load and append file name to it.
+
+        :param parent: Parent of widgets.
+        :param row: Row where widgets will be grided.
+        :param entry_name_long: Readable entry name.
+        :param default: Default values of entry.
+        :param help: Text which will be displayed in tooltip.
+        :param state: State of widget.
+        """
         super(FileEntry, self).__init__()
 
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
@@ -241,6 +381,11 @@ class FileEntry(Entry):
         load_file_button.bind("<Button-1>", self.callback_load_file)
 
     def callback_load_file(self, e):
+        """
+        Callback for selecting file.
+
+        Sets widget content to loaded file name.
+        """
         try:
             with askopenfile("r") as f:
                 self.input_var.set(f.name)
@@ -248,14 +393,34 @@ class FileEntry(Entry):
             pass
 
     def get(self):
+        """
+        Gets Entry value.
+
+        :return: Entry value.
+        """
         return self.input_var.get()
 
     def set(self, value):
+        """
+        Sets Entry value.
+
+        :param value: New value of Entry.
+        """
         self.input_var.set(value)
 
 
 class ManyFileEntry(Entry):
     def __init__(self, parent, row, entry_name_long, default, help):
+        """
+        Entry with Text widget and button to load and append file names to it.
+
+        :param parent: Parent of widgets.
+        :param row: Row where widgets will be grided.
+        :param entry_name_long: Readable entry name.
+        :param default: Default values of entry.
+        :param help: Text which will be displayed in tooltip.
+        :param state: State of widget.
+        """
         super(ManyFileEntry, self).__init__()
 
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
@@ -274,6 +439,11 @@ class ManyFileEntry(Entry):
         load_file_button.bind("<Button-1>", self.callback_load_file)
 
     def callback_load_file(self, e):
+        """
+        Callback for selecting file.
+
+        Appends loaded file name at the end of Text widget.
+        """
         try:
             with askopenfile("r") as f:
                 self.input_widget.mark_set("insert", tk.END)
@@ -282,6 +452,11 @@ class ManyFileEntry(Entry):
             pass
 
     def get(self):
+        """
+        Gets Entry value.
+
+        :return: Entry value.
+        """
         # TODO: validate path separator
         value = self.input_var.get()
         if self.input_var.get().endswith("\n"):
@@ -290,11 +465,26 @@ class ManyFileEntry(Entry):
         return value.replace("\n", os.pathsep)
 
     def set(self, value):
+        """
+        Sets Entry value.
+
+        :param value: New value. It can be single path or paths separated by os.pathsep.
+        """
         self.input_var.set(value.replace(os.pathsep, "\n"))
 
 
 class ParenthesedEntry(Entry):
     def __init__(self, parent, row, entry_name_long, input_default, control_default, help):
+        """
+        Entry with Text widget and button to load and append file names to it.
+
+        :param parent: Parent of widgets.
+        :param row: Row where widgets will be grided.
+        :param entry_name_long: Readable entry name.
+        :param default: Default values of entry.
+        :param help: Text which will be displayed in tooltip.
+        :param state: State of widget.
+        """
         super(ParenthesedEntry, self).__init__()
 
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
@@ -313,7 +503,11 @@ class ParenthesedEntry(Entry):
         ToolTip.create(control_widget, help)
 
     def get(self):
+        """
+        Gets Entry value.
 
+        :return: Value of Entry widget and value of second Entry in parentheses, eg. Value1(Value2).
+        """
         formatter_string = "{}"
         if self.control_var.get():
             formatter_string = "{}({})"
@@ -321,6 +515,11 @@ class ParenthesedEntry(Entry):
         return formatter_string.format(self.input_var.get(), self.control_var.get())
 
     def set(self, value):
+        """
+        Sets Entry value.
+
+        :param value: First value and second value in parentheses or without second value and parentheses.
+        """
         try:
             b_pos1 = value.index("(")
             b_pos2 = value.index(")")
@@ -332,12 +531,17 @@ class ParenthesedEntry(Entry):
 
 
 class HidingFrame(ttk.Frame, object):
-    """
-    Changing build-in Labelframe color is worst thing ever
-    """
+    def __init__(self, parent, row, text, **kwargs):
+        """
+        Frame that remembers inner row for griding new widgets.
+        Used to keep methods that depends on option menu value.
 
-    def __init__(self, parent, row, text, *args, **kwargs):
-        super(HidingFrame, self).__init__(parent, *args, **kwargs)
+        :param parent: Parent of widget.
+        :param row: Row where widgets will be grided.
+        :param text: Title of the Frame.
+        :param kwargs: Arguments which will be passed to original ttk.Frame widget.
+        """
+        super(HidingFrame, self).__init__(parent, **kwargs)
 
         ttk.Label(self, text=text, style="HF.TFrame.Label").grid(
             sticky="W", row=0, column=0, columnspan=2, padx=5, pady=5)
@@ -349,12 +553,13 @@ class HidingFrame(ttk.Frame, object):
         self.inner_row = 1
 
     def show(self):
+        """ Method to grid Frame with predefinied configuration. """
         self.grid(sticky="EW", row=self.row, column=0, columnspan=2, padx=10, pady=10, ipady=5)
 
 
 class CallbackWrapper(object):
     def __init__(self, callback, *args):
-        """ Allow to use callbacks with predefined list of arguments """
+        """ Allow to use callbacks with predefined list of arguments. """
         self.callback = callback
         self.args = args
 
