@@ -24,6 +24,15 @@ class filetype(object):
     pass
 
 
+class manyfiletype(object):
+    """
+    Class used to specify type of default value.
+
+    Represents Entry with file loading button and duplicating them when previous is loaded.
+    """
+    pass
+
+
 def get_widget_bg(widget):
     """
     Return background color of specified widget.
@@ -94,7 +103,7 @@ def widget_factory(parent, default, state=tk.NORMAL):
         v = tk.StringVar()
         v.set(default)
 
-        w = Text(parent, textvariable=v, wrap=tk.NONE, state=state, width=34, height=5)
+        w = Text(parent, textvariable=v, wrap=tk.WORD, state=state, width=34, height=5)
 
     elif isinstance(default, str):
         v = tk.StringVar()
@@ -149,10 +158,15 @@ def entry_factory(parent, row, entry_name_long, default, help, state=tk.NORMAL):
         if isinstance(control_default, bool):
             return BoolEntry(parent, row, entry_name_long, input_default, control_default, help)
         elif isinstance(control_default, filetype):
-            if isinstance(input_default, longstr):
-                return ManyFileEntry(parent, row, entry_name_long, input_default, help)
-            elif isinstance(input_default, str):
+            if isinstance(input_default, str):
                 return FileEntry(parent, row, entry_name_long, input_default, help)
+            else:
+                raise TypeError(
+                    "File can be loaded only into str or longstr widget type in {} option({})".format(entry_name_long,
+                                                                                                      type(default)))
+        elif isinstance(control_default, manyfiletype):
+            if isinstance(input_default, str):
+                return ManyFileEntry(parent, row, entry_name_long, input_default, help)
             else:
                 raise TypeError(
                     "File can be loaded only into str or longstr widget type in {} option({})".format(entry_name_long,
@@ -423,31 +437,56 @@ class ManyFileEntry(Entry):
         """
         super(ManyFileEntry, self).__init__()
 
+        self.parent = parent
+        self.row = row
+        self.entry_name_long = entry_name_long
+        self.default = default
+        self.help = help
+
+        self.input_vars = []
+
+        self.inner_row = 0
+
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
-        input_frame = ttk.Frame(parent)
-        input_frame.grid(row=row, column=1, sticky=self.frame_sticky, pady=self.frame_pady)
+        self.input_frame = ttk.Frame(parent)
+        self.input_frame.grid(row=row, column=1, sticky=self.frame_sticky, pady=self.frame_pady)
 
-        self.input_widget, self.input_var = widget_factory(input_frame, default)
-        self.input_widget.pack(side=tk.LEFT, padx=7)
+        self.append_entry()
 
-        ToolTip.create(self.input_widget, help)
+    def append_entry(self):
+        """ Creates new entry with input widget and load button """
+        self.input_widget, input_var = widget_factory(self.input_frame, self.default)
+        self.input_widget.grid(row=self.inner_row, column=0, padx=7)
 
-        load_file_button = ttk.Button(input_frame, text="Load", style="File.TButton")
-        load_file_button.pack(side=tk.RIGHT)
+        self.input_vars.append(input_var)
 
-        load_file_button.bind("<Button-1>", self.callback_load_file)
+        ToolTip.create(self.input_widget, self.help)
 
-    def callback_load_file(self, e):
+        load_file_button = ttk.Button(self.input_frame, text="Load", style="File.TButton")
+        load_file_button.grid(row=self.inner_row, column=1)
+
+        self.inner_row += 1
+
+        callback = CallbackWrapper(self.callback_load_file, self.input_vars.index(input_var))
+        load_file_button.bind("<Button-1>", callback)
+
+    def callback_load_file(self, index):
         """
         Callback for selecting file.
 
         Appends loaded file name at the end of Text widget.
+
+        :param index: Index of variable in self.input_vars
         """
         try:
             with askopenfile("r") as f:
-                self.input_widget.mark_set("insert", tk.END)
-                self.input_var.set(self.input_var.get() + f.name + "\n")
+                print "TROLOLO", f
+                self.input_vars[index].set(f.name)
+
+                # Append new entry only if file is loaded to last entry
+                if len(self.input_vars) - 1 <= index:
+                    self.append_entry()
         except AttributeError:  # In case of cancel selecting file
             pass
 
@@ -458,11 +497,7 @@ class ManyFileEntry(Entry):
         :return: Entry value.
         """
         # TODO: validate path separator
-        value = self.input_var.get()
-        if self.input_var.get().endswith("\n"):
-            value = value[:-1]
-
-        return value.replace("\n", os.pathsep)
+        return os.pathsep.join([var.get() for var in self.input_vars if var.get()])
 
     def set(self, value):
         """
@@ -470,7 +505,9 @@ class ManyFileEntry(Entry):
 
         :param value: New value. It can be single path or paths separated by os.pathsep.
         """
-        self.input_var.set(value.replace(os.pathsep, "\n"))
+        for i, path in enumerate(value.split(os.pathsep)):
+            self.input_vars[i].set(path)
+            self.append_entry()
 
 
 class ParenthesedEntry(Entry):
@@ -680,7 +717,7 @@ DEFAULTS = [
             ("top", "Topology file: ", [str(), filetype()],
              "Path to topology file.\nAqua-Duct supports PDB, PRMTOP, PFS topology files.", None, 1),
             # Name used directly in code
-            ("trj", "Trajectory file: ", [longstr(), filetype()],
+            ("trj", "Trajectory file: ", [str(), manyfiletype()],
              "Path to trajectory file.\nAqua-Duct supports NC and DCD trajectory files.", None, 1)
         ]
     },
@@ -786,7 +823,6 @@ DEFAULTS = [
         "name": "Stage IV",
         "name_long": "Inlets clusterization",
         "entries": [
-
             ("execute", "Execute", ("runonce", "run", "skip"),
              "Option controls stage execution.\nIt can have one of three possible values: run, runonce, and skip.\nIf it is set to run calculations are always performed and if dump is set dump file is saved.\nIf it is set to runonce calculations are performed if there is no dump file specified by dump option.\nIf it is present calculations are skipped and data is loaded from the file.\nIf it is set to skip calculations are skip and if dump is set data is loaded from the file.",
              None, 0),
