@@ -21,6 +21,7 @@ import Tkinter as tk
 import tkMessageBox
 import ttk
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+from collections import OrderedDict
 from tkFileDialog import askopenfile
 
 import aquaduct.apps.valveconfig.utils as utils
@@ -33,7 +34,7 @@ class ValveConfigApp(object):
 
         self.parent = parent
 
-        self.values = {}
+        self.values = OrderedDict()
 
         # Used to hide that frame, after all entries are shown
         self.init_frame = ttk.Frame(self.parent)
@@ -427,7 +428,6 @@ class ValveConfigApp(object):
         """
         Load values to values dictionary for each option from config file.
 
-
         Additionally it ask user if inlets_clusterization:max_level in config is different from found recursive_clusterization sections.
         """
         with open(self.config_filename.get(), "r") as config_file:
@@ -482,6 +482,16 @@ class ValveConfigApp(object):
 
         if not self.values["global"]["trj"].get():
             tkMessageBox.showerror("Trajectory file name", "You must specify at least one trajectory file")
+            return
+
+        if not self.values["traceable_residues"]["scope"].get():
+            tkMessageBox.showerror("Scope definition", "You must specify Scope definition in {}"
+                                   .format(utils.DEFAULTS["traceable_residues"]["name_long"]))
+            return
+
+        if not self.values["traceable_residues"]["object"].get():
+            tkMessageBox.showerror("Object definition", "You must specify Object definition in {}"
+                                   .format(utils.DEFAULTS["traceable_residues"]["name_long"]))
             return
 
         with open(self.config_filename.get(), "w+") as config_file:
