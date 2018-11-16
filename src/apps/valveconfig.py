@@ -24,6 +24,7 @@ from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from collections import OrderedDict
 from tkFileDialog import askopenfile
 
+import aquaduct.apps.valveconfig.defaults as defaults
 import aquaduct.apps.valveconfig.utils as utils
 
 
@@ -105,10 +106,10 @@ class ValveConfigApp(object):
             tkMessageBox.showerror("Error", "You must choose file")
             return
 
-        for section in utils.DEFAULTS:
-            section_name = section["config_name"]
-            section_name_long = section["name_long"]
-            entries = section["entries"]
+        for section in defaults.DEFAULTS:
+            section_name = section.config_name
+            section_name_long = section.name
+            entries = section.entries
 
             if section_name == "clusterization":
                 self.cluster_frame_index = len(self.frames)
@@ -210,9 +211,9 @@ class ValveConfigApp(object):
         del self.hiding_frames[section_name]
 
         # Remove from MENUS list
-        for i, item in enumerate(utils.MENUS):
+        for i, item in enumerate(defaults.MENUS):
             if item.startswith(section_name):
-                del utils.MENUS[i]
+                del defaults.MENUS[i]
 
         if section_name.startswith("clusterization"):
             self.add_max_level(-1)
@@ -269,9 +270,9 @@ class ValveConfigApp(object):
                 "Appending entries to sections other than clusterization or reclusteriation is not allowed")
 
         # Set option menu from recursive clustering to control hiding frames
-        utils.MENUS.append("{}:method".format(section_name))
+        defaults.MENUS.append("{}:method".format(section_name))
 
-        defaults = utils.get_default_section(default_section_name)
+        default_values = defaults.get_default_section(default_section_name)
 
         inner_frame = ttk.Frame(frame, style="I.TFrame")
         inner_frame.columnconfigure(0, weight=1)
@@ -285,7 +286,7 @@ class ValveConfigApp(object):
             columnspan=2)
         ttk.Separator(inner_frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=2)
 
-        self.entry_filler(inner_frame, section_name, defaults["entries"], 2)
+        self.entry_filler(inner_frame, section_name, default_values.entries, 2)
 
         remove_button = ttk.Button(inner_frame, text="Remove")
         remove_button.grid(row=999, column=0, columnspan=2, pady=5)
@@ -315,68 +316,67 @@ class ValveConfigApp(object):
         """
         entries_appended = 0
         for entry in entries:
-
-            entry_name, entry_name_long, default, help, method, level = entry
-
             # If its primary reclustering or clustering section disable changing name of that section
             # Additionaly it disable inlets_clusterization:max_level if its on different level than chose
             state = tk.NORMAL
-            if section_name == "clusterization" and entry_name == "name":
+            if section_name == "clusterization" and entry.config_name == "name":
                 state = tk.DISABLED
-            elif section_name == "reclusterization" and entry_name == "name":
+            elif section_name == "reclusterization" and entry.config_name == "name":
                 state = tk.DISABLED
-            elif section_name == "inlets_clusterization" and entry_name == "max_level":
-                if utils.LEVELS[self.level.get()] != level:
+            elif section_name == "inlets_clusterization" and entry.config_name == "max_level":
+                if defaults.LEVELS[self.level.get()] != entry.level:
                     state = tk.DISABLED
 
             # Skip entries that dont match level except inlets_clusterization:max_level
-            if utils.LEVELS[self.level.get()] > level:
-                if not (section_name == "inlets_clusterization" and entry_name == "max_level"):
+            if defaults.LEVELS[self.level.get()] > entry.level:
+                if not (section_name == "inlets_clusterization" and entry.config_name == "max_level"):
                     continue
 
             entries_appended += 1
 
-            if method:
+            if entry.optionmenu_value:
                 if section_name not in self.hiding_frames:
                     self.hiding_frames[section_name] = {}
 
-                if method not in self.hiding_frames[section_name]:
+                if entry.optionmenu_value not in self.hiding_frames[section_name]:
                     if len(self.hiding_frames[section_name]) != 0:
                         hiding_frame_row = next(self.hiding_frames[section_name].itervalues()).row
                     else:
                         hiding_frame_row = row
 
-                    self.hiding_frames[section_name][method] = utils.HidingFrame(parent,
-                                                                                 hiding_frame_row,
-                                                                                 text=method.capitalize() + " options",
-                                                                                 style="HF.TFrame")
+                    self.hiding_frames[section_name][entry.optionmenu_value] = utils.HidingFrame(parent,
+                                                                                                 hiding_frame_row,
+                                                                                                 text=entry.optionmenu_value.capitalize() + " options",
+                                                                                                 style="HF.TFrame")
 
-                hiding_frame = self.hiding_frames[section_name][method]
+                hiding_frame = self.hiding_frames[section_name][entry.optionmenu_value]
 
                 if section_name not in self.values:
                     self.values[section_name] = {}
 
-                self.values[section_name][entry_name] = utils.entry_factory(hiding_frame,
-                                                                            hiding_frame.inner_row,
-                                                                            entry_name_long,
-                                                                            default, help, state)
+                self.values[section_name][entry.config_name] = utils.entry_factory(hiding_frame,
+                                                                                   hiding_frame.inner_row,
+                                                                                   entry.name,
+                                                                                   entry.default_values,
+                                                                                   entry.help_text, state)
 
                 hiding_frame.inner_row += 1
             else:
-                entry = utils.entry_factory(parent, row, entry_name_long, default, help, state)
+                entry_widget = utils.entry_factory(parent, row, entry.name, entry.default_values, entry.help_text,
+                                                   state)
 
                 if (section_name.startswith("clusterization") or section_name.startswith(
-                        "reclusterization")) and entry_name == "name":
-                    entry.set(section_name)
+                        "reclusterization")) and entry.config_name == "name":
+                    entry_widget.set(section_name)
 
-                if utils.is_menu(section_name, entry_name):
-                    opt_menu_callback = utils.CallbackWrapper(self.option_menu_changed, section_name, entry)
-                    entry.input_var.trace("w", opt_menu_callback)
+                if defaults.is_menu(section_name, entry.config_name):
+                    opt_menu_callback = utils.CallbackWrapper(self.option_menu_changed, section_name, entry_widget)
+                    entry_widget.input_var.trace("w", opt_menu_callback)
 
                 if section_name not in self.values:
                     self.values[section_name] = {}
 
-                self.values[section_name][entry_name] = entry
+                self.values[section_name][entry.config_name] = entry_widget
 
                 row += 1
 
@@ -388,7 +388,7 @@ class ValveConfigApp(object):
         """
         Sets visible only hiding frames that are chosen by option menu.
         """
-        for menu in utils.MENUS:
+        for menu in defaults.MENUS:
             section_name, entry_name = menu.split(":")
 
             self.option_menu_changed(section_name, self.values[section_name][entry_name])
@@ -485,47 +485,52 @@ class ValveConfigApp(object):
             return
 
         if not self.values["traceable_residues"]["scope"].get():
-            tkMessageBox.showerror("Scope definition", "You must specify Scope definition in {}"
-                                   .format(utils.DEFAULTS["traceable_residues"]["name_long"]))
+            tkMessageBox.showerror("Scope definition", "You must specify "
+                                                       "\"Scope definition\" in \"Traceable residues\" section")
             return
 
         if not self.values["traceable_residues"]["object"].get():
-            tkMessageBox.showerror("Object definition", "You must specify Object definition in {}"
-                                   .format(utils.DEFAULTS["traceable_residues"]["name_long"]))
+            tkMessageBox.showerror("Object definition", "You must specify "
+                                                        "\"Object definition\" in \"Traceable residues\" section")
             return
 
         with open(self.config_filename.get(), "w+") as config_file:
             config = ConfigParser()
             config.readfp(config_file)
 
-            for section in self.values:
-                if not config.has_section(section):
-                    config.add_section(section)
+            for section_name in self.values:
+                if not config.has_section(section_name):
+                    config.add_section(section_name)
 
-                for option, value in self.values[section].iteritems():
-                    default_value = utils.get_default_entry(section, option)[2]
-                    if isinstance(default_value, tuple):
-                        default_value = default_value[0]
-                    elif isinstance(default_value, list):
-                        if isinstance(default_value[0], tuple):
-                            default_value = default_value[0][0]
+                for option_name, value in self.values[section_name].iteritems():
+                    default_values = defaults.get_default_entry(section_name, option_name).default_values
+                    if len(default_values) == 1:
+                        if isinstance(default_values[0], tuple):
+                            default_value = default_values[0][0]
+                        else:
+                            default_value = default_values[0]
+                    elif len(default_values) == 2:
+                        if isinstance(default_values[0], tuple):
+                            default_value = default_values[0][0]
                         # If second value is bool its checkbox.
                         # If checkbox is False there is no matter what is in input widget
-                        elif isinstance(default_value[1], bool):
-                            default_value = default_value[1]
+                        elif isinstance(default_values[1], bool):
+                            default_value = default_values[1]
                             if default_value:
-                                default_value = default_value[0]
+                                default_value = default_values[0]
                         else:
-                            default_value = default_value[0]
+                            default_value = default_values[0]
 
                     # Skip empty strings and entries which are not visible
                     if value.get() != "" and value.get() != default_value:
-                        if not utils.get_default_entry(section, option)[4]:
-                            config.set(section, option, value.get())
+                        if not defaults.get_default_entry(section_name, option_name).optionmenu_value:
+                            config.set(section_name, option_name, value.get())
                         # This take care of saving options only from visible frame
                         else:
-                            if utils.get_default_entry(section, option)[4] == self.get_active_frame_name(section):
-                                config.set(section, option, value.get())
+                            if defaults.get_default_entry(section_name,
+                                                          option_name).optionmenu_value == self.get_active_frame_name(
+                                    section_name):
+                                config.set(section_name, option_name, value.get())
 
             config.write(config_file)
 

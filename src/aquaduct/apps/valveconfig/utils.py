@@ -1,36 +1,27 @@
 # -*- coding: utf-8 -*-
 
+# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
+# Copyright (C) 2016-2018 Michał Banas
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import Tkinter as tk
 import os
 import ttk
 from tkFileDialog import askopenfile
 
-
-class longstr(str):
-    """
-    Class used to specify type of default value.
-
-    Represents Text field.
-    """
-    pass
-
-
-class filetype(object):
-    """
-    Class used to specify type of default value.
-
-    Represents Entry with file loading button.
-    """
-    pass
-
-
-class manyfiletype(object):
-    """
-    Class used to specify type of default value.
-
-    Represents Entry with file loading button and duplicating them when previous is loaded.
-    """
-    pass
+import defaults
 
 
 def get_widget_bg(widget):
@@ -48,47 +39,6 @@ def get_widget_bg(widget):
         return ttk.Style().lookup("T" + widget.winfo_class(), "background")
 
 
-def is_menu(section, option):
-    """
-    Determines if option in section control hiding frames.
-
-    :return: True if option control hiding frames, otherwise False.
-    :rtype: bool
-    """
-    s = ":".join((section, option))
-    for item in MENUS:
-        if s == item:
-            return True
-
-    return False
-
-
-def get_default_section(section_name):
-    """
-    Return default informations.
-
-    :param section_name: Name of section which informations are demaned.
-    :return: Default section informations.
-    :rtype: dict
-    """
-    for section in DEFAULTS:
-        if section_name == section["config_name"]:
-            return section
-
-
-def get_default_entry(section, option):
-    """
-    Return default entries.
-
-    :param section: Name of section where option is located.
-    :param option: Option name which default values are demanded.
-    :return: tuple
-    """
-    for entry in get_default_section(section)["entries"]:
-        if option == entry[0]:
-            return entry
-
-
 def widget_factory(parent, default, state=tk.NORMAL):
     """
     Creates widget depending on default argument.
@@ -99,7 +49,7 @@ def widget_factory(parent, default, state=tk.NORMAL):
     :return: Widget and variable attached to it.
     :rtype: tuple
     """
-    if isinstance(default, longstr):  # Due to inheritance from str, longstr must be checked first
+    if isinstance(default, defaults.longstr):  # Due to inheritance from str, longstr must be checked first
         v = tk.StringVar()
         v.set(default)
 
@@ -130,55 +80,54 @@ def widget_factory(parent, default, state=tk.NORMAL):
 
         w = ttk.OptionMenu(parent, v, default[0], *default)
     elif isinstance(default, list):
-        raise TypeError("Use tuple for option menu, not list")
+        raise TypeError("Use tuple for option menu, not list", default)
     else:
         raise TypeError("There is no specified behaviour for {} type".format(type(default)))
 
     return w, v
 
 
-def entry_factory(parent, row, entry_name_long, default, help, state=tk.NORMAL):
+def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL):
     """
     Determines which class is used to handle specified default value.
 
     :param parent: Parent of widget.
     :param row: Row number where first Entry will be grided.
-    :param entry_name_long: Readable entry name.
+    :param entry_name: Readable entry name.
     :param default: Default values of entry.
     :param help: Text which will be displayed in tooltip.
     :param state: State of widget.
     :return: Entry based on default value.
     """
-    if isinstance(default, list):
-        if len(default) > 2:
-            raise RuntimeError("There can be only two values in config defaults({})".format(entry_name_long))
-
+    if len(default) > 2:
+        raise RuntimeError("There can be only two values in config defaults({})".format(entry_name))
+    elif len(default) == 2:
         input_default, control_default = default
 
         if isinstance(control_default, bool):
-            return BoolEntry(parent, row, entry_name_long, input_default, control_default, help)
-        elif isinstance(control_default, filetype):
+            return BoolEntry(parent, row, entry_name, input_default, control_default, help)
+        elif isinstance(control_default, defaults.filetype):
             if isinstance(input_default, str):
-                return FileEntry(parent, row, entry_name_long, input_default, help)
+                return FileEntry(parent, row, entry_name, input_default, help)
             else:
                 raise TypeError(
-                    "File can be loaded only into str or longstr widget type in {} option({})".format(entry_name_long,
-                                                                                                      type(default)))
-        elif isinstance(control_default, manyfiletype):
+                    "File can be loaded only into str widget type in {} option({})".format(entry_name,
+                                                                                           type(default)))
+        elif isinstance(control_default, defaults.manyfiletype):
             if isinstance(input_default, str):
-                return ManyFileEntry(parent, row, entry_name_long, input_default, help)
+                return ManyFileEntry(parent, row, entry_name, input_default, help)
             else:
                 raise TypeError(
-                    "File can be loaded only into str or longstr widget type in {} option({})".format(entry_name_long,
-                                                                                                      type(default)))
+                    "File can be loaded only into str widget type in {} option({})".format(entry_name,
+                                                                                           type(default)))
         elif isinstance(control_default, float):
-            return ParenthesedEntry(parent, row, entry_name_long, input_default, control_default, help)
+            return ParenthesedEntry(parent, row, entry_name, input_default, control_default, help)
         else:
             raise TypeError("There is no specified behaviour for {} type(for {} option). "
                             "First must be input widget, then control widget"
-                            .format(type(control_default), entry_name_long))
+                            .format(type(control_default), entry_name))
     else:
-        return StandardEntry(parent, row, entry_name_long, default, help, state)
+        return StandardEntry(parent, row, entry_name, default[0], help, state)
 
 
 class Text(tk.Text, object):
@@ -705,503 +654,6 @@ class VerticalScrolledFrame(tk.Frame):
 
         canvas.bind('<Configure>', _configure_canvas)
 
-
-# @formatter:off
-DEFAULTS = [
-    {
-        "config_name": "global",
-        "name": "General",
-        "name_long": "General options",
-        "entries": [
-            # Name used directly in code
-            ("top", "Topology file: ", [str(), filetype()],
-             "Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.", None, 1),
-            # Name used directly in code
-            ("trj", "Trajectory file: ", [str(), manyfiletype()],
-             "Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.", None, 1),
-            ("twoway", "Two-way scanning: ", True,
-             "Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.", None, 0)
-        ]
-    },
-    {
-        "config_name": "traceable_residues",
-        "name": "Stage I",
-        "name_long": "Traceable residues",
-        "entries": [
-            ("execute", "Execute: ", ("runonce", "run", "skip"),
-             "Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run calculations are always performed and if dump is set dump file is saved. If it is set to runonce calculations are performed if there is no dump file specified by dump option. If it is present calculations are skipped and data is loaded from the file, If it is set to skip calculations are skip and if dump is set data is loaded from the file.",
-             None, 0),
-            ("dump", "Dump file: ", "1_traceable_residues_data.dump",
-             "File name of dump data. It is used to save results of calculations or to load previously calculated data - this depends on execute option.",
-             None, 0),
-            ("scope", "Scope: ", "None", "Definition of Scope of interest.", None, 1),
-            ("scope_convexhull", "Convex hull scope: ", True,
-             "Flag to set if Scope is direct or convex hull definition.", None, 1),
-            ("scope_everyframe", "Everyframe scope: ", False,
-             "Flag to set Scope evaluation mode. If set True Scope is evaluated in every frame. This make sense if the definition is complex and depends on distances between molecular entities.",
-             None, 0),
-            ("scope_convexhull_inflate", "scope_convexhull_inflate", "None",
-             "Increase (or if negative - decrease) size of the scope convex hull.", None, 0),
-            ("object", "Object: ", "None", "Definition of Object of interest.", None, 1),
-            ("add_passing", "add_passing", "None",
-             "Definition of molecules that should be added to traced molecules even if they were not present in Object.",
-             None, 0)
-        ]
-    },
-    {
-        "config_name": "raw_paths",
-        "name": "Stage II",
-        "name_long": "Raw paths",
-        "entries": [
-            ("execute", "Execute: ", ("runonce", "run", "skip"),
-             "Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run calculations are always performed and if dump is set dump file is saved. If it is set to runonce calculations are performed if there is no dump file specified by dump option. If it is present calculations are skipped and data is loaded from the file, If it is set to skip calculations are skip and if dump is set data is loaded from the file.",
-             None, 0),
-            ("dump", "Dump file: ", "2_raw_paths_data.dump",
-             "File name of dump data. It is used to save results of calculations or to load previously calculated data - this depends on execute option.",
-             None, 0),
-            ("scope", "Scope: ", str(),
-             "Definition of Scope of interest. If None value form previous stage is used.",
-             None, 0),
-            ("scope_convexhull", "Convex hull scope: ", "None",
-             "Flag to set if the Scope is direct or convex hull definition.", None, 0),
-            ("scope_everyframe", "Everyframe scope: ", False,
-             "Flag to set Scope evaluation mode. If set True Scope is evaluated in every frame. This make sense if the definition is complex and depends on distances between molecular entities. If None value from previous stage is used.",
-             None, 0),
-            ("scope_convexhull_inflate", "scope_convexhull_inflate", "None",
-             "Increase (or if negative - decrease) size of the scope convex hull. If None, value from previous stage is used.",
-             None, 0),
-            ("object", "Object: ", str(),
-             "Definition of Object of interest. If None value from the previous stage is used.",
-             None, 0),
-            ("clear_in_object_info", "Recalculate object info: ", False,
-             "If it is set to True information on occupation of Object site by traceable residues calculated in the previous stage is cleared and have to be recalculated. This is useful if definition of Object was changed.",
-             None, 0),
-            ("discard_singletons", "Discard singletons: ", 1, "If > 0, discards paths of given lenght.", None, 0),
-            ("discard_empty_paths", "Discard empty paths", True, "If set to True, empty paths are discarded.", None, 0)
-        ]
-    },
-    {
-        "config_name": "separate_paths",
-        "name": "Stage III",
-        "name_long": "Separate paths",
-        "entries": [
-            ("execute", "Execute: ", ("runonce", "run", "skip"),
-             "Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run calculations are always performed and if dump is set dump file is saved. If it is set to runonce calculations are performed if there is no dump file specified by dump option. If it is present calculations are skipped and data is loaded from the file. If it is set to skip calculations are skip and if dump is set data is loaded from the file.",
-             None, 0),
-            ("dump", "Dump file: ", "3_separate_paths_data.dump",
-             "File name of dump data. It is used to save results of calculations or to load previously calculated data - this depends on execute option.",
-             None, 0),
-            (
-                "discard_empty_paths", "Discard empty paths: ", True, "If set to True empty paths are discarded.", None,
-                0),
-            ("sort_by_id", "Sort by ID: ", True,
-             "If set to True separate paths are sorted by ID. Otherwise they are sorted in order of appearance.", None,
-             0),
-            ("discard_short_paths", "Discard short paths: ", 20,
-             "This option allows to discard paths which are shorter than the threshold which is defined as total number of frames.",
-             None, 0),
-            ("discard_short_object", "Discard short object: ", 2.0,
-             "This option allows to discard paths which objects are shorter than the threshold which is defined as total length in metric units.",
-             None, 0),
-            ("discard_short_logic", "Discard short logic: ", "or",
-             "If both discard_short_paths and discard_short_object options are used, this option allows to set combination logic. If it is set or a path is discarded if any of discard criterion is met. If it is set and both criteria have to be met to discard path.",
-             None, 0),
-            ("auto_barber", "Auto Barber: ", "None",
-             "This option allows to select molecular entity used in Auto Barber procedure. ",
-             None, 1),
-            ("auto_barber_mincut", "Auto Barber mincut: ", "None",
-             "Minimal radius of spheres used in Auto Barber. If a sphere has radius smaller then this value it is not used in AutoBarber procedure. This option can be switched off by setting it to None.",
-             None, 0),
-            ("auto_barber_maxcut", "Auto Barber maxcut: ", 2.8,
-             "Maximal radius of spheres used in Auto Barber. If a sphere has radius greater then this value it is not used in AutoBarber procedure. This option can be switched off by setting it to None.",
-             None, 0),
-            ("auto_barber_mincut_level", "Auto Barber mincut level:", True,
-             "If set True spheres of radius smaller than mincut are resized to mincut value.", None, 0),
-            ("auto_barber_maxcut_level", "Auto Barber maxcut level:", True,
-             "If set True spheres of radius greater than maxcut are resized to maxcut value.", None, 0),
-            ("auto_barber_tovdw", "Auto Barber VdW: ", True,
-             "Correct cutting sphere by decreasing its radius by VdW radius of the closest atom.", None, 0),
-            ("allow_passing_paths", "Allow passing paths: ", False,
-             "If set True paths that do not enter the object are detected and added to the rest of paths as ‘passing’ paths.",
-             None, 0),
-        ]
-    },
-    {
-        "config_name": "inlets_clusterization",
-        "name": "Stage IV",
-        "name_long": "Inlets clusterization",
-        "entries": [
-            ("execute", "Execute", ("runonce", "run", "skip"),
-             "Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run calculations are always performed and if dump is set dump file is saved. If it is set to runonce calculations are performed if there is no dump file specified by dump option. If it is present calculations are skipped and data is loaded from the file. If it is set to skip calculations are skip and if dump is set data is loaded from the file.",
-             None, 0),
-            ("dump", "Dump file: ", "4_inlets_clusterization_data.dump",
-             "File name of dump data. It is used to save results of calculations or to load previously calculated data - this depends on execute option.",
-             None, 0),
-            ("recluster_outliers", "Recluster outliers: ", False,
-             "If set to True reclusterization of outliers is executed according to the method defined in reclusterization section.",
-             None, 0),
-            ("detect_outliers", "Detect outliers: ", [str(), False],
-             "If set, detection of outliers is executed. It could be set as a floating point distance threshold or set to Auto.",
-             None, 1),
-            ("singletons_outliers", "Singletons outliers: ", ["False", False],
-             "Maximal size of cluster to be considered as outliers. If set to number > 0 clusters of that size are removed and their objects are moved to outliers.",
-             None, 1),
-            # If 0 default clusterization section will be performed
-            ("max_level", "Max level: ", 0, "Maximal number of recursive clusterization levels.", None, 0),
-            ("create_master_paths", "Create master paths: ", False,
-             "If set to True master paths are created (fast CPU and big RAM recommended; 50k frames long simulation may need ca 20GB of memory)",
-             None, 0),
-            ("exclude_passing_in_clusterization", "exclude_passing_in_clusterization", True,
-             "If set to True passing paths are not clustered with normal paths.", None, 0),
-            ("add_passing_to_clusters", "add_passing_to_clusters", str(),
-             "Allows to run procedure for adding passing paths inlets to clusters with Auto Barber method. To enable this the option should be set to molecular entity that will be used by Auto Barber.",
-             None, 0),
-            ("renumber_clusters", "Renumber clusters: ", False,
-             "If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
-             None, 1),
-            ("join_clusters", "join_clusters", "None",
-             "This option allows to join selected clusters. Clusters’ IDs joined with + character lists clusters to be joined together. Several such blocks separated by space can be used. For example, if set to 1+3+4 5+6 clusters 1, 3, and 4 will be joined in one cluster and cluster 5, and 6 will be also joined in another cluster.",
-             None, 1)
-        ]
-    },
-    {
-        "config_name": "analysis",
-        "name": "Stage V",
-        "name_long": "Analysis",
-        "entries": [
-            ("execute", "Execute", ("run", "runonce", "skip"),
-             "Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run or runonce stage is executed and results is saved according to save option. If it is set to skip stage is skipped.",
-             None, 0),
-            ("save", "Save file: ", "5_analysis_results.txt", "File name for saving results.", None, 0),
-            ("dump_config", "Dump config: ", True,
-             "If set to True configuration options, as seen by Valve, are added to the head of results.", None, 0),
-            ("calculate_scope_object_size", "Calculate scope and object size: ", False,
-             "If set to True volumes and areas of object and scope approximated by convex hulls will be calculated for each analyzed frames and saved in output CSV file.",
-             None, 0),
-            ("scope_chull", "Scope hull definition: ", "None",
-             "Scope convex hull definition used in calculating volume and area.",
-             None, 0),
-            ("scope_chull_inflate", "scope_chull_inflate", "None",
-             "Increase (or if negative - decrease) size of the scope convex hull.", None, 0),
-            (
-                "object_chull", "Object convex hull: ", "None",
-                "Object convex hull definition used in calculating volume and area.",
-                None, 0),
-        ]
-    },
-    {
-        "config_name": "visualize",
-        "name": "Stage VI",
-        "name_long": "Visualize",
-        "entries": [
-            ("execute", "Execute: ", ("run", "runonce", "skip"),
-             "Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run or runonce stage is executed and results is saved according to save option. If it is set to skip stage is skipped.",
-             None, 0),
-            # TODO: Jaki plik?
-            ("save", "Save file: ", "niezidentifikowana wartość domyślna", "File name for saving results.", None, 0),
-            ("all_paths_raw", "Raw paths: ", False,
-             "If True produces one object in PyMOL that holds all paths visualized by raw coordinates.", None, 1),
-            ("all_paths_smooth", "Smooth paths: ", False,
-             "If True produces one object in PyMOL that holds all paths visualized by smooth coordinates.", None, 1),
-            ("all_paths_split", "Split paths: ", False,
-             "If is set True objects produced by all_paths_raw and all_paths_smooth are split into Incoming, Object, and Outgoing parts and visualized as three different objects.",
-             None, 1),
-            ("all_paths_raw_io", "all_paths_raw_io", False,
-             "If set True arrows pointing beginning and end of paths are displayed oriented accordingly to raw paths orientation.",
-             None, 1),
-            ("all_paths_smooth_io", "all_paths_smooth_io", False,
-             "If set True arrows pointing beginning and end of paths are displayed oriented accordingly to smooth paths orientation.",
-             None, 1),
-            ("all_paths_amount", "Paths limit: ", "None",
-             "Allows to limit number of visualised paths. If it is a number in range (0,1), then it is interpreted as a percent number of paths to be visualized. It is is a integer number >= 1 it is total number of all_paths visualized.",
-             None, 0),
-            ("simply_smooths", "Smoothing simplification: ", [("RecursiveVector", "HobbitVector", "OneWayVector",
-                                                               "RecursiveTriangle", "HobbitTriangle", "OneWayTriangle"),
-                                                              float()],
-             "Option indicates linear simplification method to be used in plotting smooth paths. Simplification removes points which do not (or almost do not) change the shape of smooth path. Optionally name of the method can be followed by a threshold value. For sane values of thresholds see appropriate documentation of each method. Default values work well. This option is not case sensitive. It is recommended to use default method or HobbitVector method.",
-             None, 0),
-            ("paths_raw", "paths_raw", False,
-             "If set True raw paths are displayed as separate objects or as one object with states corresponding to number of path.",
-             None, 1),
-            ("paths_smooth", "paths_smooth", False,
-             "If set True smooth paths are displayed as separate objects or as one object with states corresponding to number of path.",
-             None, 1),
-            ("paths_raw_io", "paths_raw_io", False,
-             "If set True arrows indicating beginning and end of paths, oriented accordingly to raw paths, are displayed as separate objects or as one object with states corresponding to number of paths.",
-             None, 1),
-            ("paths_smooth_io", "paths_smooth_io", False,
-             "If set True arrows indicating beginning and end of paths, oriented accordingly to smooth paths, are displayed as separate objects or as one object with states corresponding to number of paths.",
-             None, 1),
-            ("paths_states", "paths_states", False,
-             "If True objects displayed by paths_raw, paths_smooth, paths_raw_io, and paths_smooth_io are displayed as one object with states corresponding to number of paths. Otherwise they are displayed as separate objects.",
-             None, 1),
-            ("ctypes_raw", "ctypes_raw", False,
-             "Displays raw paths in a similar manner as non split all_paths_raw but each cluster type is displayed in separate object.",
-             None, 1),
-            ("ctypes_smooth", "ctypes_smooth", False,
-             "Displays smooth paths in a similar manner as non split all_paths_smooth but each cluster type is displayed in separate object.",
-             None, 1),
-            ("ctypes_amount", "Ctypes limit: ", "None",
-             "Allows to limit number of visualised ctypes. If it is a number in range (0,1), then it is interpreted as percent number of ctypes to be visualized. It is is a integer number >= 1, it is total number of visualized ctypes.",
-             None, 1),
-            ("inlets_clusters", "Visualize cluster of inlets: ", False,
-             "	If set True, clusters of inlets are visualized.", None, 1),
-            ("inlets_clusters_amount", "Inlets limit: ", "None",
-             "Allows to limit number of visualised inlets. If it is a number in range (0,1) then it is interpreted as percent number of inlets to be visualized. It is is a integer number >= 1 it is total number of visualized inlets.",
-             None, 0),
-            ("show_molecule", "Show molecule: ", [str(), False],
-             "If is set to selection of some molecular object in the system, for example to protein, this object is displayed.",
-             None, 1),
-            ("show_molecule_frames", "Molecule frames: ", 0,
-             "Allows to indicate which frames of object defined by show_molecule should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
-             None, 1),
-            ("show_scope_chull", "Show scope convex hull: ", [str(), False],
-             "If is set to selection of some molecular object in the system, for example to protein, convex hull of this object is displayed.",
-             None, 1),
-            ("show_scope_chull_inflate", "show_scope_chull_inflate", "None",
-             "Increase (or if negative decrease) size of the scope convex hull.", None, 1),
-            ("show_scope_chull_frames", "Scope convex hull frames: ", 0,
-             "Allows to indicate for which frames of object defined by \"Show scope convex hull\" should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
-             None, 1),
-            ("show_object_chull", "Show object convex hull frames: ", [str(), False],
-             "If is set to selection of some molecular object in the system convex hull of this object is displayed. This works exacly the same way as show_chull but is meant to mark object shape. It can be achieved by using name * and molecular object definition plus some spatial constrains, for example those used in object definition.",
-             None, 1),
-            ("show_object_chull_frames", "Object convex hull frames:", 0,
-             "Allows to indicate for which frames of object defined by show_object convex hull should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
-             None, 1),
-        ]
-    },
-    {
-        "config_name": "smooth",
-        "name": "Smooth",
-        "name_long": "Smooth",
-        "entries": [
-            ("method", "Method: ", ("window", "mss", "window_mss", "awin", "awin_mss", "dwin", "dwin_mss", "savgol"),
-             "Smoothing method.", None, 0),
-            ("recursive", "Recursive runs: ", int(), "Number of recursive runs of smoothing method.", None, 0),
-            ("window", "Window size: ", float(),
-             "In window based method defines window size. In plain window it has to be int number. In savgol it has to be odd integer.",
-             None, 0),
-            ("step", "Step: ", int(), "In step based method defines size of the step.", None, 0),
-            ("function", "Averaging function: ", ("mean", "median"),
-             "In window based methods defines averaging function.", None, 0),
-            ("polyorder", "polyorder", int(), "In savgol is polynomial order.", None, 0),
-        ]
-    },
-    {
-        "config_name": "clusterization",
-        "name": "Clusterization",
-        "name_long": "Clusterization",
-        "entries": [
-            ("name", "Name", "clusterization",
-             "Used to refer other clusterization method in \"Recursive clustering\" option", None, 1),
-            ("method", "method", ("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans"),
-             "Name of clusterization method. ",
-             None, 1),
-            ("recursive_clusterization", "Recursive clusterizing: ", "clusterization",
-             "If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
-             None, 1),
-            ("recursive_threshold", "Recursive threshold: ", "None",
-             "Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
-             None, 1),
-
-            # This is exceptional tuple, 5th parameter indicates to which method it belong
-            # so there is possibility to keep visible only that one which belong to selected method
-
-            # Barber options
-            ("auto_barber", "Auto barber: ", str(),
-             "This option allows to select molecular entity used in Auto Barber procedure.", "barber", 1),
-            ("auto_barber_mincut", "Auto Barber mincut: ", str(),
-             "Minimal radius of spheres used in Auto Barber. If a sphere has radius smaller than this value, it is not used to cut. This option can be switched off by setting it to None.",
-             "barber", 0),
-            ("auto_barber_maxcut", "Auto Barber maxcut: ", str(),
-             "	Maximal radius of spheres used in Auto Barber. If a sphere has radius greater than this value, it is not used to cut. This option can be switched off by setting it to None.",
-             "barber", 0),
-            ("auto_barber_mincut_level", "Auto Barber mincut level: ", bool(),
-             "If set True, spheres of radius less than mincut are resized to mincut value.", "barber", 0),
-            ("auto_barber_maxcut_level", "Auto Barber maxcut level:", bool(),
-             "	If set True, spheres of radius greater than maxcut are resized to maxcut value.", "barber", 0),
-            ("auto_barber_tovdw", "Auto Barber VdW: ", bool(),
-             "If set True, cutting of spheres is corrected by decreasing its radius by VdW radius of the closest atom.",
-             "barber", 0),
-
-            # Dbscan options
-            ("eps", "Maximum distance: ", float(),
-             "The maximum distance between two samples for them to be considered as in the same neighborhood.",
-             "dbscan", 0),
-            ("min_samples", "Maxium samples: ", int(),
-             "	The number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself.",
-             "dbscan", 0),
-            ("metric", "Metric: ", ("euclidean", "cityblock", "cosine", "manhattan"),
-             "The metric to use when calculating distance between instances in a feature array.", "dbscan", 0),
-            ("algorithm", "Algorithm: ", ("auto", "ball_tree", "kd_tree", "brute"),
-             "The algorithm to be used by the NearestNeighbors module to compute pointwise distances and find nearest neighbors.",
-             "dbscan", 0),
-            ("leaf_size", "Leaf size: ", int(), "Leaf size passed to BallTree or cKDTree.", "dbscan", 0),
-
-            # Affprop options
-            ("damping", "Damping factor: ", float(), "	Damping factor between 0.5 and ", "affprop", 0),
-            # TODO: ?
-            ("convergence_iter", "Maximum no effect iterations: ", int(),
-             "Number of iterations with no change in the number of estimated clusters that stops the convergence.",
-             "affprop", 0),
-            ("max_iter", "Maximum number of iterations: ", int(), "Maximum number of iterations.", "affprop", 0),
-            ("preference", "Preference: ", float(),
-             "Points with larger values of preferences are more likely to be chosen as exemplars.", "affprop", 0),
-
-            # Meanshift options
-            ("bandwidth", "Bandwidth: ", "Auto",
-             "Bandwidth used in the RBF kernel. If Auto or None automatic method for bandwidth estimation is used.",
-             "meanshift", 1),
-            ("cluster_all", "Cluster all points: ", bool(),
-             "If true, then all points are clustered, even those orphans that are not within any kernel.", "meanshift",
-             0),
-            ("bin_seeding", "bin_seeding", bool(),
-             "If true, initial kernel locations are not locations of all points, but rather the location of the discretized version of points, where points are binned onto a grid whose coarseness corresponds to the bandwidth.",
-             "meanshift", 0),
-            ("min_bin_freq", "min_bin_freq", int(),
-             "To speed up the algorithm, accept only those bins with at least min_bin_freq points as seeds. If not defined, set to 1.",
-             "meanshift", 0),
-
-            # Bircz options
-            ("threshold", "Threshold: ", float(),
-             "The radius of the subcluster obtained by merging a new sample and the closest subcluster should be smaller than the threshold. Otherwise a new subcluster is started.",
-             "birch", 0),
-            ("branching_factor", "Branching factor: ", int(), "Maximum number of CF subclusters in each node.", "birch",
-             0),
-            ("n_clusters", "Cluster number: ", int(),
-             "	Number of clusters after the final clustering step, which treats the subclusters from the leaves as new samples. By default, this final clustering step is not performed and the subclusters are returned as they are.",
-             "birch", 1),
-
-            # Kmeans options
-            ("n_clusters", "Cluster number: ", int(),
-             "The number of clusters to form as well as the number of centroids to generate.", "kmeans", 1),
-            ("max_iter", "Maximum number of iterations: ", int(),
-             "Maximum number of iterations of the k-means algorithm for a single run.", "kmeans", 0),
-            ("n_init", "n_init", int(),
-             "Number of times the k-means algorithm will be run with different centroid seeds. The final results will be the best output of n_init consecutive runs in terms of inertia.",
-             "kmeans", 0),
-            ("init", "Init method: ", ("k-means++", "random"),
-             "Method for initialization, defaults to k-means++. Can be one of following: k-means++ or random.",
-             "kmeans", 0),
-            ("tol", "Tolerance: ", float(), "Relative tolerance with regards to inertia to declare convergence.",
-             "kmeans", 0),
-        ]
-    },
-    {
-        "config_name": "reclusterization",
-        "name": "Reclusterization",
-        "name_long": "Reclusterization",
-        "entries": [
-            ("name", "Name", "reclusterization", "clusterization name", None, 1),
-            ("method", "method", ("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans"),
-             "Name of clusterization method. It has to be one of the following: barber, dbscan, affprop, meanshift, birch, kmeans. Default value depends whether it is clusterization section (barber) or reclusterization section (dbscan).",
-             None, 1),
-            ("recursive_clusterization", "recursive_clusterization", "clusterization",
-             "If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
-             None, 1),
-            ("recursive_threshold", "recursive_threshold", str(),
-             "Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
-             None, 1),
-
-            # This is exceptional tuple, 5th parameter indicates to which method it belong
-            # so there is possibility to keep visible only that one which belong to selected method
-
-            # Barber options
-            ("auto_barber", "Auto barber: ", str(),
-             "This option allows to select molecular entity used in Auto Barber procedure.", "barber", 1),
-            ("auto_barber_mincut", "Auto Barber mincut: ", str(),
-             "Minimal radius of spheres used in Auto Barber. If a sphere has radius smaller than this value, it is not used to cut. This option can be switched off by setting it to None.",
-             "barber", 0),
-            ("auto_barber_maxcut", "Auto Barber maxcut: ", str(),
-             "	Maximal radius of spheres used in Auto Barber. If a sphere has radius greater than this value, it is not used to cut. This option can be switched off by setting it to None.",
-             "barber", 0),
-            ("auto_barber_mincut_level", "Auto Barber mincut level: ", bool(),
-             "If set True, spheres of radius less than mincut are resized to mincut value.", "barber", 0),
-            ("auto_barber_maxcut_level", "Auto Barber maxcut level:", bool(),
-             "	If set True, spheres of radius greater than maxcut are resized to maxcut value.", "barber", 0),
-            ("auto_barber_tovdw", "Auto Barber VdW: ", bool(),
-             "If set True, cutting of spheres is corrected by decreasing its radius by VdW radius of the closest atom.",
-             "barber", 0),
-
-            # Dbscan options
-            ("eps", "Maximum distance: ", float(),
-             "The maximum distance between two samples for them to be considered as in the same neighborhood.",
-             "dbscan", 0),
-            ("min_samples", "Maxium samples: ", int(),
-             "	The number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself.",
-             "dbscan", 0),
-            ("metric", "Metric: ", ("euclidean", "cityblock", "cosine", "manhattan"),
-             "The metric to use when calculating distance between instances in a feature array.", "dbscan", 0),
-            ("algorithm", "Algorithm: ", ("auto", "ball_tree", "kd_tree", "brute"),
-             "The algorithm to be used by the NearestNeighbors module to compute pointwise distances and find nearest neighbors.",
-             "dbscan", 0),
-            ("leaf_size", "Leaf size: ", int(), "Leaf size passed to BallTree or cKDTree.", "dbscan", 0),
-
-            # Affprop options
-            ("damping", "Damping factor: ", float(), "	Damping factor between 0.5 and ", "affprop", 0),
-            # TODO: ?
-            ("convergence_iter", "Maximum no effect iterations: ", int(),
-             "Number of iterations with no change in the number of estimated clusters that stops the convergence.",
-             "affprop", 0),
-            ("max_iter", "Maximum number of iterations: ", int(), "Maximum number of iterations.", "affprop", 0),
-            ("preference", "Preference: ", float(),
-             "Points with larger values of preferences are more likely to be chosen as exemplars.", "affprop", 0),
-
-            # Meanshift options
-            ("bandwidth", "Bandwidth: ", "Auto",
-             "Bandwidth used in the RBF kernel. If Auto or None automatic method for bandwidth estimation is used.",
-             "meanshift", 1),
-            ("cluster_all", "Cluster all points: ", bool(),
-             "If true, then all points are clustered, even those orphans that are not within any kernel.", "meanshift",
-             0),
-            ("bin_seeding", "bin_seeding", bool(),
-             "If true, initial kernel locations are not locations of all points, but rather the location of the discretized version of points, where points are binned onto a grid whose coarseness corresponds to the bandwidth.",
-             "meanshift", 0),
-            ("min_bin_freq", "min_bin_freq", int(),
-             "To speed up the algorithm, accept only those bins with at least min_bin_freq points as seeds. If not defined, set to 1.",
-             "meanshift", 0),
-
-            # Bircz options
-            ("threshold", "Threshold: ", float(),
-             "The radius of the subcluster obtained by merging a new sample and the closest subcluster should be smaller than the threshold. Otherwise a new subcluster is started.",
-             "birch", 0),
-            ("branching_factor", "Branching factor: ", int(), "Maximum number of CF subclusters in each node.", "birch",
-             0),
-            ("n_clusters", "Cluster number: ", int(),
-             "	Number of clusters after the final clustering step, which treats the subclusters from the leaves as new samples. By default, this final clustering step is not performed and the subclusters are returned as they are.",
-             "birch", 1),
-
-            # Kmeans options
-            ("n_clusters", "Cluster number: ", int(),
-             "The number of clusters to form as well as the number of centroids to generate.", "kmeans", 1),
-            ("max_iter", "Maximum number of iterations: ", int(),
-             "Maximum number of iterations of the k-means algorithm for a single run.", "kmeans", 0),
-            ("n_init", "n_init", int(),
-             "Number of times the k-means algorithm will be run with different centroid seeds. The final results will be the best output of n_init consecutive runs in terms of inertia.",
-             "kmeans", 0),
-            ("init", "Init method: ", ("k-means++", "random"),
-             "Method for initialization, defaults to k-means++. Can be one of following: k-means++ or random.",
-             "kmeans", 0),
-            ("tol", "Tolerance: ", float(), "Relative tolerance with regards to inertia to declare convergence.",
-             "kmeans", 0),
-        ]
-    },
-]
-# @formatter:on
-
-# Set option menu as "menu"
-# Selecting option of option menu will show only entries which 4th element in DEFAULTSs is the same as option name
-MENUS = [
-    # section:entry
-    "clusterization:method",
-    "reclusterization:method"
-]
-
-LEVELS = {
-    "Easy": 1,
-    "Normal": 0
-}
 
 LOGO_ENCODED = """
 R0lGODlhGAFIAPYAAAAAAAwMDBQUFBsbGyUlJS8vLzIyMj8/P0VFRUtLS1NTU1tbW2JiYm1tbXR0dHl5eQCu/AC1/AS4/Au6/
