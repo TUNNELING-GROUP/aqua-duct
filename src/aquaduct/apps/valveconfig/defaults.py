@@ -79,6 +79,27 @@ class DefaultEntry(object):
         self.warning_text = warning_text
         self.optionmenu_value = optionmenu_value
 
+    @property
+    def default_value(self):
+        if len(self.default_values) == 1:
+            if isinstance(self.default_values[0], tuple):
+                default_value = self.default_values[0][0]
+            else:
+                default_value = self.default_values[0]
+        elif len(self.default_values) == 2:
+            if isinstance(self.default_values[0], tuple):
+                default_value = self.default_values[0][0]
+            # If second value is bool its checkbox.
+            # If checkbox is False there is no matter what is in input widget
+            elif isinstance(self.default_values[1], bool):
+                default_value = self.default_values[1]
+                if default_value:
+                    default_value = self.default_values[0]
+            else:
+                default_value = self.default_values[0]
+
+        return default_value
+
 
 def is_menu(section, option):
     """
@@ -419,7 +440,7 @@ analysis_section.add_entry(DefaultEntry(config_name="scope_chull_inflate",
                                         level=0))
 analysis_section.add_entry(DefaultEntry(config_name="object_chull",
                                         name="Object convex hull: ",
-                                        default_values=[None],
+                                        default_values=[str()],
                                         help_text="Object convex hull definition used in calculating volume and area.",
                                         level=0))
 DEFAULTS.append(analysis_section)

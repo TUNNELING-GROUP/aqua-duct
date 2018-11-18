@@ -80,14 +80,17 @@ def widget_factory(parent, default, state=tk.NORMAL):
 
         w = ttk.OptionMenu(parent, v, default[0], *default)
     elif isinstance(default, list):
-        raise TypeError("Use tuple for option menu, not list", default)
+        v = tk.StringVar()
+
+        w = ttk.Combobox(parent, textvariable=v)
+        w["values"] = default
     else:
         raise TypeError("There is no specified behaviour for {} type".format(type(default)))
 
     return w, v
 
 
-def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL):
+def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL, info_text=None, warning_text=None):
     """
     Determines which class is used to handle specified default value.
 
@@ -105,29 +108,30 @@ def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL):
         input_default, control_default = default
 
         if isinstance(control_default, bool):
-            return BoolEntry(parent, row, entry_name, input_default, control_default, help)
+            return BoolEntry(parent, row, entry_name, input_default, control_default, help, info_text, warning_text)
         elif isinstance(control_default, defaults.filetype):
             if isinstance(input_default, str):
-                return FileEntry(parent, row, entry_name, input_default, help)
+                return FileEntry(parent, row, entry_name, input_default, help, info_text, warning_text)
             else:
                 raise TypeError(
                     "File can be loaded only into str widget type in {} option({})".format(entry_name,
                                                                                            type(default)))
         elif isinstance(control_default, defaults.manyfiletype):
             if isinstance(input_default, str):
-                return ManyFileEntry(parent, row, entry_name, input_default, help)
+                return ManyFileEntry(parent, row, entry_name, input_default, help, info_text, warning_text)
             else:
                 raise TypeError(
                     "File can be loaded only into str widget type in {} option({})".format(entry_name,
                                                                                            type(default)))
         elif isinstance(control_default, float):
-            return ParenthesedEntry(parent, row, entry_name, input_default, control_default, help)
+            return ParenthesedEntry(parent, row, entry_name, input_default, control_default, help, info_text,
+                                    warning_text)
         else:
             raise TypeError("There is no specified behaviour for {} type(for {} option). "
                             "First must be input widget, then control widget"
                             .format(type(control_default), entry_name))
     else:
-        return StandardEntry(parent, row, entry_name, default[0], help, state)
+        return StandardEntry(parent, row, entry_name, default[0], help, state, info_text, warning_text)
 
 
 class Text(tk.Text, object):
@@ -216,7 +220,7 @@ class Entry(object):
 
 
 class StandardEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, default, help, state):
+    def __init__(self, parent, row, entry_name_long, default, help, state, info_text=None, warning_text=None):
         """
         Entry with standard widget.
 
@@ -236,7 +240,12 @@ class StandardEntry(Entry):
         input_frame.grid(row=row, column=1, sticky=self.frame_sticky, pady=self.frame_pady, padx=7)
 
         widget, self.input_var = widget_factory(input_frame, default, state)
-        widget.pack()
+        widget.pack(side=tk.LEFT)
+
+        if info_text:
+            InfoIconWidget(input_frame, info_text).pack(side=tk.LEFT)
+        elif warning_text:
+            WarningIconWidget(input_frame, warning_text).pack(side=tk.LEFT)
 
         ToolTip.create(widget, help)
 
@@ -258,7 +267,7 @@ class StandardEntry(Entry):
 
 
 class BoolEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, input_default, control_default, help):
+    def __init__(self, parent, row, entry_name_long, input_default, control_default, help, info_text, warning_text):
         """
         Entry with Checkbox and Entry or text widget.
 
@@ -285,6 +294,11 @@ class BoolEntry(Entry):
 
         control_widget, self.control_var = widget_factory(input_frame, control_default)
         control_widget.pack(side=tk.LEFT, padx=6)
+
+        if info_text:
+            InfoIconWidget(input_frame, info_text).pack(side=tk.LEFT)
+        elif warning_text:
+            WarningIconWidget(input_frame, warning_text).pack(side=tk.LEFT)
 
         ToolTip.create(control_widget, help)
 
@@ -316,7 +330,7 @@ class BoolEntry(Entry):
 
 
 class FileEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, default, help):
+    def __init__(self, parent, row, entry_name_long, default, help, info_text, warning_text):
         """
         Entry with Entry widget and button to load and append file name to it.
 
@@ -340,9 +354,14 @@ class FileEntry(Entry):
         ToolTip.create(self.input_widget, help)
 
         load_file_button = ttk.Button(input_frame, text="Load", style="File.TButton")
-        load_file_button.pack(side=tk.RIGHT)
+        load_file_button.pack(side=tk.LEFT)
 
         load_file_button.bind("<Button-1>", self.callback_load_file)
+
+        if info_text:
+            InfoIconWidget(input_frame, info_text).pack(side=tk.LEFT)
+        elif warning_text:
+            WarningIconWidget(input_frame, warning_text).pack(side=tk.LEFT)
 
     def callback_load_file(self, e):
         """
@@ -374,7 +393,7 @@ class FileEntry(Entry):
 
 
 class ManyFileEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, default, help):
+    def __init__(self, parent, row, entry_name_long, default, help, info_text, warning_text):
         """
         Entry with Text widget and button to load and append file names to it.
 
@@ -403,6 +422,11 @@ class ManyFileEntry(Entry):
         self.input_frame.grid(row=row, column=1, sticky=self.frame_sticky, pady=self.frame_pady)
 
         self.append_entry()
+
+        if info_text:
+            InfoIconWidget(self.input_frame, info_text).grid(row=0, column=2)
+        elif warning_text:
+            WarningIconWidget(self.input_frame, warning_text).grid(row=0, column=2)
 
     def append_entry(self):
         """ Creates new entry with input widget and load button """
@@ -460,7 +484,7 @@ class ManyFileEntry(Entry):
 
 
 class ParenthesedEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, input_default, control_default, help):
+    def __init__(self, parent, row, entry_name_long, input_default, control_default, help, info_text, warning_text):
         """
         Entry with Text widget and button to load and append file names to it.
 
@@ -484,7 +508,12 @@ class ParenthesedEntry(Entry):
         ToolTip.create(input_widget, help)
 
         control_widget, self.control_var = widget_factory(input_frame, control_default)
-        control_widget.pack(side=tk.RIGHT, padx=6)
+        control_widget.pack(side=tk.LEFT, padx=6)
+
+        if info_text:
+            InfoIconWidget(input_frame, info_text).pack(side=tk.LEFT)
+        elif warning_text:
+            WarningIconWidget(input_frame, warning_text).pack(side=tk.LEFT)
 
         ToolTip.create(control_widget, help)
 
@@ -514,6 +543,22 @@ class ParenthesedEntry(Entry):
         except ValueError:  # When there is no threshold
             self.input_var.set(value)
             self.control_var.set(0.0)
+
+
+class WarningIconWidget(ttk.Label, object):
+    def __init__(self, parent, text):
+        self.image = tk.PhotoImage(data=WARNING_ICON)
+        super(WarningIconWidget, self).__init__(parent, image=self.image, padding=0)
+
+        ToolTip.create(self, text)
+
+
+class InfoIconWidget(ttk.Label, object):
+    def __init__(self, parent, text):
+        self.image = tk.PhotoImage(data=INFO_ICON)
+        super(InfoIconWidget, self).__init__(parent, image=self.image, padding=0)
+
+        ToolTip.create(self, text)
 
 
 class HidingFrame(ttk.Frame, object):
@@ -653,6 +698,20 @@ class VerticalScrolledFrame(tk.Frame):
                 canvas.itemconfigure(interior_id, width=canvas.winfo_width())
 
         canvas.bind('<Configure>', _configure_canvas)
+
+
+INFO_ICON = """
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gsRFS
+M6amXeigAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAzSURBVDjLY9Sdd+8/AwWACZ/kpURFhkuJiuQbQAxgwSepN/8+ZV4Y
+GmEwasCwMGDgkzIA61QLdLWHcd4AAAAASUVORK5CYII=
+"""
+
+
+WARNING_ICON = """
+iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gsRFS
+IvHqMLIAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAA+SURBVDjLY/z/n+E/AwWAiYFCgNcARkYIHjgXDA0DWPBJsrFRaICg
+IOFYwGuAsDBhFzCOpkT8gfj/Px3CAABswAh9ETyJyQAAAABJRU5ErkJggg==
+"""
 
 
 LOGO_ENCODED = """

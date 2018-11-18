@@ -358,12 +358,21 @@ class ValveConfigApp(object):
                                                                                    hiding_frame.inner_row,
                                                                                    entry.name,
                                                                                    entry.default_values,
-                                                                                   entry.help_text, state)
+                                                                                   entry.help_text,
+                                                                                   state,
+                                                                                   info_text=entry.info_text,
+                                                                                   warning_text=entry.warning_text)
 
                 hiding_frame.inner_row += 1
             else:
-                entry_widget = utils.entry_factory(parent, row, entry.name, entry.default_values, entry.help_text,
-                                                   state)
+                entry_widget = utils.entry_factory(parent,
+                                                   row,
+                                                   entry.name,
+                                                   entry.default_values,
+                                                   entry.help_text,
+                                                   state,
+                                                   info_text=entry.info_text,
+                                                   warning_text=entry.warning_text)
 
                 if (section_name.startswith("clusterization") or section_name.startswith(
                         "reclusterization")) and entry.config_name == "name":
@@ -503,23 +512,7 @@ class ValveConfigApp(object):
                     config.add_section(section_name)
 
                 for option_name, value in self.values[section_name].iteritems():
-                    default_values = defaults.get_default_entry(section_name, option_name).default_values
-                    if len(default_values) == 1:
-                        if isinstance(default_values[0], tuple):
-                            default_value = default_values[0][0]
-                        else:
-                            default_value = default_values[0]
-                    elif len(default_values) == 2:
-                        if isinstance(default_values[0], tuple):
-                            default_value = default_values[0][0]
-                        # If second value is bool its checkbox.
-                        # If checkbox is False there is no matter what is in input widget
-                        elif isinstance(default_values[1], bool):
-                            default_value = default_values[1]
-                            if default_value:
-                                default_value = default_values[0]
-                        else:
-                            default_value = default_values[0]
+                    default_value = defaults.get_default_entry(section_name, option_name).default_value
 
                     # Skip empty strings and entries which are not visible
                     if value.get() != "" and value.get() != default_value:
