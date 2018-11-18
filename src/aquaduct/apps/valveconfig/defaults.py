@@ -46,6 +46,13 @@ class manyfiletype(object):
 
 class DefaultSection(object):
     def __init__(self, config_name, name, level):
+        """
+        Contrains info about section necessary to create it.
+
+        :param config_name: Name of section in config.
+        :param name: Brief label text, which will be displayed in Notebook tab.
+        :param level: Entry level. Check LEVELS dict for adjust it.
+        """
         self.config_name = config_name
         self.name = name
         self.level = level
@@ -62,6 +69,18 @@ class DefaultSection(object):
 class DefaultEntry(object):
     def __init__(self, config_name, name, default_values, help_text, level, info_text=None, warning_text=None,
                  optionmenu_value=None):
+        """
+        Contains info about entry necessary to create it.
+
+        :param config_name: Name of option in config.
+        :param name: Brief label text, which will be displayed near widget.
+        :param default_values: List of default values.
+        :param help_text: Tooltip content.
+        :param level: Entry level. Check LEVELS dict for adjust it.
+        :param info_text: If present information icon with content of that variable will be displayed.
+        :param warning_text: If present warning icon with content of that variable will be displayed.
+        :param optionmenu_value: OptionMenu value, which will cause display appropriate hiding frame.
+        """
         self.config_name = config_name
         self.name = name
 
@@ -81,6 +100,11 @@ class DefaultEntry(object):
 
     @property
     def default_value(self):
+        """
+        Determines default value based on specified default values list.
+
+        :return: Entry default value.
+        """
         if len(self.default_values) == 1:
             if isinstance(self.default_values[0], tuple):
                 default_value = self.default_values[0][0]
@@ -163,7 +187,7 @@ To create hiding frame set optionmenu_value to specific value and add info into 
 # @formatter:off
 DEFAULTS = []
 
-global_section = DefaultSection(config_name="global", name="General options", level=0)
+global_section = DefaultSection(config_name="global", name="General options", level=1)
 global_section.add_entry(DefaultEntry(config_name="top",
                                       name="Topology file: ",
                                       default_values=[str(), filetype()],
@@ -181,7 +205,7 @@ global_section.add_entry(DefaultEntry(config_name="twoway",
                                       level=0))
 DEFAULTS.append(global_section)
 
-traceable_residues_section = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=0)
+traceable_residues_section = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=1)
 traceable_residues_section.add_entry(DefaultEntry(config_name="execute",
                                                   name="Execute: ",
                                                   default_values=[("runonce", "run", "skip")],
@@ -224,7 +248,7 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="add_passing",
                                                   level=0))
 DEFAULTS.append(traceable_residues_section)
 
-raw_paths_section = DefaultSection(config_name="raw_paths", name="Raw paths", level=0)
+raw_paths_section = DefaultSection(config_name="raw_paths", name="Raw paths", level=1)
 raw_paths_section.add_entry(DefaultEntry(config_name="execute",
                                          name="Execute: ",
                                          default_values=[("runonce", "run", "skip")],
@@ -277,7 +301,7 @@ raw_paths_section.add_entry(DefaultEntry(config_name="discard_empty_paths",
                                          level=0))
 DEFAULTS.append(raw_paths_section)
 
-separate_paths_section = DefaultSection(config_name="separate_paths", name="Separate paths", level=0)
+separate_paths_section = DefaultSection(config_name="separate_paths", name="Separate paths", level=1)
 separate_paths_section.add_entry(DefaultEntry(config_name="execute",
                                               name="Execute: ",
                                               default_values=[("runonce", "run", "skip")],
@@ -350,7 +374,7 @@ separate_paths_section.add_entry(DefaultEntry(config_name="allow_passing_paths",
                                               level=0))
 DEFAULTS.append(separate_paths_section)
 
-inlets_clusterization_section = DefaultSection(config_name="inlets_clusterization", name="Inlets clusterization", level=0)
+inlets_clusterization_section = DefaultSection(config_name="inlets_clusterization", name="Inlets clusterization", level=1)
 inlets_clusterization_section.add_entry(DefaultEntry(config_name="execute",
                                                      name="Execute",
                                                      default_values=[("runonce", "run", "skip")],
@@ -407,209 +431,7 @@ inlets_clusterization_section.add_entry(DefaultEntry(config_name="join_clusters"
                                                      level=1))
 DEFAULTS.append(inlets_clusterization_section)
 
-analysis_section = DefaultSection(config_name="analysis", name="Analysis", level=0)
-analysis_section.add_entry(DefaultEntry(config_name="execute",
-                                        name="Execute",
-                                        default_values=[("run", "runonce", "skip")],
-                                        help_text="Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run or runonce stage is executed and results is saved according to save option. If it is set to skip stage is skipped.",
-                                        level=0))
-analysis_section.add_entry(DefaultEntry(config_name="save",
-                                        name="Save file: ",
-                                        default_values=["5_analysis_results.txt"],
-                                        help_text="File name for saving results.",
-                                        level=0))
-analysis_section.add_entry(DefaultEntry(config_name="dump_config",
-                                        name="Dump config: ",
-                                        default_values=[True],
-                                        help_text="If set to True configuration options, as seen by Valve, are added to the head of results.",
-                                        level=0))
-analysis_section.add_entry(DefaultEntry(config_name="calculate_scope_object_size",
-                                        name="Calculate scope and object size: ",
-                                        default_values=[False],
-                                        help_text="If set to True volumes and areas of object and scope approximated by convex hulls will be calculated for each analyzed frames and saved in output CSV file.",
-                                        level=0))
-analysis_section.add_entry(DefaultEntry(config_name="scope_chull",
-                                        name="Scope hull definition: ",
-                                        default_values=[str()],
-                                        help_text="Scope convex hull definition used in calculating volume and area.",
-                                        level=0))
-analysis_section.add_entry(DefaultEntry(config_name="scope_chull_inflate",
-                                        name="scope_chull_inflate",
-                                        default_values=[str()],
-                                        help_text="Increase (or if negative - decrease) size of the scope convex hull.",
-                                        level=0))
-analysis_section.add_entry(DefaultEntry(config_name="object_chull",
-                                        name="Object convex hull: ",
-                                        default_values=[str()],
-                                        help_text="Object convex hull definition used in calculating volume and area.",
-                                        level=0))
-DEFAULTS.append(analysis_section)
-
-visualize_section = DefaultSection(config_name="visualize", name="Visualize", level=0)
-visualize_section.add_entry(DefaultEntry(config_name="execute",
-                                         name="Execute: ",
-                                         default_values=[("run", "runonce", "skip")],
-                                         help_text="Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run or runonce stage is executed and results is saved according to save option. If it is set to skip stage is skipped.",
-                                         level=0))
-visualize_section.add_entry(DefaultEntry(config_name="save",
-                                         name="Save file: ",
-                                         default_values=["6_visualize_results"],
-                                         help_text="File name for saving results.",
-                                         level=0))
-visualize_section.add_entry(DefaultEntry(config_name="all_paths_raw",
-                                         name="Raw paths: ",
-                                         default_values=[False],
-                                         help_text="If True produces one object in PyMOL that holds all paths visualized by raw coordinates.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="all_paths_smooth",
-                                         name="Smooth paths: ",
-                                         default_values=[False],
-                                         help_text="If True produces one object in PyMOL that holds all paths visualized by smooth coordinates.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="all_paths_split",
-                                         name="Split paths: ",
-                                         default_values=[False],
-                                         help_text="If is set True objects produced by all_paths_raw and all_paths_smooth are split into Incoming, Object, and Outgoing parts and visualized as three different objects.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="all_paths_raw_io",
-                                         name="all_paths_raw_io",
-                                         default_values=[False],
-                                         help_text="If set True arrows pointing beginning and end of paths are displayed oriented accordingly to raw paths orientation.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="all_paths_smooth_io",
-                                         name="all_paths_smooth_io",
-                                         default_values=[False],
-                                         help_text="If set True arrows pointing beginning and end of paths are displayed oriented accordingly to smooth paths orientation.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="all_paths_amount",
-                                         name="Paths limit: ",
-                                         default_values=[str()],
-                                         help_text="Allows to limit number of visualised paths. If it is a number in range (0,1), then it is interpreted as a percent number of paths to be visualized. It is is a integer number >= 1 it is total number of all_paths visualized.",
-                                         level=0))
-visualize_section.add_entry(DefaultEntry(config_name="simply_smooths",
-                                         name="Smoothing simplification: ",
-                                         default_values=[("RecursiveVector", "HobbitVector", "OneWayVector", "RecursiveTriangle", "HobbitTriangle", "OneWayTriangle"), float()],
-                                         help_text="Option indicates linear simplification method to be used in plotting smooth paths. Simplification removes points which do not (or almost do not) change the shape of smooth path. Optionally name of the method can be followed by a threshold value. For sane values of thresholds see appropriate documentation of each method. Default values work well. This option is not case sensitive. It is recommended to use default method or HobbitVector method.", level=0))
-visualize_section.add_entry(DefaultEntry(config_name="paths_raw",
-                                         name="paths_raw",
-                                         default_values=[False],
-                                         help_text="If set True raw paths are displayed as separate objects or as one object with states corresponding to number of path.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="paths_smooth",
-                                         name="paths_smooth",
-                                         default_values=[False],
-                                         help_text="If set True smooth paths are displayed as separate objects or as one object with states corresponding to number of path.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="paths_raw_io",
-                                         name="paths_raw_io",
-                                         default_values=[False],
-                                         help_text="If set True arrows indicating beginning and end of paths, oriented accordingly to raw paths, are displayed as separate objects or as one object with states corresponding to number of paths.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="paths_smooth_io",
-                                         name="paths_smooth_io",
-                                         default_values=[False],
-                                         help_text="If set True arrows indicating beginning and end of paths, oriented accordingly to smooth paths, are displayed as separate objects or as one object with states corresponding to number of paths.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="paths_states",
-                                         name="paths_states",
-                                         default_values=[False],
-                                         help_text="If True objects displayed by paths_raw, paths_smooth, paths_raw_io, and paths_smooth_io are displayed as one object with states corresponding to number of paths. Otherwise they are displayed as separate objects.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="ctypes_raw",
-                                         name="ctypes_raw",
-                                         default_values=[False],
-                                         help_text="Displays raw paths in a similar manner as non split all_paths_raw but each cluster type is displayed in separate object.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="ctypes_smooth",
-                                         name="ctypes_smooth",
-                                         default_values=[False],
-                                         help_text="Displays smooth paths in a similar manner as non split all_paths_smooth but each cluster type is displayed in separate object.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="ctypes_amount",
-                                         name="Ctypes limit: ",
-                                         default_values=[float()],
-                                         help_text="Allows to limit number of visualised ctypes. If it is a number in range (0,1), then it is interpreted as percent number of ctypes to be visualized. It is is a integer number >= 1, it is total number of visualized ctypes.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters",
-                                         name="Visualize cluster of inlets: ",
-                                         default_values=[False],
-                                         help_text="If set True, clusters of inlets are visualized.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters_amount",
-                                         name="Inlets limit: ",
-                                         default_values=[str()],
-                                         help_text="Allows to limit number of visualised inlets. If it is a number in range (0,1) then it is interpreted as percent number of inlets to be visualized. It is is a integer number >= 1 it is total number of visualized inlets.",
-                                         level=0))
-visualize_section.add_entry(DefaultEntry(config_name="show_molecule",
-                                         name="Show molecule: ", default_values=[str(), False],
-                                         help_text="If is set to selection of some molecular object in the system, for example to protein, this object is displayed.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="show_molecule_frames",
-                                         name="Molecule frames: ",
-                                         default_values=[0],
-                                         help_text="Allows to indicate which frames of object defined by show_molecule should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="show_scope_chull",
-                                         name="Show scope convex hull: ",
-                                         default_values=[str(), False],
-                                         help_text="If is set to selection of some molecular object in the system, for example to protein, convex hull of this object is displayed.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="show_scope_chull_inflate",
-                                         name="show_scope_chull_inflate",
-                                         default_values=[str()],
-                                         help_text="Increase (or if negative decrease) size of the scope convex hull.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="show_scope_chull_frames",
-                                         name="Scope convex hull frames: ",
-                                         default_values=[0],
-                                         help_text="Allows to indicate for which frames of object defined by \"Show scope convex hull\" should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="show_object_chull",
-                                         name="Show object convex hull frames: ",
-                                         default_values=[str(), False],
-                                         help_text="If is set to selection of some molecular object in the system convex hull of this object is displayed. This works exacly the same way as show_chull but is meant to mark object shape. It can be achieved by using name * and molecular object definition plus some spatial constrains, for example those used in object definition.",
-                                         level=1))
-visualize_section.add_entry(DefaultEntry(config_name="show_object_chull_frames",
-                                         name="Object convex hull frames:",
-                                         default_values=[0],
-                                         help_text="Allows to indicate for which frames of object defined by show_object convex hull should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
-                                         level=1))
-DEFAULTS.append(visualize_section)
-
-smooth_section = DefaultSection(config_name="smooth", name="Smooth", level=0)
-smooth_section.add_entry(DefaultEntry(config_name="method",
-                                      name="Method: ",
-                                      default_values=[("window", "mss", "window_mss", "awin", "awin_mss", "dwin", "dwin_mss", "savgol")],
-                                      help_text="Smoothing method.",
-                                      level=0))
-smooth_section.add_entry(DefaultEntry(config_name="recursive",
-                                      name="Recursive runs: ",
-                                      default_values=[int()],
-                                      help_text="Number of recursive runs of smoothing method.",
-                                      level=0))
-smooth_section.add_entry(DefaultEntry(config_name="window",
-                                      name="Window size: ",
-                                      default_values=[float()],
-                                      help_text="In window based method defines window size. In plain window it has to be int number. In savgol it has to be odd integer.",
-                                      level=0))
-smooth_section.add_entry(DefaultEntry(config_name="step",
-                                      name="Step: ",
-                                      default_values=[int()],
-                                      help_text="In step based method defines size of the step.",
-                                      level=0))
-smooth_section.add_entry(DefaultEntry(config_name="function",
-                                      name="Averaging function: ",
-                                      default_values=[("mean", "median")],
-                                      help_text="In window based methods defines averaging function.",
-                                      level=0))
-smooth_section.add_entry(DefaultEntry(config_name="polyorder",
-                                      name="polyorder",
-                                      default_values=[int()],
-                                      help_text="In savgol is polynomial order.",
-                                      level=0))
-DEFAULTS.append(smooth_section)
-
-clusterization_section = DefaultSection(config_name="clusterization", name="Clusterization", level=0)
+clusterization_section = DefaultSection(config_name="clusterization", name="Clusterization", level=1)
 clusterization_section.add_entry(DefaultEntry(config_name="name",
                                               name="Name",
                                               default_values=["clusterization"],
@@ -805,24 +627,24 @@ clusterization_section.add_entry(DefaultEntry(config_name="tol",
                                               optionmenu_value="kmeans"))
 DEFAULTS.append(clusterization_section)
 
-reclusterization_section = DefaultSection(config_name="reclusterization", name="Reclusterization", level=1)
-reclusterization_section.add_entry(DefaultEntry(config_name="name", 
-                                                name="Name", 
-                                                default_values=["reclusterization"], 
-                                                help_text="clusterization name", 
+reclusterization_section = DefaultSection(config_name="reclusterization", name="Reclusterization", level=0)
+reclusterization_section.add_entry(DefaultEntry(config_name="name",
+                                                name="Name",
+                                                default_values=["reclusterization"],
+                                                help_text="clusterization name",
                                                 level=1))
 reclusterization_section.add_entry(DefaultEntry(config_name="method",
                                                 name="method",
-                                                default_values=[("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")], 
-                                                help_text="Name of clusterization method. It has to be one of the following: barber, dbscan, affprop, meanshift, birch, kmeans. Default value depends whether it is clusterization section (barber) or reclusterization section (dbscan).", 
+                                                default_values=[("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")],
+                                                help_text="Name of clusterization method. It has to be one of the following: barber, dbscan, affprop, meanshift, birch, kmeans. Default value depends whether it is clusterization section (barber) or reclusterization section (dbscan).",
                                                 level=1))
-reclusterization_section.add_entry(DefaultEntry(config_name="recursive_clusterization", 
-                                                name="recursive_clusterization", 
-                                                default_values=["clusterization"], 
-                                                help_text="If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.", 
+reclusterization_section.add_entry(DefaultEntry(config_name="recursive_clusterization",
+                                                name="recursive_clusterization",
+                                                default_values=["clusterization"],
+                                                help_text="If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
                                                 level=1))
-reclusterization_section.add_entry(DefaultEntry(config_name="recursive_threshold", 
-                                                name="recursive_threshold", 
+reclusterization_section.add_entry(DefaultEntry(config_name="recursive_threshold",
+                                                name="recursive_threshold",
                                                 default_values=[str()],
                                                 help_text="Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
                                                 level=1))
@@ -1000,6 +822,208 @@ reclusterization_section.add_entry(DefaultEntry(config_name="tol",
                                               level=0,
                                               optionmenu_value="kmeans"))
 DEFAULTS.append(reclusterization_section)
+
+analysis_section = DefaultSection(config_name="analysis", name="Analysis", level=1)
+analysis_section.add_entry(DefaultEntry(config_name="execute",
+                                        name="Execute",
+                                        default_values=[("run", "runonce", "skip")],
+                                        help_text="Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run or runonce stage is executed and results is saved according to save option. If it is set to skip stage is skipped.",
+                                        level=0))
+analysis_section.add_entry(DefaultEntry(config_name="save",
+                                        name="Save file: ",
+                                        default_values=["5_analysis_results.txt"],
+                                        help_text="File name for saving results.",
+                                        level=0))
+analysis_section.add_entry(DefaultEntry(config_name="dump_config",
+                                        name="Dump config: ",
+                                        default_values=[True],
+                                        help_text="If set to True configuration options, as seen by Valve, are added to the head of results.",
+                                        level=0))
+analysis_section.add_entry(DefaultEntry(config_name="calculate_scope_object_size",
+                                        name="Calculate scope and object size: ",
+                                        default_values=[False],
+                                        help_text="If set to True volumes and areas of object and scope approximated by convex hulls will be calculated for each analyzed frames and saved in output CSV file.",
+                                        level=0))
+analysis_section.add_entry(DefaultEntry(config_name="scope_chull",
+                                        name="Scope hull definition: ",
+                                        default_values=[str()],
+                                        help_text="Scope convex hull definition used in calculating volume and area.",
+                                        level=0))
+analysis_section.add_entry(DefaultEntry(config_name="scope_chull_inflate",
+                                        name="scope_chull_inflate",
+                                        default_values=[str()],
+                                        help_text="Increase (or if negative - decrease) size of the scope convex hull.",
+                                        level=0))
+analysis_section.add_entry(DefaultEntry(config_name="object_chull",
+                                        name="Object convex hull: ",
+                                        default_values=[str()],
+                                        help_text="Object convex hull definition used in calculating volume and area.",
+                                        level=0))
+DEFAULTS.append(analysis_section)
+
+visualize_section = DefaultSection(config_name="visualize", name="Visualize", level=1)
+visualize_section.add_entry(DefaultEntry(config_name="execute",
+                                         name="Execute: ",
+                                         default_values=[("run", "runonce", "skip")],
+                                         help_text="Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run or runonce stage is executed and results is saved according to save option. If it is set to skip stage is skipped.",
+                                         level=0))
+visualize_section.add_entry(DefaultEntry(config_name="save",
+                                         name="Save file: ",
+                                         default_values=["6_visualize_results"],
+                                         help_text="File name for saving results.",
+                                         level=0))
+visualize_section.add_entry(DefaultEntry(config_name="all_paths_raw",
+                                         name="Raw paths: ",
+                                         default_values=[False],
+                                         help_text="If True produces one object in PyMOL that holds all paths visualized by raw coordinates.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="all_paths_smooth",
+                                         name="Smooth paths: ",
+                                         default_values=[False],
+                                         help_text="If True produces one object in PyMOL that holds all paths visualized by smooth coordinates.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="all_paths_split",
+                                         name="Split paths: ",
+                                         default_values=[False],
+                                         help_text="If is set True objects produced by all_paths_raw and all_paths_smooth are split into Incoming, Object, and Outgoing parts and visualized as three different objects.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="all_paths_raw_io",
+                                         name="all_paths_raw_io",
+                                         default_values=[False],
+                                         help_text="If set True arrows pointing beginning and end of paths are displayed oriented accordingly to raw paths orientation.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="all_paths_smooth_io",
+                                         name="all_paths_smooth_io",
+                                         default_values=[False],
+                                         help_text="If set True arrows pointing beginning and end of paths are displayed oriented accordingly to smooth paths orientation.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="all_paths_amount",
+                                         name="Paths limit: ",
+                                         default_values=[str()],
+                                         help_text="Allows to limit number of visualised paths. If it is a number in range (0,1), then it is interpreted as a percent number of paths to be visualized. It is is a integer number >= 1 it is total number of all_paths visualized.",
+                                         level=0))
+visualize_section.add_entry(DefaultEntry(config_name="simply_smooths",
+                                         name="Smoothing simplification: ",
+                                         default_values=[("RecursiveVector", "HobbitVector", "OneWayVector", "RecursiveTriangle", "HobbitTriangle", "OneWayTriangle"), float()],
+                                         help_text="Option indicates linear simplification method to be used in plotting smooth paths. Simplification removes points which do not (or almost do not) change the shape of smooth path. Optionally name of the method can be followed by a threshold value. For sane values of thresholds see appropriate documentation of each method. Default values work well. This option is not case sensitive. It is recommended to use default method or HobbitVector method.", level=0))
+visualize_section.add_entry(DefaultEntry(config_name="paths_raw",
+                                         name="paths_raw",
+                                         default_values=[False],
+                                         help_text="If set True raw paths are displayed as separate objects or as one object with states corresponding to number of path.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="paths_smooth",
+                                         name="paths_smooth",
+                                         default_values=[False],
+                                         help_text="If set True smooth paths are displayed as separate objects or as one object with states corresponding to number of path.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="paths_raw_io",
+                                         name="paths_raw_io",
+                                         default_values=[False],
+                                         help_text="If set True arrows indicating beginning and end of paths, oriented accordingly to raw paths, are displayed as separate objects or as one object with states corresponding to number of paths.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="paths_smooth_io",
+                                         name="paths_smooth_io",
+                                         default_values=[False],
+                                         help_text="If set True arrows indicating beginning and end of paths, oriented accordingly to smooth paths, are displayed as separate objects or as one object with states corresponding to number of paths.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="paths_states",
+                                         name="paths_states",
+                                         default_values=[False],
+                                         help_text="If True objects displayed by paths_raw, paths_smooth, paths_raw_io, and paths_smooth_io are displayed as one object with states corresponding to number of paths. Otherwise they are displayed as separate objects.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="ctypes_raw",
+                                         name="ctypes_raw",
+                                         default_values=[False],
+                                         help_text="Displays raw paths in a similar manner as non split all_paths_raw but each cluster type is displayed in separate object.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="ctypes_smooth",
+                                         name="ctypes_smooth",
+                                         default_values=[False],
+                                         help_text="Displays smooth paths in a similar manner as non split all_paths_smooth but each cluster type is displayed in separate object.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="ctypes_amount",
+                                         name="Ctypes limit: ",
+                                         default_values=[float()],
+                                         help_text="Allows to limit number of visualised ctypes. If it is a number in range (0,1), then it is interpreted as percent number of ctypes to be visualized. It is is a integer number >= 1, it is total number of visualized ctypes.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters",
+                                         name="Visualize cluster of inlets: ",
+                                         default_values=[False],
+                                         help_text="If set True, clusters of inlets are visualized.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters_amount",
+                                         name="Inlets limit: ",
+                                         default_values=[str()],
+                                         help_text="Allows to limit number of visualised inlets. If it is a number in range (0,1) then it is interpreted as percent number of inlets to be visualized. It is is a integer number >= 1 it is total number of visualized inlets.",
+                                         level=0))
+visualize_section.add_entry(DefaultEntry(config_name="show_molecule",
+                                         name="Show molecule: ", default_values=[str(), False],
+                                         help_text="If is set to selection of some molecular object in the system, for example to protein, this object is displayed.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="show_molecule_frames",
+                                         name="Molecule frames: ",
+                                         default_values=[0],
+                                         help_text="Allows to indicate which frames of object defined by show_molecule should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="show_scope_chull",
+                                         name="Show scope convex hull: ",
+                                         default_values=[str(), False],
+                                         help_text="If is set to selection of some molecular object in the system, for example to protein, convex hull of this object is displayed.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="show_scope_chull_inflate",
+                                         name="show_scope_chull_inflate",
+                                         default_values=[str()],
+                                         help_text="Increase (or if negative decrease) size of the scope convex hull.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="show_scope_chull_frames",
+                                         name="Scope convex hull frames: ",
+                                         default_values=[0],
+                                         help_text="Allows to indicate for which frames of object defined by \"Show scope convex hull\" should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="show_object_chull",
+                                         name="Show object convex hull frames: ",
+                                         default_values=[str(), False],
+                                         help_text="If is set to selection of some molecular object in the system convex hull of this object is displayed. This works exacly the same way as show_chull but is meant to mark object shape. It can be achieved by using name * and molecular object definition plus some spatial constrains, for example those used in object definition.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="show_object_chull_frames",
+                                         name="Object convex hull frames:",
+                                         default_values=[0],
+                                         help_text="Allows to indicate for which frames of object defined by show_object convex hull should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
+                                         level=1))
+DEFAULTS.append(visualize_section)
+
+smooth_section = DefaultSection(config_name="smooth", name="Smooth", level=1)
+smooth_section.add_entry(DefaultEntry(config_name="method",
+                                      name="Method: ",
+                                      default_values=[("window", "mss", "window_mss", "awin", "awin_mss", "dwin", "dwin_mss", "savgol")],
+                                      help_text="Smoothing method.",
+                                      level=0))
+smooth_section.add_entry(DefaultEntry(config_name="recursive",
+                                      name="Recursive runs: ",
+                                      default_values=[int()],
+                                      help_text="Number of recursive runs of smoothing method.",
+                                      level=0))
+smooth_section.add_entry(DefaultEntry(config_name="window",
+                                      name="Window size: ",
+                                      default_values=[float()],
+                                      help_text="In window based method defines window size. In plain window it has to be int number. In savgol it has to be odd integer.",
+                                      level=0))
+smooth_section.add_entry(DefaultEntry(config_name="step",
+                                      name="Step: ",
+                                      default_values=[int()],
+                                      help_text="In step based method defines size of the step.",
+                                      level=0))
+smooth_section.add_entry(DefaultEntry(config_name="function",
+                                      name="Averaging function: ",
+                                      default_values=[("mean", "median")],
+                                      help_text="In window based methods defines averaging function.",
+                                      level=0))
+smooth_section.add_entry(DefaultEntry(config_name="polyorder",
+                                      name="polyorder",
+                                      default_values=[int()],
+                                      help_text="In savgol is polynomial order.",
+                                      level=0))
+DEFAULTS.append(smooth_section)
 # @formatter:on
 
 MENUS = [
@@ -1010,5 +1034,5 @@ MENUS = [
 
 LEVELS = {
     "Easy": 1,
-    "Normal": 0
+    "Expert": 0
 }

@@ -413,8 +413,7 @@ class ManyFileEntry(Entry):
         self.help = help
 
         self.input_vars = []
-
-        self.inner_row = 0
+        self.frames = []  # Store single row of widgets
 
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
@@ -430,17 +429,20 @@ class ManyFileEntry(Entry):
 
     def append_entry(self):
         """ Creates new entry with input widget and load button """
-        self.input_widget, input_var = widget_factory(self.input_frame, self.default)
-        self.input_widget.grid(row=self.inner_row, column=0, padx=7)
+        frame = ttk.Frame(self.input_frame)
+        frame.pack()
+        self.frames.append(frame)
+
+        input_widget, input_var = widget_factory(frame, self.default)
+
+        input_widget.pack(side=tk.LEFT, padx=7)
 
         self.input_vars.append(input_var)
 
-        ToolTip.create(self.input_widget, self.help)
+        ToolTip.create(input_widget, self.help)
 
-        load_file_button = ttk.Button(self.input_frame, text="Load", style="File.TButton")
-        load_file_button.grid(row=self.inner_row, column=1)
-
-        self.inner_row += 1
+        load_file_button = ttk.Button(frame, text="Load", style="File.TButton")
+        load_file_button.pack(side=tk.LEFT)
 
         callback = CallbackWrapper(self.callback_load_file, self.input_vars.index(input_var))
         load_file_button.bind("<Button-1>", callback)
@@ -476,8 +478,20 @@ class ManyFileEntry(Entry):
         """
         Sets Entry value.
 
+        If value is set to "" it deletes all input widgets, except first and sets it to ""
+
         :param value: New value. It can be single path or paths separated by os.pathsep.
         """
+        if value == "":
+            self.input_vars[0].set("")
+
+            for i in reversed(range(1, len(self.frames))):
+                self.frames[i].pack_forget()
+                del self.frames[i]
+                del self.input_vars[i]
+
+            return
+
         for i, path in enumerate(value.split(os.pathsep)):
             self.input_vars[i].set(path)
             self.append_entry()
@@ -706,13 +720,11 @@ M6amXeigAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAzSURBVDjLY9Sdd+8/Aw
 GmEwasCwMGDgkzIA61QLdLWHcd4AAAAASUVORK5CYII=
 """
 
-
 WARNING_ICON = """
 iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4gsRFS
 IvHqMLIAAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAA+SURBVDjLY/z/n+E/AwWAiYFCgNcARkYIHjgXDA0DWPBJsrFRaICg
 IOFYwGuAsDBhFzCOpkT8gfj/Px3CAABswAh9ETyJyQAAAABJRU5ErkJggg==
 """
-
 
 LOGO_ENCODED = """
 R0lGODlhGAFIAPYAAAAAAAwMDBQUFBsbGyUlJS8vLzIyMj8/P0VFRUtLS1NTU1tbW2JiYm1tbXR0dHl5eQCu/AC1/AS4/Au6/

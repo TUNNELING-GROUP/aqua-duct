@@ -18,11 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Tkinter as tk
+import os
 import tkMessageBox
 import ttk
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from collections import OrderedDict
-from tkFileDialog import askopenfile
+from tkFileDialog import askopenfile, askdirectory
 
 import aquaduct.apps.valveconfig.defaults as defaults
 import aquaduct.apps.valveconfig.utils as utils
@@ -76,22 +77,27 @@ class ValveConfigApp(object):
 
         # Frame with loading configuration file
         load_frame = ttk.LabelFrame(self.init_frame, text="Configuration file")
+        load_frame.columnconfigure(0, weight=1)
+        load_frame.columnconfigure(1, weight=1)
 
-        ttk.Button(load_frame, text="Load config", command=self.open_config_file).pack(anchor=tk.CENTER,
-                                                                                       side=tk.LEFT,
-                                                                                       pady=20, padx=20)
-        ttk.Entry(load_frame, textvariable=self.config_filename, state="readonly").pack(anchor=tk.CENTER,
-                                                                                        expand=1,
-                                                                                        fill=tk.X,
-                                                                                        side=tk.RIGHT,
-                                                                                        pady=20,
-                                                                                        padx=5)
+        ttk.Button(load_frame, text="Load config", command=self.open_config_file).grid(sticky="E", row=0, column=0)
+        ttk.Button(load_frame, text="New file", command=self.create_new_config_file).grid(sticky="W",
+                                                                                          row=0,
+                                                                                          column=1,
+                                                                                          padx=5,
+                                                                                          pady=2)
+        ttk.Entry(load_frame, textvariable=self.config_filename, state="readonly").grid(sticky="EW",
+                                                                                        row=1,
+                                                                                        column=0,
+                                                                                        columnspan=2,
+                                                                                        padx=5,
+                                                                                        pady=2)
 
         # Level selection
         level_frame = ttk.LabelFrame(self.init_frame, text="Configuration level")
 
         self.level = tk.StringVar()
-        ttk.OptionMenu(level_frame, self.level, "Easy", "Easy", "Normal").pack(pady=20)
+        ttk.OptionMenu(level_frame, self.level, "Easy", "Easy", "Expert").pack(pady=20)
 
         load_frame.pack(fill=tk.X, padx=100, pady=20)
         level_frame.pack(fill=tk.X, padx=100, pady=20)
@@ -102,14 +108,13 @@ class ValveConfigApp(object):
 
     def prepare_section_frames(self):
         """ Parse DEFAULTS and depends on it create Notebook tabs and entries """
-        if self.config_filename.get() is "":
-            tkMessageBox.showerror("Error", "You must choose file")
-            return
-
         for section in defaults.DEFAULTS:
             section_name = section.config_name
             section_name_long = section.name
             entries = section.entries
+
+            if defaults.LEVELS[self.level.get()] > section.level:
+                continue
 
             if section_name == "clusterization":
                 self.cluster_frame_index = len(self.frames)
@@ -139,7 +144,9 @@ class ValveConfigApp(object):
         # Set row number to row of hidden frame of default clustering section. Used to append new frames
         # TODO: It may not work when other widgets are rendered first
         self.cluster_row = next(self.hiding_frames["clusterization"].itervalues()).row + 1
-        self.recluster_row = next(self.hiding_frames["reclusterization"].itervalues()).row + 1
+
+        if "reclusterization" in self.hiding_frames:
+            self.recluster_row = next(self.hiding_frames["reclusterization"].itervalues()).row + 1
 
         for section_name in self.get_recursive_clustering_sections("clusterization"):
             self.append_entries(section_name)
@@ -157,12 +164,13 @@ class ValveConfigApp(object):
         cluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "clusterization")
         cluster_add_button.bind("<Button-1>", cluster_add_section_callback)
 
-        recluster_add_button = ttk.Button(self.frames[self.recluster_frame_index], text="Add reclustering section")
+        if "reclusterization" in self.hiding_frames:
+            recluster_add_button = ttk.Button(self.frames[self.recluster_frame_index], text="Add reclustering section")
         # Setting row=1000 let skip calculating position of button each time new section is added
-        recluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
+            recluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
 
-        recluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "reclusterization")
-        recluster_add_button.bind("<Button-1>", recluster_add_section_callback)
+            recluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "reclusterization")
+            recluster_add_button.bind("<Button-1>", recluster_add_section_callback)
 
         # Refresh all hiding frames
         self.refresh_menus()
@@ -175,12 +183,16 @@ class ValveConfigApp(object):
         bottom_frame.pack(fill=tk.X)
 
         save_button = ttk.Button(bottom_frame, text="Save")
-        save_button.pack(pady=5)
-
         save_button.bind("<Button-1>", self.save_config)
+        save_button.pack(anchor=tk.CENTER, pady=5)
+
+        reset_button = ttk.Button(bottom_frame, text="Reset to default", style="R.TButton")
+        reset_button.bind("<Button-1>", self.load_defaults)
+        reset_button.pack(anchor=tk.CENTER, pady=5)
 
         # After preparing all section load values from config
-        self.load_config_values()
+        if self.config_filename.get() != "":
+            self.load_config_values()
 
     def callback_add_section(self, section_name):
         """
@@ -400,7 +412,8 @@ class ValveConfigApp(object):
         for menu in defaults.MENUS:
             section_name, entry_name = menu.split(":")
 
-            self.option_menu_changed(section_name, self.values[section_name][entry_name])
+            if defaults.LEVELS[self.level.get()] < defaults.get_default_section(section_name).level:
+                self.option_menu_changed(section_name, self.values[section_name][entry_name])
 
     def option_menu_changed(self, section, entry):
         """
@@ -435,9 +448,10 @@ class ValveConfigApp(object):
 
     def load_config_values(self):
         """
-        Load values to values dictionary for each option from config file.
+        Load config values to values dictionary.
 
-        Additionally it ask user if inlets_clusterization:max_level in config is different from found recursive_clusterization sections.
+        Additionally it ask user if inlets_clusterization:max_level in config
+        is different from number of found recursive_clusterization sections.
         """
         with open(self.config_filename.get(), "r") as config_file:
             config = ConfigParser()
@@ -465,6 +479,50 @@ class ValveConfigApp(object):
                         continue
                     except NoSectionError:
                         break
+
+    def load_defaults(self, e):
+        """
+        Load defaults values to values dictionary.
+
+        :param e: Event informations.
+        """
+        for section in defaults.DEFAULTS:
+            if defaults.LEVELS[self.level.get()] > section.level:
+                continue
+
+            for entry in section.entries:
+                # Skip entries that dont match level except inlets_clusterization:max_level
+                if defaults.LEVELS[self.level.get()] > entry.level:
+                    if not (section.config_name == "inlets_clusterization" and entry.config_name == "max_level"):
+                        continue
+
+                self.values[section.config_name][entry.config_name].set(entry.default_value)
+
+    def create_new_config_file(self):
+        window = tk.Toplevel(self.parent, padx=20)
+        window.title("New file")
+
+        directory_name = tk.StringVar()
+        file_name = tk.StringVar()
+
+        def select_dir():
+            directory_name.set(askdirectory())
+            window.lift()  # Move to foreground
+
+        ttk.Label(window, text="Directory:").grid(row=0, column=0)
+        ttk.Entry(window, textvariable=directory_name, state="readonly").grid(row=0, column=1)
+        ttk.Button(window, text="Choose directory", command=select_dir, style="File.TButton").grid(row=0, column=2)
+
+        ttk.Label(window, text="File name:").grid(row=1, column=0)
+        ttk.Entry(window, textvariable=file_name).grid(row=1, column=1)
+
+        def create(dir_var, filename_var):
+            path = dir_var.get() + os.path.sep + filename_var.get()
+            with open(path, "w+"):
+                self.config_filename.set(path)
+
+        create_callback = utils.CallbackWrapper(create, directory_name, file_name)
+        ttk.Button(window, text="Create", command=create_callback).grid(row=3, column=0, columnspan=3)
 
     def get_active_frame_name(self, section_name):
         """
@@ -503,6 +561,12 @@ class ValveConfigApp(object):
                                                         "\"Object definition\" in \"Traceable residues\" section")
             return
 
+        if self.config_filename.get() == "":
+            self.open_config_file()
+
+            if self.config_filename.get() == "":
+                return
+
         with open(self.config_filename.get(), "w+") as config_file:
             config = ConfigParser()
             config.readfp(config_file)
@@ -522,7 +586,7 @@ class ValveConfigApp(object):
                         else:
                             if defaults.get_default_entry(section_name,
                                                           option_name).optionmenu_value == self.get_active_frame_name(
-                                    section_name):
+                                section_name):
                                 config.set(section_name, option_name, value.get())
 
             config.write(config_file)
@@ -580,6 +644,7 @@ if __name__ == "__main__":
     ###
     s.configure("File.TButton", padding=0, font=("TkDefaultFont", 8))  # Loading file button
     s.configure("Configured.TLabel", padding=0, font=("TkDefaultFont", 12))  # Loading file button
+    s.configure("R.TButton", background="orange red", bordercolor="red")  # Reset button
 
     app = ValveConfigApp(root)
     root.mainloop()
