@@ -19,11 +19,12 @@
 import numpy as np
 import scipy.linalg
 
+
 class NullPrepocess(object):
     def __init__(self):
         pass
 
-    def build(self,X):
+    def build(self, X):
         pass
 
     def __call__(self, X):
@@ -37,7 +38,7 @@ class Center(object):
     def __init__(self):
         pass
 
-    def build(self,X):
+    def build(self, X):
         self.mean = np.mean(X, 0)
 
     def __call__(self, X):
@@ -51,7 +52,7 @@ class Normalize(object):
     def __init__(self):
         pass
 
-    def build(self,X):
+    def build(self, X):
         self.std = np.std(X, 0)
 
     def __call__(self, X):
@@ -66,7 +67,7 @@ class Standartize(object):
         self.center = Center()
         self.normalize = Normalize()
 
-    def build(self,X):
+    def build(self, X):
         self.center.build(X)
         self.normalize.build(X)
 
@@ -76,56 +77,77 @@ class Standartize(object):
     def undo(self, X):
         return self.center.undo(self.normalize.undo(X))
 
+
 class Polarize(object):
-    def __init__(self,center=np.array([0,0,0]),rvar=0.1):
+    # TODO: equal variance of t and f
+    def __init__(self, center=np.array([0, 0, 0]), rvar=0.1, equaltf=True):
+        '''
+        Prepocessing filter for 3D cartesian coordinates transformation to spherical coordinates.
+
+        .. note::
+
+            Component f is in range 0 - 2\pi.
+
+        :param center: Center of the hypothetical sphere.
+        :param rvar: Desired amount of variance of *r* component measured as fraction of mean *t* and *f* variance.
+        :param equaltf: If set ``True``, *t* range is scaled to *f*.
+        '''
         self.center = center
         self.rvar = rvar
+        self.equaltf = equaltf
+        self.tmean = 0
+        self.fmean = 0
+        self.rvar_factor = 1
 
-    def _Xrtf(self,X):
+    @property
+    def _mt(self):
+        return 2. if self.equaltf else 1.
+
+    def _Xrtf(self, X):
         X = X - self.center
-        r = (X**2).sum(1)**0.5
-        return X,r,np.arccos(X[:,2]/r),np.arctan2(X[:,1],X[:,0]) + np.pi
+        r = (X ** 2).sum(1) ** 0.5
+        return X, r, np.arccos(X[:, 2] / r), np.arctan2(X[:, 1], X[:, 0]) + np.pi  # non iso f
 
-    def _circle_tf(self,t,f):
-        return t % np.pi, f % (2*np.pi)
+    def _circle_tf(self, t, f):
+        return t % np.pi, f % (2 * np.pi)
 
-    def build(self,X):
-        X,r,t,f = self._Xrtf(X)
-        # calculate mean values for polar components
-        self.tmean = (np.pi/2 - np.mean(t)) % np.pi
-        self.fmean = (np.pi - np.mean(f)) % (2*np.pi)
-        tf_var = np.var(t)+np.var(f)
-        self.rvar_factor = ((tf_var*self.rvar)**0.5)*(1./np.std(r))
+    def build(self, X):
+        X, r, t, f = self._Xrtf(X)
+        # calculate mean values for polar components (circle it)
+        self.tmean = (np.pi / 2 - np.mean(t)) % np.pi
+        self.fmean = (np.pi - np.mean(f)) % (2 * np.pi)
+        tf_var = (np.var(t) * 2 + np.var(f)) / 4.
+        self.rvar_factor = ((tf_var * self.rvar) ** 0.5) * (1. / np.std(r))
 
     def __call__(self, X):
-        X,r,t,f = self._Xrtf(X)
+        X, r, t, f = self._Xrtf(X)
         # center t and f with appropriate mean values
         t += self.tmean
         f += self.fmean
         # take care of polarity
-        t,f = self._circle_tf(t,f)
-        return np.array([r*self.rvar_factor,t,f]).T
+        t, f = self._circle_tf(t, f)
+        return np.array([r * self.rvar_factor, t * self._mt, f]).T
 
     def undo(self, X):
         # remove centering
-        t = X[:,1] - self.tmean
-        f = X[:,2] - self.fmean
+        t = X[:, 1] / self._mt - self.tmean
+        f = X[:, 2] - self.fmean
         # take care of polarity
-        t,f = self._circle_tf(t,f)
+        t, f = self._circle_tf(t, f)
         # correct f to iso
         f -= np.pi
         # get xyz
-        x = X[:,0]/self.rvar_factor*np.sin(t)*np.cos(f)
-        y = X[:,0]/self.rvar_factor*np.sin(t)*np.sin(f)
-        z = X[:,0]/self.rvar_factor*np.cos(t)
-        return np.array([x,y,z]).T + self.center
+        x = X[:, 0] / self.rvar_factor * np.sin(t) * np.cos(f)
+        y = X[:, 0] / self.rvar_factor * np.sin(t) * np.sin(f)
+        z = X[:, 0] / self.rvar_factor * np.cos(t)
+        return np.array([x, y, z]).T + self.center
 
 
 class PCA(object):
     def __init__(self, preprocess=NullPrepocess()):
         self.preprocess = preprocess
 
-    def build(self,X):
+    def build(self, X):
         self.preprocess.build(X)
         # SVD
         self.U, self.d, self.Pt = scipy.linalg.svd(self.preprocess(X), full_matrices=False)
@@ -142,10 +164,10 @@ class PCA(object):
 
     def __call__(self, X, pc=None):
         if pc:
-            return np.dot(self.preprocess(X), self.P[:,pc])
+            return np.dot(self.preprocess(X), self.P[:, pc])
         return np.dot(self.preprocess(X), self.P)
 
     def undo(self, T, pc=None):
         if pc:
-            return self.preprocess.undo(np.dot(T, self.Pt[pc,:]))
+            return self.preprocess.undo(np.dot(T, self.Pt[pc, :]))
         return self.preprocess.undo(np.dot(T, self.Pt))

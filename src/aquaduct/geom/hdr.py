@@ -33,7 +33,7 @@ class HDR(object):
         self.center_of_system = center_of_system
 
         # calcualte PCA
-        self.pca = PCA(preprocess=Polarize(center=center_of_system,rvar=0.0001))
+        self.pca = PCA(preprocess=Polarize(center=center_of_system,rvar=0.001))
         self.pca.build(X)
 
         # get kernel for PC1 and PC2
@@ -42,16 +42,12 @@ class HDR(object):
         # find x and y ranges
         #xyr = np.array([self.pca.T[:,:2].max(0),self.pca.T[:,:2].min(0)]).mean(0) # center of range
         xyr = (self.pca.T[:,:2].max(0)-self.pca.T[:,:2].min(0) + expand_by) / 2. # 1/2 expanded range
-        xyr = np.array([np.array([self.pca.T[:,:2].max(0),self.pca.T[:,:2].min(0)]).mean(0) - xyr, np.array([self.pca.T[:,:2].max(0),self.pca.T[:,:2].min(0)]).mean(0) + xyr])
-
-        self.xyr = xyr
+        self.xyr = np.array([np.array([self.pca.T[:,:2].max(0),self.pca.T[:,:2].min(0)]).mean(0) - xyr, np.array([self.pca.T[:,:2].max(0),self.pca.T[:,:2].min(0)]).mean(0) + xyr])
 
         # desired number of points in the grid for each of two dimensions per A
 
         # total number of cells is points^2
-
         xy = self.xyr[1] - self.xyr[0]
-
         points = xy.mean()*points
 
         b = (((points**2)*xy[1])/(xy[1]*(xy[0]**2)))**0.5
