@@ -163,6 +163,12 @@ def get_default_section(section_name):
     :return: Default section informations.
     :rtype: DefaultSection
     """
+    if section_name.startswith("clusterization"):
+        section_name = "clusterization"
+
+    if section_name.startswith("reclusterization"):
+        section_name = "reclusterization"
+
     for section in DEFAULTS:
         if section.config_name == section_name:
             return section

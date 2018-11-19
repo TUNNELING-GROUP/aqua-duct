@@ -412,7 +412,7 @@ class ValveConfigApp(object):
         for menu in defaults.MENUS:
             section_name, entry_name = menu.split(":")
 
-            if defaults.LEVELS[self.level.get()] < defaults.get_default_section(section_name).level:
+            if defaults.LEVELS[self.level.get()] <= defaults.get_default_section(section_name).level:
                 self.option_menu_changed(section_name, self.values[section_name][entry_name])
 
     def option_menu_changed(self, section, entry):
@@ -497,6 +497,34 @@ class ValveConfigApp(object):
                         continue
 
                 self.values[section.config_name][entry.config_name].set(entry.default_value)
+
+        # Delete appended clustering and reclustering sections
+        if self.cluster_frame_index:
+            cluster_frame = self.frames[self.cluster_frame_index]
+            for widget in cluster_frame.grid_slaves():
+                if isinstance(widget, ttk.Frame):
+                    widget.grid_forget()
+
+        if self.recluster_frame_index:
+            recluster_frame = self.frames[self.recluster_frame_index]
+            for widget in recluster_frame.grid_slaves():
+                if isinstance(widget, ttk.Frame):
+                    widget.grid_forget()
+
+        # Due to that earlier loop hide hiding frames too its necessary to refresh them
+        self.refresh_menus()
+
+        # Delete rest informations about appended sections
+        for section_name in self.values.iterkeys():
+            if section_name.startswith("clusterization") or section_name.startswith("clusterization"):
+                if section_name != "clusterization" and section_name != "reclusterization":
+                    del self.values[section_name]
+                    del self.hiding_frames[section_name]
+
+                    # Remove from MENUS list
+                    for i, item in enumerate(defaults.MENUS):
+                        if item.startswith(section_name):
+                            del defaults.MENUS[i]
 
     def create_new_config_file(self):
         window = tk.Toplevel(self.parent, padx=20)
