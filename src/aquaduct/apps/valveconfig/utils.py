@@ -54,7 +54,6 @@ def widget_factory(parent, default, state=tk.NORMAL):
         v.set(default)
 
         w = Text(parent, textvariable=v, wrap=tk.WORD, state=state, width=34, height=5)
-
     elif isinstance(default, str):
         v = tk.StringVar()
         v.set(default)
@@ -84,6 +83,7 @@ def widget_factory(parent, default, state=tk.NORMAL):
 
         w = ttk.Combobox(parent, textvariable=v)
         w["values"] = default
+        w.current(0)
     else:
         raise TypeError("There is no specified behaviour for {} type".format(type(default)))
 
@@ -561,6 +561,12 @@ class ParenthesedEntry(Entry):
 
 class WarningIconWidget(ttk.Label, object):
     def __init__(self, parent, text):
+        """
+        Widget with waring icon and Tooltip information
+
+        :param parent: Parent of widget.
+        :param text: Content of tooltip
+        """
         self.image = tk.PhotoImage(data=WARNING_ICON)
         super(WarningIconWidget, self).__init__(parent, image=self.image, padding=0)
 
@@ -569,6 +575,12 @@ class WarningIconWidget(ttk.Label, object):
 
 class InfoIconWidget(ttk.Label, object):
     def __init__(self, parent, text):
+        """
+        Widget with info icon and Tooltip information
+
+        :param parent: Parent of widget.
+        :param text: Content of tooltip
+        """
         self.image = tk.PhotoImage(data=INFO_ICON)
         super(InfoIconWidget, self).__init__(parent, image=self.image, padding=0)
 
