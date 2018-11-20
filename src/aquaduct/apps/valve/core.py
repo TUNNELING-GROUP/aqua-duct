@@ -1479,7 +1479,7 @@ def stage_V_run(config, options,
         nr_tnspt = [nr for nr, dummy in enumerate(iter_over_tnspt())][-1] + 1
         nr_f = (1 if len(traced_names) == 1 else 2) * (1 if len(spaths_types) == 1 else 2)
 
-        pbar = clui.pbar(maxval=nr_tnspt * 2 + nr_f * 2 * len(spaths) + len(spaths), mess="Calculating stats:")
+        pbar = clui.pbar(maxval=nr_tnspt * 3 + nr_f * 2 * len(spaths) + len(spaths), mess="Calculating stats:")
 
     ############
 
