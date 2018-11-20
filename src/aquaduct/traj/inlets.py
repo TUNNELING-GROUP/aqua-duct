@@ -512,7 +512,10 @@ class Inlets(object):
     def lim_to(self, what, towhat):
         if not is_iterable(towhat):
             towhat = [towhat]
-        new_inlets = self.__class__([], onlytype=self.onlytype)
+        new_inlets = self.__class__([], onlytype=self.onlytype,
+                                    center_of_system=self.center_of_system,
+                                    passing=self.passing,
+                                    pbar=None) # do not propagate pabr
         new_inlets.number_of_clustered_inlets = self.number_of_clustered_inlets
 
         for inlet, ids, cluster, sphere, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters,
