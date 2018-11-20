@@ -1532,8 +1532,10 @@ def stage_V_run(config, options,
             pa("Clusters summary - areas%s" % message)
             pa.thead(header_line)
             for nr, cl in enumerate(inls.clusters_list):
+
                 inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype)]).lim2rnames(tname).lim2clusters(
                     cl)
+                if inls_lim.size < 3: continue
                 pa(make_line(line_template, clusters_area(cl, inls_lim, points=float(options.cluster_area_precision), expand_by=float(options.cluster_area_expand))), nr=nr)
             pa.tend(header_line)
             if pbar:
