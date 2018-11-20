@@ -166,7 +166,7 @@ class ValveConfigApp(object):
 
         if "reclusterization" in self.hiding_frames:
             recluster_add_button = ttk.Button(self.frames[self.recluster_frame_index], text="Add reclustering section")
-        # Setting row=1000 let skip calculating position of button each time new section is added
+            # Setting row=1000 let skip calculating position of button each time new section is added
             recluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
 
             recluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "reclusterization")
@@ -326,6 +326,9 @@ class ValveConfigApp(object):
         :param entries: List of entries.
         :param row: Row number at which first entry will be shown.
         """
+        # Keeps label frames with actual row
+        group_frames = {}
+
         entries_appended = 0
         for entry in entries:
             # If its primary reclustering or clustering section disable changing name of that section
@@ -345,7 +348,6 @@ class ValveConfigApp(object):
                     continue
 
             entries_appended += 1
-
             if entry.optionmenu_value:
                 if section_name not in self.hiding_frames:
                     self.hiding_frames[section_name] = {}
@@ -377,8 +379,23 @@ class ValveConfigApp(object):
 
                 hiding_frame.inner_row += 1
             else:
-                entry_widget = utils.entry_factory(parent,
-                                                   row,
+                if entry.group_label:
+                    if entry.group_label not in group_frames:
+                        label_frame = ttk.LabelFrame(parent, text=entry.group_label)
+                        label_frame.grid(row=row, column=0, columnspan=2, pady=15, ipadx=80)
+
+                        group_frames[entry.group_label] = [label_frame, 0]
+
+                    entry_parent = group_frames[entry.group_label][0]
+                    entry_row = group_frames[entry.group_label][1]
+
+                    group_frames[entry.group_label][1] += 1
+                else:
+                    entry_parent = parent
+                    entry_row = row
+
+                entry_widget = utils.entry_factory(entry_parent,
+                                                   entry_row,
                                                    entry.name,
                                                    entry.default_values,
                                                    entry.help_text,
@@ -386,8 +403,8 @@ class ValveConfigApp(object):
                                                    info_text=entry.info_text,
                                                    warning_text=entry.warning_text)
 
-                if (section_name.startswith("clusterization") or section_name.startswith(
-                        "reclusterization")) and entry.config_name == "name":
+                if (section_name.startswith("clusterization") or
+                    section_name.startswith("reclusterization")) and entry.config_name == "name":
                     entry_widget.set(section_name)
 
                 if defaults.is_menu(section_name, entry.config_name):

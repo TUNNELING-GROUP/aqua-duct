@@ -67,8 +67,8 @@ class DefaultSection(object):
 
 
 class DefaultEntry(object):
-    def __init__(self, config_name, name, default_values, help_text, level, info_text=None, warning_text=None,
-                 optionmenu_value=None):
+    def __init__(self, config_name, name, default_values, help_text, level, group_label=None, info_text=None,
+                 warning_text=None, optionmenu_value=None):
         """
         Contains info about entry necessary to create it.
 
@@ -77,6 +77,7 @@ class DefaultEntry(object):
         :param default_values: List of default values.
         :param help_text: Tooltip content.
         :param level: Entry level. Check LEVELS dict for adjust it.
+        :param group_label: Used to group labels into frames. Content is a title of frame.
         :param info_text: If present information icon with content of that variable will be displayed.
         :param warning_text: If present warning icon with content of that variable will be displayed.
         :param optionmenu_value: OptionMenu value, which will cause display appropriate hiding frame.
@@ -90,6 +91,7 @@ class DefaultEntry(object):
         self.default_values = default_values
         self.help_text = help_text
         self.level = level
+        self.group_label = group_label
 
         if info_text and warning_text:
             raise ValueError("Information text and warning text specified.")
@@ -193,6 +195,8 @@ any widget, bool() -> widget with checkbox
 widget, float() -> create "widget_value(float_value)"
 
 To create hiding frame set optionmenu_value to specific value and add info into MENUS list
+
+Grouped entries will be displayed at place where first entry of that group will occur
 """
 # @formatter:off
 DEFAULTS = []
