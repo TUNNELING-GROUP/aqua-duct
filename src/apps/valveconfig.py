@@ -184,11 +184,11 @@ class ValveConfigApp(object):
 
         save_button = ttk.Button(bottom_frame, text="Save")
         save_button.bind("<Button-1>", self.save_config)
-        save_button.pack(anchor=tk.CENTER, pady=5)
+        save_button.pack(side=tk.LEFT, pady=5, padx=40)
 
         reset_button = ttk.Button(bottom_frame, text="Reset to default", style="R.TButton")
         reset_button.bind("<Button-1>", self.load_defaults)
-        reset_button.pack(anchor=tk.CENTER, pady=5)
+        reset_button.pack(side=tk.RIGHT, pady=5, padx=40)
 
         # After preparing all section load values from config
         if self.config_filename.get() != "":
@@ -382,7 +382,9 @@ class ValveConfigApp(object):
                 if entry.group_label:
                     if entry.group_label not in group_frames:
                         label_frame = ttk.LabelFrame(parent, text=entry.group_label)
-                        label_frame.grid(row=row, column=0, columnspan=2, pady=15, ipadx=80)
+                        label_frame.grid_columnconfigure(0, weight=1)
+                        label_frame.grid_columnconfigure(1, weight=1)
+                        label_frame.grid(row=row, column=0, columnspan=2, pady=15, ipadx=30)
 
                         group_frames[entry.group_label] = [label_frame, 0]
 
@@ -689,7 +691,7 @@ if __name__ == "__main__":
     ###
     s.configure("File.TButton", padding=0, font=("TkDefaultFont", 8))  # Loading file button
     s.configure("Configured.TLabel", padding=0, font=("TkDefaultFont", 12))  # Loading file button
-    s.configure("R.TButton", background="orange red", bordercolor="red")  # Reset button
+    s.configure("R.TButton", background="red", bordercolor="red")  # Reset button
 
     app = ValveConfigApp(root)
     root.mainloop()

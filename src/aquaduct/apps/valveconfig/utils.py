@@ -611,7 +611,7 @@ class HidingFrame(ttk.Frame, object):
 
     def show(self):
         """ Method to grid Frame with predefinied configuration. """
-        self.grid(sticky="EW", row=self.row, column=0, columnspan=2, padx=10, pady=10, ipady=5)
+        self.grid(row=self.row, column=0, columnspan=2, padx=10, pady=10, ipady=5, ipadx=10)
 
 
 class CallbackWrapper(object):
