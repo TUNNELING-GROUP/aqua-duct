@@ -318,6 +318,39 @@ def vectors_angle_anorm(A, B, A_norm):
     return np.arccos(angle)
 
 
+def triangle_area(A,B,C):
+    """
+    Parameters are coordinates of points which are tops of triangle.
+    The function calculates the ABC triangle area with Heron's formula.
+
+    :param A: coordinates of the first point [A top]
+    :param B: coordinates of the second point [B top]
+    :param C: coordinates of the third point [C top]
+    :return: area
+    :rtype: float
+    """
+    abc = pdist(np.vstack((A,B,C)))
+    s = sum(abc)/2.
+    return ((s-abc).prod()*s)**0.5
+
+def square_area(A,B,C,D):
+    """
+    Parameters are coordinates of points which are tops of square.
+    The function estimates the ABCD square area by calculating areas of triangles
+    that make up the square.
+
+    :param A: coordinates of the first point [A top]
+    :param B: coordinates of the second point [B top]
+    :param C: coordinates of the third point [C top]
+    :param D: coordinates of the fourth point [D top]
+    :return: area
+    :rtype: float
+    """
+    A1 = triangle_area(A,B,C) + triangle_area(C,D,A)
+    A2 = triangle_area(B,C,D) + triangle_area(D,A,B)
+    return (A1+A2)/2.
+
+
 ################################################################################
 # Linearization classes
 
