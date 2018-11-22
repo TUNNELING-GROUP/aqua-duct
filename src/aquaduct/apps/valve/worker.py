@@ -115,6 +115,7 @@ def stage_I_worker_q(input_queue, results_queue, pbar_queue):
             # find matching residues, ie those which are in the scope:
             res_new = scope.containing_residues(res, convex_hull=scope_convexhull, convex_hull_inflate=scope_convexhull_inflate)
             res_new.uniquify()  # here is a list of residues in this layer that are in the object and in the scope
+            # TODO: change way of center_of_system calculation to reflect center of object?
             # adds them to all_res
             if all_res:
                 all_res.add(res_new)
