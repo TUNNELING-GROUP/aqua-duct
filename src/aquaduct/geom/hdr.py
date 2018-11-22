@@ -91,7 +91,7 @@ class HDR(object):
         return self.cell_area * (self._fraction2indices(fraction=fraction)).sum()
 
     def _square_me(self,position):
-        return position - self.cell_dimensions/2 * np.array([[1,1],[1,-1],[-1,-1],[-1,1]])
+        return self.pca.undo(position - self.cell_dimensions/2 * np.array([[1,1],[1,-1],[-1,-1],[-1,1]]),pc=[0,1])
 
     def area(self, fraction=0.9):
         '''
