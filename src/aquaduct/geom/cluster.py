@@ -21,6 +21,7 @@ This module provides functions for clustering.
 Clustering is done by :mod:`scikit-learn` module.
 """
 
+from itertools import izip
 import numpy as np
 from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShift, estimate_bandwidth
 from scipy.spatial.distance import cdist
@@ -69,7 +70,8 @@ class BarberCluster(object):
         if spheres is not None:
             wtc.spheres = spheres
         elif radii is not None:
-            wtc.spheres = [Sphere(center=center,radius=radius) for center,radius in izip(coords,radii)]
+            spheres = [Sphere(center=center,radius=radius,nr=nr) for nr,(center,radius) in enumerate(izip(coords,radii))]
+            wtc.spheres = spheres
         else:
             raise TypeError('Either spheres or radii have to be specified.')
         clouds = wtc.cloud_groups(progress=True)
