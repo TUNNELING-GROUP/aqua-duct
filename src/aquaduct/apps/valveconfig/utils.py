@@ -193,12 +193,15 @@ class Entry(object):
     Represents single row of configuration option with Label and all input widgets.
     """
 
-    def __init__(self):
+    def __init__(self, parent, row):
         self.input_var = None
         self.control_var = None
 
-        self.frame_pady = 5
-        self.frame_sticky = "w"
+        self.input_frame = tk.Frame(parent)
+        self.input_frame.grid(row=row, column=1, sticky="w", pady=5)
+
+        self.hightlight_color = "OrangeRed2"
+        self.default_background = None
 
         self.label_sticky = "E"
 
@@ -218,6 +221,21 @@ class Entry(object):
         """
         raise NotImplementedError()
 
+    def highlight(self):
+        """
+        Changes color of input frame.
+
+        Used to highlight, which required entry is unfilled.
+        """
+        self.default_background = self.input_frame.cget("background")
+        self.input_frame.config(background=self.hightlight_color)
+
+    def unhighlight(self):
+        """
+        Sets entry to default color.
+        """
+        self.input_frame.configure(bg=self.default_background)
+
 
 class StandardEntry(Entry):
     def __init__(self, parent, row, entry_name_long, default, help, state, info_text=None, warning_text=None):
@@ -231,21 +249,18 @@ class StandardEntry(Entry):
         :param help: Text which will be displayed in tooltip.
         :param state: State of widget.
         """
-        super(StandardEntry, self).__init__()
+        super(StandardEntry, self).__init__(parent, row)
 
         ttk.Label(parent, text=entry_name_long, background=get_widget_bg(parent)).grid(sticky=self.label_sticky,
                                                                                        row=row, column=0)
 
-        input_frame = tk.Frame(parent)
-        input_frame.grid(row=row, column=1, sticky=self.frame_sticky, pady=self.frame_pady, padx=7)
-
-        widget, self.input_var = widget_factory(input_frame, default, state)
-        widget.pack(side=tk.LEFT)
+        widget, self.input_var = widget_factory(self.input_frame, default, state)
+        widget.pack(side=tk.LEFT, padx=5, pady=5)
 
         if info_text:
-            InfoIconWidget(input_frame, info_text).pack(side=tk.LEFT)
+            InfoIconWidget(self.input_frame, info_text).pack(side=tk.LEFT)
         elif warning_text:
-            WarningIconWidget(input_frame, warning_text).pack(side=tk.LEFT)
+            WarningIconWidget(self.input_frame, warning_text).pack(side=tk.LEFT)
 
         ToolTip.create(widget, help)
 
@@ -267,7 +282,8 @@ class StandardEntry(Entry):
 
 
 class BoolEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, input_default, control_default, help, info_text, warning_text):
+    def __init__(self, parent, row, entry_name_long, input_default, control_default, help, info_text=None,
+                 warning_text=None):
         """
         Entry with Checkbox and Entry or text widget.
 
@@ -278,27 +294,24 @@ class BoolEntry(Entry):
         :param help: Text which will be displayed in tooltip.
         :param state: State of widget.
         """
-        super(BoolEntry, self).__init__()
+        super(BoolEntry, self).__init__(parent, row)
 
         self.entry_name_long = entry_name_long
 
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
-        input_frame = ttk.Frame(parent)
-        input_frame.grid(row=row, column=1, pady=self.frame_pady, sticky=self.frame_sticky)
-
-        input_widget, self.input_var = widget_factory(input_frame, input_default)
+        input_widget, self.input_var = widget_factory(self.input_frame, input_default)
         input_widget.pack(side=tk.RIGHT)
 
         ToolTip.create(input_widget, help)
 
-        control_widget, self.control_var = widget_factory(input_frame, control_default)
-        control_widget.pack(side=tk.LEFT, padx=6)
+        control_widget, self.control_var = widget_factory(self.input_frame, control_default)
+        control_widget.pack(side=tk.LEFT)
 
         if info_text:
-            InfoIconWidget(input_frame, info_text).pack(side=tk.LEFT)
+            InfoIconWidget(self.input_frame, info_text).pack(side=tk.LEFT)
         elif warning_text:
-            WarningIconWidget(input_frame, warning_text).pack(side=tk.LEFT)
+            WarningIconWidget(self.input_frame, warning_text).pack(side=tk.LEFT)
 
         ToolTip.create(control_widget, help)
 
@@ -330,7 +343,7 @@ class BoolEntry(Entry):
 
 
 class FileEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, default, help, info_text, warning_text):
+    def __init__(self, parent, row, entry_name_long, default, help, info_text=None, warning_text=None):
         """
         Entry with Entry widget and button to load and append file name to it.
 
@@ -341,27 +354,24 @@ class FileEntry(Entry):
         :param help: Text which will be displayed in tooltip.
         :param state: State of widget.
         """
-        super(FileEntry, self).__init__()
+        super(FileEntry, self).__init__(parent, row)
 
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
-        input_frame = ttk.Frame(parent)
-        input_frame.grid(row=row, column=1, sticky=self.frame_sticky, pady=self.frame_pady)
-
-        self.input_widget, self.input_var = widget_factory(input_frame, default)
-        self.input_widget.pack(side=tk.LEFT, padx=7)
+        self.input_widget, self.input_var = widget_factory(self.input_frame, default)
+        self.input_widget.pack(side=tk.LEFT, padx=5, pady=5)
 
         ToolTip.create(self.input_widget, help)
 
-        load_file_button = ttk.Button(input_frame, text="Load", style="File.TButton")
-        load_file_button.pack(side=tk.LEFT)
+        load_file_button = ttk.Button(self.input_frame, text="Load", style="File.TButton")
+        load_file_button.pack(side=tk.LEFT, padx=5)
 
         load_file_button.bind("<Button-1>", self.callback_load_file)
 
         if info_text:
-            InfoIconWidget(input_frame, info_text).pack(side=tk.LEFT)
+            InfoIconWidget(self.input_frame, info_text).pack(side=tk.LEFT)
         elif warning_text:
-            WarningIconWidget(input_frame, warning_text).pack(side=tk.LEFT)
+            WarningIconWidget(self.input_frame, warning_text).pack(side=tk.LEFT)
 
     def callback_load_file(self, e):
         """
@@ -393,7 +403,7 @@ class FileEntry(Entry):
 
 
 class ManyFileEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, default, help, info_text, warning_text):
+    def __init__(self, parent, row, entry_name_long, default, help, info_text=None, warning_text=None):
         """
         Entry with Text widget and button to load and append file names to it.
 
@@ -404,7 +414,7 @@ class ManyFileEntry(Entry):
         :param help: Text which will be displayed in tooltip.
         :param state: State of widget.
         """
-        super(ManyFileEntry, self).__init__()
+        super(ManyFileEntry, self).__init__(parent, row)
 
         self.parent = parent
         self.row = row
@@ -417,9 +427,6 @@ class ManyFileEntry(Entry):
 
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
-        self.input_frame = ttk.Frame(parent)
-        self.input_frame.grid(row=row, column=1, sticky=self.frame_sticky, pady=self.frame_pady)
-
         self.append_entry()
 
         if info_text:
@@ -429,20 +436,19 @@ class ManyFileEntry(Entry):
 
     def append_entry(self):
         """ Creates new entry with input widget and load button """
-        frame = ttk.Frame(self.input_frame)
-        frame.pack()
+        frame = tk.Frame(self.input_frame)
+        frame.pack(anchor="nw")
         self.frames.append(frame)
 
         input_widget, input_var = widget_factory(frame, self.default)
-
-        input_widget.pack(side=tk.LEFT, padx=7)
+        input_widget.pack(side=tk.LEFT, padx=5, pady=5)
 
         self.input_vars.append(input_var)
 
         ToolTip.create(input_widget, self.help)
 
         load_file_button = ttk.Button(frame, text="Load", style="File.TButton")
-        load_file_button.pack(side=tk.LEFT)
+        load_file_button.pack(side=tk.LEFT, padx=5)
 
         callback = CallbackWrapper(self.callback_load_file, self.input_vars.index(input_var))
         load_file_button.bind("<Button-1>", callback)
@@ -496,9 +502,18 @@ class ManyFileEntry(Entry):
             self.input_vars[i].set(path)
             self.append_entry()
 
+    def highlight(self):
+        self.default_background = self.input_frame.cget("background")
+        for frame in self.frames:
+            frame.config(background=self.hightlight_color)
+
+    def unhighlight(self):
+        for frame in self.frames:
+            frame.config(background=self.default_background)
 
 class ParenthesedEntry(Entry):
-    def __init__(self, parent, row, entry_name_long, input_default, control_default, help, info_text, warning_text):
+    def __init__(self, parent, row, entry_name_long, input_default, control_default, help, info_text=None,
+                 warning_text=None):
         """
         Entry with Text widget and button to load and append file names to it.
 
@@ -509,25 +524,22 @@ class ParenthesedEntry(Entry):
         :param help: Text which will be displayed in tooltip.
         :param state: State of widget.
         """
-        super(ParenthesedEntry, self).__init__()
+        super(ParenthesedEntry, self).__init__(parent, row)
 
         ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
-        input_frame = ttk.Frame(parent)
-        input_frame.grid(row=row, column=1, pady=self.frame_pady, sticky=self.frame_sticky)
-
-        input_widget, self.input_var = widget_factory(input_frame, input_default)
-        input_widget.pack(side=tk.LEFT, padx=6)
+        input_widget, self.input_var = widget_factory(self.input_frame, input_default)
+        input_widget.pack(side=tk.LEFT)
 
         ToolTip.create(input_widget, help)
 
-        control_widget, self.control_var = widget_factory(input_frame, control_default)
-        control_widget.pack(side=tk.LEFT, padx=6)
+        control_widget, self.control_var = widget_factory(self.input_frame, control_default)
+        control_widget.pack(side=tk.LEFT)
 
         if info_text:
-            InfoIconWidget(input_frame, info_text).pack(side=tk.LEFT)
+            InfoIconWidget(self.input_frame, info_text).pack(side=tk.LEFT)
         elif warning_text:
-            WarningIconWidget(input_frame, warning_text).pack(side=tk.LEFT)
+            WarningIconWidget(self.input_frame, warning_text).pack(side=tk.LEFT)
 
         ToolTip.create(control_widget, help)
 
@@ -615,13 +627,14 @@ class HidingFrame(ttk.Frame, object):
 
 
 class CallbackWrapper(object):
-    def __init__(self, callback, *args):
+    def __init__(self, callback, *args, **kwargs):
         """ Allow to use callbacks with predefined list of arguments. """
         self.callback = callback
         self.args = args
+        self.kwargs = kwargs
 
     def __call__(self, *args, **kwargs):
-        self.callback(*self.args)
+        self.callback(*self.args, **self.kwargs)
 
 
 class ToolTip(object):

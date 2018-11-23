@@ -68,7 +68,7 @@ class DefaultSection(object):
 
 class DefaultEntry(object):
     def __init__(self, config_name, name, default_values, help_text, level, group_label=None, info_text=None,
-                 warning_text=None, optionmenu_value=None):
+                 warning_text=None, optionmenu_value=None, required=None):
         """
         Contains info about entry necessary to create it.
 
@@ -99,6 +99,7 @@ class DefaultEntry(object):
         self.info_text = info_text
         self.warning_text = warning_text
         self.optionmenu_value = optionmenu_value
+        self.required = required
 
     @property
     def default_value(self):
@@ -207,12 +208,14 @@ global_section.add_entry(DefaultEntry(config_name="top",
                                       name="Topology file: ",
                                       default_values=[str(), filetype()],
                                       help_text="Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.",
-                                      level=1))
+                                      level=1,
+                                      required=1))
 global_section.add_entry(DefaultEntry(config_name="trj",
                                       name="Trajectory file: ",
                                       default_values=[str(), manyfiletype()],
                                       help_text="Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.",
-                                      level=1))
+                                      level=1,
+                                      required=1))
 global_section.add_entry(DefaultEntry(config_name="twoway",
                                       name="Two-way scanning: ",
                                       default_values=[True],
@@ -237,7 +240,8 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="scope",
                                                   name="Scope: ",
                                                   default_values=[str()],
                                                   help_text="Definition of Scope of interest.",
-                                                  level=1))
+                                                  level=1,
+                                                  required=1))
 traceable_residues_section.add_entry(DefaultEntry(config_name="scope_convexhull",
                                                   name="Convex hull scope: ",
                                                   default_values=[True],
@@ -259,7 +263,8 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="object",
                                                   name="Object: ",
                                                   default_values=[str()],
                                                   help_text="Definition of Object of interest.",
-                                                  level=1))
+                                                  level=1,
+                                                  required=1))
 traceable_residues_section.add_entry(DefaultEntry(config_name="add_passing",
                                                   name="Add passing: ",
                                                   default_values=[str()],

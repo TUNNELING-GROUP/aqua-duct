@@ -22,7 +22,7 @@ import os
 import tkMessageBox
 import ttk
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from tkFileDialog import askopenfile, askdirectory
 
 import aquaduct.apps.valveconfig.defaults as defaults
@@ -58,6 +58,9 @@ class ValveConfigApp(object):
         self.scrolled_frames = {}
 
         self.frames = []
+
+        # Dict with input frames of required entries. Used to change color if is unfilled
+        self.required_entries = defaultdict(dict)
 
         self.config_filename = tk.StringVar()
 
@@ -187,7 +190,9 @@ class ValveConfigApp(object):
         save_button.pack(side=tk.LEFT, pady=5, padx=40)
 
         reset_button = ttk.Button(bottom_frame, text="Reset to default", style="R.TButton")
-        reset_button.bind("<Button-1>", self.load_defaults)
+
+        reset_callback = utils.CallbackWrapper(self.load_defaults, None, reset=True)
+        reset_button.bind("<Button-1>", reset_callback)
         reset_button.pack(side=tk.RIGHT, pady=5, padx=40)
 
         # After preparing all section load values from config
@@ -284,7 +289,7 @@ class ValveConfigApp(object):
         # Set option menu from recursive clustering to control hiding frames
         defaults.MENUS.append("{}:method".format(section_name))
 
-        default_values = defaults.get_default_section(default_section_name)
+        default_entries = defaults.get_default_section(default_section_name)
 
         inner_frame = ttk.Frame(frame, style="I.TFrame")
         inner_frame.columnconfigure(0, weight=1)
@@ -298,7 +303,7 @@ class ValveConfigApp(object):
             columnspan=2)
         ttk.Separator(inner_frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=2)
 
-        self.entry_filler(inner_frame, section_name, default_values.entries, 2)
+        self.entry_filler(inner_frame, section_name, default_entries.entries, 2)
 
         remove_button = ttk.Button(inner_frame, text="Remove")
         remove_button.grid(row=999, column=0, columnspan=2, pady=5)
@@ -378,6 +383,10 @@ class ValveConfigApp(object):
                                                                                    warning_text=entry.warning_text)
 
                 hiding_frame.inner_row += 1
+
+                if entry.required:
+                    self.required_entries[section_name][entry.config_name] = self.values[section_name][
+                        entry.config_name]
             else:
                 if entry.group_label:
                     if entry.group_label not in group_frames:
@@ -419,6 +428,9 @@ class ValveConfigApp(object):
                 self.values[section_name][entry.config_name] = entry_widget
 
                 row += 1
+
+                if entry.required:
+                    self.required_entries[section_name][entry.config_name] = entry_widget
 
         # Hide tab if unused
         if entries_appended == 0:
@@ -499,12 +511,18 @@ class ValveConfigApp(object):
                     except NoSectionError:
                         break
 
-    def load_defaults(self, e):
+    def load_defaults(self, e, reset=False):
         """
         Load defaults values to values dictionary.
 
         :param e: Event informations.
         """
+        if reset:
+            result = tkMessageBox.askyesno("Reset values", "Are you sure to reset all values?")
+
+            if not result:
+                return
+
         for section in defaults.DEFAULTS:
             if defaults.LEVELS[self.level.get()] > section.level:
                 continue
@@ -590,22 +608,33 @@ class ValveConfigApp(object):
 
         :param e: Event informations.
         """
-        if not self.values["global"]["top"].get():
-            tkMessageBox.showerror("Topology file name", "You must specify topology file")
-            return
+        # Unhighlight all frames
+        for section_name in self.required_entries:
+            for entry_name in self.required_entries[section_name]:
+                self.required_entries[section_name][entry_name].unhighlight()
 
-        if not self.values["global"]["trj"].get():
-            tkMessageBox.showerror("Trajectory file name", "You must specify at least one trajectory file")
-            return
+        # Check if all field all filled before saving
+        tabs_id = self.notebook.tabs()
+        first_found = [None, None, None]  # Keeps info of first found unfilled entry
+        for i, section_name in enumerate(self.values):
+            for entry_name in self.values[section_name]:
+                if not self.values[section_name][entry_name].get() and entry_name in self.required_entries[
+                    section_name]:
+                    section_full_name = defaults.get_default_section(section_name).name
+                    entry_full_name = defaults.get_default_entry(section_name, entry_name).name[:-2]
 
-        if not self.values["traceable_residues"]["scope"].get():
-            tkMessageBox.showerror("Scope definition", "You must specify "
-                                                       "\"Scope definition\" in \"Traceable residues\" section")
-            return
+                    if not first_found[0]:
+                        first_found[0] = section_full_name
+                        first_found[1] = entry_full_name
+                        first_found[2] = tabs_id[i]
 
-        if not self.values["traceable_residues"]["object"].get():
-            tkMessageBox.showerror("Object definition", "You must specify "
-                                                        "\"Object definition\" in \"Traceable residues\" section")
+                    self.required_entries[section_name][entry_name].highlight()
+
+        if first_found[2]:  # 0 and 1 is not checking in case where names are just empty string
+            tkMessageBox.showerror("Unfilled field",
+                                   "Field \"{}\" in \"{}\" must be specified.".format(entry_full_name,
+                                                                                      section_full_name))
+            self.notebook.select(first_found[2])
             return
 
         if self.config_filename.get() == "":
@@ -691,7 +720,12 @@ if __name__ == "__main__":
     ###
     s.configure("File.TButton", padding=0, font=("TkDefaultFont", 8))  # Loading file button
     s.configure("Configured.TLabel", padding=0, font=("TkDefaultFont", 12))  # Loading file button
-    s.configure("R.TButton", background="red", bordercolor="red")  # Reset button
+    s.configure("R.TButton", background="red3", bordercolor="red3")  # Reset button
+
+    ###
+    # Highlighted
+    ###
+    s.configure("Highlighted.TFrame", background="red")
 
     app = ValveConfigApp(root)
     root.mainloop()
