@@ -21,8 +21,14 @@ Module performs HDR 2D calculations only with Gaussian Kerneld Density Estimator
 as impelemented in :mod:`scipy.stats`.
 '''
 
-from matplotlib import _contour
+from aquaduct import logger
 
+iscontour = True
+try:
+    from matplotlib import _contour
+except ImportError:
+    logger.warning("Cannot import _contour from matplotlib, contour calculations will be skipped.")
+    iscontour = False
 
 def hdr2contour(hdr,fraction=0.9):
     # X,Y,Z,no mask,corner mask,nchunk = 0

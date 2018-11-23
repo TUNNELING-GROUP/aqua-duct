@@ -1921,29 +1921,29 @@ def stage_VI_run(config, options,
 
     if options.cluster_area:
         from aquaduct.geom import hdr
-        from aquaduct.geom.hdr_contour import hdr2contour
-
-        with clui.fbm("Clusters contours"):
-            for c in inls.clusters_list:
-                # coords for current cluster
-                ics = inls.lim2clusters(c).coords
-                if c == 0:
-                    c_name = 'out'
-                else:
-                    c_name = str(int(c))
-                cmap = cmaps._cmap_jet_256
-                # calcualte hdr
-                print inls.center_of_system,c_name,len(ics)
-                if len(ics) < 3: continue
-                h = hdr.HDR(np.array(ics),points=float(options.cluster_area_precision),expand_by=float(options.cluster_area_expand),center_of_system=inls.center_of_system)
-                spp.multiline_begin()
-                for fraction in range(100, 0, -5): #range(100, 85, -5) + range(80, 40, -10):
-                    print c_name + '_D%d' % fraction
-                    coords = hdr2contour(h,fraction=fraction/100.)
-                    if coords is not None:
-                        color = cmap[int(255*(1-fraction/100.))]
-                        spp.multiline_add(coords,color=color)
-                spp.multiline_end(name=c_name + '_DC')
+        from aquaduct.geom.hdr_contour import hdr2contour,iscontour
+        if iscontour:
+            with clui.fbm("Clusters contours"):
+                for c in inls.clusters_list:
+                    # coords for current cluster
+                    ics = inls.lim2clusters(c).coords
+                    if c == 0:
+                        c_name = 'out'
+                    else:
+                        c_name = str(int(c))
+                    cmap = cmaps._cmap_jet_256
+                    # calcualte hdr
+                    print inls.center_of_system,c_name,len(ics)
+                    if len(ics) < 3: continue
+                    h = hdr.HDR(np.array(ics),points=float(options.cluster_area_precision),expand_by=float(options.cluster_area_expand),center_of_system=inls.center_of_system)
+                    spp.multiline_begin()
+                    for fraction in range(100, 0, -5): #range(100, 85, -5) + range(80, 40, -10):
+                        print c_name + '_D%d' % fraction
+                        coords = hdr2contour(h,fraction=fraction/100.)
+                        if coords is not None:
+                            color = cmap[int(255*(1-fraction/100.))]
+                            spp.multiline_add(coords,color=color)
+                    spp.multiline_end(name=c_name + '_DC')
 
 
     fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount,len(sp)))))
