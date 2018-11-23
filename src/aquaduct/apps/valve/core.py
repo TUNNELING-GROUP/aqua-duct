@@ -1234,10 +1234,11 @@ def stage_IV_run(config, options,
         gc.collect()
         # ***** SINGLETONS REMOVAL *****
         if options.singletons_outliers:
-            with clui.fbm("Removing clusters of size %d" % int(options.singletons_outliers)):
-                inls.small_clusters_to_outliers(int(options.singletons_outliers))
-            clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
-            clui.message('Number of outliers: %d' % noo())
+            if int(options.singletons_outliers):
+                with clui.fbm("Removing clusters of size %d" % int(options.singletons_outliers)):
+                    inls.small_clusters_to_outliers(int(options.singletons_outliers))
+                clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
+                clui.message('Number of outliers: %d' % noo())
 
         # TODO: Move it after master paths!
         gc.collect()
