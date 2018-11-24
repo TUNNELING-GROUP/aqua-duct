@@ -1528,7 +1528,7 @@ def stage_VI_run(config, options,
                         if coords is not None:
                             color = cmap[int(255 * (1 - fraction / 100.))]
                             spp.multiline_add(coords, color=color)
-                    spp.multiline_end(name=c_name + '_DC')
+                    spp.multiline_end(name=c_name + '_DC_alt')
 
 
 
