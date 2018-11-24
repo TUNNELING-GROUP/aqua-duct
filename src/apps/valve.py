@@ -254,7 +254,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         result6 = valve_exec_stage(5, config, stage_VI_run,
                                    run_status=run_status,
                                    no_io=True,
-                                   alt_center_of_system=result3['center_of_object'],
+                                   alt_center_of_system=result1['center_of_system'],
                                    **results)
         ############################################################################
         # end!
