@@ -23,8 +23,7 @@ Clustering is done by :mod:`scikit-learn` module.
 
 from itertools import izip
 import numpy as np
-from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShift, estimate_bandwidth
-from scipy.spatial.distance import cdist
+from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
 from aquaduct.traj.barber import WhereToCut
@@ -35,14 +34,6 @@ from aquaduct.geom import Sphere
 # AffinityPropagation: n > 0
 # KMeans:              n > clusters
 # MeanShift:           n > 6
-
-
-AVAILABLE_METHODS = ['dbscan', 'kmeans', 'affprop', 'meanshift', 'birch', 'barber']
-
-
-def get_required_params(method):
-    if method == 'kmeans':
-        return ['n_clusters']
 
 
 class BarberClusterResult(object):

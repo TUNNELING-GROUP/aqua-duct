@@ -82,22 +82,22 @@ if __name__ == "__main__":
         parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
                             help="Limit Aqua-Duct calculations to given number of threads.")
         parser.add_argument("-r", action="store", dest="results_dir", required=False, help="Path to results directory",default="",type=str)
-        parser.add_argument("--max-frame", action="store", dest="max_frame", type=int, required=False,
-                            help="Maximal number of frame.")
-        parser.add_argument("--min-frame", action="store", dest="min_frame", type=int, required=False,
-                            help="Minimal number of frame.")
-        parser.add_argument("--step-frame", action="store", dest="step_frame", type=int, required=False,
-                            help="Frames step.")
+        #parser.add_argument("--max-frame", action="store", dest="max_frame", type=int, required=False,
+        #                    help="Maximal number of frame.")
+        #parser.add_argument("--min-frame", action="store", dest="min_frame", type=int, required=False,
+        #                    help="Minimal number of frame.")
+        #parser.add_argument("--step-frame", action="store", dest="step_frame", type=int, required=False,
+        #                    help="Frames step.")
         parser.add_argument("--raw", action="store_true", dest="raw", required=False,
                             help="Use raw data from paths instead of single paths.")
         parser.add_argument("--raw-master", action="store_true", dest="raw_master", required=False,
                             help="Use raw data from paths instead of single paths, only in master paths calculations.")
         parser.add_argument("--raw-discard-singletons", action="store", dest="raw_singl", required=False, type=int, default=1,
                             help="Discard short scope only segments from raw data.")
-        parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
-                            help="Sandwich mode for multiple trajectories.")
-        parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
-                            help="Directory for coordinates caching.")
+        #parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
+        #                    help="Sandwich mode for multiple trajectories.")
+        #parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
+        #                    help="Directory for coordinates caching.")
         parser.add_argument("--window-full", action="store_true", dest="wfull", required=False,
                             help="Return full window if windows is used.")
         parser.add_argument("--windows", action="store", dest="windows", type=int, required=False, default=1,
@@ -127,18 +127,23 @@ if __name__ == "__main__":
 
         args = parser.parse_args()
 
-
         #----------------------------------------------------------------------#
-        # cache dir
-        from aquaduct.apps.data import GCS, load_cric, save_cric
+        # config
 
-        GCS.cachedir = args.cachedir
-        load_cric()
+        from aquaduct.apps.valve import ValveConfig,valve_load_config
 
-        from aquaduct.traj.sandwich import Reader, Window
-        from aquaduct.apps.valve.core import valve_load_config, ValveConfig
-        from aquaduct.apps.valve.data import get_vda_reader
+        config = ValveConfig()  # config template
+        valve_load_config(args.config_file, config)
+        # get global options
+        goptions = config.get_global_options()
+
+        # ----------------------------------------------------------------------#
+        # init and options
+
         from aquaduct.utils.multip import optimal_threads
+        from aquaduct.traj.sandwich import Reader, Window
+        from aquaduct.apps.valve.data import get_vda_reader
+        from aquaduct.apps.data import save_cric
         from os import pathsep
         import numpy as np
         from multiprocessing import Pool,Manager
@@ -149,25 +154,6 @@ if __name__ == "__main__":
         from itertools import izip
         import os
         from aquaduct.geom.smooth import SavgolSmooth
-
-
-        #----------------------------------------------------------------------#
-        # results dir
-        rdir = ""
-        if len(args.results_dir):
-            if not os.path.exists(args.results_dir):
-                os.makedirs(args.results_dir)
-            rdir = args.results_dir
-        rdir += os.path.sep
-
-        #----------------------------------------------------------------------#
-        # config
-        config = ValveConfig()  # config template
-        valve_load_config(args.config_file, config)
-
-        # get global options
-        goptions = config.get_global_options()
-
 
         if args.threads is None:
             optimal_threads.threads_count = optimal_threads.cpu_count + 1
@@ -183,17 +169,25 @@ if __name__ == "__main__":
             clui.message("Main process would use 1 thread.")
             clui.message("Concurent calculations would use %d threads." % optimal_threads.threads_count)
 
-
         # Maximal frame checks
-        frames_window = Window(args.min_frame, args.max_frame, args.step_frame)
+        frames_window = Window(goptions.min_frame, goptions.max_frame, goptions.step_frame)
 
         # Open trajectory reader
         # trajectories are split with os.pathsep
 
         Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)],
                window=frames_window,
-               sandwich=args.sandwich,
+               sandwich=goptions.sandwich,
                threads=optimal_threads.threads_count) # trajectory reader
+
+        #----------------------------------------------------------------------#
+        # results dir
+        rdir = ""
+        if len(args.results_dir):
+            if not os.path.exists(args.results_dir):
+                os.makedirs(args.results_dir)
+            rdir = args.results_dir
+        rdir += os.path.sep
 
         #----------------------------------------------------------------------#
         # load paths
