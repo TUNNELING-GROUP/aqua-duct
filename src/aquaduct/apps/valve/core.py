@@ -51,7 +51,6 @@ from aquaduct.visual import cmaps
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
 
-
 ###############################################################################
 # configuration file helpers
 
@@ -177,7 +176,8 @@ def stage_I_run(config, options,
     # feed input_queue with data
     for results_count, (number, traj_reader) in enumerate(Reader.iterate(number=True)):
         input_queue.put((number, traj_reader,
-                         options.scope_everyframe, options.scope, options.scope_convexhull, options.scope_convexhull_inflate,
+                         options.scope_everyframe, options.scope, options.scope_convexhull,
+                         options.scope_convexhull_inflate,
                          options.object, max(1, Reader.number_of_frames() / 500)))
 
     # display progress
@@ -284,12 +284,15 @@ def stage_II_run(config, options,
             sII = config.get_stage_options(1)
             sIII = config.get_stage_options(2)
             # TODO: enable twoway in sandwich mode
-            allow_twoway = (not Reader.sandwich_mode) and (sI.scope == sII.scope) and (sI.scope_convexhull == sII.scope_convexhull) and (sI.object == sII.object) and (sIII.allow_passing_paths == False)
+            allow_twoway = (not Reader.sandwich_mode) and (sI.scope == sII.scope) and (
+                        sI.scope_convexhull == sII.scope_convexhull) and (sI.object == sII.object) and (
+                                       sIII.allow_passing_paths == False)
 
         # prepare and start pool of workers
         if allow_twoway:
             logger.info('Twoway trajectory scan enabled.')
-            pool = [Process(target=stage_II_worker_q_twoways, args=(input_queue, results_queue, pbar_queue)) for dummy in
+            pool = [Process(target=stage_II_worker_q_twoways, args=(input_queue, results_queue, pbar_queue)) for dummy
+                    in
                     xrange(optimal_threads.threads_count)]
         else:
             pool = [Process(target=stage_II_worker_q, args=(input_queue, results_queue, pbar_queue)) for dummy in
@@ -307,7 +310,8 @@ def stage_II_run(config, options,
                 all_res_layer = all_res.layer(number)
 
                 input_queue.put((number, traj_reader,
-                                 options.scope_everyframe, options.scope, options.scope_convexhull, options.scope_convexhull_inflate,
+                                 options.scope_everyframe, options.scope, options.scope_convexhull,
+                                 options.scope_convexhull_inflate,
                                  options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
                                  max(1, optimal_threads.threads_count)))
         else:
@@ -320,7 +324,8 @@ def stage_II_run(config, options,
                     frame_rid_in_object = number_frame_rid_in_object[0][seek:seek + traj_reader.window.len()]
                     seek += traj_reader.window.len()
                 input_queue.put((number, traj_reader,
-                                 options.scope_everyframe, options.scope, options.scope_convexhull, options.scope_convexhull_inflate,
+                                 options.scope_everyframe, options.scope, options.scope_convexhull,
+                                 options.scope_convexhull_inflate,
                                  options.object, all_res_layer, frame_rid_in_object, is_number_frame_rid_in_object,
                                  max(1, optimal_threads.threads_count)))
             all_res_names = list(all_res_layer.names())
@@ -334,7 +339,7 @@ def stage_II_run(config, options,
             progress += p
             if progress == progress_target:
                 break
-            if progress % (max(1, optimal_threads.threads_count)**2 * 1000) == 0:
+            if progress % (max(1, optimal_threads.threads_count) ** 2 * 1000) == 0:
                 gc.collect()
 
         # [stop workers]
@@ -408,7 +413,8 @@ def stage_II_run(config, options,
             os.unlink(rn[0])
 
     if options.discard_singletons:
-        with clui.pbar(maxval=len(paths), mess="Discard singletons (%d) paths:" % int(options.discard_singletons)) as pbar:
+        with clui.pbar(maxval=len(paths),
+                       mess="Discard singletons (%d) paths:" % int(options.discard_singletons)) as pbar:
             for pat in paths:
                 pat.discard_singletons(singl=int(options.discard_singletons))
                 pbar.next()
@@ -559,7 +565,8 @@ def stage_III_run(config, options,
                 class NP(object):
                     def __init__(self):
                         self.paths = list()
-                    def callb_(self,result):
+
+                    def callb_(self, result):
                         CRIC.update_cric(result.pop(-1))
                         self.paths.extend(result)
                         pbar.next()
@@ -567,7 +574,7 @@ def stage_III_run(config, options,
                 new_paths = NP()
                 nr = 0
                 while len(paths):
-                    pool.apply_async(bp,args=(paths[:n],),callback=new_paths.callb_)
+                    pool.apply_async(bp, args=(paths[:n],), callback=new_paths.callb_)
                     paths = paths[n:]
                     nr += 1
                     if nr % n == 0:
@@ -606,7 +613,6 @@ def stage_III_run(config, options,
     clui.message("(Re)Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
 
-
     ######################################################################
 
     if options.auto_barber:
@@ -617,7 +623,7 @@ def stage_III_run(config, options,
                     spaths_nr = len(spaths)
                     Reader.reset()
                     pool = Pool(processes=optimal_threads.threads_count)
-                    #dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
+                    # dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                     #              short_logic=short_logic)
                     n = max(1, optimal_threads.threads_count)
                     spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
@@ -654,6 +660,30 @@ def stage_III_run(config, options,
 
     ######################################################################
 
+    # center of object
+    with clui.pbar(len(spaths), "Center of object calculation") as pbar:
+        spaths_nr = len(spaths)
+        Reader.reset()
+        pool = Pool(processes=optimal_threads.threads_count)
+
+        n = max(1, optimal_threads.threads_count)
+        coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+        # CRIC AWARE MP!
+        Reader.reset()
+        coos = list(chain.from_iterable((coo for nr, coo, cric in coos if
+                                           (pbar.next(step=nr) is None) and (
+                                                   CRIC.update_cric(cric) is None))))
+        save_cric()
+        pool.close()
+        pool.join()
+        gc.collect()
+
+        coos = np.array(coos).mean(0)
+
+        logger.info('Center of object is %0.2f, %0.2f, %0.2f' % tuple(coos))
+
+    ######################################################################
+
     # apply smoothing?
     # it is no longer necessary
     if options.apply_smoothing:
@@ -665,7 +695,8 @@ def stage_III_run(config, options,
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 
-    return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict()}
+    return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict(),
+            'center_of_object': coos}
 
 
 ################################################################################
@@ -830,7 +861,7 @@ def stage_IV_run(config, options,
             with clui.fbm("Join clusters") as emess:
                 for c2j in options.join_clusters.split():
                     emess('%s' % c2j)
-                    c2j = map(int,c2j.split('+'))
+                    c2j = map(int, c2j.split('+'))
                     inls.join_clusters(c2j)
         if options.renumber_clusters:
             with clui.fbm("Renumber clusters"):
@@ -843,7 +874,6 @@ def stage_IV_run(config, options,
         # ***** CLUSTERS' HISTORY *****
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
-
 
         # ***** CLUSTERS' TYPES *****
         with clui.fbm("Calculating cluster types"):
@@ -1064,10 +1094,12 @@ def stage_V_run(config, options,
             pa.thead(header_line)
             for nr, cl in enumerate(inls.clusters_list):
 
-                inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype)]).lim2rnames(tname).lim2clusters(
+                inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype)]).lim2rnames(
+                    tname).lim2clusters(
                     cl)
                 if inls_lim.size < 3: continue
-                pa(make_line(line_template, clusters_area(cl, inls_lim, points=float(options.cluster_area_precision), expand_by=float(options.cluster_area_expand))), nr=nr)
+                pa(make_line(line_template, clusters_area(cl, inls_lim, points=float(options.cluster_area_precision),
+                                                          expand_by=float(options.cluster_area_expand))), nr=nr)
             pa.tend(header_line)
             if pbar:
                 pbar.next()
@@ -1281,7 +1313,6 @@ def stage_V_run(config, options,
         pbar.next()
     pbar.finish()
 
-
     if options.scope_chull_inflate:
         logger.info("Inflate convex hull by %0.1f" % float(options.scope_chull_inflate))
 
@@ -1420,8 +1451,7 @@ def stage_VI_run(config, options,
                     else:
                         logger.debug('Object convex hull calculations failed for frame %d.' % frame)
 
-
-    def make_fracion(frac,size):
+    def make_fracion(frac, size):
         if frac is not None:
             frac = float(frac)
             if frac > 1:
@@ -1430,7 +1460,7 @@ def stage_VI_run(config, options,
                     frac = None
         return frac
 
-    fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount,len(sp)))))
+    fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount, len(sp)))))
 
     if options.inlets_clusters:
         with clui.fbm("Clusters"):
@@ -1452,7 +1482,7 @@ def stage_VI_run(config, options,
 
     if options.cluster_area:
         from aquaduct.geom import hdr
-        from aquaduct.geom.hdr_contour import hdr2contour,iscontour
+        from aquaduct.geom.hdr_contour import hdr2contour, iscontour
         if iscontour:
             with clui.fbm("Clusters contours"):
                 for c in inls.clusters_list:
@@ -1464,20 +1494,20 @@ def stage_VI_run(config, options,
                         c_name = str(int(c))
                     cmap = cmaps._cmap_jet_256
                     # calcualte hdr
-                    print inls.center_of_system,c_name,len(ics)
+                    print inls.center_of_system, c_name, len(ics)
                     if len(ics) < 3: continue
-                    h = hdr.HDR(np.array(ics),points=float(options.cluster_area_precision),expand_by=float(options.cluster_area_expand),center_of_system=inls.center_of_system)
+                    h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
+                                expand_by=float(options.cluster_area_expand), center_of_system=inls.center_of_system)
                     spp.multiline_begin()
-                    for fraction in range(100, 0, -5): #range(100, 85, -5) + range(80, 40, -10):
+                    for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
                         print c_name + '_D%d' % fraction
-                        coords = hdr2contour(h,fraction=fraction/100.)
+                        coords = hdr2contour(h, fraction=fraction / 100.)
                         if coords is not None:
-                            color = cmap[int(255*(1-fraction/100.))]
-                            spp.multiline_add(coords,color=color)
+                            color = cmap[int(255 * (1 - fraction / 100.))]
+                            spp.multiline_add(coords, color=color)
                     spp.multiline_end(name=c_name + '_DC')
 
-
-    fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount,len(sp)))))
+    fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount, len(sp)))))
 
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):
@@ -1505,7 +1535,7 @@ def stage_VI_run(config, options,
                     plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
                                        smooth=smooth)
 
-    fof = lambda sp: list(fractionof(sp, f=make_fracion(options.all_paths_amount,len(sp))))
+    fof = lambda sp: list(fractionof(sp, f=make_fracion(options.all_paths_amount, len(sp))))
 
     if options.all_paths_raw:
         with clui.fbm("All raw paths"):
@@ -1570,5 +1600,3 @@ stage_IV_run
 stage_V_run
 stage_VI_run
 '''.split()
-
-

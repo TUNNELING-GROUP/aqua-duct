@@ -308,6 +308,9 @@ def discard_short_etc(spaths, short_paths=None, short_object=None, short_logic=N
     else:
         return len(spaths), [sp for sp in spaths if sp.size > short_paths]
 
+def center_of_object(spaths):
+    return len(spaths),[sp.center_of_object for sp in spaths], CRIC
+
 
 def get_allow_size_function(rt=None):
     if not isinstance(rt, str):

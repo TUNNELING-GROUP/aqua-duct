@@ -731,6 +731,15 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         return self.single_res_selection.coords(self._path_object)
 
     @property
+    def coords_object_strict(self):
+        i = (nr for nr,et in enumerate(self.etypes[1]) if et == self.etypes[1][0])
+        return self.coords_object[list(i)]
+
+    @property
+    def center_of_object(self):
+        return np.mean(self.coords_object_strict,0)
+
+    @property
     def coords_out(self):
         return self.single_res_selection.coords(self._path_out)
 

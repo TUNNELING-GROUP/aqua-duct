@@ -232,7 +232,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         # STAGE IV
         result4 = valve_exec_stage(3, config, stage_IV_run, force_save=force_save,
                                    run_status=run_status,
-                                   center_of_system=result1['center_of_system'],
+                                   #center_of_system=result1['center_of_system'],
+                                   center_of_system=result3['center_of_object'],
                                    **result3)
 
         # STAGE V
