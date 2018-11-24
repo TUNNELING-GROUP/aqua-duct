@@ -1379,6 +1379,7 @@ def stage_VI_run(config, options,
                  ctypes=None,
                  master_paths=None,
                  master_paths_smooth=None,
+                 alt_center_of_system=None,
                  **kwargs):
     # enable real cache of ort
     Reader.reset()
