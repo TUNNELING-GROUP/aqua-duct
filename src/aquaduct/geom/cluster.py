@@ -133,6 +133,9 @@ class PerformClustering(object):
     def _get_noclusters(self, n):
         return [0] * n
 
+    def _get_oneclusters(self, n):
+        return [1] * n
+
     def fit(self, coords, spheres=None):
         '''
         :param Iterable coords: Input coordinates of points to be clustered.
@@ -143,7 +146,8 @@ class PerformClustering(object):
         '''
         # spheres are used for Barber only
         if len(coords) < 2:
-            self.clusters = self._get_noclusters(len(coords))
+            # single point forms one cluster
+            self.clusters = self._get_oneclusters(len(coords))
             return self.clusters
         # special cases
         if self.method is BarberCluster:

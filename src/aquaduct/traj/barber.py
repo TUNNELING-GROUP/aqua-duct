@@ -484,6 +484,7 @@ def barber_with_spheres(coords, spheres):
 
 @listify
 def barber_paths(paths, spheres=None):
+    # cut paths with barber
     for path in paths:
         tokeep = barber_with_spheres(path.coords, spheres)
         path.update_types_frames(SmartRange(lind(path.types, tokeep)), SmartRange(lind(path.frames, tokeep)))
