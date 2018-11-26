@@ -20,10 +20,11 @@
 Module performs HDR 2D calculations only with Gaussian Kerneld Density Estimator
 as impelemented in :mod:`scipy.stats`.
 '''
-
+from itertools import imap
 import numpy as np
 from scipy.stats import gaussian_kde
 from aquaduct.geom.pca import PCA,Polarize
+from aquaduct.geom.traces import square_area
 
 class HDR(object):
     def __init__(self, X, points=10, expand_by=1.,center_of_system=None):
@@ -33,7 +34,7 @@ class HDR(object):
         self.center_of_system = center_of_system
 
         # calcualte PCA
-        self.pca = PCA(preprocess=Polarize(center=center_of_system,rvar=0.001))
+        self.pca = PCA(preprocess=Polarize(center=center_of_system,rvar=0.01))
         self.pca.build(X)
 
         # get kernel for PC1 and PC2
@@ -64,9 +65,40 @@ class HDR(object):
 
         self.Z = np.reshape(self.values,self.X.shape)
 
-        # one cell area
-        self.cell_area = ((self.pca.T[:,:2].max(0) - self.pca.T[:,:2].min(0))/self.points).prod()
+    @property
+    def cell_area(self):
+        return self.cell_dimensions.prod()
 
-    def area(self,fraction=0.9):
-        return self.cell_area * (self.values >  self.Z.max()*(1-fraction)).sum()
+    @property
+    def cell_dimensions(self):
+        return (self.pca.T[:,:2].max(0) - self.pca.T[:,:2].min(0))/self.points
+
+    def _fraction2indices(self,fraction=0.9):
+        # indices are returned in the order of values, i.e. after ravel.
+        return self.values > self.Z.max()*(1-fraction)
+
+
+    def area_naive(self,fraction=0.9):
+        '''
+        This is naive implementation. It calculates are in the space of prepocessed variables.
+        Transformation to normal Cartesian space may not be trivial as details mey depends on the
+        actual location  of points.
+
+        :param float fraction: Fraction of cluster for which are should be estimated.
+        :rtype: float
+        :return: Area of cluster calculated in the preprocessed space.
+        '''
+        return self.cell_area * (self._fraction2indices(fraction=fraction)).sum()
+
+    def _square_me(self,position):
+        return self.pca.undo(position - self.cell_dimensions/2 * np.array([[1,1],[1,-1],[-1,-1],[-1,1]]),pc=[0,1])
+
+    def area(self, fraction=0.9):
+        '''
+        :param float fraction: Fraction of cluster for which are should be estimated.
+        :rtype: float
+        :return: Area of cluster calculated in the Cartesian space.
+        '''
+        i  = self._fraction2indices(fraction=fraction)
+        return sum((square_area(*tuple(sq)) for sq in imap(self._square_me,self.positions.T[i])))
 

@@ -21,9 +21,9 @@ This module provides functions for clustering.
 Clustering is done by :mod:`scikit-learn` module.
 """
 
+from itertools import izip
 import numpy as np
-from sklearn.cluster import Birch, DBSCAN, AffinityPropagation, KMeans, MeanShift, estimate_bandwidth
-from scipy.spatial.distance import cdist
+from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 from aquaduct.utils.helpers import Auto
 from aquaduct.utils import clui
 from aquaduct.traj.barber import WhereToCut
@@ -34,14 +34,6 @@ from aquaduct.geom import Sphere
 # AffinityPropagation: n > 0
 # KMeans:              n > clusters
 # MeanShift:           n > 6
-
-
-AVAILABLE_METHODS = ['dbscan', 'kmeans', 'affprop', 'meanshift', 'birch', 'barber']
-
-
-def get_required_params(method):
-    if method == 'kmeans':
-        return ['n_clusters']
 
 
 class BarberClusterResult(object):
@@ -69,7 +61,8 @@ class BarberCluster(object):
         if spheres is not None:
             wtc.spheres = spheres
         elif radii is not None:
-            wtc.spheres = [Sphere(center=center,radius=radius) for center,radius in izip(coords,radii)]
+            spheres = [Sphere(center=center,radius=radius,nr=nr) for nr,(center,radius) in enumerate(izip(coords,radii))]
+            wtc.spheres = spheres
         else:
             raise TypeError('Either spheres or radii have to be specified.')
         clouds = wtc.cloud_groups(progress=True)
@@ -131,6 +124,9 @@ class PerformClustering(object):
     def _get_noclusters(self, n):
         return [0] * n
 
+    def _get_oneclusters(self, n):
+        return [1] * n
+
     def fit(self, coords, spheres=None):
         '''
         :param Iterable coords: Input coordinates of points to be clustered.
@@ -141,7 +137,8 @@ class PerformClustering(object):
         '''
         # spheres are used for Barber only
         if len(coords) < 2:
-            self.clusters = self._get_noclusters(len(coords))
+            # single point forms one cluster
+            self.clusters = self._get_oneclusters(len(coords))
             return self.clusters
         # special cases
         if self.method is BarberCluster:

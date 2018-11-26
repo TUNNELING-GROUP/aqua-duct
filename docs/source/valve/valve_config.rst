@@ -24,19 +24,68 @@ Section **global**
 
 This section allows settings of trajectory data and is reserved for other future global options.
 
-======  =============   ==========================================================================
-Option  Default value   Description
-======  =============   ==========================================================================
-top     None            Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.
-trj     None            Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.
-twoway  True            Try to use *two-way* scanning in the stage II.
-======  =============   ==========================================================================
+=========== =============   ==========================================================================
+Option      Default value   Description
+=========== =============   ==========================================================================
+top         None            Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.
+trj         None            Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.
+twoway      True            Try to use *two-way* scanning in the stage II.
+sandwich    False           If set ``True`` trajectories are read as layers.
+max_frame   None            Maximal number of frame to be read from trajectory data. If set ``None``
+                            trajectory is read to the last possible frame.
+min_frame   0               Minimal number of frame to be read from trajectory data.
+step_frame  1               Step used in reading trajectory. Default value of 1 stands for reading
+                            every frame. If it is greater than 1, only every step-value frame is
+                            read.
+sps         True            Try to store data in single precission storage.
+cache_dir   None            Allows to set path to the directory for cache data.
+cache_mem   False           If set ``True``, all data will be cached in RAM.
+=========== =============   ==========================================================================
 
 Option **trj** can be used to provide list of trajectory files separated by standard path separator '``:``' on POSIX platforms and '``;``' on Windows - see :obj:`os.pathsep`.
 
 .. note::
 
     Options **top** and **trj** are mandatory.
+
+
+.. note::
+
+    Options **min_frame**, **max_frame**, and **step_frame** can be used to limit calculations to a specific part of trajectory. For example, in order to to run calculations for 1000 frames starting from frame 5000 use the following options::
+
+        min_frame = 4999
+        max_frame = 5999
+
+
+    To run calculations for every 5th frame use::
+
+        step_frame = 5
+
+
+.. _sandwich_option:
+
+Sandwich
+^^^^^^^^
+
+Trajectory data can be provided as several files. By default these files are processed in sequential manner making one long trajectory. If option **sandwich** is used trajectory files are read as layers. For each layer, search for traceable residues is done separately (stage I and II) but processing and analysis (stage III, IV, V, and VI) are done for all paths simultaneously. Usage of **sandwich** option is further referenced as *sandwich* mode.
+
+
+Cache
+^^^^^
+
+Storage of coordinates for all paths for very long MD trajectories requires huge amount of RAM. User can decide whether :mod:`aquaduct` should store coordinates in memory or in separated directory. Option **cache-mem** instruct *Valve* to store coordinates in RAM; **cache-dir** stores coordinates in selected directory. If neither of both options is selected, coordinates are calculated on demand.
+
+.. note::
+
+    If no cache is used (memory or dir) :ref:`master_paths_manual` cannot be calculated.
+
+
+Single precision storage
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+Most of the calculation in *Valve* is performed by NumPy. By default, NumPy uses double precision floats.
+*Valve* does not change this behavior but has special option **sps** which forces to store all data (both internal data stored in RAM and on the disk) in single precision. This spares a lot of RAM and is recommended when you perform calculation for long trajectories and your amount of RAM is limited.
+
 
 
 Common settings of stage sections

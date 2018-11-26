@@ -16,25 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''
-Module performs HDR 2D calculations only with Gaussian Kerneld Density Estimator
-as impelemented in :mod:`scipy.stats`.
-'''
+AVAILABLE_METHODS = ['dbscan', 'kmeans', 'affprop', 'meanshift', 'birch', 'barber']
 
-from aquaduct import logger
 
-iscontour = True
-try:
-    from matplotlib import _contour
-except ImportError:
-    logger.warning("Cannot import _contour from matplotlib, contour calculations will be skipped.")
-    iscontour = False
-
-def hdr2contour(hdr,fraction=0.9):
-    # X,Y,Z,no mask,corner mask,nchunk = 0
-    _c = _contour.QuadContourGenerator(hdr.X, hdr.Y, hdr.Z, None, True, 0)
-    cc = _c.create_contour(hdr.Z.max() * (1 - fraction))
-    if len(cc) == 0:
-        return
-    return hdr.pca.undo(cc[0], pc=[0, 1])
-
+def get_required_params(method):
+    if method == 'kmeans':
+        return ['n_clusters']

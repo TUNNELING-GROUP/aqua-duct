@@ -50,36 +50,11 @@ Some of *Valve* calculations can be run in parallel. By default all available CP
 
     However, in order to maximize the usage of available CPU power it is recommended to set it as the actual number of cores + 1. It is caused by the fact that *Valve* uses one thread for the main process and the more than one threads for processes of parallel calculations. When parallel calculations are executed the main thread waits for results.
 
-.. note::
-
-    Options ``--min-frame``, ``--max-frame``, and ``--step-frame`` can be used to limit calculations to a specific part of trajectory. For example, in order to to run calculations for 1000 frames starting from frame 5000 use the following options: ``--min-frame 4999 --max-frame 5999``; to run calculations for every 5th frame use: ``--step-frame 5``.
-
-Single precision storage
-""""""""""""""""""""""""
-
-Most of the calculation in *Valve* is performed by NumPy. By default, NumPy uses double precision floats.
-*Valve* does not change this behavior but has special option ``--sps`` which forces to store all data (both internal data stored in RAM and on the disk) in single precision. This spares a lot of RAM and is recommended when you perform calculation for long trajectories and your amount of RAM is limited.
-
-Cache
-"""""
-Storage of coordinates for all paths for very long MD trajectories requires huge amount of RAM. User can decide whether :mod:`aquaduct` should store coordinates in memory or in separated directory. Option ``--cache-mem`` instruct *Valve* to store coordinates in RAM; ``--cache-dir`` stores coordinates in selected directory. If neither of both options is selected, coordinates are calculated on demand.
-
-.. note::
-
-    If no cache is used (memory or dir) :ref:`master_paths_manual` cannot be calculated. 
-
-.. _sandwich_option:
-
-Sandwich
-""""""""
-
-Trajectory data can be provided as several files. By default these files are processed in sequential manner making one long trajectory. If option ``--sandwich`` is used trajectory files are read as layers. For each layer, search for traceable residues is done separately (stage I and II) but processing and analysis (stage III, IV, V, and VI) are done for all paths simultaneously. Usage of ``--sandwich`` option is further referenced as *sandwich* mode.
-
-
 Debugging
 """""""""
 
 *Valve* can output some debug information. Use ``--debug`` to see all debug information on the screen or use ``--debug-file`` with some file name to dump all debug messages to the given file. Beside debug messages, standard messages will be saved in the file as well.
+
 
 How does *Valve* work
 ---------------------
@@ -95,7 +70,7 @@ If config file is provided (option ``-c``) *Valve* parses it quickly and regular
 Traceable residues
 ^^^^^^^^^^^^^^^^^^
 
-In the first stage of calculations *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only proveded that they are not already present on the list. In :ref:`sandwich_option <sandwich>` mode this is repeated for each layer.
+In the first stage of calculations *Valve* finds all residues that should be traced and appends them to the list of *traceable residues*. It is done in a loop over all frames. In each frame residues of interest are searched and appended to the list but only proveded that they are not already present on the list. In :ref:`sandwich <sandwich_option>` mode this is repeated for each layer.
 
 The search of *traceable residues* is done according to specifications provided by user. Two requirements have to be met to append residue to the list:
 

@@ -238,6 +238,8 @@ latex_elements = {
 \setlistdepth{99}
 \setcounter{tocdepth}{2}
 \setcounter{secnumdepth}{3}
+\let\oldsection\section
+\\renewcommand\section{\clearpage\oldsection}
 ''',
 }
 
@@ -246,7 +248,8 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'Aqua-Duct.tex', u'Aqua-Duct Documentation',
-   unicode(' \\and '.join(map(unicode.strip,author.split(',')))), 'manual'),
+   unicode(' \\and '.join(map(unicode.strip, author.split(',')))), 'manual'),
+
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -255,7 +258,7 @@ latex_logo = html_logo
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-latex_use_parts = False
+latex_use_parts = True
 
 # If true, show page references after internal links.
 #latex_show_pagerefs = False

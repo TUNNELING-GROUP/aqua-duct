@@ -32,10 +32,30 @@ from aquaduct.utils.helpers import SmartRange, SmartRangeIncrement, SmartRangeEq
 ################################################################################
 
 class GlobalConfigStore(object):
-    cachedir = None
-    cachemem = False
+    _cachedir = None
+    _cachemem = False
     netcdf = False
     nc4 = False
+    sandwich_import = False
+
+    @property
+    def cachedir(self):
+        return self._cachedir
+
+    @cachedir.setter
+    def cachedir(self,value):
+        assert not self.sandwich_import, "Cachedir property cannot be set after sandiwch import."
+        self._cachedir = value
+
+    @property
+    def cachemem(self):
+        return self._cachemem
+
+    @cachemem.setter
+    def cachemem(self, value):
+        assert not self.sandwich_import, "Cachemem property cannot be set after sandiwch import."
+        self._cachemem = value
+
 
 
 GCS = GlobalConfigStore()

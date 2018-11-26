@@ -31,11 +31,6 @@ For detailed explanation of the following options see :doc:`../valve/valve_manua
 
 * ``-c CONFIG_FILE`` - Configuration file name. *Pond* and *Valve* should use the same file.
 * ``-t THREADS`` - Limits Aqua-Duct calculations to given number of threads.
-* ``--max-frame MAX_FRAME`` - Maximal number of frame.
-* ``--min-frame MIN_FRAME`` - Minimal number of frame.
-* ``--step-frame STEP_FRAME`` - Frames step.
-* ``--sandwich`` - Sandwich mode for multiple trajectories.
-* ``--cache-dir CACHEDIR`` - Directory for coordinates caching. *Pond* can reuse cache directory made by *Valve*.
 
 Results directory
 ^^^^^^^^^^^^^^^^^

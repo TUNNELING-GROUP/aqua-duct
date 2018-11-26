@@ -25,8 +25,10 @@ import numpy as np
 
 from aquaduct.apps.data import CRIC
 from aquaduct import logger
+from aquaduct.apps.valve import asep
 from aquaduct.geom import traces
-from aquaduct.geom.cluster import AVAILABLE_METHODS as available_clusterization_methods, BarberCluster, PerformClustering
+from aquaduct.geom.cluster_available_methods import AVAILABLE_METHODS as available_clusterization_methods
+from aquaduct.geom.cluster import BarberCluster, PerformClustering
 from aquaduct.geom.smooth import WindowSmooth, ActiveWindowSmooth, DistanceWindowSmooth, MaxStepSmooth, \
     WindowOverMaxStepSmooth, ActiveWindowOverMaxStepSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
 from sklearn.cluster import DBSCAN, AffinityPropagation, KMeans, MeanShift, Birch
@@ -44,16 +46,6 @@ def get_res_in_scope(is_res_in_scope, res):
             else:
                 res_new += r
     return res_new
-
-################################################################################
-# separators - logging
-
-def sep():
-    return clui.gsep(sep='-', times=48)
-
-
-def asep():
-    return clui.gsep(sep='=', times=72)
 
 
 def get_smooth_method(soptions):
@@ -315,6 +307,9 @@ def discard_short_etc(spaths, short_paths=None, short_object=None, short_logic=N
                              short_logic(sp.size > short_paths, sp.object_len > short_object)], CRIC
     else:
         return len(spaths), [sp for sp in spaths if sp.size > short_paths]
+
+def center_of_object(spaths):
+    return len(spaths),[sp.center_of_object for sp in spaths], CRIC
 
 
 def get_allow_size_function(rt=None):

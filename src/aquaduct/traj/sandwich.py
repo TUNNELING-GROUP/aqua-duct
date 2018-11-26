@@ -916,3 +916,6 @@ class SingleResidueSelection(ReaderAccess):
             yield coord
 
 ################################################################################
+
+# flag snadwich as imported
+GCS.sandwich_import = True
