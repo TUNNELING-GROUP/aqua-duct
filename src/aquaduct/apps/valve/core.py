@@ -661,26 +661,27 @@ def stage_III_run(config, options,
     ######################################################################
 
     # center of object
-    with clui.pbar(len(spaths), "Center of object calculation") as pbar:
-        spaths_nr = len(spaths)
-        Reader.reset()
-        pool = Pool(processes=optimal_threads.threads_count)
+    if False:
+        with clui.pbar(len(spaths), "Center of object calculation") as pbar:
+            spaths_nr = len(spaths)
+            Reader.reset()
+            pool = Pool(processes=optimal_threads.threads_count)
 
-        n = max(1, optimal_threads.threads_count)
-        coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
-        # CRIC AWARE MP!
-        Reader.reset()
-        coos = list(chain.from_iterable((coo for nr, coo, cric in coos if
-                                           (pbar.next(step=nr) is None) and (
-                                                   CRIC.update_cric(cric) is None))))
-        save_cric()
-        pool.close()
-        pool.join()
-        gc.collect()
+            n = max(1, optimal_threads.threads_count)
+            coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+            # CRIC AWARE MP!
+            Reader.reset()
+            coos = list(chain.from_iterable((coo for nr, coo, cric in coos if
+                                               (pbar.next(step=nr) is None) and (
+                                                       CRIC.update_cric(cric) is None))))
+            save_cric()
+            pool.close()
+            pool.join()
+            gc.collect()
 
-        coos = np.array(coos).mean(0)
+            coos = np.array(coos).mean(0)
 
-        logger.info('Center of object is %0.2f, %0.2f, %0.2f' % tuple(coos))
+            logger.info('Center of object is %0.2f, %0.2f, %0.2f' % tuple(coos))
 
     ######################################################################
 
@@ -695,8 +696,9 @@ def stage_III_run(config, options,
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 
-    return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict(),
-            'center_of_object': coos}
+    return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict()}
+    #return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict(),
+    #        'center_of_object': coos}
 
 
 ################################################################################
@@ -1508,27 +1510,6 @@ def stage_VI_run(config, options,
                             spp.multiline_add(coords, color=color)
                     spp.multiline_end(name=c_name + '_DC')
 
-                for c in inls.clusters_list:
-                    # coords for current cluster
-                    ics = inls.lim2clusters(c).coords
-                    if c == 0:
-                        c_name = 'out'
-                    else:
-                        c_name = str(int(c))
-                    cmap = cmaps._cmap_jet_256
-                    # calcualte hdr
-                    print inls.center_of_system, c_name, len(ics), alt_center_of_system
-                    if len(ics) < 3: continue
-                    h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
-                                expand_by=float(options.cluster_area_expand), center_of_system=alt_center_of_system)
-                    spp.multiline_begin()
-                    for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
-                        print c_name + '_D%d_alt' % fraction
-                        coords = hdr2contour(h, fraction=fraction / 100.)
-                        if coords is not None:
-                            color = cmap[int(255 * (1 - fraction / 100.))]
-                            spp.multiline_add(coords, color=color)
-                    spp.multiline_end(name=c_name + '_DC_alt')
 
 
 

@@ -232,8 +232,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         # STAGE IV
         result4 = valve_exec_stage(3, config, stage_IV_run, force_save=force_save,
                                    run_status=run_status,
-                                   #center_of_system=result1['center_of_system'],
-                                   center_of_system=result3['center_of_object'],
+                                   center_of_system=result1['center_of_system'],
+                                   #center_of_system=result3['center_of_object'],
                                    **result3)
 
         # STAGE V
@@ -254,7 +254,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         result6 = valve_exec_stage(5, config, stage_VI_run,
                                    run_status=run_status,
                                    no_io=True,
-                                   alt_center_of_system=result1['center_of_system'],
+                                   #alt_center_of_system=result3['center_of_object'],
                                    **results)
         ############################################################################
         # end!

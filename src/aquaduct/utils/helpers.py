@@ -843,7 +843,7 @@ class SmartRange(object):
             self._min = min(self._min)
             self._max = max(self._max)
 
-        if fast_array is not None:
+        if fast_array is not None and len(fast_array):
             self._elements = list(self._a2e(fast_array))
             self._len = len(fast_array)
             if self._len:
