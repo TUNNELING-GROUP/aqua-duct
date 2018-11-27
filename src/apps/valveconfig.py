@@ -18,7 +18,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import Tkinter as tk
+import hashlib
 import os
+import shutil
 import tkMessageBox
 import ttk
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
@@ -27,6 +29,7 @@ from tkFileDialog import askopenfile, askdirectory
 
 import aquaduct.apps.valveconfig.defaults as defaults
 import aquaduct.apps.valveconfig.utils as utils
+from aquaduct import version_nice
 
 
 class ValveConfigApp(object):
@@ -64,6 +67,8 @@ class ValveConfigApp(object):
 
         self.config_filename = tk.StringVar()
 
+        self.values_hash = None
+
         parent.title("Valve Configurator")
         parent.geometry("600x650")
 
@@ -77,6 +82,10 @@ class ValveConfigApp(object):
         logo_label = ttk.Label(self.parent, image=logo, padding=-2)
         logo_label.image = logo
         logo_label.pack(padx=20, pady=20)
+
+        # Used to auto positioning depending on length of version string
+        version = "ver. " + version_nice()
+        ttk.Label(logo_label, text=version, background="white").place(relx=1, rely=1, x=-len(version) * 7, y=-20)
 
         # Frame with loading configuration file
         load_frame = ttk.LabelFrame(self.init_frame, text="Configuration file")
@@ -100,12 +109,22 @@ class ValveConfigApp(object):
         level_frame = ttk.LabelFrame(self.init_frame, text="Configuration level")
 
         self.level = tk.StringVar()
-        ttk.OptionMenu(level_frame, self.level, "Easy", "Easy", "Expert").pack(pady=20)
+
+        # List of sorted levels from easiest to hardest
+        self.levels = []
+        for level_name, level in reversed(sorted(defaults.LEVELS.iteritems(), key=lambda (k, v): (v, k))):
+            self.levels.append(level_name)
+
+        ttk.OptionMenu(level_frame, self.level, self.levels[0], *self.levels).pack(pady=20)
 
         load_frame.pack(fill=tk.X, padx=100, pady=20)
         level_frame.pack(fill=tk.X, padx=100, pady=20)
 
-        ttk.Button(self.init_frame, text="Forward", command=self.prepare_section_frames).pack(pady=50)
+        def show_new_gui():
+            self.prepare_section_frames()
+            self.create_interface()
+
+        ttk.Button(self.init_frame, text="Forward", command=show_new_gui).pack(pady=50)
 
         self.init_frame.pack(expand=1, fill="both")
 
@@ -182,22 +201,29 @@ class ValveConfigApp(object):
 
         self.notebook.pack(expand=1, fill="both")
 
+        # After preparing all section load values from config
+        if self.config_filename.get() != "":
+            self.load_config_values()
+        else:
+            self.values_hash = self.get_values_hash()
+
+    def create_interface(self):
+        """ Creates bottom interface """
         bottom_frame = ttk.Frame(self.parent)
-        bottom_frame.pack(fill=tk.X)
+        bottom_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         save_button = ttk.Button(bottom_frame, text="Save")
         save_button.bind("<Button-1>", self.save_config)
         save_button.pack(side=tk.LEFT, pady=5, padx=40)
+
+        ttk.OptionMenu(bottom_frame, self.level, self.levels[0], *self.levels).pack(side=tk.LEFT)
+        self.level.trace("w", self.recreate_gui)
 
         reset_button = ttk.Button(bottom_frame, text="Reset to default", style="R.TButton")
 
         reset_callback = utils.CallbackWrapper(self.load_defaults, None, reset=True)
         reset_button.bind("<Button-1>", reset_callback)
         reset_button.pack(side=tk.RIGHT, pady=5, padx=40)
-
-        # After preparing all section load values from config
-        if self.config_filename.get() != "":
-            self.load_config_values()
 
     def callback_add_section(self, section_name):
         """
@@ -477,6 +503,30 @@ class ValveConfigApp(object):
         except AttributeError:
             pass
 
+    def recreate_gui(self, *args):
+        """
+        Recreate GUI.
+
+        :param args: Event informations.
+        """
+        if self.values_hash != self.get_values_hash():
+            tkMessageBox.showinfo("Information", "You must existing config to change level.")
+            return
+
+        for tab_id in self.notebook.tabs():
+            self.notebook.forget(tab_id)
+
+        self.prepare_section_frames()
+
+    def get_values_hash(self):
+        """ Compute hash from values. """
+        hash = hashlib.md5()
+        for section_name in self.values:
+            for value in self.values[section_name].itervalues():
+                hash.update(str(value.get()))
+
+        return hash.digest()
+
     def load_config_values(self):
         """
         Load config values to values dictionary.
@@ -510,6 +560,8 @@ class ValveConfigApp(object):
                         continue
                     except NoSectionError:
                         break
+
+            self.values_hash = self.get_values_hash()
 
     def load_defaults(self, e, reset=False):
         """
@@ -630,7 +682,7 @@ class ValveConfigApp(object):
 
                     self.required_entries[section_name][entry_name].highlight()
 
-        if first_found[2]:  # 0 and 1 is not checking in case where names are just empty string
+        if first_found[2]:  # 0 and 1 indexes is not checked because it can be just an empty string
             tkMessageBox.showerror("Unfilled field",
                                    "Field \"{}\" in \"{}\" must be specified.".format(entry_full_name,
                                                                                       section_full_name))
@@ -640,32 +692,40 @@ class ValveConfigApp(object):
         if self.config_filename.get() == "":
             self.open_config_file()
 
+            # If creating new file was canceled
             if self.config_filename.get() == "":
                 return
 
-        with open(self.config_filename.get(), "w+") as config_file:
-            config = ConfigParser()
-            config.readfp(config_file)
+        # Create config file backup
+        shutil.copy(self.config_filename.get(), self.config_filename.get() + ".bak")
+        try:
+            with open(self.config_filename.get(), "w+") as config_file:
+                config = ConfigParser()
+                config.readfp(config_file)
 
-            for section_name in self.values:
-                if not config.has_section(section_name):
-                    config.add_section(section_name)
+                for section_name in self.values:
+                    if not config.has_section(section_name):
+                        config.add_section(section_name)
 
-                for option_name, value in self.values[section_name].iteritems():
-                    default_value = defaults.get_default_entry(section_name, option_name).default_value
+                    for option_name, value in self.values[section_name].iteritems():
+                        default_value = defaults.get_default_entry(section_name, option_name).default_value
 
-                    # Skip empty strings and entries which are not visible
-                    if value.get() != "" and value.get() != default_value:
-                        if not defaults.get_default_entry(section_name, option_name).optionmenu_value:
-                            config.set(section_name, option_name, value.get())
-                        # This take care of saving options only from visible frame
-                        else:
-                            if defaults.get_default_entry(section_name,
-                                                          option_name).optionmenu_value == self.get_active_frame_name(
-                                section_name):
+                        # Skip empty strings and entries which are not visible
+                        if value.get() != "" and value.get() != default_value:
+                            if not defaults.get_default_entry(section_name, option_name).optionmenu_value:
                                 config.set(section_name, option_name, value.get())
+                            # This take care of saving options only from visible frame
+                            else:
+                                if defaults.get_default_entry(section_name,
+                                                              option_name).optionmenu_value == self.get_active_frame_name(
+                                    section_name):
+                                    config.set(section_name, option_name, value.get())
 
-            config.write(config_file)
+                config.write(config_file)
+                self.values_hash = self.get_values_hash()
+        except Exception:
+            # In case of error restore config from backup file
+            shutil.copy(self.config_filename.get() + ".bak", self.config_filename.get())
 
         tkMessageBox.showinfo("Saved", "Saving complete")
 
