@@ -82,7 +82,7 @@ class Standartize(object):
 
 
 
-           
+
 if __name__ == '__main__':
     def build(self, X):
         self.center.build(X)
@@ -109,15 +109,15 @@ class Polarize(object):
         :param rvar: Desired amount of variance of *r* component measured as fraction of mean *t* and *f* variance.
         :param equaltf: If set ``True``, *t* range is scaled to *f*.
         '''
-        
+
         if type(center) is not np.ndarray:
             raise TypeError('Constructor called with center param of invalid type')
-        elif np.shape(center) != (1, 3):
+        elif np.shape(center) != (3,):
             raise TypeError('Constructor called with center param of invalid shape')
         else:
             self.center = center
-            
-        
+
+
         self.rvar = rvar
         self.equaltf = equaltf
         self.tmean = 0
