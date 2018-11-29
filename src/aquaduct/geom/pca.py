@@ -110,13 +110,12 @@ class Polarize(object):
         :param equaltf: If set ``True``, *t* range is scaled to *f*.
         '''
 
-        if type(center) is not np.ndarray:
+        if not isinstance(center,np.ndarray):
             raise TypeError('Constructor called with center param of invalid type')
         elif np.shape(center) != (3,):
             raise TypeError('Constructor called with center param of invalid shape')
         else:
             self.center = center
-
 
         self.rvar = rvar
         self.equaltf = equaltf
