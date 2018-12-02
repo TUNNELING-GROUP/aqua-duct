@@ -21,6 +21,7 @@ import Tkinter as tk
 import hashlib
 import os
 import shutil
+import tempfile
 import tkMessageBox
 import ttk
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
@@ -67,10 +68,12 @@ class ValveConfigApp(object):
 
         self.config_filename = tk.StringVar()
 
-        self.values_hash = None
+        self.values_hash = self.get_values_hash()
 
         parent.title("Valve Configurator")
         parent.geometry("600x650")
+
+        self.parent.protocol("WM_DELETE_WINDOW", self.on_window_close)
 
         self.init_gui()
 
@@ -203,7 +206,7 @@ class ValveConfigApp(object):
 
         # After preparing all section load values from config
         if self.config_filename.get() != "":
-            self.load_config_values()
+            self.load_config_values(self.config_filename.get())
         else:
             self.values_hash = self.get_values_hash()
 
@@ -213,7 +216,18 @@ class ValveConfigApp(object):
         bottom_frame.pack(side=tk.BOTTOM, fill=tk.X)
 
         save_button = ttk.Button(bottom_frame, text="Save")
-        save_button.bind("<Button-1>", self.save_config)
+
+        def save_callback(*args):
+            if self.config_filename.get() == "":
+                self.open_config_file()
+
+                # If creating new file was canceled
+                if self.config_filename.get() == "":
+                    return
+
+            self.save_config(self.config_filename.get())
+
+        save_button.bind("<Button-1>", save_callback)
         save_button.pack(side=tk.LEFT, pady=5, padx=40)
 
         ttk.OptionMenu(bottom_frame, self.level, self.levels[0], *self.levels).pack(side=tk.LEFT)
@@ -221,7 +235,7 @@ class ValveConfigApp(object):
 
         reset_button = ttk.Button(bottom_frame, text="Reset to default", style="R.TButton")
 
-        reset_callback = utils.CallbackWrapper(self.load_defaults, None, reset=True)
+        reset_callback = utils.CallbackWrapper(self.load_defaults, reset=True)
         reset_button.bind("<Button-1>", reset_callback)
         reset_button.pack(side=tk.RIGHT, pady=5, padx=40)
 
@@ -296,7 +310,7 @@ class ValveConfigApp(object):
 
     def append_entries(self, section_name):
         """
-        Append new frame with copy of the parent's entires.
+        Append new frame with new clusterization or reclusterization options.
 
         :param section_name: Config section name where new frames will be appended, allowed are "clusterization" or "reclusterization".
         """
@@ -349,8 +363,6 @@ class ValveConfigApp(object):
         When no entry added it hide notebook tab.
 
         Disables name option for clusterization, reclusterization and derivatives section.
-
-        Disables inlets_clusterization:max_level when it don't match the configuration level.
 
         :param parent: Parent widget.
         :param section_name: Config section name.
@@ -507,16 +519,24 @@ class ValveConfigApp(object):
         """
         Recreate GUI.
 
+        Saves current values to temporary file.
+
         :param args: Event informations.
         """
-        if self.values_hash != self.get_values_hash():
-            tkMessageBox.showinfo("Information", "You must existing config to change level.")
-            return
+        tmpfile = tempfile.NamedTemporaryFile(delete=False)
+        tmp_filename = tmpfile.name
+
+        # Save values to temporary file.
+        self.save_config(tmpfile.name, required_checking=False)
 
         for tab_id in self.notebook.tabs():
             self.notebook.forget(tab_id)
 
         self.prepare_section_frames()
+        self.load_defaults()  # Reset values
+        self.load_config_values(tmp_filename)
+
+        os.remove(tmp_filename)
 
     def get_values_hash(self):
         """ Compute hash from values. """
@@ -527,14 +547,16 @@ class ValveConfigApp(object):
 
         return hash.digest()
 
-    def load_config_values(self):
+    def load_config_values(self, config_filename):
         """
-        Load config values to values dictionary.
+        Load config values to values dictionary from file.
 
         Additionally it ask user if inlets_clusterization:max_level in config
         is different from number of found recursive_clusterization sections.
+
+        :param config_filename: Name of file with configuration.
         """
-        with open(self.config_filename.get(), "r") as config_file:
+        with open(config_filename, "r") as config_file:
             config = ConfigParser()
             config.readfp(config_file)
 
@@ -561,13 +583,13 @@ class ValveConfigApp(object):
                     except NoSectionError:
                         break
 
-            self.values_hash = self.get_values_hash()
+        self.values_hash = self.get_values_hash()
 
-    def load_defaults(self, e, reset=False):
+    def load_defaults(self, reset=False, *args):
         """
         Load defaults values to values dictionary.
 
-        :param e: Event informations.
+        :param reset: If set to True confirmation will be neeeded to reset.
         """
         if reset:
             result = tkMessageBox.askyesno("Reset values", "Are you sure to reset all values?")
@@ -616,6 +638,9 @@ class ValveConfigApp(object):
                             del defaults.MENUS[i]
 
     def create_new_config_file(self):
+        """
+        Show dialog with create or choose existing file options.
+        """
         window = tk.Toplevel(self.parent, padx=20)
         window.title("New file")
 
@@ -652,54 +677,47 @@ class ValveConfigApp(object):
             if any(frame.grid_info()):
                 return method
 
-    def save_config(self, e):
+    def save_config(self, config_filename, required_checking=True):
         """
-        Save all values to previously specified config file.
+        Save all values to config file.
 
-        Used as callback to Save button.
-
-        :param e: Event informations.
+        :param config_filename: Name of file where options will be saved.
+        :param required_checking: If False checking required fields and saving dialog is skipped.
         """
         # Unhighlight all frames
         for section_name in self.required_entries:
             for entry_name in self.required_entries[section_name]:
                 self.required_entries[section_name][entry_name].unhighlight()
 
-        # Check if all field all filled before saving
-        tabs_id = self.notebook.tabs()
-        first_found = [None, None, None]  # Keeps info of first found unfilled entry
-        for i, section_name in enumerate(self.values):
-            for entry_name in self.values[section_name]:
-                if not self.values[section_name][entry_name].get() and entry_name in self.required_entries[
-                    section_name]:
-                    section_full_name = defaults.get_default_section(section_name).name
-                    entry_full_name = defaults.get_default_entry(section_name, entry_name).name[:-2]
+        if required_checking:
+            # Check if all field all filled before saving
+            tabs_id = self.notebook.tabs()
+            first_found = [None, None, None]  # Keeps info of first found unfilled entry
+            for i, section_name in enumerate(self.values):
+                for entry_name in self.values[section_name]:
+                    if not self.values[section_name][entry_name].get() and entry_name in self.required_entries[
+                        section_name]:
+                        section_full_name = defaults.get_default_section(section_name).name
+                        entry_full_name = defaults.get_default_entry(section_name, entry_name).name[:-2]
 
-                    if not first_found[0]:
-                        first_found[0] = section_full_name
-                        first_found[1] = entry_full_name
-                        first_found[2] = tabs_id[i]
+                        if not first_found[0]:
+                            first_found[0] = section_full_name
+                            first_found[1] = entry_full_name
+                            first_found[2] = tabs_id[i]
 
-                    self.required_entries[section_name][entry_name].highlight()
+                        self.required_entries[section_name][entry_name].highlight()
 
-        if first_found[2]:  # 0 and 1 indexes is not checked because it can be just an empty string
-            tkMessageBox.showerror("Unfilled field",
-                                   "Field \"{}\" in \"{}\" must be specified.".format(entry_full_name,
-                                                                                      section_full_name))
-            self.notebook.select(first_found[2])
-            return
-
-        if self.config_filename.get() == "":
-            self.open_config_file()
-
-            # If creating new file was canceled
-            if self.config_filename.get() == "":
+            if first_found[2]:  # 0 and 1 indexes is not checked because it can be just an empty string
+                tkMessageBox.showerror("Unfilled field",
+                                       "Field \"{}\" in \"{}\" must be specified.".format(entry_full_name,
+                                                                                          section_full_name))
+                self.notebook.select(first_found[2])
                 return
 
         # Create config file backup
-        shutil.copy(self.config_filename.get(), self.config_filename.get() + ".bak")
+        shutil.copy(config_filename, config_filename + ".bak")
         try:
-            with open(self.config_filename.get(), "w+") as config_file:
+            with open(config_filename, "w+") as config_file:
                 config = ConfigParser()
                 config.readfp(config_file)
 
@@ -723,12 +741,21 @@ class ValveConfigApp(object):
 
                 config.write(config_file)
                 self.values_hash = self.get_values_hash()
-        except Exception:
+        except Exception as e:
             # In case of error restore config from backup file
-            shutil.copy(self.config_filename.get() + ".bak", self.config_filename.get())
+            tkMessageBox.showinfo("Exeption", "There was error during saving configuration.\n{}".format(str(e)))
+            shutil.copy(config_filename + ".bak", config_filename)
 
-        tkMessageBox.showinfo("Saved", "Saving complete")
+        if required_checking:
+            tkMessageBox.showinfo("Saved", "Saving complete")
 
+    def on_window_close(self):
+        if self.get_values_hash() != self.values_hash:
+            result = tkMessageBox.askyesno("Unsaved changes", "You have unsaved changes. Are you want to quit?")
+            if result:
+                self.parent.destroy()
+        else:
+            self.parent.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()

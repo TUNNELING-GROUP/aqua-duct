@@ -437,11 +437,11 @@ class ManyFileEntry(Entry):
     def append_entry(self):
         """ Creates new entry with input widget and load button """
         frame = tk.Frame(self.input_frame)
-        frame.pack(anchor="nw")
+        frame.pack(anchor="nw", ipady=5)
         self.frames.append(frame)
 
         input_widget, input_var = widget_factory(frame, self.default)
-        input_widget.pack(side=tk.LEFT, padx=5, pady=5)
+        input_widget.pack(side=tk.LEFT, padx=5)
 
         self.input_vars.append(input_var)
 
@@ -510,6 +510,7 @@ class ManyFileEntry(Entry):
     def unhighlight(self):
         for frame in self.frames:
             frame.config(background=self.default_background)
+
 
 class ParenthesedEntry(Entry):
     def __init__(self, parent, row, entry_name_long, input_default, control_default, help, info_text=None,
