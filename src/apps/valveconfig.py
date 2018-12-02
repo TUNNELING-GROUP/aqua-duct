@@ -24,13 +24,14 @@ import shutil
 import tempfile
 import tkMessageBox
 import ttk
+import webbrowser
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from collections import OrderedDict, defaultdict
 from tkFileDialog import askopenfile, askdirectory
 
+import aquaduct
 import aquaduct.apps.valveconfig.defaults as defaults
 import aquaduct.apps.valveconfig.utils as utils
-from aquaduct import version_nice
 
 
 class ValveConfigApp(object):
@@ -70,7 +71,9 @@ class ValveConfigApp(object):
 
         self.values_hash = self.get_values_hash()
 
-        parent.title("Valve Configurator")
+        self.title = "Valve Configurator"
+
+        parent.title(self.title)
         parent.geometry("600x650")
 
         self.parent.protocol("WM_DELETE_WINDOW", self.on_window_close)
@@ -87,7 +90,7 @@ class ValveConfigApp(object):
         logo_label.pack(padx=20, pady=20)
 
         # Used to auto positioning depending on length of version string
-        version = "ver. " + version_nice()
+        version = "ver. " + aquaduct.version_nice()
         ttk.Label(logo_label, text=version, background="white").place(relx=1, rely=1, x=-len(version) * 7, y=-20)
 
         # Frame with loading configuration file
@@ -96,11 +99,11 @@ class ValveConfigApp(object):
         load_frame.columnconfigure(1, weight=1)
 
         ttk.Button(load_frame, text="Load config", command=self.open_config_file).grid(sticky="E", row=0, column=0)
-        ttk.Button(load_frame, text="New file", command=self.create_new_config_file).grid(sticky="W",
-                                                                                          row=0,
-                                                                                          column=1,
-                                                                                          padx=5,
-                                                                                          pady=2)
+        ttk.Button(load_frame, text="New file", command=self.create_new_config_file_dialog).grid(sticky="W",
+                                                                                                 row=0,
+                                                                                                 column=1,
+                                                                                                 padx=5,
+                                                                                                 pady=2)
         ttk.Entry(load_frame, textvariable=self.config_filename, state="readonly").grid(sticky="EW",
                                                                                         row=1,
                                                                                         column=0,
@@ -115,7 +118,7 @@ class ValveConfigApp(object):
 
         # List of sorted levels from easiest to hardest
         self.levels = []
-        for level_name, level in reversed(sorted(defaults.LEVELS.iteritems(), key=lambda (k, v): (v, k))):
+        for level_name, _ in reversed(sorted(defaults.LEVELS.iteritems(), key=lambda (k, v): (v, k))):
             self.levels.append(level_name)
 
         ttk.OptionMenu(level_frame, self.level, self.levels[0], *self.levels).pack(pady=20)
@@ -207,15 +210,28 @@ class ValveConfigApp(object):
         # After preparing all section load values from config
         if self.config_filename.get() != "":
             self.load_config_values(self.config_filename.get())
-        else:
-            self.values_hash = self.get_values_hash()
+
+        self.values_hash = self.get_values_hash()
 
     def create_interface(self):
-        """ Creates bottom interface """
-        bottom_frame = ttk.Frame(self.parent)
-        bottom_frame.pack(side=tk.BOTTOM, fill=tk.X)
+        """ Creates window menu """
+        menu_bar = tk.Menu(self.parent)
 
-        save_button = ttk.Button(bottom_frame, text="Save")
+        # Level menu
+        level_menu = tk.Menu(menu_bar)
+
+        def change_level_callback(level_name):
+            self.level.set(level_name)
+            self.recreate_gui()
+
+        for level_name in self.levels:
+            level_cb = utils.CallbackWrapper(change_level_callback, level_name)
+            level_menu.add_command(label=level_name, command=level_cb)
+
+        # File menu
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="New", command=self.create_new_config_file_dialog)
+        file_menu.add_command(label="Open", command=self.open_config_file)
 
         def save_callback(*args):
             if self.config_filename.get() == "":
@@ -227,17 +243,40 @@ class ValveConfigApp(object):
 
             self.save_config(self.config_filename.get())
 
-        save_button.bind("<Button-1>", save_callback)
-        save_button.pack(side=tk.LEFT, pady=5, padx=40)
+        file_menu.add_command(label="Save", command=save_callback)
 
-        ttk.OptionMenu(bottom_frame, self.level, self.levels[0], *self.levels).pack(side=tk.LEFT)
-        self.level.trace("w", self.recreate_gui)
+        def save_as_callback(*args):
+            self.open_config_file()
 
-        reset_button = ttk.Button(bottom_frame, text="Reset to default", style="R.TButton")
+            # If creating new file was canceled
+            if self.config_filename.get() == "":
+                return
 
-        reset_callback = utils.CallbackWrapper(self.load_defaults, reset=True)
-        reset_button.bind("<Button-1>", reset_callback)
-        reset_button.pack(side=tk.RIGHT, pady=5, padx=40)
+            self.save_config(self.config_filename.get())
+
+        file_menu.add_command(label="Save as", command=save_as_callback)
+
+        file_menu.add_separator()
+
+        reset_cb = utils.CallbackWrapper(self.load_defaults, reset=True)
+        file_menu.add_command(label="Reset to default", command=reset_cb)
+        file_menu.add_cascade(label="Level", menu=level_menu)
+        file_menu.add_command(label="Exit", command=self.on_window_close)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+
+        # Run menu
+        run_menu = tk.Menu(menu_bar, tearoff=0)
+        run_menu.add_command(label="Valve")
+        run_menu.add_command(label="Pond")
+        menu_bar.add_cascade(label="Run", menu=run_menu)
+
+        # Help menu
+        help_menu = tk.Menu(menu_bar, tearoff=0)
+        help_menu.add_command(label="Documentation", command=self.open_docs)
+        help_menu.add_command(label="About", command=self.about)
+        menu_bar.add_cascade(label="Help", menu=help_menu)
+
+        self.parent.config(menu=menu_bar)
 
     def callback_add_section(self, section_name):
         """
@@ -511,6 +550,7 @@ class ValveConfigApp(object):
         filetypes = (("text files", "*.txt"), ("config files", "*.cfg"), ("all files", "*.*"))
         try:
             with askopenfile("r", filetypes=filetypes) as config_file:
+                self.parent.title("{} - {}".format(self.title, config_file.name))
                 self.config_filename.set(config_file.name)
         except AttributeError:
             pass
@@ -583,13 +623,11 @@ class ValveConfigApp(object):
                     except NoSectionError:
                         break
 
-        self.values_hash = self.get_values_hash()
-
     def load_defaults(self, reset=False, *args):
         """
         Load defaults values to values dictionary.
 
-        :param reset: If set to True confirmation will be neeeded to reset.
+        :param reset: If set to True confirmation will be needed to reset.
         """
         if reset:
             result = tkMessageBox.askyesno("Reset values", "Are you sure to reset all values?")
@@ -636,35 +674,6 @@ class ValveConfigApp(object):
                     for i, item in enumerate(defaults.MENUS):
                         if item.startswith(section_name):
                             del defaults.MENUS[i]
-
-    def create_new_config_file(self):
-        """
-        Show dialog with create or choose existing file options.
-        """
-        window = tk.Toplevel(self.parent, padx=20)
-        window.title("New file")
-
-        directory_name = tk.StringVar()
-        file_name = tk.StringVar()
-
-        def select_dir():
-            directory_name.set(askdirectory())
-            window.lift()  # Move to foreground
-
-        ttk.Label(window, text="Directory:").grid(row=0, column=0)
-        ttk.Entry(window, textvariable=directory_name, state="readonly").grid(row=0, column=1)
-        ttk.Button(window, text="Choose directory", command=select_dir, style="File.TButton").grid(row=0, column=2)
-
-        ttk.Label(window, text="File name:").grid(row=1, column=0)
-        ttk.Entry(window, textvariable=file_name).grid(row=1, column=1)
-
-        def create(dir_var, filename_var):
-            path = dir_var.get() + os.path.sep + filename_var.get()
-            with open(path, "w+"):
-                self.config_filename.set(path)
-
-        create_callback = utils.CallbackWrapper(create, directory_name, file_name)
-        ttk.Button(window, text="Create", command=create_callback).grid(row=3, column=0, columnspan=3)
 
     def get_active_frame_name(self, section_name):
         """
@@ -749,6 +758,59 @@ class ValveConfigApp(object):
         if required_checking:
             tkMessageBox.showinfo("Saved", "Saving complete")
 
+    def open_docs(self):
+        webbrowser.open("http://www.aquaduct.pl/apidocs/valve/valve_config.html")
+
+    def create_new_config_file_dialog(self):
+        """
+        Show dialog with create or choose existing file options.
+        """
+        window = tk.Toplevel(self.parent, padx=20)
+        window.title("New file")
+
+        directory_name = tk.StringVar()
+        file_name = tk.StringVar()
+
+        def select_dir():
+            directory_name.set(askdirectory())
+            window.lift()  # Move to foreground
+
+        ttk.Label(window, text="Directory:").grid(row=0, column=0)
+        ttk.Entry(window, textvariable=directory_name, state="readonly").grid(row=0, column=1)
+        ttk.Button(window, text="Choose directory", command=select_dir, style="File.TButton").grid(row=0, column=2)
+
+        ttk.Label(window, text="File name:").grid(row=1, column=0)
+        ttk.Entry(window, textvariable=file_name).grid(row=1, column=1)
+
+        def create(dir_var, filename_var):
+            path = dir_var.get() + os.path.sep + filename_var.get()
+            with open(path, "w+"):
+                self.config_filename.set(path)
+
+        create_callback = utils.CallbackWrapper(create, directory_name, file_name)
+        ttk.Button(window, text="Create", command=create_callback).grid(row=3, column=0, columnspan=3)
+
+    def about(self):
+        window = tk.Toplevel(self.parent, padx=20)
+        window.title("About")
+
+        logo = tk.PhotoImage(data=utils.LOGO_ENCODED)
+
+        logo_label = ttk.Label(window, image=logo)
+        logo_label.image = logo
+        logo_label.pack()
+
+        content = u"""
+        Aqua-Duct {}
+        
+        ValveConfigurator
+        
+        Copyright \xa9 2018
+        {}
+        """.format(aquaduct.version_nice(), aquaduct.__author__)
+
+        ttk.Label(window, text=content, justify=tk.CENTER).pack()
+
     def on_window_close(self):
         if self.get_values_hash() != self.values_hash:
             result = tkMessageBox.askyesno("Unsaved changes", "You have unsaved changes. Are you want to quit?")
@@ -756,6 +818,7 @@ class ValveConfigApp(object):
                 self.parent.destroy()
         else:
             self.parent.destroy()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
