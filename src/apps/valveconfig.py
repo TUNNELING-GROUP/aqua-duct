@@ -231,7 +231,14 @@ class ValveConfigApp(object):
         # File menu
         file_menu = tk.Menu(menu_bar, tearoff=0)
         file_menu.add_command(label="New", command=self.create_new_config_file_dialog)
-        file_menu.add_command(label="Open", command=self.open_config_file)
+
+        def open_config():
+            self.open_config_file()
+            self.load_config_values(self.config_filename.get())
+
+            self.values_hash = self.get_values_hash()
+
+        file_menu.add_command(label="Open", command=open_config)
 
         def save_callback(*args):
             if self.config_filename.get() == "":
@@ -266,8 +273,8 @@ class ValveConfigApp(object):
 
         # Run menu
         run_menu = tk.Menu(menu_bar, tearoff=0)
-        run_menu.add_command(label="Valve")
-        run_menu.add_command(label="Pond")
+        run_menu.add_command(label="Valve", command=self.valve_run_dialog)
+        run_menu.add_command(label="Pond", command=self.pond_run_dialog)
         menu_bar.add_cascade(label="Run", menu=run_menu)
 
         # Help menu
@@ -791,7 +798,7 @@ class ValveConfigApp(object):
         ttk.Button(window, text="Create", command=create_callback).grid(row=3, column=0, columnspan=3)
 
     def about(self):
-        window = tk.Toplevel(self.parent, padx=20)
+        window = tk.Toplevel(self.parent)
         window.title("About")
 
         logo = tk.PhotoImage(data=utils.LOGO_ENCODED)
@@ -800,16 +807,125 @@ class ValveConfigApp(object):
         logo_label.image = logo
         logo_label.pack()
 
-        content = u"""
-        Aqua-Duct {}
+        content = u"""Aqua-Duct {}
         
-        ValveConfigurator
-        
-        Copyright \xa9 2018
-        {}
-        """.format(aquaduct.version_nice(), aquaduct.__author__)
+ValveConfigurator
+
+Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
 
         ttk.Label(window, text=content, justify=tk.CENTER).pack()
+        ttk.Label(window, text=aquaduct.__author__, justify=tk.CENTER).pack()
+
+        hyperlink = tk.Label(window, text="http://www.tunnelinggroup.pl/", foreground="blue", justify=tk.CENTER)
+        hyperlink.pack()
+        hyperlink_cb = utils.CallbackWrapper(webbrowser.open_new, "http://www.tunnelinggroup.pl/")
+        hyperlink.bind("<Button-1>", hyperlink_cb)
+
+    def valve_run_dialog(self):
+        """ Open dialog with options to run Valve """
+        if self.config_filename.get() == "":
+            tkMessageBox.showinfo("Config file", "You have to save or open existing config.")
+            return
+        elif self.values_hash != self.get_values_hash():
+            result = tkMessageBox.askyesno("Unsaved config", "There are unsaved changed. Are you sure to continue?")
+
+            if not result:
+                return
+
+        window = tk.Toplevel(self.parent, padx=20, pady=15)
+        window.title("Run Valve")
+
+        scrolled_frame = utils.VerticalScrolledFrame(window)
+        scrolled_frame.pack(expand=1, fill=tk.BOTH)
+        frame = scrolled_frame.interior
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+
+        command = tk.StringVar()
+        args = {}
+
+        def update_command(*a):
+            cmd = "valve "
+            for arg, var in args.iteritems():
+                if isinstance(var.get(), bool):
+                    if var.get():
+                        cmd += arg + " "
+                elif var.get():
+                    cmd += "{} {} ".format(arg, var.get())
+
+            command.set(cmd)
+
+        for row, entry in enumerate(defaults.POND_DEFAULTS.entries):
+            var = utils.entry_factory(frame, row, entry.name, entry.default_values, entry.help_text)
+            args[entry.config_name] = var
+            var.input_var.trace("w", update_command)
+
+        utils.Text(frame, textvariable=command, width=60, height=2).grid(row=999,
+                                                                         column=0,
+                                                                         columnspan=2,
+                                                                         sticky="ew",
+                                                                         pady=10)
+
+        # Update field with opened config file
+        args["-c"].set(self.config_filename.get())
+
+        run_cb = utils.CallbackWrapper(os.system, command.get())
+        run_button = ttk.Button(frame, text="Run")
+        run_button.bind("<Button-1>", run_cb)
+        run_button.grid(row=1000, column=0, columnspan=2)
+
+    def pond_run_dialog(self):
+        """ Open dialog with options to run Valve """
+        if self.config_filename.get() == "":
+            tkMessageBox.showinfo("Config file", "You have to save or open existing config.")
+            return
+        elif self.values_hash != self.get_values_hash():
+            result = tkMessageBox.askyesno("Unsaved config", "There are unsaved changed. Are you sure to continue?")
+
+            if not result:
+                return
+
+        window = tk.Toplevel(self.parent, padx=20, pady=15)
+        window.title("Run Pond")
+
+        scrolled_frame = utils.VerticalScrolledFrame(window)
+        scrolled_frame.pack(expand=1, fill=tk.BOTH)
+        frame = scrolled_frame.interior
+        frame.columnconfigure(0, weight=1)
+        frame.columnconfigure(1, weight=1)
+
+        command = tk.StringVar()
+        args = {}
+
+        def update_command(*a):
+            cmd = "pond "
+            for arg, var in args.iteritems():
+                if isinstance(var.get(), bool):
+                    if var.get():
+                        cmd += arg + " "
+                elif var.get():
+                    cmd += "{} {} ".format(arg, var.get())
+
+            command.set(cmd)
+
+        for row, entry in enumerate(defaults.POND_DEFAULTS.entries):
+            var = utils.entry_factory(frame, row, entry.name, entry.default_values, entry.help_text)
+            args[entry.config_name] = var
+            var.input_var.trace("w", update_command)
+
+        utils.Text(frame, textvariable=command, width=60, height=2).grid(row=999,
+                                                                         column=0,
+                                                                         columnspan=2,
+                                                                         sticky="ew",
+                                                                         pady=10)
+
+        # Update field with opened config file
+        args["-c"].set(self.config_filename.get())
+
+        run_cb = utils.CallbackWrapper(os.system, command.get())
+        run_button = ttk.Button(frame, text="Run")
+        run_button.bind("<Button-1>", run_cb)
+        run_button.grid(row=1000, column=0, columnspan=2)
 
     def on_window_close(self):
         if self.get_values_hash() != self.values_hash:

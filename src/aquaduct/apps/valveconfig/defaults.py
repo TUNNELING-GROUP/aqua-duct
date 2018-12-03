@@ -1020,7 +1020,7 @@ visualize_section.add_entry(DefaultEntry(config_name="ctypes_amount",
                                          level=1))
 visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters",
                                          name="Visualize cluster of inlets: ",
-                                         default_values=[False],
+                                         default_values=[True],
                                          help_text="If set True, clusters of inlets are visualized.",
                                          level=1))
 visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters_amount",
@@ -1031,7 +1031,7 @@ visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters_amount",
                                          warning_text=" "))
 visualize_section.add_entry(DefaultEntry(config_name="show_molecule",
                                          name="Show molecule: ",
-                                         default_values=[["False", str()]],
+                                         default_values=[["protein", "False"]],
                                          help_text="If is set to selection of some molecular object in the system, for example to protein, this object is displayed.",
                                          level=1))
 visualize_section.add_entry(DefaultEntry(config_name="show_molecule_frames",
@@ -1098,6 +1098,148 @@ smooth_section.add_entry(DefaultEntry(config_name="polyorder",
                                       help_text="In savgol is polynomial order.",
                                       level=0))
 DEFAULTS.append(smooth_section)
+
+VALVE_DEFAULTS = DefaultSection("", "", 0)
+VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
+                                      name="Config filename: ",
+                                      default_values=[str()],
+                                      help_text="Config file filename.",
+                                      level=None
+                                      ))
+VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-t",
+                                     name="Max threads: ",
+                                     default_values=[str()],
+                                     help_text="Limit Aqua-Duct calculations to given number of threads.",
+                                     level=None
+                                     ))
+VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--force-save",
+                                     name="Force saving results: ",
+                                     default_values=[False],
+                                     help_text="Force saving results.",
+                                     level=None
+                                     ))
+# VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
+#                                      name="Debug mode: ",
+#                                      default_values=[False],
+#                                      help_text="Prints debug info.",
+#                                      level=None
+#                                      ))
+# VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
+#                                      name="Debug mode: ",
+#                                      default_values=[False],
+#                                      help_text="Debug log file.",
+#                                      level=None
+#                                      ))
+
+POND_DEFAULTS = DefaultSection("", "", 0)
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
+                                     name="Config filename: ",
+                                     default_values=[str()],
+                                     help_text="Config file filename.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="-t",
+                                     name="Max threads: ",
+                                     default_values=[str()],
+                                     help_text="Limit Aqua-Duct calculations to given number of threads.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="-r",
+                                     name="Results directory: ",
+                                     default_values=[str()],
+                                     help_text="Path to results directory.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--raw",
+                                     name="Use raw paths: ",
+                                     default_values=[str()],
+                                     help_text="Use raw data from paths instead of single paths.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--raw-master",
+                                     name="Use raw master paths: ",
+                                     default_values=[False],
+                                     help_text="Use raw data from paths instead of single paths, only in master paths calculations.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--raw-discard-singletons",
+                                     name="Discard raw singletons: ",
+                                     default_values=[str()],
+                                     help_text="Discard short scope only segments from raw data.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--window-full",
+                                     name="Full window: ",
+                                     default_values=[False],
+                                     help_text="Return full window if windows is used.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--windows",
+                                     name="Windows: ",
+                                     default_values=[str()],
+                                     help_text="Number of windows to calculate.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--wsize",
+                                     name="Window size: ",
+                                     default_values=[str()],
+                                     help_text="Size of window in frames.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--reference",
+                                     name="Reference: ",
+                                     default_values=[str()],
+                                     help_text="Selection of reference in the first frame of trajectory.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--reference-radius",
+                                     name="Reference radius: ",
+                                     default_values=[str()],
+                                     help_text="Radius of reference.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--reference-mol",
+                                     name="Molecule reference: ",
+                                     default_values=[str()],
+                                     help_text="Selection of reference molecules.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--temperature",
+                                     name="Temperature: ",
+                                     default_values=[str()],
+                                     help_text="Simulation temperature.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--gsize",
+                                     name="Grid cells size: ",
+                                     default_values=[str()],
+                                     help_text="Size of grid's cells.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--pockets",
+                                     name="Pockets: ",
+                                     default_values=[False],
+                                     help_text="Calculate pockets.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--hotspots",
+                                     name="Hotspots: ",
+                                     default_values=[False],
+                                     help_text="Calculates hotspots if pockets are calculated.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--master-radius",
+                                     name="Master paths radius: ",
+                                     default_values=[False],
+                                     help_text="Calculate profiles for master paths with given radius.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--master-ctypes",
+                                     name="Ctypes: ",
+                                     default_values=[False],
+                                     help_text="Limit calculations to given ctypes.",
+                                     level=None
+                                     ))
 # @formatter:on
 
 MENUS = [
