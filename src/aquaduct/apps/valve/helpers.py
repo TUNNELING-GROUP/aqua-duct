@@ -37,6 +37,23 @@ from aquaduct.utils import clui
 from aquaduct.utils.helpers import is_number, Auto
 
 
+
+class NP(object):
+    def __init__(self,pbar):
+        self.paths = list()
+        self.pbar = pbar
+
+    def callback_cric_next(self, result):
+        CRIC.update_cric(result.pop(-1))
+        self.paths.extend(result)
+        pbar.next()
+
+    def callback_next(self, result):
+        self.paths.extend(result)
+        pbar.next()
+
+
+
 def get_res_in_scope(is_res_in_scope, res):
     res_new = None
     for iris, r in zip(is_res_in_scope, res.iterate_over_residues()):

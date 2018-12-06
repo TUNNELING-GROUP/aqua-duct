@@ -368,7 +368,7 @@ def stage_II_run(config, options,
     unsandwitchize = not Reader.sandwich_mode and len(results) > 1
     if not unsandwitchize:
         with clui.pbar(len(all_res), 'Creating raw paths:') as pbar:
-            paths = []
+            new_paths = NP(pbar)
             for number in sorted(results.keys()):
                 all_res_layer = all_res.layer(number)
 
@@ -380,9 +380,9 @@ def stage_II_run(config, options,
 
                 pool = Pool(processes=optimal_threads.threads_count)
                 r = pool.map_async(
-                    assign_nonsandwiched_paths(pbar),
+                    assign_nonsandwiched_paths(),
                     izip(paths_this_layer, results_n(results[number]).T),
-                    callback=paths.extend)
+                    callback=new_paths.callback_next)
                 r.wait()
                 pool.close()
                 pool.join()
@@ -395,17 +395,18 @@ def stage_II_run(config, options,
 
         # pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
         with clui.pbar(len(all_res_ids), 'Creating raw paths (sandwich deconvolution):') as pbar:
-            paths = []
+            new_paths = NP(pbar)
 
-            pool_func = assign_sandwiched_paths(all_res_ids, all_res_names, max_pf, results, pbar)
+            pool_func = assign_sandwiched_paths(all_res_ids, all_res_names, max_pf, results)
 
             pool = Pool(processes=optimal_threads.threads_count)
             r = pool.map_async(
                 pool_func, xrange(len(all_res_ids)),
-                callback=paths.extend)
+                callback=new_paths.callback_next)
             r.wait()
             pool.close()
             pool.join()
+    paths = new_paths.paths
 
     # rm tmp files
     for rn in results.itervalues():
@@ -562,19 +563,10 @@ def stage_III_run(config, options,
                 pool = Pool(processes=optimal_threads.threads_count)
                 bp = partial(barber_paths, spheres=wtc.spheres)
 
-                class NP(object):
-                    def __init__(self):
-                        self.paths = list()
-
-                    def callb_(self, result):
-                        CRIC.update_cric(result.pop(-1))
-                        self.paths.extend(result)
-                        pbar.next()
-
-                new_paths = NP()
+                new_paths = NP(pbar)
                 nr = 0
                 while len(paths):
-                    pool.apply_async(bp, args=(paths[:n],), callback=new_paths.callb_)
+                    pool.apply_async(bp, args=(paths[:n],), callback=new_paths.callback_cric_next)
                     paths = paths[n:]
                     nr += 1
                     if nr % n == 0:

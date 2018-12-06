@@ -706,8 +706,12 @@ class Bunch(object):
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
+################################################################################
 
 class SmartRangeFunction(object):
+    '''
+    Base class for all :class:`SmartRangeFunction` based classes.
+    '''
     __slots__ = "element times".split()
 
     def __init__(self, element, times):

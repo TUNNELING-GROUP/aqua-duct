@@ -83,7 +83,7 @@ if __name__ == "__main__":
         # at this stage logger is the AQ root logger
         if args.debug:
             logger.removeHandler(ch)  # remove old ch handlers
-            ch = logging.StreamHandler()
+            CH = logging.StreamHandler()
             ch.setFormatter(formatter)
             ch.setLevel(logging.DEBUG)
             logger.addHandler(ch)

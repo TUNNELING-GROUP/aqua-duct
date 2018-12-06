@@ -35,12 +35,6 @@ class assign_nonsandwiched_paths(object):
     """
     Worker which assign non-sandwiched paths to object container
     """
-    def __init__(self, pbar):
-        """
-        Constructor
-        :param pbar: progress bar
-        """
-        self.pbar = pbar
 
     def __call__(self, args):
         """
@@ -49,7 +43,6 @@ class assign_nonsandwiched_paths(object):
         """
         pat, nfos = args
         pat.add_012(nfos)
-        self.pbar.next()
         return pat
 
 
@@ -57,7 +50,7 @@ class assign_sandwiched_paths(object):
     """
     Worker which assign sandwiched paths to object container
     """
-    def __init__(self, all_res_ids, all_res_names, max_pf, results, pbar):
+    def __init__(self, all_res_ids, all_res_names, max_pf, results):
         """
         Constructor
         :param all_res_ids: residues ids
@@ -70,7 +63,6 @@ class assign_sandwiched_paths(object):
         self.all_res_names = all_res_names
         self.max_pf = max_pf
         self.results = results
-        self.pbar = pbar
 
     def __call__(self, pnr):
         """
@@ -86,7 +78,6 @@ class assign_sandwiched_paths(object):
                 chain(*(results_n(self.results[n])[:, pnr] for n in sorted(self.results.keys()))),
                 dtype=np.int8))
 
-        self.pbar.next()
         return new_p
 
 def stage_I_worker_q(input_queue, results_queue, pbar_queue):
