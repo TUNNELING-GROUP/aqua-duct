@@ -67,6 +67,23 @@ class Standartize(object):
         self.center = Center()
         self.normalize = Normalize()
 
+        test_arr = np.random.random((10,3))
+        test_cntr = np.random.random((1,3))
+        P = Polarize(center=test_cntr)
+        P.build(test_arr)
+        test_arr_p = P(test_arr)
+        Pp = P.undo(test_arr_p) - test_arr
+        [self.assertAlmostEqual(x, 0, 7) for x in Pp.ravel()]
+    def test_polarize_in(self):
+        P = Polarize(center=np.random.random((1,3)))
+        self.assertRaises(TypeError, P, 'cupkaces')
+        self.assertRaises(TypeError, Polarize, 'cupcakes')
+        self.assertRaises(TypeError, P, np.random.random((1, 2)))
+
+
+
+
+if __name__ == '__main__':
     def build(self, X):
         self.center.build(X)
         self.normalize.build(X)
@@ -92,7 +109,14 @@ class Polarize(object):
         :param rvar: Desired amount of variance of *r* component measured as fraction of mean *t* and *f* variance.
         :param equaltf: If set ``True``, *t* range is scaled to *f*.
         '''
-        self.center = center
+
+        if not isinstance(center,np.ndarray):
+            raise TypeError('Constructor called with center param of invalid type')
+        elif np.shape(center) != (3,):
+            raise TypeError('Constructor called with center param of invalid shape')
+        else:
+            self.center = center
+
         self.rvar = rvar
         self.equaltf = equaltf
         self.tmean = 0
