@@ -46,11 +46,11 @@ class NP(object):
     def callback_cric_next(self, result):
         CRIC.update_cric(result.pop(-1))
         self.paths.extend(result)
-        pbar.next()
+        self.pbar.next()
 
     def callback_next(self, result):
         self.paths.extend(result)
-        pbar.next()
+        self.pbar.next()
 
 
 

@@ -129,8 +129,11 @@ class Polarize(object):
 
     def _Xrtf(self, X):
         X = X - self.center
+        # ISO, f + pi
         r = (X ** 2).sum(1) ** 0.5
-        return X, r, np.arccos(X[:, 2] / r), np.arctan2(X[:, 1], X[:, 0]) + np.pi  # non iso f
+        t = np.arccos(X[:, 2] / r) # 0,pi
+        f = np.arctan2(X[:, 1], X[:, 0]) + np.pi # -pi,pi # f+pi 0,2pi
+        return X, r, t, f
 
     def _circle_tf(self, t, f):
         return t % np.pi, f % (2 * np.pi)
@@ -138,8 +141,7 @@ class Polarize(object):
     def build(self, X):
         X, r, t, f = self._Xrtf(X)
         # calculate mean values for polar components (circle it)
-        self.tmean = (np.pi / 2 - np.mean(t)) % np.pi
-        self.fmean = (np.pi - np.mean(f)) % (2 * np.pi)
+        self.tmean,self.fmean = self._circle_tf(np.pi / 2 - np.mean(t),np.pi - np.mean(f))
         tf_var = (np.var(t) * 2 + np.var(f)) / 4.
         self.rvar_factor = ((tf_var * self.rvar) ** 0.5) * (1. / np.std(r))
 

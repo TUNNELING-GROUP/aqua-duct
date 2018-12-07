@@ -1501,7 +1501,7 @@ def stage_VI_run(config, options,
                             color = cmap[int(255 * (1 - fraction / 100.))]
                             spp.multiline_add(coords, color=color)
                     spp.multiline_end(name=c_name + '_DC')
-
+            spp.scatter(np.array([inls.center_of_system]), color=cmap[10], name="COS")
 
 
 
