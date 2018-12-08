@@ -85,9 +85,15 @@ else:
 
 class Window(object):
     def __init__(self, start, stop, step):
-        self.start = start
-        self.stop = stop
-        self.step = step
+        self.start = self._none_or_int(start)
+        self.stop = self._none_or_int(stop)
+        self.step = self._none_or_int(step)
+    
+    @staticmethod
+    def _none_or_int(nr):
+        if nr is not None:
+            return int(nr)
+
 
     def __repr__(self):
         return "Window(%r:%r:%r)" % (self.start, self.stop, self.step)
