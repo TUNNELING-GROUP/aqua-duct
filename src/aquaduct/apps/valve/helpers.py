@@ -39,19 +39,32 @@ from aquaduct.utils.helpers import is_number, Auto
 
 
 class NP(object):
-    def __init__(self,pbar):
+    def __init__(self,pbar,next_len=False):
         self.paths = list()
         self.pbar = pbar
+        self.next_len = next_len
+
+    def next(self,n):
+        if n > 1 and self.next_len:
+            self.pbar.next(step=n)
+        else:
+            self.pbar.next()
 
     def callback_cric_next(self, result):
         CRIC.update_cric(result.pop(-1))
         self.paths.extend(result)
-        self.pbar.next()
+        self.next(len(result))
+        print "***",len(result)
 
     def callback_next(self, result):
         self.paths.extend(result)
-        self.pbar.next()
+        self.next(len(result))
+        print "***",len(result)
 
+
+    def callback_append_next(self, result):
+        self.paths.append(result)
+        self.pbar.next()
 
 
 def get_res_in_scope(is_res_in_scope, res):
@@ -501,3 +514,4 @@ def results_n(rn):
         return rn
     else:
         return np.memmap(rn[0], mode='r', dtype=np.int8, shape=rn[1])
+

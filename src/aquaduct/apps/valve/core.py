@@ -379,11 +379,8 @@ def stage_II_run(config, options,
                                                                all_res_layer.names()))
 
                 pool = Pool(processes=optimal_threads.threads_count)
-                r = pool.map_async(
-                    assign_nonsandwiched_paths(),
-                    izip(paths_this_layer, results_n(results[number]).T),
-                    callback=new_paths.callback_next)
-                r.wait()
+                map(new_paths.callback_append_next,pool.imap_unordered(assign_nonsandwiched_paths(),izip(paths_this_layer, results_n(results[number]).T)))
+                
                 pool.close()
                 pool.join()
 
@@ -396,14 +393,11 @@ def stage_II_run(config, options,
         # pbar = clui.pbar(len(results[numbers[0]]), 'Sandwich deconvolution:')
         with clui.pbar(len(all_res_ids), 'Creating raw paths (sandwich deconvolution):') as pbar:
             new_paths = NP(pbar)
-
             pool_func = assign_sandwiched_paths(all_res_ids, all_res_names, max_pf, results)
 
             pool = Pool(processes=optimal_threads.threads_count)
-            r = pool.map_async(
-                pool_func, xrange(len(all_res_ids)),
-                callback=new_paths.callback_next)
-            r.wait()
+            map(new_paths.callback_append_next,pool.imap_unordered(pool_func,range(len(all_res_ids))))
+
             pool.close()
             pool.join()
     paths = new_paths.paths
