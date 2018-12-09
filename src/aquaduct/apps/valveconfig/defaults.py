@@ -222,6 +222,41 @@ global_section.add_entry(DefaultEntry(config_name="twoway",
                                       help_text="Try to use two-way scanning in the stage II.",
                                       level=0,
                                       info_text=" "))
+global_section.add_entry(DefaultEntry(config_name="sandwich",
+                                      name="Sandwich: ",
+                                      default_values=[False],
+                                      help_text="If set True trajectories are read as layers.",
+                                      level=1))
+global_section.add_entry(DefaultEntry(config_name="max_frame",
+                                      name="Maximal frame: ",
+                                      default_values=[str()],
+                                      help_text="Maximal number of frame to be read from trajectory data. If set None trajectory is read to the last possible frame.",
+                                      level=1))
+global_section.add_entry(DefaultEntry(config_name="min_frame",
+                                      name="Minimal frame: ",
+                                      default_values=[0],
+                                      help_text="Minimal number of frame to be read from trajectory data.",
+                                      level=1))
+global_section.add_entry(DefaultEntry(config_name="step_frame",
+                                      name="Frame step: ",
+                                      default_values=[1],
+                                      help_text="Step used in reading trajectory. Default value of 1 stands for reading every frame. If it is greater than 1, only every step-value frame is read.",
+                                      level=1))
+global_section.add_entry(DefaultEntry(config_name="sps",
+                                      name="Single precision storage: ",
+                                      default_values=[True],
+                                      help_text="Try to store data in single precission storage.",
+                                      level=1))
+global_section.add_entry(DefaultEntry(config_name="cache_dir",
+                                      name="Cache directory: ",
+                                      default_values=[str()],
+                                      help_text="Allows to set path to the directory for cache data.",
+                                      level=1))
+global_section.add_entry(DefaultEntry(config_name="cache_mem",
+                                      name="Memory cache: ",
+                                      default_values=[False],
+                                      help_text="If set True, all data will be cached in RAM.",
+                                      level=1))
 DEFAULTS.append(global_section)
 
 traceable_residues_section = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=1)
@@ -479,7 +514,21 @@ inlets_clusterization_section.add_entry(DefaultEntry(config_name="renumber_clust
                                                      help_text="If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
                                                      level=1,
                                                      group_label="Post Clustering Optimalization"))
-
+inlets_clusterization_section.add_entry(DefaultEntry(config_name="cluster_area",
+                                                     name="Cluster area: ",
+                                                     default_values=[True],
+                                                     help_text="If set True, clusters’ areas are estimated with kernel density estimation method (KDE).",
+                                                     level=1))
+inlets_clusterization_section.add_entry(DefaultEntry(config_name="cluster_area_precision",
+                                                     name="Cluster area precision: ",
+                                                     default_values=[20],
+                                                     help_text="Precision of KDE method in clusters’ areas estimation method. This options controls number of grid points per one square A as used in KDE. Higher values means better precision. Number of points can be calculated as P^(2/3).",
+                                                     level=1))
+inlets_clusterization_section.add_entry(DefaultEntry(config_name="cluster_area_expand",
+                                                     name="Epand cluster area: ",
+                                                     default_values=[2],
+                                                     help_text="Space occupied by clusters’ points can be expanded before KDE calculation. This option controls amount of A by which the cluster space is expanded. Average amount of expansion can be calcualted as E^(2/3).",
+                                                     level=1))
 DEFAULTS.append(inlets_clusterization_section)
 
 clusterization_section = DefaultSection(config_name="clusterization", name="Clusterization", level=1)
@@ -916,6 +965,21 @@ analysis_section.add_entry(DefaultEntry(config_name="create_master_paths",
                                         help_text="If set to True master paths are created (fast CPU and big RAM recommended; 50k frames long simulation may need ca 20GB of memory)",
                                         level=0,
                                         warning_text=" "))
+analysis_section.add_entry(DefaultEntry(config_name="cluster_area",
+                                        name="Cluster area: ",
+                                        default_values=[True],
+                                        help_text="If set True, clusters’ areas are estimated with kernel density estimation method (KDE).",
+                                        level=1))
+analysis_section.add_entry(DefaultEntry(config_name="cluster_area_precision",
+                                        name="Cluster area precision: ",
+                                        default_values=[20],
+                                        help_text="Precision of KDE method in clusters’ areas estimation method. This options controls number of grid points per one square A as used in KDE. Higher values means better precision. Number of points can be calculated as P^(2/3).",
+                                        level=1))
+analysis_section.add_entry(DefaultEntry(config_name="cluster_area_expand",
+                                        name="Expand cluster area: ",
+                                        default_values=[2],
+                                        help_text="Space occupied by clusters’ points can be expanded before KDE calculation. This option controls amount of A by which the cluster space is expanded. Average amount of expansion can be calcualted as E^(2/3).",
+                                        level=1))
 
 DEFAULTS.append(analysis_section)
 
@@ -1063,6 +1127,21 @@ visualize_section.add_entry(DefaultEntry(config_name="show_object_chull_frames",
                                          name="Object convex hull frames:",
                                          default_values=[0],
                                          help_text="Allows to indicate for which frames of object defined by show_object convex hull should be displayed. It is possible to set several frames. In that case frames would be displayed as states.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="cluster_area",
+                                         name="Cluster area: ",
+                                         default_values=[True],
+                                         help_text="If set True, clusters’ areas are estimated with kernel density estimation method (KDE) and plotted as countour.",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="cluster_area_precision",
+                                         name="Cluster area precision: ",
+                                         default_values=[10],
+                                         help_text="Precision of KDE method in clusters’ areas estimation method. This options controls number of grid points per one square A as used in KDE. Higher values means better precision. Number of points can be calculated as P^(2/3).",
+                                         level=1))
+visualize_section.add_entry(DefaultEntry(config_name="cluster_area_expand",
+                                         name="Expand cluster area: ",
+                                         default_values=[1],
+                                         help_text="Space occupied by clusters’ points can be expanded before KDE calculation. This option controls amount of A by which the cluster space is expanded. Average amount of expansion can be calcualted as E^(2/3).",
                                          level=1))
 DEFAULTS.append(visualize_section)
 
