@@ -381,7 +381,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'inlets_clusters', 'False')
         config.set(section, 'inlets_clusters_amount', 'None')
 
-        config.set(section, 'cluster_area','True')
+        config.set(section, 'cluster_area','False')
         config.set(section, 'cluster_area_precision','20')
         config.set(section, 'cluster_area_expand', '2')
 
