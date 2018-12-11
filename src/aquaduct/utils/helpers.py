@@ -305,6 +305,25 @@ def fractionof(l,f=None):
         for ch in chunk(l,n):
             yield ch[0]
 
+def make_fracion(frac, size):
+    """
+    :param float frac: Fraction to make, can be also `None`. In that case, returned value is `None` as well.
+    :size int size: Size of set for which fraction is made.
+    :return: Fracion in range (0,1).
+    """
+    if frac is not None:
+        frac = float(frac)
+        if frac > 1:
+            frac = frac / size
+            if frac >= 1:
+                frac = None
+    return frac
+
+def make_fractionof(l,f=None):
+    '''
+    Wrapper of make_fraction and fractionof functions.
+    '''
+    return fractionof(l, f=make_fraction(f,len(l)))
 
 def chop(l, n=1):
     """

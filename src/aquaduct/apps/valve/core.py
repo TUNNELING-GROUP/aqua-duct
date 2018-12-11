@@ -36,7 +36,7 @@ from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath
 from aquaduct.traj.paths import yield_generic_paths
 from aquaduct.traj.sandwich import ResidueSelection, Reader
 from aquaduct.utils.clui import roman
-from aquaduct.utils.helpers import iterate_or_die, fractionof
+from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof
 from aquaduct.utils.helpers import range2int, what2what, lind, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
@@ -216,7 +216,7 @@ def stage_I_run(config, options,
     # join pool
     [p.join(1) for p in pool]
     pbar.finish()
-
+    
     if all_res is None or all_res.len() == 0:
         raise ValueError("No traceable residues were found.")
 
@@ -873,6 +873,7 @@ def stage_IV_run(config, options,
         master_paths = {}
         master_paths_smooth = {}
         if options.create_master_paths:
+            fof = lambda sp np.fromiter(make_fractionof(sp,f=options.master_paths_amount))
             with clui.fbm("Master paths calculations", cont=False):
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
@@ -1440,16 +1441,17 @@ def stage_VI_run(config, options,
                     else:
                         logger.debug('Object convex hull calculations failed for frame %d.' % frame)
 
-    def make_fracion(frac, size):
-        if frac is not None:
-            frac = float(frac)
-            if frac > 1:
-                frac = frac / size
-                if frac >= 1:
-                    frac = None
-        return frac
+    # def make_fracion(frac, size):
+    #     if frac is not None:
+    #         frac = float(frac)
+    #         if frac > 1:
+    #             frac = frac / size
+    #             if frac >= 1:
+    #                 frac = None
+    #     return frac
 
-    fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount, len(sp)))))
+    fof = lambda sp np.fromiter(make_fractionof(sp,f=options.inlets_clusters_amount))
+    # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount, len(sp)))))
 
     if options.inlets_clusters:
         with clui.fbm("Clusters"):
@@ -1499,7 +1501,8 @@ def stage_VI_run(config, options,
 
 
 
-    fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount, len(sp)))))
+    fof = lambda sp np.fromiter(make_fractionof(sp,f=options.ctypes_amount))
+    # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount, len(sp)))))
 
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):
@@ -1527,7 +1530,8 @@ def stage_VI_run(config, options,
                     plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
                                        smooth=smooth)
 
-    fof = lambda sp: list(fractionof(sp, f=make_fracion(options.all_paths_amount, len(sp))))
+    fof = lambda sp list(make_fractionof(sp,f=options.all_paths_amount))
+    # fof = lambda sp: list(fractionof(sp, f=make_fracion(options.all_paths_amount, len(sp))))
 
     if options.all_paths_raw:
         with clui.fbm("All raw paths"):
