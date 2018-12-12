@@ -305,7 +305,7 @@ def fractionof(l,f=None):
         for ch in chunk(l,n):
             yield ch[0]
 
-def make_fracion(frac, size):
+def make_fraction(frac, size):
     """
     :param float frac: Fraction to make, can be also `None`. In that case, returned value is `None` as well.
     :size int size: Size of set for which fraction is made.
