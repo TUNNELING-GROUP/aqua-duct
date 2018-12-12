@@ -1501,7 +1501,8 @@ def stage_VI_run(config, options,
 
 
 
-    fof = lambda sp: np.fromiter(make_fractionof(sp,f=options.ctypes_amount))
+    #fof = lambda sp: np.array(list(make_fractionof(sp,f=options.ctypes_amount)))
+    fof = lambda sp: list(make_fractionof(sp,f=options.ctypes_amount))
     # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount, len(sp)))))
 
     if options.ctypes_raw:
