@@ -1450,7 +1450,7 @@ def stage_VI_run(config, options,
     #                 frac = None
     #     return frac
 
-    fof = lambda sp: np.fromiter(make_fractionof(sp,f=options.inlets_clusters_amount))
+    fof = lambda sp: np.array(list(make_fractionof(sp,f=options.inlets_clusters_amount)))
     # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount, len(sp)))))
 
     if options.inlets_clusters:
