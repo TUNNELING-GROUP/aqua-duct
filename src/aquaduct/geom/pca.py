@@ -143,7 +143,10 @@ class Polarize(object):
         # calculate mean values for polar components (circle it)
         self.tmean,self.fmean = self._circle_tf(np.pi / 2 - np.mean(t),np.pi - np.mean(f))
         tf_var = (np.var(t) * 2 + np.var(f)) / 4.
-        self.rvar_factor = ((tf_var * self.rvar) ** 0.5) * (1. / np.std(r))
+        if np.std(r) > 0:
+            self.rvar_factor = ((tf_var * self.rvar) ** 0.5) * (1. / np.std(r))
+        else:
+            self.rvar_factor = 1.
 
     def __call__(self, X):
         X, r, t, f = self._Xrtf(X)
