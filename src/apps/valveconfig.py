@@ -167,7 +167,7 @@ class ValveConfigApp(object):
                       background=utils.get_widget_bg(self.parent)).grid(row=0, column=0, columnspan=2)
             ttk.Separator(frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=3)
 
-            self.entry_filler(frame, section_name, entries, 2)
+            self.entry_filler(frame, section_name, entries)
 
         # Set row number to row of hidden frame of default clustering section. Used to append new frames
         # TODO: It may not work when other widgets are rendered first
@@ -402,7 +402,7 @@ class ValveConfigApp(object):
         else:
             self.recluster_row += 1
 
-    def entry_filler(self, parent, section_name, entries, row):
+    def entry_filler(self, parent, section_name, entries):
         """
         Creates entries depending on DEFAULTS values.
 
@@ -413,10 +413,11 @@ class ValveConfigApp(object):
         :param parent: Parent widget.
         :param section_name: Config section name.
         :param entries: List of entries.
-        :param row: Row number at which first entry will be shown.
         """
         # Keeps label frames with actual row
         group_frames = {}
+
+        _, row = parent.grid_size()
 
         entries_appended = 0
         for entry in entries:
@@ -511,10 +512,10 @@ class ValveConfigApp(object):
 
                 self.values[section_name][entry.config_name] = entry_widget
 
-                row += 1
-
                 if entry.required:
                     self.required_entries[section_name][entry.config_name] = entry_widget
+
+            row += 1
 
         # Hide tab if unused
         if entries_appended == 0:
