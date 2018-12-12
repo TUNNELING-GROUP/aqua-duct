@@ -873,7 +873,7 @@ def stage_IV_run(config, options,
         master_paths = {}
         master_paths_smooth = {}
         if options.create_master_paths:
-            fof = lambda sp np.fromiter(make_fractionof(sp,f=options.master_paths_amount))
+            fof = lambda sp: np.fromiter(make_fractionof(sp,f=options.master_paths_amount))
             with clui.fbm("Master paths calculations", cont=False):
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
@@ -1450,7 +1450,7 @@ def stage_VI_run(config, options,
     #                 frac = None
     #     return frac
 
-    fof = lambda sp np.fromiter(make_fractionof(sp,f=options.inlets_clusters_amount))
+    fof = lambda sp: np.fromiter(make_fractionof(sp,f=options.inlets_clusters_amount))
     # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount, len(sp)))))
 
     if options.inlets_clusters:
@@ -1501,7 +1501,7 @@ def stage_VI_run(config, options,
 
 
 
-    fof = lambda sp np.fromiter(make_fractionof(sp,f=options.ctypes_amount))
+    fof = lambda sp: np.fromiter(make_fractionof(sp,f=options.ctypes_amount))
     # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount, len(sp)))))
 
     if options.ctypes_raw:
@@ -1530,7 +1530,7 @@ def stage_VI_run(config, options,
                     plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
                                        smooth=smooth)
 
-    fof = lambda sp list(make_fractionof(sp,f=options.all_paths_amount))
+    fof = lambda sp: list(make_fractionof(sp,f=options.all_paths_amount))
     # fof = lambda sp: list(fractionof(sp, f=make_fracion(options.all_paths_amount, len(sp))))
 
     if options.all_paths_raw:
