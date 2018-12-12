@@ -542,16 +542,6 @@ clusterization_section.add_entry(DefaultEntry(config_name="method",
                                               default_values=[("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")],
                                               help_text="Name of clusterization method. ",
                                               level=1))
-clusterization_section.add_entry(DefaultEntry(config_name="recursive_clusterization",
-                                              name="Recursive clusterization: ",
-                                              default_values=["clusterization"],
-                                              help_text="If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
-                                              level=1))
-clusterization_section.add_entry(DefaultEntry(config_name="recursive_threshold",
-                                              name="Recursive threshold: ",
-                                              default_values=[str()],
-                                              help_text="Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
-                                              level=1))
 
 # Barber options
 clusterization_section.add_entry(DefaultEntry(config_name="auto_barber",
@@ -725,6 +715,17 @@ clusterization_section.add_entry(DefaultEntry(config_name="tol",
                                               help_text="Relative tolerance with regards to inertia to declare convergence.",
                                               level=0,
                                               optionmenu_value="kmeans"))
+
+clusterization_section.add_entry(DefaultEntry(config_name="recursive_clusterization",
+                                              name="Recursive clusterization: ",
+                                              default_values=["clusterization"],
+                                              help_text="If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
+                                              level=1))
+clusterization_section.add_entry(DefaultEntry(config_name="recursive_threshold",
+                                              name="Recursive threshold: ",
+                                              default_values=[str()],
+                                              help_text="Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
+                                              level=1))
 DEFAULTS.append(clusterization_section)
 
 reclusterization_section = DefaultSection(config_name="reclusterization", name="Reclusterization", level=0)
@@ -737,16 +738,6 @@ reclusterization_section.add_entry(DefaultEntry(config_name="method",
                                                 name="Method: ",
                                                 default_values=[("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")],
                                                 help_text="Name of clusterization method. It has to be one of the following: barber, dbscan, affprop, meanshift, birch, kmeans. Default value depends whether it is clusterization section (barber) or reclusterization section (dbscan).",
-                                                level=1))
-reclusterization_section.add_entry(DefaultEntry(config_name="recursive_clusterization",
-                                                name="Recursive clusterization: ",
-                                                default_values=[str()],
-                                                help_text="If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
-                                                level=1))
-reclusterization_section.add_entry(DefaultEntry(config_name="recursive_threshold",
-                                                name="Recursive threshold: ",
-                                                default_values=[str()],
-                                                help_text="Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
                                                 level=1))
 
 # Barber options
@@ -921,6 +912,17 @@ reclusterization_section.add_entry(DefaultEntry(config_name="tol",
                                               help_text="Relative tolerance with regards to inertia to declare convergence.",
                                               level=0,
                                               optionmenu_value="kmeans"))
+
+reclusterization_section.add_entry(DefaultEntry(config_name="recursive_clusterization",
+                                                name="Recursive clusterization: ",
+                                                default_values=[str()],
+                                                help_text="If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
+                                                level=1))
+reclusterization_section.add_entry(DefaultEntry(config_name="recursive_threshold",
+                                                name="Recursive threshold: ",
+                                                default_values=[str()],
+                                                help_text="Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
+                                                level=1))
 DEFAULTS.append(reclusterization_section)
 
 analysis_section = DefaultSection(config_name="analysis", name="Analysis", level=1)
