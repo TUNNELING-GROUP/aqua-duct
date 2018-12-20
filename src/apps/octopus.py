@@ -285,6 +285,7 @@ def ligands_time(file_processor):
 # 6
 def hotspots_aa_list(top_file, trj_files):
     # Reader.reset()
+    # FIXME: threads=optimal_threads.threads_count, passed with -t in valve.py and pond.py
     Reader(top_file, trj_files, window=Window(None, 10, None))  # TODO: sandwich z configu
 
     with ReadMOL2("hotspots1.mol2") as hotspots_file:
@@ -306,15 +307,15 @@ def hotspots_aa_list(top_file, trj_files):
 
     for traj_reader in Reader.iterate():
         traj_reader = traj_reader.open()
-        protein_residues = traj_reader.parse_selection("protein").residues()
-        protein_residues.uniquify()
+        protein_residues = traj_reader.parse_selection("protein").residues() # FIXME: do not use residues for coordinates, we want atoms' coordinates!
+        protein_residues.uniquify() # FIXME: skip it?
 
         residues_ids = list(protein_residues.ids())
         residues_names = list(protein_residues.names())
-        residues_coords = protein_residues.coords()
+        residues_coords = protein_residues.coords() # FIXME: Repeat for each frame - move it ot the loop below - remeber that we need atoms
 
         # Iterate through frames
-        for frame in Reader.window.range():
+        for frame in Reader.window.range(): # FIXME: iterate over frames ONLY with: for frame in traj_reader.iterate():
             traj_reader.set_frame(frame)
 
             res_in_dist = np.asarray(filter(in_dist, zip(residues_ids,
