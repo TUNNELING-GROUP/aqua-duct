@@ -275,6 +275,12 @@ max_level                           5               Maximal number of recursive 
 create_master_paths                 False           If set to ``True``, master paths are created (fast CPU and big
                                                     RAM recommended; 50k frames long simulation may need ca 20GB of
                                                     memory)
+master_paths_amount                 None            Allows to limit number of single paths used for master paths
+                                                    calculations.
+                                                    If it is a number
+                                                    in range ``(0,1)``, then it is interpreted as a percent number
+                                                    of paths to be used. It is is a integer number ``>= 1``
+                                                    it is an absoulte number of used paths.
 exclude_passing_in_clusterization   True            If set to ``True``, passing paths are not clustered with normal
                                                     paths.
 add_passing_to_clusters             None            Allows to run procedure for adding passing paths inlets to

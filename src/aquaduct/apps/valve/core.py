@@ -36,7 +36,7 @@ from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath
 from aquaduct.traj.paths import yield_generic_paths
 from aquaduct.traj.sandwich import ResidueSelection, Reader
 from aquaduct.utils.clui import roman
-from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof
+from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof, make_fraction
 from aquaduct.utils.helpers import range2int, what2what, lind, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
@@ -863,25 +863,28 @@ def stage_IV_run(config, options,
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
 
-        # ***** CLUSTERS' TYPES *****
-        with clui.fbm("Calculating cluster types"):
-            ctypes = inls.spaths2ctypes(spaths)
 
-        # now, there is something to do with ctypes!
-        # we can create master paths!
         # but only if user wants this
         master_paths = {}
         master_paths_smooth = {}
         if options.create_master_paths:
-            fof = lambda sp: np.fromiter(make_fractionof(sp,f=options.master_paths_amount))
+            #fof = lambda sp: np.array(list(make_fractionof(sp,f=options.master_paths_amount)))
+            fof = lambda sp: make_fractionof(sp,f=options.master_paths_amount)
+            mf = make_fraction(options.master_paths_amount,len(spaths))
+            mf = mf if mf is not None else 1
+            # sort by size to ger stratification like effect
+            mpsps = [sp for sp in spaths if not isinstance(sp, PassingPath)]  # no PassingPaths!
+            mpsps = list(fof(mpsps))
+            ctypes = inls.spaths2ctypes(mpsps) # temp ctypes
+
             with clui.fbm("Master paths calculations", cont=False):
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
-                    pbar = clui.pbar(len(spaths) * 2, mess='Building coords cache')
+                    pbar = clui.pbar(len(mpsps) * 2, mess='Building coords cache') # +2 to be on the safe side
                     # TODO: do it in parallel
-                    [sp.get_coords(smooth=None) for sp in spaths if
+                    [sp.get_coords(smooth=None) for sp in mpsps if
                      pbar.next() is None and not isinstance(sp, PassingPath)]
-                    [sp.get_coords(smooth=smooth) for sp in spaths if
+                    [sp.get_coords(smooth=smooth) for sp in mpsps if
                      pbar.next() is None and not isinstance(sp, PassingPath)]
                     pbar.finish()
                     use_threads = optimal_threads.threads_count
@@ -893,12 +896,15 @@ def stage_IV_run(config, options,
                     ctypes_generic = [ct.generic for ct in ctypes]
                     ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
-                    pbar = clui.pbar(len([None for sp in spaths if not isinstance(sp, PassingPath)]) * 2)
+                    pbar = clui.pbar(len(mpsps) * 2)
                     for nr, ct in enumerate(ctypes_generic_list):
                         logger.debug('CType %s (%d)' % (str(ct), nr))
-                        sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                        # no passing paths are allowed
-                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)]  # no PassingPaths!
+                        sps = lind(mpsps, what2what(ctypes_generic, [ct]))
+                        # # no passing paths are allowed
+                        # sps = [sp for sp in sps if not isinstance(sp, PassingPath)]  # no PassingPaths!
+                        # if len(sps) and int(mf*len(sps)):
+                        #     sps = list(fof(sps))
+                        #     logger.info("FOF!")
                         if not len(sps):
                             logger.debug(
                                 'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
@@ -916,10 +922,13 @@ def stage_IV_run(config, options,
     else:
         clui.message("No inlets found. Clusterization skipped.")
         # make empty results
-        ctypes = inls.spaths2ctypes(spaths)
         master_paths = {}
         master_paths_smooth = {}
 
+    # ***** CLUSTERS' TYPES *****
+    with clui.fbm("Calculating cluster types"):
+        ctypes = inls.spaths2ctypes(spaths)
+    
     ################################################################################
 
     return {'inls': inls,
