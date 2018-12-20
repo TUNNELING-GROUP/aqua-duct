@@ -870,13 +870,11 @@ def stage_IV_run(config, options,
         if options.create_master_paths:
             #fof = lambda sp: np.array(list(make_fractionof(sp,f=options.master_paths_amount)))
             fof = lambda sp: make_fractionof(sp,f=options.master_paths_amount)
-            mf = make_fraction(options.master_paths_amount,len(spaths))
-            mf = mf if mf is not None else 1
             # sort by size to ger stratification like effect
             mpsps = [sp for sp in spaths if not isinstance(sp, PassingPath)]  # no PassingPaths!
-            mpsps = list(fof(mpsps))
+            # mpsps = list(fof(mpsps))
+            mpsps = sorted(fof(mpsps),key=lambda sp: sp.size)
             ctypes = inls.spaths2ctypes(mpsps) # temp ctypes
-
             with clui.fbm("Master paths calculations", cont=False):
                 smooth = get_smooth_method(soptions)  # this have to preceed GCS
                 if GCS.cachedir or GCS.cachemem:
@@ -900,11 +898,6 @@ def stage_IV_run(config, options,
                     for nr, ct in enumerate(ctypes_generic_list):
                         logger.debug('CType %s (%d)' % (str(ct), nr))
                         sps = lind(mpsps, what2what(ctypes_generic, [ct]))
-                        # # no passing paths are allowed
-                        # sps = [sp for sp in sps if not isinstance(sp, PassingPath)]  # no PassingPaths!
-                        # if len(sps) and int(mf*len(sps)):
-                        #     sps = list(fof(sps))
-                        #     logger.info("FOF!")
                         if not len(sps):
                             logger.debug(
                                 'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
