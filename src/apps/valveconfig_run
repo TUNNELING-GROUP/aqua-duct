@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 
 VALVECONFIG=$(which valveconfig.py)
-env LD_LIBRARY_PATH="" $VALVECONFIG $@
+env LD_LIBRARY_PATH="" $VALVECONFIG "$@"
 

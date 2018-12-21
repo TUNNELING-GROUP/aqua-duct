@@ -25,14 +25,14 @@ install_requires = ['numpy>=1.10.0',  # this is required by MDA
                     'scipy>=0.17.1',
                     'scikit-learn>=0.16.0',
                     'MDAnalysis[amber]>=0.16.0,!=0.17,!=0.18',
-                    'joblib>=0.10'
+                    'joblib>=0.13'
                     ]
 
 
 def install_requires_nice(level=0):
     import re
     for ir in install_requires:
-        print ("    " * level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)', ir))
+        print (" "  * 4  * level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)', ir))
 
 
 author = __import__('aquaduct').__author__  # version str
@@ -62,6 +62,7 @@ setup(name='aquaduct',
                       'graphs': ['matplotlib'],
                       },
       scripts=['apps/valve.py', 'apps/valve_run',
+               'apps/valveconfig.py', 'apps/valveconfig_run',
                'apps/portal.py', 'apps/portal_run',
                'apps/pond.py', 'apps/pond_run', ],
       provides=['aquaduct'],
