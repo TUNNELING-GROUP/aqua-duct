@@ -495,9 +495,9 @@ def barber_with_spheres_big_matrix(coords, spheres):
 
 
 @listify
-def barber_paths(paths, spheres=None):
+def barber_paths(paths, spheres=None,only_for_names=None):
     # cut paths with barber
-    for path in paths:
+    for path in (pat for pat in paths if pat.name in only_for_names):
         tokeep = barber_with_spheres(path.coords, spheres)
         path.update_types_frames(SmartRange(lind(path.types, tokeep)), SmartRange(lind(path.frames, tokeep)))
         yield path

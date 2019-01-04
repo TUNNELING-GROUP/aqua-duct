@@ -44,6 +44,10 @@ class NP(object):
         self.pbar = pbar
         self.next_len = next_len
 
+    def reinit(self,pbar,next_len=False):
+        self.pbar = pbar
+        self.next_len = next_len
+
     def next(self,n):
         if n > 1 and self.next_len:
             self.pbar.next(step=n)

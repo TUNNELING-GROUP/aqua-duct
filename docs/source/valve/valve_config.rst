@@ -251,6 +251,7 @@ auto_barber_tovdw           True            If set ``True``, cutting of spheres 
                                             its radius by VdW radius of the closest atom.
 allow_passing_paths         False           If set ``True``, paths that do not enter the object are detected
                                             and added to the rest of paths as 'passing' paths.
+separate_barber             True            Apply AutoBarber for each type of traced molecules separately. 
 ========================    ==============  ================================================================
 
 
@@ -352,6 +353,11 @@ Stage **visualize**
     ==========================  ================    ==========================================================================================
     Option                      Default value       Description
     ==========================  ================    ==========================================================================================
+    split_by_type               False               If ``True``, visulaizations of all objects that correspond to particular types of
+                                                    traced molecules are splited. Appropriate molecule name is added to created objects.
+    retain_all_types            False               If ``True`` and *split_by_type* option is ``True`` as well, standard visualization for
+                                                    all types of traced moelcules will be generated as well.
+    
     all_paths_raw               False               If ``True``, produces one object in PyMOL that holds all paths
                                                     visualized by raw coordinates.
     all_paths_smooth            False               If ``True``, produces one object in PyMOL that holds all paths
