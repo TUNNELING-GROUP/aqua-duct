@@ -32,7 +32,7 @@ from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.traj.barber import barber_paths
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets
-from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath
+from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath, MacroMolPath
 from aquaduct.traj.paths import yield_generic_paths
 from aquaduct.traj.sandwich import ResidueSelection, Reader
 from aquaduct.utils.clui import roman
@@ -128,6 +128,9 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
 ################################################################################
 # asorted helpers
 
+def get_traced_names(some_paths):
+    # some_paths might me paths of spaths or both
+    return tuple(sorted(list(set((sp.id.name if isinstance(sp,MacroMolPath) else sp.name for sp in some_paths)))))
 
 
 ################################################################################
@@ -976,8 +979,7 @@ def stage_V_run(config, options,
                                          Reader.window.step))
 
     ############
-    traced_names = tuple(sorted(list(set([sp.id.name for sp in spaths]))))
-    # traced_names = ['all'] + traced_names
+    traced_names = get_traced_names(spaths)
 
     pa.sep()
     pa("Names of traced molecules: %s" % (' '.join(traced_names)))
@@ -1371,6 +1373,16 @@ def stage_VI_run(config, options,
     soptions = config.get_smooth_options()
     smooth = get_smooth_method(soptions)
 
+    traced_names = get_traced_names(spaths)
+    def iter_over_tn():
+        if not options.split_by_type:
+            yield None
+        else:
+            if options.retain_all_types:
+                yield None
+            for tn in traced_names:
+                yield tn
+
     # start pymol
     with clui.fbm("Starting PyMOL connection", cont=False):
         pymol_connector = ConnectToPymol()
@@ -1431,6 +1443,8 @@ def stage_VI_run(config, options,
                                        state=frame + 1)  # orange
                     else:
                         logger.debug('Object convex hull calculations failed for frame %d.' % frame)
+
+
 
     # def make_fracion(frac, size):
     #     if frac is not None:

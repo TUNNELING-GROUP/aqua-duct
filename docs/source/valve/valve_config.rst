@@ -352,6 +352,11 @@ Stage **visualize**
     ==========================  ================    ==========================================================================================
     Option                      Default value       Description
     ==========================  ================    ==========================================================================================
+    split_by_type               False               If ``True``, visulaizations of all objects that correspond to particular types of
+                                                    traced molecules are splited. Appropriate molecule name is added to created objects.
+    retain_all_types            False               If ``True`` and *split_by_type* option is ``True`` as well, standard visualization for
+                                                    all types of traced moelcules will be generated as well.
+    
     all_paths_raw               False               If ``True``, produces one object in PyMOL that holds all paths
                                                     visualized by raw coordinates.
     all_paths_smooth            False               If ``True``, produces one object in PyMOL that holds all paths

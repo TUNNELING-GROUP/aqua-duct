@@ -358,6 +358,9 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'save', '%d_%s_results.py' % (snr + 1, section))
 
         config.set(section, 'simply_smooths', 'RecursiveVector')
+        config.set(section, 'split_by_type', 'False')
+        config.set(section, 'retain_all_types', 'False')
+
 
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'False')
