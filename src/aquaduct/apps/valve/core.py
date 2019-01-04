@@ -530,7 +530,17 @@ def stage_III_run(config, options,
 
     ######################################################################
 
+    traced_names = get_traced_names(spaths)
+    def iter_over_tn():
+        if options.separate_barber:
+            for tn in traced_names:
+                yield [tn]
+        else:
+            yield traced_names
+
+
     if options.auto_barber:
+            
         wtc = WhereToCut(spaths=spaths,
                          selection=options.auto_barber,
                          mincut=options.auto_barber_mincut,
@@ -546,7 +556,7 @@ def stage_III_run(config, options,
             with clui.pbar(maxval=len(xrange(0, len(paths), n)), mess="AutoBarber in action:") as pbar:
                 Reader.reset()
                 pool = Pool(processes=optimal_threads.threads_count)
-                bp = partial(barber_paths, spheres=wtc.spheres)
+                bp = partial(barber_paths, spheres=wtc.spheres, only_for_names=traced_names)
 
                 new_paths = NP(pbar)
                 nr = 0

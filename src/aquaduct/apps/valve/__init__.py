@@ -274,6 +274,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'auto_barber_maxcut_level', 'True')
         config.set(section, 'auto_barber_mincut_level', 'True')
         config.set(section, 'auto_barber', 'False')
+        config.set(section, 'separate_barber', 'True')
         config.set(section, 'discard_empty_paths', 'True')
         config.set(section, 'sort_by_id', 'True')
         config.set(section, 'apply_smoothing', 'False')
