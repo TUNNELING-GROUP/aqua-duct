@@ -942,6 +942,9 @@ if __name__ == "__main__":
     root.configure(background="white")
     root.resizable(1, 1)
 
+    aq_icon = tk.PhotoImage(data=utils.AQ_ICON_BASE64)
+    root.tk.call('wm', 'iconphoto', root._w, aq_icon)
+
     s = ttk.Style()
 
     s.theme_use("clam")
