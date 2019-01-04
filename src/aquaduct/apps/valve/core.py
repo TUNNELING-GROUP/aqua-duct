@@ -51,25 +51,8 @@ from aquaduct.visual import cmaps
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
 
-###############################################################################
-# configuration file helpers
-
-
-# TODO: add parser for initial checking of configuration file
 
 ################################################################################
-
-
-'''
-def valve_read_trajectory(top, traj, frames_window=None):
-    with clui.fbm('Read trajectory'):
-        return TrajectoryReader(top, traj, frames_window=frames_window)
-        # read trajectory
-        # traj_list = shlex.split(traj)
-        # return ReadAmberNetCDFviaMDA(top, traj_list)
-        # reader = ReadDCDviaMDA(topology, trajectory)
-'''
-
 
 def valve_begin_stage(stage, config):
     clui.message(sep())
@@ -140,6 +123,11 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
         if not no_io:
             if result is not None:
                 return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
+
+
+################################################################################
+# asorted helpers
+
 
 
 ################################################################################
@@ -1008,7 +996,7 @@ def stage_V_run(config, options,
     ############
 
     def iter_over_tn():
-        yield traced_names, ''
+        yield traced_names, '' # all types
         if len(traced_names) > 1:
             for _tname in traced_names:
                 yield (_tname,), " of %s" % _tname
@@ -1198,7 +1186,8 @@ def stage_V_run(config, options,
     # additional analysis
 
     def iter_over_tn():
-        yield traced_names, 'amol'
+        # this fuction is redefined here because of changed messages
+        yield traced_names, 'amol' # all types
         if len(traced_names) > 1:
             for _tname in traced_names:
                 yield (_tname,), "%s" % _tname
