@@ -1376,12 +1376,12 @@ def stage_VI_run(config, options,
     traced_names = get_traced_names(spaths)
     def iter_over_tn():
         if not options.split_by_type:
-            yield None
+            yield None,""
         else:
             if options.retain_all_types:
-                yield None
+                yield None,""
             for tn in traced_names:
-                yield tn
+                yield tn,"_%s" % str(tn)
 
     # start pymol
     with clui.fbm("Starting PyMOL connection", cont=False):
@@ -1413,6 +1413,7 @@ def stage_VI_run(config, options,
                     molecule_name = 'molecule%d' % nr
                 os.unlink(pdbfile)
                 # it would be nice to plot convexhull
+    
     if options.show_scope_chull:
         with clui.fbm("Convexhull"):
             if options.show_scope_chull_inflate:
@@ -1444,37 +1445,26 @@ def stage_VI_run(config, options,
                     else:
                         logger.debug('Object convex hull calculations failed for frame %d.' % frame)
 
-
-
-    # def make_fracion(frac, size):
-    #     if frac is not None:
-    #         frac = float(frac)
-    #         if frac > 1:
-    #             frac = frac / size
-    #             if frac >= 1:
-    #                 frac = None
-    #     return frac
-
     fof = lambda sp: np.array(list(make_fractionof(sp,f=options.inlets_clusters_amount)))
-    # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount, len(sp)))))
-
     if options.inlets_clusters:
+        tn_lim = lambda tn: inls if tn is None else inls.lim2rnames(tn) 
         with clui.fbm("Clusters"):
-            # TODO: require stage V for that?
-            no_of_clusters = len(inls.clusters_list)  # total, including outliers
-            cmap = ColorMapDistMap()
-            for c in inls.clusters_list:
-                # coords for current cluster
-                ics = inls.lim2clusters(c).coords
-                if c == 0:
-                    c_name = 'out'
-                else:
-                    c_name = str(int(c))
-                spp.scatter(fof(ics), color=cmap(c), name="cluster_%s" % c_name)
-                if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
-                    radii = inls.lim2clusters(c).radii
-                    if len(radii) > 0:
-                        spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
+            for tn,tn_name in iter_over_tn():
+                # TODO: require stage V for that?
+                #no_of_clusters = len(inls.clusters_list)  # total, including outliers
+                cmap = ColorMapDistMap()
+                for c in tn_lim(tn).clusters_list:
+                    # coords for current cluster
+                    ics = tn_lim(tn).lim2clusters(c).coords
+                    if c == 0:
+                        c_name = 'out'
+                    else:
+                        c_name = str(int(c))
+                    spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s" % (c_name,tn_name))
+                    if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
+                        radii = tn_lim(tn).lim2clusters(c).radii
+                        if len(radii) > 0:
+                            spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s%s" % (c_name,tn_name))
 
     if options.cluster_area:
         from aquaduct.geom import hdr
@@ -1506,16 +1496,16 @@ def stage_VI_run(config, options,
 
 
 
-    #fof = lambda sp: np.array(list(make_fractionof(sp,f=options.ctypes_amount)))
     fof = lambda sp: list(make_fractionof(sp,f=options.ctypes_amount))
-    # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount, len(sp)))))
 
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):
             for nr, ct in enumerate(ctypes_generic_list):
                 clui.message(str(ct), cont=True)
-                sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                plot_spaths_traces(fof(sps), name=str(ct) + '_raw', split=False, spp=spp)
+                for tn,tn_name in iter_over_tn():
+                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name] 
+                    plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_raw'+tn_name, split=False, spp=spp)
                 if ct in master_paths:
                     if master_paths[ct] is not None:
                         plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp,
@@ -1525,8 +1515,10 @@ def stage_VI_run(config, options,
         with clui.fbm("CTypes smooth"):
             for nr, ct in enumerate(ctypes_generic_list):
                 clui.message(str(ct), cont=True)
-                sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                plot_spaths_traces(fof(sps), name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
+                for tn,tn_name in iter_over_tn():
+                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name] 
+                    plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth'+tn_name, split=False, spp=spp, smooth=smooth)
                 if ct in master_paths_smooth:
                     if master_paths_smooth[ct] is None: continue
                     plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
@@ -1537,39 +1529,40 @@ def stage_VI_run(config, options,
                                        smooth=smooth)
 
     fof = lambda sp: list(make_fractionof(sp,f=options.all_paths_amount))
-    # fof = lambda sp: list(fractionof(sp, f=make_fracion(options.all_paths_amount, len(sp))))
+    tn_lim = lambda tn: spaths if tn is None else [sp for sp in spaths if tn == sp.id.name] 
 
-    if options.all_paths_raw:
-        with clui.fbm("All raw paths"):
-            plot_spaths_traces(fof(spaths), name='all_raw', split=options.all_paths_split, spp=spp)
-    if options.all_paths_raw_io:
-        with clui.fbm("All raw paths io"):
-            plot_spaths_inlets(fof(spaths), name='all_raw_paths_io', spp=spp)
+    for tn,tn_name in iter_over_tn():
+        if options.all_paths_raw:
+            with clui.fbm("All raw paths"+tn_name.replace('_',' ')):
+                plot_spaths_traces(fof(tn_lim(tn)), name='all_raw'+tn_name, split=options.all_paths_split, spp=spp)
+        if options.all_paths_raw_io:
+            with clui.fbm("All raw paths io"+tn_name.replace('_',' ')):
+                plot_spaths_inlets(fof(tn_lim(tn)), name='all_raw_paths_io'+tn_name, spp=spp)
 
-    if options.all_paths_smooth:
-        with clui.fbm("All smooth paths"):
-            plot_spaths_traces(fof(spaths), name='all_smooth', split=options.all_paths_split, spp=spp, smooth=smooth)
-    if options.all_paths_smooth_io:
-        with clui.fbm("All smooth paths io"):
-            plot_spaths_inlets(fof(spaths), name='all_smooth_paths_io', spp=spp)
+        if options.all_paths_smooth:
+            with clui.fbm("All smooth paths"+tn_name.replace('_',' ')):
+                plot_spaths_traces(fof(tn_lim(tn)), name='all_smooth'+tn_name, split=options.all_paths_split, spp=spp, smooth=smooth)
+        if options.all_paths_smooth_io:
+            with clui.fbm("All smooth paths io"+tn_name.replace('_',' ')):
+                plot_spaths_inlets(fof(tn_lim(tn)), name='all_smooth_paths_io'+tn_name, spp=spp)
 
-    with clui.fbm("Paths as states"):
-        if options.paths_raw:
-            clui.message("raw", cont=True)
-            plot_spaths_traces(spaths, name='raw_paths', states=options.paths_states, separate=not options.paths_states,
-                               spp=spp)
-        if options.paths_smooth:
-            clui.message("smooth", cont=True)
-            plot_spaths_traces(spaths, name='smooth_paths', states=options.paths_states,
-                               separate=not options.paths_states, smooth=smooth, spp=spp)
-        if options.paths_raw_io:
-            clui.message("raw_io", cont=True)
-            plot_spaths_inlets(spaths, name='raw_paths_io', states=options.paths_states,
-                               separate=not options.paths_states, spp=spp)
-        if options.paths_smooth_io:
-            clui.message("smooth_io", cont=True)
-            plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states,
-                               separate=not options.paths_states, smooth=smooth, spp=spp)
+        with clui.fbm("Paths as states"+tn_name.replace('_',' ')):
+            if options.paths_raw:
+                clui.message("raw", cont=True)
+                plot_spaths_traces(tn_lim(tn), name='raw_paths'+tn_name, states=options.paths_states, separate=not options.paths_states,
+                                   spp=spp)
+            if options.paths_smooth:
+                clui.message("smooth", cont=True)
+                plot_spaths_traces(tn_lim(tn), name='smooth_paths'+tn_name, states=options.paths_states,
+                                   separate=not options.paths_states, smooth=smooth, spp=spp)
+            if options.paths_raw_io:
+                clui.message("raw_io", cont=True)
+                plot_spaths_inlets(tn_lim(tn), name='raw_paths_io'+tn_name, states=options.paths_states,
+                                   separate=not options.paths_states, spp=spp)
+            if options.paths_smooth_io:
+                clui.message("smooth_io", cont=True)
+                plot_spaths_inlets(tn_lim(tn), name='smooth_paths_io'+tn_name, states=options.paths_states,
+                                   separate=not options.paths_states, smooth=smooth, spp=spp)
 
     if options.show_molecule:
         pymol_connector.orient_on(molecule_name)
