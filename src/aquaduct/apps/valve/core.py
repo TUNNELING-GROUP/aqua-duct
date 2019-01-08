@@ -540,38 +540,46 @@ def stage_III_run(config, options,
 
 
     if options.auto_barber:
-            
-        wtc = WhereToCut(spaths=spaths,
-                         selection=options.auto_barber,
-                         mincut=options.auto_barber_mincut,
-                         mincut_level=options.auto_barber_mincut_level,
-                         maxcut=options.auto_barber_maxcut,
-                         maxcut_level=options.auto_barber_maxcut_level,
-                         tovdw=options.auto_barber_tovdw)
-        # cut thyself!
-        wtc.cut_thyself()
+        new_paths = NP(None) # no progress bar (yet)
+        for tn in iter_over_tn(): # tn is a list of traced names
+            with clui.fbm("AutoBarber calcluations for %s" % ' '.join(tn),cont=False):
+                wtc = WhereToCut(spaths=[sp for sp in spaths if sp.id.name in tn],
+                                 selection=options.auto_barber,
+                                 mincut=options.auto_barber_mincut,
+                                 mincut_level=options.auto_barber_mincut_level,
+                                 maxcut=options.auto_barber_maxcut,
+                                 maxcut_level=options.auto_barber_maxcut_level,
+                                 tovdw=options.auto_barber_tovdw)
+                # cut thyself!
+                wtc.cut_thyself() # wtc for given tn
 
-        if len(wtc.spheres):
-            n = max(1, optimal_threads.threads_count)
-            with clui.pbar(maxval=len(xrange(0, len(paths), n)), mess="AutoBarber in action:") as pbar:
-                Reader.reset()
-                pool = Pool(processes=optimal_threads.threads_count)
-                bp = partial(barber_paths, spheres=wtc.spheres, only_for_names=traced_names)
+                # how many paths of tn we have?
+                tnpaths = [nr for nr,p in enumerate(paths) if p.name in tn][::-1] # ids of tn paths, reversed
+                if len(wtc.spheres):
+                    n = max(1, optimal_threads.threads_count)
+                    with clui.pbar(maxval=len(xrange(0, len(tnpaths), n)), mess="AutoBarber in action:") as pbar:
+                        Reader.reset()
+                        pool = Pool(processes=optimal_threads.threads_count)
+                        bp = partial(barber_paths, spheres=wtc.spheres, only_for_names=tn)
 
-                new_paths = NP(pbar)
-                nr = 0
-                while len(paths):
-                    pool.apply_async(bp, args=(paths[:n],), callback=new_paths.callback_cric_next)
-                    paths = paths[n:]
-                    nr += 1
-                    if nr % n == 0:
-                        gc.collect()
-                pool.close()
-                pool.join()
-            paths = new_paths.paths
-            gc.collect()
-        else:
-            clui.message('AutoBarber procedure skip, no spheres detected.')
+                        new_paths.reinit(pbar)
+                        nr = 0
+                        while len(tnpaths):
+                            pool.apply_async(bp, args=([paths.pop(nn) for nn in tnpaths[:n]],), callback=new_paths.callback_cric_next)
+                            tnpaths = tnpaths[n:]
+                            nr += 1
+                            if nr % n == 0:
+                                gc.collect()
+                        pool.close()
+                        pool.join()
+                    gc.collect()
+                else:
+                    clui.message('AutoBarber procedure skip, no spheres detected.')
+                    for nn in tnpaths:
+                        new_paths.paths.append(paths.pop(nn))
+                    tnpaths = []
+        paths = new_paths.paths
+
 
     ######################################################################
     # following procedures are run only if autobarber
