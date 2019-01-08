@@ -580,7 +580,6 @@ def stage_III_run(config, options,
                     tnpaths = []
         paths = new_paths.paths
 
-
     ######################################################################
     # following procedures are run only if autobarber
     ######################################################################
