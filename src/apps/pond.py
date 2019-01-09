@@ -85,22 +85,12 @@ if __name__ == "__main__":
         parser.add_argument("-r", action="store", dest="results_dir", required=False, help="Path to results directory",default="",type=str)
         parser.add_argument("--debug", action="store_true", dest="debug", required=False, help="Prints debug info.")
         parser.add_argument("--debug-file", action="store", dest="debug_file", required=False, help="Debug log file.")
-        #parser.add_argument("--max-frame", action="store", dest="max_frame", type=int, required=False,
-        #                    help="Maximal number of frame.")
-        #parser.add_argument("--min-frame", action="store", dest="min_frame", type=int, required=False,
-        #                    help="Minimal number of frame.")
-        #parser.add_argument("--step-frame", action="store", dest="step_frame", type=int, required=False,
-        #                    help="Frames step.")
         parser.add_argument("--raw", action="store_true", dest="raw", required=False,
                             help="Use raw data from paths instead of single paths.")
         parser.add_argument("--raw-master", action="store_true", dest="raw_master", required=False,
                             help="Use raw data from paths instead of single paths, only in master paths calculations.")
         parser.add_argument("--raw-discard-singletons", action="store", dest="raw_singl", required=False, type=int, default=1,
                             help="Discard short scope only segments from raw data.")
-        #parser.add_argument("--sandwich", action="store_true", dest="sandwich", required=False,
-        #                    help="Sandwich mode for multiple trajectories.")
-        #parser.add_argument("--cache-dir", action="store", dest="cachedir", type=str, required=False,
-        #                    help="Directory for coordinates caching.")
         parser.add_argument("--window-full", action="store_true", dest="wfull", required=False,
                             help="Return full window if windows is used.")
         parser.add_argument("--windows", action="store", dest="windows", type=int, required=False, default=1,
@@ -408,7 +398,7 @@ if __name__ == "__main__":
                 with clui.fbm('Loading data dump from %s file' % options4.dump):
                     vda = get_vda_reader(options4.dump, mode='r')
                     result4 = vda.load()
-                    mps = result4.pop('master_paths_smooth')
+                    mps = result4.pop('master_paths_smooth') # FIXME: let user decide what kind of master paths are used
 
                 options6 = config.get_stage_options(5)
 
@@ -453,7 +443,6 @@ if __name__ == "__main__":
                         if str(ctk) not in limit_ctypes:
                             mps.pop(ctk)
 
-
                 W = args.windows
                 WS = args.wsize
 
@@ -470,8 +459,6 @@ if __name__ == "__main__":
                     #window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
 
                     for wnr,window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
-
-                        #print many_windows,wnr,window
 
                         number_of_frames = (window[-1]-window[0])
                         if Reader.sandwich_mode:
@@ -496,11 +483,7 @@ if __name__ == "__main__":
 
                                 centers, ids = linmet(mp.coords_cont, ids=True)
 
-                                #print "fname: '%s' fname_window: '%s' mode: '%s'" % (fname,fname_window,mode)
-
-
                                 D = pocket.sphere_radius(paths,centers=centers,radius=args.master_radius,window=window,pbar=pbar,map_fun=pool.imap_unordered)
-                                #print number_of_frames
                                 H = D / float(number_of_frames) / (4./3. * np.pi * float(args.master_radius)**3)
                                 if ref:
                                     H = -k*args.temp*np.log(H) - ref
