@@ -210,7 +210,10 @@ if __name__ == "__main__":
 
         #----------------------------------------------------------------------#
         # load paths
-        
+        paths_types = args.paths_types.split(' ')
+        if paths_types:
+            rmu('paths_types',paths_types)
+
         if (args.pockets or args.master_radius) and not (args.master_radius and not args.raw and args.raw_master):
             with clui.tictoc('Loading paths'):
                 if not args.raw:
@@ -220,6 +223,8 @@ if __name__ == "__main__":
                         vda = get_vda_reader(options3.dump, mode='r')
                         result3 = vda.load()
                     paths = result3.pop('spaths')
+                    if paths_types:
+                        paths = [p for p in paths if p.id.name in paths_types]
                     rmu('paths','spaths')
                 else:
                     # get stage II options
@@ -233,7 +238,10 @@ if __name__ == "__main__":
                             for p in paths:
                                 p.discard_singletons(singl=args.raw_singl)
                         paths = [p for p in paths if len(p.frames)]
+                        if paths_types:
+                            paths = [p for p in paths if p.name in paths_types]
                     rmu('paths','paths')
+
 
         #----------------------------------------------------------------------#
         # reference value
@@ -422,6 +430,8 @@ if __name__ == "__main__":
                         for p in paths:
                             p.discard_singletons(singl=args.raw_singl)
                     paths = [p for p in paths if len(p.frames)]
+                    if paths_types:
+                        paths = [p for p in paths if p.name in paths_types]
 
         #----------------------------------------------------------------------#
         # master paths profiles
