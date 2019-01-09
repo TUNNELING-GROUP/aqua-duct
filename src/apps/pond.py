@@ -492,7 +492,8 @@ if __name__ == "__main__":
         #----------------------------------------------------------------------#
 
         Reader.reset()
-        with open(rdir+'pond_meta.json','w') as f:
+        with gzip.open(rdir+'pond_meta.json',mode='w',compresslevel=9) as f:
             json.dump(results_meta,f)
+            # TODO: consider usage of IterEncoder - move it to aquaduct/apps/data.py module
 
         #----------------------------------------------------------------------#
