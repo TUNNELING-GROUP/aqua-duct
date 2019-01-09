@@ -85,6 +85,8 @@ if __name__ == "__main__":
         parser.add_argument("-r", action="store", dest="results_dir", required=False, help="Path to results directory",default="",type=str)
         parser.add_argument("--debug", action="store_true", dest="debug", required=False, help="Prints debug info.")
         parser.add_argument("--debug-file", action="store", dest="debug_file", required=False, help="Debug log file.")
+        parser.add_argument("--paths-types", action="store", dest="paths_types", type=str, required=False, default="",
+                            help="Limit calculations to given paths types, i.e. given molecules.")
         parser.add_argument("--raw", action="store_true", dest="raw", required=False,
                             help="Use raw data from paths instead of single paths.")
         parser.add_argument("--raw-master", action="store_true", dest="raw_master", required=False,
@@ -208,7 +210,11 @@ if __name__ == "__main__":
 
         #----------------------------------------------------------------------#
         # load paths
-        
+        paths_types = [pt.strip() for pt in args.paths_types.split(' ') if len(pt.strip())]
+        if paths_types:
+            rmu('paths_types',paths_types)
+            clui.message('Limiting calculations to paths of %s.' % ', '.join(paths_types))
+
         if (args.pockets or args.master_radius) and not (args.master_radius and not args.raw and args.raw_master):
             with clui.tictoc('Loading paths'):
                 if not args.raw:
@@ -218,6 +224,8 @@ if __name__ == "__main__":
                         vda = get_vda_reader(options3.dump, mode='r')
                         result3 = vda.load()
                     paths = result3.pop('spaths')
+                    if paths_types:
+                        paths = [p for p in paths if p.id.name in paths_types]
                     rmu('paths','spaths')
                 else:
                     # get stage II options
@@ -231,7 +239,10 @@ if __name__ == "__main__":
                             for p in paths:
                                 p.discard_singletons(singl=args.raw_singl)
                         paths = [p for p in paths if len(p.frames)]
+                        if paths_types:
+                            paths = [p for p in paths if p.name in paths_types]
                     rmu('paths','paths')
+
 
         #----------------------------------------------------------------------#
         # reference value
@@ -420,6 +431,8 @@ if __name__ == "__main__":
                         for p in paths:
                             p.discard_singletons(singl=args.raw_singl)
                     paths = [p for p in paths if len(p.frames)]
+                    if paths_types:
+                        paths = [p for p in paths if p.name in paths_types]
 
         #----------------------------------------------------------------------#
         # master paths profiles
