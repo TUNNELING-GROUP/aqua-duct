@@ -210,9 +210,10 @@ if __name__ == "__main__":
 
         #----------------------------------------------------------------------#
         # load paths
-        paths_types = args.paths_types.split(' ')
+        paths_types = [pt.strip() for pt in args.paths_types.split(' ') if len(pt.strip())]
         if paths_types:
             rmu('paths_types',paths_types)
+            clui.message('Limiting calculations to paths of %s.' % ', '.join(paths_types))
 
         if (args.pockets or args.master_radius) and not (args.master_radius and not args.raw and args.raw_master):
             with clui.tictoc('Loading paths'):
