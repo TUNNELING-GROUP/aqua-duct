@@ -37,7 +37,8 @@ logger.addHandler(ch)
 
 ################################################################################
 
-
+import json
+import gzip
 
 ################################################################################
 
@@ -188,6 +189,9 @@ if __name__ == "__main__":
                 os.makedirs(args.results_dir)
             rdir = args.results_dir
         rdir += os.path.sep
+        
+        results_meta = {'options':vars(args)}
+        rmu = lambda k,v: results_meta.update({k:v})
 
         #----------------------------------------------------------------------#
         # load paths
@@ -200,6 +204,7 @@ if __name__ == "__main__":
                     vda = get_vda_reader(options3.dump, mode='r')
                     result3 = vda.load()
                 paths = result3.pop('spaths')
+                rmu('paths','spaths')
             else:
                 # get stage II options
                 options2 = config.get_stage_options(1)
@@ -212,6 +217,7 @@ if __name__ == "__main__":
                         for p in paths:
                             p.discard_singletons(singl=args.raw_singl)
                     paths = [p for p in paths if len(p.frames)]
+                rmu('paths','paths')
 
         #----------------------------------------------------------------------#
         # reference value
@@ -264,8 +270,10 @@ if __name__ == "__main__":
             # Boltzmann k constant
             #k = 0.0019872041 # kcal/mol/K
             k = 0.0083144621 # kJ/mol/K
+            rmu('energy_unit','kJ/mol/K')
 
             ref = -k*args.temp*np.log(ref)
+            rmu('reference_correction',float(ref))
             clui.message('Reference correction: %0.4f [kJ/mol].' % ref)
 
 
@@ -484,5 +492,8 @@ if __name__ == "__main__":
         #----------------------------------------------------------------------#
 
         Reader.reset()
+        with gzip.open(rdir+'pond_meta.json',mode='w',compresslevel=9) as f:
+            json.dump(results_meta,f)
+            # TODO: consider usage of IterEncoder - move it to aquaduct/apps/data.py module
 
         #----------------------------------------------------------------------#
