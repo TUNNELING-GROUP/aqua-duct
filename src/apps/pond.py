@@ -85,6 +85,8 @@ if __name__ == "__main__":
         parser.add_argument("-r", action="store", dest="results_dir", required=False, help="Path to results directory",default="",type=str)
         parser.add_argument("--debug", action="store_true", dest="debug", required=False, help="Prints debug info.")
         parser.add_argument("--debug-file", action="store", dest="debug_file", required=False, help="Debug log file.")
+        parser.add_argument("--paths-types", action="store", dest="paths_types", type=str, required=False, default="",
+                            help="Limit calculations to given paths types, i.e. given molecules.")
         parser.add_argument("--raw", action="store_true", dest="raw", required=False,
                             help="Use raw data from paths instead of single paths.")
         parser.add_argument("--raw-master", action="store_true", dest="raw_master", required=False,
