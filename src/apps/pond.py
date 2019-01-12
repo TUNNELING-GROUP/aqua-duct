@@ -339,6 +339,8 @@ if __name__ == "__main__":
                 grid_size = args.grid_size
                 grid_area = grid_size ** 3
                 with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
+                    pockets_volume = open(rdir+'volumes.dat','w')
+                    pockets_volume.write(('\t'.join('W_start W_end Outer Inner'.split()))+os.linesep)
                     pool = Pool(processes=optimal_threads.threads_count)
                     edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar,map_fun=pool.imap_unordered)
                     number_of_frames = Reader.number_of_frames(onelayer=True)
@@ -370,8 +372,11 @@ if __name__ == "__main__":
                                     hsmol2.write_scatter(D[0][hs], H[hs])
                                 else:
                                     hsmol2.write_scatter([], [])
+                            volumes = []
                             for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                                 mol2.write_scatter(D[0][I], H[I])
+                                volumes.append(sum(I)*grid_size)
+                            pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes)))+os.linesep)
                         elif args.wfull:
                             D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
                             H = (D[-1] / float(number_of_frames))/grid_area
@@ -381,9 +386,12 @@ if __name__ == "__main__":
                                     hs = H >= hs
                             if ref:
                                 H = -k*args.temp*np.log(H) - ref
+                            volumes = []
                             for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2(rdir+'outer_full%s.mol2' % ptn), WriteMOL2(rdir+'inner_fulli%s.mol2' % ptn)]):
                                 mol2.write_scatter(D[0][I], H[I])
+                                volumes.append(sum(I)*grid_size)
                                 del mol2
+                            pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes)))+os.linesep)
                             if args.hotspots:
                                 mol2 = WriteMOL2(rdir+'hotspots_full%s.mol2' % ptn)
                                 if hs is not None:
@@ -399,6 +407,7 @@ if __name__ == "__main__":
                         del mol2
                     if args.hotspots:
                         del hsmol2
+                    pockets_volume.close()
 
 
             clui.message("what it's got in its nassty little pocketses?")
