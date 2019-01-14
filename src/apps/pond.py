@@ -79,12 +79,16 @@ if __name__ == "__main__":
         parser = argparse.ArgumentParser(description=description,
                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
-        parser.add_argument("-c", action="store", dest="config_file", required=False, help="Config file filename.")
+        parser.add_argument("-c", action="store", dest="config_file", required=False,
+                            help="Config file filename.")
         parser.add_argument("-t", action="store", dest="threads", required=False, default=None,
                             help="Limit Aqua-Duct calculations to given number of threads.")
-        parser.add_argument("-r", action="store", dest="results_dir", required=False, help="Path to results directory",default="",type=str)
-        parser.add_argument("--debug", action="store_true", dest="debug", required=False, help="Prints debug info.")
-        parser.add_argument("--debug-file", action="store", dest="debug_file", required=False, help="Debug log file.")
+        parser.add_argument("-r", action="store", dest="results_dir", required=False,
+                            help="Path to results directory",default="",type=str)
+        parser.add_argument("--debug", action="store_true", dest="debug", required=False,
+                            help="Prints debug info.")
+        parser.add_argument("--debug-file", action="store", dest="debug_file", required=False,
+                            help="Debug log file.")
         parser.add_argument("--paths-types", action="store", dest="paths_types", type=str, required=False, default="",
                             help="Limit calculations to given paths types, i.e. given molecules.")
         parser.add_argument("--raw", action="store_true", dest="raw", required=False,
@@ -211,9 +215,11 @@ if __name__ == "__main__":
         #----------------------------------------------------------------------#
         # load paths
         paths_types = [pt.strip() for pt in args.paths_types.split(' ') if len(pt.strip())]
+        ptn = '' # additiona paths types name suffix
         if paths_types:
             rmu('paths_types',paths_types)
             clui.message('Limiting calculations to paths of %s.' % ', '.join(paths_types))
+            ptn = '_' + '_'.join(paths_types)
 
         if (args.pockets or args.master_radius) and not (args.master_radius and not args.raw and args.raw_master):
             with clui.tictoc('Loading paths'):
@@ -333,6 +339,8 @@ if __name__ == "__main__":
                 grid_size = args.grid_size
                 grid_area = grid_size ** 3
                 with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
+                    pockets_volume = open(rdir+'volumes.dat','w')
+                    pockets_volume.write(('\t'.join('W_start W_end Outer Inner'.split()))+os.linesep)
                     pool = Pool(processes=optimal_threads.threads_count)
                     edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar,map_fun=pool.imap_unordered)
                     number_of_frames = Reader.number_of_frames(onelayer=True)
@@ -342,9 +350,9 @@ if __name__ == "__main__":
                         WSf = float(WS)
                     if Reader.sandwich_mode:
                         WSf *= Reader.number_of_layers()
-                    wmol2 = [WriteMOL2(rdir+'outer.mol2'), WriteMOL2(rdir+'inner.mol2')]
+                    wmol2 = [WriteMOL2(rdir+'outer%s.mol2' % ptn), WriteMOL2(rdir+'inner%s.mol2' % ptn)]
                     if args.hotspots:
-                        hsmol2 = WriteMOL2(rdir+'hotspots.mol2')
+                        hsmol2 = WriteMOL2(rdir+'hotspots%s.mol2' % ptn)
                     for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
                         number_of_frames = (window[-1]-window[0])
                         if Reader.sandwich_mode:
@@ -364,8 +372,11 @@ if __name__ == "__main__":
                                     hsmol2.write_scatter(D[0][hs], H[hs])
                                 else:
                                     hsmol2.write_scatter([], [])
+                            volumes = []
                             for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                                 mol2.write_scatter(D[0][I], H[I])
+                                volumes.append(sum(I)*grid_size)
+                            pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes)))+os.linesep)
                         elif args.wfull:
                             D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
                             H = (D[-1] / float(number_of_frames))/grid_area
@@ -375,11 +386,14 @@ if __name__ == "__main__":
                                     hs = H >= hs
                             if ref:
                                 H = -k*args.temp*np.log(H) - ref
-                            for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2(rdir+'outer_full.mol2'), WriteMOL2(rdir+'inner_full.mol2')]):
+                            volumes = []
+                            for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2(rdir+'outer_full%s.mol2' % ptn), WriteMOL2(rdir+'inner_fulli%s.mol2' % ptn)]):
                                 mol2.write_scatter(D[0][I], H[I])
+                                volumes.append(sum(I)*grid_size)
                                 del mol2
+                            pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes)))+os.linesep)
                             if args.hotspots:
-                                mol2 = WriteMOL2(rdir+'hotspots_full.mol2')
+                                mol2 = WriteMOL2(rdir+'hotspots_full%s.mol2' % ptn)
                                 if hs is not None:
                                     mol2.write_scatter(D[0][hs], H[hs])
                                 else:
@@ -393,6 +407,7 @@ if __name__ == "__main__":
                         del mol2
                     if args.hotspots:
                         del hsmol2
+                    pockets_volume.close()
 
 
             clui.message("what it's got in its nassty little pocketses?")
@@ -500,7 +515,7 @@ if __name__ == "__main__":
                                 H = D / float(number_of_frames) / (4./3. * np.pi * float(args.master_radius)**3)
                                 if ref:
                                     H = -k*args.temp*np.log(H) - ref
-                                with WriteMOL2(rdir+"mp_%s%s_radius.mol2" % (fname,fname_window_single),mode=mode) as mol2:
+                                with WriteMOL2(rdir+"mp_%s%s_radius%s.mol2" % (fname,fname_window_single,ptn),mode=mode) as mol2:
                                     mol2.write_connected(centers,H)
 
                                 with open(rdir+"mp_%s%s_radius.dat" % (fname,fname_window),'w') as dat:
