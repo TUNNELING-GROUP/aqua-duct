@@ -159,7 +159,7 @@ def get_default_entry(section_name, option_name):
         if option_name == entry.config_name:
             return entry
 
-    raise RuntimeError("Entry {} in {} section does not exists.".format(option_name, section_name))
+    raise RuntimeError("Option {} in {} section does not exists.".format(option_name, section_name))
 
 
 def get_default_section(section_name):
