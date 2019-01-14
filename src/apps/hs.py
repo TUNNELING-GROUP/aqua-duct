@@ -2,9 +2,12 @@
 
 import ConfigParser
 import argparse
+import sys
 from collections import defaultdict
+from time import time
 
 import numpy as np
+
 from aquaduct.traj.sandwich import Reader, Window, AtomSelection
 from aquaduct.utils.multip import optimal_threads
 
@@ -70,6 +73,8 @@ if __name__ == "__main__":
     parser.add_argument("hotspots_file", help="Hotspots filename.")
     parser.add_argument("-d", dest="distance", required=True, help="Distance from hotspots.")
     parser.add_argument("-t", dest="threads", required=False, default=None, help="Number of threads.")
+    parser.add_argument("-m", dest="max", required=False, default=None,
+                        help="Maximum number of returned AA per hotspot.")
 
     args = parser.parse_args()
 
@@ -89,34 +94,55 @@ if __name__ == "__main__":
     else:
         optimal_threads.threads_count = int(args.threads)
 
-    Reader(top_file, trj_files, window=Window(None, 9, None), threads=optimal_threads.threads_count)
+    print "Threads used: {}".format(optimal_threads.threads_count)
 
-    def in_area(coord):
-        for hotspot_coord in hotspots_coords:
-            if np.linalg.norm(coord - hotspot_coord) <= distance:
-                return True
-        return False
+    Reader(top_file, trj_files, window=Window(0, 99, 1), threads=optimal_threads.threads_count)
 
-    residues_occurences = defaultdict(int)
+    residue_occurences = defaultdict(dict)
 
+    stime = time()
+
+    print "\nFinding the hottest place in the universe:"
     for traj_reader in Reader.iterate():
         traj_reader = traj_reader.open()
 
         protein_atoms = traj_reader.parse_selection("protein")
 
         for frame in traj_reader.iterate():
-            out_of_area = defaultdict(list)
+            sys.stdout.write("\r {}".format(time() - stime))
+            in_area = defaultdict(dict)
             for number, ids in protein_atoms.selected.iteritems():
                 number_reader = protein_atoms.get_reader(number)
                 for id_, coord in enumerate(number_reader.atoms_positions(ids)):
-                    if not in_area(coord):
-                        out_of_area[number].append(id_)
+                    for hotspot_id, hotspot_coord in enumerate(hotspots_coords):
 
-            in_area_selection = remove(protein_atoms, AtomSelection(out_of_area))
+                        if float(np.linalg.norm(coord - hotspot_coord)) < float(distance):
+                            if number not in in_area[hotspot_id]:
+                                in_area[hotspot_id][number] = list()
 
-            for id_, name in zip(in_area_selection.residues().ids(), in_area_selection.residues().names()):
-                residues_occurences[(id_, name)] += 1
+                            in_area[hotspot_id][number].append(id_)
 
+            in_area_selections = {}
+            for hotspot_id, selection in in_area.iteritems():
+                in_area_selections[hotspot_id] = AtomSelection(selection)
+
+            for hotspot_id, hotspot_atom_selection in in_area_selections.iteritems():
+                for id_, name in zip(hotspot_atom_selection.residues().ids(),
+                                     hotspot_atom_selection.residues().names()):
+                    if (id_, name) not in residue_occurences[hotspot_id]:
+                        residue_occurences[hotspot_id][(id_, name)] = 0
+
+                    residue_occurences[hotspot_id][(id_, name)] += 1
+
+    print "\n"
     window_len = float(Reader.window.len())
-    for i, res in enumerate(sorted(residues_occurences, key=residues_occurences.get, reverse=True)):
-        print "{:<7} | {:10} | {:3} | {}".format(i, res[0], res[1], residues_occurences[res] / window_len)
+    for hotspot_id, hotspot_occurences in residue_occurences.iteritems():
+        print "-" * 20
+        print hotspot_id, hotspots_coords[hotspot_id]
+        print "-" * 20
+        for i, res in enumerate(sorted(hotspot_occurences, key=hotspot_occurences.get, reverse=True)):
+            if i == args.max:
+                break
+
+            print "{:<7} | {:10} | {:3} | {}%".format(i, res[0], res[1],
+                                                      round(hotspot_occurences[res] / window_len, 2) * 100)
