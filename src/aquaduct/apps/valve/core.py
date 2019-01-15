@@ -912,7 +912,6 @@ def stage_IV_run(config, options,
                                     str(ct), nr,))
                             continue
                         logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
-                        # print len(sps),ct
                         ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
                                                       threads=use_threads)
                         master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
