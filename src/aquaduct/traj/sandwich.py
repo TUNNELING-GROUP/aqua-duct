@@ -686,6 +686,22 @@ class Selection(ReaderAccess):
             else:
                 self.selected.update({number: ids})
 
+    def remove(self, other):
+        """
+        Remove all items that exist in other selection.
+
+        :param other: Other selection.
+        """
+        empty_keys = []
+        for number, ids in other.selected.iteritems():
+            self.selected[number] = [id_ for id_ in self.selected[number] if id_ not in ids]
+
+            if not self.selected[number]:
+                empty_keys.append(number)
+
+        for k in empty_keys:
+            del self.selected[k]
+
     def uniquify(self):
 
         for number, ids in self.selected.iteritems():
