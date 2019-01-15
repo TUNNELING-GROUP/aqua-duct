@@ -121,7 +121,8 @@ def distribution(spaths,grid_size=1.,edges=None,window=None,pbar=None,map_fun=No
     '''
     maxc = np.array(map(max,edges))
     minc = np.array(map(min,edges))
-    H = np.zeros(map(int, (maxc - minc) / grid_size))
+    #H = np.zeros(map(int,map(np.ceil,(maxc - minc) / grid_size)))
+    H = np.zeros(tuple(map(lambda e: len(e)-1 if len(e)>1 else 1,edges)))
     if map_fun is None:
         map_fun = map
     map_worker = distribution_worker(edges=edges,window=window)

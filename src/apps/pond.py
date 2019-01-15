@@ -21,6 +21,8 @@
 What have I got in my pocket?
 """
 
+from __future__ import print_function
+
 ################################################################################
 # reuse AQ logger
 
@@ -322,9 +324,9 @@ if __name__ == "__main__":
         for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
             middle = sum(window)/2
             if wnr and many_windows:
-                print "W%d %d:%d middle: %d" % (wnr,window[0],window[1],middle)
+                print("W%d %d:%d middle: %d" % (wnr,window[0],window[1],middle))
             elif (wnr == 0) and (args.wfull or (not many_windows)):
-                print "full %d:%d" % (window[0],window[1])
+                print("full %d:%d" % (window[0],window[1]))
 
 
         #----------------------------------------------------------------------#
@@ -343,7 +345,6 @@ if __name__ == "__main__":
                     pockets_volume.write(('\t'.join('W_start W_end Outer Inner'.split()))+os.linesep)
                     pool = Pool(processes=optimal_threads.threads_count)
                     edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar,map_fun=pool.imap_unordered)
-                    print edges
                     number_of_frames = Reader.number_of_frames(onelayer=True)
                     if WS is None:
                         WSf = float(number_of_frames/float(W))
