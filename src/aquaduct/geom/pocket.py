@@ -100,7 +100,7 @@ def find_edges(spaths,grid_size=1.,pbar=None,map_fun=None):
     :rtype: list of numpy.ndarrays
     :return: Edges of bins of grid spanning all submited paths.
     '''
-    return [np.linspace(mi,ma,int((ma-mi)*grid_size)+1) for mi,ma in zip(*find_minmax_map(spaths,pbar=pbar,map_fun=map_fun))]
+    return [np.linspace(mi,ma,int((ma-mi)/grid_size)+1) for mi,ma in zip(*find_minmax_map(spaths,pbar=pbar,map_fun=map_fun))]
 
 class distribution_worker(object):
     def __init__(self,edges=None,window=None):
@@ -121,7 +121,7 @@ def distribution(spaths,grid_size=1.,edges=None,window=None,pbar=None,map_fun=No
     '''
     maxc = np.array(map(max,edges))
     minc = np.array(map(min,edges))
-    H = np.zeros(map(int, (maxc - minc) * grid_size))
+    H = np.zeros(map(int, (maxc - minc) / grid_size))
     if map_fun is None:
         map_fun = map
     map_worker = distribution_worker(edges=edges,window=window)
@@ -129,7 +129,7 @@ def distribution(spaths,grid_size=1.,edges=None,window=None,pbar=None,map_fun=No
         H += h
         if pbar:
             pbar.next()
-    mg = [ee[:-1]+(1./(grid_size+1)) for ee in edges]
+    mg = [ee[:-1]+(grid_size/2.) for ee in edges]
     x,y,z = np.meshgrid(*mg,indexing='ij')
     pocket = H > 0
     return np.vstack((x[pocket],y[pocket],z[pocket])).T,H[pocket]

@@ -343,6 +343,7 @@ if __name__ == "__main__":
                     pockets_volume.write(('\t'.join('W_start W_end Outer Inner'.split()))+os.linesep)
                     pool = Pool(processes=optimal_threads.threads_count)
                     edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar,map_fun=pool.imap_unordered)
+                    print edges
                     number_of_frames = Reader.number_of_frames(onelayer=True)
                     if WS is None:
                         WSf = float(number_of_frames/float(W))
@@ -375,7 +376,7 @@ if __name__ == "__main__":
                             volumes = []
                             for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
                                 mol2.write_scatter(D[0][I], H[I])
-                                volumes.append(sum(I)*grid_size)
+                                volumes.append(sum(I)*grid_area)
                             pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes)))+os.linesep)
                         elif args.wfull:
                             D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
@@ -389,7 +390,7 @@ if __name__ == "__main__":
                             volumes = []
                             for I, mol2 in zip(pocket.outer_inner(D[-1]), [WriteMOL2(rdir+'outer_full%s.mol2' % ptn), WriteMOL2(rdir+'inner_fulli%s.mol2' % ptn)]):
                                 mol2.write_scatter(D[0][I], H[I])
-                                volumes.append(sum(I)*grid_size)
+                                volumes.append(sum(I)*grid_area)
                                 del mol2
                             pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes)))+os.linesep)
                             if args.hotspots:
