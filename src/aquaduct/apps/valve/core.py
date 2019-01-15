@@ -873,7 +873,7 @@ def stage_IV_run(config, options,
 
 
         # but only if user wants this
-        master_paths = {}
+        master_paths = {} # this and following dict hold master paths, keys here ar ctypes - one ctype one master path
         master_paths_smooth = {}
         if options.create_master_paths:
             #fof = lambda sp: np.array(list(make_fractionof(sp,f=options.master_paths_amount)))
@@ -1362,7 +1362,8 @@ def stage_V_run(config, options,
                delimiter=',',
                header=','.join(header))
     if not options.save:
-        print h_fname.getvalue()
+        h_fname.getvalue()
+        #print h_fname.getvalue()
 
     return {'hist': h, 'header': header}
 
@@ -1497,13 +1498,13 @@ def stage_VI_run(config, options,
                         c_name = str(int(c))
                     cmap = cmaps._cmap_jet_256
                     # calcualte hdr
-                    print inls.center_of_system, c_name, len(ics), alt_center_of_system
+                    #print inls.center_of_system, c_name, len(ics), alt_center_of_system
                     if len(ics) < 3: continue
                     h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
                                 expand_by=float(options.cluster_area_expand), center_of_system=inls.center_of_system)
                     spp.multiline_begin()
                     for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
-                        print c_name + '_D%d' % fraction
+                        #print c_name + '_D%d' % fraction
                         coords = hdr2contour(h, fraction=fraction / 100.)
                         if coords is not None:
                             color = cmap[int(255 * (1 - fraction / 100.))]
