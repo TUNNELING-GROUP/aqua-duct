@@ -871,53 +871,61 @@ def stage_IV_run(config, options,
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
 
+        traced_names = get_traced_names(spaths)
+        def iter_over_tn():
+            if options.separate_master:
+                for tn in traced_names:
+                    yield [tn]
+            else:
+                yield traced_names
 
         # but only if user wants this
         master_paths = {} # this and following dict hold master paths, keys here ar ctypes - one ctype one master path
         master_paths_smooth = {}
         if options.create_master_paths:
-            #fof = lambda sp: np.array(list(make_fractionof(sp,f=options.master_paths_amount)))
             fof = lambda sp: make_fractionof(sp,f=options.master_paths_amount)
-            # sort by size to ger stratification like effect
-            mpsps = [sp for sp in spaths if not isinstance(sp, PassingPath)]  # no PassingPaths!
-            # mpsps = list(fof(mpsps))
-            mpsps = sorted(fof(mpsps),key=lambda sp: sp.size)
-            ctypes = inls.spaths2ctypes(mpsps) # temp ctypes
-            with clui.fbm("Master paths calculations", cont=False):
-                smooth = get_smooth_method(soptions)  # this have to preceed GCS
-                if GCS.cachedir or GCS.cachemem:
-                    pbar = clui.pbar(len(mpsps) * 2, mess='Building coords cache') # +2 to be on the safe side
-                    # TODO: do it in parallel
-                    [sp.get_coords(smooth=None) for sp in mpsps if
-                     pbar.next() is None and not isinstance(sp, PassingPath)]
-                    [sp.get_coords(smooth=smooth) for sp in mpsps if
-                     pbar.next() is None and not isinstance(sp, PassingPath)]
-                    pbar.finish()
-                    use_threads = optimal_threads.threads_count
-                else:
-                    logger.warning(
-                        "Master paths calculation without cache-dir or cache-mem option can be EXTREMELY slow.")
-                    use_threads = 1
-                with clui.fbm("Creating master paths for cluster types", cont=False):
-                    ctypes_generic = [ct.generic for ct in ctypes]
-                    ctypes_generic_list = sorted(list(set(ctypes_generic)))
+            for tn in iter_over_tn(): # tn is a list of traced names
 
-                    pbar = clui.pbar(len(mpsps) * 2)
-                    for nr, ct in enumerate(ctypes_generic_list):
-                        logger.debug('CType %s (%d)' % (str(ct), nr))
-                        sps = lind(mpsps, what2what(ctypes_generic, [ct]))
-                        if not len(sps):
-                            logger.debug(
-                                'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
-                                    str(ct), nr,))
-                            continue
-                        logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
-                        ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
-                                                      threads=use_threads)
-                        master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
-                        master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
-                        del ctspc
-                    pbar.finish()
+                # sort by size to ger stratification like effect
+                mpsps = [sp for sp in spaths if not isinstance(sp, PassingPath)]  # no PassingPaths!
+                # mpsps = list(fof(mpsps))
+                mpsps = sorted(fof(mpsps),key=lambda sp: sp.size)
+                ctypes = inls.spaths2ctypes(mpsps) # temp ctypes
+                with clui.fbm("Master paths calculations", cont=False):
+                    smooth = get_smooth_method(soptions)  # this have to preceed GCS
+                    if GCS.cachedir or GCS.cachemem:
+                        pbar = clui.pbar(len(mpsps) * 2, mess='Building coords cache') # +2 to be on the safe side
+                        # TODO: do it in parallel
+                        [sp.get_coords(smooth=None) for sp in mpsps if
+                         pbar.next() is None and not isinstance(sp, PassingPath)]
+                        [sp.get_coords(smooth=smooth) for sp in mpsps if
+                         pbar.next() is None and not isinstance(sp, PassingPath)]
+                        pbar.finish()
+                        use_threads = optimal_threads.threads_count
+                    else:
+                        logger.warning(
+                            "Master paths calculation without cache-dir or cache-mem option can be EXTREMELY slow.")
+                        use_threads = 1
+                    with clui.fbm("Creating master paths for cluster types", cont=False):
+                        ctypes_generic = [ct.generic for ct in ctypes]
+                        ctypes_generic_list = sorted(list(set(ctypes_generic)))
+
+                        pbar = clui.pbar(len(mpsps) * 2)
+                        for nr, ct in enumerate(ctypes_generic_list):
+                            logger.debug('CType %s (%d)' % (str(ct), nr))
+                            sps = lind(mpsps, what2what(ctypes_generic, [ct]))
+                            if not len(sps):
+                                logger.debug(
+                                    'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
+                                        str(ct), nr,))
+                                continue
+                            logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
+                            ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
+                                                          threads=use_threads)
+                            master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
+                            master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
+                            del ctspc
+                        pbar.finish()
         gc.collect()
     else:
         clui.message("No inlets found. Clusterization skipped.")
