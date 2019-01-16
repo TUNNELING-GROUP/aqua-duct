@@ -1,3 +1,4 @@
+#!/usr/bin/env python2.7
 # -*- coding: utf8 -*-
 
 import ConfigParser
@@ -58,12 +59,14 @@ if __name__ == "__main__":
     parser.add_argument("hotspots_file", help="Hotspots filename.")
     parser.add_argument("-d", dest="distance", required=True, help="Distance from hotspots.")
     parser.add_argument("-t", dest="threads", required=False, default=None, help="Number of threads.")
-    parser.add_argument("-m", dest="max", required=False, default=None,
-                        help="Maximum number of returned AA per hotspot.")
+    parser.add_argument("-m", dest="maxaa", required=False, default=None,
+                        help="Maximum number of returned AA per hotspot.", type=int)
     parser.add_argument("-s", dest="minf", required=False, default=None,
                         help="Start frame.")
     parser.add_argument("-e", dest="maxf", required=False, default=None,
                         help="End frame.")
+    parser.add_argument("-st", dest="stepf", required=False, default=None,
+                        help="Frame step.")
 
     args = parser.parse_args()
 
@@ -76,8 +79,6 @@ if __name__ == "__main__":
     with ReadMOL2(args.hotspots_file) as hotspots_file:
         hotspots_coords = hotspots_file.parse()
 
-    distance = args.distance
-
     if args.threads is None:
         optimal_threads.threads_count = optimal_threads.cpu_count + 1
     else:
@@ -85,9 +86,10 @@ if __name__ == "__main__":
 
     print "Threads used: {}".format(optimal_threads.threads_count)
 
-    Reader(top_file, trj_files, window=Window(args.minf, args.maxf, 1), threads=optimal_threads.threads_count)
+    Reader(top_file, trj_files, window=Window(args.minf, args.maxf, args.stepf), threads=optimal_threads.threads_count)
 
-    print "Frame range: {}-{}".format(Reader.window.start, Reader.window.stop)
+    print "Frame range: {}-{} Step: {}".format(Reader.window.start, Reader.window.stop, Reader.window.step)
+    print "Distance from hotspot: {}".format(args.distance)
 
     residue_occurences = defaultdict(dict)
 
@@ -107,7 +109,7 @@ if __name__ == "__main__":
                 for id_, coord in enumerate(number_reader.atoms_positions(ids)):
                     for hotspot_id, hotspot_coord in enumerate(hotspots_coords):
 
-                        if float(np.linalg.norm(coord - hotspot_coord)) < float(distance):
+                        if float(np.linalg.norm(coord - hotspot_coord)) < float(args.distance):
                             if number not in in_area[hotspot_id]:
                                 in_area[hotspot_id][number] = list()
 
@@ -132,8 +134,7 @@ if __name__ == "__main__":
         print hotspot_id, hotspots_coords[hotspot_id]
         print "-" * 20
         for i, res in enumerate(sorted(hotspot_occurences, key=hotspot_occurences.get, reverse=True)):
-            if i == args.max:
+            if i == args.maxaa:
                 break
-
             print "{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
                                                      round(hotspot_occurences[res] / window_len, 2) * 100)
