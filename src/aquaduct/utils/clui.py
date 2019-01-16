@@ -33,6 +33,7 @@ from functools import partial
 import numpy as np
 from aquaduct.utils.helpers import is_number, is_float, is_iterable
 import json
+from traceback import print_tb
 
 from multiprocessing import Manager
 
@@ -80,6 +81,15 @@ def emit_message_to_file_in_root_logger(mess):
             with open(fh.baseFilename, 'a') as logfile:
                 logfile.write(mess)
 
+def emit_traceback_to_file_in_root_logger(tb):
+    # emits message to the file used by file handler in the root logger
+    # assumes there is only one file handler
+    if logging.FileHandler in map(type, root_logger.handlers):
+        fh = root_logger.handlers[map(type, root_logger.handlers).index(logging.FileHandler)]
+        with fh.lock:
+            with open(fh.baseFilename, 'a') as logfile:
+                logfile.write("Traceback (most recent call last):"+linesep)
+                print_tb(tb,None,logfile)
 
 def message_special(mess):
     emit_message_to_file_in_root_logger(mess)
