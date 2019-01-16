@@ -1199,18 +1199,18 @@ VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--force-save",
                                      help_text="Force saving results.",
                                      level=None
                                      ))
-# VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
-#                                      name="Debug mode: ",
-#                                      default_values=[False],
-#                                      help_text="Prints debug info.",
-#                                      level=None
-#                                      ))
-# VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
-#                                      name="Debug mode: ",
-#                                      default_values=[False],
-#                                      help_text="Debug log file.",
-#                                      level=None
-#                                      ))
+VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
+                                     name="Debug mode: ",
+                                     default_values=[False],
+                                     help_text="Prints debug info.",
+                                     level=None
+                                     ))
+VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
+                                     name="Debug mode: ",
+                                     default_values=[False],
+                                     help_text="Debug log file.",
+                                     level=None
+                                     ))
 
 POND_DEFAULTS = DefaultSection("", "", 0)
 POND_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
@@ -1229,6 +1229,12 @@ POND_DEFAULTS.add_entry(DefaultEntry(config_name="-r",
                                      name="Results directory: ",
                                      default_values=[str()],
                                      help_text="Path to results directory.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--paths-types",
+                                     name="Paths types: ",
+                                     default_values=[str()],
+                                     help_text="Limit calculations to given paths types, i.e. given molecules.",
                                      level=None
                                      ))
 POND_DEFAULTS.add_entry(DefaultEntry(config_name="--raw",
@@ -1319,6 +1325,18 @@ POND_DEFAULTS.add_entry(DefaultEntry(config_name="--master-ctypes",
                                      name="Ctypes: ",
                                      default_values=[False],
                                      help_text="Limit calculations to given ctypes.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
+                                     name="Debug mode: ",
+                                     default_values=[False],
+                                     help_text="Prints debug info.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
+                                     name="Debug mode: ",
+                                     default_values=[False],
+                                     help_text="Debug log file.",
                                      level=None
                                      ))
 # @formatter:on
