@@ -129,10 +129,10 @@ if __name__ == "__main__":
             for hotspot_id, hotspot_atom_selection in in_area_selections.iteritems():
                 for id_, name in zip(hotspot_atom_selection.residues().ids(),
                                      hotspot_atom_selection.residues().names()):
-                    if (id_, name) not in residue_occurences[hotspot_id]:
-                        residue_occurences[hotspot_id][(id_, name)] = 0
+                    if (id_[1], name) not in residue_occurences[hotspot_id]:
+                        residue_occurences[hotspot_id][(id_[1], name)] = 0
 
-                    residue_occurences[hotspot_id][(id_, name)] += 1
+                    residue_occurences[hotspot_id][(id_[1], name)] += 1
 
     print "\n"
     window_len = float(Reader.window.len())
@@ -144,5 +144,5 @@ if __name__ == "__main__":
             if i == args.max:
                 break
 
-            print "{:<7} | {:10} | {:3} | {}%".format(i, res[0], res[1],
-                                                      round(hotspot_occurences[res] / window_len, 2) * 100)
+            print "{:<7} | {:5} | {:3} | {}%".format(i, res[0], res[1],
+                                                     round(hotspot_occurences[res] / window_len, 2) * 100)
