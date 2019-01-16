@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     print "Threads used: {}".format(optimal_threads.threads_count)
 
-    Reader(top_file, trj_files, window=Window(0, 99, 1), threads=optimal_threads.threads_count)
+    Reader(top_file, trj_files, window=Window(0, 0, 1), threads=optimal_threads.threads_count)
 
     residue_occurences = defaultdict(dict)
 
@@ -144,5 +144,5 @@ if __name__ == "__main__":
             if i == args.max:
                 break
 
-            print "{:<7} | {:5} | {:3} | {}%".format(i, res[0], res[1],
+            print "{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
                                                      round(hotspot_occurences[res] / window_len, 2) * 100)
