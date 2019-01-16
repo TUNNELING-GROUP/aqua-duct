@@ -52,21 +52,6 @@ class ReadMOL2(object):
     def __del__(self):
         self.file.close()
 
-
-def remove(selection, other):
-    empty_keys = []
-    for number, ids in other.selected.iteritems():
-        selection.selected[number] = [id_ for id_ in selection.selected[number] if id_ not in ids]
-
-        if not selection.selected[number]:
-            empty_keys.append(number)
-
-    for k in empty_keys:
-        del selection.selected[k]
-
-    return selection
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config_file", help="Config filename.")
@@ -75,6 +60,10 @@ if __name__ == "__main__":
     parser.add_argument("-t", dest="threads", required=False, default=None, help="Number of threads.")
     parser.add_argument("-m", dest="max", required=False, default=None,
                         help="Maximum number of returned AA per hotspot.")
+    parser.add_argument("-s", dest="minf", required=False, default=None,
+                        help="Start frame.")
+    parser.add_argument("-e", dest="maxf", required=False, default=None,
+                        help="End frame.")
 
     args = parser.parse_args()
 
@@ -96,7 +85,9 @@ if __name__ == "__main__":
 
     print "Threads used: {}".format(optimal_threads.threads_count)
 
-    Reader(top_file, trj_files, window=Window(0, 0, 1), threads=optimal_threads.threads_count)
+    Reader(top_file, trj_files, window=Window(args.minf, args.maxf, 1), threads=optimal_threads.threads_count)
+
+    print "Frame range: {}-{}".format(Reader.window.start, Reader.window.stop)
 
     residue_occurences = defaultdict(dict)
 
