@@ -885,13 +885,12 @@ def stage_IV_run(config, options,
         if options.create_master_paths:
             fof = lambda sp: make_fractionof(sp,f=options.master_paths_amount)
             for tn in iter_over_tn(): # tn is a list of traced names
-
+                # here we can select which paths are to be used
+                mpsps = [sp for sp in spaths if not isinstance(sp, PassingPath) and sp.id.name in tn]  # no PassingPaths, tn only
                 # sort by size to ger stratification like effect
-                mpsps = [sp for sp in spaths if not isinstance(sp, PassingPath)]  # no PassingPaths!
-                # mpsps = list(fof(mpsps))
                 mpsps = sorted(fof(mpsps),key=lambda sp: sp.size)
                 ctypes = inls.spaths2ctypes(mpsps) # temp ctypes
-                with clui.fbm("Master paths calculations", cont=False):
+                with clui.fbm("Master paths calculations for %s" % (', '.join(tn)), cont=False):
                     smooth = get_smooth_method(soptions)  # this have to preceed GCS
                     if GCS.cachedir or GCS.cachemem:
                         pbar = clui.pbar(len(mpsps) * 2, mess='Building coords cache') # +2 to be on the safe side
@@ -922,8 +921,14 @@ def stage_IV_run(config, options,
                             logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
                             ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
                                                           threads=use_threads)
-                            master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
-                            master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
+                            if tn == traced_names: # either no separate or all option
+                                master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
+                                master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
+                            elif len(tn) == 1: # tn is one name
+                                master_paths.update({tn[0]: {ct: ctspc.get_master_path(resid=(0, nr))}})
+                                master_paths_smooth.update({tn[0]: {ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)}})
+                            else:
+                                raise AssertionError("Internal bug, not consistent interation over traced names. Please send bug report to <%s>" % __mail__ )
                             del ctspc
                         pbar.finish()
         gc.collect()
