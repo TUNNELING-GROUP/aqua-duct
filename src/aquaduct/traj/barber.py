@@ -472,17 +472,18 @@ class WhereToCut(ReaderAccess):
         return clouds
 
 
-def barber_with_spheres(coords,spheres):
+def barber_with_spheres(coords, spheres):
     '''
     param numpy.ndarray coords: Path's coordinates subjected to barber procedure.
     param spheres: Spheres used to cut input coordinates.
     rtype: :class:`numpy.ndarray`.
     return: List of indices to be kept.
     '''
-    tokeep = np.ones(len(coords),dtype=np.bool)
+    tokeep = np.ones(len(coords), dtype=np.bool)
     for sp in spheres:
-        tokeep = np.logical_and(tokeep,cdist(coords,np.array([sp.center]),metric='euclidean').flatten() > sp.radius)
+        tokeep = np.logical_and(tokeep, cdist(coords, np.array([sp.center]), metric='euclidean').flatten() > sp.radius)
     return np.argwhere(tokeep).flatten().tolist()
+
 
 def barber_with_spheres_big_matrix(coords, spheres):
     # calculate big distance matrix
@@ -495,11 +496,10 @@ def barber_with_spheres_big_matrix(coords, spheres):
 
 
 @listify
-def barber_paths(paths, spheres=None,only_for_names=None):
+def barber_paths(paths, spheres=None, only_for_names=None):
     # cut paths with barber
     for path in (pat for pat in paths if pat.name in only_for_names):
         tokeep = barber_with_spheres(path.coords, spheres)
         path.update_types_frames(SmartRange(lind(path.types, tokeep)), SmartRange(lind(path.frames, tokeep)))
         yield path
     yield CRIC
-

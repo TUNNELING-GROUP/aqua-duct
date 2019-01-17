@@ -29,6 +29,7 @@ from aquaduct.utils import clui
 from aquaduct.traj.barber import WhereToCut
 from aquaduct.geom import Sphere
 
+
 # problems with clustering methods and size of set
 # DBSCAN:              n > 0
 # AffinityPropagation: n > 0
@@ -61,7 +62,8 @@ class BarberCluster(object):
         if spheres is not None:
             wtc.spheres = spheres
         elif radii is not None:
-            spheres = [Sphere(center=center,radius=radius,nr=nr) for nr,(center,radius) in enumerate(izip(coords,radii))]
+            spheres = [Sphere(center=center, radius=radius, nr=nr) for nr, (center, radius) in
+                       enumerate(izip(coords, radii))]
             wtc.spheres = spheres
         else:
             raise TypeError('Either spheres or radii have to be specified.')
@@ -90,7 +92,7 @@ def MeanShiftBandwidth(X, **kwargs):
                 clui.message("Meanshift automatic bandwidth calculation returned 0; setting bandwidth to None.")
             else:
                 clui.message("Meanshift automatic bandwidth calculation: bandwidth = %f" % float(
-                bandwidth))
+                    bandwidth))
             kwargs.update({'bandwidth': bandwidth})
 
     return kwargs

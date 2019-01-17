@@ -67,20 +67,19 @@ class Standartize(object):
         self.center = Center()
         self.normalize = Normalize()
 
-        test_arr = np.random.random((10,3))
-        test_cntr = np.random.random((1,3))
+        test_arr = np.random.random((10, 3))
+        test_cntr = np.random.random((1, 3))
         P = Polarize(center=test_cntr)
         P.build(test_arr)
         test_arr_p = P(test_arr)
         Pp = P.undo(test_arr_p) - test_arr
         [self.assertAlmostEqual(x, 0, 7) for x in Pp.ravel()]
+
     def test_polarize_in(self):
-        P = Polarize(center=np.random.random((1,3)))
+        P = Polarize(center=np.random.random((1, 3)))
         self.assertRaises(TypeError, P, 'cupkaces')
         self.assertRaises(TypeError, Polarize, 'cupcakes')
         self.assertRaises(TypeError, P, np.random.random((1, 2)))
-
-
 
 
 if __name__ == '__main__':
@@ -88,8 +87,10 @@ if __name__ == '__main__':
         self.center.build(X)
         self.normalize.build(X)
 
+
     def __call__(self, X):
         return self.normalize(self.center(X))
+
 
     def undo(self, X):
         return self.center.undo(self.normalize.undo(X))
@@ -110,7 +111,7 @@ class Polarize(object):
         :param equaltf: If set ``True``, *t* range is scaled to *f*.
         '''
 
-        if not isinstance(center,np.ndarray):
+        if not isinstance(center, np.ndarray):
             raise TypeError('Constructor called with center param of invalid type')
         elif np.shape(center) != (3,):
             raise TypeError('Constructor called with center param of invalid shape')
@@ -131,8 +132,8 @@ class Polarize(object):
         X = X - self.center
         # ISO, f + pi
         r = (X ** 2).sum(1) ** 0.5
-        t = np.arccos(X[:, 2] / r) # 0,pi
-        f = np.arctan2(X[:, 1], X[:, 0]) + np.pi # -pi,pi # f+pi 0,2pi
+        t = np.arccos(X[:, 2] / r)  # 0,pi
+        f = np.arctan2(X[:, 1], X[:, 0]) + np.pi  # -pi,pi # f+pi 0,2pi
         return X, r, t, f
 
     def _circle_tf(self, t, f):
@@ -141,7 +142,7 @@ class Polarize(object):
     def build(self, X):
         X, r, t, f = self._Xrtf(X)
         # calculate mean values for polar components (circle it)
-        self.tmean,self.fmean = self._circle_tf(np.pi / 2 - np.mean(t),np.pi - np.mean(f))
+        self.tmean, self.fmean = self._circle_tf(np.pi / 2 - np.mean(t), np.pi - np.mean(f))
         tf_var = (np.var(t) * 2 + np.var(f)) / 4.
         if np.std(r) > 0:
             self.rvar_factor = ((tf_var * self.rvar) ** 0.5) * (1. / np.std(r))

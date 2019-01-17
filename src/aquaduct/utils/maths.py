@@ -19,6 +19,7 @@
 import numpy as np
 from collections import namedtuple
 
+
 class NumpyDefaultsStorageTypes(object):
     """
     Default types that are enforced in :class:`numpy.ndarray` objects.
@@ -32,10 +33,12 @@ class NumpyDefaultsStorageTypes(object):
     int_default = np.int64
     int_type = np.int8
 
+
 defaults = NumpyDefaultsStorageTypes()
 """
 Instance of :class:`~NumpyDefaultsStorageTypes` to store default values.
 """
+
 
 def make_default_array(array_like):
     """
@@ -47,16 +50,18 @@ def make_default_array(array_like):
     return np.array(array_like).astype(defaults.float_default)
 
 
-class MemMap(namedtuple('MemMap','filename dtype shape')):
+class MemMap(namedtuple('MemMap', 'filename dtype shape')):
     """
     Provides simple convenience wrapper for :func:`numpy.memmap`.
     """
+
     def readonly(self):
         """
         :return:  Memory map object in 'r' mode.
         :rtype: numpy.core.memmap.memmap
         """
         return np.memmap(self.filename, mode='r', dtype=self.dtype, shape=self.shape)
+
     def readwrite(self):
         """
         :return:  Memory map object in 'r+' mode.
@@ -64,12 +69,13 @@ class MemMap(namedtuple('MemMap','filename dtype shape')):
         """
         return np.memmap(self.filename, mode='r+', dtype=self.dtype, shape=self.shape)
 
+
 class ArrayOrArray(object):
     """
     Convenience class for handling :class:`numpy.ndarray` and :class:`numpy.core.memmap.memmap` objects in a transparent way.
     """
 
-    def __init__(self,filename=None,dtype=None,shape=None):
+    def __init__(self, filename=None, dtype=None, shape=None):
         """
         :param filename str: Optional name of the file to store memory mapped object.
         :param dtype: Optional dtype of array, if `None` default value of :class:`NumpyDefaultsStorageTypes.float_default` is used.
@@ -82,9 +88,9 @@ class ArrayOrArray(object):
         if dtype is None:
             dtype = defaults.float_default
         if filename is None:
-            self.array = np.zeros(shape,dtype=dtype)
+            self.array = np.zeros(shape, dtype=dtype)
         else:
-            self.array = MemMap(filename,dtype,shape)
+            self.array = MemMap(filename, dtype, shape)
 
     @property
     def isndarray(self):

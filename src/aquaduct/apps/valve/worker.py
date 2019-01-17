@@ -50,6 +50,7 @@ class assign_sandwiched_paths(object):
     """
     Worker which assign sandwiched paths to object container
     """
+
     def __init__(self, all_res_ids, all_res_names, max_pf, results):
         """
         Constructor
@@ -80,6 +81,7 @@ class assign_sandwiched_paths(object):
 
         return new_p
 
+
 def stage_I_worker_q(input_queue, results_queue, pbar_queue):
     for input_data in iter(input_queue.get, None):
         layer_number, traj_reader_proto, scope_everyframe, scope, scope_convexhull, scope_convexhull_inflate, object_selection, progress_freq = input_data
@@ -104,7 +106,8 @@ def stage_I_worker_q(input_queue, results_queue, pbar_queue):
             # current res selection
             res = traj_reader.parse_selection(object_selection).residues()
             # find matching residues, ie those which are in the scope:
-            res_new = scope.containing_residues(res, convex_hull=scope_convexhull, convex_hull_inflate=scope_convexhull_inflate)
+            res_new = scope.containing_residues(res, convex_hull=scope_convexhull,
+                                                convex_hull_inflate=scope_convexhull_inflate)
             res_new.uniquify()  # here is a list of residues in this layer that are in the object and in the scope
             # TODO: change way of center_of_system calculation to reflect center of object?
             # adds them to all_res
@@ -169,7 +172,8 @@ def stage_II_worker_q(input_queue, results_queue, pbar_queue):
             if scope_everyframe:
                 scope = traj_reader.parse_selection(scope)
             # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull, convex_hull_inflate=scope_convexhull_inflate,
+            is_res_in_scope = scope.contains_residues(all_res_this_layer, convex_hull=scope_convexhull,
+                                                      convex_hull_inflate=scope_convexhull_inflate,
                                                       known_true=None)  # known_true could be rid_in_object
             # store results in the container
             number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
@@ -233,8 +237,9 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
             progress_freq_flex = min(1, progress_freq)
             # which all_res should be evalated?
             all_res_eval = np.ones(len(all_res_this_ids), dtype=bool)
-            for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames, reverse=reverse),
-                                             traj_reader.iterate_over_frames(reverse=reverse)):
+            for rid_in_object, frame in izip(
+                    iterate_or_die(frame_rid_in_object, times=number_of_frames, reverse=reverse),
+                    traj_reader.iterate_over_frames(reverse=reverse)):
                 # do we have object data?
                 if not is_number_frame_rid_in_object:
                     rid_in_object = [rid[-1] for rid in traj_reader.parse_selection(object_selection).residues().ids()]
@@ -243,17 +248,20 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                 # if in object do not do scope check
                 all_res_eval[is_res_in_object] = False
                 if reverse:
-                    all_res_eval[number_frame_object_scope[frame, :]>0] = False
-                all_res_this_ids_eval = (i[-1] for te,i in izip(all_res_eval, all_res_this_ids) if te)
-                all_res_this_layer_eval = ResidueSelection({all_res_this_layer.numbers()[0]:list(all_res_this_ids_eval)})
+                    all_res_eval[number_frame_object_scope[frame, :] > 0] = False
+                all_res_this_ids_eval = (i[-1] for te, i in izip(all_res_eval, all_res_this_ids) if te)
+                all_res_this_layer_eval = ResidueSelection(
+                    {all_res_this_layer.numbers()[0]: list(all_res_this_ids_eval)})
                 # should scope be evaluated?
                 if scope_everyframe:
                     scope = traj_reader.parse_selection(scope)
                 # check if all_res are in the scope, reuse res_ids_in_object_over_frames
-                is_res_in_scope_eval = scope.contains_residues(all_res_this_layer_eval, convex_hull=scope_convexhull, convex_hull_inflate=scope_convexhull_inflate,
+                is_res_in_scope_eval = scope.contains_residues(all_res_this_layer_eval, convex_hull=scope_convexhull,
+                                                               convex_hull_inflate=scope_convexhull_inflate,
                                                                known_true=None)  # known_true could be rid_in_object
                 is_res_in_scope = np.zeros(len(all_res_this_ids), dtype=bool)
-                is_res_in_scope[[int(nr) for nr,iris in izip(np.argwhere(all_res_eval),is_res_in_scope_eval) if iris]] = True
+                is_res_in_scope[
+                    [int(nr) for nr, iris in izip(np.argwhere(all_res_eval), is_res_in_scope_eval) if iris]] = True
                 if not reverse:
                     is_res_in_scope[is_res_in_object] = True
                 # store results in the container
@@ -267,7 +275,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                 progress += 1
                 progress_gc += 1
                 if progress == progress_freq_flex:
-                    pbar_queue.put(progress*0.5)
+                    pbar_queue.put(progress * 0.5)
                     progress = 0
                     progress_freq_flex = min(progress_freq_flex * 2, progress_freq)
                     if GCS.cachedir:
@@ -287,5 +295,5 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
         else:
             results_queue.put({layer_number: number_frame_object_scope})
         gc.collect()
-        pbar_queue.put(progress*0.5)
+        pbar_queue.put(progress * 0.5)
         # termination

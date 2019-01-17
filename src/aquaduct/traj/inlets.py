@@ -423,11 +423,10 @@ class Inlets(object):
         self.sort_clusters()
         # make old new dict
         ond = []
-        for o,n in zip(old_clusters,self.clusters):
+        for o, n in zip(old_clusters, self.clusters):
             if o not in ond:
                 ond.append(o)
                 self.add_message_wrapper(toleaf=o, message='new nr: %d' % n)
-
 
     def sort_clusters(self):
         old_numbers = self.clusters_list
@@ -466,16 +465,16 @@ class Inlets(object):
     def clusters_size(self):
         return map(self.clusters.count, self.clusters_list)
 
-    def join_clusters(self,clusters2join):
+    def join_clusters(self, clusters2join):
         new_cluster = max(self.clusters_list) + 1
-        for nr,c in enumerate(self.clusters):
+        for nr, c in enumerate(self.clusters):
             if c in clusters2join:
                 self.clusters[nr] = new_cluster
         for c in clusters2join:
-            self.add_message_wrapper(toleaf=c,message='joined into: %d' % new_cluster)
+            self.add_message_wrapper(toleaf=c, message='joined into: %d' % new_cluster)
         nc_size = self.clusters.count(new_cluster)
-        self.add_leaf_wrapper(name=new_cluster,message='size: %d' % nc_size,toleaf=None)
-        self.add_message_wrapper(message='made of %s' % ('+'.join(map(str,clusters2join))),toleaf=new_cluster)
+        self.add_leaf_wrapper(name=new_cluster, message='size: %d' % nc_size, toleaf=None)
+        self.add_message_wrapper(message='made of %s' % ('+'.join(map(str, clusters2join))), toleaf=new_cluster)
 
     @property
     @listify
@@ -515,7 +514,7 @@ class Inlets(object):
         new_inlets = self.__class__([], onlytype=self.onlytype,
                                     center_of_system=self.center_of_system,
                                     passing=self.passing,
-                                    pbar=None) # do not propagate pabr
+                                    pbar=None)  # do not propagate pabr
         new_inlets.number_of_clustered_inlets = self.number_of_clustered_inlets
 
         for inlet, ids, cluster, sphere, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters,

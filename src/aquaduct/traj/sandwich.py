@@ -33,7 +33,7 @@ if mda.__version__ < '0.16':
     raise NotImplementedError('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.' % mda.__version__)
 
 if mda.__version__ >= '0.17' and mda.__version__ < '0.19':
-    logger.warning('Unsupported MDAnalysis version %s.',mda.__version__)
+    logger.warning('Unsupported MDAnalysis version %s.', mda.__version__)
     logger.warning('Trying to mitigate potential problems by setting `use_periodic_selections = False`.')
     mda.core.flags['use_periodic_selections'] = False
 
@@ -88,17 +88,16 @@ class Window(object):
         self.start = self._none_or_int(start)
         self.stop = self._none_or_int(stop)
         self.step = self._none_or_int(step)
-    
+
     @staticmethod
     def _none_or_int(nr):
         if nr is not None:
             return int(nr)
 
-
     def __repr__(self):
         return "Window(%r:%r:%r)" % (self.start, self.stop, self.step)
 
-    def range(self,reverse=False):
+    def range(self, reverse=False):
         # returns range object
         if reverse:
             return xrange(self.stop, self.start - 1, -1 * self.step)
@@ -584,9 +583,9 @@ class ReaderTrajViaMDA(ReaderTraj):
                             format=trajectory)
 
     def close_trajectory(self):
-        if hasattr(self,'trajectory_object'):
-            if hasattr(self.trajectory_object,'trajectory'):
-                if hasattr(self.trajectory_object.trajectory,'close'):
+        if hasattr(self, 'trajectory_object'):
+            if hasattr(self.trajectory_object, 'trajectory'):
+                if hasattr(self.trajectory_object.trajectory, 'close'):
                     self.trajectory_object.trajectory.close()
 
     def set_real_frame(self, real_frame):
@@ -761,7 +760,8 @@ class AtomSelection(Selection):
             center += (masses * self.get_reader(number).atoms_positions(ids)).sum(0)
         return center / total_mass
 
-    def contains_residues(self, other_residues, convex_hull=False, convex_hull_inflate=None, map_fun=None, known_true=None):
+    def contains_residues(self, other_residues, convex_hull=False, convex_hull_inflate=None, map_fun=None,
+                          known_true=None):
         # FIXME: known_true slows down!
         # known_true are only ix!
         assert isinstance(other_residues, ResidueSelection)
@@ -818,9 +818,9 @@ class AtomSelection(Selection):
                     other_new.update({number: [resid]})
         return ResidueSelection(other_new)
 
-    def chull(self,inflate=None):
+    def chull(self, inflate=None):
         if self.len() > 3:
-            return SciPyConvexHull(list(self.coords()),inflate=inflate)
+            return SciPyConvexHull(list(self.coords()), inflate=inflate)
 
 
 ################################################################################
@@ -941,6 +941,7 @@ class SingleResidueSelection(ReaderAccess):
     def coords_smooth(self, sranges, smooth):
         for coord in smooth_coords_ranges(sranges, self.number, self.resid, smooth):
             yield coord
+
 
 ################################################################################
 

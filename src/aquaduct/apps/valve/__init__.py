@@ -30,7 +30,8 @@ from collections import OrderedDict, namedtuple
 from keyword import iskeyword
 
 from aquaduct.apps.data import GCS, load_cric
-from aquaduct.geom.cluster_available_methods import get_required_params, AVAILABLE_METHODS as available_clusterization_methods
+from aquaduct.geom.cluster_available_methods import get_required_params, \
+    AVAILABLE_METHODS as available_clusterization_methods
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import Auto
 
@@ -229,7 +230,6 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'cache_dir', 'None')
         config.set(section, 'cache_mem', 'False')
 
-
         ################
         snr = 0  # stage number
         # stage I
@@ -344,8 +344,8 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'scope_chull_inflate', 'None')
         config.set(section, 'object_chull', 'None')
 
-        config.set(section, 'cluster_area','True')
-        config.set(section, 'cluster_area_precision','20')
+        config.set(section, 'cluster_area', 'True')
+        config.set(section, 'cluster_area_precision', '20')
         config.set(section, 'cluster_area_expand', '2')
 
         config.set(section, 'dump_config', 'True')
@@ -363,7 +363,6 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'simply_smooths', 'RecursiveVector')
         config.set(section, 'split_by_type', 'False')
         config.set(section, 'retain_all_types', 'False')
-
 
         # visualize spaths, all paths in one object
         config.set(section, 'all_paths_raw', 'False')
@@ -388,8 +387,8 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'inlets_clusters', 'False')
         config.set(section, 'inlets_clusters_amount', 'None')
 
-        config.set(section, 'cluster_area','False')
-        config.set(section, 'cluster_area_precision','20')
+        config.set(section, 'cluster_area', 'False')
+        config.set(section, 'cluster_area_precision', '20')
         config.set(section, 'cluster_area_expand', '2')
 
         # show protein
@@ -506,8 +505,8 @@ def valve_load_config(filename, config):
         # cache dir & netcdf
         GCS.cachedir = goptions.cache_dir
         GCS.cachemem = goptions.cache_mem
-        #GCS.netcdf = args.use_netcdf or args.use_netcdf4
-        #GCS.nc4 = args.use_netcdf4
+        # GCS.netcdf = args.use_netcdf or args.use_netcdf4
+        # GCS.nc4 = args.use_netcdf4
         load_cric()
 
         # single precision storage

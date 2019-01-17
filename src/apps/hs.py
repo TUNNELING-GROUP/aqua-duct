@@ -53,6 +53,7 @@ class ReadMOL2(object):
     def __del__(self):
         self.file.close()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config_file", help="Config filename.")

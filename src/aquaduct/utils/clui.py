@@ -81,6 +81,7 @@ def emit_message_to_file_in_root_logger(mess):
             with open(fh.baseFilename, 'a') as logfile:
                 logfile.write(mess)
 
+
 def emit_tvtb_to_file_in_root_logger(tvtb):
     # emits special message to the file used by file handler in the root logger
     # assumes there is only one file handler
@@ -89,10 +90,11 @@ def emit_tvtb_to_file_in_root_logger(tvtb):
         fh = root_logger.handlers[map(type, root_logger.handlers).index(logging.FileHandler)]
         with fh.lock:
             with open(fh.baseFilename, 'a') as logfile:
-                t,v,tb = tvtb
-                logfile.write("Traceback (most recent call last):"+linesep)
-                print_tb(tb,None,logfile)
-                logfile.write("%s: %s%s" % (t.__name__,str(v),linesep))
+                t, v, tb = tvtb
+                logfile.write("Traceback (most recent call last):" + linesep)
+                print_tb(tb, None, logfile)
+                logfile.write("%s: %s%s" % (t.__name__, str(v), linesep))
+
 
 def message_special(mess):
     emit_message_to_file_in_root_logger(mess)
@@ -303,7 +305,7 @@ class SimpleProgressBar(object):
         :param str mess: Optional message displayed at progress bar initialization.
         """
 
-        #self.lock = Manager().Lock()
+        # self.lock = Manager().Lock()
 
         if maxval is None and is_iterable(iterable):
             maxval = len(iterable)
@@ -344,7 +346,7 @@ class SimpleProgressBar(object):
         if typ is None:
             self.finish()
 
-    def iter(self,finish=False):
+    def iter(self, finish=False):
         for e in self.iterable:
             yield e
             self.next()

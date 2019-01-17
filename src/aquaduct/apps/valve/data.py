@@ -572,13 +572,13 @@ class ValveDataAccess_nc(ValveDataAccess):
         self.data_file.close()
 
     def get_variable(self, name, copy=True):
-        #print name
+        # print name
         if copy:
             return self.data_file.variables[name][:].copy()
         return self.data_file.variables[name]
 
     def set_variable(self, name, value):
-        #print name, value
+        # print name, value
         assert self.mode == "w"
         # value has to be ndarray
         assert isinstance(value, np.ndarray)

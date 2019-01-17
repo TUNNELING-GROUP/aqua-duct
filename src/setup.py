@@ -32,7 +32,7 @@ install_requires = ['numpy>=1.10.0',  # this is required by MDA
 def install_requires_nice(level=0):
     import re
     for ir in install_requires:
-        print (" "  * 4  * level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)', ir))
+        print (" " * 4 * level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)', ir))
 
 
 author = __import__('aquaduct').__author__  # version str

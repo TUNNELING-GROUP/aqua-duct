@@ -45,6 +45,7 @@ logger.addHandler(ch)
 
 if __name__ == "__main__":
     from sys import exc_info
+
     try:
         from aquaduct.utils import clui
 
@@ -69,12 +70,14 @@ if __name__ == "__main__":
                                 help="Force saving results.")
 
             parser.add_argument("--debug", action="store_true", dest="debug", required=False, help="Prints debug info.")
-            parser.add_argument("--debug-file", action="store", dest="debug_file", required=False, help="Debug log file.")
+            parser.add_argument("--debug-file", action="store", dest="debug_file", required=False,
+                                help="Debug log file.")
             parser.add_argument("--version", action="store_true", dest="print_version", required=False,
                                 help="Prints versions and exits.")
             parser.add_argument("--license", action="store_true", dest="print_license", required=False,
                                 help="Prints short license info and exits.")
-            parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf", required=False,
+            parser.add_argument("--dump-template-config", action="store_true", dest="dump_template_conf",
+                                required=False,
                                 help="Dumps template config file. Suppress all other output or actions.")
 
             args = parser.parse_args()
@@ -99,7 +102,7 @@ if __name__ == "__main__":
             logger.info('Initialization of Valve logging done.')
 
             ############################################################################
-            
+
             from aquaduct.apps.valve import ValveConfig, valve_load_config, valve_begin, valve_end
 
             ############################################################################
@@ -111,6 +114,7 @@ if __name__ == "__main__":
                 # print config_dump.getvalue()
                 config = ValveConfig()  # config template
                 import os
+
                 print(os.linesep.join(config.dump_config(dump_template=True)))
                 exit(0)
             # special case of version
@@ -123,8 +127,9 @@ if __name__ == "__main__":
                 valve_begin()
 
                 import os
-                from aquaduct import __author__,__mail__
-                author_join = ","+os.linesep+"                         "
+                from aquaduct import __author__, __mail__
+
+                author_join = "," + os.linesep + "                         "
 
                 print("""Licensed under GNU GPL v3. Full text of the license is distributed
     with installation package and is also available at"
@@ -147,9 +152,8 @@ if __name__ == "__main__":
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-        """.format(author=author_join.join(__author__.split(', ')),mail=__mail__))
+        """.format(author=author_join.join(__author__.split(', ')), mail=__mail__))
                 exit(0)
-
 
             ############################################################################
             # begin!
@@ -173,7 +177,8 @@ if __name__ == "__main__":
             else:
                 optimal_threads.threads_count = int(args.threads)
             clui.message("Number of threads Valve is allowed to use: %d" % optimal_threads.threads_count)
-            if (1 < optimal_threads.threads_count < 3) or (optimal_threads.threads_count - 1 > optimal_threads.cpu_count):
+            if (1 < optimal_threads.threads_count < 3) or (
+                    optimal_threads.threads_count - 1 > optimal_threads.cpu_count):
                 clui.message(
                     "Number of threads is not optimal; CPU count reported by system: %d" % optimal_threads.cpu_count)
             # because it is used by mp.Pool it should be -1???
@@ -234,7 +239,7 @@ if __name__ == "__main__":
             result4 = valve_exec_stage(3, config, stage_IV_run, force_save=force_save,
                                        run_status=run_status,
                                        center_of_system=result1['center_of_system'],
-                                       #center_of_system=result3['center_of_object'],
+                                       # center_of_system=result3['center_of_object'],
                                        **result3)
 
             # STAGE V
@@ -255,15 +260,14 @@ if __name__ == "__main__":
             result6 = valve_exec_stage(5, config, stage_VI_run,
                                        run_status=run_status,
                                        no_io=True,
-                                       #alt_center_of_system=result3['center_of_object'],
+                                       # alt_center_of_system=result3['center_of_object'],
                                        **results)
             ############################################################################
             # end!
 
-            Reader.reset() # clean close of readers
+            Reader.reset()  # clean close of readers
             valve_end()
             logger.info('Valve calulations finished.')
     except BaseException:
         clui.emit_tvtb_to_file_in_root_logger(exc_info())
         raise
-
