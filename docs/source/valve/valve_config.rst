@@ -282,6 +282,11 @@ master_paths_amount                 None            Allows to limit number of si
                                                     in range ``(0,1)``, then it is interpreted as a percent number
                                                     of paths to be used. It is is a integer number ``>= 1``
                                                     it is an absoulte number of used paths.
+separate_master                     False           If set to ``True``, master mapths are generated for each of
+                                                    traced molecules' types separately.
+separate_master_all                 True            If **separate_master** is used and this option is set ``True``,
+                                                    master paths will be also generated for all traced molecules`
+                                                    types as it is done when **separate_master** is set ``False``.
 exclude_passing_in_clusterization   True            If set to ``True``, passing paths are not clustered with normal
                                                     paths.
 add_passing_to_clusters             None            Allows to run procedure for adding passing paths inlets to

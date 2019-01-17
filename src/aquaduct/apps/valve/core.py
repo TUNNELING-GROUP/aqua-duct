@@ -876,6 +876,8 @@ def stage_IV_run(config, options,
             if options.separate_master:
                 for tn in traced_names:
                     yield [tn]
+                if options.separate_master_all:
+                    yield traced_names
             else:
                 yield traced_names
 
