@@ -1563,6 +1563,7 @@ def stage_VI_run(config, options,
                                            spp=spp,
                                            smooth=lambda anything: anything)
 
+    master_paths_separate = [k for k in master_paths_smooth.iterkeys() if isinstance(k,str)] 
     if options.ctypes_smooth:
         with clui.fbm("CTypes smooth"):
             for nr, ct in enumerate(ctypes_generic_list):
@@ -1571,20 +1572,36 @@ def stage_VI_run(config, options,
                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
                     tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name] 
                     plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth'+tn_name, split=False, spp=spp, smooth=smooth)
-                if ct in master_paths_smooth:
-                    if master_paths_smooth[ct] is None: continue
-                    plot_spaths_traces([master_paths_smooth[ct]],
-                                       name=str(ct) + '_smooth_master',
-                                       split=False,
-                                       spp=spp,
-                                       smooth=lambda anything: anything)
-                if ct in master_paths:
-                    if master_paths[ct] is None: continue
-                    plot_spaths_traces([master_paths[ct]],
-                                       name=str(ct) + '_raw_master_smooth',
-                                       split=False,
-                                       spp=spp,
-                                       smooth=smooth)
+                for mp_nr in xrange(len(master_paths_separate)+1):
+                    mp_name = ""
+                    mp = None
+                    if mp_nr:
+                        mp_name = master_paths_separate[mp_nr-1]
+                        if ct in master_paths_smooth[mp_name]:
+                            mp = master_paths_smooth[mp_name][ct]
+                            mp_name = "_" + mp_name
+                    else:
+                        mp = master_paths_smooth[ct]
+                    if mp is not None:
+                        plot_spaths_traces([mp],
+                                           name=str(ct) + '_smooth_master'+mp_name,
+                                           split=False,
+                                           spp=spp,
+                                           smooth=lambda anything: anything)
+                    mp = None
+                    if mp_nr:
+                        mp_name = master_paths_separate[mp_nr-1]
+                        if ct in master_paths[mp_name]:
+                            mp = master_paths[mp_name][ct]
+                            mp_name = "_" + mp_name
+                    else:
+                        mp = master_paths[ct]
+                    if mp is not None:
+                        plot_spaths_traces([mp],
+                                           name=str(ct) + '_raw_master_smooth'+mp_name,
+                                           split=False,
+                                           spp=spp,
+                                           smooth=smooth)
 
     fof = lambda sp: list(make_fractionof(sp,f=options.all_paths_amount))
     tn_lim = lambda tn: spaths if tn is None else [sp for sp in spaths if tn == sp.id.name] 
