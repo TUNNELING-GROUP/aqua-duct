@@ -927,8 +927,12 @@ def stage_IV_run(config, options,
                                 master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
                                 master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
                             elif len(tn) == 1: # tn is one name
-                                master_paths.update({tn[0]: {ct: ctspc.get_master_path(resid=(0, nr))}})
-                                master_paths_smooth.update({tn[0]: {ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)}})
+                                if tn[0] not in master_paths:
+                                    master_paths.update({tn[0]:{}})
+                                if tn[0] not in master_paths_smooth:
+                                    master_paths_smooth.update({tn[0]:{}})
+                                master_paths[tn[0]].update({ct: ctspc.get_master_path(resid=(0, nr))})
+                                master_paths_smooth[tn[0]].update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
                             else:
                                 raise AssertionError("Internal bug, not consistent interation over traced names. Please send bug report to <%s>" % __mail__ )
                             del ctspc
@@ -1515,7 +1519,8 @@ def stage_VI_run(config, options,
                     #print inls.center_of_system, c_name, len(ics), alt_center_of_system
                     if len(ics) < 3: continue
                     h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
-                                expand_by=float(options.cluster_area_expand), center_of_system=inls.center_of_system)
+                                expand_by=float(options.cluster_area_expand),
+                                center_of_system=inls.center_of_system)
                     spp.multiline_begin()
                     for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
                         #print c_name + '_D%d' % fraction
@@ -1530,6 +1535,9 @@ def stage_VI_run(config, options,
 
     fof = lambda sp: list(make_fractionof(sp,f=options.ctypes_amount))
 
+    # master paths can have some keys which are not of ct type - names of molecules
+    master_paths_separate = [k for k in master_paths.iterkeys() if isinstance(k,str)] 
+    # TODO: is isinstance good in this instance?
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):
             for nr, ct in enumerate(ctypes_generic_list):
@@ -1538,9 +1546,21 @@ def stage_VI_run(config, options,
                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
                     tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name] 
                     plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_raw'+tn_name, split=False, spp=spp)
-                if ct in master_paths:
-                    if master_paths[ct] is not None:
-                        plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp,
+                for mp_nr in xrange(len(master_paths_separate)+1):
+                    mp_name = ""
+                    mp = None
+                    if mp_nr:
+                        mp_name = master_paths_separate[mp_nr-1]
+                        if ct in master_paths[mp_name]:
+                            mp = master_paths[mp_name][ct]
+                            mp_name = "_" + mp_name
+                    else:
+                        mp = master_paths[ct]
+                    if mp is not None:
+                        plot_spaths_traces([mp],
+                                           name=str(ct) + '_raw_master'+mp_name,
+                                           split=False,
+                                           spp=spp,
                                            smooth=lambda anything: anything)
 
     if options.ctypes_smooth:
@@ -1553,11 +1573,17 @@ def stage_VI_run(config, options,
                     plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth'+tn_name, split=False, spp=spp, smooth=smooth)
                 if ct in master_paths_smooth:
                     if master_paths_smooth[ct] is None: continue
-                    plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
+                    plot_spaths_traces([master_paths_smooth[ct]],
+                                       name=str(ct) + '_smooth_master',
+                                       split=False,
+                                       spp=spp,
                                        smooth=lambda anything: anything)
                 if ct in master_paths:
                     if master_paths[ct] is None: continue
-                    plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
+                    plot_spaths_traces([master_paths[ct]],
+                                       name=str(ct) + '_raw_master_smooth',
+                                       split=False,
+                                       spp=spp,
                                        smooth=smooth)
 
     fof = lambda sp: list(make_fractionof(sp,f=options.all_paths_amount))

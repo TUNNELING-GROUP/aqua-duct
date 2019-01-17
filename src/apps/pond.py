@@ -355,13 +355,19 @@ if __name__ == "__main__":
                     wmol2 = [WriteMOL2(rdir+'outer%s.mol2' % ptn), WriteMOL2(rdir+'inner%s.mol2' % ptn)]
                     if args.hotspots:
                         hsmol2 = WriteMOL2(rdir+'hotspots%s.mol2' % ptn)
-                    for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
+                    for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True),
+                                                                windows=W, size=WS)):
                         number_of_frames = (window[-1]-window[0])
                         if Reader.sandwich_mode:
                             number_of_frames *= Reader.number_of_layers()
 
                         if wnr:
-                            D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
+                            D = pocket.distribution(paths,
+                                                    grid_size=grid_size,
+                                                    edges=edges,
+                                                    window=window,
+                                                    pbar=pbar,
+                                                    map_fun=pool.imap_unordered)
                             H = (D[-1] / WSf)/grid_area
                             if args.hotspots:
                                 hs = pocket.hot_spots(H)
@@ -380,7 +386,11 @@ if __name__ == "__main__":
                                 volumes.append(sum(I)*grid_area)
                             pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes)))+os.linesep)
                         elif args.wfull:
-                            D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window, pbar=pbar, map_fun=pool.imap_unordered)
+                            D = pocket.distribution(paths,
+                                                    grid_size=grid_size,
+                                                    edges=edges, window=window,
+                                                    pbar=pbar,
+                                                    map_fun=pool.imap_unordered)
                             H = (D[-1] / float(number_of_frames))/grid_area
                             if args.hotspots:
                                 hs = pocket.hot_spots(H)
