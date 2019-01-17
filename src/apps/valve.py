@@ -263,7 +263,7 @@ if __name__ == "__main__":
             Reader.reset() # clean close of readers
             valve_end()
             logger.info('Valve calulations finished.')
-    except BaseException as err:
+    except BaseException:
         clui.emit_tvtb_to_file_in_root_logger(exc_info())
         raise
 
