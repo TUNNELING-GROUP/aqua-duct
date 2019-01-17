@@ -44,8 +44,8 @@ logger.addHandler(ch)
 
 
 if __name__ == "__main__":
+    from sys import exc_info
     try:
-        from sys import exc_info
         from aquaduct.utils import clui
 
         with clui.tictoc('Aqua-Duct calculations'):
@@ -263,10 +263,7 @@ if __name__ == "__main__":
             Reader.reset() # clean close of readers
             valve_end()
             logger.info('Valve calulations finished.')
-    except BaseException:
-        v,e,tb = exc_info()
-        clui.emit_traceback_to_file_in_root_logger(tb)
-        clui.emit_message_to_file_in_root_logger(str(dir(v)))
-        clui.emit_message_to_file_in_root_logger(str(e))
+    except BaseException as err:
+        clui.emit_tvtb_to_file_in_root_logger(exc_info())
         raise
 

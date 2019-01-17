@@ -509,6 +509,8 @@ class ReaderTraj(object):
 
     def close_trajectory(self):
         # should close trajectory reader in self.trajectory_object
+        # WARNING: This method has to be carefully implemented because it is used by __del__ and
+        #          should not emmit any error messages. This is subjet of change. 
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def set_real_frame(self, real_frame):
@@ -582,7 +584,10 @@ class ReaderTrajViaMDA(ReaderTraj):
                             format=trajectory)
 
     def close_trajectory(self):
-        self.trajectory_object.trajectory.close()
+        if hasattr(self,'trajectory_object'):
+            if hasattr(self.trajectory_object,'trajectory'):
+                if hasattr(self.trajectory_object.trajectory,'close'):
+                    self.trajectory_object.trajectory.close()
 
     def set_real_frame(self, real_frame):
         self.real_frame_nr = real_frame
