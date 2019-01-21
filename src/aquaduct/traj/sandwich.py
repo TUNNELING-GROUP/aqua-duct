@@ -243,7 +243,7 @@ class MasterReader(object):
 
     def strata(self, number=False):
         # generates slices of baquette
-        for nr in xrange(self.threads * self.threads_multiply):
+        for nr in xrange(self.number_of_layers()):
             if number:
                 yield nr + 1, self.get_single_reader(nr + 1)
             else:
@@ -265,7 +265,7 @@ class MasterReader(object):
         if self.sandwich_mode:
             return self.engine(self.topology, self.trajectory[number], number=number, window=self.window)
         elif number > 0 and self.threads > 1:
-            window = list(self.window.split(self.threads * self.threads_multiply))[number - 1]
+            window = list(self.window.split(self.number_of_layers()))[number - 1]
             return self.engine(self.topology, self.trajectory, number=number, window=window)
         else:
             assert number == 0, "Sandwich/baguette mismatch. Try use/not use --sandwich option."
@@ -292,7 +292,9 @@ class MasterReader(object):
     def number_of_layers(self):
         if self.sandwich_mode:
             return len(self.trajectory)
-        return self.threads * self.threads_multiply
+        nof = self.number_of_frames()
+        nol = self.threads * self.threads_multiply
+        return nol if nof > nol else max(nof-1,1)
 
 
 # instance of MasterReader
@@ -556,7 +558,7 @@ class ReaderTraj(object):
 # ReaderTraj engine MDAnalysis
 
 mda_available_formats = {re.compile('(nc|NC)'): 'nc',
-                         re.compile('(parmtop|top|PARMTOP|TOP)'): 'parmtop',
+                         re.compile('(prmtop|parmtop|top|PRMTOP|PARMTOP|TOP)'): 'PRMTOP',
                          re.compile('(dcd|DCD)'): 'LAMMPS',
                          re.compile('(psf|PSF)'): 'psf',
                          re.compile('(pdb|PDB)'): 'pdb',
@@ -662,7 +664,7 @@ class Selection(ReaderAccess):
         for number, ids in self.selected.iteritems():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
-                return self.__class__({number: [ids[ix - ix_current]]})
+                return self.__class__({number: [ids[ix - ix_current]]}) # FIXME: looks like a bug!
             ix_current += len(ids)
         raise IndexError()
 
