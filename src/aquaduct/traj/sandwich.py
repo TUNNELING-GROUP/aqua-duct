@@ -874,6 +874,7 @@ def coords_range(srange, number, rid):
     '''
 
     # call get_ranges and stack array, do it in comprehension? nested function?
+    @arrayify(shape=(None, 3))
     def get_coords_from_cache():
         for sr, xr in CRIC.get_frc(number, rid).get_ranges(srange):
             logger.debug("CRIC partial request %d:%d %s", number, rid, str(sr))
