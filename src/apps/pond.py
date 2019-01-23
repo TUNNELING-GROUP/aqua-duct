@@ -360,16 +360,21 @@ if __name__ == "__main__":
                             WSf = float(WS)
                         if Reader.sandwich_mode:
                             WSf *= Reader.number_of_layers()
-                        wmol2 = [WriteMOL2(rdir + 'outer%s.mol2' % ptn), WriteMOL2(rdir + 'inner%s.mol2' % ptn)]
-                        if args.hotspots:
-                            hsmol2 = WriteMOL2(rdir + 'hotspots%s.mol2' % ptn)
+
+                        wmol2 = None
+                        hsmol2 = None
                         for wnr, window in enumerate(
                                 pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
                             number_of_frames = (window[-1] - window[0])
                             if Reader.sandwich_mode:
                                 number_of_frames *= Reader.number_of_layers()
 
-                            if wnr:
+                            if wnr and many_windows:
+                                if wmol2 is None:
+                                    wmol2 = [WriteMOL2(rdir + 'outer%s.mol2' % ptn),
+                                             WriteMOL2(rdir + 'inner%s.mol2' % ptn)]
+                                if hsmol2 is None and args.hotspots:
+                                    hsmol2 = WriteMOL2(rdir + 'hotspots%s.mol2' % ptn)
                                 D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window,
                                                         pbar=pbar, map_fun=pool.imap_unordered)
                                 H = (D[-1] / WSf) / grid_area
@@ -389,7 +394,8 @@ if __name__ == "__main__":
                                     mol2.write_scatter(D[0][I], H[I])
                                     volumes.append(sum(I) * grid_area)
                                 pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes))) + os.linesep)
-                            elif args.wfull:
+                            #elif args.wfull:
+                            elif (wnr == 0) and (args.wfull or (not many_windows)):
                                 D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window,
                                                         pbar=pbar, map_fun=pool.imap_unordered)
                                 H = (D[-1] / float(number_of_frames)) / grid_area
@@ -402,7 +408,7 @@ if __name__ == "__main__":
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1]),
                                                    [WriteMOL2(rdir + 'outer_full%s.mol2' % ptn),
-                                                    WriteMOL2(rdir + 'inner_fulli%s.mol2' % ptn)]):
+                                                    WriteMOL2(rdir + 'inner_full%s.mol2' % ptn)]):
                                     mol2.write_scatter(D[0][I], H[I])
                                     volumes.append(sum(I) * grid_area)
                                     del mol2
@@ -418,10 +424,12 @@ if __name__ == "__main__":
                         pool.close()
                         pool.join()
 
-                        for mol2 in wmol2:
-                            del mol2
-                        if args.hotspots:
-                            del hsmol2
+                        if wmol2 is not None:
+                            for mol2 in wmol2:
+                                del mol2
+                        if hsmol2 is not None:
+                            if args.hotspots:
+                                del hsmol2
                         pockets_volume.close()
 
                 clui.message("what it's got in its nassty little pocketses?")
