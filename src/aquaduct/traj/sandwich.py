@@ -857,6 +857,7 @@ def coords_range_core(srange, number, rid):
     return coords_range_core_inner(srange, number, rid)
 
 
+@arrayify(shape=(None, 3))
 def coords_range(srange, number, rid):
     # srange is SmartRangeIncrement, it cannot be anything else
     # wrapper to limit number of calls to coords_range_core
@@ -872,13 +873,12 @@ def coords_range(srange, number, rid):
     '''
 
     # call get_ranges and stack array, do it in comprehension? nested function?
-    @arrayify(shape=(None, 3))
     def get_coords_from_cache():
         for sr, xr in CRIC.get_frc(number, rid).get_ranges(srange):
             logger.debug("CRIC partial request %d:%d %s", number, rid, str(sr))
             yield coords_range_core(sr, number, rid)[xr, :]
 
-    return np.vstack(get_coords_from_cache())
+    return np.vstack(tuple(get_coords_from_cache()))
 
 
 ################################################################################
