@@ -16,16 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from aquaduct import logger
 import re
-
-from os.path import splitext
 from collections import OrderedDict, namedtuple
 from itertools import imap
-
-import numpy as np
+from os.path import splitext
 
 import MDAnalysis as mda
+import numpy as np
+
+from aquaduct import logger
 
 # FIXME: do it according to user options
 if mda.__version__ < '0.16':
@@ -39,12 +38,12 @@ if mda.__version__ >= '0.17' and mda.__version__ < '0.19':
 
 from MDAnalysis.topology.core import guess_atom_element
 
-from aquaduct.utils.helpers import SmartRange, SmartRangeFunction, SmartRangeIncrement
+from aquaduct.utils.helpers import SmartRange, SmartRangeIncrement
 from aquaduct.geom.convexhull import SciPyConvexHull, are_points_within_convexhull
 from aquaduct.utils.helpers import arrayify, create_tmpfile, \
     tupleify
 from aquaduct.utils.maths import make_default_array
-from aquaduct.apps.data import GCS, CRIC, FramesRangeCollection
+from aquaduct.apps.data import GCS, CRIC
 from aquaduct.utils.maths import defaults
 
 ################################################################################
@@ -96,6 +95,26 @@ class Window(object):
 
     def __repr__(self):
         return "Window(%r:%r:%r)" % (self.start, self.stop, self.step)
+
+    def correct(self, real_frame_no):
+        if self.start is None:
+            self.start = 0
+        elif self.start < 0:
+            self.start = 0
+        elif self.start > real_frame_no:
+            self.start = real_frame_no - 1
+
+        if self.stop is None:
+            self.stop = real_frame_no - 1
+        elif self.stop < 0:
+            self.stop = 0
+        elif self.stop > real_frame_no:
+            self.stop = real_frame_no - 1
+
+        if self.step is None:
+            self.step = 1
+        elif self.step < 0:
+            self.step = 1
 
     def range(self, reverse=False):
         # returns range object
@@ -166,7 +185,7 @@ class MasterReader(object):
         self.window = window
         self.sandwich_mode = sandwich
 
-        self.correct_window()  # this corrects window
+        self.window.correct(self.real_number_of_frames())  # this corrects window
         self.reset()  # assert window correction clear all opened trajs
 
         self.threads = threads
@@ -197,28 +216,6 @@ class MasterReader(object):
     def engine(self, topology, trajectory, number, window):
         assert self.engine_name in ['mda']
         return OpenReaderTraj(topology, trajectory, number, window, self.engine_name)
-
-    def correct_window(self):
-        # corrects window object
-        # should be called at the initialization stage which is executed by calling the object
-        # side effect is that it opens at least one trajectory file
-        N = self.real_number_of_frames()
-        start, stop, step = self.window.start, self.window.stop, self.window.step
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = N - 1
-        if step is None:
-            step = 1
-        if start < 0:
-            start = 0
-        if stop < 0:
-            stop = 0
-        if start > N:
-            start = N - 1
-        if stop > N:
-            stop = N - 1
-        self.window = Window(start, stop, step)
 
     def __repr__(self):
         sandwich = ''
