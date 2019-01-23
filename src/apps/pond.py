@@ -217,6 +217,8 @@ if __name__ == "__main__":
                 if not os.path.exists(args.results_dir):
                     os.makedirs(args.results_dir)
                 rdir = args.results_dir
+            if len(rdir) == 0:
+                rdir += '.'
             rdir += os.path.sep
 
             results_meta = {'options': vars(args)}
