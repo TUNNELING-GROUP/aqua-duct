@@ -16,22 +16,22 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from aquaduct import logger
+
 import re
 from collections import OrderedDict, namedtuple
 from itertools import imap
 from os.path import splitext
 
-import MDAnalysis as mda
 import numpy as np
-
-from aquaduct import logger
+import MDAnalysis as mda
 
 # FIXME: do it according to user options
 if mda.__version__ < '0.16':
-    logger.error('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.', mda.__version__)
-    raise NotImplementedError('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.' % mda.__version__)
+    logger.error('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.', mda.__version__)
+    raise NotImplementedError('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.' % mda.__version__)
 
-if mda.__version__ >= '0.17' and mda.__version__ < '0.19':
+if mda.__version__ >= '0.17' and mda.__version__ < '0.20':
     logger.warning('Unsupported MDAnalysis version %s.', mda.__version__)
     logger.warning('Trying to mitigate potential problems by setting `use_periodic_selections = False`.')
     mda.core.flags['use_periodic_selections'] = False
@@ -40,8 +40,7 @@ from MDAnalysis.topology.core import guess_atom_element
 
 from aquaduct.utils.helpers import SmartRange, SmartRangeIncrement
 from aquaduct.geom.convexhull import SciPyConvexHull, are_points_within_convexhull
-from aquaduct.utils.helpers import arrayify, create_tmpfile, \
-    tupleify
+from aquaduct.utils.helpers import arrayify, create_tmpfile, tupleify
 from aquaduct.utils.maths import make_default_array
 from aquaduct.apps.data import GCS, CRIC
 from aquaduct.utils.maths import defaults
