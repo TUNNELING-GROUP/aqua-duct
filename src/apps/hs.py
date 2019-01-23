@@ -4,7 +4,7 @@
 import ConfigParser
 import argparse
 import sys
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from time import time
 
 import numpy as np
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 
         for frame in traj_reader.iterate():
             sys.stdout.write("\r {}".format(time() - stime))
-            in_area = defaultdict(dict)
+            in_area = defaultdict(OrderedDict)
             for number, ids in protein_atoms.selected.iteritems():
                 number_reader = protein_atoms.get_reader(number)
                 for id_, coord in enumerate(number_reader.atoms_positions(ids)):
