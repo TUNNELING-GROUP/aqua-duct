@@ -126,8 +126,8 @@ class CTypeSpathsCollectionWorker(object):
         coords_zz = []
         for sp, sl in izip(self.spaths, sp_slices_):
             # self.lock.acquire()
-            #coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
-            #coords_zz.append(coords_zz_element[sl])
+            # coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
+            # coords_zz.append(coords_zz_element[sl])
             coords_zz.append(sp.get_coords_cont(smooth=self.smooth)[sl])
             # self.lock.release()
 

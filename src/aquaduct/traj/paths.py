@@ -163,7 +163,7 @@ class GenericPaths(GenericPathTypeCodes):
     # def frames_promise(self):
     #    return self._frames.get()
 
-    def discard_singletons(self,singl=1,skiptype=GenericPathTypeCodes.object_name):
+    def discard_singletons(self, singl=1, skiptype=GenericPathTypeCodes.object_name):
         # singl is chunk size to discard
         types = self.types
         new_types = []
@@ -171,16 +171,16 @@ class GenericPaths(GenericPathTypeCodes):
         seek = 0
         # loop over frames chunks:
         for chunksr in self._frames_sr.raw:
-            if len(chunksr)<=singl:
-                if skiptype not in types[seek:seek+len(chunksr)]:
+            if len(chunksr) <= singl:
+                if skiptype not in types[seek:seek + len(chunksr)]:
                     continue
 
             new_frames.append(chunksr)
-            new_types.extend(types[seek:seek+len(chunksr)])
+            new_types.extend(types[seek:seek + len(chunksr)])
             seek += len(chunksr)
 
         self._types = SmartRange(new_types)
-        self._frames = array('i',chain(*(ch.get() for ch in new_frames)))
+        self._frames = array('i', chain(*(ch.get() for ch in new_frames)))
 
     @property
     def coords(self):
@@ -732,12 +732,12 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     @property
     def coords_object_strict(self):
-        i = (nr for nr,et in enumerate(self.etypes[1]) if et == self.etypes[1][0])
+        i = (nr for nr, et in enumerate(self.etypes[1]) if et == self.etypes[1][0])
         return self.coords_object[list(i)]
 
     @property
     def center_of_object(self):
-        return np.mean(self.coords_object_strict,0)
+        return np.mean(self.coords_object_strict, 0)
 
     @property
     def coords_out(self):

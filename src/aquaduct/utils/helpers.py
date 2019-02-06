@@ -290,7 +290,7 @@ def int2range(l):
     return out
 
 
-def fractionof(l,f=None):
+def fractionof(l, f=None):
     """
     :param list l: input list
     :param float f: fraction
@@ -301,9 +301,10 @@ def fractionof(l,f=None):
         for ch in l:
             yield ch
     else:
-        n = int(max(1,np.ceil(len(l) * f)))
-        for ch in chunk(l,n):
+        n = int(max(1, np.ceil(len(l) * f)))
+        for ch in chunk(l, n):
             yield ch[0]
+
 
 def make_fraction(frac, size):
     """
@@ -319,11 +320,13 @@ def make_fraction(frac, size):
                 frac = None
     return frac
 
-def make_fractionof(l,f=None):
+
+def make_fractionof(l, f=None):
     '''
     Wrapper of make_fraction and fractionof functions.
     '''
-    return fractionof(l, f=make_fraction(f,len(l)))
+    return fractionof(l, f=make_fraction(f, len(l)))
+
 
 def chop(l, n=1):
     """
@@ -346,8 +349,8 @@ def chunk(l, n=1):
     true_seek = 0.
     N = max(1, len(l) / float(n))
     nr = 0
-    while (nr<len(l)):
-        while (np.ceil(true_seek)<=seek):
+    while (nr < len(l)):
+        while (np.ceil(true_seek) <= seek):
             true_seek += N
         new_seek = int(np.ceil(true_seek))
         yield l[seek:new_seek]
@@ -724,6 +727,7 @@ class Bunch(object):
 
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
+
 
 ################################################################################
 

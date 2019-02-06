@@ -43,7 +43,7 @@ class GlobalConfigStore(object):
         return self._cachedir
 
     @cachedir.setter
-    def cachedir(self,value):
+    def cachedir(self, value):
         assert not self.sandwich_import, "Cachedir property cannot be set after sandiwch import."
         self._cachedir = value
 
@@ -55,7 +55,6 @@ class GlobalConfigStore(object):
     def cachemem(self, value):
         assert not self.sandwich_import, "Cachemem property cannot be set after sandiwch import."
         self._cachemem = value
-
 
 
 GCS = GlobalConfigStore()

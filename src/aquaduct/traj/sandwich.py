@@ -17,34 +17,32 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from aquaduct import logger
-import re
 
-from os.path import splitext
+import re
 from collections import OrderedDict, namedtuple
 from itertools import imap
+from os.path import splitext
 
 import numpy as np
-
 import MDAnalysis as mda
 
 # FIXME: do it according to user options
 if mda.__version__ < '0.16':
-    logger.error('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.', mda.__version__)
-    raise NotImplementedError('Unsupported MDAnalysis version %s; shoud be 0.16.2 or >= 0.19.' % mda.__version__)
+    logger.error('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.', mda.__version__)
+    raise NotImplementedError('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.' % mda.__version__)
 
-if mda.__version__ >= '0.17' and mda.__version__ < '0.19':
-    logger.warning('Unsupported MDAnalysis version %s.',mda.__version__)
+if mda.__version__ >= '0.17' and mda.__version__ < '0.20':
+    logger.warning('Unsupported MDAnalysis version %s.', mda.__version__)
     logger.warning('Trying to mitigate potential problems by setting `use_periodic_selections = False`.')
     mda.core.flags['use_periodic_selections'] = False
 
 from MDAnalysis.topology.core import guess_atom_element
 
-from aquaduct.utils.helpers import SmartRange, SmartRangeFunction, SmartRangeIncrement
+from aquaduct.utils.helpers import SmartRange, SmartRangeIncrement
 from aquaduct.geom.convexhull import SciPyConvexHull, are_points_within_convexhull
-from aquaduct.utils.helpers import arrayify, create_tmpfile, \
-    tupleify
+from aquaduct.utils.helpers import arrayify, create_tmpfile, tupleify
 from aquaduct.utils.maths import make_default_array
-from aquaduct.apps.data import GCS, CRIC, FramesRangeCollection
+from aquaduct.apps.data import GCS, CRIC
 from aquaduct.utils.maths import defaults
 
 ################################################################################
@@ -88,17 +86,36 @@ class Window(object):
         self.start = self._none_or_int(start)
         self.stop = self._none_or_int(stop)
         self.step = self._none_or_int(step)
-    
+
     @staticmethod
     def _none_or_int(nr):
         if nr is not None:
             return int(nr)
 
-
     def __repr__(self):
         return "Window(%r:%r:%r)" % (self.start, self.stop, self.step)
 
-    def range(self,reverse=False):
+    def correct(self, real_frame_no):
+        if self.start is None:
+            self.start = 0
+        elif self.start < 0:
+            self.start = 0
+        elif self.start > real_frame_no:
+            self.start = real_frame_no - 1
+
+        if self.stop is None:
+            self.stop = real_frame_no - 1
+        elif self.stop < 0:
+            self.stop = 0
+        elif self.stop > real_frame_no:
+            self.stop = real_frame_no - 1
+
+        if self.step is None:
+            self.step = 1
+        elif self.step < 0:
+            self.step = 1
+
+    def range(self, reverse=False):
         # returns range object
         if reverse:
             return xrange(self.stop, self.start - 1, -1 * self.step)
@@ -167,7 +184,7 @@ class MasterReader(object):
         self.window = window
         self.sandwich_mode = sandwich
 
-        self.correct_window()  # this corrects window
+        self.window.correct(self.real_number_of_frames())  # this corrects window
         self.reset()  # assert window correction clear all opened trajs
 
         self.threads = threads
@@ -199,28 +216,6 @@ class MasterReader(object):
         assert self.engine_name in ['mda']
         return OpenReaderTraj(topology, trajectory, number, window, self.engine_name)
 
-    def correct_window(self):
-        # corrects window object
-        # should be called at the initialization stage which is executed by calling the object
-        # side effect is that it opens at least one trajectory file
-        N = self.real_number_of_frames()
-        start, stop, step = self.window.start, self.window.stop, self.window.step
-        if start is None:
-            start = 0
-        if stop is None:
-            stop = N - 1
-        if step is None:
-            step = 1
-        if start < 0:
-            start = 0
-        if stop < 0:
-            stop = 0
-        if start > N:
-            start = N - 1
-        if stop > N:
-            stop = N - 1
-        self.window = Window(start, stop, step)
-
     def __repr__(self):
         sandwich = ''
         if self.sandwich_mode:
@@ -244,7 +239,7 @@ class MasterReader(object):
 
     def strata(self, number=False):
         # generates slices of baquette
-        for nr in xrange(self.threads * self.threads_multiply):
+        for nr in xrange(self.number_of_layers()):
             if number:
                 yield nr + 1, self.get_single_reader(nr + 1)
             else:
@@ -266,7 +261,7 @@ class MasterReader(object):
         if self.sandwich_mode:
             return self.engine(self.topology, self.trajectory[number], number=number, window=self.window)
         elif number > 0 and self.threads > 1:
-            window = list(self.window.split(self.threads * self.threads_multiply))[number - 1]
+            window = list(self.window.split(self.number_of_layers()))[number - 1]
             return self.engine(self.topology, self.trajectory, number=number, window=window)
         else:
             assert number == 0, "Sandwich/baguette mismatch. Try use/not use --sandwich option."
@@ -293,7 +288,9 @@ class MasterReader(object):
     def number_of_layers(self):
         if self.sandwich_mode:
             return len(self.trajectory)
-        return self.threads * self.threads_multiply
+        nof = self.number_of_frames()
+        nol = self.threads * self.threads_multiply
+        return nol if nof > nol else max(nof-1,1)
 
 
 # instance of MasterReader
@@ -509,6 +506,8 @@ class ReaderTraj(object):
 
     def close_trajectory(self):
         # should close trajectory reader in self.trajectory_object
+        # WARNING: This method has to be carefully implemented because it is used by __del__ and
+        #          should not emmit any error messages. This is subjet of change. 
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def set_real_frame(self, real_frame):
@@ -555,7 +554,7 @@ class ReaderTraj(object):
 # ReaderTraj engine MDAnalysis
 
 mda_available_formats = {re.compile('(nc|NC)'): 'nc',
-                         re.compile('(parmtop|top|PARMTOP|TOP)'): 'parmtop',
+                         re.compile('(prmtop|parmtop|top|PRMTOP|PARMTOP|TOP)'): 'PRMTOP',
                          re.compile('(dcd|DCD)'): 'LAMMPS',
                          re.compile('(psf|PSF)'): 'psf',
                          re.compile('(pdb|PDB)'): 'pdb',
@@ -582,7 +581,10 @@ class ReaderTrajViaMDA(ReaderTraj):
                             format=trajectory)
 
     def close_trajectory(self):
-        self.trajectory_object.trajectory.close()
+        if hasattr(self, 'trajectory_object'):
+            if hasattr(self.trajectory_object, 'trajectory'):
+                if hasattr(self.trajectory_object.trajectory, 'close'):
+                    self.trajectory_object.trajectory.close()
 
     def set_real_frame(self, real_frame):
         self.real_frame_nr = real_frame
@@ -658,7 +660,7 @@ class Selection(ReaderAccess):
         for number, ids in self.selected.iteritems():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
-                return self.__class__({number: [ids[ix - ix_current]]})
+                return self.__class__({number: [ids[ix - ix_current]]}) # FIXME: looks like a bug!
             ix_current += len(ids)
         raise IndexError()
 
@@ -685,6 +687,22 @@ class Selection(ReaderAccess):
                 self.selected[number] = self.selected[number] + list(ids)
             else:
                 self.selected.update({number: ids})
+
+    def remove(self, other):
+        """
+        Remove all items that exist in other selection.
+
+        :param other: Other selection.
+        """
+        empty_keys = []
+        for number, ids in other.selected.iteritems():
+            self.selected[number] = [id_ for id_ in self.selected[number] if id_ not in ids]
+
+            if not self.selected[number]:
+                empty_keys.append(number)
+
+        for k in empty_keys:
+            del self.selected[k]
 
     def uniquify(self):
 
@@ -740,7 +758,8 @@ class AtomSelection(Selection):
             center += (masses * self.get_reader(number).atoms_positions(ids)).sum(0)
         return center / total_mass
 
-    def contains_residues(self, other_residues, convex_hull=False, convex_hull_inflate=None, map_fun=None, known_true=None):
+    def contains_residues(self, other_residues, convex_hull=False, convex_hull_inflate=None, map_fun=None,
+                          known_true=None):
         # FIXME: known_true slows down!
         # known_true are only ix!
         assert isinstance(other_residues, ResidueSelection)
@@ -797,9 +816,9 @@ class AtomSelection(Selection):
                     other_new.update({number: [resid]})
         return ResidueSelection(other_new)
 
-    def chull(self,inflate=None):
+    def chull(self, inflate=None):
         if self.len() > 3:
-            return SciPyConvexHull(list(self.coords()),inflate=inflate)
+            return SciPyConvexHull(list(self.coords()), inflate=inflate)
 
 
 ################################################################################
@@ -838,6 +857,7 @@ def coords_range_core(srange, number, rid):
     return coords_range_core_inner(srange, number, rid)
 
 
+@arrayify(shape=(None, 3))
 def coords_range(srange, number, rid):
     # srange is SmartRangeIncrement, it cannot be anything else
     # wrapper to limit number of calls to coords_range_core
@@ -858,7 +878,7 @@ def coords_range(srange, number, rid):
             logger.debug("CRIC partial request %d:%d %s", number, rid, str(sr))
             yield coords_range_core(sr, number, rid)[xr, :]
 
-    return np.vstack(get_coords_from_cache())
+    return np.vstack(tuple(get_coords_from_cache()))
 
 
 ################################################################################
@@ -920,6 +940,7 @@ class SingleResidueSelection(ReaderAccess):
     def coords_smooth(self, sranges, smooth):
         for coord in smooth_coords_ranges(sranges, self.number, self.resid, smooth):
             yield coord
+
 
 ################################################################################
 

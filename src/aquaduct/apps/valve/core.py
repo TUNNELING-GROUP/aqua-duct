@@ -32,11 +32,11 @@ from aquaduct.geom.master import CTypeSpathsCollection
 from aquaduct.traj.barber import barber_paths
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets
-from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath
+from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath, MacroMolPath
 from aquaduct.traj.paths import yield_generic_paths
 from aquaduct.traj.sandwich import ResidueSelection, Reader
 from aquaduct.utils.clui import roman
-from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof
+from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof, make_fraction
 from aquaduct.utils.helpers import range2int, what2what, lind, robust_and, robust_or
 from aquaduct.utils.multip import optimal_threads
 from aquaduct.utils.sets import intersection_full
@@ -51,25 +51,8 @@ from aquaduct.visual import cmaps
 __mail__ = 'info@aquaduct.pl'
 __version__ = aquaduct_version_nice()
 
-###############################################################################
-# configuration file helpers
-
-
-# TODO: add parser for initial checking of configuration file
 
 ################################################################################
-
-
-'''
-def valve_read_trajectory(top, traj, frames_window=None):
-    with clui.fbm('Read trajectory'):
-        return TrajectoryReader(top, traj, frames_window=frames_window)
-        # read trajectory
-        # traj_list = shlex.split(traj)
-        # return ReadAmberNetCDFviaMDA(top, traj_list)
-        # reader = ReadDCDviaMDA(topology, trajectory)
-'''
-
 
 def valve_begin_stage(stage, config):
     clui.message(sep())
@@ -140,6 +123,14 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
         if not no_io:
             if result is not None:
                 return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
+
+
+################################################################################
+# asorted helpers
+
+def get_traced_names(some_paths):
+    # some_paths might me paths of spaths or both
+    return tuple(sorted(list(set((sp.id.name if isinstance(sp, MacroMolPath) else sp.name for sp in some_paths)))))
 
 
 ################################################################################
@@ -216,7 +207,7 @@ def stage_I_run(config, options,
     # join pool
     [p.join(1) for p in pool]
     pbar.finish()
-    
+
     if all_res is None or all_res.len() == 0:
         raise ValueError("No traceable residues were found.")
 
@@ -285,8 +276,8 @@ def stage_II_run(config, options,
             sIII = config.get_stage_options(2)
             # TODO: enable twoway in sandwich mode
             allow_twoway = (not Reader.sandwich_mode) and (sI.scope == sII.scope) and (
-                        sI.scope_convexhull == sII.scope_convexhull) and (sI.object == sII.object) and (
-                                       sIII.allow_passing_paths == False)
+                    sI.scope_convexhull == sII.scope_convexhull) and (sI.object == sII.object) and (
+                                   sIII.allow_passing_paths == False)
 
         # prepare and start pool of workers
         if allow_twoway:
@@ -379,8 +370,10 @@ def stage_II_run(config, options,
                                                                all_res_layer.names()))
 
                 pool = Pool(processes=optimal_threads.threads_count)
-                map(new_paths.callback_append_next,pool.imap_unordered(assign_nonsandwiched_paths(),izip(paths_this_layer, results_n(results[number]).T)))
-                
+                map(new_paths.callback_append_next, pool.imap_unordered(assign_nonsandwiched_paths(),
+                                                                        izip(paths_this_layer,
+                                                                             results_n(results[number]).T)))
+
                 pool.close()
                 pool.join()
 
@@ -396,7 +389,7 @@ def stage_II_run(config, options,
             pool_func = assign_sandwiched_paths(all_res_ids, all_res_names, max_pf, results)
 
             pool = Pool(processes=optimal_threads.threads_count)
-            map(new_paths.callback_append_next,pool.imap_unordered(pool_func,range(len(all_res_ids))))
+            map(new_paths.callback_append_next, pool.imap_unordered(pool_func, range(len(all_res_ids))))
 
             pool.close()
             pool.join()
@@ -539,38 +532,56 @@ def stage_III_run(config, options,
 
     ######################################################################
 
-    if options.auto_barber:
-        wtc = WhereToCut(spaths=spaths,
-                         selection=options.auto_barber,
-                         mincut=options.auto_barber_mincut,
-                         mincut_level=options.auto_barber_mincut_level,
-                         maxcut=options.auto_barber_maxcut,
-                         maxcut_level=options.auto_barber_maxcut_level,
-                         tovdw=options.auto_barber_tovdw)
-        # cut thyself!
-        wtc.cut_thyself()
+    traced_names = get_traced_names(spaths)
 
-        if len(wtc.spheres):
-            n = max(1, optimal_threads.threads_count)
-            with clui.pbar(maxval=len(xrange(0, len(paths), n)), mess="AutoBarber in action:") as pbar:
-                Reader.reset()
-                pool = Pool(processes=optimal_threads.threads_count)
-                bp = partial(barber_paths, spheres=wtc.spheres)
-
-                new_paths = NP(pbar)
-                nr = 0
-                while len(paths):
-                    pool.apply_async(bp, args=(paths[:n],), callback=new_paths.callback_cric_next)
-                    paths = paths[n:]
-                    nr += 1
-                    if nr % n == 0:
-                        gc.collect()
-                pool.close()
-                pool.join()
-            paths = new_paths.paths
-            gc.collect()
+    def iter_over_tn():
+        if options.separate_barber:
+            for tn in traced_names:
+                yield [tn]
         else:
-            clui.message('AutoBarber procedure skip, no spheres detected.')
+            yield traced_names
+
+    if options.auto_barber:
+        new_paths = NP(None)  # no progress bar (yet)
+        for tn in iter_over_tn():  # tn is a list of traced names
+            with clui.fbm("AutoBarber calcluations for %s" % ' '.join(tn), cont=False):
+                wtc = WhereToCut(spaths=[sp for sp in spaths if sp.id.name in tn],
+                                 selection=options.auto_barber,
+                                 mincut=options.auto_barber_mincut,
+                                 mincut_level=options.auto_barber_mincut_level,
+                                 maxcut=options.auto_barber_maxcut,
+                                 maxcut_level=options.auto_barber_maxcut_level,
+                                 tovdw=options.auto_barber_tovdw)
+                # cut thyself!
+                wtc.cut_thyself()  # wtc for given tn
+
+                # how many paths of tn we have?
+                tnpaths = [nr for nr, p in enumerate(paths) if p.name in tn][::-1]  # ids of tn paths, reversed
+                if len(wtc.spheres):
+                    n = max(1, optimal_threads.threads_count)
+                    with clui.pbar(maxval=len(xrange(0, len(tnpaths), n)), mess="AutoBarber in action:") as pbar:
+                        Reader.reset()
+                        pool = Pool(processes=optimal_threads.threads_count)
+                        bp = partial(barber_paths, spheres=wtc.spheres, only_for_names=tn)
+
+                        new_paths.reinit(pbar)
+                        nr = 0
+                        while len(tnpaths):
+                            pool.apply_async(bp, args=([paths.pop(nn) for nn in tnpaths[:n]],),
+                                             callback=new_paths.callback_cric_next)
+                            tnpaths = tnpaths[n:]
+                            nr += 1
+                            if nr % n == 0:
+                                gc.collect()
+                        pool.close()
+                        pool.join()
+                    gc.collect()
+                else:
+                    clui.message('AutoBarber procedure skip, no spheres detected.')
+                    for nn in tnpaths:
+                        new_paths.paths.append(paths.pop(nn))
+                    tnpaths = []
+        paths = new_paths.paths
 
     ######################################################################
     # following procedures are run only if autobarber
@@ -658,8 +669,8 @@ def stage_III_run(config, options,
             # CRIC AWARE MP!
             Reader.reset()
             coos = list(chain.from_iterable((coo for nr, coo, cric in coos if
-                                               (pbar.next(step=nr) is None) and (
-                                                       CRIC.update_cric(cric) is None))))
+                                             (pbar.next(step=nr) is None) and (
+                                                     CRIC.update_cric(cric) is None))))
             save_cric()
             pool.close()
             pool.join()
@@ -683,7 +694,7 @@ def stage_III_run(config, options,
     clui.message("Number of spaths: %d" % len(spaths))
 
     return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict()}
-    #return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict(),
+    # return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict(),
     #        'center_of_object': coos}
 
 
@@ -863,62 +874,86 @@ def stage_IV_run(config, options,
         clui.message('Clustering history:')
         clui.message(clui.print_simple_tree(inls.tree, prefix='').rstrip())
 
-        # ***** CLUSTERS' TYPES *****
-        with clui.fbm("Calculating cluster types"):
-            ctypes = inls.spaths2ctypes(spaths)
+        traced_names = get_traced_names(spaths)
 
-        # now, there is something to do with ctypes!
-        # we can create master paths!
+        def iter_over_tn():
+            if options.separate_master:
+                for tn in traced_names:
+                    yield [tn]
+                if options.separate_master_all:
+                    yield traced_names
+            else:
+                yield traced_names
+
         # but only if user wants this
-        master_paths = {}
+        master_paths = {}  # this and following dict hold master paths, keys here ar ctypes - one ctype one master path
         master_paths_smooth = {}
         if options.create_master_paths:
-            fof = lambda sp: np.fromiter(make_fractionof(sp,f=options.master_paths_amount))
-            with clui.fbm("Master paths calculations", cont=False):
-                smooth = get_smooth_method(soptions)  # this have to preceed GCS
-                if GCS.cachedir or GCS.cachemem:
-                    pbar = clui.pbar(len(spaths) * 2, mess='Building coords cache')
-                    # TODO: do it in parallel
-                    [sp.get_coords(smooth=None) for sp in spaths if
-                     pbar.next() is None and not isinstance(sp, PassingPath)]
-                    [sp.get_coords(smooth=smooth) for sp in spaths if
-                     pbar.next() is None and not isinstance(sp, PassingPath)]
-                    pbar.finish()
-                    use_threads = optimal_threads.threads_count
-                else:
-                    logger.warning(
-                        "Master paths calculation without cache-dir or cache-mem option can be EXTREMELY slow.")
-                    use_threads = 1
-                with clui.fbm("Creating master paths for cluster types", cont=False):
-                    ctypes_generic = [ct.generic for ct in ctypes]
-                    ctypes_generic_list = sorted(list(set(ctypes_generic)))
+            fof = lambda sp: make_fractionof(sp, f=options.master_paths_amount)
+            for tn in iter_over_tn():  # tn is a list of traced names
+                # here we can select which paths are to be used
+                mpsps = [sp for sp in spaths if
+                         not isinstance(sp, PassingPath) and sp.id.name in tn]  # no PassingPaths, tn only
+                # sort by size to ger stratification like effect
+                mpsps = sorted(fof(mpsps), key=lambda sp: sp.size)
+                ctypes = inls.spaths2ctypes(mpsps)  # temp ctypes
+                with clui.fbm("Master paths calculations for %s" % (', '.join(tn)), cont=False):
+                    smooth = get_smooth_method(soptions)  # this have to preceed GCS
+                    if GCS.cachedir or GCS.cachemem:
+                        pbar = clui.pbar(len(mpsps) * 2, mess='Building coords cache')  # +2 to be on the safe side
+                        # TODO: do it in parallel
+                        [sp.get_coords(smooth=None) for sp in mpsps if
+                         pbar.next() is None and not isinstance(sp, PassingPath)]
+                        [sp.get_coords(smooth=smooth) for sp in mpsps if
+                         pbar.next() is None and not isinstance(sp, PassingPath)]
+                        pbar.finish()
+                        use_threads = optimal_threads.threads_count
+                    else:
+                        logger.warning(
+                            "Master paths calculation without cache-dir or cache-mem option can be EXTREMELY slow.")
+                        use_threads = 1
+                    with clui.fbm("Creating master paths for cluster types", cont=False):
+                        ctypes_generic = [ct.generic for ct in ctypes]
+                        ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
-                    pbar = clui.pbar(len([None for sp in spaths if not isinstance(sp, PassingPath)]) * 2)
-                    for nr, ct in enumerate(ctypes_generic_list):
-                        logger.debug('CType %s (%d)' % (str(ct), nr))
-                        sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                        # no passing paths are allowed
-                        sps = [sp for sp in sps if not isinstance(sp, PassingPath)]  # no PassingPaths!
-                        if not len(sps):
-                            logger.debug(
-                                'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
-                                    str(ct), nr,))
-                            continue
-                        logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
-                        # print len(sps),ct
-                        ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
-                                                      threads=use_threads)
-                        master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
-                        master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
-                        del ctspc
-                    pbar.finish()
+                        pbar = clui.pbar(len(mpsps) * 2)
+                        for nr, ct in enumerate(ctypes_generic_list):
+                            logger.debug('CType %s (%d)' % (str(ct), nr))
+                            sps = lind(mpsps, what2what(ctypes_generic, [ct]))
+                            if not len(sps):
+                                logger.debug(
+                                    'CType %s (%d), no single paths found, MasterPath calculation skipped.' % (
+                                        str(ct), nr,))
+                                continue
+                            logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
+                            ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
+                                                          threads=use_threads)
+                            if tn == traced_names:  # either no separate or all option
+                                master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
+                                master_paths_smooth.update({ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
+                            elif len(tn) == 1:  # tn is one name
+                                if tn[0] not in master_paths:
+                                    master_paths.update({tn[0]: {}})
+                                if tn[0] not in master_paths_smooth:
+                                    master_paths_smooth.update({tn[0]: {}})
+                                master_paths[tn[0]].update({ct: ctspc.get_master_path(resid=(0, nr))})
+                                master_paths_smooth[tn[0]].update(
+                                    {ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
+                            else:
+                                raise AssertionError(
+                                    "Internal bug, not consistent interation over traced names. Please send bug report to <%s>" % __mail__)
+                            del ctspc
+                        pbar.finish()
         gc.collect()
     else:
         clui.message("No inlets found. Clusterization skipped.")
         # make empty results
-        ctypes = inls.spaths2ctypes(spaths)
         master_paths = {}
         master_paths_smooth = {}
+
+    # ***** CLUSTERS' TYPES *****
+    with clui.fbm("Calculating cluster types"):
+        ctypes = inls.spaths2ctypes(spaths)
 
     ################################################################################
 
@@ -986,8 +1021,7 @@ def stage_V_run(config, options,
                                          Reader.window.step))
 
     ############
-    traced_names = tuple(sorted(list(set([sp.id.name for sp in spaths]))))
-    # traced_names = ['all'] + traced_names
+    traced_names = get_traced_names(spaths)
 
     pa.sep()
     pa("Names of traced molecules: %s" % (' '.join(traced_names)))
@@ -1006,7 +1040,7 @@ def stage_V_run(config, options,
     ############
 
     def iter_over_tn():
-        yield traced_names, ''
+        yield traced_names, ''  # all types
         if len(traced_names) > 1:
             for _tname in traced_names:
                 yield (_tname,), " of %s" % _tname
@@ -1196,7 +1230,8 @@ def stage_V_run(config, options,
     # additional analysis
 
     def iter_over_tn():
-        yield traced_names, 'amol'
+        # this fuction is redefined here because of changed messages
+        yield traced_names, 'amol'  # all types
         if len(traced_names) > 1:
             for _tname in traced_names:
                 yield (_tname,), "%s" % _tname
@@ -1352,7 +1387,8 @@ def stage_V_run(config, options,
                delimiter=',',
                header=','.join(header))
     if not options.save:
-        print h_fname.getvalue()
+        h_fname.getvalue()
+        # print h_fname.getvalue()
 
     return {'hist': h, 'header': header}
 
@@ -1379,6 +1415,17 @@ def stage_VI_run(config, options,
 
     soptions = config.get_smooth_options()
     smooth = get_smooth_method(soptions)
+
+    traced_names = get_traced_names(spaths)
+
+    def iter_over_tn():
+        if not options.split_by_type:
+            yield None, ""
+        else:
+            if options.retain_all_types:
+                yield None, ""
+            for tn in traced_names:
+                yield tn, "_%s" % str(tn)
 
     # start pymol
     with clui.fbm("Starting PyMOL connection", cont=False):
@@ -1410,6 +1457,7 @@ def stage_VI_run(config, options,
                     molecule_name = 'molecule%d' % nr
                 os.unlink(pdbfile)
                 # it would be nice to plot convexhull
+
     if options.show_scope_chull:
         with clui.fbm("Convexhull"):
             if options.show_scope_chull_inflate:
@@ -1441,35 +1489,26 @@ def stage_VI_run(config, options,
                     else:
                         logger.debug('Object convex hull calculations failed for frame %d.' % frame)
 
-    # def make_fracion(frac, size):
-    #     if frac is not None:
-    #         frac = float(frac)
-    #         if frac > 1:
-    #             frac = frac / size
-    #             if frac >= 1:
-    #                 frac = None
-    #     return frac
-
-    fof = lambda sp: np.array(list(make_fractionof(sp,f=options.inlets_clusters_amount)))
-    # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.inlets_clusters_amount, len(sp)))))
-
+    fof = lambda sp: np.array(list(make_fractionof(sp, f=options.inlets_clusters_amount)))
     if options.inlets_clusters:
+        tn_lim = lambda tn: inls if tn is None else inls.lim2rnames(tn)
         with clui.fbm("Clusters"):
-            # TODO: require stage V for that?
-            no_of_clusters = len(inls.clusters_list)  # total, including outliers
-            cmap = ColorMapDistMap()
-            for c in inls.clusters_list:
-                # coords for current cluster
-                ics = inls.lim2clusters(c).coords
-                if c == 0:
-                    c_name = 'out'
-                else:
-                    c_name = str(int(c))
-                spp.scatter(fof(ics), color=cmap(c), name="cluster_%s" % c_name)
-                if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
-                    radii = inls.lim2clusters(c).radii
-                    if len(radii) > 0:
-                        spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s" % c_name)
+            for tn, tn_name in iter_over_tn():
+                # TODO: require stage V for that?
+                # no_of_clusters = len(inls.clusters_list)  # total, including outliers
+                cmap = ColorMapDistMap()
+                for c in tn_lim(tn).clusters_list:
+                    # coords for current cluster
+                    ics = tn_lim(tn).lim2clusters(c).coords
+                    if c == 0:
+                        c_name = 'out'
+                    else:
+                        c_name = str(int(c))
+                    spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s" % (c_name, tn_name))
+                    if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
+                        radii = tn_lim(tn).lim2clusters(c).radii
+                        if len(radii) > 0:
+                            spp.scatter(ics, color=cmap(c), radius=radii, name="cluster_radii_%s%s" % (c_name, tn_name))
 
     if options.cluster_area:
         from aquaduct.geom import hdr
@@ -1485,13 +1524,14 @@ def stage_VI_run(config, options,
                         c_name = str(int(c))
                     cmap = cmaps._cmap_jet_256
                     # calcualte hdr
-                    print inls.center_of_system, c_name, len(ics), alt_center_of_system
+                    # print inls.center_of_system, c_name, len(ics), alt_center_of_system
                     if len(ics) < 3: continue
                     h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
-                                expand_by=float(options.cluster_area_expand), center_of_system=inls.center_of_system)
+                                expand_by=float(options.cluster_area_expand),
+                                center_of_system=inls.center_of_system)
                     spp.multiline_begin()
                     for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
-                        print c_name + '_D%d' % fraction
+                        # print c_name + '_D%d' % fraction
                         coords = hdr2contour(h, fraction=fraction / 100.)
                         if coords is not None:
                             color = cmap[int(255 * (1 - fraction / 100.))]
@@ -1499,72 +1539,114 @@ def stage_VI_run(config, options,
                     spp.multiline_end(name=c_name + '_DC')
             spp.scatter(np.array([inls.center_of_system]), color=cmap[10], name="COS")
 
+    fof = lambda sp: list(make_fractionof(sp, f=options.ctypes_amount))
 
-
-    #fof = lambda sp: np.array(list(make_fractionof(sp,f=options.ctypes_amount)))
-    fof = lambda sp: list(make_fractionof(sp,f=options.ctypes_amount))
-    # fof = lambda sp: np.array(list(fractionof(sp, f=make_fracion(options.ctypes_amount, len(sp)))))
-
+    # master paths can have some keys which are not of ct type - names of molecules
+    master_paths_separate = [k for k in master_paths.iterkeys() if isinstance(k, str)]
+    # TODO: is isinstance good in this instance?
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):
             for nr, ct in enumerate(ctypes_generic_list):
                 clui.message(str(ct), cont=True)
-                sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                plot_spaths_traces(fof(sps), name=str(ct) + '_raw', split=False, spp=spp)
-                if ct in master_paths:
-                    if master_paths[ct] is not None:
-                        plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master', split=False, spp=spp,
+                for tn, tn_name in iter_over_tn():
+                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+                    plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_raw' + tn_name, split=False, spp=spp)
+                for mp_nr in xrange(len(master_paths_separate) + 1):
+                    mp_name = ""
+                    mp = None
+                    if mp_nr:
+                        mp_name = master_paths_separate[mp_nr - 1]
+                        if ct in master_paths[mp_name]:
+                            mp = master_paths[mp_name][ct]
+                            mp_name = "_" + mp_name
+                    else:
+                        mp = master_paths[ct]
+                    if mp is not None:
+                        plot_spaths_traces([mp],
+                                           name=str(ct) + '_raw_master' + mp_name,
+                                           split=False,
+                                           spp=spp,
                                            smooth=lambda anything: anything)
 
+    master_paths_separate = [k for k in master_paths_smooth.iterkeys() if isinstance(k, str)]
     if options.ctypes_smooth:
         with clui.fbm("CTypes smooth"):
             for nr, ct in enumerate(ctypes_generic_list):
                 clui.message(str(ct), cont=True)
-                sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                plot_spaths_traces(fof(sps), name=str(ct) + '_smooth', split=False, spp=spp, smooth=smooth)
-                if ct in master_paths_smooth:
-                    if master_paths_smooth[ct] is None: continue
-                    plot_spaths_traces([master_paths_smooth[ct]], name=str(ct) + '_smooth_master', split=False, spp=spp,
-                                       smooth=lambda anything: anything)
-                if ct in master_paths:
-                    if master_paths[ct] is None: continue
-                    plot_spaths_traces([master_paths[ct]], name=str(ct) + '_raw_master_smooth', split=False, spp=spp,
+                for tn, tn_name in iter_over_tn():
+                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+                    plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth' + tn_name, split=False, spp=spp,
                                        smooth=smooth)
+                for mp_nr in xrange(len(master_paths_separate) + 1):
+                    mp_name = ""
+                    mp = None
+                    if mp_nr:
+                        mp_name = master_paths_separate[mp_nr - 1]
+                        if ct in master_paths_smooth[mp_name]:
+                            mp = master_paths_smooth[mp_name][ct]
+                            mp_name = "_" + mp_name
+                    else:
+                        mp = master_paths_smooth[ct]
+                    if mp is not None:
+                        plot_spaths_traces([mp],
+                                           name=str(ct) + '_smooth_master' + mp_name,
+                                           split=False,
+                                           spp=spp,
+                                           smooth=lambda anything: anything)
+                    mp = None
+                    if mp_nr:
+                        mp_name = master_paths_separate[mp_nr - 1]
+                        if ct in master_paths[mp_name]:
+                            mp = master_paths[mp_name][ct]
+                            mp_name = "_" + mp_name
+                    else:
+                        mp = master_paths[ct]
+                    if mp is not None:
+                        plot_spaths_traces([mp],
+                                           name=str(ct) + '_raw_master_smooth' + mp_name,
+                                           split=False,
+                                           spp=spp,
+                                           smooth=smooth)
 
-    fof = lambda sp: list(make_fractionof(sp,f=options.all_paths_amount))
-    # fof = lambda sp: list(fractionof(sp, f=make_fracion(options.all_paths_amount, len(sp))))
+    fof = lambda sp: list(make_fractionof(sp, f=options.all_paths_amount))
+    tn_lim = lambda tn: spaths if tn is None else [sp for sp in spaths if tn == sp.id.name]
 
-    if options.all_paths_raw:
-        with clui.fbm("All raw paths"):
-            plot_spaths_traces(fof(spaths), name='all_raw', split=options.all_paths_split, spp=spp)
-    if options.all_paths_raw_io:
-        with clui.fbm("All raw paths io"):
-            plot_spaths_inlets(fof(spaths), name='all_raw_paths_io', spp=spp)
+    for tn, tn_name in iter_over_tn():
+        if options.all_paths_raw:
+            with clui.fbm("All raw paths" + tn_name.replace('_', ' ')):
+                plot_spaths_traces(fof(tn_lim(tn)), name='all_raw' + tn_name, split=options.all_paths_split, spp=spp)
+        if options.all_paths_raw_io:
+            with clui.fbm("All raw paths io" + tn_name.replace('_', ' ')):
+                plot_spaths_inlets(fof(tn_lim(tn)), name='all_raw_paths_io' + tn_name, spp=spp)
 
-    if options.all_paths_smooth:
-        with clui.fbm("All smooth paths"):
-            plot_spaths_traces(fof(spaths), name='all_smooth', split=options.all_paths_split, spp=spp, smooth=smooth)
-    if options.all_paths_smooth_io:
-        with clui.fbm("All smooth paths io"):
-            plot_spaths_inlets(fof(spaths), name='all_smooth_paths_io', spp=spp)
+        if options.all_paths_smooth:
+            with clui.fbm("All smooth paths" + tn_name.replace('_', ' ')):
+                plot_spaths_traces(fof(tn_lim(tn)), name='all_smooth' + tn_name, split=options.all_paths_split, spp=spp,
+                                   smooth=smooth)
+        if options.all_paths_smooth_io:
+            with clui.fbm("All smooth paths io" + tn_name.replace('_', ' ')):
+                plot_spaths_inlets(fof(tn_lim(tn)), name='all_smooth_paths_io' + tn_name, spp=spp)
 
-    with clui.fbm("Paths as states"):
-        if options.paths_raw:
-            clui.message("raw", cont=True)
-            plot_spaths_traces(spaths, name='raw_paths', states=options.paths_states, separate=not options.paths_states,
-                               spp=spp)
-        if options.paths_smooth:
-            clui.message("smooth", cont=True)
-            plot_spaths_traces(spaths, name='smooth_paths', states=options.paths_states,
-                               separate=not options.paths_states, smooth=smooth, spp=spp)
-        if options.paths_raw_io:
-            clui.message("raw_io", cont=True)
-            plot_spaths_inlets(spaths, name='raw_paths_io', states=options.paths_states,
-                               separate=not options.paths_states, spp=spp)
-        if options.paths_smooth_io:
-            clui.message("smooth_io", cont=True)
-            plot_spaths_inlets(spaths, name='smooth_paths_io', states=options.paths_states,
-                               separate=not options.paths_states, smooth=smooth, spp=spp)
+        with clui.fbm("Paths as states" + tn_name.replace('_', ' ')):
+            if options.paths_raw:
+                clui.message("raw", cont=True)
+                plot_spaths_traces(tn_lim(tn), name='raw_paths' + tn_name, states=options.paths_states,
+                                   separate=not options.paths_states,
+                                   spp=spp)
+            if options.paths_smooth:
+                clui.message("smooth", cont=True)
+                plot_spaths_traces(tn_lim(tn), name='smooth_paths' + tn_name, states=options.paths_states,
+                                   separate=not options.paths_states, smooth=smooth, spp=spp)
+            if options.paths_raw_io:
+                clui.message("raw_io", cont=True)
+                plot_spaths_inlets(tn_lim(tn), name='raw_paths_io' + tn_name, states=options.paths_states,
+                                   separate=not options.paths_states, spp=spp)
+            if options.paths_smooth_io:
+                clui.message("smooth_io", cont=True)
+                plot_spaths_inlets(tn_lim(tn), name='smooth_paths_io' + tn_name, states=options.paths_states,
+                                   separate=not options.paths_states, smooth=smooth, spp=spp)
 
     if options.show_molecule:
         pymol_connector.orient_on(molecule_name)

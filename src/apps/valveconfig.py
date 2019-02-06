@@ -83,7 +83,7 @@ class ValveConfigApp(object):
     def init_gui(self):
         """ Prepare initial frame """
         # Logo
-        logo = tk.PhotoImage(data=utils.LOGO_ENCODED)
+        logo = tk.PhotoImage(file="../aquaduct/apps/valveconfig/logo.gif")
 
         logo_label = ttk.Label(self.parent, image=logo, padding=-2)
         logo_label.image = logo
@@ -346,7 +346,7 @@ class ValveConfigApp(object):
 
         try:
             clustering_section = config.get(section_name, "recursive_clusterization")
-            while clustering_section not in clustering_sections:
+            while clustering_section not in clustering_sections and clustering_section != "None":
                 clustering_sections.append(clustering_section)
                 clustering_section = config.get(clustering_section, "recursive_clusterization")
         except (NoOptionError, NoSectionError):
@@ -389,7 +389,7 @@ class ValveConfigApp(object):
             columnspan=2)
         ttk.Separator(inner_frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=2)
 
-        self.entry_filler(inner_frame, section_name, default_entries.entries, 2)
+        self.entry_filler(inner_frame, section_name, default_entries.entries)
 
         remove_button = ttk.Button(inner_frame, text="Remove")
         remove_button.grid(row=999, column=0, columnspan=2, pady=5)
@@ -619,8 +619,8 @@ class ValveConfigApp(object):
                         if section_name == "inlets_clusterization" and entry_name == "max_level":
                             if self.values["inlets_clusterization"]["max_level"] != config_value:
                                 result = tkMessageBox.askyesno("Max level",
-                                                               "Config max_level value differs from number of clusterization section found.\n"
-                                                               "Do you want to keep value from configure file?")
+                                                               "Config max_level value differs from number of found clusterization sections.\n"
+                                                               "Do you want to keep value from configuration file?")
 
                         if not result:
                             continue
@@ -809,7 +809,7 @@ class ValveConfigApp(object):
         logo_label.pack()
 
         content = u"""Aqua-Duct {}
-        
+
 ValveConfigurator
 
 Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
@@ -941,6 +941,9 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.configure(background="white")
     root.resizable(1, 1)
+
+    aq_icon = tk.PhotoImage(file="../aquaduct/apps/valveconfig/icon.gif")
+    root.tk.call('wm', 'iconphoto', root._w, aq_icon)
 
     s = ttk.Style()
 

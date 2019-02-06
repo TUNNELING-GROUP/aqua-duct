@@ -29,7 +29,8 @@ class DBCache(object):
 
     def __call__(self, func, *args, **kwargs):
         def wrapper(*args, **kwargs):
-            key = md5(','.join(map(str, args)) + '&' + ','.join(map(lambda kv: ':'.join(map(str, kv)), kwargs.iteritems()))).hexdigest()
+            key = md5(','.join(map(str, args)) + '&' + ','.join(
+                map(lambda kv: ':'.join(map(str, kv)), kwargs.iteritems()))).hexdigest()
 
             logger.debug('Looking for cache key {}'.format(key))
 

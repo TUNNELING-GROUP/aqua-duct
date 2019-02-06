@@ -31,6 +31,7 @@ For detailed explanation of the following options see :doc:`../valve/valve_manua
 
 * ``-c CONFIG_FILE`` - Configuration file name. *Pond* and *Valve* should use the same file.
 * ``-t THREADS`` - Limits Aqua-Duct calculations to given number of threads.
+* ``--debug`` and ``--debug-file`` - Allows to get debugging information.
 
 Results directory
 ^^^^^^^^^^^^^^^^^
@@ -53,11 +54,13 @@ Other options are used to start or adjust *Pond* calculations:
     Option ``--master-radius`` triggers free energy profiles calculations for master paths.
     It requires float value of radius used in the calculations, value of 2.0 Å is a good default.
 
+*Pond*'s option ``--paths-types`` allows to limit calculations only to paths of certain molecules. For example, ``--paths-types 'WAT OXY'`` loads paths of ``WAT`` (water molecules) and ``OXY`` (oxygen) molecules. All other paths (if any) will not be used.
+
 Free energy estimation
 ^^^^^^^^^^^^^^^^^^^^^^
 
 *Pond* can estimate free energy by using calculated density of traced molecules.
-It becomes particularly useful and relevent when traced molecules include solvent.
+It becomes particularly useful and relevant when traced molecules include solvent.
 
 Estimation of free energy is done according to Boltzmann inversion. Similar method
 was used in `Rao,S. et al. <https://dx.doi.org/10.1080/19336950.2017.1306163>`_
@@ -144,8 +147,8 @@ covered and windows do not overlap to each other. Option ``--wsize`` allows to s
 windows (in frames), therefore, windows can also overlap with each other or can span only
 selected sections of the trajectory.
 
-For example, for 25 000 snaphots long trajectory one can perform calculations in 5000 frames
-long windows where an ovelap of a consecutive window with a next window is 4000 frames long - see following picture:
+For example, for 25 000 snapshots long trajectory one can perform calculations in 5000 frames
+long windows where an overlap of a consecutive window with a next window is 4000 frames long - see following picture:
 
 .. aafig::
     :aspect: 1
@@ -173,7 +176,7 @@ To calculate proper number of windows evenly spanning trajectory one can use fol
 
     WINDOWS = \frac{TOTAL - WSIZE}{SHIFT} + 1
 
-Where *WINDOWS* is a diesired number of windows, *TOTAL* is total length of trajectory, and *SHIFT* is *WSIZE - OVERLAP*.
+Where *WINDOWS* is a desired number of windows, *TOTAL* is total length of trajectory, and *SHIFT* is *WSIZE - OVERLAP*.
 
 In the above example *TOTAL* = 25 000, *WSIZE* = 5 000, *SHIFT* = *WSIZE* - *OVERLAP* = 5 000 - 4 000 = 1 000. Therefore:
 

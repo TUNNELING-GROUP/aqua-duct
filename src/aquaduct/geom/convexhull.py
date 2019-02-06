@@ -20,25 +20,26 @@ from aquaduct import logger
 
 import numpy as np
 
-#from scipy.spatial import ConvexHull as SciPyConvexHull
+# from scipy.spatial import ConvexHull as SciPyConvexHull
 from scipy.spatial import ConvexHull
 
 from aquaduct.utils.helpers import uniqify
 from aquaduct.geom.traces import vector_change_len
+
 
 ################################################################################
 # SciPy ConvexHull improvements
 
 class SciPyConvexHull(ConvexHull):
 
-    def __init__(self,points,inflate=None,*args,**kwargs):
-        super(SciPyConvexHull, self).__init__(points,*args,**kwargs)
+    def __init__(self, points, inflate=None, *args, **kwargs):
+        super(SciPyConvexHull, self).__init__(points, *args, **kwargs)
         # at this stage we have chull
         if inflate:
             inflate = float(inflate)
-            center = np.mean(self.vertices_points,0)
+            center = np.mean(self.vertices_points, 0)
             # redo chull but inflate its vertices
-            new_points = (vector_change_len(p-center,inflate)+center for p in points)
+            new_points = (vector_change_len(p - center, inflate) + center for p in points)
             super(SciPyConvexHull, self).__init__(list(new_points), *args, **kwargs)
 
     @property
@@ -70,7 +71,7 @@ class SciPyConvexHull(ConvexHull):
         for simp in self.simplices:
             yield [self.vertices_ids.index(s) for s in simp]
 
-    def point_within(self,point):
+    def point_within(self, point):
         # checks if point is within convexhull
         # build new convex hull with this point and vertices
         new_hull = SciPyConvexHull(np.vstack((point, self.vertices_points)))

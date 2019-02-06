@@ -17,6 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+# Module contains mostly stuff need for stage V
+
 from functools import wraps
 
 import numpy as np

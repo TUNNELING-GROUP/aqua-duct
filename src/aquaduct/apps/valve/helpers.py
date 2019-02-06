@@ -37,14 +37,17 @@ from aquaduct.utils import clui
 from aquaduct.utils.helpers import is_number, Auto
 
 
-
 class NP(object):
-    def __init__(self,pbar,next_len=False):
+    def __init__(self, pbar, next_len=False):
         self.paths = list()
         self.pbar = pbar
         self.next_len = next_len
 
-    def next(self,n):
+    def reinit(self, pbar, next_len=False):
+        self.pbar = pbar
+        self.next_len = next_len
+
+    def next(self, n):
         if n > 1 and self.next_len:
             self.pbar.next(step=n)
         else:
@@ -335,8 +338,9 @@ def discard_short_etc(spaths, short_paths=None, short_object=None, short_logic=N
     else:
         return len(spaths), [sp for sp in spaths if sp.size > short_paths]
 
+
 def center_of_object(spaths):
-    return len(spaths),[sp.center_of_object for sp in spaths], CRIC
+    return len(spaths), [sp.center_of_object for sp in spaths], CRIC
 
 
 def get_allow_size_function(rt=None):
@@ -511,4 +515,3 @@ def results_n(rn):
         return rn
     else:
         return np.memmap(rn[0], mode='r', dtype=np.int8, shape=rn[1])
-

@@ -161,15 +161,16 @@ def vector_one(V):
     :param V: a vector in a form of array-like object, tuple or a list
     :return: vector in the same direction but of lenght 1
     """
-    return V/vector_norm(V)
+    return V / vector_norm(V)
 
-def vector_change_len(V,l):
+
+def vector_change_len(V, l):
     """
     :param V: a vector in a form of array-like object, tuple or a list
     :param float l: lenght by wich vectro should be increased (decreased if negative)
     :return: vector in the same direction but of altered lenght
     """
-    V1 = vector_one(V)*float(l)
+    V1 = vector_one(V) * float(l)
     return V + V1
 
 
@@ -318,7 +319,7 @@ def vectors_angle_anorm(A, B, A_norm):
     return np.arccos(angle)
 
 
-def triangle_area(A,B,C):
+def triangle_area(A, B, C):
     """
     Parameters are coordinates of points which are tops of triangle.
     The function calculates the ABC triangle area with Heron's formula.
@@ -329,11 +330,12 @@ def triangle_area(A,B,C):
     :return: area
     :rtype: float
     """
-    abc = pdist(np.vstack((A,B,C)))
-    s = sum(abc)/2.
-    return ((s-abc).prod()*s)**0.5
+    abc = pdist(np.vstack((A, B, C)))
+    s = sum(abc) / 2.
+    return ((s - abc).prod() * s) ** 0.5
 
-def square_area(A,B,C,D):
+
+def square_area(A, B, C, D):
     """
     Parameters are coordinates of points which are tops of square.
     The function estimates the ABCD square area by calculating areas of triangles
@@ -346,9 +348,9 @@ def square_area(A,B,C,D):
     :return: area
     :rtype: float
     """
-    A1 = triangle_area(A,B,C) + triangle_area(C,D,A)
-    A2 = triangle_area(B,C,D) + triangle_area(D,A,B)
-    return (A1+A2)/2.
+    A1 = triangle_area(A, B, C) + triangle_area(C, D, A)
+    A2 = triangle_area(B, C, D) + triangle_area(D, A, B)
+    return (A1 + A2) / 2.
 
 
 ################################################################################
@@ -396,7 +398,7 @@ class LinearizeHobbit(LinearizeOneWay):
         and_back_again = self.and_back_again(coords)
         linearize = sorted(list(set(list(here) + list(and_back_again))))
         if ids:
-            return coords[linearize],linearize
+            return coords[linearize], linearize
         return coords[linearize]
 
 
@@ -449,12 +451,12 @@ class LinearizeRecursive(object):
         return sorted(
             list(set(self.here(coords[:mp + 1], depth=depth) + [e + mp for e in self.here(coords[mp:], depth=depth)])))
 
-    def __call__(self, coords,ids=False):
+    def __call__(self, coords, ids=False):
         # returns these points from coords that are linear simplification of coords
         # __call__ is required by child classes
         here = self.here(coords)
         if ids:
-            return coords[here],here
+            return coords[here], here
         return coords[here]
 
 
