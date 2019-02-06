@@ -1,14 +1,15 @@
 # -*- coding: utf8 -*-
-
+import Tkinter as tk
 import base64
 import csv
 import re
+import ttk
 from cStringIO import StringIO
-from collections import defaultdict
 
 import matplotlib.pyplot as plt
 import numpy as np
-from aquaduct.traj.sandwich import Reader, Window
+
+import aquaduct.apps.valveconfig.utils as utils
 
 colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
           "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
@@ -151,17 +152,6 @@ class HTML_IMG(object):
         return "<img src=\"data:image/png;base64,{}\">".format(self.img_data)
 
 
-class HTML_TABLE(object):
-    def __init__(self, labels, columns):
-        self.labels = labels
-        self.columns = columns
-
-    @property
-    def html_code(self):
-        # TODO: Return html table
-        pass
-
-
 # 1
 def cluster_inlets(file_processor):
     fig, ax = plt.subplots()
@@ -282,52 +272,7 @@ def ligands_time(file_processor):
     return fig
 
 
-# 6
-def hotspots_aa_list(top_file, trj_files):
-    # Reader.reset()
-    # FIXME: threads=optimal_threads.threads_count, passed with -t in valve.py and pond.py
-    Reader(top_file, trj_files, window=Window(None, 10, None))  # TODO: sandwich z configu
-
-    with ReadMOL2("hotspots1.mol2") as hotspots_file:
-        hotspots_coords = hotspots_file.parse()
-
-    distance = 3
-
-    def in_dist(res_data):
-        _, coords = res_data
-        for hotspot_coord in hotspots_coords:
-            if np.linalg.norm(coords - hotspot_coord) <= distance:
-                return True
-
-    def ids_to_name(ids):
-        ids_index = list(protein_residues.ids()).index(ids)
-        return list(protein_residues.names())[ids_index]
-
-    residues = defaultdict(int)
-
-    for traj_reader in Reader.iterate():
-        traj_reader = traj_reader.open()
-        protein_residues = traj_reader.parse_selection("protein").residues() # FIXME: do not use residues for coordinates, we want atoms' coordinates!
-        protein_residues.uniquify() # FIXME: skip it?
-
-        residues_ids = list(protein_residues.ids())
-        residues_names = list(protein_residues.names())
-        residues_coords = protein_residues.coords() # FIXME: Repeat for each frame - move it ot the loop below - remeber that we need atoms
-
-        # Iterate through frames
-        for frame in Reader.window.range(): # FIXME: iterate over frames ONLY with: for frame in traj_reader.iterate():
-            traj_reader.set_frame(frame)
-
-            res_in_dist = np.asarray(filter(in_dist, zip(residues_ids,
-                                                         residues_coords)))
-            for res_id, _ in res_in_dist:
-                residues[res_id] += 1
-
-        window_len = float(Reader.window.len())
-        print
-        for ids, occurences in residues.iteritems():
-            name = residues_names[residues_ids.index(ids)]
-            print "{:10} | {:3} | {}".format(ids, name, occurences / window_len)
+# 4
 
 
 # 8
@@ -399,7 +344,216 @@ def main():
         f.write(html)
 
 
+class StateFrame(tk.Frame):
+    def __init__(self, parent, *args, **kw):
+        tk.Frame.__init__(self, parent, *args, **kw)
+
+        self.enabled = False
+
+    def toggle(self):
+        if self.enabled:
+            self.enabled = False
+            self.disable()
+        else:
+            self.enabled = True
+            self.enable()
+
+    def disable(self):
+        self.enabled = False
+        for child in self.winfo_children():
+            child.configure(state=tk.DISABLED)
+
+    def enable(self):
+        self.enabled = True
+        for child in self.winfo_children():
+            child.configure(state=tk.NORMAL)
+
+
+class Octopus(object):
+    def __init__(self, parent):
+        """
+        Octopus App
+        :param parent: Parent widget
+        """
+        self.parent = parent
+        self.size = (600, 650)
+        self.title = "Octopus"
+
+        parent.title(self.title)
+        parent.geometry("{}x{}".format(*self.size))
+
+        logo = tk.PhotoImage(file="../aquaduct/apps/valveconfig/logo.gif")
+
+        logo_label = ttk.Label(self.parent, image=logo, padding=-2)
+        logo_label.image = logo
+        logo_label.pack(padx=20, pady=20)
+
+        # self.init_frame = ttk.Frame(self.parent)
+        self.main_frame = utils.VerticalScrolledFrame(self.parent)
+        self.main_frame.pack(expand=1, fill="both")
+        self.main_frame = self.main_frame.interior
+
+        # General variables
+        self.data_file = tk.StringVar()
+        self.csv_file = tk.StringVar()
+        self.results_file = tk.StringVar()
+
+        # Checkbuttons variables
+        self.v1 = tk.BooleanVar()
+        self.v2 = tk.BooleanVar()
+        self.v3 = tk.BooleanVar()
+        self.v4 = tk.BooleanVar()
+        self.v8 = tk.BooleanVar()
+
+        ###
+        files_frame = tk.Frame(self.main_frame)
+        files_frame.columnconfigure(0, weight=1)
+        files_frame.columnconfigure(1, weight=1)
+        files_frame.columnconfigure(2, weight=1)
+        files_frame.pack(fill=tk.X, padx=100, pady=20)
+
+        ttk.Label(files_frame, text="Data file: ").grid(sticky="e", row=0, column=0)
+        ttk.Entry(files_frame, textvariable=self.data_file).grid(sticky="we", row=0, column=1)
+        ttk.Button(files_frame, text="Load file", style="File.TButton").grid(sticky="w", row=0, column=2)
+
+        ttk.Label(files_frame, text="CVS file: ").grid(sticky="e", row=1, column=0)
+        ttk.Entry(files_frame, textvariable=self.csv_file).grid(sticky="we", row=1, column=1)
+        ttk.Button(files_frame, text="Load file", style="File.TButton").grid(sticky="w", row=1, column=2)
+
+        ttk.Label(files_frame, text="Results file: ").grid(sticky="e", row=2, column=0)
+        ttk.Entry(files_frame, textvariable=self.results_file).grid(sticky="we", row=2, column=1)
+        ttk.Button(files_frame, text="Load file", style="File.TButton").grid(sticky="w", row=2, column=2)
+
+        ### 1
+        option1_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option1_frame.columnconfigure(0, weight=1)
+        option1_frame.columnconfigure(1, weight=1)
+        option1_frame.pack(fill=tk.X, padx=100, pady=10, ipady=10)
+
+        cb1 = ttk.Checkbutton(option1_frame, text="Inlets per cluster", var=self.v1)
+        cb1.pack(anchor="w")
+
+        state1_frame = StateFrame(option1_frame)
+        state1_frame.columnconfigure(0, weight=1)
+        state1_frame.columnconfigure(1, weight=1)
+        state1_frame.pack()
+
+        cb1.configure(command=lambda: state1_frame.toggle())
+
+        ttk.Label(state1_frame, text="Molecules: ").grid(row=0, column=0)
+        tk.Entry(state1_frame).grid(row=0, column=1)
+
+        state1_frame.disable()
+
+        ### 2
+        option2_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option2_frame.pack(fill=tk.X, padx=100, pady=10)
+
+        ttk.Checkbutton(option2_frame, text="Relative cluster flows", var=self.v2).pack(anchor="w")
+
+        ### 3
+        option3_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option3_frame.columnconfigure(0, weight=1)
+        option3_frame.columnconfigure(1, weight=1)
+        option3_frame.pack(fill=tk.X, padx=100, pady=10, ipady=10)
+
+        cb3 = ttk.Checkbutton(option3_frame, text="Ligands per time", var=self.v3)
+        cb3.pack(anchor="w")
+
+        state3_frame = StateFrame(option3_frame)
+        state3_frame.columnconfigure(0, weight=1)
+        state3_frame.columnconfigure(1, weight=1)
+        state3_frame.pack()
+
+        cb3.configure(command=lambda: state3_frame.toggle())
+
+        ttk.Label(state3_frame, text="Molecules: ").grid(row=0, column=0)
+        tk.Entry(state3_frame).grid(row=0, column=1)
+
+        state3_frame.disable()
+
+        ### 4
+        option4_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option4_frame.columnconfigure(0, weight=1)
+        option4_frame.columnconfigure(1, weight=1)
+        option4_frame.pack(fill=tk.X, padx=100, pady=10, ipady=10)
+
+        cb4 = ttk.Checkbutton(option4_frame, text="Kółeczko", var=self.v4)
+        cb4.pack(anchor="w")
+
+        state4_frame = StateFrame(option4_frame)
+        state4_frame.columnconfigure(0, weight=1)
+        state4_frame.columnconfigure(1, weight=1)
+        state4_frame.pack()
+
+        cb4.configure(command=lambda: state4_frame.toggle())
+
+        ttk.Label(state4_frame, text="Colors file: ").grid(row=0, column=0)
+        tk.Entry(state4_frame).grid(row=0, column=1)
+        ttk.Label(state4_frame, text="Jakaś tam opcja jeszcze: ").grid(row=1, column=0)
+        tk.Entry(state4_frame).grid(row=1, column=1)
+
+        state4_frame.disable()
+
+        ### 8
+        option8_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option8_frame.columnconfigure(0, weight=1)
+        option8_frame.columnconfigure(1, weight=1)
+        option8_frame.pack(fill=tk.X, padx=100, pady=10, ipady=10)
+
+        cb8 = ttk.Checkbutton(option8_frame, text="Clusters area", var=self.v8)
+        cb8.pack(anchor="w")
+
+        state8_frame = StateFrame(option8_frame)
+        state8_frame.columnconfigure(0, weight=1)
+        state8_frame.columnconfigure(1, weight=1)
+        state8_frame.pack()
+
+        cb4.configure(command=lambda: state8_frame.toggle())
+
+        ttk.Label(state8_frame, text="Molecules: ").grid(row=0, column=0)
+        tk.Entry(state8_frame).grid(row=0, column=1)
+
+        state8_frame.disable()
+
+        ###
+        generate_button = ttk.Button(self.main_frame, text="Generate")
+        generate_button.pack(pady=15)
+        generate_button.bind("<Button-1>", lambda x: self.generate())
+
+    def generate(self):
+        if not True in [self.v1.get(), self.v2.get(), self.v3.get(), self.v4.get(), self.v8.get()]:
+            return
+
+        log_window = tk.Toplevel(self.parent, width=100)
+        log_console = tk.Text(log_window)
+        log_console.pack(fill=tk.BOTH)
+
+        if self.v1.get():
+            log_console.insert(tk.END, "Generating inlets per cluster\n")
+
+        if self.v2.get():
+            log_console.insert(tk.END, "Generating relative cluster flows\n")
+
+        if self.v3.get():
+            log_console.insert(tk.END, "Generating ligands per time\n")
+
+        if self.v4.get():
+            log_console.insert(tk.END, "Generating flows between tunnels\n")
+
+        if self.v8.get():
+            log_console.insert(tk.END, "Generating clusters area\n")
+
 if __name__ == "__main__":
-    # main()
-    hotspots_aa_list("1cqz_topology.pdb",
-                     "1cqz_10ns_trajectory.nc")
+    root = tk.Tk()
+    root.configure(background="white")
+    root.resizable(1, 1)
+
+    s = ttk.Style()
+    s.theme_use("clam")
+
+    s.configure("TLabel", padding=5)
+    s.configure("File.TButton", padding=0, font=("TkDefaultFont", 8))  # Loading file button
+
+    app = Octopus(root)
+    root.mainloop()
