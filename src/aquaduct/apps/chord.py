@@ -1,11 +1,34 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+
+# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
+# Copyright (C) 2018  Michał Banas
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+import colorsys
+
 import matplotlib.patches as mpatches
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def hex2rgb(color):
     # https://stackoverflow.com/questions/29643352/converting-hex-to-rgb-value-in-python
     return tuple(int(color[i:i+2], 16) for i in (0, 2 ,4))
+
 
 def polar2point(angle, r):
     rad = np.deg2rad
@@ -184,13 +207,15 @@ class Arrow(mpatches.PathPatch):
 
 
 class Chord(object):
-    def __init__(self, ax, r, nodes_sizes, links, labels, colors=None):
+    def __init__(self, ax, r, nodes_sizes, links, labels, colors=[]):
         self.nodes = []
 
         if colors:
             self.colors = colors
         else:
-            self.colors = ["#FF33DD", "#554466", "#33FFDD", "#33DDFF"]
+            self.colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
+                           "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
+                           "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
 
         sizes_sum = sum(nodes_sizes)
 
@@ -202,7 +227,7 @@ class Chord(object):
             angle = sa + (ea - sa) / 2
             pos = polar2point(angle, 1.05*r)
             ax.text(pos[0], pos[1],
-                    labels[i],
+                    "{} ({:.2f}%)".format(labels[i], 100.0 * size / sizes_sum),
                     verticalalignment="center",
                     horizontalalignment="center",
                     fontsize=8,
@@ -248,9 +273,16 @@ class Chord(object):
             l = Link(0.92*r, sa0, sa1, ea0, ea1, source_node.color)
             a = Arrow(0.92*r, sa0, sa1, source_node.color)
 
-            # Invert color
-            rgbcolor = hex2rgb(source_node.color.lstrip("#")) if isinstance(source_node.color, str) else source_node.color
-            inverted_color = [(-c + 255) / 255. for c in rgbcolor]
+            ax.add_patch(l)
+            ax.add_patch(a)
+
+            # Complimentary color
+            rgb_color = hex2rgb(source_node.color.lstrip("#")) if isinstance(source_node.color,
+                                                                             str) else source_node.color
+            hsl_color = list(colorsys.rgb_to_hls(*rgb_color))
+            hsl_color[0] += 0.5
+
+            complimentary_color = [c / 255 for c in colorsys.hls_to_rgb(*hsl_color)]
 
             # Arrow text
             angle = sa0 + (sa1 - sa0)/2
@@ -261,7 +293,7 @@ class Chord(object):
                     horizontalalignment="center",
                     fontsize=6,
                     rotation=180 - angle,
-                    color=inverted_color)
+                    color=complimentary_color)
 
             ax.add_patch(l)
             ax.add_patch(a)

@@ -1,4 +1,22 @@
-# -*- coding: utf8 -*-
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+
+# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
+# Copyright (C) 2018  Michał Banas
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import Tkinter as tk
 import base64
 import csv
@@ -7,13 +25,9 @@ import ttk
 from cStringIO import StringIO
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import aquaduct.apps.valveconfig.utils as utils
-
-colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
-          "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
-          "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
+from aquaduct.apps.chord import Chord
 
 
 def is_float(value):
@@ -234,6 +248,56 @@ def ligands_time(file_processor, molecule=None):
     return fig
 
 
+# 4
+def chord_diagram(file_processor, labels={}, colors={}, threshold=0.):
+    fig, ax = plt.subplots(subplot_kw={"aspect": 1})
+    ax.set_axis_off()
+    ax.set_xlim(-110, 110)
+    ax.set_ylim(-110, 110)
+
+    clusters_ids = file_processor.get_column_values("Clusters summary - inlets", "Cluster")
+    clusters_ids = [str(id_) for id_ in clusters_ids]
+    clusters_sizes = file_processor.get_column_values("Clusters summary - inlets", "Size")
+
+    flows = file_processor.get_column_values("Separate paths clusters types summary - mean lengths of paths", "CType")
+    flows = [{flow.split(":")[0]: flow.split(":")[1]} for flow in flows]
+
+    flows_sizes = file_processor.get_column_values("Separate paths clusters types summary - mean lengths of paths",
+                                                   "Size")
+
+    # N size
+    n_size = 0
+    for flow, size in zip(flows, flows_sizes):
+        if "N" in next(flow.iteritems()):
+            n_size += size
+
+    clusters_ids.append("N")
+    clusters_sizes.append(n_size)
+
+    flows = [{"source": clusters_ids.index(next(flow.iterkeys())), "dest": clusters_ids.index(next(flow.itervalues())),
+              "value": size} for flow, size in zip(flows, flows_sizes) if 1. * size / sum(flows_sizes) >= threshold]
+
+    if not labels:
+        labels = clusters_ids
+    else:
+        tmp_labels = []
+        for id_ in clusters_ids:
+            tmp_labels.append(labels[id_])
+
+        labels = tmp_labels
+
+    if colors:
+        tmp_colors = []
+        for id_ in clusters_ids:
+            tmp_colors.append(colors[id_])
+
+        colors = tmp_colors
+
+    Chord(ax, 100, clusters_sizes, flows, labels, colors)
+
+    return fig
+
+
 # 8
 def cluster_area(file_processor, suffix=""):
     fig, ax = plt.subplots()
@@ -407,10 +471,13 @@ class Octopus(object):
 
         cb4.configure(command=lambda: state4_frame.toggle())
 
-        ttk.Label(state4_frame, text="Colors file: ").grid(row=0, column=0)
-        tk.Entry(state4_frame).grid(row=0, column=1)
-        ttk.Label(state4_frame, text="Jakaś tam opcja jeszcze: ").grid(row=1, column=0)
-        tk.Entry(state4_frame).grid(row=1, column=1)
+        ttk.Label(state4_frame, text="Clusters info: ").grid(row=0, column=0)
+        self.clusters_info = tk.Entry(state4_frame)
+        self.clusters_info.grid(row=0, column=1)
+
+        ttk.Label(state4_frame, text="Threshold: ").grid(row=1, column=0)
+        self.chord_threshold = tk.Entry(state4_frame)
+        self.chord_threshold.grid(row=1, column=1)
 
         state4_frame.disable()
 
@@ -450,7 +517,7 @@ class Octopus(object):
         log_console.pack(fill=tk.BOTH)
 
         traced_molecules = []
-        if self.v1.get() or self.v3.get() or self.v8.get():
+        if self.v1.get() or self.v3.get() or self.v4.get() or self.v8.get():
             f = FileDataProcessor(self.data_file.get())
 
             # Fetching traced molecules names
@@ -511,6 +578,22 @@ class Octopus(object):
 
         if self.v4.get():
             log_console.insert(tk.END, "Generating flows between tunnels\n")
+
+            labels = {}
+            colors = {}
+            if self.clusters_info.get():
+                with open(self.clusters_info.get(), "r") as file:
+                    for line in file.readlines():
+                        id_, name, color = line.rstrip().split("\t")
+                        labels.update({id_: name})
+                        colors.update({id_: color})
+
+            plot = StringIO()
+
+            threshold = float(self.chord_threshold.get()) if self.chord_threshold.get() else 0.0
+
+            chord_diagram(f, labels, colors, threshold).savefig(plot, format="png", dpi=2 ** 7)
+            plots.append(plot)
 
         if self.v8.get():
             log_console.insert(tk.END, "Generating clusters areas\n")
