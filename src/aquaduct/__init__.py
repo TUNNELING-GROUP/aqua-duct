@@ -42,7 +42,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 7, 20
+    return 0, 7, 21 # multiple topologies
 
 
 def version_nice():

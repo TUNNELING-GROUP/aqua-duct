@@ -198,9 +198,9 @@ if __name__ == "__main__":
 
             # Open trajectory reader
             # trajectories are split with os.pathsep
-            from os import pathsep
+            #from os import pathsep
 
-            Reader(goptions.top, [trj.strip() for trj in goptions.trj.split(pathsep)],
+            Reader(goptions.top, goptions.trj,
                    window=frames_window,
                    sandwich=goptions.sandwich,
                    threads=optimal_threads.threads_count)  # trajectory reader

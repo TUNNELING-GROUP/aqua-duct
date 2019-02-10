@@ -22,6 +22,7 @@ import re
 from collections import OrderedDict, namedtuple
 from itertools import imap
 from os.path import splitext
+from os import pathsep
 
 import numpy as np
 import MDAnalysis as mda
@@ -156,7 +157,7 @@ class MasterReader(object):
 
     open_reader_traj = {}
 
-    topology = ''
+    topology = ['']
     trajectory = ['']
     window = None  # this is full window
 
@@ -170,15 +171,20 @@ class MasterReader(object):
 
     def __call__(self, topology, trajectory, window=None, sandwich=False, threads=1):
         """
-        :param str topology:  Topology file name.
-        :param list trajectory: List of trajectories. Each element is a fine name.
+        :param list topology:  List of topologies. Each element is a file name.
+        :param list trajectory: List of trajectories. Each element is a file name.
         :param Window window: Frames window to read.
         :param bool sandwich: Flag for setting sandwitch mode.
+
+        If no sandiwch mode is used, number of topologies has to be precisely 1.
+        In sandwich mode it can be either 1 or equal to the nuber of trajectory files.
         """
 
+        if not isinstance(topology, list):
+            topology = [t.strip() for t in topology.split(pathsep)]
         self.topology = topology
         if not isinstance(trajectory, list):
-            trajectory = [trajectory]
+            trajectory = [t.strip() for t in trajectory.split(pathsep)]
         self.trajectory = trajectory
 
         self.window = window
@@ -213,6 +219,13 @@ class MasterReader(object):
     '''
 
     def engine(self, topology, trajectory, number, window):
+        '''
+        :param str topology: Topology file name.
+        :param list trajectory: List of trajectories. Each element is a file name. Alternatively, trajectory file name.
+        :param int number: Number of the layer.
+        :param Window window: Frames window.
+        :return:
+        '''
         assert self.engine_name in ['mda']
         return OpenReaderTraj(topology, trajectory, number, window, self.engine_name)
 
@@ -220,7 +233,7 @@ class MasterReader(object):
         sandwich = ''
         if self.sandwich_mode:
             sandwich = ',sandwich'
-        return "Reader(%s,%s,%r%s)" % (self.topology, "[%s]" % (','.join(self.trajectory)), self.window, sandwich)
+        return "Reader(%s,%s,%r%s)" % ("[%s]" % (','.join(self.topology)), "[%s]" % (','.join(self.trajectory)), self.window, sandwich)
 
     def sandwich(self, number=False):
         # generates readers of consecutive sandwich layers
@@ -259,13 +272,16 @@ class MasterReader(object):
         # is it is already opened it is returned directly
         # if not is opened and then recursive call is executed
         if self.sandwich_mode:
-            return self.engine(self.topology, self.trajectory[number], number=number, window=self.window)
+            if len(self.topology) == 1:
+                return self.engine(self.topology[0], self.trajectory[number], number=number, window=self.window)
+            else:
+                return self.engine(self.topology[number], self.trajectory[number], number=number, window=self.window)
         elif number > 0 and self.threads > 1:
             window = list(self.window.split(self.number_of_layers()))[number - 1]
-            return self.engine(self.topology, self.trajectory, number=number, window=window)
+            return self.engine(self.topology[0], self.trajectory, number=number, window=window)
         else:
             assert number == 0, "Sandwich/baguette mismatch. Try use/not use --sandwich option."
-            return self.engine(self.topology, self.trajectory, number=0, window=self.window)
+            return self.engine(self.topology[0], self.trajectory, number=0, window=self.window)
 
     def get_reader_by_id(self, someid):
         # returns trajectory reader of number in someid
@@ -455,8 +471,11 @@ class ReaderTraj(object):
 
         self.topology = topology
         self.trajectory = trajectory
+
         if not isinstance(trajectory, list):
-            self.trajectory = [trajectory]
+            self.trajectory = [t.strip() for t in trajectory.split(pathsep)]
+
+        #print "ReaderTraj",self.topology,self.trajectory
 
         self.number = number
         self.window = window
