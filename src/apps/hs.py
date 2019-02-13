@@ -1,14 +1,30 @@
 #!/usr/bin/env python2.7
-# -*- coding: utf8 -*-
+# -*- coding: utf-8 -*-
+
+# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
+# Copyright (C) 2016-2018 Michał Banas
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import ConfigParser
 import argparse
+import multiprocessing as mp
 import sys
 from collections import defaultdict
 from time import time
 
 import numpy as np
-
 from aquaduct.traj.sandwich import Reader, Window, AtomSelection
 from aquaduct.utils.multip import optimal_threads
 
@@ -27,22 +43,28 @@ class ReadMOL2(object):
 
     def parse(self):
         """
-        Parse file.
+        Parse MOL2 file.
 
         :return: Coordinates of atoms.
         """
-        lines = [line.strip() for line in self.file.readlines()]
-        header_index = lines.index("@<TRIPOS>ATOM")
-
         coords = []
-        for data in lines[header_index + 1:]:
-            if data == "@<TRIPOS>BOND":
+
+        lines = [line.strip() for line in self.file.readlines()]
+
+        i = 0
+        while True:
+            try:
+                s = lines[i:].index("@<TRIPOS>ATOM") + 1 + i
+                e = lines[i:].index("@<TRIPOS>BOND") + i
+            except ValueError:
                 break
 
-            x, y, z = data.split()[2:5]
-            coords.append([x, y, z])
+            coords.append([np.array((line.split()[2], line.split()[3], line.split()[4]), dtype=np.float32)
+                           for line in lines[s:e]])
 
-        return np.asarray(coords, dtype=np.float32)
+            i = e + 1
+
+        return np.array(coords)
 
     def __enter__(self):
         return self
@@ -52,6 +74,21 @@ class ReadMOL2(object):
 
     def __del__(self):
         self.file.close()
+
+
+class Worker(object):
+    def __init__(self, hotspots_coords, atoms_coords):
+        self.hotspots_coords = hotspots_coords
+        self.atoms_coords = atoms_coords
+
+    def __call__(self, hotspot_id):
+        in_area = []
+        for id_, coord in self.atoms_coords:
+            if float(np.linalg.norm(coord - self.hotspots_coords[hotspot_id])) <= float(args.distance):
+                in_area.append(id_)
+
+        return hotspot_id, in_area
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -77,17 +114,16 @@ if __name__ == "__main__":
     trj_files = config.get("global", "trj")
 
     with ReadMOL2(args.hotspots_file) as hotspots_file:
-        hotspots_coords = hotspots_file.parse()
+        hotspots_coords = hotspots_file.parse()[0]  # TODO: Remove it for window calculations
 
     if args.threads is None:
         optimal_threads.threads_count = optimal_threads.cpu_count + 1
     else:
         optimal_threads.threads_count = int(args.threads)
 
-    print "Threads used: {}".format(optimal_threads.threads_count)
-
     Reader(top_file, trj_files, window=Window(args.minf, args.maxf, args.stepf), threads=optimal_threads.threads_count)
 
+    print "Threads used: {}".format(optimal_threads.threads_count)
     print "Frame range: {}-{} Step: {}".format(Reader.window.start, Reader.window.stop, Reader.window.step)
     print "Distance from hotspot: {}".format(args.distance)
 
@@ -96,24 +132,28 @@ if __name__ == "__main__":
     stime = time()
 
     print "\nFinding the hottest place in the universe:"
+    pool = mp.Pool(processes=optimal_threads.threads_count)
     for traj_reader in Reader.iterate():
         traj_reader = traj_reader.open()
 
         protein_atoms = traj_reader.parse_selection("protein")
 
         for frame in traj_reader.iterate():
-            sys.stdout.write("\r {}".format(time() - stime))
+            sys.stdout.write("\r {:.2} s".format(time() - stime))
             in_area = defaultdict(dict)
             for number, ids in protein_atoms.selected.iteritems():
                 number_reader = protein_atoms.get_reader(number)
-                for id_, coord in enumerate(number_reader.atoms_positions(ids)):
-                    for hotspot_id, hotspot_coord in enumerate(hotspots_coords):
 
-                        if float(np.linalg.norm(coord - hotspot_coord)) < float(args.distance):
-                            if number not in in_area[hotspot_id]:
-                                in_area[hotspot_id][number] = list()
+                atoms_coords = zip(ids, number_reader.atoms_positions(ids))
+                worker = Worker(hotspots_coords, atoms_coords)
 
-                            in_area[hotspot_id][number].append(id_)
+                results = pool.map(worker, range(0, len(hotspots_coords)))
+
+                for hotspot_id, atoms_ids in results:
+                    if number not in in_area[hotspot_id]:
+                        in_area[hotspot_id][number] = list()
+
+                    in_area[hotspot_id][number].extend(atoms_ids)
 
             in_area_selections = {}
             for hotspot_id, selection in in_area.iteritems():
@@ -136,5 +176,9 @@ if __name__ == "__main__":
         for i, res in enumerate(sorted(hotspot_occurences, key=hotspot_occurences.get, reverse=True)):
             if i == args.maxaa:
                 break
+
+            proc = round(hotspot_occurences[res] / window_len, 2) * 100
+            if proc < 1.:
+                proc = float(("{0:.%ie}" % 1).format(proc))
             print "{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
                                                      round(hotspot_occurences[res] / window_len, 2) * 100)
