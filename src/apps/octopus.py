@@ -115,6 +115,33 @@ class CSVDataProcessor(object):
         self.file.close()
 
 
+class DATDataProcessor(object):
+    def __init__(self, filename):
+        self.file = open(filename, "r")
+        self.file_lines = [line.strip() for line in self.file.readlines()]
+
+    def get_column_values(self, column_name):
+        i = self.get_column_names().index(column_name)
+
+        values = []
+        for x in self.file_lines[1:]:
+            value = x.split("\t")[i]
+            if value.isdigit():
+                value = int(value)
+            elif is_float(value):
+                value = float(value)
+
+            values.append(value)
+
+        return values
+
+    def get_column_names(self):
+        return self.file_lines[0].split("\t")
+
+    def __del__(self):
+        self.file.close()
+
+
 # 1
 def cluster_inlets(file_processor, suffix=""):
     fig, ax = plt.subplots()
@@ -298,6 +325,11 @@ def chord_diagram(file_processor, labels={}, colors={}, threshold=0.):
     return fig
 
 
+# 7
+def volume_timeframe(dat_processor):
+    raise NotImplemented()
+
+
 # 8
 def cluster_area(file_processor, suffix=""):
     fig, ax = plt.subplots()
@@ -366,7 +398,6 @@ class Octopus(object):
         logo_label.image = logo
         logo_label.pack(padx=20, pady=20)
 
-        # self.init_frame = ttk.Frame(self.parent)
         self.main_frame = utils.VerticalScrolledFrame(self.parent)
         self.main_frame.pack(expand=1, fill="both")
         self.main_frame = self.main_frame.interior
@@ -376,6 +407,7 @@ class Octopus(object):
         self.data_file.set("5_analysis_results.txt")
         self.csv_file = tk.StringVar()
         self.csv_file.set("5_analysis_results.txt.csv")
+        self.dat_file = tk.StringVar()
         self.results_file = tk.StringVar()
         self.results_file.set("data.html")
 
@@ -384,32 +416,58 @@ class Octopus(object):
         self.v2 = tk.BooleanVar()
         self.v3 = tk.BooleanVar()
         self.v4 = tk.BooleanVar()
+        self.v7 = tk.BooleanVar()
         self.v8 = tk.BooleanVar()
 
         ###
-        files_frame = tk.Frame(self.main_frame)
-        files_frame.columnconfigure(0, weight=1)
-        files_frame.columnconfigure(1, weight=1)
-        files_frame.columnconfigure(2, weight=1)
-        files_frame.pack(fill=tk.X, padx=100, pady=20)
+        results_frame = tk.Frame(self.main_frame)
+        results_frame.columnconfigure(0, weight=1)
+        results_frame.columnconfigure(1, weight=1)
+        results_frame.columnconfigure(2, weight=1)
+        results_frame.pack(fill=tk.X, padx=100, pady=20)
 
-        ttk.Label(files_frame, text="Data file: ").grid(sticky="e", row=0, column=0)
-        ttk.Entry(files_frame, textvariable=self.data_file).grid(sticky="we", row=0, column=1)
-        ttk.Button(files_frame, text="Load file", style="File.TButton").grid(sticky="w", row=0, column=2)
+        ttk.Label(results_frame, text="Results file: ").grid(sticky="e", row=2, column=0)
+        ttk.Entry(results_frame, textvariable=self.results_file).grid(sticky="we", row=2, column=1)
+        ttk.Button(results_frame, text="Load file", style="File.TButton").grid(sticky="w", row=2, column=2)
 
-        ttk.Label(files_frame, text="CVS file: ").grid(sticky="e", row=1, column=0)
-        ttk.Entry(files_frame, textvariable=self.csv_file).grid(sticky="we", row=1, column=1)
-        ttk.Button(files_frame, text="Load file", style="File.TButton").grid(sticky="w", row=1, column=2)
+        # Container for plots which use txt
+        container_data = tk.Frame(self.main_frame, bd=1, relief=tk.SUNKEN)
+        container_data.columnconfigure(0, weight=1)
+        container_data.columnconfigure(1, weight=1)
+        container_data.columnconfigure(2, weight=1)
+        container_data.pack(fill=tk.X, padx=100, pady=10)
 
-        ttk.Label(files_frame, text="Results file: ").grid(sticky="e", row=2, column=0)
-        ttk.Entry(files_frame, textvariable=self.results_file).grid(sticky="we", row=2, column=1)
-        ttk.Button(files_frame, text="Load file", style="File.TButton").grid(sticky="w", row=2, column=2)
+        ttk.Label(container_data, text="Data file: ").grid(sticky="e", row=0, column=0)
+        ttk.Entry(container_data, textvariable=self.data_file).grid(sticky="we", row=0, column=1)
+        ttk.Button(container_data, text="Load file", style="File.TButton").grid(sticky="w", row=0, column=2)
+
+        # Container for plots which use csv
+        container_csv = tk.Frame(self.main_frame, bd=1, relief=tk.SUNKEN)
+        container_csv.columnconfigure(0, weight=1)
+        container_csv.columnconfigure(1, weight=1)
+        container_csv.columnconfigure(2, weight=1)
+        container_csv.pack(fill=tk.X, padx=100, pady=10)
+
+        ttk.Label(container_csv, text="CVS file: ").grid(sticky="e", row=0, column=0)
+        ttk.Entry(container_csv, textvariable=self.csv_file).grid(sticky="we", row=0, column=1)
+        ttk.Button(container_csv, text="Load file", style="File.TButton").grid(sticky="w", row=0, column=2)
+
+        # Container for plots which use dat
+        container_dat = tk.Frame(self.main_frame, bd=1, relief=tk.SUNKEN)
+        container_dat.columnconfigure(0, weight=1)
+        container_dat.columnconfigure(1, weight=1)
+        container_dat.columnconfigure(2, weight=1)
+        container_dat.pack(fill=tk.X, padx=100, pady=10)
+
+        ttk.Label(container_dat, text="DAT file: ").grid(sticky="e", row=0, column=0)
+        ttk.Entry(container_dat, textvariable=self.dat_file).grid(sticky="we", row=0, column=1)
+        ttk.Button(container_dat, text="Load file", style="File.TButton").grid(sticky="w", row=0, column=2)
 
         ### 1
-        option1_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option1_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option1_frame.columnconfigure(0, weight=1)
         option1_frame.columnconfigure(1, weight=1)
-        option1_frame.pack(fill=tk.X, padx=100, pady=10, ipady=10)
+        option1_frame.grid(sticky="ew", row=1, column=0, columnspan=3, padx=10, pady=10)
 
         cb1 = ttk.Checkbutton(option1_frame, text="Inlets per cluster", var=self.v1)
         cb1.pack(anchor="w")
@@ -427,17 +485,11 @@ class Octopus(object):
 
         state1_frame.disable()
 
-        ### 2
-        option2_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
-        option2_frame.pack(fill=tk.X, padx=100, pady=10)
-
-        ttk.Checkbutton(option2_frame, text="Relative cluster flows", var=self.v2).pack(anchor="w")
-
         ### 3
-        option3_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option3_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option3_frame.columnconfigure(0, weight=1)
         option3_frame.columnconfigure(1, weight=1)
-        option3_frame.pack(fill=tk.X, padx=100, pady=10, ipady=10)
+        option3_frame.grid(sticky="ew", row=2, column=0, columnspan=3, padx=10, pady=10)
 
         cb3 = ttk.Checkbutton(option3_frame, text="Ligands per time", var=self.v3)
         cb3.pack(anchor="w")
@@ -456,12 +508,12 @@ class Octopus(object):
         state3_frame.disable()
 
         ### 4
-        option4_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option4_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option4_frame.columnconfigure(0, weight=1)
         option4_frame.columnconfigure(1, weight=1)
-        option4_frame.pack(fill=tk.X, padx=100, pady=10, ipady=10)
+        option4_frame.grid(sticky="ew", row=3, column=0, columnspan=3, padx=10, pady=10)
 
-        cb4 = ttk.Checkbutton(option4_frame, text="Kółeczko", var=self.v4)
+        cb4 = ttk.Checkbutton(option4_frame, text="Chord diagram", var=self.v4)
         cb4.pack(anchor="w")
 
         state4_frame = StateFrame(option4_frame)
@@ -482,10 +534,10 @@ class Octopus(object):
         state4_frame.disable()
 
         ### 8
-        option8_frame = tk.Frame(self.main_frame, bd=1, relief=tk.GROOVE)
+        option8_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option8_frame.columnconfigure(0, weight=1)
         option8_frame.columnconfigure(1, weight=1)
-        option8_frame.pack(fill=tk.X, padx=100, pady=10, ipady=10)
+        option8_frame.grid(sticky="ew", row=4, column=0, columnspan=3, padx=10, pady=10)
 
         cb8 = ttk.Checkbutton(option8_frame, text="Clusters area", var=self.v8)
         cb8.pack(anchor="w")
@@ -503,13 +555,37 @@ class Octopus(object):
 
         state8_frame.disable()
 
+        ### 2
+        option2_frame = tk.Frame(container_csv, bd=1, relief=tk.GROOVE)
+        option2_frame.grid(sticky="ew", row=1, column=0, columnspan=3, padx=10, pady=10)
+        cb2 = ttk.Checkbutton(option2_frame, text="Relative cluster flows", var=self.v2)
+        cb2.pack(anchor="w")
+
+        state2_frame = StateFrame(option2_frame)
+        state2_frame.columnconfigure(0, weight=1)
+        state2_frame.columnconfigure(1, weight=1)
+        state2_frame.pack()
+
+        ttk.Label(state2_frame, text="Colors file: ").grid(row=0, column=0)
+        self.colors_file2 = tk.Entry(state2_frame)
+        self.colors_file2.grid(row=0, column=1)
+
+        cb2.configure(command=lambda: state2_frame.toggle())
+
+        state2_frame.disable()
+
+        ### 7
+        option7_frame = tk.Frame(container_dat, bd=1, relief=tk.GROOVE)
+        option7_frame.grid(sticky="ew", row=1, column=0, columnspan=3, padx=10, pady=10)
+        ttk.Checkbutton(option7_frame, text="Volume per frame", var=self.v7).pack(anchor="w")
+
         ###
         generate_button = ttk.Button(self.main_frame, text="Generate")
         generate_button.pack(pady=15)
         generate_button.bind("<Button-1>", lambda x: self.generate())
 
     def generate(self):
-        if not True in [self.v1.get(), self.v2.get(), self.v3.get(), self.v4.get(), self.v8.get()]:
+        if not True in [self.v1.get(), self.v2.get(), self.v3.get(), self.v4.get(), self.v7.get(), self.v8.get()]:
             return
 
         log_window = tk.Toplevel(self.parent, width=100)
@@ -527,6 +603,9 @@ class Octopus(object):
 
         if self.v2.get():
             c = CSVDataProcessor(self.csv_file.get())
+
+        if self.v7.get():
+            d = DATDataProcessor(self.dat_file)
 
         plots = []
 
@@ -559,6 +638,11 @@ class Octopus(object):
 
             ids, clusters = zip(*sorted(zip(ids, clusters)))
             labels = ["Cluster " + str(i) for i in ids]
+
+            #TODO: Fetching colors from file
+            colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
+                      "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
+                      "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
 
             relative_clusters_flows(c, clusters, labels, colors).savefig(plot, format="png", bbox_inches="tight")
             plots.append(plot)
@@ -595,14 +679,21 @@ class Octopus(object):
             chord_diagram(f, labels, colors, threshold).savefig(plot, format="png", dpi=2 ** 7)
             plots.append(plot)
 
+        if self.v7.get():
+            log_console.insert(tk.END, "Generating volume per time\n")
+
         if self.v8.get():
             log_console.insert(tk.END, "Generating clusters areas\n")
 
             molecules = self.molecules8.get().replace(" ", "").upper().split(",") if self.molecules8.get() else traced_molecules
             for molecule in molecules:
                 plot = StringIO()
-                cluster_area(f, suffix=" of {}".format(molecule)).savefig(plot, format="png")
-                plots.append(plot)
+                try:
+                    cluster_area(f, suffix=" of {}".format(molecule)).savefig(plot, format="png")
+                    plots.append(plot)
+                except Exception as e:
+                    log_console.insert(tk.END, "*** {} ***\n".format(e))
+
 
         # Save plots to file
         html = ""
