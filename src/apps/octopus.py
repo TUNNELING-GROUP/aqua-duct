@@ -21,12 +21,13 @@ import Tkinter as tk
 import base64
 import csv
 import re
+import tkMessageBox
 import ttk
 from cStringIO import StringIO
-
-import matplotlib.pyplot as plt
+from tkFileDialog import askopenfile
 
 import aquaduct.apps.valveconfig.utils as utils
+import matplotlib.pyplot as plt
 from aquaduct.apps.chord import Chord
 
 
@@ -36,6 +37,10 @@ def is_float(value):
         return True
     except:
         return False
+
+
+class DataException(Exception):
+    pass
 
 
 class FileDataProcessor(object):
@@ -181,6 +186,7 @@ def cluster_inlets(file_processor, suffix=""):
     ax.set_xlim((0, len(cluster_no) + 1))
     ax.set_xticks(range(1, len(cluster_no) + 1))
     ax.set_xticklabels(cluster_no)
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
@@ -226,8 +232,12 @@ def ligands_time(file_processor, molecule=None):
     ax.set_title("Ligands in time" + title_suffix)
     ax.set_xlabel("Frame")
     ax.set_ylabel("Separate path ID")
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     path_nr = file_processor.get_column_values("List of separate paths and properties", "Nr")
+
+    ax.set_ylim((0, max(path_nr)))
+
     path_nr = [y - 1 for y in path_nr]
 
     beg_values = file_processor.get_column_values("List of separate paths and properties", "BeginF")
@@ -252,11 +262,6 @@ def ligands_time(file_processor, molecule=None):
                                                                      obj_values,
                                                                      out_values)))
 
-    max_x = max(file_processor.get_column_values("List of separate paths and properties", "EndF"))
-
-    # ax.set_xlim((0, max_x))
-    ax.set_ylim((0, max(path_nr)))
-
     inps_left = beg_values
     inps_width = [width if width - 1 >= 0 else 0 for width in inp_values]
 
@@ -278,6 +283,7 @@ def ligands_time(file_processor, molecule=None):
 # 4
 def chord_diagram(file_processor, labels={}, colors={}, threshold=0.):
     fig, ax = plt.subplots(subplot_kw={"aspect": 1})
+    ax.set_title("Chord diagram")
     ax.set_axis_off()
     ax.set_xlim(-110, 110)
     ax.set_ylim(-110, 110)
@@ -346,7 +352,7 @@ def cluster_area(file_processor, suffix=""):
     y = [file_processor.get_column_values("Clusters summary - areas" + suffix, density)[0] for density in x]
 
     if len(x) == 0 and len(y) == 0:
-        raise RuntimeError("There is no data to generate clusters area" + suffix)
+        raise DataException("There is no data to generate clusters area" + suffix)
 
     ax.set_xlim((0, len(x) - 1))
     ax.plot(x, y)
@@ -404,12 +410,9 @@ class Octopus(object):
 
         # General variables
         self.data_file = tk.StringVar()
-        self.data_file.set("5_analysis_results.txt")
         self.csv_file = tk.StringVar()
-        self.csv_file.set("5_analysis_results.txt.csv")
         self.dat_file = tk.StringVar()
         self.results_file = tk.StringVar()
-        self.results_file.set("data.html")
 
         # Checkbuttons variables
         self.v1 = tk.BooleanVar()
@@ -428,7 +431,9 @@ class Octopus(object):
 
         ttk.Label(results_frame, text="Results file: ").grid(sticky="e", row=2, column=0)
         ttk.Entry(results_frame, textvariable=self.results_file).grid(sticky="we", row=2, column=1)
-        ttk.Button(results_frame, text="Load file", style="File.TButton").grid(sticky="w", row=2, column=2)
+        rload = ttk.Button(results_frame, text="Load file", style="File.TButton")
+        rload.grid(sticky="w", row=2, column=2)
+        rload.bind("<Button-1>", lambda e: self.load_file(self.results_file))
 
         # Container for plots which use txt
         container_data = tk.Frame(self.main_frame, bd=1, relief=tk.SUNKEN)
@@ -439,7 +444,9 @@ class Octopus(object):
 
         ttk.Label(container_data, text="Data file: ").grid(sticky="e", row=0, column=0)
         ttk.Entry(container_data, textvariable=self.data_file).grid(sticky="we", row=0, column=1)
-        ttk.Button(container_data, text="Load file", style="File.TButton").grid(sticky="w", row=0, column=2)
+        data_load = ttk.Button(container_data, text="Load file", style="File.TButton")
+        data_load.grid(sticky="w", row=0, column=2)
+        data_load.bind("<Button-1>", lambda e: self.load_file(self.data_file))
 
         # Container for plots which use csv
         container_csv = tk.Frame(self.main_frame, bd=1, relief=tk.SUNKEN)
@@ -450,7 +457,9 @@ class Octopus(object):
 
         ttk.Label(container_csv, text="CVS file: ").grid(sticky="e", row=0, column=0)
         ttk.Entry(container_csv, textvariable=self.csv_file).grid(sticky="we", row=0, column=1)
-        ttk.Button(container_csv, text="Load file", style="File.TButton").grid(sticky="w", row=0, column=2)
+        csv_load = ttk.Button(container_csv, text="Load file", style="File.TButton")
+        csv_load.grid(sticky="w", row=0, column=2)
+        csv_load.bind("<Button-1>", lambda e: self.load_file(self.csv_file))
 
         # Container for plots which use dat
         container_dat = tk.Frame(self.main_frame, bd=1, relief=tk.SUNKEN)
@@ -461,7 +470,9 @@ class Octopus(object):
 
         ttk.Label(container_dat, text="DAT file: ").grid(sticky="e", row=0, column=0)
         ttk.Entry(container_dat, textvariable=self.dat_file).grid(sticky="we", row=0, column=1)
-        ttk.Button(container_dat, text="Load file", style="File.TButton").grid(sticky="w", row=0, column=2)
+        dat_load = ttk.Button(container_dat, text="Load file", style="File.TButton")
+        dat_load.grid(sticky="w", row=0, column=2)
+        dat_load.bind("<Button-1>", lambda e: self.load_file(self.dat_file))
 
         ### 1
         option1_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
@@ -580,21 +591,27 @@ class Octopus(object):
         ttk.Checkbutton(option7_frame, text="Volume per frame", var=self.v7).pack(anchor="w")
 
         ###
-        generate_button = ttk.Button(self.main_frame, text="Generate")
-        generate_button.pack(pady=15)
-        generate_button.bind("<Button-1>", lambda x: self.generate())
+        self.generate_button = ttk.Button(self.main_frame, text="Generate")
+        self.generate_button.pack(pady=15)
+        self.generate_button.bind("<Button-1>", lambda e: self.generate())
 
     def generate(self):
         if not True in [self.v1.get(), self.v2.get(), self.v3.get(), self.v4.get(), self.v7.get(), self.v8.get()]:
+            tkMessageBox.showerror("Error", "No plot have been selected.")
             return
 
-        log_window = tk.Toplevel(self.parent, width=100)
-        log_console = tk.Text(log_window)
-        log_console.pack(fill=tk.BOTH)
-
+        # Loading files
         traced_molecules = []
         if self.v1.get() or self.v3.get() or self.v4.get() or self.v8.get():
-            f = FileDataProcessor(self.data_file.get())
+            if not self.data_file.get():
+                tkMessageBox.showerror("Error", "Data file is not specified.")
+                return
+
+            try:
+                f = FileDataProcessor(self.data_file.get())
+            except Exception as e:
+                tkMessageBox.showerror("Error", "Data file could not be opened.")
+                print e
 
             # Fetching traced molecules names
             for line in f.file_lines:
@@ -602,29 +619,77 @@ class Octopus(object):
                     traced_molecules = line.lstrip("Names of traced molecules:").split()
 
         if self.v2.get():
-            c = CSVDataProcessor(self.csv_file.get())
+            if not self.csv_file.get():
+                tkMessageBox.showerror("Error", "CSV file is not specified.")
+                return
+
+            try:
+                c = CSVDataProcessor(self.csv_file.get())
+            except Exception as e:
+                tkMessageBox.showerror("Error", "CSV file could not be opened.")
+                print e
 
         if self.v7.get():
-            d = DATDataProcessor(self.dat_file)
+            if not self.dat_file.get():
+                tkMessageBox.showerror("Error", "DAT file is not specified.")
+                return
 
+            try:
+                d = DATDataProcessor(self.dat_file)
+            except Exception as e:
+                tkMessageBox.showerror("Error", "DAT file could not be opened.")
+                print e
+
+        # Console log init
+        log_window = tk.Toplevel(self.parent, width=100)
+        log_console = tk.Text(log_window)
+        log_console.pack(fill=tk.BOTH)
+
+        self.generate_button.config(state=tk.DISABLED)
+        self.generate_button.unbind("<Button-1>")
+
+        def close_log_window():
+            log_window.destroy()
+            self.generate_button.config(state=tk.NORMAL)
+            self.generate_button.bind("<Button-1>", lambda e: self.generate())
+
+        log_window.protocol("WM_DELETE_WINDOW", close_log_window)
+
+        # Log console settings
+        log_console.tag_config("error", foreground="red")
+        log_console.tag_config("success", foreground="green")
+
+        def log(*args, **kwargs):
+            log_console.config(state=tk.NORMAL)
+            log_console.insert(*args, **kwargs)
+            log_console.config(state=tk.DISABLED)
+
+        # Plotting
         plots = []
 
         if self.v1.get():
-            log_console.insert(tk.END, "Generating inlets per cluster\n")
+            log(tk.END, "{}\nGenerating inlets per cluster\n".format("-" * 30))
 
             if not self.molecules1.get() and len(traced_molecules) == 1:
                 plot = StringIO()
                 cluster_inlets(f).savefig(plot, format="png", bbox_inches="tight")
                 plots.append(plot)
             else:
-                molecules = self.molecules1.get().replace(" ", "").upper().split(",") if self.molecules1.get() else traced_molecules
+                molecules = self.molecules1.get().replace(" ", "").upper().split(
+                    ",") if self.molecules1.get() else traced_molecules
                 for molecule in molecules:
+                    log(tk.END, "* {} ".format(molecule))
+
                     plot = StringIO()
                     cluster_inlets(f, suffix=" of {}".format(molecule)).savefig(plot, format="png", bbox_inches="tight")
                     plots.append(plot)
 
+                    log(tk.END, u"\u2714\n", "success")
+
+            log(tk.END, "Done.\n", "success")
+
         if self.v2.get():
-            log_console.insert(tk.END, "Generating relative cluster flows\n")
+            log(tk.END, "{}\nGenerating relative cluster flows\n".format("-" * 30))
 
             plot = StringIO()
             # Finding all clusters
@@ -639,7 +704,7 @@ class Octopus(object):
             ids, clusters = zip(*sorted(zip(ids, clusters)))
             labels = ["Cluster " + str(i) for i in ids]
 
-            #TODO: Fetching colors from file
+            # TODO: Fetching colors from file
             colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
                       "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
                       "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
@@ -647,8 +712,10 @@ class Octopus(object):
             relative_clusters_flows(c, clusters, labels, colors).savefig(plot, format="png", bbox_inches="tight")
             plots.append(plot)
 
+            log(tk.END, "Done.\n", "success")
+
         if self.v3.get():
-            log_console.insert(tk.END, "Generating ligands per time\n")
+            log(tk.END, "{}\nGenerating ligands per time\n".format("-" * 30))
             if not self.molecules3.get():
                 plot = StringIO()
                 ligands_time(f).savefig(plot, format="png", bbox_inches="tight")
@@ -656,12 +723,18 @@ class Octopus(object):
             else:
                 molecules = self.molecules3.get().replace(" ", "").upper().split(",")
                 for molecule in molecules:
+                    log(tk.END, "* {} ".format(molecule))
+
                     plot = StringIO()
                     ligands_time(f, molecule).savefig(plot, format="png", bbox_inches="tight")
                     plots.append(plot)
 
+                    log(tk.END, u"\u2714\n", "success")
+
+            log(tk.END, "Done.\n", "success")
+
         if self.v4.get():
-            log_console.insert(tk.END, "Generating flows between tunnels\n")
+            log(tk.END, "{}\nGenerating flows between tunnels\n".format("-" * 30))
 
             labels = {}
             colors = {}
@@ -672,40 +745,58 @@ class Octopus(object):
                         labels.update({id_: name})
                         colors.update({id_: color})
 
-            plot = StringIO()
-
             threshold = float(self.chord_threshold.get()) if self.chord_threshold.get() else 0.0
 
+            plot = StringIO()
             chord_diagram(f, labels, colors, threshold).savefig(plot, format="png", dpi=2 ** 7)
             plots.append(plot)
 
+            log(tk.END, "Done.\n", "success")
+
         if self.v7.get():
-            log_console.insert(tk.END, "Generating volume per time\n")
+            log(tk.END, "{}\nGenerating volume per time\n".format("-" * 30))
+            log(tk.END, "Done.\n", "success")
 
         if self.v8.get():
-            log_console.insert(tk.END, "Generating clusters areas\n")
+            log(tk.END, "{}\nGenerating clusters areas\n".format("-" * 30))
 
-            molecules = self.molecules8.get().replace(" ", "").upper().split(",") if self.molecules8.get() else traced_molecules
+            molecules = self.molecules8.get().replace(" ", "").upper().split(
+                ",") if self.molecules8.get() else traced_molecules
             for molecule in molecules:
-                plot = StringIO()
+                log(tk.END, "* {} ".format(molecule))
+
                 try:
+                    plot = StringIO()
                     cluster_area(f, suffix=" of {}".format(molecule)).savefig(plot, format="png")
                     plots.append(plot)
-                except Exception as e:
-                    log_console.insert(tk.END, "*** {} ***\n".format(e))
+                    log(tk.END, u"\u2714\n", "success")
+                except DataException as e:
+                    log(tk.END, u"\u2718\n", "error")
+                    log(tk.END, "{}\n".format(e), "error")
 
+            log(tk.END, "Done.\n", "success")
 
         # Save plots to file
-        html = ""
+        logo_base64 = base64.b64encode(open("../aquaduct/apps/valveconfig/logo.gif", "rb").read())
+        html = """<div style="text-align:center; margin-bottom: 40px"><a href="http://www.tunnelinggroup.pl"><img src="data:image/gif;base64,{}"></a></div>""".format(
+            logo_base64)
         for i, f in enumerate(plots):
             html += """<div style="text-align: center">
-    <h1>#{}</h1>
     <img src=\"data:image/png;base64,{}\">
-    <hr />
-</div>""".format(i, base64.encodestring(f.getvalue()))
+</div>""".format(base64.encodestring(f.getvalue()))
+
+        html += "<div style=\"text-align:center\"><h3>Document generated by <span style=\"color:#38b2fa\">Octopus</span>.</h3></div>"
 
         with open(self.results_file.get(), "w+") as f:
             f.write(html)
+            log(tk.END, "Plots saved to {}.\n".format(self.results_file.get()), "success")
+
+    def load_file(self, var):
+        try:
+            with askopenfile("r") as f:
+                var.set(f.name)
+        except AttributeError:  # In case of cancel selecting file
+            pass
 
 
 if __name__ == "__main__":
