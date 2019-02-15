@@ -19,7 +19,7 @@
 import Tkinter as tk
 import os
 import ttk
-from tkFileDialog import askopenfile
+from tkFileDialog import askopenfile, askdirectory
 
 import defaults
 
@@ -109,20 +109,6 @@ def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL, info_
 
         if isinstance(control_default, bool):
             return BoolEntry(parent, row, entry_name, input_default, control_default, help, info_text, warning_text)
-        elif isinstance(control_default, defaults.filetype):
-            if isinstance(input_default, str):
-                return FileEntry(parent, row, entry_name, input_default, help, info_text, warning_text)
-            else:
-                raise TypeError(
-                    "File can be loaded only into str widget type in {} option({})".format(entry_name,
-                                                                                           type(default)))
-        elif isinstance(control_default, defaults.manyfiletype):
-            if isinstance(input_default, str):
-                return ManyFileEntry(parent, row, entry_name, input_default, help, info_text, warning_text)
-            else:
-                raise TypeError(
-                    "File can be loaded only into str widget type in {} option({})".format(entry_name,
-                                                                                           type(default)))
         elif isinstance(control_default, float):
             return ParenthesedEntry(parent, row, entry_name, input_default, control_default, help, info_text,
                                     warning_text)
@@ -130,6 +116,13 @@ def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL, info_
             raise TypeError("There is no specified behaviour for {} type(for {} option). "
                             "First must be input widget, then control widget"
                             .format(type(control_default), entry_name))
+    elif isinstance(default[0], defaults.filetype):
+        return FileEntry(parent, row, entry_name, str(), help, info_text, warning_text)
+    elif isinstance(default[0], defaults.manyfiletype):
+        return ManyFileEntry(parent, row, entry_name, str(), help, info_text, warning_text)
+    elif isinstance(default[0], defaults.dirtype):
+        return DirEntry(parent, row, entry_name, str(), help, info_text, warning_text)
+
     else:
         return StandardEntry(parent, row, entry_name, default[0], help, state, info_text, warning_text)
 
@@ -510,6 +503,66 @@ class ManyFileEntry(Entry):
     def unhighlight(self):
         for frame in self.frames:
             frame.config(background=self.default_background)
+
+
+class DirEntry(Entry):
+    def __init__(self, parent, row, entry_name_long, default, help, info_text=None, warning_text=None):
+        """
+        Entry with Entry widget and button to load and append file name to it.
+
+        :param parent: Parent of widgets.
+        :param row: Row where widgets will be grided.
+        :param entry_name_long: Readable entry name.
+        :param default: Default values of entry.
+        :param help: Text which will be displayed in tooltip.
+        :param state: State of widget.
+        """
+        super(DirEntry, self).__init__(parent, row)
+
+        ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
+
+        self.input_widget, self.input_var = widget_factory(self.input_frame, default)
+        self.input_widget.pack(side=tk.LEFT, padx=5, pady=5)
+
+        ToolTip.create(self.input_widget, help)
+
+        load_file_button = ttk.Button(self.input_frame, text="Load", style="File.TButton")
+        load_file_button.pack(side=tk.LEFT, padx=5)
+
+        load_file_button.bind("<Button-1>", self.callback_load_dir)
+
+        if info_text:
+            InfoIconWidget(self.input_frame, info_text).pack(side=tk.LEFT)
+        elif warning_text:
+            WarningIconWidget(self.input_frame, warning_text).pack(side=tk.LEFT)
+
+    def callback_load_dir(self, e):
+        """
+        Callback for selecting file.
+
+        Sets widget content to loaded file name.
+        """
+        try:
+            with askdirectory() as f:
+                self.input_var.set(f.name)
+        except AttributeError:  # In case of cancel selecting file
+            pass
+
+    def get(self):
+        """
+        Gets Entry value.
+
+        :return: Entry value.
+        """
+        return self.input_var.get()
+
+    def set(self, value):
+        """
+        Sets Entry value.
+
+        :param value: New value of Entry.
+        """
+        self.input_var.set(value)
 
 
 class ParenthesedEntry(Entry):
