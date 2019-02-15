@@ -540,38 +540,45 @@ def stage_III_run(config, options,
 
 
     if options.auto_barber:
-            
-        wtc = WhereToCut(spaths=spaths,
-                         selection=options.auto_barber,
-                         mincut=options.auto_barber_mincut,
-                         mincut_level=options.auto_barber_mincut_level,
-                         maxcut=options.auto_barber_maxcut,
-                         maxcut_level=options.auto_barber_maxcut_level,
-                         tovdw=options.auto_barber_tovdw)
-        # cut thyself!
-        wtc.cut_thyself()
+        new_paths = NP(None) # no progress bar (yet)
+        for tn in iter_over_tn(): # tn is a list of traced names
+            with clui.fbm("AutoBarber calcluations for %s" % ' '.join(tn),cont=False):
+                wtc = WhereToCut(spaths=[sp for sp in spaths if sp.id.name in tn],
+                                 selection=options.auto_barber,
+                                 mincut=options.auto_barber_mincut,
+                                 mincut_level=options.auto_barber_mincut_level,
+                                 maxcut=options.auto_barber_maxcut,
+                                 maxcut_level=options.auto_barber_maxcut_level,
+                                 tovdw=options.auto_barber_tovdw)
+                # cut thyself!
+                wtc.cut_thyself() # wtc for given tn
 
-        if len(wtc.spheres):
-            n = max(1, optimal_threads.threads_count)
-            with clui.pbar(maxval=len(xrange(0, len(paths), n)), mess="AutoBarber in action:") as pbar:
-                Reader.reset()
-                pool = Pool(processes=optimal_threads.threads_count)
-                bp = partial(barber_paths, spheres=wtc.spheres, only_for_names=traced_names)
+                # how many paths of tn we have?
+                tnpaths = [nr for nr,p in enumerate(paths) if p.name in tn][::-1] # ids of tn paths, reversed
+                if len(wtc.spheres):
+                    n = max(1, optimal_threads.threads_count)
+                    with clui.pbar(maxval=len(xrange(0, len(tnpaths), n)), mess="AutoBarber in action:") as pbar:
+                        Reader.reset()
+                        pool = Pool(processes=optimal_threads.threads_count)
+                        bp = partial(barber_paths, spheres=wtc.spheres, only_for_names=tn)
 
-                new_paths = NP(pbar)
-                nr = 0
-                while len(paths):
-                    pool.apply_async(bp, args=(paths[:n],), callback=new_paths.callback_cric_next)
-                    paths = paths[n:]
-                    nr += 1
-                    if nr % n == 0:
-                        gc.collect()
-                pool.close()
-                pool.join()
-            paths = new_paths.paths
-            gc.collect()
-        else:
-            clui.message('AutoBarber procedure skip, no spheres detected.')
+                        new_paths.reinit(pbar)
+                        nr = 0
+                        while len(tnpaths):
+                            pool.apply_async(bp, args=([paths.pop(nn) for nn in tnpaths[:n]],), callback=new_paths.callback_cric_next)
+                            tnpaths = tnpaths[n:]
+                            nr += 1
+                            if nr % n == 0:
+                                gc.collect()
+                        pool.close()
+                        pool.join()
+                    gc.collect()
+                else:
+                    clui.message('AutoBarber procedure skip, no spheres detected.')
+                    for nn in tnpaths:
+                        new_paths.paths.append(paths.pop(nn))
+                    tnpaths = []
+        paths = new_paths.paths
 
     ######################################################################
     # following procedures are run only if autobarber
@@ -866,7 +873,7 @@ def stage_IV_run(config, options,
 
 
         # but only if user wants this
-        master_paths = {}
+        master_paths = {} # this and following dict hold master paths, keys here ar ctypes - one ctype one master path
         master_paths_smooth = {}
         if options.create_master_paths:
             #fof = lambda sp: np.array(list(make_fractionof(sp,f=options.master_paths_amount)))
@@ -905,7 +912,6 @@ def stage_IV_run(config, options,
                                     str(ct), nr,))
                             continue
                         logger.debug('CType %s (%d), number of spaths %d' % (str(ct), nr, len(sps)))
-                        # print len(sps),ct
                         ctspc = CTypeSpathsCollection(spaths=sps, ctype=ct, pbar=pbar,
                                                       threads=use_threads)
                         master_paths.update({ct: ctspc.get_master_path(resid=(0, nr))})
@@ -1355,7 +1361,8 @@ def stage_V_run(config, options,
                delimiter=',',
                header=','.join(header))
     if not options.save:
-        print h_fname.getvalue()
+        h_fname.getvalue()
+        #print h_fname.getvalue()
 
     return {'hist': h, 'header': header}
 
@@ -1490,13 +1497,13 @@ def stage_VI_run(config, options,
                         c_name = str(int(c))
                     cmap = cmaps._cmap_jet_256
                     # calcualte hdr
-                    print inls.center_of_system, c_name, len(ics), alt_center_of_system
+                    #print inls.center_of_system, c_name, len(ics), alt_center_of_system
                     if len(ics) < 3: continue
                     h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
                                 expand_by=float(options.cluster_area_expand), center_of_system=inls.center_of_system)
                     spp.multiline_begin()
                     for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
-                        print c_name + '_D%d' % fraction
+                        #print c_name + '_D%d' % fraction
                         coords = hdr2contour(h, fraction=fraction / 100.)
                         if coords is not None:
                             color = cmap[int(255 * (1 - fraction / 100.))]

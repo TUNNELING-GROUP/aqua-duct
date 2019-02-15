@@ -83,7 +83,7 @@ class ValveConfigApp(object):
     def init_gui(self):
         """ Prepare initial frame """
         # Logo
-        logo = tk.PhotoImage(data=utils.LOGO_ENCODED)
+        logo = tk.PhotoImage(file="../aquaduct/apps/valveconfig/logo.gif")
 
         logo_label = ttk.Label(self.parent, image=logo, padding=-2)
         logo_label.image = logo
@@ -941,6 +941,9 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.configure(background="white")
     root.resizable(1, 1)
+
+    aq_icon = tk.PhotoImage(file="../aquaduct/apps/valveconfig/icon.gif")
+    root.tk.call('wm', 'iconphoto', root._w, aq_icon)
 
     s = ttk.Style()
 

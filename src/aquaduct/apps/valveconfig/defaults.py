@@ -44,6 +44,15 @@ class manyfiletype(object):
     pass
 
 
+class dirtype(object):
+    """
+    Class used to specify type of default value.
+
+    Represents Entry with dir loading button.
+    """
+    pass
+
+
 class DefaultSection(object):
     def __init__(self, config_name, name, level):
         """
@@ -206,13 +215,13 @@ DEFAULTS = []
 global_section = DefaultSection(config_name="global", name="General options", level=1)
 global_section.add_entry(DefaultEntry(config_name="top",
                                       name="Topology file: ",
-                                      default_values=[str(), filetype()],
+                                      default_values=[filetype()],
                                       help_text="Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.",
                                       level=1,
                                       required=1))
 global_section.add_entry(DefaultEntry(config_name="trj",
                                       name="Trajectory file: ",
-                                      default_values=[str(), manyfiletype()],
+                                      default_values=[manyfiletype()],
                                       help_text="Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.",
                                       level=1,
                                       required=1))
@@ -249,7 +258,7 @@ global_section.add_entry(DefaultEntry(config_name="sps",
                                       level=1))
 global_section.add_entry(DefaultEntry(config_name="cache_dir",
                                       name="Cache directory: ",
-                                      default_values=[str()],
+                                      default_values=[dirtype()],
                                       help_text="Allows to set path to the directory for cache data.",
                                       level=1))
 global_section.add_entry(DefaultEntry(config_name="cache_mem",
@@ -1165,7 +1174,7 @@ smooth_section.add_entry(DefaultEntry(config_name="window",
                                       level=0))
 smooth_section.add_entry(DefaultEntry(config_name="step",
                                       name="Step: ",
-                                      default_values=[int()],
+                                      default_values=[float()],
                                       help_text="In step based method defines size of the step.",
                                       level=0))
 smooth_section.add_entry(DefaultEntry(config_name="function",
@@ -1199,18 +1208,18 @@ VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--force-save",
                                      help_text="Force saving results.",
                                      level=None
                                      ))
-# VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
-#                                      name="Debug mode: ",
-#                                      default_values=[False],
-#                                      help_text="Prints debug info.",
-#                                      level=None
-#                                      ))
-# VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
-#                                      name="Debug mode: ",
-#                                      default_values=[False],
-#                                      help_text="Debug log file.",
-#                                      level=None
-#                                      ))
+VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
+                                     name="Debug mode: ",
+                                     default_values=[False],
+                                     help_text="Prints debug info.",
+                                     level=None
+                                     ))
+VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
+                                     name="Debug mode: ",
+                                     default_values=[False],
+                                     help_text="Debug log file.",
+                                     level=None
+                                     ))
 
 POND_DEFAULTS = DefaultSection("", "", 0)
 POND_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
@@ -1229,6 +1238,12 @@ POND_DEFAULTS.add_entry(DefaultEntry(config_name="-r",
                                      name="Results directory: ",
                                      default_values=[str()],
                                      help_text="Path to results directory.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--paths-types",
+                                     name="Paths types: ",
+                                     default_values=[str()],
+                                     help_text="Limit calculations to given paths types, i.e. given molecules.",
                                      level=None
                                      ))
 POND_DEFAULTS.add_entry(DefaultEntry(config_name="--raw",
@@ -1319,6 +1334,18 @@ POND_DEFAULTS.add_entry(DefaultEntry(config_name="--master-ctypes",
                                      name="Ctypes: ",
                                      default_values=[False],
                                      help_text="Limit calculations to given ctypes.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
+                                     name="Debug mode: ",
+                                     default_values=[False],
+                                     help_text="Prints debug info.",
+                                     level=None
+                                     ))
+POND_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
+                                     name="Debug mode: ",
+                                     default_values=[False],
+                                     help_text="Debug log file.",
                                      level=None
                                      ))
 # @formatter:on
