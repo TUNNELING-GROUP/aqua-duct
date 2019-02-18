@@ -24,6 +24,7 @@ import re
 import tkMessageBox
 import ttk
 from cStringIO import StringIO
+from collections import defaultdict
 from tkFileDialog import askopenfile
 
 import matplotlib.pyplot as plt
@@ -218,7 +219,6 @@ def relative_clusters_flows(csv_processor, clusters_names, labels, colors):
     ax.set_title("Relative cluster flows")
     ax.set_xlabel("Frame")
     ax.set_ylabel("???")
-    ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
     ax.xaxis.set_major_locator(plt.AutoLocator())
     ax.set_xlim((0, len(x)))
@@ -287,9 +287,9 @@ def ligands_time(file_processor, molecule=None):
 
 
 # 4
-def chord_diagram(file_processor, labels={}, colors={}, threshold=0.):
+def chord_diagram_sizes(file_processor, labels={}, colors={}):
     fig, ax = plt.subplots(subplot_kw={"aspect": 1})
-    ax.set_title("Chord diagram")
+    ax.set_title("Sizes")
     ax.set_axis_off()
     ax.set_xlim(-110, 110)
     ax.set_ylim(-110, 110)
@@ -297,24 +297,6 @@ def chord_diagram(file_processor, labels={}, colors={}, threshold=0.):
     clusters_ids = file_processor.get_column_values("Clusters summary - inlets", "Cluster")
     clusters_ids = [str(id_) for id_ in clusters_ids]
     clusters_sizes = file_processor.get_column_values("Clusters summary - inlets", "Size")
-
-    flows = file_processor.get_column_values("Separate paths clusters types summary - mean lengths of paths", "CType")
-    flows = [{flow.split(":")[0]: flow.split(":")[1]} for flow in flows]
-
-    flows_sizes = file_processor.get_column_values("Separate paths clusters types summary - mean lengths of paths",
-                                                   "Size")
-
-    # N size
-    n_size = 0
-    for flow, size in zip(flows, flows_sizes):
-        if "N" in next(flow.iteritems()):
-            n_size += size
-
-    clusters_ids.append("N")
-    clusters_sizes.append(n_size)
-
-    flows = [{"source": clusters_ids.index(next(flow.iterkeys())), "dest": clusters_ids.index(next(flow.itervalues())),
-              "value": size} for flow, size in zip(flows, flows_sizes) if 1. * size / sum(flows_sizes) >= threshold]
 
     if not labels:
         labels = clusters_ids
@@ -332,7 +314,66 @@ def chord_diagram(file_processor, labels={}, colors={}, threshold=0.):
 
         colors = tmp_colors
 
-    Chord(ax, 100, clusters_sizes, flows, labels, colors)
+    Chord(ax, 100, clusters_sizes, [], labels, colors)
+
+    return fig
+
+
+# 4
+def chord_diagram_flows(file_processor, labels={}, colors={}, threshold=0.):
+    fig, ax = plt.subplots(subplot_kw={"aspect": 1})
+    ax.set_title("Flows")
+    ax.set_axis_off()
+    ax.set_xlim(-110, 110)
+    ax.set_ylim(-110, 110)
+
+    flows = file_processor.get_column_values("Separate paths clusters types summary - mean lengths of paths", "CType")
+    flows = [{flow.split(":")[0]: flow.split(":")[1]} for flow in flows]
+
+    flows_sizes = file_processor.get_column_values("Separate paths clusters types summary - mean lengths of paths",
+                                                   "Size")
+
+    sizes_d = defaultdict(int)
+    for flow, size in zip(flows, flows_sizes):
+        print flow, size
+        source, dest = next(flow.iteritems())
+
+        if source != "N":
+            source = int(source)
+
+        if dest != "N":
+            dest = int(dest)
+
+        sizes_d[source] += size
+        sizes_d[dest] += size
+
+    clusters_ids = []
+    sizes = []
+    for k, v in sorted(sizes_d.iteritems(), key=lambda x: x[0]):
+        clusters_ids.append(str(k))
+        sizes.append(v)
+
+    flows = [{"source": clusters_ids.index(next(flow.iterkeys())), "dest": clusters_ids.index(next(flow.itervalues())),
+              "value": size} for flow, size in zip(flows, flows_sizes) if 1. * size / sum(flows_sizes) >= threshold]
+
+    if not labels:
+        labels = clusters_ids
+    else:
+        tmp_labels = []
+        threshold = 0.
+        for id_ in clusters_ids:
+            tmp_labels.append(labels[id_])
+
+        labels = tmp_labels
+
+    if colors:
+        tmp_colors = []
+        for id_ in clusters_ids:
+            tmp_colors.append(colors[id_])
+
+        colors = tmp_colors
+
+    Chord(ax, 100, sizes, flows, labels, colors)
 
     return fig
 
@@ -413,9 +454,11 @@ class Octopus(object):
 
         # General variables
         self.data_file = tk.StringVar()
+        self.data_file.set(r"/home/b4naser/Desktop/Octopus Data/Test #3/5_analysis_results.txt")
         self.csv_file = tk.StringVar()
         self.dat_file = tk.StringVar()
         self.results_file = tk.StringVar()
+        self.results_file.set("data.html")
 
         # Checkbuttons variables
         self.v1 = tk.BooleanVar()
@@ -754,9 +797,12 @@ class Octopus(object):
 
             threshold = float(self.chord_threshold.get()) if self.chord_threshold.get() else 0.0
 
-            plot = StringIO()
-            chord_diagram(f, labels, colors, threshold).savefig(plot, format="png", dpi=2 ** 7)
-            plots.append(plot)
+            plot1 = StringIO()
+            plot2 = StringIO()
+            chord_diagram_sizes(f, labels, colors).savefig(plot1, format="png", dpi=2 ** 7, bbox_inches="tight")
+            chord_diagram_flows(f, labels, colors, threshold).savefig(plot2, format="png", dpi=2 ** 7,
+                                                                      bbox_inches="tight")
+            plots.extend([plot1, plot2])
 
             log(tk.END, "Done.\n", "success")
 

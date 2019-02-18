@@ -220,18 +220,22 @@ class Chord(object):
         sizes_sum = sum(nodes_sizes)
 
         # Nodes
+        legend_node_index = []  # Keeps indexes of nodes which will be in legend
         sa = 0
         for i, size in enumerate(nodes_sizes):
             ea = sa + size * 360. / sizes_sum
 
-            angle = sa + (ea - sa) / 2
-            pos = polar2point(angle, 1.05*r)
-            ax.text(pos[0], pos[1],
-                    "{} ({:.2f}%)".format(labels[i], 100.0 * size / sizes_sum),
-                    verticalalignment="center",
-                    horizontalalignment="center",
-                    fontsize=8,
-                    rotation=360 - angle)
+            if ea - sa >= 10:
+                angle = sa + (ea - sa) / 2
+                pos = polar2point(angle, 1.05 * r)
+                ax.text(pos[0], pos[1],
+                        "{} ({:.2f}%)".format(labels[i], 100.0 * size / sizes_sum),
+                        verticalalignment="center",
+                        horizontalalignment="center",
+                        fontsize=8,
+                        rotation=360 - angle)
+            else:
+                legend_node_index.append(i)
 
             node = Node(r, sa, ea, self.colors[i])
             ax.add_patch(node)
@@ -239,6 +243,11 @@ class Chord(object):
             self.nodes.append(node)
 
             sa = ea
+
+        # Create legend
+        ax.legend([self.nodes[i] for i in legend_node_index],
+                  ["{} ({:.2f}%)".format(labels[i], 100.0 * nodes_sizes[i] / sizes_sum) for i in legend_node_index],
+                  bbox_to_anchor=(1.02, 1), loc="upper left")
 
         # Scales
         links_sum = [0.]*len(nodes_sizes)
