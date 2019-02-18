@@ -26,8 +26,9 @@ import ttk
 from cStringIO import StringIO
 from tkFileDialog import askopenfile
 
-import aquaduct.apps.valveconfig.utils as utils
 import matplotlib.pyplot as plt
+
+import aquaduct.apps.valveconfig.utils as utils
 from aquaduct.apps.chord import Chord
 
 
@@ -51,21 +52,24 @@ class FileDataProcessor(object):
         self.table_end_pattern = "-+"
 
     def get_column_values(self, table_name, column_name):
-        return [row[column_name] for row in self._find_table(table_name)]
+        data = [row[column_name] for row in self._find_table(table_name)]
+
+        return data
 
     def get_column_names(self, table_name):
         data = self._find_table(table_name)
-        if len(data) != 0:
+
+        if len(data):
             return list(data[0].iterkeys())
         else:
-            return []
+            raise DataException("Table \"{}\" is empty.".format(table_name))
 
     def _find_table(self, table_name):
         for i, line in enumerate(self.file_lines):
             if line.strip() == table_name:
                 return self._parse_column(i)
 
-        raise RuntimeError("\"{}\" does not exist.".format(table_name))
+        raise DataException("\"{}\" does not exist.".format(table_name))
 
     def _parse_column(self, start_line):
         data = []
@@ -160,11 +164,13 @@ def cluster_inlets(file_processor, suffix=""):
     rects_bottom = ax.bar(range(1, len(cluster_no) + 1), y_in, label="INCOMING")
     rects_top = ax.bar(range(1, len(cluster_no) + 1), y_out, bottom=y_in, label="OUTGOING")
 
+    y_lim = ax.get_ylim()[1]
+
     for rect_b, rect_t in zip(rects_bottom, rects_top):
         width_b = rect_b.get_width()
         height_b = rect_b.get_height()
-        if height_b >= 50:
-            ax.text(rect_b.get_x() + width_b / 2, height_b - 50, height_b,
+        if height_b / y_lim >= 0.02:
+            ax.text(rect_b.get_x() + width_b / 2., height_b / 2., height_b,
                     fontsize=7,
                     color=(1, 1, 1),
                     horizontalalignment="center",
@@ -172,8 +178,8 @@ def cluster_inlets(file_processor, suffix=""):
 
         width_t = rect_t.get_width()
         height_t = rect_t.get_height()
-        if height_t >= 50:
-            ax.text(rect_t.get_x() + width_t / 2, height_b + height_t - 50, height_t,
+        if height_t / y_lim >= 0.02:
+            ax.text(rect_t.get_x() + width_t / 2., height_b + height_t / 2., height_t,
                     fontsize=7,
                     color=(1, 1, 1),
                     horizontalalignment="center",
@@ -350,9 +356,6 @@ def cluster_area(file_processor, suffix=""):
     x.sort(key=lambda x: int(x[1:]), reverse=True)
 
     y = [file_processor.get_column_values("Clusters summary - areas" + suffix, density)[0] for density in x]
-
-    if len(x) == 0 and len(y) == 0:
-        raise DataException("There is no data to generate clusters area" + suffix)
 
     ax.set_xlim((0, len(x) - 1))
     ax.plot(x, y)
@@ -598,6 +601,10 @@ class Octopus(object):
     def generate(self):
         if not True in [self.v1.get(), self.v2.get(), self.v3.get(), self.v4.get(), self.v7.get(), self.v8.get()]:
             tkMessageBox.showerror("Error", "No plot have been selected.")
+            return
+
+        if not self.results_file.get():
+            tkMessageBox.showerror("Error", "You must specify results file.")
             return
 
         # Loading files
