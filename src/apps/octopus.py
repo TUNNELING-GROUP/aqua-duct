@@ -70,7 +70,7 @@ class FileDataProcessor(object):
             if line.strip() == table_name:
                 return self._parse_column(i)
 
-        raise DataException("\"{}\" does not exist.".format(table_name))
+        raise DataException("Table \"{}\" does not exist.".format(table_name))
 
     def _parse_column(self, start_line):
         data = []
@@ -111,7 +111,8 @@ class CSVDataProcessor(object):
         self.seek_file()
 
     def get_column_values(self, column_name):
-        values = [int(row[column_name]) for row in self.csv_reader]
+        values = [float(row[column_name]) if is_float(row[column_name]) else int(row[column_name]) for row in
+                  self.csv_reader]
         self.seek_file()
 
         return values
@@ -120,33 +121,6 @@ class CSVDataProcessor(object):
         """ Set file position at beginning and skip first row with column names """
         self.file.seek(0)
         self.csv_reader.next()
-
-    def __del__(self):
-        self.file.close()
-
-
-class DATDataProcessor(object):
-    def __init__(self, filename):
-        self.file = open(filename, "r")
-        self.file_lines = [line.strip() for line in self.file.readlines()]
-
-    def get_column_values(self, column_name):
-        i = self.get_column_names().index(column_name)
-
-        values = []
-        for x in self.file_lines[1:]:
-            value = x.split("\t")[i]
-            if value.isdigit():
-                value = int(value)
-            elif is_float(value):
-                value = float(value)
-
-            values.append(value)
-
-        return values
-
-    def get_column_names(self):
-        return self.file_lines[0].split("\t")
 
     def __del__(self):
         self.file.close()
@@ -186,7 +160,7 @@ def cluster_inlets(file_processor, suffix=""):
                     horizontalalignment="center",
                     verticalalignment="center")
 
-    ax.set_title("Clusters inlets" + suffix)
+    ax.set_title("Clusters size" + suffix)
     ax.set_xlabel("Cluster")
     ax.set_ylabel("Size")
 
@@ -229,13 +203,12 @@ def relative_clusters_flows(csv_processor, clusters_names, labels, colors):
 
 # 3
 def ligands_time(file_processor, molecule=None):
-    # FIXME: Some data have "nan"
     fig, ax = plt.subplots()
 
     plot_settings = dict(align="edge", height=1.0)
 
     title_suffix = "" if not molecule else " of {}".format(molecule)
-    ax.set_title("Ligands in time" + title_suffix)
+    ax.set_title("Molecule Entry Time Distribution" + title_suffix)
     ax.set_xlabel("Frame")
     ax.set_ylabel("Separate path ID")
     ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
@@ -289,7 +262,7 @@ def ligands_time(file_processor, molecule=None):
 # 4
 def chord_diagram_sizes(file_processor, labels={}, colors={}):
     fig, ax = plt.subplots(subplot_kw={"aspect": 1})
-    ax.set_title("Sizes")
+    ax.set_title("Cluster size")
     ax.set_axis_off()
     ax.set_xlim(-110, 110)
     ax.set_ylim(-110, 110)
@@ -322,7 +295,7 @@ def chord_diagram_sizes(file_processor, labels={}, colors={}):
 # 4
 def chord_diagram_flows(file_processor, labels={}, colors={}, threshold=0.):
     fig, ax = plt.subplots(subplot_kw={"aspect": 1})
-    ax.set_title("Flows")
+    ax.set_title("Intramolecular flows")
     ax.set_axis_off()
     ax.set_xlim(-110, 110)
     ax.set_ylim(-110, 110)
@@ -378,17 +351,84 @@ def chord_diagram_flows(file_processor, labels={}, colors={}, threshold=0.):
 
 
 # 7
-def volume_timeframe(dat_processor):
-    raise NotImplemented()
+def volume_scope_area(csv_processor):
+    fig, ax = plt.subplots()
+    ax.set_title("Scope area")
+    ax.set_xlabel("Frame")
+    ax.set_ylabel("Area")
+
+    x = csv_processor.get_column_values("# frame")
+    y = csv_processor.get_column_values("scope_area")
+
+    ax.set_xlim((min(x), max(x)))
+    ax.set_ylim((min(y), max(y)))
+
+    ax.plot(x, y)
+
+    return fig
+
+
+# 7
+def volume_scope_volume(csv_processor):
+    fig, ax = plt.subplots()
+    ax.set_title("Scope volume")
+    ax.set_xlabel("Frame")
+    ax.set_ylabel("Volume")
+
+    x = csv_processor.get_column_values("# frame")
+    y = csv_processor.get_column_values("scope_volume")
+
+    ax.plot(x, y)
+
+    ax.set_xlim((min(x), max(x)))
+    ax.set_ylim((min(y), max(y)))
+
+    return fig
+
+
+# 7
+def volume_object_area(csv_processor):
+    fig, ax = plt.subplots()
+    ax.set_title("Object area")
+    ax.set_xlabel("Frame")
+    ax.set_ylabel("Area")
+
+    x = csv_processor.get_column_values("# frame")
+    y = csv_processor.get_column_values("object_area")
+
+    ax.plot(x, y)
+
+    ax.set_xlim((min(x), max(x)))
+    ax.set_ylim((min(y), max(y)))
+
+    return fig
+
+
+# 7
+def volume_object_volume(csv_processor):
+    fig, ax = plt.subplots()
+    ax.set_title("Object volume")
+    ax.set_xlabel("Frame")
+    ax.set_ylabel("Area")
+
+    x = csv_processor.get_column_values("# frame")
+    y = csv_processor.get_column_values("object_volume")
+
+    ax.plot(x, y)
+
+    ax.set_xlim((min(x), max(x)))
+    ax.set_ylim((min(y), max(y)))
+
+    return fig
 
 
 # 8
 def cluster_area(file_processor, suffix=""):
     fig, ax = plt.subplots()
 
-    ax.set_title("Cluster areas" + suffix)
+    ax.set_title("Clusters area" + suffix)
     ax.set_xlabel("Density")
-    ax.set_ylabel("???")
+    ax.set_ylabel("Area")
 
     column_names = file_processor.get_column_names("Clusters summary - areas" + suffix)
 
@@ -506,19 +546,6 @@ class Octopus(object):
         csv_load.grid(sticky="w", row=0, column=2)
         csv_load.bind("<Button-1>", lambda e: self.load_file(self.csv_file))
 
-        # Container for plots which use dat
-        container_dat = tk.Frame(self.main_frame, bd=1, relief=tk.SUNKEN)
-        container_dat.columnconfigure(0, weight=1)
-        container_dat.columnconfigure(1, weight=1)
-        container_dat.columnconfigure(2, weight=1)
-        container_dat.pack(fill=tk.X, padx=100, pady=10)
-
-        ttk.Label(container_dat, text="DAT file: ").grid(sticky="e", row=0, column=0)
-        ttk.Entry(container_dat, textvariable=self.dat_file).grid(sticky="we", row=0, column=1)
-        dat_load = ttk.Button(container_dat, text="Load file", style="File.TButton")
-        dat_load.grid(sticky="w", row=0, column=2)
-        dat_load.bind("<Button-1>", lambda e: self.load_file(self.dat_file))
-
         ### 1
         option1_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option1_frame.columnconfigure(0, weight=1)
@@ -631,8 +658,8 @@ class Octopus(object):
         state2_frame.disable()
 
         ### 7
-        option7_frame = tk.Frame(container_dat, bd=1, relief=tk.GROOVE)
-        option7_frame.grid(sticky="ew", row=1, column=0, columnspan=3, padx=10, pady=10)
+        option7_frame = tk.Frame(container_csv, bd=1, relief=tk.GROOVE)
+        option7_frame.grid(sticky="ew", row=2, column=0, columnspan=3, padx=10, pady=10)
         ttk.Checkbutton(option7_frame, text="Volume per frame", var=self.v7).pack(anchor="w")
 
         ###
@@ -667,7 +694,7 @@ class Octopus(object):
                 if line.startswith("Names of traced molecules:"):
                     traced_molecules = line.lstrip("Names of traced molecules:").split()
 
-        if self.v2.get():
+        if self.v2.get() or self.v7.get():
             if not self.csv_file.get():
                 tkMessageBox.showerror("Error", "CSV file is not specified.")
                 return
@@ -676,17 +703,6 @@ class Octopus(object):
                 c = CSVDataProcessor(self.csv_file.get())
             except Exception as e:
                 tkMessageBox.showerror("Error", "CSV file could not be opened.")
-                print e
-
-        if self.v7.get():
-            if not self.dat_file.get():
-                tkMessageBox.showerror("Error", "DAT file is not specified.")
-                return
-
-            try:
-                d = DATDataProcessor(self.dat_file)
-            except Exception as e:
-                tkMessageBox.showerror("Error", "DAT file could not be opened.")
                 print e
 
         # Console log init
@@ -719,7 +735,7 @@ class Octopus(object):
         if self.v1.get():
             log(tk.END, "{}\nGenerating inlets per cluster\n".format("-" * 30))
 
-            if not self.molecules1.get() and len(traced_molecules) == 1:
+            if not self.molecules1.get() or len(traced_molecules) == 1:
                 plot = StringIO()
                 cluster_inlets(f).savefig(plot, format="png", bbox_inches="tight")
                 plots.append(plot)
@@ -813,24 +829,44 @@ class Octopus(object):
 
         if self.v7.get():
             log(tk.END, "{}\nGenerating volume per time\n".format("-" * 30))
+
+            plot1 = StringIO()
+            volume_scope_area(c).savefig(plot1, format="png", bbox_inches="tight")
+
+            plot2 = StringIO()
+            volume_scope_volume(c).savefig(plot2, format="png", bbox_inches="tight")
+
+            plot3 = StringIO()
+            volume_object_area(c).savefig(plot3, format="png", bbox_inches="tight")
+
+            plot4 = StringIO()
+            volume_object_volume(c).savefig(plot4, format="png", bbox_inches="tight")
+
+            plots.extend([plot1, plot2, plot3, plot4])
+
             log(tk.END, "Done.\n", "success")
 
         if self.v8.get():
             log(tk.END, "{}\nGenerating clusters areas\n".format("-" * 30))
 
-            molecules = self.molecules8.get().replace(" ", "").upper().split(
-                ",") if self.molecules8.get() else traced_molecules
-            for molecule in molecules:
-                log(tk.END, "* {} ".format(molecule))
+            if not self.molecules1.get() or len(traced_molecules) == 1:
+                plot = StringIO()
+                cluster_area(f).savefig(plot, format="png", bbox_inches="tight")
+                plots.append(plot)
+            else:
+                molecules = self.molecules8.get().replace(" ", "").upper().split(
+                    ",") if self.molecules8.get() else traced_molecules
+                for molecule in molecules:
+                    log(tk.END, "* {} ".format(molecule))
 
-                try:
-                    plot = StringIO()
-                    cluster_area(f, suffix=" of {}".format(molecule)).savefig(plot, format="png")
-                    plots.append(plot)
-                    log(tk.END, u"\u2714\n", "success")
-                except DataException as e:
-                    log(tk.END, u"\u2718\n", "error")
-                    log(tk.END, "{}\n".format(e), "error")
+                    try:
+                        plot = StringIO()
+                        cluster_area(f, suffix=" of {}".format(molecule)).savefig(plot, format="png")
+                        plots.append(plot)
+                        log(tk.END, u"\u2714\n", "success")
+                    except DataException as e:
+                        log(tk.END, u"\u2718\n", "error")
+                        log(tk.END, "{}\n".format(e), "error")
 
             log(tk.END, "Done.\n", "success")
 
