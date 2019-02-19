@@ -190,6 +190,10 @@ class MasterReader(object):
         self.window = window
         self.sandwich_mode = sandwich
 
+        if len(self.topology) > 1:
+            assert self.sandwich_mode, "Multiple topologies possible in sandwich mode only."
+            assert len(self.topology) == len(self.trajectory), "Number of topologies must be 1 or be equal to number of trajectories."
+
         self.window.correct(self.real_number_of_frames())  # this corrects window
         self.reset()  # assert window correction clear all opened trajs
 
@@ -271,6 +275,7 @@ class MasterReader(object):
         # returns single trajectory reader of number
         # is it is already opened it is returned directly
         # if not is opened and then recursive call is executed
+        #print "GetSingleReader(%r)" % (number,)
         if self.sandwich_mode:
             if len(self.topology) == 1:
                 return self.engine(self.topology[0], self.trajectory[number], number=number, window=self.window)
@@ -330,6 +335,7 @@ class ReaderAccess(object):
 
     def get_reader(self, number):
         if number in Reader.open_reader_traj:
+            #print "Getting reader",number,"from opened readers."
             return Reader.open_reader_traj[number]
         Reader.get_single_reader(number).open()
         return self.get_reader(number)
@@ -475,7 +481,7 @@ class ReaderTraj(object):
         if not isinstance(trajectory, list):
             self.trajectory = [t.strip() for t in trajectory.split(pathsep)]
 
-        #print "ReaderTraj",self.topology,self.trajectory
+        #print "ReaderTraj(%r,%r)" % (self.topology,self.trajectory)
 
         self.number = number
         self.window = window
@@ -951,10 +957,12 @@ class SingleResidueSelection(ReaderAccess):
     @arrayify(shape=(None, 3))
     def _coords(self, frames):
         # return coords for frames
-        traj_reader = self.get_reader(self.number)
-        for f in frames:
-            traj_reader.set_frame(f)
-            yield traj_reader.residues_positions([self.resid]).next()
+        if len(frames):
+            #print "Trying to get reader",self.number,"for",len(frames),"frames"
+            traj_reader = self.get_reader(self.number)
+            for f in frames:
+                traj_reader.set_frame(f)
+                yield traj_reader.residues_positions([self.resid]).next()
 
     def coords_smooth(self, sranges, smooth):
         for coord in smooth_coords_ranges(sranges, self.number, self.resid, smooth):

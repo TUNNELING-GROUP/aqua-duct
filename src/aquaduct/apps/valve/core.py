@@ -1542,6 +1542,8 @@ def stage_VI_run(config, options,
     fof = lambda sp: list(make_fractionof(sp, f=options.ctypes_amount))
 
     # master paths can have some keys which are not of ct type - names of molecules
+    #print master_paths.keys()
+    #print master_paths_smooth.keys()
     master_paths_separate = [k for k in master_paths.iterkeys() if isinstance(k, str)]
     # TODO: is isinstance good in this instance?
     if options.ctypes_raw:
@@ -1561,7 +1563,10 @@ def stage_VI_run(config, options,
                             mp = master_paths[mp_name][ct]
                             mp_name = "_" + mp_name
                     else:
-                        mp = master_paths[ct]
+                        if ct in master_paths:
+                            mp = master_paths[ct]
+                        else:
+                            mp = None
                     if mp is not None:
                         plot_spaths_traces([mp],
                                            name=str(ct) + '_raw_master' + mp_name,
@@ -1588,7 +1593,10 @@ def stage_VI_run(config, options,
                             mp = master_paths_smooth[mp_name][ct]
                             mp_name = "_" + mp_name
                     else:
-                        mp = master_paths_smooth[ct]
+                        if ct in master_paths_smooth:
+                            mp = master_paths_smooth[ct]
+                        else:
+                            mp = None
                     if mp is not None:
                         plot_spaths_traces([mp],
                                            name=str(ct) + '_smooth_master' + mp_name,
@@ -1602,7 +1610,10 @@ def stage_VI_run(config, options,
                             mp = master_paths[mp_name][ct]
                             mp_name = "_" + mp_name
                     else:
-                        mp = master_paths[ct]
+                        if ct in master_paths_smooth:
+                            mp = master_paths_smooth[ct]
+                        else:
+                            mp = None
                     if mp is not None:
                         plot_spaths_traces([mp],
                                            name=str(ct) + '_raw_master_smooth' + mp_name,
