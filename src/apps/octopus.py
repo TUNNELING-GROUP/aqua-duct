@@ -20,6 +20,7 @@
 import Tkinter as tk
 import base64
 import csv
+import itertools
 import re
 import tkMessageBox
 import ttk
@@ -31,6 +32,14 @@ import matplotlib.pyplot as plt
 
 import aquaduct.apps.valveconfig.utils as utils
 from aquaduct.apps.chord import Chord
+
+
+def color_gen():
+    colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
+              "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
+              "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
+    for color in itertools.cycle(colors):
+        yield color
 
 
 def is_float(value):
@@ -192,11 +201,12 @@ def relative_clusters_flows(csv_processor, clusters_names, labels, colors):
 
     ax.set_title("Relative cluster flows")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("???")
+    ax.set_ylabel("Relative flow")
 
-    ax.xaxis.set_major_locator(plt.AutoLocator())
     ax.set_xlim((0, len(x)))
     ax.set_ylim((0, 1.05))  # added 0.05 because when there is 1, its not visible
+
+    ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
     return fig
 
@@ -208,14 +218,8 @@ def ligands_time(file_processor, molecule=None):
     plot_settings = dict(align="edge", height=1.0)
 
     title_suffix = "" if not molecule else " of {}".format(molecule)
-    ax.set_title("Molecule Entry Time Distribution" + title_suffix)
-    ax.set_xlabel("Frame")
-    ax.set_ylabel("Separate path ID")
-    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
     path_nr = file_processor.get_column_values("List of separate paths and properties", "Nr")
-
-    ax.set_ylim((0, max(path_nr)))
 
     path_nr = [y - 1 for y in path_nr]
 
@@ -254,6 +258,13 @@ def ligands_time(file_processor, molecule=None):
     ax.barh(path_nr, objs_width, left=objs_left, color=(0, 1, 0), label="Object", **plot_settings)
     ax.barh(path_nr, outs_width, left=outs_left, color=(0, 0, 1), label="Outgoing", **plot_settings)
 
+    ax.set_title("Molecule Entry Time Distribution" + title_suffix)
+    ax.set_xlabel("Frame")
+    ax.set_ylabel("Separate path ID")
+
+    ax.set_ylim((0, max(path_nr)))
+    ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
+
     ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
     return fig
@@ -271,6 +282,7 @@ def chord_diagram_sizes(file_processor, labels={}, colors={}):
     clusters_ids = [str(id_) for id_ in clusters_ids]
     clusters_sizes = file_processor.get_column_values("Clusters summary - inlets", "Size")
 
+    # TODO:  Move it to generate() method
     if not labels:
         labels = clusters_ids
     else:
@@ -545,12 +557,15 @@ class Octopus(object):
         csv_load.bind("<Button-1>", lambda e: self.load_file(self.csv_file))
 
         ### 1
+        self.all1 = tk.BooleanVar()
+        self.molecules1 = tk.StringVar()
+
         option1_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option1_frame.columnconfigure(0, weight=1)
         option1_frame.columnconfigure(1, weight=1)
         option1_frame.grid(sticky="ew", row=1, column=0, columnspan=3, padx=10, pady=10)
 
-        cb1 = ttk.Checkbutton(option1_frame, text="Inlets per cluster", var=self.v1)
+        cb1 = ttk.Checkbutton(option1_frame, text="Clusters size", var=self.v1)
         cb1.pack(anchor="w")
 
         state1_frame = StateFrame(option1_frame)
@@ -560,19 +575,25 @@ class Octopus(object):
 
         cb1.configure(command=lambda: state1_frame.toggle())
 
-        ttk.Label(state1_frame, text="Molecules: ").grid(row=0, column=0)
-        self.molecules1 = tk.Entry(state1_frame)
-        self.molecules1.grid(row=0, column=1)
+        # Options
+        ttk.Label(state1_frame, text="For all").grid(sticky="w", row=0, column=1)
+        ttk.Checkbutton(state1_frame, var=self.all1).grid(sticky="e", row=0, column=0)
+
+        ttk.Label(state1_frame, text="For molecules: ").grid(row=1, column=0)
+        tk.Entry(state1_frame, textvariable=self.molecules1).grid(row=1, column=1)
 
         state1_frame.disable()
 
         ### 3
+        self.all3 = tk.BooleanVar()
+        self.molecules3 = tk.StringVar()
+
         option3_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option3_frame.columnconfigure(0, weight=1)
         option3_frame.columnconfigure(1, weight=1)
         option3_frame.grid(sticky="ew", row=2, column=0, columnspan=3, padx=10, pady=10)
 
-        cb3 = ttk.Checkbutton(option3_frame, text="Ligands per time", var=self.v3)
+        cb3 = ttk.Checkbutton(option3_frame, text="Molecule entry time distribution", var=self.v3)
         cb3.pack(anchor="w")
 
         state3_frame = StateFrame(option3_frame)
@@ -582,19 +603,24 @@ class Octopus(object):
 
         cb3.configure(command=lambda: state3_frame.toggle())
 
-        ttk.Label(state3_frame, text="Molecules: ").grid(row=0, column=0)
-        self.molecules3 = tk.Entry(state3_frame)
-        self.molecules3.grid(row=0, column=1)
+        # Options
+        ttk.Label(state3_frame, text="For all").grid(sticky="w", row=0, column=1)
+        ttk.Checkbutton(state3_frame, var=self.all3).grid(sticky="e", row=0, column=0)
+
+        ttk.Label(state3_frame, text="For molecules: ").grid(row=1, column=0)
+        tk.Entry(state3_frame, textvariable=self.molecules3).grid(row=1, column=1)
 
         state3_frame.disable()
 
         ### 4
+        self.chord_threshold = tk.StringVar()
+        self.clusters_info4 = tk.StringVar()
         option4_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option4_frame.columnconfigure(0, weight=1)
         option4_frame.columnconfigure(1, weight=1)
         option4_frame.grid(sticky="ew", row=3, column=0, columnspan=3, padx=10, pady=10)
 
-        cb4 = ttk.Checkbutton(option4_frame, text="Chord diagram", var=self.v4)
+        cb4 = ttk.Checkbutton(option4_frame, text="Intramolecular flows", var=self.v4)
         cb4.pack(anchor="w")
 
         state4_frame = StateFrame(option4_frame)
@@ -605,16 +631,17 @@ class Octopus(object):
         cb4.configure(command=lambda: state4_frame.toggle())
 
         ttk.Label(state4_frame, text="Clusters info: ").grid(row=0, column=0)
-        self.clusters_info = tk.Entry(state4_frame)
-        self.clusters_info.grid(row=0, column=1)
+        tk.Entry(state4_frame, textvariable=self.clusters_info4).grid(row=0, column=1)
 
         ttk.Label(state4_frame, text="Threshold: ").grid(row=1, column=0)
-        self.chord_threshold = tk.Entry(state4_frame)
-        self.chord_threshold.grid(row=1, column=1)
+        tk.Entry(state4_frame, textvariable=self.chord_threshold).grid(row=1, column=1)
 
         state4_frame.disable()
 
         ### 8
+        self.all8 = tk.StringVar()
+        self.molecules8 = tk.StringVar()
+
         option8_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
         option8_frame.columnconfigure(0, weight=1)
         option8_frame.columnconfigure(1, weight=1)
@@ -630,13 +657,18 @@ class Octopus(object):
 
         cb8.configure(command=lambda: state8_frame.toggle())
 
-        ttk.Label(state8_frame, text="Molecules: ").grid(row=0, column=0)
-        self.molecules8 = tk.Entry(state8_frame)
-        self.molecules8.grid(row=0, column=1)
+        # Options
+        ttk.Label(state8_frame, text="For all").grid(sticky="w", row=0, column=1)
+        ttk.Checkbutton(state8_frame, var=self.all8).grid(sticky="e", row=0, column=0)
+
+        ttk.Label(state8_frame, text="For molecules: ").grid(row=1, column=0)
+        tk.Entry(state8_frame, textvariable=self.molecules8).grid(row=1, column=1)
 
         state8_frame.disable()
 
         ### 2
+        self.clusters_info2 = tk.StringVar()
+
         option2_frame = tk.Frame(container_csv, bd=1, relief=tk.GROOVE)
         option2_frame.grid(sticky="ew", row=1, column=0, columnspan=3, padx=10, pady=10)
         cb2 = ttk.Checkbutton(option2_frame, text="Relative cluster flows", var=self.v2)
@@ -647,9 +679,8 @@ class Octopus(object):
         state2_frame.columnconfigure(1, weight=1)
         state2_frame.pack()
 
-        ttk.Label(state2_frame, text="Colors file: ").grid(row=0, column=0)
-        self.colors_file2 = tk.Entry(state2_frame)
-        self.colors_file2.grid(row=0, column=1)
+        ttk.Label(state2_frame, text="Clusters info: ").grid(row=0, column=0)
+        tk.Entry(state2_frame, textvariable=self.clusters_info2).grid(row=0, column=1)
 
         cb2.configure(command=lambda: state2_frame.toggle())
 
@@ -731,30 +762,51 @@ class Octopus(object):
         plots = []
 
         if self.v1.get():
-            log(tk.END, "{}\nGenerating inlets per cluster\n".format("-" * 30))
+            log(tk.END, "{}\nGenerating Clusters size\n".format("-" * 30))
 
-            if not self.molecules1.get() or len(traced_molecules) == 1:
-                plot = StringIO()
-                cluster_inlets(f).savefig(plot, format="png", bbox_inches="tight")
-                plots.append(plot)
-            else:
-                molecules = self.molecules1.get().replace(" ", "").upper().split(
-                    ",") if self.molecules1.get() else traced_molecules
-                for molecule in molecules:
-                    log(tk.END, "* {} ".format(molecule))
+            if self.all1.get():
+                log(tk.END, "* All ")
 
+                try:
                     plot = StringIO()
-                    cluster_inlets(f, suffix=" of {}".format(molecule)).savefig(plot, format="png", bbox_inches="tight")
+                    cluster_inlets(f).savefig(plot, format="png", bbox_inches="tight")
                     plots.append(plot)
 
                     log(tk.END, u"\u2714\n", "success")
+                except DataException as e:
+                    log(tk.END, u"\u2718\n", "error")
+                    log(tk.END, "{}\n".format(e), "error")
+
+            if self.molecules1.get():
+                molecules = self.molecules1.get().replace(" ", "").upper().split(",")
+                for molecule in molecules:
+                    log(tk.END, "* {} ".format(molecule))
+
+                    try:
+                        plot = StringIO()
+                        cluster_inlets(f, suffix=" of {}".format(molecule)).savefig(plot, format="png",
+                                                                                    bbox_inches="tight")
+                        plots.append(plot)
+
+                        log(tk.END, u"\u2714\n", "success")
+                    except DataException as e:
+                        log(tk.END, u"\u2718\n", "error")
+                        log(tk.END, "{}\n".format(e), "error")
 
             log(tk.END, "Done.\n", "success")
 
         if self.v2.get():
-            log(tk.END, "{}\nGenerating relative cluster flows\n".format("-" * 30))
+            log(tk.END, "{}\nGenerating Relative cluster flows\n".format("-" * 30))
 
-            plot = StringIO()
+            labels_file = {}
+            colors_file = {}
+            if self.clusters_info2.get():
+                with open(self.clusters_info2.get(), "r") as file:
+                    for line in file.readlines():
+                        id_, name, color = line.rstrip().split("\t")
+                        labels_file.update({id_: name})
+                        colors_file.update({id_: color})
+
             # Finding all clusters
             clusters = []
             ids = []
@@ -764,26 +816,27 @@ class Octopus(object):
                     clusters.append(match.group(0))
                     ids.append(int(match.group(1)))
 
+
             ids, clusters = zip(*sorted(zip(ids, clusters)))
-            labels = ["Cluster " + str(i) for i in ids]
 
-            # TODO: Fetching colors from file
-            colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
-                      "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
-                      "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
+            labels = [labels_file.pop(str(i), i) for i in ids]
+            cg = color_gen()
+            colors = [colors_file.pop(str(i), next(cg)) for i in ids]
 
+            plot = StringIO()
             relative_clusters_flows(c, clusters, labels, colors).savefig(plot, format="png", bbox_inches="tight")
             plots.append(plot)
 
             log(tk.END, "Done.\n", "success")
 
         if self.v3.get():
-            log(tk.END, "{}\nGenerating ligands per time\n".format("-" * 30))
-            if not self.molecules3.get():
+            log(tk.END, "{}\nGenerating Molecule entry time distribution\n".format("-" * 30))
+            if self.all3.get():
                 plot = StringIO()
                 ligands_time(f).savefig(plot, format="png", bbox_inches="tight")
                 plots.append(plot)
-            else:
+
+            if self.molecules3:
                 molecules = self.molecules3.get().replace(" ", "").upper().split(",")
                 for molecule in molecules:
                     log(tk.END, "* {} ".format(molecule))
@@ -797,12 +850,12 @@ class Octopus(object):
             log(tk.END, "Done.\n", "success")
 
         if self.v4.get():
-            log(tk.END, "{}\nGenerating flows between tunnels\n".format("-" * 30))
+            log(tk.END, "{}\nGenerating Intramolecular flows\n".format("-" * 30))
 
             labels = {}
             colors = {}
-            if self.clusters_info.get():
-                with open(self.clusters_info.get(), "r") as file:
+            if self.clusters_info4.get():
+                with open(self.clusters_info4.get(), "r") as file:
                     for line in file.readlines():
                         id_, name, color = line.rstrip().split("\t")
                         labels.update({id_: name})
@@ -826,7 +879,7 @@ class Octopus(object):
             log(tk.END, "Done.\n", "success")
 
         if self.v7.get():
-            log(tk.END, "{}\nGenerating volume per time\n".format("-" * 30))
+            log(tk.END, "{}\nGenerating Volumes\n".format("-" * 30))
 
             plot1 = StringIO()
             volume_scope_area(c).savefig(plot1, format="png", bbox_inches="tight")
@@ -845,13 +898,14 @@ class Octopus(object):
             log(tk.END, "Done.\n", "success")
 
         if self.v8.get():
-            log(tk.END, "{}\nGenerating clusters areas\n".format("-" * 30))
+            log(tk.END, "{}\nGenerating Clusters areas\n".format("-" * 30))
 
-            if not self.molecules1.get() or len(traced_molecules) == 1:
+            if self.all8.get():
                 plot = StringIO()
                 cluster_area(f).savefig(plot, format="png", bbox_inches="tight")
                 plots.append(plot)
-            else:
+
+            if self.molecules8.get():
                 molecules = self.molecules8.get().replace(" ", "").upper().split(
                     ",") if self.molecules8.get() else traced_molecules
                 for molecule in molecules:
