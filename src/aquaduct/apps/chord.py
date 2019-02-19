@@ -285,27 +285,25 @@ class Chord(object):
             ax.add_patch(l)
             ax.add_patch(a)
 
-            # Complimentary color
-            rgb_color = hex2rgb(source_node.color.lstrip("#")) if isinstance(source_node.color,
-                                                                             str) else source_node.color
-            hsl_color = list(colorsys.rgb_to_hls(*rgb_color))
-            hsl_color[0] += 0.5
+            if sa1 - sa0 > 2:
+                # Complimentary color
+                rgb_color = hex2rgb(source_node.color.lstrip("#")) if isinstance(source_node.color,
+                                                                                 str) else source_node.color
+                hsl_color = list(colorsys.rgb_to_hls(*rgb_color))
+                hsl_color[0] += 0.5
 
-            complimentary_color = [c / 255 for c in colorsys.hls_to_rgb(*hsl_color)]
+                complimentary_color = [c / 255 for c in colorsys.hls_to_rgb(*hsl_color)]
 
-            # Arrow text
-            angle = sa0 + (sa1 - sa0)/2
-            pos = polar2point(sa0 + (sa1 - sa0)/2, 0.9*r)
-            ax.text(pos[0], pos[1],
-                    link["value"],
-                    verticalalignment="center",
-                    horizontalalignment="center",
-                    fontsize=6,
-                    rotation=180 - angle,
-                    color=complimentary_color)
-
-            ax.add_patch(l)
-            ax.add_patch(a)
+                # Arrow text
+                angle = sa0 + (sa1 - sa0) / 2
+                pos = polar2point(sa0 + (sa1 - sa0) / 2, 0.9 * r)
+                ax.text(pos[0], pos[1],
+                        link["value"],
+                        verticalalignment="center",
+                        horizontalalignment="center",
+                        fontsize=6,
+                        rotation=180 - angle,
+                        color=complimentary_color)
 
 
 if __name__ == "__main__":

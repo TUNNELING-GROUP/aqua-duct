@@ -335,7 +335,6 @@ def chord_diagram_flows(file_processor, labels={}, colors={}, threshold=0.):
 
     sizes_d = defaultdict(int)
     for flow, size in zip(flows, flows_sizes):
-        print flow, size
         source, dest = next(flow.iteritems())
 
         if source != "N":
@@ -797,11 +796,17 @@ class Octopus(object):
 
             threshold = float(self.chord_threshold.get()) if self.chord_threshold.get() else 0.0
 
+            log(tk.END, "* Clusters sizes ")
             plot1 = StringIO()
-            plot2 = StringIO()
             chord_diagram_sizes(f, labels, colors).savefig(plot1, format="png", dpi=2 ** 7, bbox_inches="tight")
+            log(tk.END, u"\u2714\n", "success")
+
+            log(tk.END, "* Clusters flows ")
+            plot2 = StringIO()
             chord_diagram_flows(f, labels, colors, threshold).savefig(plot2, format="png", dpi=2 ** 7,
                                                                       bbox_inches="tight")
+            log(tk.END, u"\u2714\n", "success")
+
             plots.extend([plot1, plot2])
 
             log(tk.END, "Done.\n", "success")
