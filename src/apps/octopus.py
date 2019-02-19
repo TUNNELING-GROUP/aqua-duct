@@ -493,11 +493,9 @@ class Octopus(object):
 
         # General variables
         self.data_file = tk.StringVar()
-        self.data_file.set(r"/home/b4naser/Desktop/Octopus Data/Test #3/5_analysis_results.txt")
         self.csv_file = tk.StringVar()
         self.dat_file = tk.StringVar()
         self.results_file = tk.StringVar()
-        self.results_file.set("data.html")
 
         # Checkbuttons variables
         self.v1 = tk.BooleanVar()

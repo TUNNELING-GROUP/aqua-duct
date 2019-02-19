@@ -285,7 +285,7 @@ class Chord(object):
             ax.add_patch(l)
             ax.add_patch(a)
 
-            if sa1 - sa0 > 2:
+            if sa1 - sa0 > 5:
                 # Complimentary color
                 rgb_color = hex2rgb(source_node.color.lstrip("#")) if isinstance(source_node.color,
                                                                                  str) else source_node.color
