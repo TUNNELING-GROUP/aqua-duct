@@ -98,12 +98,6 @@ if __name__ == "__main__":
     parser.add_argument("-t", dest="threads", required=False, default=None, help="Number of threads.")
     parser.add_argument("-m", dest="maxaa", required=False, default=None,
                         help="Maximum number of returned AA per hotspot.", type=int)
-    parser.add_argument("-s", dest="minf", required=False, default=None,
-                        help="Start frame.")
-    parser.add_argument("-e", dest="maxf", required=False, default=None,
-                        help="End frame.")
-    parser.add_argument("-st", dest="stepf", required=False, default=None,
-                        help="Frame step.")
 
     args = parser.parse_args()
 
@@ -114,6 +108,15 @@ if __name__ == "__main__":
     trj_files = config.get("global", "trj")
 
     with ReadMOL2(args.hotspots_file) as hotspots_file:
+        line = hotspots_file.readline()
+        if line.startswith("# Windows:"):
+            windows_t = line.rstrip("# Windows:").split(" ")
+            windows = []
+            for window in windows_t:
+                windows.append((int(w) for w in window.rstrip("(").lstrip(")").split(",")))
+        else:
+            raise RuntimeError("Windows information missing.")
+
         hotspots_coords = hotspots_file.parse()[0]  # TODO: Remove it for window calculations
 
     if args.threads is None:
@@ -127,58 +130,67 @@ if __name__ == "__main__":
     print "Frame range: {}-{} Step: {}".format(Reader.window.start, Reader.window.stop, Reader.window.step)
     print "Distance from hotspot: {}".format(args.distance)
 
+    print "Windows:"
+    for window in windows:
+        print "{}:{}".format(window[0], window[1])
+
     residue_occurences = defaultdict(dict)
 
     stime = time()
 
     print "\nFinding the hottest place in the universe:"
     pool = mp.Pool(processes=optimal_threads.threads_count)
-    for traj_reader in Reader.iterate():
-        traj_reader = traj_reader.open()
 
-        protein_atoms = traj_reader.parse_selection("protein")
+    for window in windows:
+        for traj_reader in Reader.iterate():
+            traj_reader = traj_reader.open()
 
-        for frame in traj_reader.iterate():
-            sys.stdout.write("\r {:.2} s".format(time() - stime))
-            in_area = defaultdict(dict)
-            for number, ids in protein_atoms.selected.iteritems():
-                number_reader = protein_atoms.get_reader(number)
+            protein_atoms = traj_reader.parse_selection("protein")
 
-                atoms_coords = zip(ids, number_reader.atoms_positions(ids))
-                worker = Worker(hotspots_coords, atoms_coords)
+            for frame in range(window[0], window[1]+1):
+                traj_reader.set_frame(frame)
+                in_area = defaultdict(dict)
+                for number, ids in protein_atoms.selected.iteritems():
+                    number_reader = protein_atoms.get_reader(number)
 
-                results = pool.map(worker, range(0, len(hotspots_coords)))
+                    atoms_coords = zip(ids, number_reader.atoms_positions(ids))
+                    worker = Worker(hotspots_coords, atoms_coords)
 
-                for hotspot_id, atoms_ids in results:
-                    if number not in in_area[hotspot_id]:
-                        in_area[hotspot_id][number] = list()
+                    results = pool.map(worker, range(0, len(hotspots_coords)))
 
-                    in_area[hotspot_id][number].extend(atoms_ids)
+                    for hotspot_id, atoms_ids in results:
+                        if number not in in_area[hotspot_id]:
+                            in_area[hotspot_id][number] = list()
 
-            in_area_selections = {}
-            for hotspot_id, selection in in_area.iteritems():
-                in_area_selections[hotspot_id] = AtomSelection(selection)
+                        in_area[hotspot_id][number].extend(atoms_ids)
 
-            for hotspot_id, hotspot_atom_selection in in_area_selections.iteritems():
-                for id_, name in zip(hotspot_atom_selection.residues().ids(),
-                                     hotspot_atom_selection.residues().names()):
-                    if (id_[1], name) not in residue_occurences[hotspot_id]:
-                        residue_occurences[hotspot_id][(id_[1], name)] = 0
+                in_area_selections = {}
+                for hotspot_id, selection in in_area.iteritems():
+                    in_area_selections[hotspot_id] = AtomSelection(selection)
 
-                    residue_occurences[hotspot_id][(id_[1], name)] += 1
+                for hotspot_id, hotspot_atom_selection in in_area_selections.iteritems():
+                    for id_, name in zip(hotspot_atom_selection.residues().ids(),
+                                         hotspot_atom_selection.residues().names()):
+                        if (id_[1], name) not in residue_occurences[hotspot_id]:
+                            residue_occurences[hotspot_id][(id_[1], name)] = 0
 
-    print "\n"
-    window_len = float(Reader.window.len())
-    for hotspot_id, hotspot_occurences in residue_occurences.iteritems():
-        print "-" * 20
-        print hotspot_id, hotspots_coords[hotspot_id]
-        print "-" * 20
-        for i, res in enumerate(sorted(hotspot_occurences, key=hotspot_occurences.get, reverse=True)):
-            if i == args.maxaa:
-                break
+                        residue_occurences[hotspot_id][(id_[1], name)] += 1
 
-            proc = round(hotspot_occurences[res] / window_len, 2) * 100
-            if proc < 1.:
-                proc = float(("{0:.%ie}" % 1).format(proc))
-            print "{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
-                                                     round(hotspot_occurences[res] / window_len, 2) * 100)
+        print
+        print "* Window: {}:{}".format(window[0], window[1])
+        window_len = window[1] - window[0]
+        for hotspot_id, hotspot_occurences in residue_occurences.iteritems():
+            print "-" * 20
+            print hotspot_id, hotspots_coords[hotspot_id]
+            print "-" * 20
+            for i, res in enumerate(sorted(hotspot_occurences, key=hotspot_occurences.get, reverse=True)):
+                if i == args.maxaa:
+                    break
+
+                proc = round(hotspot_occurences[res] / window_len, 2) * 100
+                if proc < 1.:
+                    proc = float(("{0:.%ie}" % 1).format(proc))
+                print "{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
+                                                         round(hotspot_occurences[res] / window_len, 2) * 100)
+
+    sys.stdout.write("\r {:.2} s".format(time() - stime))
