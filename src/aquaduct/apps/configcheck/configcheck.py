@@ -17,6 +17,7 @@ class ConfigCheck(object):
 
         with open(config_filename, "r") as config_file:
             self.config.readfp(config_file)
+
     def check(self):
         """
         Check if all config options are valid.
@@ -25,7 +26,6 @@ class ConfigCheck(object):
         """
         for section_name in self.config.sections():
             for option_name in self.config.options(section_name):
-                # it should use DEFAULTS values to determine proper method to get option value
                 value = self.config.get(section_name, option_name)
                 self.valid(section_name, option_name, value)
 
@@ -40,8 +40,6 @@ class ConfigCheck(object):
 
     @staticmethod
     def valid(section_name, option_name, value):
-        # TODO: value must be casted to the right type
-        # strings to be directly compared, empty string is wildcard
 
         option_info = defaults.get_default_entry(section_name, option_name)
 
@@ -54,9 +52,11 @@ class ConfigCheck(object):
                 # Combobox always contain string, because it's universal and can keep bool/str/int
                 pass
             elif isinstance(option_info.default_values[0], defaults.filetype):
+                pass
                 if not os.path.isfile(value):
                     raise NonExistingValue("File does not exist")
             elif isinstance(option_info.default_values[0], defaults.manyfiletype):
+                pass
                 files = value.split(os.pathsep)
                 for elem in files:
                     if not os.path.isfile(elem):
@@ -67,6 +67,7 @@ class ConfigCheck(object):
 
         return True
 
-if __name__ == '__main__':
-    confCheck = ConfigCheck("/home/kara/Desktop/aq dev files/config.txt")
-    confCheck.check()
+    def get(self, section_name, option_name):
+        value = self.config.get(section_name, option_name)
+        if self.valid(section_name, option_name, value):
+            return value
