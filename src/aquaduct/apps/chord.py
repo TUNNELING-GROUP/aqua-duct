@@ -23,14 +23,33 @@ import matplotlib.patches as mpatches
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 import numpy as np
+import itertools
+
+
+def color_gen():
+    colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
+              "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
+              "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
+    for color in itertools.cycle(colors):
+        yield color
 
 
 def hex2rgb(color):
+    """
+    Convert HEX color to RGB format.
+    :param color: String hex color.
+    :return: Tuple with RGB values.
+    """
     # https://stackoverflow.com/questions/29643352/converting-hex-to-rgb-value-in-python
     return tuple(int(color[i:i+2], 16) for i in (0, 2 ,4))
 
 
 def polar2point(angle, r):
+    """
+    Transform polar coordinates to cartesian coordinates.
+    :param angle: Angle.
+    :param r: Radius.
+    """
     rad = np.deg2rad
     return np.array([r * np.sin(rad(angle)), r * np.cos(rad(angle))])
 
@@ -84,6 +103,14 @@ def generate_arc(r, sa, ea, max_angle=5, reversed_=False):
 
 class Node(mpatches.PathPatch):
     def __init__(self, r, sa, ea, color):
+        """
+        Represent data on Chord circle.
+
+        :param r: Radius.
+        :param sa: Start angle.
+        :param ea: End angle.
+        :param color: Node color in HEX or matplotlib tuple format.
+        """
         self.sa = sa
         self.ea = ea
         self.color = color
@@ -117,7 +144,7 @@ class Node(mpatches.PathPatch):
         super(Node, self).__init__(path, facecolor=color, linewidth=0)
 
     def reserve_arc(self, angle):
-        # Only if scaling is an option
+        # Only if scaling is an optional
         # if self._link_angle + angle - self.sa > self.ea - self.sa:
         #     raise RuntimeError("Too much data for node. Use scaling option.")
 
@@ -130,14 +157,14 @@ class Node(mpatches.PathPatch):
 class Link(mpatches.PathPatch):
     def __init__(self, r, sa0, sa1, ea0, ea1, color):
         """
-        Draw connection between two circle arcs.
+        Represent connection between two nodes.
 
         :param r: Radius.
         :param sa0: Source start angle.
         :param sa1: Source end angle.
         :param ea0: Destination start angle.
         :param ea1: Destination end angle.
-        :param color: Color.
+        :param color: Link color in HEX or matplotlib tuple format.
         """
         vertices = []
         codes = []
@@ -181,7 +208,15 @@ class Link(mpatches.PathPatch):
 
 class Arrow(mpatches.PathPatch):
     def __init__(self, r, sa, ea, color, max_angle=45):
-        # When angle is > 60 arrow isnt arrow
+        """
+        Arrow patch for links.
+
+        :param r: Radius.
+        :param sa: Start angle.
+        :param ea: End angle.
+        :param color: Arrow color in HEX or matplotlib tuple format.
+        :param max_angle:
+        """
         vertices = []
         codes = []
 
@@ -208,14 +243,22 @@ class Arrow(mpatches.PathPatch):
 
 class Chord(object):
     def __init__(self, ax, r, nodes_sizes, links, labels, colors=[]):
+        """
+        
+        :param ax:
+        :param r:
+        :param nodes_sizes:
+        :param links:
+        :param labels:
+        :param colors:
+        """
         self.nodes = []
 
         if colors:
             self.colors = colors
         else:
-            self.colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
-                           "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
-                           "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
+            cg = color_gen()
+            self.colors = [next(cg) for _ in range(0, len(nodes_sizes))]
 
         sizes_sum = sum(nodes_sizes)
 

@@ -31,15 +31,7 @@ from tkFileDialog import askopenfile
 import matplotlib.pyplot as plt
 
 import aquaduct.apps.valveconfig.utils as utils
-from aquaduct.apps.chord import Chord
-
-
-def color_gen():
-    colors = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0",
-              "#f032e6", "#bcf60c", "#fabebe", "#008080", "#e6beff", "#9a6324",
-              "#800000", "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080"]
-    for color in itertools.cycle(colors):
-        yield color
+from aquaduct.apps.chord import Chord, color_gen
 
 
 def is_float(value):
@@ -815,7 +807,6 @@ class Octopus(object):
                 if match:
                     clusters.append(match.group(0))
                     ids.append(int(match.group(1)))
-
 
             ids, clusters = zip(*sorted(zip(ids, clusters)))
 
