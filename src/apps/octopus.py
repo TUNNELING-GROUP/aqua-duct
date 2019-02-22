@@ -734,6 +734,8 @@ class Octopus(object):
         self.generate_button.config(state=tk.DISABLED)
         self.generate_button.unbind("<Button-1>")
 
+        self.parent.update_idletasks() # Force console log to show before generating plots
+
         def close_log_window():
             log_window.destroy()
             self.generate_button.config(state=tk.NORMAL)
