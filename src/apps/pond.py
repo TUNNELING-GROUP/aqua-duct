@@ -353,6 +353,16 @@ if __name__ == "__main__":
                     wmol2 = [WriteMOL2(rdir+'outer%s.mol2' % ptn), WriteMOL2(rdir+'inner%s.mol2' % ptn)]
                     if args.hotspots:
                         hsmol2 = WriteMOL2(rdir+'hotspots%s.mol2' % ptn)
+
+                        windows = []
+                        for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
+                            if wnr and many_windows:
+                                windows.append("({},{})".format(window[0], window[1]))
+                            elif (wnr == 0) and (args.wfull or (not many_windows)):
+                                windows.append("({},{})".format(window[0], window[1]))
+
+                        hsmol2.fh.write("# Windows:" + " ".join(windows))
+
                     for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
                         number_of_frames = (window[-1]-window[0])
                         if Reader.sandwich_mode:
