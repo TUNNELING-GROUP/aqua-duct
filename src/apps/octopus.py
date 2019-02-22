@@ -729,7 +729,11 @@ class Octopus(object):
         # Console log init
         log_window = tk.Toplevel(self.parent, width=100)
         log_console = tk.Text(log_window)
-        log_console.pack(fill=tk.BOTH)
+        log_console.pack(side=tk.LEFT, fill=tk.BOTH)
+
+        log_scroll = tk.Scrollbar(log_window, command=log_console.yview)
+        log_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        log_console["yscrollcommand"] = log_scroll.set
 
         self.generate_button.config(state=tk.DISABLED)
         self.generate_button.unbind("<Button-1>")
