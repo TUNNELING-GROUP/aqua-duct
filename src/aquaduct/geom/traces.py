@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-from scipy.spatial.distance import pdist
+from scipy.spatial.distance import pdist, cdist
 
 from aquaduct.utils.maths import make_default_array
 
@@ -162,6 +162,36 @@ def vector_one(V):
     :return: vector in the same direction but of lenght 1
     """
     return V / vector_norm(V)
+
+def project_p_on_ab(p,a,b):
+    """
+    :param p: a point to be projected on AB line
+    :param a: beginning of AB line
+    :param b: end of AB line
+    :return: point on AB line being a projection of p
+    """
+    vn = vector_one(b-a)
+    v = p - a
+    d = np.dot(v, vn)
+    return a + vn * d
+
+def distance_p_to_ab(p,a,b):
+    """
+    :param p: a point of interest
+    :param a: beginning of AB line
+    :param b: end of AB line
+    :return: distance of p to AB line
+    """
+    return float(cdist([p],[project_p_on_ab(p,a,b)]))
+
+def is_p_above_vp0_plane(p,v,p0):
+    """
+    :param p: a point of interest
+    :param v: vector pointing perpendicularly up from the plane perspective
+    :param p0: point on the plane
+    :return: >0 if p point is above the plane, 0 if it is on the plane, and <0 if it is below the plane
+    """
+    return np.dot(v,p-p0)
 
 
 def vector_change_len(V, l):

@@ -45,6 +45,13 @@ import gzip
 
 ################################################################################
 
+# Boltzmann k constant
+# k = 0.0019872041 # kcal/mol/K
+k = 0.0083144621  # kJ/mol/K
+k_unit = 'kJ/mol/K'
+
+################################################################################
+
 class count_ref(object):
 
     def __init__(self, pbar, ref_sel):
@@ -110,8 +117,10 @@ if __name__ == "__main__":
                                 help="Number of windows to calculate.")
             parser.add_argument("--wsize", action="store", dest="wsize", type=int, required=False, default=None,
                                 help="Size of window in frames.")
-            parser.add_argument("--reference", action="store", dest="ref", type=str, required=False, default=None,
-                                help="Selection of reference in the first frame of trajectory.")
+            parser.add_argument("--reference-value", action="store", dest="ref", type=float, required=False, default=None,
+                                help="Reference value in [%s]." % k_unit)
+            parser.add_argument("--reference-calc", action="store_true", dest="ref_calc", required=False,
+                                help="Calculate reference value with scope and reference molecules.")
             parser.add_argument("--reference-radius", action="store", dest="ref_radius", type=float, required=False,
                                 default=2.,
                                 help="Radius of reference.")
@@ -264,15 +273,42 @@ if __name__ == "__main__":
             # ----------------------------------------------------------------------#
             # reference value
 
-            ref = None
+            ref = args.ref
             # calculate n_z for reference
-            if args.ref:
+            if args.ref_calc:
                 with clui.tictoc('Reference calculation'):
+                    from aquaduct.geom import traces
+                    ffrom scipy.spatial.distance import cdist
+                    # 1. Get scope atoms.
+                    # 2. Calculate convexhull.
+                    # 3. Get first vertex and in the direction in which it is oriented look for farthest reference molecule.
+                    # 4. Point for reference calculation get as midpoint between the used vertex and the farthest molecule.
+                    # 5. Proceed normally.
+                    options2 = config.get_stage_options(1)
+
                     for traj_reader in Reader.iterate():
                         traj_reader = traj_reader.open()
                         for frame in traj_reader.iterate():
-                            ref_sel = traj_reader.parse_selection(args.ref)
-                            com = ref_sel.center_of_mass()
+                            # 1.
+                            scope = traj_reader.parse_selection(options2.scope)
+                            # 2.
+                            scope_ch = scope.chull(inflate=options2.scope_convexhull_inflate)
+                            # 3.
+                            v = scope_ch.vertices_points[0] # vertex
+                            c = np.mean(scope_ch.vertices_points) # center of scope
+                            ref_mol = traj_reader.parse_selection(args.ref_mol).residues().coords()
+                            ref_mol = np.array(list(ref_mol)) # reference molecules coordinates
+                            # find all ref_mol that are above the vertex
+                            ref_mol = ref_mol[[traces.is_p_above_vp0_plane(rm,v-c,v) > 0 for rm in ref_mol]
+                            # find distances of remaining ref_mol to vc line
+                            rmd = [traces.distance_p_to_ab(rm,v,c) for rm in ref_mol]
+                            # find all ref_mol that are within reference radius from vc line
+                            ref_mol = ref_mol[d < args.ref_radius for d in rmd]
+                            # find the most distant ref_mol
+                            com = cdist(ref_mol,[v])
+                            com = ref_mol[np.argmax(com)]
+                            # 4.
+                            com = (com+v)/2
                             break
                         break
                     Reader.reset()
@@ -313,8 +349,8 @@ if __name__ == "__main__":
 
                     # Boltzmann k constant
                     # k = 0.0019872041 # kcal/mol/K
-                    k = 0.0083144621  # kJ/mol/K
-                    rmu('energy_unit', 'kJ/mol/K')
+                    # k = 0.0083144621  # kJ/mol/K
+                    rmu('energy_unit', k_unit)
 
                     ref = -k * args.temp * np.log(ref)
                     rmu('reference_correction', float(ref))
