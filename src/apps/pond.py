@@ -278,7 +278,7 @@ if __name__ == "__main__":
             if args.ref_calc:
                 with clui.tictoc('Reference calculation'):
                     from aquaduct.geom import traces
-                    ffrom scipy.spatial.distance import cdist
+                    from scipy.spatial.distance import cdist
                     # 1. Get scope atoms.
                     # 2. Calculate convexhull.
                     # 3. Get first vertex and in the direction in which it is oriented look for farthest reference molecule.
@@ -299,11 +299,11 @@ if __name__ == "__main__":
                             ref_mol = traj_reader.parse_selection(args.ref_mol).residues().coords()
                             ref_mol = np.array(list(ref_mol)) # reference molecules coordinates
                             # find all ref_mol that are above the vertex
-                            ref_mol = ref_mol[[traces.is_p_above_vp0_plane(rm,v-c,v) > 0 for rm in ref_mol]
+                            ref_mol = ref_mol[[traces.is_p_above_vp0_plane(rm,v-c,v) > 0 for rm in ref_mol]]
                             # find distances of remaining ref_mol to vc line
                             rmd = [traces.distance_p_to_ab(rm,v,c) for rm in ref_mol]
                             # find all ref_mol that are within reference radius from vc line
-                            ref_mol = ref_mol[d < args.ref_radius for d in rmd]
+                            ref_mol = ref_mol[[d < args.ref_radius for d in rmd]]
                             # find the most distant ref_mol
                             com = cdist(ref_mol,[v])
                             com = ref_mol[np.argmax(com)]
