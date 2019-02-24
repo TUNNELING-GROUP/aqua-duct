@@ -94,12 +94,8 @@ Please note that option ``--temperature`` allows to set desired temperature in K
 Bulk reference
 ##############
 
-*Pond* can automatically calculate value of :math:`kT\ln\left(C\right)` term by analysis of the bulk of traced molecules
-(solvent):
+Value of reference correction can be directly passed to *Pond* using ``--reference-value`` option or can be calculated automatically by analysis of the bulk of traced molecules (solvent) using ``--reference-calc`` flag. Following additional options influence calculation of bulk reference:
 
-#. Coordinate of the bulk.
-    Option ``--reference`` allows to provide selection for which *Pond* calculates COG in the first
-    frame of simulation. Calculated COG is used as center of the bulk.
 #. Radius of the bulk around COG.
     Option ``--reference-radius`` allows to set the radius of the sphere within which the bulk will be
     scanned. The sphere is centered in COG. Radius should be selected in such a way that the sphere
@@ -110,7 +106,7 @@ Bulk reference
 
 .. note::
 
-    If no ``--reference`` option is used *Pond* skips estimation of free energy.
+    If no ``--reference-value``  or ``--reference-calc`` options are used *Pond* skips estimation of free energy.
 
 Raw data
 ^^^^^^^^

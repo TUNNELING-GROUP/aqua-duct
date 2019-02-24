@@ -289,26 +289,36 @@ if __name__ == "__main__":
                     for traj_reader in Reader.iterate():
                         traj_reader = traj_reader.open()
                         for frame in traj_reader.iterate():
-                            # 1.
-                            scope = traj_reader.parse_selection(options2.scope)
-                            # 2.
-                            scope_ch = scope.chull(inflate=options2.scope_convexhull_inflate)
-                            # 3.
-                            v = scope_ch.vertices_points[0] # vertex
-                            c = np.mean(scope_ch.vertices_points) # center of scope
-                            ref_mol = traj_reader.parse_selection(args.ref_mol).residues().coords()
-                            ref_mol = np.array(list(ref_mol)) # reference molecules coordinates
-                            # find all ref_mol that are above the vertex
-                            ref_mol = ref_mol[[traces.is_p_above_vp0_plane(rm,v-c,v) > 0 for rm in ref_mol]]
-                            # find distances of remaining ref_mol to vc line
-                            rmd = [traces.distance_p_to_ab(rm,v,c) for rm in ref_mol]
-                            # find all ref_mol that are within reference radius from vc line
-                            ref_mol = ref_mol[[d < args.ref_radius for d in rmd]]
-                            # find the most distant ref_mol
-                            com = cdist(ref_mol,[v])
-                            com = ref_mol[np.argmax(com)]
+                            with clui.pbar(mess="Automatic reference point calculation",maxval=7) as pbar:
+                                # 1.
+                                scope = traj_reader.parse_selection(options2.scope)
+                                pbar.next()
+                                # 2.
+                                scope_ch = scope.chull(inflate=options2.scope_convexhull_inflate)
+                                pbar.next()
+                                # 3.
+                                v = scope_ch.vertices_points[0] # vertex
+                                c = np.mean(scope_ch.vertices_points) # center of scope
+                                ref_mol = traj_reader.parse_selection(args.ref_mol).residues().coords()
+                                ref_mol = np.array(list(ref_mol)) # reference molecules coordinates
+                                pbar.next()
+                                # find all ref_mol that are above the vertex
+                                ref_mol = ref_mol[[traces.is_p_above_vp0_plane(rm,v-c,v) > 0 for rm in ref_mol]]
+                                pbar.next()
+                                # find distances of remaining ref_mol to vc line
+                                rmd = [traces.distance_p_to_ab(rm,v,c) for rm in ref_mol]
+                                pbar.next()
+                                # find all ref_mol that are within reference radius from vc line
+                                ref_mol = ref_mol[[d < args.ref_radius for d in rmd]]
+                                pbar.next()
+                                # find the most distant ref_mol
+                                com = cdist(ref_mol,[v])
+                                com = ref_mol[np.argmax(com)]
+                                pbar.next()
                             # 4.
+                            clui.message("Using reference point as middle between (%0.4f,%0.4f,%0.4f) and (%0.4f,%0.4f,%0.4f)." % (tuple(map(float,v))+tuple(map(float,com))))
                             com = (com+v)/2
+                            clui.message("Using reference point (%0.4f,%0.4f,%0.4f)." % tuple(map(float,com)))
                             break
                         break
                     Reader.reset()
