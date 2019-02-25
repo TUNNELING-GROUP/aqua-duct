@@ -51,8 +51,7 @@ Other options are used to start or adjust *Pond* calculations:
 * **Hot-spots**
     Option ``--hotspots`` triggers hot-spot calculations but it also requires ``--pockets``.
 * **Energy profiles**
-    Option ``--master-radius`` triggers free energy profiles calculations for master paths.
-    It requires float value of radius used in the calculations, value of 2.0 Å is a good default.
+    Option ``--energy-profile`` triggers free energy profiles calculations for master paths.
 
 *Pond*'s option ``--paths-types`` allows to limit calculations only to paths of certain molecules. For example, ``--paths-types 'WAT OXY'`` loads paths of ``WAT`` (water molecules) and ``OXY`` (oxygen) molecules. All other paths (if any) will not be used.
 

@@ -42,7 +42,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 7, 22 # pond estimates reference automatically
+    return 0, 7, 23 # pond estimates reference automatically
 
 
 def version_nice():
