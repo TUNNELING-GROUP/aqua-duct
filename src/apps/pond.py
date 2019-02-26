@@ -301,7 +301,8 @@ if __name__ == "__main__":
                                 # 3.
                                 v = scope_ch.vertices_points[0] # vertex
                                 c = np.mean(scope_ch.vertices_points) # center of scope
-                                ref_mol = traj_reader.parse_selection(args.ref_mol).residues().coords()
+                                #ref_mol = traj_reader.parse_selection(args.ref_mol).residues().coords()
+                                ref_mol = traj_reader.select_all().residues().coords()
                                 ref_mol = np.array(list(ref_mol)) # reference molecules coordinates
                                 pbar.next()
                                 # find all ref_mol that are above the vertex
