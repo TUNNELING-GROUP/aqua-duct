@@ -44,6 +44,15 @@ class manyfiletype(object):
     pass
 
 
+class dirtype(object):
+    """
+    Class used to specify type of default value.
+
+    Represents Entry with dir loading button.
+    """
+    pass
+
+
 class DefaultSection(object):
     def __init__(self, config_name, name, level):
         """
@@ -206,13 +215,13 @@ DEFAULTS = []
 global_section = DefaultSection(config_name="global", name="General options", level=1)
 global_section.add_entry(DefaultEntry(config_name="top",
                                       name="Topology file: ",
-                                      default_values=[str(), filetype()],
+                                      default_values=[filetype()],
                                       help_text="Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.",
                                       level=1,
                                       required=1))
 global_section.add_entry(DefaultEntry(config_name="trj",
                                       name="Trajectory file: ",
-                                      default_values=[str(), manyfiletype()],
+                                      default_values=[manyfiletype()],
                                       help_text="Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.",
                                       level=1,
                                       required=1))
@@ -249,7 +258,7 @@ global_section.add_entry(DefaultEntry(config_name="sps",
                                       level=1))
 global_section.add_entry(DefaultEntry(config_name="cache_dir",
                                       name="Cache directory: ",
-                                      default_values=[str()],
+                                      default_values=[dirtype()],
                                       help_text="Allows to set path to the directory for cache data.",
                                       level=1))
 global_section.add_entry(DefaultEntry(config_name="cache_mem",
