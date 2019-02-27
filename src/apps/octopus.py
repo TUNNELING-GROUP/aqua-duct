@@ -20,7 +20,6 @@
 import Tkinter as tk
 import base64
 import csv
-import itertools
 import re
 import tkMessageBox
 import ttk
@@ -32,6 +31,7 @@ import matplotlib.pyplot as plt
 
 import aquaduct.apps.valveconfig.utils as utils
 from aquaduct.apps.chord import Chord, color_gen
+from aquaduct.apps.valveconfig import get_img
 
 
 def is_float(value):
@@ -485,7 +485,7 @@ class Octopus(object):
         parent.title(self.title)
         parent.geometry("{}x{}".format(*self.size))
 
-        logo = tk.PhotoImage(file="../aquaduct/apps/valveconfig/logo.gif")
+        logo = tk.PhotoImage(file=get_img("logo.gif"))
 
         logo_label = ttk.Label(self.parent, image=logo, padding=-2)
         logo_label.image = logo
