@@ -42,7 +42,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 0, 7, 21 # multiple topologies
+    return 0, 7, 24 # pond estimates reference automatically with select_all
 
 
 def version_nice():

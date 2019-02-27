@@ -45,6 +45,13 @@ import gzip
 
 ################################################################################
 
+# Boltzmann k constant
+# k = 0.0019872041 # kcal/mol/K
+k = 0.0083144621  # kJ/mol/K
+k_unit = 'kJ/mol/K'
+
+################################################################################
+
 class count_ref(object):
 
     def __init__(self, pbar, ref_sel):
@@ -110,8 +117,10 @@ if __name__ == "__main__":
                                 help="Number of windows to calculate.")
             parser.add_argument("--wsize", action="store", dest="wsize", type=int, required=False, default=None,
                                 help="Size of window in frames.")
-            parser.add_argument("--reference", action="store", dest="ref", type=str, required=False, default=None,
-                                help="Selection of reference in the first frame of trajectory.")
+            parser.add_argument("--reference-value", action="store", dest="ref", type=float, required=False, default=None,
+                                help="Reference value in [%s]." % k_unit)
+            parser.add_argument("--reference-calc", action="store_true", dest="ref_calc", required=False,
+                                help="Calculate reference value with scope and reference molecules.")
             parser.add_argument("--reference-radius", action="store", dest="ref_radius", type=float, required=False,
                                 default=2.,
                                 help="Radius of reference.")
@@ -126,7 +135,9 @@ if __name__ == "__main__":
                                 help="Calculate pockets.")
             parser.add_argument("--hotspots", action="store_true", dest="hotspots", required=False,
                                 help="Calculates hotspots if pockets are calculated.")
-            parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False,
+            parser.add_argument("--energy-profile", action="store_true", dest="eng_pro", required=False,
+                                help="Calculates energy profiles for master paths.")
+            parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False, default=2.,
                                 help="Calculate profiles for master paths with given radius.")
             parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False,
                                 default="",
@@ -264,15 +275,53 @@ if __name__ == "__main__":
             # ----------------------------------------------------------------------#
             # reference value
 
-            ref = None
+            ref = args.ref
             # calculate n_z for reference
-            if args.ref:
+            if args.ref_calc:
                 with clui.tictoc('Reference calculation'):
+                    from aquaduct.geom import traces
+                    from scipy.spatial.distance import cdist
+                    # 1. Get scope atoms.
+                    # 2. Calculate convexhull.
+                    # 3. Get first vertex and in the direction in which it is oriented look for farthest reference molecule.
+                    # 4. Point for reference calculation get as midpoint between the used vertex and the farthest molecule.
+                    # 5. Proceed normally.
+                    options2 = config.get_stage_options(1)
+
                     for traj_reader in Reader.iterate():
                         traj_reader = traj_reader.open()
                         for frame in traj_reader.iterate():
-                            ref_sel = traj_reader.parse_selection(args.ref)
-                            com = ref_sel.center_of_mass()
+                            with clui.pbar(mess="Automatic reference point calculation",maxval=7) as pbar:
+                                # 1.
+                                scope = traj_reader.parse_selection(options2.scope)
+                                pbar.next()
+                                # 2.
+                                scope_ch = scope.chull(inflate=options2.scope_convexhull_inflate)
+                                pbar.next()
+                                # 3.
+                                v = scope_ch.vertices_points[0] # vertex
+                                c = np.mean(scope_ch.vertices_points) # center of scope
+                                #ref_mol = traj_reader.parse_selection(args.ref_mol).residues().coords()
+                                ref_mol = traj_reader.select_all().residues().coords()
+                                ref_mol = np.array(list(ref_mol)) # reference molecules coordinates
+                                pbar.next()
+                                # find all ref_mol that are above the vertex
+                                ref_mol = ref_mol[[traces.is_p_above_vp0_plane(rm,v-c,v) > 0 for rm in ref_mol]]
+                                pbar.next()
+                                # find distances of remaining ref_mol to vc line
+                                rmd = [traces.distance_p_to_ab(rm,v,c) for rm in ref_mol]
+                                pbar.next()
+                                # find all ref_mol that are within reference radius from vc line
+                                ref_mol = ref_mol[[d < args.ref_radius for d in rmd]]
+                                pbar.next()
+                                # find the most distant ref_mol
+                                com = cdist(ref_mol,[v])
+                                com = ref_mol[np.argmax(com)]
+                                pbar.next()
+                            # 4.
+                            clui.message("Using reference point as middle between (%0.4f,%0.4f,%0.4f) and (%0.4f,%0.4f,%0.4f)." % (tuple(map(float,v))+tuple(map(float,com))))
+                            com = (com+v)/2
+                            clui.message("Using reference point (%0.4f,%0.4f,%0.4f)." % tuple(map(float,com)))
                             break
                         break
                     Reader.reset()
@@ -313,8 +362,8 @@ if __name__ == "__main__":
 
                     # Boltzmann k constant
                     # k = 0.0019872041 # kcal/mol/K
-                    k = 0.0083144621  # kJ/mol/K
-                    rmu('energy_unit', 'kJ/mol/K')
+                    # k = 0.0083144621  # kJ/mol/K
+                    rmu('energy_unit', k_unit)
 
                     ref = -k * args.temp * np.log(ref)
                     rmu('reference_correction', float(ref))
@@ -329,13 +378,17 @@ if __name__ == "__main__":
             many_windows = W > 1 or (W == 1 and (WS is not None))
             many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
 
+            windows = []
             clui.message("Calculation will be done for following windows:")
             for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
                 middle = sum(window) / 2
                 if wnr and many_windows:
                     print("W%d %d:%d middle: %d" % (wnr, window[0], window[1], middle))
+                    windows.append([wnr, window[0], window[1], middle])
                 elif (wnr == 0) and (args.wfull or (not many_windows)):
                     print("full %d:%d" % (window[0], window[1]))
+                    rmu('full_window',[window[0], window[1]])
+                rmu('windows',windows)
 
             # ----------------------------------------------------------------------#
             # calculate pockets
@@ -484,7 +537,7 @@ if __name__ == "__main__":
             if args.master_radius and len(mps) == 0:
                 clui.message("No master paths data.")
 
-            if args.master_radius and len(mps):
+            if args.eng_pro and len(mps) and ref is not None:
                 with clui.tictoc('Master paths profiles calulation)'):
 
                     limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
@@ -518,7 +571,10 @@ if __name__ == "__main__":
                             if wnr or args.wfull:  # or not many_windows:
 
                                 for ctype, mp in mps.iteritems():
-
+                                    if isinstance(mp,dict):
+                                        logger.warning("Pond cannot yet handle MasterPaths calculated with separate_master option.")
+                                        logger.warning("MasterPaths for %s skip." % ctype)
+                                        continue
                                     fname_window = ""
                                     fname_window_single = ""
                                     fname = str(ctype).replace(':', '-')
@@ -538,6 +594,11 @@ if __name__ == "__main__":
                                                              window=window, pbar=pbar, map_fun=pool.imap_unordered)
                                     H = D / float(number_of_frames) / (4. / 3. * np.pi * float(args.master_radius) ** 3)
                                     if ref:
+                                        if np.any(D<=0):
+                                            ind = D > 0
+                                            H = H[ind]
+                                            centers = centers[ind]
+                                            logger.warning("Cannot find paths within defined master radius, some points are skip.")
                                         H = -k * args.temp * np.log(H) - ref
                                     with WriteMOL2(rdir + "mp_%s%s_radius%s.mol2" % (fname, fname_window_single, ptn),
                                                    mode=mode) as mol2:

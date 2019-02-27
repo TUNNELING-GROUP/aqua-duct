@@ -532,7 +532,7 @@ class ReaderTraj(object):
     def close_trajectory(self):
         # should close trajectory reader in self.trajectory_object
         # WARNING: This method has to be carefully implemented because it is used by __del__ and
-        #          should not emmit any error messages. This is subjet of change. 
+        #          should not emmit any error messages. This is subjet of change.
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
     def set_real_frame(self, real_frame):
@@ -546,6 +546,11 @@ class ReaderTraj(object):
 
     def parse_selection(self, selection):
         # should return selection
+        # selection resolution should be atoms
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
+    def select_all(self):
+        # should return selection of all atoms
         # selection resolution should be atoms
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
@@ -617,6 +622,9 @@ class ReaderTrajViaMDA(ReaderTraj):
 
     def parse_selection(self, selection):
         return AtomSelection({self.number: self.trajectory_object.select_atoms(selection).atoms.ix})
+
+    def select_all(self):
+        return self.parse_selection("name *")
 
     def atom2residue(self, atomid):
         return self.trajectory_object.atoms[atomid].residue.ix
