@@ -20,6 +20,7 @@ import Tkinter as tk
 import os
 import ttk
 from tkFileDialog import askopenfile, askdirectory
+from aquaduct.apps.valveconfig import get_img
 
 import defaults
 
@@ -633,7 +634,7 @@ class WarningIconWidget(ttk.Label, object):
         :param parent: Parent of widget.
         :param text: Content of tooltip
         """
-        self.image = tk.PhotoImage(file="../aquaduct/apps/valveconfig/warning.gif")
+        self.image = tk.PhotoImage(file=get_img("warning.gif"))
         super(WarningIconWidget, self).__init__(parent, image=self.image, padding=0)
 
         ToolTip.create(self, text)
@@ -647,7 +648,7 @@ class InfoIconWidget(ttk.Label, object):
         :param parent: Parent of widget.
         :param text: Content of tooltip
         """
-        self.image = tk.PhotoImage(file="../aquaduct/apps/valveconfig/info.gif")
+        self.image = tk.PhotoImage(file=get_img("info.gif"))
         super(InfoIconWidget, self).__init__(parent, image=self.image, padding=0)
 
         ToolTip.create(self, text)
