@@ -198,17 +198,28 @@ class sphere_radius_worker(object):
         D = spatial.distance.cdist(coords, self.centers) <= self.radius
         return np.count_nonzero(D, 0)
 
+class sphere_radius_worker_lowmem(object):
+    def __init__(self, window, centers, radius):
+        self.window = window
+        self.centers = centers
+        self.radius = radius
+
+    def __call__(self, sp):
+        coords = get_spc(sp, window=self.window)
+        g = (int(np.count_nonzero(spatial.distance.cdist(coords, [c]) <= self.radius)) for c in self.centers)
+        return np.fromiter(g,dtype=np.int32)
 
 def sphere_radius(spaths, centers=None, radius=2., window=None, pbar=None, map_fun=None):
     H = np.zeros(len(centers), dtype=np.int32)
 
     if map_fun is None:
         map_fun = imap
-    map_worker = sphere_radius_worker(window, centers, radius)
+    map_worker = sphere_radius_worker_lowmem(window, centers, radius)
     for h in map_fun(map_worker, spaths):
         H += h
         if pbar:
             pbar.next()
+
     return H
 
 

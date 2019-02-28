@@ -350,6 +350,7 @@ if __name__ == "__main__":
                         r.wait()
                         pool.close()
                         pool.join()
+                        del pbar_queue, manager
 
                     ref = float(sum(ref))
 
