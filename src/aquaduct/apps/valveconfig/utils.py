@@ -19,7 +19,8 @@
 import Tkinter as tk
 import os
 import ttk
-from tkFileDialog import askopenfile
+from tkFileDialog import askopenfile, askdirectory
+from aquaduct.apps.valveconfig import get_img
 
 import defaults
 
@@ -109,20 +110,6 @@ def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL, info_
 
         if isinstance(control_default, bool):
             return BoolEntry(parent, row, entry_name, input_default, control_default, help, info_text, warning_text)
-        elif isinstance(control_default, defaults.filetype):
-            if isinstance(input_default, str):
-                return FileEntry(parent, row, entry_name, input_default, help, info_text, warning_text)
-            else:
-                raise TypeError(
-                    "File can be loaded only into str widget type in {} option({})".format(entry_name,
-                                                                                           type(default)))
-        elif isinstance(control_default, defaults.manyfiletype):
-            if isinstance(input_default, str):
-                return ManyFileEntry(parent, row, entry_name, input_default, help, info_text, warning_text)
-            else:
-                raise TypeError(
-                    "File can be loaded only into str widget type in {} option({})".format(entry_name,
-                                                                                           type(default)))
         elif isinstance(control_default, float):
             return ParenthesedEntry(parent, row, entry_name, input_default, control_default, help, info_text,
                                     warning_text)
@@ -130,6 +117,13 @@ def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL, info_
             raise TypeError("There is no specified behaviour for {} type(for {} option). "
                             "First must be input widget, then control widget"
                             .format(type(control_default), entry_name))
+    elif isinstance(default[0], defaults.filetype):
+        return FileEntry(parent, row, entry_name, str(), help, info_text, warning_text)
+    elif isinstance(default[0], defaults.manyfiletype):
+        return ManyFileEntry(parent, row, entry_name, str(), help, info_text, warning_text)
+    elif isinstance(default[0], defaults.dirtype):
+        return DirEntry(parent, row, entry_name, str(), help, info_text, warning_text)
+
     else:
         return StandardEntry(parent, row, entry_name, default[0], help, state, info_text, warning_text)
 
@@ -512,6 +506,66 @@ class ManyFileEntry(Entry):
             frame.config(background=self.default_background)
 
 
+class DirEntry(Entry):
+    def __init__(self, parent, row, entry_name_long, default, help, info_text=None, warning_text=None):
+        """
+        Entry with Entry widget and button to load and append file name to it.
+
+        :param parent: Parent of widgets.
+        :param row: Row where widgets will be grided.
+        :param entry_name_long: Readable entry name.
+        :param default: Default values of entry.
+        :param help: Text which will be displayed in tooltip.
+        :param state: State of widget.
+        """
+        super(DirEntry, self).__init__(parent, row)
+
+        ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
+
+        self.input_widget, self.input_var = widget_factory(self.input_frame, default)
+        self.input_widget.pack(side=tk.LEFT, padx=5, pady=5)
+
+        ToolTip.create(self.input_widget, help)
+
+        load_file_button = ttk.Button(self.input_frame, text="Load", style="File.TButton")
+        load_file_button.pack(side=tk.LEFT, padx=5)
+
+        load_file_button.bind("<Button-1>", self.callback_load_dir)
+
+        if info_text:
+            InfoIconWidget(self.input_frame, info_text).pack(side=tk.LEFT)
+        elif warning_text:
+            WarningIconWidget(self.input_frame, warning_text).pack(side=tk.LEFT)
+
+    def callback_load_dir(self, e):
+        """
+        Callback for selecting file.
+
+        Sets widget content to loaded file name.
+        """
+        try:
+            with askdirectory() as f:
+                self.input_var.set(f.name)
+        except AttributeError:  # In case of cancel selecting file
+            pass
+
+    def get(self):
+        """
+        Gets Entry value.
+
+        :return: Entry value.
+        """
+        return self.input_var.get()
+
+    def set(self, value):
+        """
+        Sets Entry value.
+
+        :param value: New value of Entry.
+        """
+        self.input_var.set(value)
+
+
 class ParenthesedEntry(Entry):
     def __init__(self, parent, row, entry_name_long, input_default, control_default, help, info_text=None,
                  warning_text=None):
@@ -580,7 +634,7 @@ class WarningIconWidget(ttk.Label, object):
         :param parent: Parent of widget.
         :param text: Content of tooltip
         """
-        self.image = tk.PhotoImage(file="../aquaduct/apps/valveconfig/warning.gif")
+        self.image = tk.PhotoImage(file=get_img("warning.gif"))
         super(WarningIconWidget, self).__init__(parent, image=self.image, padding=0)
 
         ToolTip.create(self, text)
@@ -594,7 +648,7 @@ class InfoIconWidget(ttk.Label, object):
         :param parent: Parent of widget.
         :param text: Content of tooltip
         """
-        self.image = tk.PhotoImage(file="../aquaduct/apps/valveconfig/info.gif")
+        self.image = tk.PhotoImage(file=get_img("info.gif"))
         super(InfoIconWidget, self).__init__(parent, image=self.image, padding=0)
 
         ToolTip.create(self, text)
@@ -706,35 +760,51 @@ class VerticalScrolledFrame(tk.Frame):
         # create a canvas object and a vertical scrollbar for scrolling it
         vscrollbar = tk.Scrollbar(self, orient=tk.VERTICAL)
         vscrollbar.pack(fill=tk.Y, side=tk.RIGHT, expand=tk.FALSE)
-        canvas = tk.Canvas(self, bd=0, highlightthickness=0,
-                           yscrollcommand=vscrollbar.set)
-        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
-        vscrollbar.config(command=canvas.yview)
+        self.canvas = tk.Canvas(self, bd=0, highlightthickness=0,
+                                yscrollcommand=vscrollbar.set)
+        self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
+        vscrollbar.config(command=self.canvas.yview)
 
         # reset the view
-        canvas.xview_moveto(0)
-        canvas.yview_moveto(0)
+        self.canvas.xview_moveto(0)
+        self.canvas.yview_moveto(0)
 
         # create a frame inside the canvas which will be scrolled with it
-        self.interior = interior = tk.Frame(canvas)
-        interior_id = canvas.create_window(0, 0, window=interior,
-                                           anchor="nw")
+        self.interior = interior = tk.Frame(self.canvas)
+        interior_id = self.canvas.create_window(0, 0, window=interior, anchor="nw")
 
         # track changes to the canvas and frame width and sync them,
         # also updating the scrollbar
-        def _configure_interior(event):
+        def _configure_interior(e):
             # update the scrollbars to match the size of the inner frame
             size = (interior.winfo_reqwidth(), interior.winfo_reqheight())
-            canvas.config(scrollregion="0 0 %s %s" % size)
-            if interior.winfo_reqwidth() != canvas.winfo_width():
+            self.canvas.config(scrollregion="0 0 %s %s" % size)
+            if interior.winfo_reqwidth() != self.canvas.winfo_width():
                 # update the canvas's width to fit the inner frame
-                canvas.config(width=interior.winfo_reqwidth())
+                self.canvas.config(width=interior.winfo_reqwidth())
 
         interior.bind('<Configure>', _configure_interior)
 
-        def _configure_canvas(event):
-            if interior.winfo_reqwidth() != canvas.winfo_width():
+        def _configure_canvas(e):
+            if interior.winfo_reqwidth() != self.canvas.winfo_width():
                 # update the inner frame's width to fill the canvas
-                canvas.itemconfigure(interior_id, width=canvas.winfo_width())
+                self.canvas.itemconfigure(interior_id, width=self.canvas.winfo_width())
 
-        canvas.bind('<Configure>', _configure_canvas)
+        self.canvas.bind('<Configure>', _configure_canvas)
+
+        self.canvas.bind('<Enter>', self._bind_mousewheel)
+        self.canvas.bind('<Leave>', self._unbind_mousewheel)
+
+    def _bind_mousewheel(self, e):
+        def _mousewheel_handler(e, canvas):
+            if e.num == 5:
+                canvas.yview_scroll(1, "units")
+            if e.num == 4:
+                canvas.yview_scroll(-1, "units")
+
+        self.canvas.bind_all("<MouseWheel>", lambda e: _mousewheel_handler(e, self.canvas))
+        self.canvas.bind_all("<Button-4>", lambda e: _mousewheel_handler(e, self.canvas))
+        self.canvas.bind_all("<Button-5>", lambda e: _mousewheel_handler(e, self.canvas))
+
+    def _unbind_mousewheel(self, e):
+        self.canvas.unbind("<MouseWheel>")
