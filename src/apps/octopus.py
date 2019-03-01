@@ -920,7 +920,7 @@ class Octopus(object):
             log(tk.END, "Done.\n", "success")
 
         # Save plots to file
-        logo_base64 = base64.b64encode(open("../aquaduct/apps/valveconfig/logo.gif", "rb").read())
+        logo_base64 = base64.b64encode(open(get_img("logo.gif"), "rb").read())
         html = """<div style="text-align:center; margin-bottom: 40px"><a href="http://www.tunnelinggroup.pl"><img src="data:image/gif;base64,{}"></a></div>""".format(
             logo_base64)
         for i, f in enumerate(plots):
