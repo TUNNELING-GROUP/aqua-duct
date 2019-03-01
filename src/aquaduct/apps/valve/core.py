@@ -34,7 +34,7 @@ from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath, MacroMolPath
 from aquaduct.traj.paths import yield_generic_paths
-from aquaduct.traj.sandwich import ResidueSelection, Reader
+from aquaduct.traj.sandwich import ResidueSelection, Reader, mda_ver
 from aquaduct.utils.clui import roman
 from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof, make_fraction
 from aquaduct.utils.helpers import range2int, what2what, lind, robust_and, robust_or
@@ -998,6 +998,9 @@ def stage_V_run(config, options,
     pa.sep()
     pa('Aqua-Duct analysis')
     pa(clui.get_str_timestamp())
+    pa('Aqua-Duct: v%s' % aquaduct_version_nice())
+    pa('NumPy: v%s' % np.__version__)
+    pa('MDAnalysis: v%s' % mda_ver())
 
     ############
     # format for path ID

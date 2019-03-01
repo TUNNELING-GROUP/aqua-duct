@@ -27,6 +27,9 @@ from os import pathsep
 import numpy as np
 import MDAnalysis as mda
 
+def mda_ver():
+    return mda.__version__
+
 # FIXME: do it according to user options
 if mda.__version__ < '0.16':
     logger.error('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.', mda.__version__)
