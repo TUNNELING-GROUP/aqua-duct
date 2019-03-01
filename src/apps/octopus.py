@@ -738,7 +738,7 @@ class Octopus(object):
         self.generate_button.config(state=tk.DISABLED)
         self.generate_button.unbind("<Button-1>")
 
-        self.parent.update_idletasks() # Force console log to show before generating plots
+        self.parent.update_idletasks()  # Force console log to show before generating plots
 
         def close_log_window():
             log_window.destroy()
@@ -833,7 +833,7 @@ class Octopus(object):
                 ligands_time(f).savefig(plot, format="png", bbox_inches="tight")
                 plots.append(plot)
 
-            if self.molecules3:
+            if self.molecules3.get():
                 molecules = self.molecules3.get().replace(" ", "").upper().split(",")
                 for molecule in molecules:
                     log(tk.END, "* {} ".format(molecule))
