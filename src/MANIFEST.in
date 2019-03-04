@@ -1,0 +1,6 @@
+include README.md
+include LICENSE.txt
+include aquaduct/apps/valveconfig/icon.gif
+include aquaduct/apps/valveconfig/info.gif
+include aquaduct/apps/valveconfig/logo.gif
+include aquaduct/apps/valveconfig/warning.gif
