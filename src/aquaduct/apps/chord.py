@@ -18,12 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import colorsys
+import itertools
 
 import matplotlib.patches as mpatches
 import matplotlib.path as mpath
 import matplotlib.pyplot as plt
 import numpy as np
-import itertools
 
 
 def color_gen():
@@ -41,7 +41,7 @@ def hex2rgb(color):
     :return: Tuple with RGB values.
     """
     # https://stackoverflow.com/questions/29643352/converting-hex-to-rgb-value-in-python
-    return tuple(int(color[i:i+2], 16) for i in (0, 2 ,4))
+    return tuple(int(color[i:i + 2], 16) for i in (0, 2, 4))
 
 
 def polar2point(angle, r):
@@ -129,7 +129,7 @@ class Node(mpatches.PathPatch):
         codes.extend([mpath.Path.CURVE3] * (len(outer_arc) - 1))
 
         # Inner arc
-        inner_arc = generate_arc(0.9*r, sa, ea, reversed_=True)
+        inner_arc = generate_arc(0.9 * r, sa, ea, reversed_=True)
         vertices.extend(inner_arc)
 
         codes.append(mpath.Path.LINETO)
@@ -220,18 +220,18 @@ class Arrow(mpatches.PathPatch):
         vertices = []
         codes = []
 
-        c = sa + (ea - sa)/2
+        c = sa + (ea - sa) / 2
 
         if ea - sa < max_angle:
             max_angle = ea - sa
 
-        arc = generate_arc(r, c - max_angle/2, c + max_angle/2)
+        arc = generate_arc(r, c - max_angle / 2, c + max_angle / 2)
         vertices.extend(arc)
 
         codes.append(mpath.Path.MOVETO)
         codes.extend([mpath.Path.CURVE3] * (len(arc) - 1))
 
-        vertices.append(polar2point(sa + (ea - sa) / 2, 0.9*r - 2))
+        vertices.append(polar2point(sa + (ea - sa) / 2, 0.9 * r - 2))
         codes.append(mpath.Path.LINETO)
 
         vertices.append((0, 0))
@@ -293,7 +293,7 @@ class Chord(object):
                   bbox_to_anchor=(1.02, 1), loc="upper left")
 
         # Scales
-        links_sum = [0.]*len(nodes_sizes)
+        links_sum = [0.] * len(nodes_sizes)
         for link in links:
             links_sum[link["source"]] += link["value"]
             links_sum[link["dest"]] += link["value"]
@@ -322,8 +322,8 @@ class Chord(object):
 
             dest_node.reserve_arc(elink_arc)
 
-            l = Link(0.92*r, sa0, sa1, ea0, ea1, source_node.color)
-            a = Arrow(0.92*r, sa0, sa1, source_node.color)
+            l = Link(0.92 * r, sa0, sa1, ea0, ea1, source_node.color)
+            a = Arrow(0.92 * r, sa0, sa1, source_node.color)
 
             ax.add_patch(l)
             ax.add_patch(a)
@@ -333,7 +333,14 @@ class Chord(object):
                 rgb_color = hex2rgb(source_node.color.lstrip("#")) if isinstance(source_node.color,
                                                                                  str) else source_node.color
                 hsl_color = list(colorsys.rgb_to_hls(*rgb_color))
-                hsl_color[0] += 0.5
+
+                if not hsl_color[0]:
+                    if 138 >= hsl_color[1] >= 118:  # For gray color automatically set white
+                        hsl_color[1] = 255
+                    else:
+                        hsl_color[1] = (hsl_color[1] - 255) * -1.0
+                else:
+                    hsl_color[0] += 0.5
 
                 complimentary_color = [c / 255 for c in colorsys.hls_to_rgb(*hsl_color)]
 
@@ -366,6 +373,6 @@ if __name__ == "__main__":
 
     Chord(ax, 100, sizes, links, labels)
 
-    fig.savefig("chord.png", format="png", dpi=2**7)
+    fig.savefig("chord.png", format="png", dpi=2 ** 7)
 
     plt.show()
