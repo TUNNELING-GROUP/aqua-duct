@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2016-2018 Michał Banas
+# Copyright (C) 2018-2019  Michał Banas
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,9 +20,9 @@ import Tkinter as tk
 import os
 import ttk
 from tkFileDialog import askopenfile, askdirectory
-from aquaduct.apps.valveconfig import get_img
 
 import defaults
+from aquaduct.apps.valveconfig import get_img
 
 
 def get_widget_bg(widget):
