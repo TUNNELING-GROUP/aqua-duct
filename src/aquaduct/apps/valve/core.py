@@ -1636,7 +1636,7 @@ def stage_VI_run(config, options,
             spaths_layer = filter(lambda spath: spath.id.id[0] == layer, all_spaths)
             layer_name = "_L{}".format(layer)
 
-            clui.message("Paths in layer {}:".format(layer))
+            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()))
             if options.all_paths_raw:
                 with clui.fbm("All raw paths" + tn_name.replace('_', ' ')):
                     plot_spaths_traces(fof(spaths_layer), name='all_raw' + tn_name + layer_name,
