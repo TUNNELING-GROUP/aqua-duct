@@ -623,7 +623,11 @@ class Octopus(object):
         cb4.configure(command=lambda: state4_frame.toggle())
 
         ttk.Label(state4_frame, text="Clusters info: ").grid(row=0, column=0)
+
         tk.Entry(state4_frame, textvariable=self.clusters_info4).grid(row=0, column=1)
+        clust_info_load = ttk.Button(state4_frame, command=lambda: self.load_file(self.clusters_info4),
+                                     text="Load file", style="File.TButton")
+        clust_info_load.grid(sticky="w", row=0, column=3)
 
         ttk.Label(state4_frame, text="Threshold: ").grid(row=1, column=0)
         tk.Entry(state4_frame, textvariable=self.chord_threshold).grid(row=1, column=1)
