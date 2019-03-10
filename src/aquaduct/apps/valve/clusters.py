@@ -3,6 +3,7 @@
 # This program is distributed in the hope that it will be useful,
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
 # Copyright (C) 2016-2018  Tomasz Magdziarz, Alicja Płuciennik, Michał Stolarczyk <info@aquaduct.pl>
+# Copyright (C) 2019  Tomasz Magdziarz, Michał Banas <info@aquaduct.pl>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
