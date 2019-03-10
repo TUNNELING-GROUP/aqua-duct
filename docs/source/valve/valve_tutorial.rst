@@ -81,10 +81,10 @@ Visual inspection
 
 In the last stage PyMOL should pop up and *Valve* should start to feed it with visualization data. This would take a moment and if you set up ``save`` option a PyMOL session would be saved. Once it is done *Valve* quits and switches off PyMOL. Now, you can restart it and read saved session.
 
-Clusterization
+Clustering
 ^^^^^^^^^^^^^^
 
-Improve clusterization of Inlets. See :doc:`valve_config` for more hints on available clusterization options.
+Improve clustering of Inlets. See :doc:`valve_config` for more hints on available clustering options.
 
 Analysis tables
 ^^^^^^^^^^^^^^^

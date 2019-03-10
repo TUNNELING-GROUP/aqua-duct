@@ -47,7 +47,7 @@ Aqua-Duct changelog
     * Reliability fix in progress bar display.
 * 0.3.6 (28.06.2017)
     * AQ can be run for given part of trajectory.
-    * Fixed bug in passing options to Barber clusterization method.
+    * Fixed bug in passing options to Barber clustering method.
     * Recursive threshold can be defined as range; no disjoint ranges are supported.
 * 0.3.5 (18.04.2017)
     * As for now, the only supported version of MDAnalysis is 0.15.
@@ -59,7 +59,7 @@ Aqua-Duct changelog
     * Number of small improvements in documentation.
 * 0.3.2 (24.02.2017)
     * Major improvement: new auto_barber based clustering method.
-    * Clusterization history displayed as simple ascii tree.
+    * Clustering history displayed as simple ascii tree.
     * AutoBarber min and max cut level options added.
     * Barber moved to separate module.
     * Fixed bug in visualization script; if no molecule is kept do not set style and color.

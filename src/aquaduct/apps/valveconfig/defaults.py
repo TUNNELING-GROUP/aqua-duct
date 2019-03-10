@@ -179,11 +179,11 @@ def get_default_section(section_name):
     :return: Default section informations.
     :rtype: DefaultSection
     """
-    if section_name.startswith("clusterization"):
-        section_name = "clusterization"
+    if section_name.startswith("clustering"):
+        section_name = "clustering"
 
-    if section_name.startswith("reclusterization"):
-        section_name = "reclusterization"
+    if section_name.startswith("reclustering"):
+        section_name = "reclustering"
 
     for section in DEFAULTS:
         if section.config_name == section_name:
@@ -463,129 +463,129 @@ separate_paths_section.add_entry(DefaultEntry(config_name="allow_passing_paths",
                                               warning_text=" "))
 DEFAULTS.append(separate_paths_section)
 
-inlets_clusterization_section = DefaultSection(config_name="inlets_clusterization", name="Inlets clusterization",
+inlets_clustering_section = DefaultSection(config_name="inlets_clustering", name="Inlets clustering",
                                                level=1)
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="execute",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="execute",
                                                      name="Execute: ",
                                                      default_values=[("runonce", "run", "skip")],
                                                      help_text="Option controls stage execution. It can have one of three possible values: run, runonce, and skip. If it is set to run calculations are always performed and if dump is set dump file is saved. If it is set to runonce calculations are performed if there is no dump file specified by dump option. If it is present calculations are skipped and data is loaded from the file. If it is set to skip calculations are skip and if dump is set data is loaded from the file.",
                                                      level=0,
                                                      info_text=" "))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="dump",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="dump",
                                                      name="Dump file: ",
-                                                     default_values=["4_inlets_clusterization_data.dump"],
+                                                     default_values=["4_inlets_clustering_data.dump"],
                                                      help_text="File name of dump data. It is used to save results of calculations or to load previously calculated data - this depends on execute option.",
                                                      level=0))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="recluster_outliers",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="recluster_outliers",
                                                      name="Recluster outliers: ",
                                                      default_values=[False],
-                                                     help_text="If set to True reclusterization of outliers is executed according to the method defined in reclusterization section.",
+                                                     help_text="If set to True reclustering of outliers is executed according to the method defined in reclustering section.",
                                                      level=0,
                                                      info_text=" "))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="detect_outliers",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="detect_outliers",
                                                      name="Detect outliers: ",
                                                      default_values=[["False", "Auto"]],
                                                      help_text="If set, detection of outliers is executed. It could be set as a floating point distance threshold or set to Auto.",
                                                      level=1))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="singletons_outliers",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="singletons_outliers",
                                                      name="Singletons outliers: ",
                                                      default_values=["False"],
                                                      help_text="Maximal size of cluster to be considered as outliers. If set to number > 0 clusters of that size are removed and their objects are moved to outliers.",
                                                      level=1))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="max_level",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="max_level",
                                                      name="Max level: ",
                                                      default_values=[0],
-                                                     help_text="Maximal number of recursive clusterization levels.",
+                                                     help_text="Maximal number of recursive clustering levels.",
                                                      level=0,
                                                      info_text=" "))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="exclude_passing_in_clusterization",
-                                                     name="Exclude passing in clusterization: ",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="exclude_passing_in_clustering",
+                                                     name="Exclude passing in clustering: ",
                                                      default_values=[True],
                                                      help_text="If set to True passing paths are not clustered with normal paths.",
                                                      level=0,
                                                      group_label="Passing paths",
                                                      info_text=" "))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="add_passing_to_clusters",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="add_passing_to_clusters",
                                                      name="Add passing to clusters: ",
                                                      default_values=[str()],
                                                      help_text="Allows to run procedure for adding passing paths inlets to clusters with Auto Barber method. To enable this the option should be set to molecular entity that will be used by Auto Barber.",
                                                      level=0,
                                                      group_label="Passing paths",
                                                      info_text=" "))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="join_clusters",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="join_clusters",
                                                      name="Join clusters: ",
                                                      default_values=[str()],
                                                      help_text="This option allows to join selected clusters. Clusters’ IDs joined with + character lists clusters to be joined together. Several such blocks separated by space can be used. For example, if set to 1+3+4 5+6 clusters 1, 3, and 4 will be joined in one cluster and cluster 5, and 6 will be also joined in another cluster.",
                                                      level=1,
                                                      group_label="Post Clustering Optimalization"))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="renumber_clusters",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="renumber_clusters",
                                                      name="Renumber clusters: ",
                                                      default_values=[False],
                                                      help_text="If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
                                                      level=1,
                                                      group_label="Post Clustering Optimalization"))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="cluster_area",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="cluster_area",
                                                      name="Cluster area: ",
                                                      default_values=[True],
                                                      help_text="If set True, clusters’ areas are estimated with kernel density estimation method (KDE).",
                                                      level=1))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="cluster_area_precision",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="cluster_area_precision",
                                                      name="Cluster area precision: ",
                                                      default_values=[20],
                                                      help_text="Precision of KDE method in clusters’ areas estimation method. This options controls number of grid points per one square A as used in KDE. Higher values means better precision. Number of points can be calculated as P^(2/3).",
                                                      level=1))
-inlets_clusterization_section.add_entry(DefaultEntry(config_name="cluster_area_expand",
+inlets_clustering_section.add_entry(DefaultEntry(config_name="cluster_area_expand",
                                                      name="Epand cluster area: ",
                                                      default_values=[2],
                                                      help_text="Space occupied by clusters’ points can be expanded before KDE calculation. This option controls amount of A by which the cluster space is expanded. Average amount of expansion can be calcualted as E^(2/3).",
                                                      level=1))
-DEFAULTS.append(inlets_clusterization_section)
+DEFAULTS.append(inlets_clustering_section)
 
-clusterization_section = DefaultSection(config_name="clusterization", name="Clusterization", level=1)
-clusterization_section.add_entry(DefaultEntry(config_name="name",
+clustering_section = DefaultSection(config_name="clustering", name="Clustering", level=1)
+clustering_section.add_entry(DefaultEntry(config_name="name",
                                               name="Name: ",
-                                              default_values=["clusterization"],
-                                              help_text="Used to refer other clusterization method in \"Recursive clustering\" option",
+                                              default_values=["clustering"],
+                                              help_text="Used to refer other clustering method in \"Recursive clustering\" option",
                                               level=1))
-clusterization_section.add_entry(DefaultEntry(config_name="method",
+clustering_section.add_entry(DefaultEntry(config_name="method",
                                               name="Method: ",
                                               default_values=[
                                                   ("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")],
-                                              help_text="Name of clusterization method. ",
+                                              help_text="Name of clustering method. ",
                                               level=1))
 
 # Barber options
-clusterization_section.add_entry(DefaultEntry(config_name="auto_barber",
+clustering_section.add_entry(DefaultEntry(config_name="auto_barber",
                                               name="Auto barber: ",
                                               default_values=[str()],
                                               help_text="This option allows to select molecular entity used in Auto Barber procedure.",
                                               level=1,
                                               optionmenu_value="barber"))
-clusterization_section.add_entry(DefaultEntry(config_name="auto_barber_mincut",
+clustering_section.add_entry(DefaultEntry(config_name="auto_barber_mincut",
                                               name="Auto Barber mincut: ",
                                               default_values=[str()],
                                               help_text="Minimal radius of spheres used in Auto Barber. If a sphere has radius smaller than this value, it is not used to cut. This option can be switched off by setting it to None.",
                                               level=0,
                                               optionmenu_value="barber"))
-clusterization_section.add_entry(DefaultEntry(config_name="auto_barber_maxcut",
+clustering_section.add_entry(DefaultEntry(config_name="auto_barber_maxcut",
                                               name="Auto Barber maxcut: ",
                                               default_values=[str()],
                                               help_text="Maximal radius of spheres used in Auto Barber. If a sphere has radius greater than this value, it is not used to cut. This option can be switched off by setting it to None.",
                                               level=0,
                                               optionmenu_value="barber"))
-clusterization_section.add_entry(DefaultEntry(config_name="auto_barber_mincut_level",
+clustering_section.add_entry(DefaultEntry(config_name="auto_barber_mincut_level",
                                               name="Auto Barber mincut level: ",
                                               default_values=[bool()],
                                               help_text="If set True, spheres of radius less than mincut are resized to mincut value.",
                                               level=0,
                                               optionmenu_value="barber"))
-clusterization_section.add_entry(DefaultEntry(config_name="auto_barber_maxcut_level",
+clustering_section.add_entry(DefaultEntry(config_name="auto_barber_maxcut_level",
                                               name="Auto Barber maxcut level:",
                                               default_values=[bool()],
                                               help_text="If set True, spheres of radius greater than maxcut are resized to maxcut value.",
                                               level=0,
                                               optionmenu_value="barber"))
-clusterization_section.add_entry(DefaultEntry(config_name="auto_barber_tovdw",
+clustering_section.add_entry(DefaultEntry(config_name="auto_barber_tovdw",
                                               name="Auto Barber VdW: ",
                                               default_values=[bool()],
                                               help_text="If set True, cutting of spheres is corrected by decreasing its radius by VdW radius of the closest atom.",
@@ -593,30 +593,30 @@ clusterization_section.add_entry(DefaultEntry(config_name="auto_barber_tovdw",
                                               optionmenu_value="barber"))
 
 # Dbscan options
-clusterization_section.add_entry(DefaultEntry(config_name="eps",
+clustering_section.add_entry(DefaultEntry(config_name="eps",
                                               name="Maximum distance: ",
                                               default_values=[float()],
                                               help_text="The maximum distance between two samples for them to be considered as in the same neighborhood.",
                                               level=0,
                                               optionmenu_value="dbscan"))
-clusterization_section.add_entry(DefaultEntry(config_name="min_samples",
+clustering_section.add_entry(DefaultEntry(config_name="min_samples",
                                               name="Maxium samples: ",
                                               default_values=[int()],
                                               help_text="The number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself.",
                                               level=0, optionmenu_value="dbscan"))
-clusterization_section.add_entry(DefaultEntry(config_name="metric",
+clustering_section.add_entry(DefaultEntry(config_name="metric",
                                               name="Metric: ",
                                               default_values=[("euclidean", "cityblock", "cosine", "manhattan")],
                                               help_text="The metric to use when calculating distance between instances in a feature array.",
                                               level=0,
                                               optionmenu_value="dbscan"))
-clusterization_section.add_entry(DefaultEntry(config_name="algorithm",
+clustering_section.add_entry(DefaultEntry(config_name="algorithm",
                                               name="Algorithm: ",
                                               default_values=[("auto", "ball_tree", "kd_tree", "brute")],
                                               help_text="The algorithm to be used by the NearestNeighbors module to compute pointwise distances and find nearest neighbors.",
                                               level=0,
                                               optionmenu_value="dbscan"))
-clusterization_section.add_entry(DefaultEntry(config_name="leaf_size",
+clustering_section.add_entry(DefaultEntry(config_name="leaf_size",
                                               name="Leaf size: ",
                                               default_values=[int()],
                                               help_text="Leaf size passed to BallTree or cKDTree.",
@@ -624,25 +624,25 @@ clusterization_section.add_entry(DefaultEntry(config_name="leaf_size",
                                               optionmenu_value="dbscan"))
 
 # Affprop options
-clusterization_section.add_entry(DefaultEntry(config_name="damping",
+clustering_section.add_entry(DefaultEntry(config_name="damping",
                                               name="Damping factor: ",
                                               default_values=[float()],
                                               help_text="Damping factor between 0.5 and 1.",
                                               level=0,
                                               optionmenu_value="affprop"))
-clusterization_section.add_entry(DefaultEntry(config_name="convergence_iter",
+clustering_section.add_entry(DefaultEntry(config_name="convergence_iter",
                                               name="Maximum no effect iterations: ",
                                               default_values=[int()],
                                               help_text="Number of iterations with no change in the number of estimated clusters that stops the convergence.",
                                               level=0,
                                               optionmenu_value="affprop"))
-clusterization_section.add_entry(DefaultEntry(config_name="max_iter",
+clustering_section.add_entry(DefaultEntry(config_name="max_iter",
                                               name="Maximum number of iterations: ",
                                               default_values=[int()],
                                               help_text="Maximum number of iterations.",
                                               level=0,
                                               optionmenu_value="affprop"))
-clusterization_section.add_entry(DefaultEntry(config_name="preference",
+clustering_section.add_entry(DefaultEntry(config_name="preference",
                                               name="Preference: ",
                                               default_values=[float()],
                                               help_text="Points with larger values of preferences are more likely to be chosen as exemplars.",
@@ -650,25 +650,25 @@ clusterization_section.add_entry(DefaultEntry(config_name="preference",
                                               optionmenu_value="affprop"))
 
 # Meanshift options
-clusterization_section.add_entry(DefaultEntry(config_name="bandwidth",
+clustering_section.add_entry(DefaultEntry(config_name="bandwidth",
                                               name="Bandwidth: ",
                                               default_values=["Auto"],
                                               help_text="Bandwidth used in the RBF kernel. If Auto or None automatic method for bandwidth estimation is used.",
                                               level=1,
                                               optionmenu_value="meanshift"))
-clusterization_section.add_entry(DefaultEntry(config_name="cluster_all",
+clustering_section.add_entry(DefaultEntry(config_name="cluster_all",
                                               name="Cluster all points: ",
                                               default_values=[bool()],
                                               help_text="If true, then all points are clustered, even those orphans that are not within any kernel.",
                                               level=0,
                                               optionmenu_value="meanshift"))
-clusterization_section.add_entry(DefaultEntry(config_name="bin_seeding",
+clustering_section.add_entry(DefaultEntry(config_name="bin_seeding",
                                               name="bin_seeding",
                                               default_values=[bool()],
                                               help_text="If true, initial kernel locations are not locations of all points, but rather the location of the discretized version of points, where points are binned onto a grid whose coarseness corresponds to the bandwidth.",
                                               level=0,
                                               optionmenu_value="meanshift"))
-clusterization_section.add_entry(DefaultEntry(config_name="min_bin_freq",
+clustering_section.add_entry(DefaultEntry(config_name="min_bin_freq",
                                               name="min_bin_freq",
                                               default_values=[int()],
                                               help_text="To speed up the algorithm, accept only those bins with at least min_bin_freq points as seeds. If not defined, set to 1.",
@@ -676,19 +676,19 @@ clusterization_section.add_entry(DefaultEntry(config_name="min_bin_freq",
                                               optionmenu_value="meanshift"))
 
 # Birch options
-clusterization_section.add_entry(DefaultEntry(config_name="threshold",
+clustering_section.add_entry(DefaultEntry(config_name="threshold",
                                               name="Threshold: ",
                                               default_values=[float()],
                                               help_text="The radius of the subcluster obtained by merging a new sample and the closest subcluster should be smaller than the threshold. Otherwise a new subcluster is started.",
                                               level=0,
                                               optionmenu_value="birch"))
-clusterization_section.add_entry(DefaultEntry(config_name="branching_factor",
+clustering_section.add_entry(DefaultEntry(config_name="branching_factor",
                                               name="Branching factor: ",
                                               default_values=[int()],
                                               help_text="Maximum number of CF subclusters in each node.",
                                               level=0,
                                               optionmenu_value="birch"))
-clusterization_section.add_entry(DefaultEntry(config_name="n_clusters",
+clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
                                               name="Cluster number: ",
                                               default_values=[int()],
                                               help_text="Number of clusters after the final clustering step, which treats the subclusters from the leaves as new samples. By default, this final clustering step is not performed and the subclusters are returned as they are.",
@@ -696,94 +696,94 @@ clusterization_section.add_entry(DefaultEntry(config_name="n_clusters",
                                               optionmenu_value="birch"))
 
 # Kmeans options
-clusterization_section.add_entry(DefaultEntry(config_name="n_clusters",
+clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
                                               name="Cluster number: ",
                                               default_values=[int()],
                                               help_text="The number of clusters to form as well as the number of centroids to generate.",
                                               level=1,
                                               optionmenu_value="kmeans"))
-clusterization_section.add_entry(DefaultEntry(config_name="max_iter",
+clustering_section.add_entry(DefaultEntry(config_name="max_iter",
                                               name="Maximum number of iterations: ",
                                               default_values=[int()],
                                               help_text="Maximum number of iterations of the k-means algorithm for a single run.",
                                               level=0,
                                               optionmenu_value="kmeans"))
-clusterization_section.add_entry(DefaultEntry(config_name="n_init",
+clustering_section.add_entry(DefaultEntry(config_name="n_init",
                                               name="n_init",
                                               default_values=[int()],
                                               help_text="Number of times the k-means algorithm will be run with different centroid seeds. The final results will be the best output of n_init consecutive runs in terms of inertia.",
                                               level=0,
                                               optionmenu_value="kmeans"))
-clusterization_section.add_entry(DefaultEntry(config_name="init",
+clustering_section.add_entry(DefaultEntry(config_name="init",
                                               name="Init method: ",
                                               default_values=[("k-means++", "random")],
                                               help_text="Method for initialization, defaults to k-means++. Can be one of following: k-means++ or random.",
                                               level=0,
                                               optionmenu_value="kmeans"))
-clusterization_section.add_entry(DefaultEntry(config_name="tol",
+clustering_section.add_entry(DefaultEntry(config_name="tol",
                                               name="Tolerance: ",
                                               default_values=[float()],
                                               help_text="Relative tolerance with regards to inertia to declare convergence.",
                                               level=0,
                                               optionmenu_value="kmeans"))
 
-clusterization_section.add_entry(DefaultEntry(config_name="recursive_clusterization",
-                                              name="Recursive clusterization: ",
-                                              default_values=["clusterization"],
-                                              help_text="If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
+clustering_section.add_entry(DefaultEntry(config_name="recursive_clustering",
+                                              name="Recursive clustering: ",
+                                              default_values=["clustering"],
+                                              help_text="If it is set to name of some section that holds clustering method settings this method will be called in the next recursion of clusteriation. Default value for reclustering is None.",
                                               level=1))
-clusterization_section.add_entry(DefaultEntry(config_name="recursive_threshold",
+clustering_section.add_entry(DefaultEntry(config_name="recursive_threshold",
                                               name="Recursive threshold: ",
                                               default_values=[str()],
-                                              help_text="Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
+                                              help_text="Allows to set threshold that excludes clusters of certain size from reclustering. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclustering.",
                                               level=1))
-DEFAULTS.append(clusterization_section)
+DEFAULTS.append(clustering_section)
 
-reclusterization_section = DefaultSection(config_name="reclusterization", name="Reclusterization", level=0)
-reclusterization_section.add_entry(DefaultEntry(config_name="name",
+reclustering_section = DefaultSection(config_name="reclustering", name="Reclustering", level=0)
+reclustering_section.add_entry(DefaultEntry(config_name="name",
                                                 name="Name: ",
-                                                default_values=["reclusterization"],
-                                                help_text="Used to refer other clusterization method in \"Recursive clustering\" option",
+                                                default_values=["reclustering"],
+                                                help_text="Used to refer other clustering method in \"Recursive clustering\" option",
                                                 level=1))
-reclusterization_section.add_entry(DefaultEntry(config_name="method",
+reclustering_section.add_entry(DefaultEntry(config_name="method",
                                                 name="Method: ",
                                                 default_values=[
                                                     ("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")],
-                                                help_text="Name of clusterization method. It has to be one of the following: barber, dbscan, affprop, meanshift, birch, kmeans. Default value depends whether it is clusterization section (barber) or reclusterization section (dbscan).",
+                                                help_text="Name of clustering method. It has to be one of the following: barber, dbscan, affprop, meanshift, birch, kmeans. Default value depends whether it is clustering section (barber) or reclustering section (dbscan).",
                                                 level=1))
 
 # Barber options
-reclusterization_section.add_entry(DefaultEntry(config_name="auto_barber",
+reclustering_section.add_entry(DefaultEntry(config_name="auto_barber",
                                                 name="Auto barber: ",
                                                 default_values=[str()],
                                                 help_text="This option allows to select molecular entity used in Auto Barber procedure.",
                                                 level=1,
                                                 optionmenu_value="barber"))
-reclusterization_section.add_entry(DefaultEntry(config_name="auto_barber_mincut",
+reclustering_section.add_entry(DefaultEntry(config_name="auto_barber_mincut",
                                                 name="Auto Barber mincut: ",
                                                 default_values=[str()],
                                                 help_text="Minimal radius of spheres used in Auto Barber. If a sphere has radius smaller than this value, it is not used to cut. This option can be switched off by setting it to None.",
                                                 level=0,
                                                 optionmenu_value="barber"))
-reclusterization_section.add_entry(DefaultEntry(config_name="auto_barber_maxcut",
+reclustering_section.add_entry(DefaultEntry(config_name="auto_barber_maxcut",
                                                 name="Auto Barber maxcut: ",
                                                 default_values=[str()],
                                                 help_text="Maximal radius of spheres used in Auto Barber. If a sphere has radius greater than this value, it is not used to cut. This option can be switched off by setting it to None.",
                                                 level=0,
                                                 optionmenu_value="barber"))
-reclusterization_section.add_entry(DefaultEntry(config_name="auto_barber_mincut_level",
+reclustering_section.add_entry(DefaultEntry(config_name="auto_barber_mincut_level",
                                                 name="Auto Barber mincut level: ",
                                                 default_values=[bool()],
                                                 help_text="If set True, spheres of radius less than mincut are resized to mincut value.",
                                                 level=0,
                                                 optionmenu_value="barber"))
-reclusterization_section.add_entry(DefaultEntry(config_name="auto_barber_maxcut_level",
+reclustering_section.add_entry(DefaultEntry(config_name="auto_barber_maxcut_level",
                                                 name="Auto Barber maxcut level:",
                                                 default_values=[bool()],
                                                 help_text="If set True, spheres of radius greater than maxcut are resized to maxcut value.",
                                                 level=0,
                                                 optionmenu_value="barber"))
-reclusterization_section.add_entry(DefaultEntry(config_name="auto_barber_tovdw",
+reclustering_section.add_entry(DefaultEntry(config_name="auto_barber_tovdw",
                                                 name="Auto Barber VdW: ",
                                                 default_values=[bool()],
                                                 help_text="If set True, cutting of spheres is corrected by decreasing its radius by VdW radius of the closest atom.",
@@ -791,30 +791,30 @@ reclusterization_section.add_entry(DefaultEntry(config_name="auto_barber_tovdw",
                                                 optionmenu_value="barber"))
 
 # Dbscan options
-reclusterization_section.add_entry(DefaultEntry(config_name="eps",
+reclustering_section.add_entry(DefaultEntry(config_name="eps",
                                                 name="Maximum distance: ",
                                                 default_values=[float()],
                                                 help_text="The maximum distance between two samples for them to be considered as in the same neighborhood.",
                                                 level=0,
                                                 optionmenu_value="dbscan"))
-reclusterization_section.add_entry(DefaultEntry(config_name="min_samples",
+reclustering_section.add_entry(DefaultEntry(config_name="min_samples",
                                                 name="Maximum samples: ",
                                                 default_values=[int()],
                                                 help_text="The number of samples (or total weight) in a neighborhood for a point to be considered as a core point. This includes the point itself.",
                                                 level=0, optionmenu_value="dbscan"))
-reclusterization_section.add_entry(DefaultEntry(config_name="metric",
+reclustering_section.add_entry(DefaultEntry(config_name="metric",
                                                 name="Metric: ",
                                                 default_values=[("euclidean", "cityblock", "cosine", "manhattan")],
                                                 help_text="The metric to use when calculating distance between instances in a feature array.",
                                                 level=0,
                                                 optionmenu_value="dbscan"))
-reclusterization_section.add_entry(DefaultEntry(config_name="algorithm",
+reclustering_section.add_entry(DefaultEntry(config_name="algorithm",
                                                 name="Algorithm: ",
                                                 default_values=[("auto", "ball_tree", "kd_tree", "brute")],
                                                 help_text="The algorithm to be used by the NearestNeighbors module to compute pointwise distances and find nearest neighbors.",
                                                 level=0,
                                                 optionmenu_value="dbscan"))
-reclusterization_section.add_entry(DefaultEntry(config_name="leaf_size",
+reclustering_section.add_entry(DefaultEntry(config_name="leaf_size",
                                                 name="Leaf size: ",
                                                 default_values=[int()],
                                                 help_text="Leaf size passed to BallTree or cKDTree.",
@@ -822,25 +822,25 @@ reclusterization_section.add_entry(DefaultEntry(config_name="leaf_size",
                                                 optionmenu_value="dbscan"))
 
 # Affprop options
-reclusterization_section.add_entry(DefaultEntry(config_name="damping",
+reclustering_section.add_entry(DefaultEntry(config_name="damping",
                                                 name="Damping factor: ",
                                                 default_values=[float()],
                                                 help_text="Damping factor between 0.5 and 1.",
                                                 level=0,
                                                 optionmenu_value="affprop"))
-reclusterization_section.add_entry(DefaultEntry(config_name="convergence_iter",
+reclustering_section.add_entry(DefaultEntry(config_name="convergence_iter",
                                                 name="Maximum no effect iterations: ",
                                                 default_values=[int()],
                                                 help_text="Number of iterations with no change in the number of estimated clusters that stops the convergence.",
                                                 level=0,
                                                 optionmenu_value="affprop"))
-reclusterization_section.add_entry(DefaultEntry(config_name="max_iter",
+reclustering_section.add_entry(DefaultEntry(config_name="max_iter",
                                                 name="Maximum number of iterations: ",
                                                 default_values=[int()],
                                                 help_text="Maximum number of iterations.",
                                                 level=0,
                                                 optionmenu_value="affprop"))
-reclusterization_section.add_entry(DefaultEntry(config_name="preference",
+reclustering_section.add_entry(DefaultEntry(config_name="preference",
                                                 name="Preference: ",
                                                 default_values=[float()],
                                                 help_text="Points with larger values of preferences are more likely to be chosen as exemplars.",
@@ -848,25 +848,25 @@ reclusterization_section.add_entry(DefaultEntry(config_name="preference",
                                                 optionmenu_value="affprop"))
 
 # Meanshift options
-reclusterization_section.add_entry(DefaultEntry(config_name="bandwidth",
+reclustering_section.add_entry(DefaultEntry(config_name="bandwidth",
                                                 name="Bandwidth: ",
                                                 default_values=["Auto"],
                                                 help_text="Bandwidth used in the RBF kernel. If Auto or None automatic method for bandwidth estimation is used.",
                                                 level=1,
                                                 optionmenu_value="meanshift"))
-reclusterization_section.add_entry(DefaultEntry(config_name="cluster_all",
+reclustering_section.add_entry(DefaultEntry(config_name="cluster_all",
                                                 name="Cluster all points: ",
                                                 default_values=[bool()],
                                                 help_text="If true, then all points are clustered, even those orphans that are not within any kernel.",
                                                 level=0,
                                                 optionmenu_value="meanshift"))
-reclusterization_section.add_entry(DefaultEntry(config_name="bin_seeding",
+reclustering_section.add_entry(DefaultEntry(config_name="bin_seeding",
                                                 name="Bin seeding: ",
                                                 default_values=[bool()],
                                                 help_text="If true, initial kernel locations are not locations of all points, but rather the location of the discretized version of points, where points are binned onto a grid whose coarseness corresponds to the bandwidth.",
                                                 level=0,
                                                 optionmenu_value="meanshift"))
-reclusterization_section.add_entry(DefaultEntry(config_name="min_bin_freq",
+reclustering_section.add_entry(DefaultEntry(config_name="min_bin_freq",
                                                 name="Minimum bin frequency",
                                                 default_values=[int()],
                                                 help_text="To speed up the algorithm, accept only those bins with at least min_bin_freq points as seeds. If not defined, set to 1.",
@@ -874,19 +874,19 @@ reclusterization_section.add_entry(DefaultEntry(config_name="min_bin_freq",
                                                 optionmenu_value="meanshift"))
 
 # Birch options
-reclusterization_section.add_entry(DefaultEntry(config_name="threshold",
+reclustering_section.add_entry(DefaultEntry(config_name="threshold",
                                                 name="Threshold: ",
                                                 default_values=[float()],
                                                 help_text="The radius of the subcluster obtained by merging a new sample and the closest subcluster should be smaller than the threshold. Otherwise a new subcluster is started.",
                                                 level=0,
                                                 optionmenu_value="birch"))
-reclusterization_section.add_entry(DefaultEntry(config_name="branching_factor",
+reclustering_section.add_entry(DefaultEntry(config_name="branching_factor",
                                                 name="Branching factor: ",
                                                 default_values=[int()],
                                                 help_text="Maximum number of CF subclusters in each node.",
                                                 level=0,
                                                 optionmenu_value="birch"))
-reclusterization_section.add_entry(DefaultEntry(config_name="n_clusters",
+reclustering_section.add_entry(DefaultEntry(config_name="n_clusters",
                                                 name="Cluster number: ",
                                                 default_values=[int()],
                                                 help_text="Number of clusters after the final clustering step, which treats the subclusters from the leaves as new samples. By default, this final clustering step is not performed and the subclusters are returned as they are.",
@@ -894,48 +894,48 @@ reclusterization_section.add_entry(DefaultEntry(config_name="n_clusters",
                                                 optionmenu_value="birch"))
 
 # Kmeans options
-reclusterization_section.add_entry(DefaultEntry(config_name="n_clusters",
+reclustering_section.add_entry(DefaultEntry(config_name="n_clusters",
                                                 name="Cluster number: ",
                                                 default_values=[int()],
                                                 help_text="The number of clusters to form as well as the number of centroids to generate.",
                                                 level=1,
                                                 optionmenu_value="kmeans"))
-reclusterization_section.add_entry(DefaultEntry(config_name="max_iter",
+reclustering_section.add_entry(DefaultEntry(config_name="max_iter",
                                                 name="Maximum number of iterations: ",
                                                 default_values=[int()],
                                                 help_text="Maximum number of iterations of the k-means algorithm for a single run.",
                                                 level=0,
                                                 optionmenu_value="kmeans"))
-reclusterization_section.add_entry(DefaultEntry(config_name="n_init",
+reclustering_section.add_entry(DefaultEntry(config_name="n_init",
                                                 name="N Init: ",
                                                 default_values=[int()],
                                                 help_text="Number of times the k-means algorithm will be run with different centroid seeds. The final results will be the best output of n_init consecutive runs in terms of inertia.",
                                                 level=0,
                                                 optionmenu_value="kmeans"))
-reclusterization_section.add_entry(DefaultEntry(config_name="init",
+reclustering_section.add_entry(DefaultEntry(config_name="init",
                                                 name="Init method: ",
                                                 default_values=[("k-means++", "random")],
                                                 help_text="Method for initialization, defaults to k-means++. Can be one of following: k-means++ or random.",
                                                 level=0,
                                                 optionmenu_value="kmeans"))
-reclusterization_section.add_entry(DefaultEntry(config_name="tol",
+reclustering_section.add_entry(DefaultEntry(config_name="tol",
                                                 name="Tolerance: ",
                                                 default_values=[float()],
                                                 help_text="Relative tolerance with regards to inertia to declare convergence.",
                                                 level=0,
                                                 optionmenu_value="kmeans"))
 
-reclusterization_section.add_entry(DefaultEntry(config_name="recursive_clusterization",
-                                                name="Recursive clusterization: ",
+reclustering_section.add_entry(DefaultEntry(config_name="recursive_clustering",
+                                                name="Recursive clustering: ",
                                                 default_values=[str()],
-                                                help_text="If it is set to name of some section that holds clusterization method settings this method will be called in the next recursion of clusteriation. Default value for reclusterization is None.",
+                                                help_text="If it is set to name of some section that holds clustering method settings this method will be called in the next recursion of clusteriation. Default value for reclustering is None.",
                                                 level=1))
-reclusterization_section.add_entry(DefaultEntry(config_name="recursive_threshold",
+reclustering_section.add_entry(DefaultEntry(config_name="recursive_threshold",
                                                 name="Recursive threshold: ",
                                                 default_values=[str()],
-                                                help_text="Allows to set threshold that excludes clusters of certain size from reclusterization. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclusterization.",
+                                                help_text="Allows to set threshold that excludes clusters of certain size from reclustering. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclustering.",
                                                 level=1))
-DEFAULTS.append(reclusterization_section)
+DEFAULTS.append(reclustering_section)
 
 analysis_section = DefaultSection(config_name="analysis", name="Analysis", level=1)
 analysis_section.add_entry(DefaultEntry(config_name="execute",
@@ -1359,8 +1359,8 @@ POND_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
 
 MENUS = [
     # section:entry
-    "clusterization:method",
-    "reclusterization:method"
+    "clustering:method",
+    "reclustering:method"
 ]
 
 LEVELS = {
