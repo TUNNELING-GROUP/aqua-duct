@@ -437,7 +437,7 @@ if __name__ == "__main__":
                                     if hs is not None:
                                         hs = H >= hs
                                 if ref:
-                                    H = -k * args.temp * np.log(H) - ref
+                                    H = H - np.exp(ref / (-k * args.temp))
                                 if args.hotspots:
                                     if hs is not None:
                                         hsmol2.write_scatter(D[0][hs], H[hs])
@@ -458,7 +458,7 @@ if __name__ == "__main__":
                                     if hs is not None:
                                         hs = H >= hs
                                 if ref:
-                                    H = -k * args.temp * np.log(H) - ref
+                                    H = H - np.exp(ref / (-k * args.temp))
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1]),
                                                    [WriteMOL2(rdir + 'outer_full%s.mol2' % ptn),
@@ -600,7 +600,7 @@ if __name__ == "__main__":
                                             H = H[ind]
                                             centers = centers[ind]
                                             logger.warning("Cannot find paths within defined master radius, some points are skip.")
-                                        H = -k * args.temp * np.log(H) - ref
+                                        H = H - np.exp(ref / (-k * args.temp))
                                     with WriteMOL2(rdir + "mp_%s%s_radius%s.mol2" % (fname, fname_window_single, ptn),
                                                    mode=mode) as mol2:
                                         mol2.write_connected(centers, H)
