@@ -733,7 +733,7 @@ def stage_IV_run(config, options,
         return 0
 
     if inls.size > 0:
-        # ***** CLUSTERIZATION *****
+        # ***** CLUSTERING *****
         with clui.fbm("Performing clustering", cont=False):
             potentially_recursive_clustering(config=config,
                                                  clustering_name=config.cluster_name(),
@@ -774,7 +774,7 @@ def stage_IV_run(config, options,
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
         gc.collect()
-        # ***** RECLUSTERIZATION *****
+        # ***** RECLUSTERING *****
         if options.recluster_outliers:
             with clui.fbm("Performing reclustering of outliers", cont=False):
                 '''

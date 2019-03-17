@@ -244,7 +244,7 @@ Clustering of inlets is performed in the following steps:
 Potentially recursive clustering
 """"""""""""""""""""""""""""""""
 
-Both `Initial clustering` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clustering methods option *recursive_clustering* is used, appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clustering (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*.
+Both `Initial clustering` and `Reclustering` can be run in a recursive manner. If in the appropriate sections defining clustering methods option *recursive_clustering* is used, appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clustering (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*.
 
 For additional information see :ref:`clustering sections <clustering_options>` options.
 

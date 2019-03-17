@@ -251,7 +251,7 @@ auto_barber_tovdw           True            If set ``True``, cutting of spheres 
                                             its radius by VdW radius of the closest atom.
 allow_passing_paths         False           If set ``True``, paths that do not enter the object are detected
                                             and added to the rest of paths as 'passing' paths.
-separate_barber             True            Apply AutoBarber for each type of traced molecules separately. 
+separate_barber             True            Apply AutoBarber for each type of traced molecules separately.
 ========================    ==============  ================================================================
 
 
@@ -287,7 +287,7 @@ separate_master                     False           If set to ``True``, master m
 separate_master_all                 True            If **separate_master** is used and this option is set ``True``,
                                                     master paths will be also generated for all traced molecules`
                                                     types as it is done when **separate_master** is set ``False``.
-exclude_passing_in_clustering   True            If set to ``True``, passing paths are not clustered with normal
+exclude_passing_in_clustering       True            If set to ``True``, passing paths are not clustered with normal
                                                     paths.
 add_passing_to_clusters             None            Allows to run procedure for adding passing paths inlets to
                                                     clusters with Auto Barber method. To enable this the option
@@ -362,7 +362,7 @@ Stage **visualize**
                                                     traced molecules are splited. Appropriate molecule name is added to created objects.
     retain_all_types            False               If ``True`` and *split_by_type* option is ``True`` as well, standard visualization for
                                                     all types of traced moelcules will be generated as well.
-    
+
     all_paths_raw               False               If ``True``, produces one object in PyMOL that holds all paths
                                                     visualized by raw coordinates.
     all_paths_smooth            False               If ``True``, produces one object in PyMOL that holds all paths
@@ -492,7 +492,7 @@ method                      barber or       Name of clustering method. It has to
                             dbscan          following: barber, dbscan, affprop, meanshift, birch, kmeans.
                                             Default value depends whether it is **clustering** section
                                             (barber) or **reclustering** section (dbscan).
-recursive_clustering    clustering  If set to name of some section that holds clustering
+recursive_clustering        clustering      If set to name of some section that holds clustering
                             or None         method settings, this method is called in the next
                                             recursion of clusteriation. Default value for
                                             **reclustering** is None.
@@ -514,7 +514,7 @@ barber
 .. _clustering_barber:
 
 
-Clustering by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** stage settings or according to parameters given in clasterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped into clusters. Method **barber** supports the same settings as Auto Barber settings:
+Clustering by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** stage settings or according to parameters given in clustering section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped into clusters. Method **barber** supports the same settings as Auto Barber settings:
 
 
 .. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|
