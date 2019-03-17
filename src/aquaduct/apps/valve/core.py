@@ -702,7 +702,7 @@ def stage_III_run(config, options,
 ################################################################################
 
 
-# inlets_clusterization
+# inlets_clustering
 def stage_IV_run(config, options,
                  spaths=None,
                  center_of_system=None,
@@ -721,7 +721,7 @@ def stage_IV_run(config, options,
     # with clui.fbm("Create inlets"):
     # here we can check center of system
     pbar = clui.SimpleProgressBar(maxval=len(spaths), mess="Create inlets")
-    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clusterization,
+    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clustering,
                   pbar=pbar)
     pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
@@ -733,15 +733,15 @@ def stage_IV_run(config, options,
         return 0
 
     if inls.size > 0:
-        # ***** CLUSTERIZATION *****
-        with clui.fbm("Performing clusterization", cont=False):
-            potentially_recursive_clusterization(config=config,
-                                                 clusterization_name=config.cluster_name(),
+        # ***** CLUSTERING *****
+        with clui.fbm("Performing clustering", cont=False):
+            potentially_recursive_clustering(config=config,
+                                                 clustering_name=config.cluster_name(),
                                                  inlets_object=inls,
                                                  spaths=spaths,
-                                                 message='clusterization',
+                                                 message='clustering',
                                                  max_level=max_level)
-        # with log.fbm("Performing clusterization"):
+        # with log.fbm("Performing clustering"):
         #    clustering_function = get_clustering_method(coptions)
         #    inls.perform_clustering(clustering_function)
         clui.message('Number of outliers: %d' % noo())
@@ -774,20 +774,20 @@ def stage_IV_run(config, options,
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
         gc.collect()
-        # ***** RECLUSTERIZATION *****
+        # ***** RECLUSTERING *****
         if options.recluster_outliers:
-            with clui.fbm("Performing reclusterization of outliers", cont=False):
+            with clui.fbm("Performing reclustering of outliers", cont=False):
                 '''
-                potentially_recursive_clusterization(config=config,
-                                                 clusterization_name=config.recluster_name(),
+                potentially_recursive_clustering(config=config,
+                                                 clustering_name=config.recluster_name(),
                                                  inlets_object=inls,
                                                  spaths=spaths,
                                                  traj_reader=traj_reader,
-                                                 message='reclusterization',
+                                                 message='reclustering',
                                                  max_level=max_level)
                 '''
                 clustering_function = get_clustering_method(rcoptions, config)
-                # perform reclusterization
+                # perform reclustering
                 # inls.recluster_outliers(clustering_function)
                 inls.recluster_cluster(clustering_function, 0)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
@@ -804,7 +804,7 @@ def stage_IV_run(config, options,
         # TODO: Move it after master paths!
         gc.collect()
         # ***** ADD PASSING PATHS TO CLUSTERS *****
-        if options.exclude_passing_in_clusterization and options.add_passing_to_clusters:
+        if options.exclude_passing_in_clustering and options.add_passing_to_clusters:
             with clui.fbm("Adding passing paths inlets to clusters", cont=False):
                 # passing paths were excluded and they are meant to be added
                 # one need loop over clusters and then all passing paths have to checked
@@ -947,7 +947,7 @@ def stage_IV_run(config, options,
                         pbar.finish()
         gc.collect()
     else:
-        clui.message("No inlets found. Clusterization skipped.")
+        clui.message("No inlets found. Clustering skipped.")
         # make empty results
         master_paths = {}
         master_paths_smooth = {}

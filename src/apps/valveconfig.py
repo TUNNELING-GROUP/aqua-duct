@@ -145,10 +145,10 @@ class ValveConfigApp(object):
             if defaults.LEVELS[self.level.get()] > section.level:
                 continue
 
-            if section_name == "clusterization":
+            if section_name == "clustering":
                 self.cluster_frame_index = len(self.frames)
 
-            if section_name == "reclusterization":
+            if section_name == "reclustering":
                 self.recluster_frame_index = len(self.frames)
 
             scroll_frame = utils.VerticalScrolledFrame(self.notebook)
@@ -172,33 +172,33 @@ class ValveConfigApp(object):
 
         # Set row number to row of hidden frame of default clustering section. Used to append new frames
         # TODO: It may not work when other widgets are rendered first
-        self.cluster_row = next(self.hiding_frames["clusterization"].itervalues()).row + 1
+        self.cluster_row = next(self.hiding_frames["clustering"].itervalues()).row + 1
 
-        if "reclusterization" in self.hiding_frames:
-            self.recluster_row = next(self.hiding_frames["reclusterization"].itervalues()).row + 1
+        if "reclustering" in self.hiding_frames:
+            self.recluster_row = next(self.hiding_frames["reclustering"].itervalues()).row + 1
 
-        for section_name in self.get_recursive_clustering_sections("clusterization"):
+        for section_name in self.get_recursive_clustering_sections("clustering"):
             self.append_entries(section_name)
 
             # Increment max_level
             self.add_max_level(1)
 
-        for section_name in self.get_recursive_clustering_sections("reclusterization"):
+        for section_name in self.get_recursive_clustering_sections("reclustering"):
             self.append_entries(section_name)
 
         cluster_add_button = ttk.Button(self.frames[self.cluster_frame_index], text="Add clustering section")
         # Setting row=1000 let skip calculating position of button each time new section is added
         cluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
 
-        cluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "clusterization")
+        cluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "clustering")
         cluster_add_button.bind("<Button-1>", cluster_add_section_callback)
 
-        if "reclusterization" in self.hiding_frames:
+        if "reclustering" in self.hiding_frames:
             recluster_add_button = ttk.Button(self.frames[self.recluster_frame_index], text="Add reclustering section")
             # Setting row=1000 let skip calculating position of button each time new section is added
             recluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
 
-            recluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "reclusterization")
+            recluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "reclustering")
             recluster_add_button.bind("<Button-1>", recluster_add_section_callback)
 
         # Refresh all hiding frames
@@ -288,9 +288,9 @@ class ValveConfigApp(object):
 
     def callback_add_section(self, section_name):
         """
-        Callback for button to create new recursive clusterization in clusterization/reclusterization frame
+        Callback for button to create new recursive clustering in clustering/reclustering frame
 
-        :param section_name: Config section name where new frames will be appended, allowed are "clusterization" or "reclusterization"
+        :param section_name: Config section name where new frames will be appended, allowed are "clustering" or "reclustering"
         """
         # Find free name for new section
         index = 0
@@ -299,16 +299,16 @@ class ValveConfigApp(object):
 
         self.append_entries(section_name + str(index))
 
-        if section_name.startswith("clusterization"):
+        if section_name.startswith("clustering"):
             self.add_max_level(1)
 
         self.refresh_menus()
 
     def callback_remove_section(self, section_name, frame):
         """
-        Callback for button to remove existing recursive clusterization in clusterization/reclusterization frame
+        Callback for button to remove existing recursive clustering in clustering/reclustering frame
 
-        :param section_name: Config section name to remove, allowed are "clusterization" or "reclusterization"
+        :param section_name: Config section name to remove, allowed are "clustering" or "reclustering"
         :param frame: frame Which contains options related to that section
         """
         del self.values[section_name]
@@ -319,22 +319,22 @@ class ValveConfigApp(object):
             if item.startswith(section_name):
                 del defaults.MENUS[i]
 
-        if section_name.startswith("clusterization"):
+        if section_name.startswith("clustering"):
             self.add_max_level(-1)
 
         frame.grid_forget()
 
     def get_recursive_clustering_sections(self, section_name):
         """
-        Finds recursively all section used in recursive_clusterization options
+        Finds recursively all section used in recursive_clustering options
 
         :param section_name: Config section name from which fetching will start.
         :return Section names.
         :rtype: list
         """
-        if section_name != "clusterization" and section_name != "reclusterization":
+        if section_name != "clustering" and section_name != "reclustering":
             raise RuntimeError(
-                "There is no possibility to get recursive clusterization from {} section".format(section_name))
+                "There is no possibility to get recursive clustering from {} section".format(section_name))
 
         try:
             with open(self.config_filename.get(), "r") as config_file:
@@ -346,10 +346,10 @@ class ValveConfigApp(object):
             return []
 
         try:
-            clustering_section = config.get(section_name, "recursive_clusterization")
+            clustering_section = config.get(section_name, "recursive_clustering")
             while clustering_section not in clustering_sections and clustering_section != "None":
                 clustering_sections.append(clustering_section)
-                clustering_section = config.get(clustering_section, "recursive_clusterization")
+                clustering_section = config.get(clustering_section, "recursive_clustering")
         except (NoOptionError, NoSectionError):
             pass
 
@@ -357,21 +357,21 @@ class ValveConfigApp(object):
 
     def append_entries(self, section_name):
         """
-        Append new frame with new clusterization or reclusterization options.
+        Append new frame with new clustering or reclustering options.
 
-        :param section_name: Config section name where new frames will be appended, allowed are "clusterization" or "reclusterization".
+        :param section_name: Config section name where new frames will be appended, allowed are "clustering" or "reclustering".
         """
-        if section_name.startswith("clusterization"):
-            default_section_name = "clusterization"
+        if section_name.startswith("clustering"):
+            default_section_name = "clustering"
             frame = self.frames[self.cluster_frame_index]
             row = self.cluster_row
-        elif section_name.startswith("reclusterization"):
-            default_section_name = "reclusterization"
+        elif section_name.startswith("reclustering"):
+            default_section_name = "reclustering"
             frame = self.frames[self.recluster_frame_index]
             row = self.recluster_row
         else:
             raise RuntimeError(
-                "Appending entries to sections other than clusterization or reclusteriation is not allowed")
+                "Appending entries to sections other than clustering or reclusteriation is not allowed")
 
         # Set option menu from recursive clustering to control hiding frames
         defaults.MENUS.append("{}:method".format(section_name))
@@ -383,7 +383,7 @@ class ValveConfigApp(object):
         inner_frame.columnconfigure(1, weight=1)
         inner_frame.grid(sticky="EW", row=row, column=0, columnspan=2, padx=60, pady=10)
 
-        ttk.Label(inner_frame, text="Recursive clusterization", style="ITitle.TLabel").grid(
+        ttk.Label(inner_frame, text="Recursive clustering", style="ITitle.TLabel").grid(
             row=0,
             column=0,
             pady=5,
@@ -398,7 +398,7 @@ class ValveConfigApp(object):
         remove_section_callback = utils.CallbackWrapper(self.callback_remove_section, section_name, inner_frame)
         remove_button.bind("<Button-1>", remove_section_callback)
 
-        if default_section_name == "clusterization":
+        if default_section_name == "clustering":
             self.cluster_row += 1
         else:
             self.recluster_row += 1
@@ -409,7 +409,7 @@ class ValveConfigApp(object):
 
         When no entry added it hide notebook tab.
 
-        Disables name option for clusterization, reclusterization and derivatives section.
+        Disables name option for clustering, reclustering and derivatives section.
 
         :param parent: Parent widget.
         :param section_name: Config section name.
@@ -423,19 +423,19 @@ class ValveConfigApp(object):
         entries_appended = 0
         for entry in entries:
             # If its primary reclustering or clustering section disable changing name of that section
-            # Additionaly it disable inlets_clusterization:max_level if its on different level than chose
+            # Additionaly it disable inlets_clustering:max_level if its on different level than chose
             state = tk.NORMAL
-            if section_name == "clusterization" and entry.config_name == "name":
+            if section_name == "clustering" and entry.config_name == "name":
                 state = tk.DISABLED
-            elif section_name == "reclusterization" and entry.config_name == "name":
+            elif section_name == "reclustering" and entry.config_name == "name":
                 state = tk.DISABLED
-            elif section_name == "inlets_clusterization" and entry.config_name == "max_level":
+            elif section_name == "inlets_clustering" and entry.config_name == "max_level":
                 if defaults.LEVELS[self.level.get()] != entry.level:
                     state = tk.DISABLED
 
-            # Skip entries that dont match level except inlets_clusterization:max_level
+            # Skip entries that dont match level except inlets_clustering:max_level
             if defaults.LEVELS[self.level.get()] > entry.level:
-                if not (section_name == "inlets_clusterization" and entry.config_name == "max_level"):
+                if not (section_name == "inlets_clustering" and entry.config_name == "max_level"):
                     continue
 
             entries_appended += 1
@@ -500,8 +500,8 @@ class ValveConfigApp(object):
                                                    info_text=entry.info_text,
                                                    warning_text=entry.warning_text)
 
-                if (section_name.startswith("clusterization") or
-                    section_name.startswith("reclusterization")) and entry.config_name == "name":
+                if (section_name.startswith("clustering") or
+                    section_name.startswith("reclustering")) and entry.config_name == "name":
                     entry_widget.set(section_name)
 
                 if defaults.is_menu(section_name, entry.config_name):
@@ -547,12 +547,12 @@ class ValveConfigApp(object):
 
     def add_max_level(self, value):
         """
-        Increments or decrements inlets_clusterization:max_level by value.
+        Increments or decrements inlets_clustering:max_level by value.
 
         :param value: Number which will be added to max_level.
         """
-        current_value = self.values["inlets_clusterization"]["max_level"].get()
-        self.values["inlets_clusterization"]["max_level"].set(current_value + value)
+        current_value = self.values["inlets_clustering"]["max_level"].get()
+        self.values["inlets_clustering"]["max_level"].set(current_value + value)
 
     def open_config_file(self):
         """ Show dialog to choose config file and save its name """
@@ -600,8 +600,8 @@ class ValveConfigApp(object):
         """
         Load config values to values dictionary from file.
 
-        Additionally it ask user if inlets_clusterization:max_level in config
-        is different from number of found recursive_clusterization sections.
+        Additionally it ask user if inlets_clustering:max_level in config
+        is different from number of found recursive_clustering sections.
 
         :param config_filename: Name of file with configuration.
         """
@@ -615,12 +615,12 @@ class ValveConfigApp(object):
                     try:
                         config_value = config.get(section_name, entry_name)
 
-                        #  Inform user that config max_level differ from number of found recursive clusterization
+                        #  Inform user that config max_level differ from number of found recursive clustering
                         result = True
-                        if section_name == "inlets_clusterization" and entry_name == "max_level":
-                            if self.values["inlets_clusterization"]["max_level"] != config_value:
+                        if section_name == "inlets_clustering" and entry_name == "max_level":
+                            if self.values["inlets_clustering"]["max_level"] != config_value:
                                 result = tkMessageBox.askyesno("Max level",
-                                                               "Config max_level value differs from number of found clusterization sections.\n"
+                                                               "Config max_level value differs from number of found clustering sections.\n"
                                                                "Do you want to keep value from configuration file?")
 
                         if not result:
@@ -649,9 +649,9 @@ class ValveConfigApp(object):
                 continue
 
             for entry in section.entries:
-                # Skip entries that dont match level except inlets_clusterization:max_level
+                # Skip entries that dont match level except inlets_clustering:max_level
                 if defaults.LEVELS[self.level.get()] > entry.level:
-                    if not (section.config_name == "inlets_clusterization" and entry.config_name == "max_level"):
+                    if not (section.config_name == "inlets_clustering" and entry.config_name == "max_level"):
                         continue
 
                 self.values[section.config_name][entry.config_name].set(entry.default_value)
@@ -674,8 +674,8 @@ class ValveConfigApp(object):
 
         # Delete rest informations about appended sections
         for section_name in self.values.iterkeys():
-            if section_name.startswith("clusterization") or section_name.startswith("clusterization"):
-                if section_name != "clusterization" and section_name != "reclusterization":
+            if section_name.startswith("clustering") or section_name.startswith("clustering"):
+                if section_name != "clustering" and section_name != "reclustering":
                     del self.values[section_name]
                     del self.hiding_frames[section_name]
 
@@ -974,7 +974,7 @@ if __name__ == "__main__":
     # )
 
     ###
-    # For recursive clusterization frames
+    # For recursive clustering frames
     ###
     s.configure("I.TFrame", background="#E6E4DF", relief=tk.SUNKEN)
     s.configure("I.TFrame.Label", background="#E6E4DF")

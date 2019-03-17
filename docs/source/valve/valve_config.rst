@@ -11,12 +11,12 @@ Configuration file comprises of several *sections*. They can be grouped into thr
     #. **traceable_residues**
     #. **raw_paths**
     #. **separate_paths**
-    #. **inlets_clusterization**
+    #. **inlets_clustering**
     #. **analysis**
     #. **visualize**
 #. Methods options:
     * **smooth**
-    * **clusterization**
+    * **clustering**
     * **reclusteriation**
 
 Section **global**
@@ -114,7 +114,7 @@ dump        [dump file name]    File name of dump data. It is used to save resul
                                 * 1_traceable_residues_data.dump
                                 * 2_raw_paths_data.dump
                                 * 3_separate_paths_data.dump
-                                * 4_inlets_clusterization_data.dump
+                                * 4_inlets_clustering_data.dump
 ========    =================   ===================================================================
 
 Stages 5-6 also use **execute** option, however, since they do not perform calculations `per se`, instead of **dump** option, they use **save**.
@@ -251,11 +251,11 @@ auto_barber_tovdw           True            If set ``True``, cutting of spheres 
                                             its radius by VdW radius of the closest atom.
 allow_passing_paths         False           If set ``True``, paths that do not enter the object are detected
                                             and added to the rest of paths as 'passing' paths.
-separate_barber             True            Apply AutoBarber for each type of traced molecules separately. 
+separate_barber             True            Apply AutoBarber for each type of traced molecules separately.
 ========================    ==============  ================================================================
 
 
-Stage **inlets_clusterization**
+Stage **inlets_clustering**
 -------------------------------
 
 .. tabularcolumns:: |p{5.0cm}|p{2.5cm}|p{7.1cm}|
@@ -263,16 +263,16 @@ Stage **inlets_clusterization**
 ==================================  ==============  ================================================================
 Option                              Default value   Description
 ==================================  ==============  ================================================================
-recluster_outliers                  False           If set to ``True``, reclusterization of outliers is executed
-                                                    according to the method defined in **reclusterization** section.
+recluster_outliers                  False           If set to ``True``, reclustering of outliers is executed
+                                                    according to the method defined in **reclustering** section.
 detect_outliers                     False           If set, detection of outliers is executed. It could be set as a
                                                     floating point distance threshold or set to ``Auto``. See
-                                                    :ref:`clusterization_of_inlets` for more details.
+                                                    :ref:`clustering_of_inlets` for more details.
 singletons_outliers                 False           Maximal size of cluster to be considered as outliers. If set to
                                                     number > 0 clusters of that size are removed and their objects
-                                                    are moved to outliers. See :ref:`clusterization_of_inlets` for
+                                                    are moved to outliers. See :ref:`clustering_of_inlets` for
                                                     more details.
-max_level                           5               Maximal number of recursive clusterization levels.
+max_level                           5               Maximal number of recursive clustering levels.
 create_master_paths                 False           If set to ``True``, master paths are created (fast CPU and big
                                                     RAM recommended; 50k frames long simulation may need ca 20GB of
                                                     memory)
@@ -287,7 +287,7 @@ separate_master                     False           If set to ``True``, master m
 separate_master_all                 True            If **separate_master** is used and this option is set ``True``,
                                                     master paths will be also generated for all traced molecules`
                                                     types as it is done when **separate_master** is set ``False``.
-exclude_passing_in_clusterization   True            If set to ``True``, passing paths are not clustered with normal
+exclude_passing_in_clustering       True            If set to ``True``, passing paths are not clustered with normal
                                                     paths.
 add_passing_to_clusters             None            Allows to run procedure for adding passing paths inlets to
                                                     clusters with Auto Barber method. To enable this the option
@@ -362,7 +362,7 @@ Stage **visualize**
                                                     traced molecules are splited. Appropriate molecule name is added to created objects.
     retain_all_types            False               If ``True`` and *split_by_type* option is ``True`` as well, standard visualization for
                                                     all types of traced moelcules will be generated as well.
-    
+
     all_paths_raw               False               If ``True``, produces one object in PyMOL that holds all paths
                                                     visualized by raw coordinates.
     all_paths_smooth            False               If ``True``, produces one object in PyMOL that holds all paths
@@ -476,45 +476,45 @@ Stage **visualize**
 
     If several states are displayed, protein tertiary structure data might be lost. This seems to be limitation of either :mod:`MDAnalysis` or PyMOL.
 
-.. _clusterization_options:
+.. _clustering_options:
 
-Clusterization sections
+Clustering sections
 -----------------------
 
-Default section for definition of clusterization method is named **clusterization** and default section for reclusterization method definition is named **reclusterization**. All clusterization sections shares some common options. Other options depends on the method.
+Default section for definition of clustering method is named **clustering** and default section for reclustering method definition is named **reclustering**. All clustering sections shares some common options. Other options depends on the method.
 
 .. tabularcolumns:: |p{3.5cm}|p{2.5cm}|p{8.6cm}|
 
 =========================   =============== ================================================================
 Option                      Default value   Description
 =========================   =============== ================================================================
-method                      barber or       Name of clusterization method. It has to be one of the
+method                      barber or       Name of clustering method. It has to be one of the
                             dbscan          following: barber, dbscan, affprop, meanshift, birch, kmeans.
-                                            Default value depends whether it is **clusterization** section
-                                            (barber) or **reclusterization** section (dbscan).
-recursive_clusterization    clusterization  If set to name of some section that holds clusterization
+                                            Default value depends whether it is **clustering** section
+                                            (barber) or **reclustering** section (dbscan).
+recursive_clustering        clustering      If set to name of some section that holds clustering
                             or None         method settings, this method is called in the next
                                             recursion of clusteriation. Default value for
-                                            **reclusterization** is None.
+                                            **reclustering** is None.
 recursive_threshold         None            Allows to set threshold that excludes clusters of certain
-                                            size from reclusterization. Value of this option comprises of
+                                            size from reclustering. Value of this option comprises of
                                             `operator` and `value`. Operator can be one of the following:
                                             >, >=, <=, <. Value has to be expressed as floating number and
                                             it have to be in the range of 0 to 1. One can use several
                                             definitions separated by a space character.
                                             Only clusters of size complying with all thresholds definitions
-                                            are submitted to reclusterization.
+                                            are submitted to reclustering.
 =========================   =============== ================================================================
 
-.. _clusterization_methods:
+.. _clustering_methods:
 
 barber
 ^^^^^^
 
-.. _clusterization_barber:
+.. _clustering_barber:
 
 
-Clusterization by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** stage settings or according to parameters given in clasterization section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped into clusters. Method **barber** supports the same settings as Auto Barber settings:
+Clustering by **barber** method bases on :ref:`auto_barber_procedure` procedure. For each inlets a sphere is constructed according to Auto Barber **separate_paths** stage settings or according to parameters given in clustering section. Next, inlets that form coherent clouds of mutually intersecting spheres are grouped into clusters. Method **barber** supports the same settings as Auto Barber settings:
 
 
 .. tabularcolumns:: |p{4.0cm}|p{2.5cm}|p{8.1cm}|

@@ -171,7 +171,7 @@ There are two types of *Separate Paths*:
 Each *object path* comprises of following parts:
 
 #. *Incoming* - Defined as a path that leads from the point in which residue enters the *scope* and enters the object for the first time.
-#. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time. 
+#. *Object* - Defined as a path that leads from the point in which residue enters the *object* for the first time and leaves it for the last time.
 #. [Optional] *Out of active site* - Defined as a path between the *Object* paths that leads from the point in which residue leaves the *object* but stays within the *scope* and enters the *object* again.
 #. *Outgoing* - Defined as a path that leads from the point in which residue leaves the *object* for the last time and leaves the *scope*.
 
@@ -225,7 +225,7 @@ For detailed information on available configuration options see configuration fi
 .. _clustering_of_inlets:
 
 Clustering of inlets
-^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
 .. _inlets_def:
 
@@ -242,9 +242,9 @@ Clustering of inlets is performed in the following steps:
 #. [Optional] `Reclustering of outliers`: It may happen that the outliers form actually clusters but it was not recognized in the initial clustering. In this step clustering is executed only for outliers and the clusters that were found are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
 
 Potentially recursive clustering
-""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""
 
-Both `Initial clustering` and `Reclustarization` can be run in a recursive manner. If in the appropriate sections defining clustering methods option *recursive_clustering* is used, appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clustering (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*.
+Both `Initial clustering` and `Reclustering` can be run in a recursive manner. If in the appropriate sections defining clustering methods option *recursive_clustering* is used, appropriate method is run for each cluster separately. Clusters of specific size can be excluded from recursive clustering (option *recursive_threshold*). It is also possible to limit maximal number of recursive levels - option *max_level*.
 
 For additional information see :ref:`clustering sections <clustering_options>` options.
 
@@ -334,7 +334,7 @@ Results start with a general summary.
 * Names of traced molecules.
     .. note::
 
-        If more than one name is on the list all consecutive sections of *Analysis* results are provided for each name separately, as well as for all names. 
+        If more than one name is on the list all consecutive sections of *Analysis* results are provided for each name separately, as well as for all names.
 * Number of traceable residues.
 * Number of separate paths.
 * Number of inlets.
@@ -389,7 +389,7 @@ Clusters statistics
 
 Clusters types statistics
 """""""""""""""""""""""""
-        
+
 * Separate paths clusters types summary. Tables with 11 columns.
     * Mean length of paths:
         #. **CType**: Separate path Cluster Type.
@@ -462,7 +462,7 @@ In addition to general summary Aqua-Duct calculates frames dependent parameters.
 
 Calculated numbers of traced paths can be used to visualize behavior of the system in question. For example, one can analyze number of paths in two different clusters:
 
-.. figure:: figure_16_6.png 
+.. figure:: figure_16_6.png
    :align:  center
 
 The above plot shows number of water molecules (or paths) in cluster 16 and 6 throughout the simulation. One can observe that number of molecules in cluster 6 diminishes approximately in the middle. This kind of plot can be easily generated with additional CSV data.
@@ -482,7 +482,7 @@ All of the above listed categories are combined together, and the final number o
 Size of *Object* and *Scope*
 ############################
 
-If option ``calculate_scope_object_size`` is set ``True`` and values of ``scope_chull`` and ``object_chull`` correspond to appropriate molecular entities, Aqua-Duct calculates area and volume of *Scope* and *Object*. Calculated sizes are estimated as resulting from convex hull approximations. 
+If option ``calculate_scope_object_size`` is set ``True`` and values of ``scope_chull`` and ``object_chull`` correspond to appropriate molecular entities, Aqua-Duct calculates area and volume of *Scope* and *Object*. Calculated sizes are estimated as resulting from convex hull approximations.
 
 
 Visualization
@@ -551,7 +551,7 @@ Options can be used simultaneously, order does matter:
 For example, in order to display molecule, clusters, and only raw master paths, one can use the following command::
 
     python 6_visualize_results.py --keep 'molecule cluster master' --discard 'smooth'
-    
+
 .. note::
 
     Options ``--keep`` and ``--discard`` accepts both full and partial object names.

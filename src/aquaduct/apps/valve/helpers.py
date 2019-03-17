@@ -28,7 +28,7 @@ from aquaduct.apps.data import CRIC
 from aquaduct import logger
 from aquaduct.apps.valve import asep
 from aquaduct.geom import traces
-from aquaduct.geom.cluster_available_methods import AVAILABLE_METHODS as available_clusterization_methods
+from aquaduct.geom.cluster_available_methods import AVAILABLE_METHODS as available_clustering_methods
 from aquaduct.geom.cluster import BarberCluster, PerformClustering
 from aquaduct.geom.smooth import WindowSmooth, ActiveWindowSmooth, DistanceWindowSmooth, MaxStepSmooth, \
     WindowOverMaxStepSmooth, ActiveWindowOverMaxStepSmooth, DistanceWindowOverMaxStepSmooth, SavgolSmooth
@@ -202,7 +202,7 @@ def get_auto_barber_options(abo):
 
 
 def get_clustering_method(coptions, config):
-    assert coptions.method in available_clusterization_methods, 'Unknown clusterization method %s.' % coptions.method
+    assert coptions.method in available_clustering_methods, 'Unknown clustering method %s.' % coptions.method
 
     opts = {}
 
@@ -360,20 +360,20 @@ def get_allow_size_function(rt=None):
     return lambda size_of_cluster: operator_dict[op](size_of_cluster, vl)
 
 
-def potentially_recursive_clusterization(config=None,
-                                         clusterization_name=None,
+def potentially_recursive_clustering(config=None,
+                                         clustering_name=None,
                                          inlets_object=None,
                                          spaths=None,
-                                         message='clusterization',
+                                         message='clustering',
                                          deep=0,
                                          max_level=5):
     with clui.fbm("Performing %s, level %d of %d" % (message, deep, max_level), cont=False):
-        logger.debug('Clustering options section: %s' % clusterization_name)
-        cluster_options = config.get_cluster_options(section_name=clusterization_name)
+        logger.debug('Clustering options section: %s' % clustering_name)
+        cluster_options = config.get_cluster_options(section_name=clustering_name)
         clui.message('Clustering options:')
         for k, v in cluster_options._asdict().iteritems():
             clui.message("%s = %s" % (str(k), str(v)))
-        # TODO: Print clusterization options in a nice way!
+        # TODO: Print clustering options in a nice way!
         clustering_function = get_clustering_method(cluster_options, config)
         # special case of barber!!!
         if cluster_options.method == 'barber':
@@ -387,19 +387,19 @@ def potentially_recursive_clusterization(config=None,
             # clouds = wtc.cloud_groups(progress=True)
             logger.debug('Getting spheres...')
             inlets_object.add_spheres(wtc.spheres)
-        logger.debug('Proceed with clusterization, skip size...')
+        logger.debug('Proceed with clustering, skip size...')
         # get skip_size function according to recursive_treshold
         skip_size = SkipSizeFunction(cluster_options.recursive_threshold)
-        logger.debug('Proceed with clusterization, call method...')
+        logger.debug('Proceed with clustering, call method...')
         inlets_object.perform_reclustering(clustering_function, skip_outliers=True, skip_size=skip_size)
     clui.message('Number of clusters detected so far: %d' % len(inlets_object.clusters_list))
 
-    if cluster_options.recursive_clusterization:
+    if cluster_options.recursive_clustering:
         deep += 1
         if deep > max_level:
             return
-        return potentially_recursive_clusterization(config=config,
-                                                    clusterization_name=cluster_options.recursive_clusterization,
+        return potentially_recursive_clustering(config=config,
+                                                    clustering_name=cluster_options.recursive_clustering,
                                                     inlets_object=inlets_object,
                                                     spaths=spaths,
                                                     deep=deep,

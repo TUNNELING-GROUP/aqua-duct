@@ -1,7 +1,7 @@
 How does AQUA-DUCT work
 -----------------------
 
-AQUA-DUCT is a tool perfectly capable of tracing molecules that enter defined region of the macromolecule during MD simulation. Detailed statistics and visualization of all traced molecules are available. Moreover, AQUA-DUCT performs clusterization of exits/inlets data and groups identified paths according to this clusters - inlet-exit event grouping.
+AQUA-DUCT is a tool perfectly capable of tracing molecules that enter defined region of the macromolecule during MD simulation. Detailed statistics and visualization of all traced molecules are available. Moreover, AQUA-DUCT performs clustering of exits/inlets data and groups identified paths according to this clusters - inlet-exit event grouping.
 
 Following picture illustrates the concept behind AQUA-DUCT. Molecules which flow through the active site are traced. Incoming, outgoing, and active site parts of paths are detected and visualized accordingly. Traced molecules form clusters which allow for further detailed analysis of the flow.
 Optionally, AQ can trace molecules which does not flow through the active site. This can be useful to ilustrate overall flow and can be also used to derive relative number of molecules visiting the active site.
@@ -14,7 +14,7 @@ AQUA-DUCT performs calculations in 6 stages:
 #. Traceable residues
 #. Raw paths
 #. Separate paths
-#. Clusterization of inlets
+#. Clustering of inlets
 #. Analysis
 #. Visualization
 
@@ -98,22 +98,22 @@ After the initial search of *Separate Path* objects it is possible to run specia
 
 Separate paths can be optionally smoothed for visualization purposes. AQUA-DUCT implements several smoothing methods, including Savitzky-Golay filter.
 
-Clusterization of inlets
+Clustering of inlets
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 Each of the separate paths has beginning and end. If they are at the boundaries of the *Scope* they are considered as *Inlets*, i.e. points that mark where the *traceable residues* enters or leaves the *Scope*. Clusters of inlets, on the other hand, mark endings of tunnels or ways in the system which was simulated in the MD.
 
-Clusterization of inlets is performed in following steps:
+Clustering of inlets is performed in following steps:
 
-#. `Initial clusterization`: All inlets are submitted to selected clusterization method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
+#. `Initial clustering`: All inlets are submitted to selected clustering method and depending on the method and settings, some of the inlets might not be arranged to any cluster and are considered as outliers.
 #. [Optional] `Outliers detection`: Arrangement of inlets to clusters is sometimes far from optimal. In this step, *inlets* that do not fit to cluster are detected and annotated as outliers. This step can be executed in two modes:
 
     #. `Automatic mode`: Inlet is considered to be an outlier if its distance from the centroid is greater then mean distance + 4 * standard deviation of all distances within the cluster.
     #. `Defined threshold`: Inlet is considered to be an outlier if its minimal distance from any other point in the cluster is greater then the threshold.
 
-#. [Optional] `Reclusterization of outliers`: It may happen that the outliers form actually clusters but it was not recognized in initial clusterization. In this step clusterization is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
+#. [Optional] `Reclustering of outliers`: It may happen that the outliers form actually clusters but it was not recognized in initial clustering. In this step clustering is executed for outliers only and found clusters are appended to the clusters identified in the first step. Rest of the inlets are marked as outliers.
 
-At the end of clusterization stage it is possible to run procedure for `master path` generation. First, separate paths are grouped according to clusters. Paths that begin and end in particular clusters are grouped together. Next, for each group a `master path` (i.e., average path) is generated.
+At the end of clustering stage it is possible to run procedure for `master path` generation. First, separate paths are grouped according to clusters. Paths that begin and end in particular clusters are grouped together. Next, for each group a `master path` (i.e., average path) is generated.
 
 Analysis
 ^^^^^^^^

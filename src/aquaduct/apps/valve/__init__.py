@@ -32,7 +32,7 @@ from keyword import iskeyword
 
 from aquaduct.apps.data import GCS, load_cric
 from aquaduct.geom.cluster_available_methods import get_required_params, \
-    AVAILABLE_METHODS as available_clusterization_methods
+    AVAILABLE_METHODS as available_clustering_methods
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import Auto
 
@@ -93,15 +93,15 @@ class ValveConfig(ConfigSpecialNames):
 
     @staticmethod
     def cluster_name():
-        return 'clusterization'
+        return 'clustering'
 
     @staticmethod
     def recluster_name():
-        return 'reclusterization'
+        return 'reclustering'
 
     @staticmethod
-    def recursive_clusterization_name():
-        return 'recursive_clusterization'
+    def recursive_clustering_name():
+        return 'recursive_clustering'
 
     @staticmethod
     def recursive_threshold_name():
@@ -122,7 +122,7 @@ class ValveConfig(ConfigSpecialNames):
             elif nr == 2:
                 return 'separate_paths'
             elif nr == 3:
-                return 'inlets_clusterization'
+                return 'inlets_clustering'
             elif nr == 4:
                 return 'analysis'
             elif nr == 5:
@@ -167,9 +167,9 @@ class ValveConfig(ConfigSpecialNames):
         names = self.config.options(section)
         # options = {name: self.config.get(section, name) for name in names}
         options = OrderedDict(((name, self.config.get(section, name)) for name in names))
-        # special recursive_clusterization option
-        if self.recursive_clusterization_name() not in options:
-            options.update({self.recursive_clusterization_name(): None})
+        # special recursive_clustering option
+        if self.recursive_clustering_name() not in options:
+            options.update({self.recursive_clustering_name(): None})
         if self.recursive_threshold_name() not in options:
             options.update({self.recursive_threshold_name(): None})
         return self.__make_options_nt(options)
@@ -300,7 +300,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'detect_outliers', 'False')
         config.set(section, 'singletons_outliers', 'False')
         config.set(section, 'create_master_paths', 'False')
-        config.set(section, 'exclude_passing_in_clusterization', 'True')
+        config.set(section, 'exclude_passing_in_clustering', 'True')
         config.set(section, 'add_passing_to_clusters', 'None')
         config.set(section, 'renumber_clusters', 'False')
         config.set(section, 'join_clusters', 'None')
@@ -315,19 +315,19 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'method', 'window')
 
         ################
-        # clusterization
+        # clustering
         section = self.cluster_name()
         config.add_section(section)
         config.set(section, 'method', 'barber')
-        config.set(section, self.recursive_clusterization_name(), self.cluster_name())
+        config.set(section, self.recursive_clustering_name(), self.cluster_name())
         config.set(section, self.recursive_threshold_name(), 'False')
 
         ################
-        # reclusterization
+        # reclustering
         section = self.recluster_name()
         config.add_section(section)
         config.set(section, 'method', 'dbscan')
-        config.set(section, self.recursive_clusterization_name(), 'False')
+        config.set(section, self.recursive_clustering_name(), 'False')
         config.set(section, self.recursive_threshold_name(), 'False')
 
         ################
@@ -418,10 +418,10 @@ class ValveConfig(ConfigSpecialNames):
         if section == self.global_name():
             return ['Global settings.']
         if section == self.cluster_name():
-            out = ['Possible clusterization methods:']
-            # get default clusterization method
+            out = ['Possible clustering methods:']
+            # get default clustering method
             defmet = self.config.get(section, 'method')
-            for method in available_clusterization_methods:
+            for method in available_clustering_methods:
                 if method == defmet:
                     continue
                 out.append('method = %s' % method)
