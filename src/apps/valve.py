@@ -259,7 +259,7 @@ if __name__ == "__main__":
                                        run_status=run_status,
                                        no_io=True,
                                        center_of_system=result1['center_of_system'],
-                                       center_of_object=result3['center_of_object'],
+                                       #center_of_object=result3['center_of_object'],
                                        **results)
             ############################################################################
             # end!
