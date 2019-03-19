@@ -282,6 +282,8 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'apply_soft_smoothing', 'True')
         config.set(section, 'remove_unused_parts', 'True')
 
+        config.set(section, 'calculate_coo', 'False')
+
         config.set(section, 'discard_short_paths', '20')
         config.set(section, 'discard_short_object', '2.0')
         config.set(section, 'discard_short_logic', 'or')

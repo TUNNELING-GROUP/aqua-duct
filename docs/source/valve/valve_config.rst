@@ -252,6 +252,7 @@ auto_barber_tovdw           True            If set ``True``, cutting of spheres 
 allow_passing_paths         False           If set ``True``, paths that do not enter the object are detected
                                             and added to the rest of paths as 'passing' paths.
 separate_barber             True            Apply AutoBarber for each type of traced molecules separately.
+calculate_coo               False           If set ``True``, center of the object is calculated.
 ========================    ==============  ================================================================
 
 

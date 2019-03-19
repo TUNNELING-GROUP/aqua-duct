@@ -659,7 +659,8 @@ def stage_III_run(config, options,
     ######################################################################
 
     # center of object
-    if False:
+    coos = None
+    if options.calculate_coo:
         with clui.pbar(len(spaths), "Center of object calculation") as pbar:
             spaths_nr = len(spaths)
             Reader.reset()
@@ -694,9 +695,9 @@ def stage_III_run(config, options,
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 
-    return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict()}
-    # return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict(),
-    #        'center_of_object': coos}
+    #return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict()}
+    return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict(),
+            'center_of_object': coos}
 
 
 ################################################################################
@@ -723,10 +724,12 @@ def stage_IV_run(config, options,
     # here we can check center of system
     pbar = clui.SimpleProgressBar(maxval=len(spaths), mess="Create inlets")
     inlets_center = center_of_system
-    if options.inlets_ceter == 'coo':
+    if options.inlets_center == 'coo' and center_of_object is not None:
         inlets_center = center_of_object
-    elif options.inlets_ceter != 'cos':
-        logger.warning('Unknown value of `inlets_center` option %r. Falling back to `cos`.' % inlets_center)
+    elif options.inlets_center != 'cos':
+        logger.warning("Unknown value of `inlets_center` option %r. Falling back to 'cos'." % options.inlets_center)
+    if options.inlets_center == 'coo' and center_of_object is None:
+        logger.warning("Value of 'coo' not available. Use `calculate_coo` in stage III. Falling back to 'cos'." % inlets_center)
     inls = Inlets(spaths, center_of_system=inlets_center,
                           passing=not options.exclude_passing_in_clustering,
                           pbar=pbar)
