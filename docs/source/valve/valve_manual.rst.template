@@ -578,6 +578,9 @@ The following is a list of objects created in PyMOL (all of them are optional). 
 * Smooth paths displayed as separate objects or as one object with several states. Object name: **smooth_paths_** plus number of path or **smooth_paths** if displayed as one object.
 * Raw paths arrows displayed as separate objects or as one object with several states. Object name: **raw_paths_io_** plus number of path or **raw_paths_io** if displayed as one object.
 * Smooth paths arrows displayed as separate objects or as one object with several states. Object name: **smooth_paths_io_** plus number of path or **smooth_paths_io** if displayed as one object.
+* **CoS** center of the scope area (system).
+* **CoO** center of the object area (system).
+
 
 Color schemes
 """""""""""""

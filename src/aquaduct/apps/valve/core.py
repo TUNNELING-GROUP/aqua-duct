@@ -706,6 +706,7 @@ def stage_III_run(config, options,
 def stage_IV_run(config, options,
                  spaths=None,
                  center_of_system=None,
+                 center_of_object=None,
                  **kwargs):
     # enable real cache of ort
     Reader.reset()
@@ -721,8 +722,14 @@ def stage_IV_run(config, options,
     # with clui.fbm("Create inlets"):
     # here we can check center of system
     pbar = clui.SimpleProgressBar(maxval=len(spaths), mess="Create inlets")
-    inls = Inlets(spaths, center_of_system=center_of_system, passing=not options.exclude_passing_in_clustering,
-                  pbar=pbar)
+    inlets_center = center_of_system
+    if options.inlets_ceter == 'coo':
+        inlets_center = center_of_object
+    elif options.inlets_ceter != 'cos':
+        logger.warning('Unknown value of `inlets_center` option %r. Falling back to `cos`.' % inlets_center)
+    inls = Inlets(spaths, center_of_system=inlets_center,
+                          passing=not options.exclude_passing_in_clustering,
+                          pbar=pbar)
     pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
 
@@ -1408,7 +1415,8 @@ def stage_VI_run(config, options,
                  ctypes=None,
                  master_paths=None,
                  master_paths_smooth=None,
-                 alt_center_of_system=None,
+                 center_of_system=None,
+                 center_of_object=None,
                  **kwargs):
     # enable real cache of ort
     Reader.reset()
@@ -1546,7 +1554,8 @@ def stage_VI_run(config, options,
                             color = cmap[int(255 * (1 - fraction / 100.))]
                             spp.multiline_add(coords, color=color)
                     spp.multiline_end(name=c_name + '_DC')
-            spp.scatter(np.array([inls.center_of_system]), color=cmap[10], name="COS")
+            spp.scatter(np.array([center_of_system]), color=cmap[10], name="CoS")
+            spp.scatter(np.array([center_of_object]), color=cmap[10], name="CoO")
 
     fof = lambda sp: list(make_fractionof(sp, f=options.ctypes_amount))
 
