@@ -144,13 +144,15 @@ def distribution(spaths, grid_size=1., edges=None, window=None, pbar=None, map_f
     return np.vstack((x[pocket], y[pocket], z[pocket])).T, H[pocket]
 
 
-def outer_inner(H):
+def outer_inner(H, threshold=0.0):
     '''
     :param numpy.ndarray H: Pocket distribution.
+    :param float threshold: Percent value of max density which will be used to partition pocket into inner and outer.
+    If 0.0 then mean value will be used.
     :return: Indices of outer and inner pocket.
     :rtype: tuple of numpy.ndarray
     '''
-    OI = H / H[H > 0].mean()
+    OI = H / H[H > 0].mean() if not threshold else H / (H[H > 0].max() * (1.0 - threshold))
     return OI < 1, OI >= 1
 
 
