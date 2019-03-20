@@ -144,6 +144,9 @@ if __name__ == "__main__":
                                 help="Limit calculations to given ctypes.")
             # parser.add_argument("--master-radii", action="store_true", dest="master_radii", required=False,
             #                    help="Calculate profiles for master paths using width as radii.")
+            parser.add_argument("--io-threshold", action="store", dest="io_threshold", type=float, required=False,
+                                default=0.0,
+                                help="Percent value of maximum density which will be used to partition pocket into inner and outer.")
 
             args = parser.parse_args()
 
@@ -444,7 +447,7 @@ if __name__ == "__main__":
                                     else:
                                         hsmol2.write_scatter([], [])
                                 volumes = []
-                                for I, mol2 in zip(pocket.outer_inner(D[-1]), wmol2):
+                                for I, mol2 in zip(pocket.outer_inner(D[-1], args.threshold), wmol2):
                                     mol2.write_scatter(D[0][I], H[I])
                                     volumes.append(sum(I) * grid_area)
                                 pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes))) + os.linesep)
@@ -460,7 +463,7 @@ if __name__ == "__main__":
                                 if ref:
                                     H = -k * args.temp * np.log(H) - ref
                                 volumes = []
-                                for I, mol2 in zip(pocket.outer_inner(D[-1]),
+                                for I, mol2 in zip(pocket.outer_inner(D[-1], args.threshold),
                                                    [WriteMOL2(rdir + 'outer_full%s.mol2' % ptn),
                                                     WriteMOL2(rdir + 'inner_full%s.mol2' % ptn)]):
                                     mol2.write_scatter(D[0][I], H[I])
