@@ -151,8 +151,6 @@ if __name__ == "__main__":
             parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
                                 default=2.,
                                 help="Calculate profiles for path with given radius.")
-            parser.add_argument("--path-smooth", action="store", dest="path_smooth", type=str, required=False,
-                                default="RecursiveVector", help="Smooth path using specified smoothing method.")
 
             parser.add_argument("--extract-path", action="store", dest="extract_path", type=str, required=False,
                                 default=None, help="Extract path coordinates with specified ID.")
@@ -205,6 +203,7 @@ if __name__ == "__main__":
             from aquaduct.geom import pocket
             from aquaduct.traj.dumps import WriteMOL2
             from aquaduct.apps.valve.helpers import get_linearize_method
+            from aquaduct.apps.valve.helpers import get_smooth_method
             from aquaduct.geom import traces
             from itertools import izip
             import os
@@ -646,11 +645,13 @@ if __name__ == "__main__":
                     except StopIteration:
                         spath = None
 
+                    smooth_method = get_smooth_method(options3)
+
                     if spath:
                         with open(args.coords_file, "w") as csvfile:
                             csv_writer = csv.writer(csvfile)
 
-                            for coord in spath.coords_cont:
+                            for coord in spath.get_coords_cont(smooth_method):
                                 csv_writer.writerow(coord)
                     else:
                         clui.message("Path with ID {} does not exists.".format(args.extract_path))
@@ -660,7 +661,6 @@ if __name__ == "__main__":
 
             if args.eng_pro and (args.path_id or args.path_file):
                 with clui.tictoc('Loading paths data'):
-                    # get stage IV options
                     options3 = config.get_stage_options(2)
 
                     with clui.fbm('Loading data dump from %s file' % options3.dump):
@@ -672,12 +672,13 @@ if __name__ == "__main__":
 
                     if args.path_id:
                         try:
-                            coords = next(spath for spath in spaths if str(spath.id) == args.path_id).coords_cont
+                            spath = next(spath for spath in spaths if str(spath.id) == args.path_id)
                         except StopIteration:
                             pass
 
-                        options6 = config.get_stage_options(5)
-                        linmet = get_linearize_method(options6.simply_smooths)
+                        smooth_method = get_smooth_method(options3)
+
+                        coords = spath.get_coords_cont(smooth_method)
 
                     elif args.path_file:
                         coords = []
@@ -687,7 +688,7 @@ if __name__ == "__main__":
                             for row in csv_reader:
                                 coords.append([float(r) for r in row])
 
-                        linmet = get_linearize_method(args.path_smooth)
+                    coords = np.array(coords)
 
                 if len(coords):
                     with clui.tictoc("Path profiles calculation"):
@@ -701,8 +702,6 @@ if __name__ == "__main__":
                         pbar_len = len(spaths) * (W + int(args.wfull))
 
                         pool = Pool(processes=optimal_threads.threads_count)
-
-                        centers = linmet(np.array(coords))
 
                         with clui.pbar(pbar_len, mess='Calculating path profile:') as pbar:
                             for wnr, window in enumerate(
@@ -726,7 +725,7 @@ if __name__ == "__main__":
                                     if wnr > 1:
                                         mode = 'a'
 
-                                    D = pocket.sphere_radius(spaths, centers=centers, radius=args.path_radius,
+                                    D = pocket.sphere_radius(spaths, centers=coords, radius=args.path_radius,
                                                              window=window, pbar=pbar,
                                                              map_fun=pool.imap_unordered)
                                     H = D / float(number_of_frames) / (
@@ -735,20 +734,20 @@ if __name__ == "__main__":
                                         if np.any(D <= 0):
                                             ind = D > 0
                                             H = H[ind]
-                                            centers = centers[ind]
+                                            coords = coords[ind]
                                             logger.warning(
                                                 "Cannot find paths within defined path, some points are skip.")
-                                        H = -k * args.temp * np.log(H) - ref
+                                        H = H - np.exp(ref / (-k * args.temp))
                                     with WriteMOL2(
                                             rdir + "path%s_%s%s_radius%s.mol2" % (
                                                     args.path_id, fname, fname_window_single, ptn),
                                             mode=mode) as mol2:
-                                        mol2.write_connected(centers, H)
+                                        mol2.write_connected(coords, H)
 
                                     with open(rdir + "path%s_%s%s_radius.dat" % (args.path_id, fname, fname_window),
                                               'w') as dat:
                                         dat.write('len\tE' + os.linesep)
-                                        L = np.hstack((0., np.cumsum(traces.diff(centers))))
+                                        L = np.hstack((0., np.cumsum(traces.diff(coords))))
                                         for l, E in izip(L, H):
                                             dat.write('%f\t%f%s' % (l, E, os.linesep))
                                 save_cric()
