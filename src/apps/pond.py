@@ -648,7 +648,7 @@ if __name__ == "__main__":
                     smooth_method = get_smooth_method(options3)
 
                     if spath:
-                        with open(args.coords_file, "w") as csvfile:
+                        with open(rdir + args.coords_file, "w") as csvfile:
                             csv_writer = csv.writer(csvfile)
 
                             for coord in spath.get_coords_cont(smooth_method):
