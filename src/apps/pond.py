@@ -41,7 +41,7 @@ logger.addHandler(ch)
 
 import json
 import gzip
-
+import csv
 
 ################################################################################
 
@@ -147,6 +147,19 @@ if __name__ == "__main__":
             parser.add_argument("--io-threshold", action="store", dest="io_threshold", type=float, required=False,
                                 default=0.0,
                                 help="Percent value of maximum density which will be used to partition pocket into inner and outer.")
+            parser.add_argument("--path-id", action="store", dest="path_id", type=str, required=False,
+                                default=None, help="Calculate profiles for specified path ID.")
+            parser.add_argument("--path-file", action="store", dest="path_file", type=str, required=False,
+                                default="path_coords.csv", help="Use coordinates from specified CSV file.")
+            parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
+                                default=2.,
+                                help="Calculate profiles for path with given radius.")
+
+            parser.add_argument("--extract-path", action="store", dest="extract_path", type=str, required=False,
+                                default=None, help="Extract path coordinates with specified ID.")
+            parser.add_argument("--coords-file", action="store", dest="coords_file", type=str, required=False,
+                                default="path_coords.csv", help="Output CSV filename for extracted coordinates.")
+
 
             args = parser.parse_args()
 
@@ -193,6 +206,7 @@ if __name__ == "__main__":
             from aquaduct.geom import pocket
             from aquaduct.traj.dumps import WriteMOL2
             from aquaduct.apps.valve.helpers import get_linearize_method
+            from aquaduct.apps.valve.helpers import get_smooth_method
             from aquaduct.geom import traces
             from itertools import izip
             import os
@@ -619,6 +633,132 @@ if __name__ == "__main__":
                     pool.join()
 
             # ----------------------------------------------------------------------#
+            # Paths
+            # ----------------------------------------------------------------------#
+            # Extracting
+            if args.extract_path:
+                options3 = config.get_stage_options(2)
+                with clui.fbm("Loading data dump from {} file.".format(options3.dump)):
+                    vda = get_vda_reader(options3.dump, mode="r")
+                    result3 = vda.load()
+
+                with clui.fbm("Extracting path {} coordinates.".format(args.extract_path)):
+                    try:
+                        spath = next(spath for spath in result3["spaths"] if str(spath.id) == args.extract_path)
+                    except StopIteration:
+                        spath = None
+
+                    smooth_method = get_smooth_method(options3)
+
+                    if spath:
+                        with open(args.coords_file, "w") as csvfile:
+                            csv_writer = csv.writer(csvfile)
+
+                            for coord in spath.get_coords_cont(smooth_method):
+                                csv_writer.writerow(coord)
+                    else:
+                        clui.message("Path with ID {} does not exists.".format(args.extract_path))
+
+            # ----------------------------------------------------------------------#
+            # Calculating energy profile for path
+
+            if args.eng_pro and (args.path_id or args.path_file):
+                with clui.tictoc('Loading paths data'):
+                    options3 = config.get_stage_options(2)
+
+                    with clui.fbm('Loading data dump from %s file' % options3.dump):
+                        vda = get_vda_reader(options3.dump, mode='r')
+                        result3 = vda.load()
+                        spaths = result3.pop("spaths")
+
+                    clui.message("Path smoothing: {}".format(args.path_smooth))
+
+                    if args.path_id:
+                        try:
+                            spath = next(spath for spath in spaths if str(spath.id) == args.path_id)
+                        except StopIteration:
+                            pass
+
+                        smooth_method = get_smooth_method(options3)
+
+                        coords = spath.get_coords_cont(smooth_method)
+
+                    elif args.path_file:
+                        coords = []
+                        with open(args.path_file, "r") as csvfile:
+                            csv_reader = csv.reader(csvfile)
+
+                            for row in csv_reader:
+                                coords.append([float(r) for r in row])
+
+                    coords = np.array(coords)
+
+                if len(coords):
+                    with clui.tictoc("Path profiles calculation"):
+
+                        W = args.windows
+                        WS = args.wsize
+
+                        many_windows = W > 1 or (W == 1 and (WS is not None))
+                        many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
+
+                        pbar_len = len(spaths) * (W + int(args.wfull))
+
+                        pool = Pool(processes=optimal_threads.threads_count)
+
+                        with clui.pbar(pbar_len, mess='Calculating path profile:') as pbar:
+                            for wnr, window in enumerate(
+                                    pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
+
+                                number_of_frames = (window[-1] - window[0])
+                                if Reader.sandwich_mode:
+                                    number_of_frames *= Reader.number_of_layers()
+
+                                if wnr or args.wfull:  # or not many_windows:
+                                    fname_window = ""
+                                    fname_window_single = ""
+                                    fname = ""
+                                    if not wnr and args.wfull:
+                                        fname += '_full'
+                                    elif wnr and many_windows:
+                                        fname_window = '_W%d' % wnr
+                                        fname_window_single = "_WX"
+
+                                    mode = 'w'
+                                    if wnr > 1:
+                                        mode = 'a'
+
+                                    D = pocket.sphere_radius(spaths, centers=coords, radius=args.path_radius,
+                                                             window=window, pbar=pbar,
+                                                             map_fun=pool.imap_unordered)
+                                    H = D / float(number_of_frames) / (
+                                            4. / 3. * np.pi * float(args.path_radius) ** 3)
+                                    if ref:
+                                        if np.any(D <= 0):
+                                            ind = D > 0
+                                            H = H[ind]
+                                            coords = coords[ind]
+                                            logger.warning(
+                                                "Cannot find paths within defined path, some points are skip.")
+                                        H = H - np.exp(ref / (-k * args.temp))
+                                    with WriteMOL2(
+                                            rdir + "path%s_%s%s_radius%s.mol2" % (
+                                                    args.path_id, fname, fname_window_single, ptn),
+                                            mode=mode) as mol2:
+                                        mol2.write_connected(coords, H)
+
+                                    with open(rdir + "path%s_%s%s_radius.dat" % (args.path_id, fname, fname_window),
+                                              'w') as dat:
+                                        dat.write('len\tE' + os.linesep)
+                                        L = np.hstack((0., np.cumsum(traces.diff(coords))))
+                                        for l, E in izip(L, H):
+                                            dat.write('%f\t%f%s' % (l, E, os.linesep))
+                                save_cric()
+
+                        pool.close()
+                        pool.join()
+                else:
+                    clui.message("Path with ID {} does not exists.".format(args.path_id))
 
             Reader.reset()
             with gzip.open(rdir + 'pond_meta.json', mode='w', compresslevel=9) as f:
