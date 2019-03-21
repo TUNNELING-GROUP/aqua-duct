@@ -26,7 +26,7 @@ class longstr(str):
     pass
 
 
-class filetype(object):
+class filetype(str):
     """
     Class used to specify type of default value.
 
@@ -35,7 +35,7 @@ class filetype(object):
     pass
 
 
-class manyfiletype(object):
+class manyfiletype(str):
     """
     Class used to specify type of default value.
 
@@ -44,7 +44,7 @@ class manyfiletype(object):
     pass
 
 
-class dirtype(object):
+class dirtype(str):
     """
     Class used to specify type of default value.
 
