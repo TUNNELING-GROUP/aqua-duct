@@ -145,15 +145,14 @@ if __name__ == "__main__":
             # parser.add_argument("--master-radii", action="store_true", dest="master_radii", required=False,
             #                    help="Calculate profiles for master paths using width as radii.")
             parser.add_argument("--io-threshold", action="store", dest="io_threshold", type=float, required=False,
-                                default=0.0,
+                                default=None,
                                 help="Percent value of maximum density which will be used to partition pocket into inner and outer.")
             parser.add_argument("--path-id", action="store", dest="path_id", type=str, required=False,
                                 default=None, help="Calculate profiles for specified path ID.")
             parser.add_argument("--path-file", action="store", dest="path_file", type=str, required=False,
                                 default="path_coords.csv", help="Use coordinates from specified CSV file.")
             parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
-                                default=2.,
-                                help="Calculate profiles for path with given radius.")
+                                default=2., help="Calculate profiles for path with given radius.")
             parser.add_argument("--raw-path", action="store_true", dest="raw_path", required=False,
                                 help="Use raw data from paths instead of single paths, only for path energy profiles calculations.")
 
