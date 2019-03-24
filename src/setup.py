@@ -75,4 +75,5 @@ setup(name='aquaduct',
                    'Operating System :: POSIX',
                    'Programming Language :: Python :: 2.7',
                    ],
+      include_package_data=True
       )
