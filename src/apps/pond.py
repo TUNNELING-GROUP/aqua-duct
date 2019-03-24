@@ -154,6 +154,8 @@ if __name__ == "__main__":
             parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
                                 default=2.,
                                 help="Calculate profiles for path with given radius.")
+            parser.add_argument("--raw-path", action="store_true", dest="raw_path", required=False,
+                                help="Use raw data from paths instead of single paths, only for path energy profiles calculations.")
 
             parser.add_argument("--extract-path", action="store", dest="extract_path", type=str, required=False,
                                 default=None, help="Extract path coordinates with specified ID.")
@@ -461,7 +463,7 @@ if __name__ == "__main__":
                                     else:
                                         hsmol2.write_scatter([], [])
                                 volumes = []
-                                for I, mol2 in zip(pocket.outer_inner(D[-1], args.threshold), wmol2):
+                                for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold), wmol2):
                                     mol2.write_scatter(D[0][I], H[I])
                                     volumes.append(sum(I) * grid_area)
                                 pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes))) + os.linesep)
@@ -477,7 +479,7 @@ if __name__ == "__main__":
                                 if ref:
                                     H = H - np.exp(ref / (-k * args.temp))
                                 volumes = []
-                                for I, mol2 in zip(pocket.outer_inner(D[-1], args.threshold),
+                                for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold),
                                                    [WriteMOL2(rdir + 'outer_full%s.mol2' % ptn),
                                                     WriteMOL2(rdir + 'inner_full%s.mol2' % ptn)]):
                                     mol2.write_scatter(D[0][I], H[I])
@@ -664,24 +666,37 @@ if __name__ == "__main__":
 
             if args.eng_pro and (args.path_id or args.path_file):
                 with clui.tictoc('Loading paths data'):
-                    options3 = config.get_stage_options(2)
+                    if args.raw_path:
+                        options = config.get_stage_options(1)
+                        paths_type = "spaths"
+                    else:
+                        options = config.get_stage_options(2)
+                        paths_type = "paths"
 
-                    with clui.fbm('Loading data dump from %s file' % options3.dump):
-                        vda = get_vda_reader(options3.dump, mode='r')
-                        result3 = vda.load()
-                        spaths = result3.pop("spaths")
+                    with clui.fbm('Loading data dump from %s file' % options.dump):
+                        vda = get_vda_reader(options.dump, mode='r')
+                        result = vda.load()
+                        paths = result.pop(paths_type)
 
-                    clui.message("Path smoothing: {}".format(args.path_smooth))
+                    if args.raw_path:
+                        with clui.fbm('Preparing raw data'):
+                            if args.raw_singl:
+                                for p in paths:
+                                    p.discard_singletons(singl=args.raw_singl)
+                            paths = [p for p in paths if len(p.frames)]
+
+                    paths = [p for p in paths if p.id.name in paths_types]
 
                     if args.path_id:
                         try:
-                            spath = next(spath for spath in spaths if str(spath.id) == args.path_id)
+                            spath = next(spath for spath in paths if str(spath.id) == args.path_id)
+
+                            smooth_method = get_smooth_method(config.get_stage_options(2))
+
+                            coords = spath.get_coords_cont(smooth_method)
                         except StopIteration:
+                            coords = []
                             pass
-
-                        smooth_method = get_smooth_method(options3)
-
-                        coords = spath.get_coords_cont(smooth_method)
 
                     elif args.path_file:
                         coords = []
@@ -691,7 +706,11 @@ if __name__ == "__main__":
                             for row in csv_reader:
                                 coords.append([float(r) for r in row])
 
-                    coords = np.array(coords)
+                    options6 = config.get_stage_options(5)
+
+                    linmet = get_linearize_method(options6.simply_smooths)
+
+                    coords = linmet(np.array(coords))
 
                 if len(coords):
                     with clui.tictoc("Path profiles calculation"):
@@ -702,7 +721,7 @@ if __name__ == "__main__":
                         many_windows = W > 1 or (W == 1 and (WS is not None))
                         many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
 
-                        pbar_len = len(spaths) * (W + int(args.wfull))
+                        pbar_len = len(paths) * (W + int(args.wfull))
 
                         pool = Pool(processes=optimal_threads.threads_count)
 
@@ -728,7 +747,7 @@ if __name__ == "__main__":
                                     if wnr > 1:
                                         mode = 'a'
 
-                                    D = pocket.sphere_radius(spaths, centers=coords, radius=args.path_radius,
+                                    D = pocket.sphere_radius(paths, centers=coords, radius=args.path_radius,
                                                              window=window, pbar=pbar,
                                                              map_fun=pool.imap_unordered)
                                     H = D / float(number_of_frames) / (
