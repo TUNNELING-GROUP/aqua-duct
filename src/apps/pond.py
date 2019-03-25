@@ -42,6 +42,7 @@ logger.addHandler(ch)
 import json
 import gzip
 import csv
+from collections import namedtuple
 
 ################################################################################
 
@@ -649,7 +650,8 @@ if __name__ == "__main__":
                     except StopIteration:
                         spath = None
 
-                    smooth_method = get_smooth_method(options3)
+                    soptions = namedtuple('Options', result3["soptions"].keys())(*result3["soptions"].values())
+                    smooth_method = get_smooth_method(soptions)
 
                     if spath:
                         with open(rdir + args.coords_file, "w") as csvfile:
@@ -660,56 +662,63 @@ if __name__ == "__main__":
                     else:
                         clui.message("Path with ID {} does not exists.".format(args.extract_path))
 
+                if spath:
+                    clui.message("Path saved to {}".format(args.coords_file))
+
             # ----------------------------------------------------------------------#
             # Calculating energy profile for path
 
             if args.eng_pro and (args.path_id or args.path_file):
                 with clui.tictoc('Loading paths data'):
-                    if args.raw_path:
-                        options = config.get_stage_options(1)
-                        paths_type = "spaths"
-                    else:
-                        options = config.get_stage_options(2)
-                        paths_type = "paths"
 
-                    with clui.fbm('Loading data dump from %s file' % options.dump):
-                        vda = get_vda_reader(options.dump, mode='r')
-                        result = vda.load()
-                        paths = result.pop(paths_type)
+                    options3 = config.get_stage_options(2)
+
+                    if args.path_id:
+                        with clui.fbm('Loading data dump from %s file' % options3.dump):
+                            vda = get_vda_reader(options3.dump, mode='r')
+                            result3 = vda.load()
+                            paths = result3.pop("spaths")
+                        try:
+                            spath = next(spath for spath in paths if str(spath.id) == args.path_id)
+
+                            paths = [p for p in paths if p.id.name in paths_types]
+
+                            soptions = result3.pop("soptions")
+                            soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                            smooth_method = get_smooth_method(soptions)
+
+                            coords = spath.get_coords_cont(smooth_method)
+                        except StopIteration:
+                            coords = []
+                    elif args.path_file:
+                        coords2 = []
+                        with open(args.path_file, "r") as csvfile:
+                            csv_reader = csv.reader(csvfile)
+
+                            for row in csv_reader:
+                                coords2.append([float(r) for r in row])
+
+                        coords = np.array(coords2, dtype=np.float32)
 
                     if args.raw_path:
+                        options2 = config.get_stage_options(1)
+                        with clui.fbm('Loading data dump from %s file' % options2.dump):
+                            vda = get_vda_reader(options2.dump, mode='r')
+                            result2 = vda.load()
+
+                            paths = result2.pop("paths")
+                            paths = [p for p in paths if p.id.name in paths_types]
+
                         with clui.fbm('Preparing raw data'):
                             if args.raw_singl:
                                 for p in paths:
                                     p.discard_singletons(singl=args.raw_singl)
                             paths = [p for p in paths if len(p.frames)]
 
-                    paths = [p for p in paths if p.id.name in paths_types]
-
-                    if args.path_id:
-                        try:
-                            spath = next(spath for spath in paths if str(spath.id) == args.path_id)
-
-                            smooth_method = get_smooth_method(config.get_stage_options(2))
-
-                            coords = spath.get_coords_cont(smooth_method)
-                        except StopIteration:
-                            coords = []
-                            pass
-
-                    elif args.path_file:
-                        coords = []
-                        with open(args.path_file, "r") as csvfile:
-                            csv_reader = csv.reader(csvfile)
-
-                            for row in csv_reader:
-                                coords.append([float(r) for r in row])
-
                     options6 = config.get_stage_options(5)
-
                     linmet = get_linearize_method(options6.simply_smooths)
 
-                    coords = linmet(np.array(coords))
+                    coords = linmet(coords)
 
                 if len(coords):
                     with clui.tictoc("Path profiles calculation"):
