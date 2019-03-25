@@ -1498,17 +1498,31 @@ def stage_VI_run(config, options,
                 # no_of_clusters = len(inls.clusters_list)  # total, including outliers
                 cmap = ColorMapDistMap()
                 for c in tn_lim(tn).clusters_list:
-                    for layer in range(Reader.number_of_layers()):
-                        # coords for current cluster and layer
-                        ics = tn_lim(tn).lim_to([spath.id.id[0] for spath in spaths], layer).lim2clusters(c).coords
-                        # Skip empty clusters
-                        if not len(ics):
-                            continue
+                    if Reader.sandwich_mode:
+                        for layer in range(Reader.number_of_layers()):
+                            # coords for current cluster and layer
+                            ics = tn_lim(tn).lim_to([spath.id.id[0] for spath in spaths], layer).lim2clusters(c).coords
+                            # Skip empty clusters
+                            if not len(ics):
+                                continue
+                            if c == 0:
+                                c_name = 'out'
+                            else:
+                                c_name = str(int(c))
+                            spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s_L%s" % (c_name, tn_name, layer))
+                            if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
+                                radii = tn_lim(tn).lim2clusters(c).radii
+                                if len(radii) > 0:
+                                    spp.scatter(ics, color=cmap(c), radius=radii,
+                                                name="cluster_radii_%s%s" % (c_name, tn_name))
+                    else:
+                        # coords for current cluster
+                        ics = tn_lim(tn).lim2clusters(c).coords
                         if c == 0:
                             c_name = 'out'
                         else:
                             c_name = str(int(c))
-                        spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s_L%s" % (c_name, tn_name, layer))
+                        spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s" % (c_name, tn_name))
                         if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
                             radii = tn_lim(tn).lim2clusters(c).radii
                             if len(radii) > 0:
@@ -1629,53 +1643,55 @@ def stage_VI_run(config, options,
     fof = lambda sp: list(make_fractionof(sp, f=options.all_paths_amount))
     tn_lim = lambda tn: spaths if tn is None else [sp for sp in spaths if tn == sp.id.name]
 
+    def plot_paths(paths, tn_name, layer_name=""):
+        if options.all_paths_raw:
+            with clui.fbm("All raw paths" + tn_name.replace('_', ' ')):
+                plot_spaths_traces(fof(paths), name='all_raw' + tn_name + layer_name,
+                                   split=options.all_paths_split, spp=spp)
+        if options.all_paths_raw_io:
+            with clui.fbm("All raw paths io" + tn_name.replace('_', ' ')):
+                plot_spaths_inlets(fof(paths), name='all_raw_paths_io' + tn_name + layer_name, spp=spp)
+
+        if options.all_paths_smooth:
+            with clui.fbm("All smooth paths" + tn_name.replace('_', ' ')):
+                plot_spaths_traces(fof(paths), name='all_smooth' + tn_name + layer_name,
+                                   split=options.all_paths_split, spp=spp,
+                                   smooth=smooth)
+        if options.all_paths_smooth_io:
+            with clui.fbm("All smooth paths io" + tn_name.replace('_', ' ')):
+                plot_spaths_inlets(fof(paths), name='all_smooth_paths_io' + tn_name + layer_name, spp=spp)
+
+        with clui.fbm("Paths as states" + tn_name.replace('_', ' ')):
+            if options.paths_raw:
+                clui.message("raw", cont=True)
+                plot_spaths_traces(paths, name='raw_paths' + tn_name + layer_name,
+                                   states=options.paths_states,
+                                   separate=not options.paths_states,
+                                   spp=spp)
+            if options.paths_smooth:
+                clui.message("smooth", cont=True)
+                plot_spaths_traces(paths, name='smooth_paths' + tn_name + layer_name,
+                                   states=options.paths_states,
+                                   separate=not options.paths_states, smooth=smooth, spp=spp)
+            if options.paths_raw_io:
+                clui.message("raw_io", cont=True)
+                plot_spaths_inlets(paths, name='raw_paths_io' + tn_name + layer_name,
+                                   states=options.paths_states,
+                                   separate=not options.paths_states, spp=spp)
+            if options.paths_smooth_io:
+                clui.message("smooth_io", cont=True)
+                plot_spaths_inlets(paths, name='smooth_paths_io' + tn_name + layer_name,
+                                   states=options.paths_states,
+                                   separate=not options.paths_states, smooth=smooth, spp=spp)
+
     for tn, tn_name in iter_over_tn():
-        all_spaths = tn_lim(tn)
+        if Reader.sandwich_mode:
+            for layer in range(Reader.number_of_layers()):
+                clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()))
+                plot_paths(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn)), tn_name, "_L{}".format(layer))
+        else:
+            plot_paths(tn_lim(tn), tn_name)
 
-        for layer in range(Reader.number_of_layers()):
-            spaths_layer = filter(lambda spath: spath.id.id[0] == layer, all_spaths)
-            layer_name = "_L{}".format(layer)
-
-            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()))
-            if options.all_paths_raw:
-                with clui.fbm("All raw paths" + tn_name.replace('_', ' ')):
-                    plot_spaths_traces(fof(spaths_layer), name='all_raw' + tn_name + layer_name,
-                                       split=options.all_paths_split, spp=spp)
-            if options.all_paths_raw_io:
-                with clui.fbm("All raw paths io" + tn_name.replace('_', ' ')):
-                    plot_spaths_inlets(fof(spaths_layer), name='all_raw_paths_io' + tn_name + layer_name, spp=spp)
-
-            if options.all_paths_smooth:
-                with clui.fbm("All smooth paths" + tn_name.replace('_', ' ')):
-                    plot_spaths_traces(fof(spaths_layer), name='all_smooth' + tn_name + layer_name,
-                                       split=options.all_paths_split, spp=spp,
-                                       smooth=smooth)
-            if options.all_paths_smooth_io:
-                with clui.fbm("All smooth paths io" + tn_name.replace('_', ' ')):
-                    plot_spaths_inlets(fof(spaths_layer), name='all_smooth_paths_io' + tn_name + layer_name, spp=spp)
-
-            with clui.fbm("Paths as states" + tn_name.replace('_', ' ')):
-                if options.paths_raw:
-                    clui.message("raw", cont=True)
-                    plot_spaths_traces(spaths_layer, name='raw_paths' + tn_name + layer_name,
-                                       states=options.paths_states,
-                                       separate=not options.paths_states,
-                                       spp=spp)
-                if options.paths_smooth:
-                    clui.message("smooth", cont=True)
-                    plot_spaths_traces(spaths_layer, name='smooth_paths' + tn_name + layer_name,
-                                       states=options.paths_states,
-                                       separate=not options.paths_states, smooth=smooth, spp=spp)
-                if options.paths_raw_io:
-                    clui.message("raw_io", cont=True)
-                    plot_spaths_inlets(spaths_layer, name='raw_paths_io' + tn_name + layer_name,
-                                       states=options.paths_states,
-                                       separate=not options.paths_states, spp=spp)
-                if options.paths_smooth_io:
-                    clui.message("smooth_io", cont=True)
-                    plot_spaths_inlets(spaths_layer, name='smooth_paths_io' + tn_name + layer_name,
-                                       states=options.paths_states,
-                                       separate=not options.paths_states, smooth=smooth, spp=spp)
 
     if options.show_molecule:
         pymol_connector.orient_on(molecule_name)
