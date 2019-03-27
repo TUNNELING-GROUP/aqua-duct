@@ -795,6 +795,9 @@ class ValveConfigApp(object):
             path = dir_var.get() + os.path.sep + filename_var.get()
             with open(path, "w+"):
                 self.config_filename.set(path)
+                self.parent.title("{} - {}".format(self.title, path))
+
+            window.destroy()
 
         create_callback = utils.CallbackWrapper(create, directory_name, file_name)
         ttk.Button(window, text="Create", command=create_callback).grid(row=3, column=0, columnspan=3)
