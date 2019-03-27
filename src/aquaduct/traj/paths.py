@@ -29,7 +29,7 @@ from scipy.spatial.distance import cdist
 from aquaduct.geom import traces
 from aquaduct.traj.inlets import Inlet, InletTypeCodes
 from aquaduct.utils.helpers import is_number, lind, glind, \
-    SmartRange  # smart ranges are required here to provide bacward compatibility with v0.3
+    SmartRange  # smart ranges are required here to provide backward compatibility with v0.3
 from aquaduct.utils.sets import intersection, glue, left, right
 from aquaduct.utils.helpers import tupleify, listify, arrayify1
 from aquaduct.utils.maths import make_default_array

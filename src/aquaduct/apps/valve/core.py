@@ -1558,7 +1558,8 @@ def stage_VI_run(config, options,
                             spp.multiline_add(coords, color=color)
                     spp.multiline_end(name=c_name + '_DC')
             spp.scatter(np.array([center_of_system]), color=cmap[10], name="CoS")
-            spp.scatter(np.array([center_of_object]), color=cmap[10], name="CoO")
+            if center_of_object is not None:
+                spp.scatter(np.array([center_of_object]), color=cmap[10], name="CoO")
 
     fof = lambda sp: list(make_fractionof(sp, f=options.ctypes_amount))
 
