@@ -461,6 +461,13 @@ separate_paths_section.add_entry(DefaultEntry(config_name="allow_passing_paths",
                                               help_text="If set True paths that do not enter the object are detected and added to the rest of paths as ‘passing’ paths.",
                                               level=0,
                                               warning_text=" "))
+separate_paths_section.add_entry(DefaultEntry(config_name="calculate_coo",
+                                              name="Calculate cetner of object: ",
+                                              default_values=[False],
+                                              help_text="If set True center of object is calculated by averaging coordinates of all paths in the object area.",
+                                              level=0,
+                                              warning_text="Calculation of CoO may be very long for some systems "))
+
 DEFAULTS.append(separate_paths_section)
 
 inlets_clustering_section = DefaultSection(config_name="inlets_clustering", name="Inlets clustering",
@@ -538,6 +545,12 @@ inlets_clustering_section.add_entry(DefaultEntry(config_name="cluster_area_expan
                                                      name="Epand cluster area: ",
                                                      default_values=[2],
                                                      help_text="Space occupied by clusters’ points can be expanded before KDE calculation. This option controls amount of A by which the cluster space is expanded. Average amount of expansion can be calcualted as E^(2/3).",
+                                                     level=1))
+inlets_clustering_section.add_entry(DefaultEntry(config_name="inlets_center",
+                                                     name="Ceentral point for inlets: ",
+                                                     default_values=[['cos','coo']],
+                                                     help_text="Central point for inlets influencs cluster area calculations and cluster countours.",
+                                                     warning_text="If `coo` is selected `calculate_coo` should be set `True`. ",
                                                      level=1))
 DEFAULTS.append(inlets_clustering_section)
 
