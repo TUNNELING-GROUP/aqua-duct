@@ -243,24 +243,18 @@ class ValveConfigApp(object):
 
         def save_callback(*args):
             if self.config_filename.get() == "":
-                self.open_config_file()
+                if self.open_config_file():
+                    self.save_config(self.config_filename.get())
+            else:
+                self.save_config(self.config_filename.get())
 
-                # If creating new file was canceled
-                if self.config_filename.get() == "":
-                    return
-
-            self.save_config(self.config_filename.get())
+                return
 
         file_menu.add_command(label="Save", command=save_callback)
 
         def save_as_callback(*args):
-            self.open_config_file()
-
-            # If creating new file was canceled
-            if self.config_filename.get() == "":
-                return
-
-            self.save_config(self.config_filename.get())
+            if self.open_config_file():
+                self.save_config(self.config_filename.get())
 
         file_menu.add_command(label="Save as", command=save_as_callback)
 
@@ -562,7 +556,9 @@ class ValveConfigApp(object):
                 self.parent.title("{} - {}".format(self.title, config_file.name))
                 self.config_filename.set(config_file.name)
         except AttributeError:
-            pass
+            return False
+
+        return True
 
     def recreate_gui(self, *args):
         """
