@@ -806,7 +806,7 @@ class ValveConfigApp(object):
         window = tk.Toplevel(self.parent)
         window.title("About")
 
-        logo = tk.PhotoImage(data=get_img("logo.gif"))
+        logo = tk.PhotoImage(file=get_img("logo.gif"))
 
         logo_label = ttk.Label(window, image=logo)
         logo_label.image = logo
