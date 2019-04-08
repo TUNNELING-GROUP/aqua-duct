@@ -1222,12 +1222,12 @@ VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-t",
                                       help_text="Limit Aqua-Duct calculations to given number of threads.",
                                       level=None
                                       ))
-VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--force-save",
-                                      name="Force saving results: ",
-                                      default_values=[False],
-                                      help_text="Force saving results.",
-                                      level=None
-                                      ))
+# VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--force-save",
+#                                       name="Force saving results: ",
+#                                       default_values=[False],
+#                                       help_text="Force saving results.",
+#                                       level=None
+#                                       ))
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
                                       name="Debug mode: ",
                                       default_values=[False],
@@ -1235,8 +1235,8 @@ VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
                                       level=None
                                       ))
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
-                                      name="Debug mode: ",
-                                      default_values=[False],
+                                      name="Debug file: ",
+                                      default_values=[str()],
                                       help_text="Debug log file.",
                                       level=None
                                       ))

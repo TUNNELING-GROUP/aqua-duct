@@ -860,7 +860,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
 
             command.set(cmd)
 
-        for row, entry in enumerate(defaults.POND_DEFAULTS.entries):
+        for row, entry in enumerate(defaults.VALVE_DEFAULTS.entries):
             var = utils.entry_factory(frame, row, entry.name, entry.default_values, entry.help_text)
             args[entry.config_name] = var
             var.input_var.trace("w", update_command)
