@@ -296,13 +296,13 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="scope_everyframe"
                                                   default_values=[False],
                                                   help_text="Flag to set Scope evaluation mode. If set True Scope is evaluated in every frame. This make sense if the definition is complex and depends on distances between molecular entities.",
                                                   level=0,
-                                                  warning_text=" "))
+                                                  warning_text="Could be time-consuming."))
 traceable_residues_section.add_entry(DefaultEntry(config_name="scope_convexhull_inflate",
                                                   name="Scope convex hull inflate: ",
                                                   default_values=[str()],
                                                   help_text="Increase (or if negative - decrease) size of the scope convex hull.",
                                                   level=0,
-                                                  warning_text=" "))
+                                                  warning_text="Could be time-consuming."))
 traceable_residues_section.add_entry(DefaultEntry(config_name="object",
                                                   name="Object: ",
                                                   default_values=[str()],
@@ -314,7 +314,7 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="add_passing",
                                                   default_values=[str()],
                                                   help_text="Definition of molecules that should be added to traced molecules even if they were not present in Object.",
                                                   level=0,
-                                                  warning_text=" "))
+                                                  warning_text="Could be time-consuming."))
 DEFAULTS.append(traceable_residues_section)
 
 raw_paths_section = DefaultSection(config_name="raw_paths", name="Raw paths", level=1)
@@ -346,13 +346,13 @@ raw_paths_section.add_entry(DefaultEntry(config_name="scope_everyframe",
                                          default_values=[False],
                                          help_text="Flag to set Scope evaluation mode. If set True Scope is evaluated in every frame. This make sense if the definition is complex and depends on distances between molecular entities. If None value from previous stage is used.",
                                          level=0,
-                                         warning_text=" "))
+                                         warning_text="Could be time-consuming."))
 raw_paths_section.add_entry(DefaultEntry(config_name="scope_convexhull_inflate",
-                                         name="Scope convexhull inflate: ",
+                                         name="Scope convex hull inflate: ",
                                          default_values=[str()],
                                          help_text="Increase (or if negative - decrease) size of the scope convex hull. If None, value from previous stage is used.",
                                          level=0,
-                                         warning_text=" "))
+                                         warning_text="Could be time-consuming."))
 raw_paths_section.add_entry(DefaultEntry(config_name="object",
                                          name="Object: ",
                                          default_values=[str()],
@@ -460,13 +460,13 @@ separate_paths_section.add_entry(DefaultEntry(config_name="allow_passing_paths",
                                               default_values=[False],
                                               help_text="If set True paths that do not enter the object are detected and added to the rest of paths as ‘passing’ paths.",
                                               level=0,
-                                              warning_text=" "))
+                                              warning_text="Required for hotspots and energy profiles calculations."))
 separate_paths_section.add_entry(DefaultEntry(config_name="calculate_coo",
-                                              name="Calculate cetner of object: ",
+                                              name="Calculate center of object: ",
                                               default_values=[False],
                                               help_text="If set True center of object is calculated by averaging coordinates of all paths in the object area.",
                                               level=0,
-                                              warning_text="Calculation of CoO may be very long for some systems "))
+                                              warning_text="Calculation of CoO may be very long for some systems."))
 
 DEFAULTS.append(separate_paths_section)
 
@@ -991,7 +991,7 @@ analysis_section.add_entry(DefaultEntry(config_name="create_master_paths",
                                         default_values=[False],
                                         help_text="If set to True master paths are created (fast CPU and big RAM recommended; 50k frames long simulation may need ca 20GB of memory)",
                                         level=0,
-                                        warning_text=" "))
+                                        warning_text="Required for energy profiles calculations and could be time-consuming"))
 analysis_section.add_entry(DefaultEntry(config_name="cluster_area",
                                         name="Cluster area: ",
                                         default_values=[True],
