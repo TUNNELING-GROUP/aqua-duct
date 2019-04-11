@@ -741,6 +741,8 @@ class ValveConfigApp(object):
             tkMessageBox.showinfo("Exeption", "There was error during saving configuration.\n{}".format(str(e)))
             shutil.copy(config_filename + ".bak", config_filename)
 
+        os.remove(config_filename + ".bak")
+
         if required_checking:
             tkMessageBox.showinfo("Saved", "Saving complete")
 
