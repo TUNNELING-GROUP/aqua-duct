@@ -53,12 +53,8 @@ class ValveConfigApp(object):
         self.hiding_frames = {}
 
         self.cluster_frame_index = None
-        # Row of the last element in clustering tab
-        self.cluster_row = 0
 
         self.recluster_frame_index = None
-        # Row of the last element in reclustering tab
-        self.recluster_row = 0
 
         # Used for identifying scroll frame by interior frame for removing it from notebook
         self.scrolled_frames = {}
@@ -169,13 +165,6 @@ class ValveConfigApp(object):
             ttk.Separator(frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=3)
 
             self.entry_filler(frame, section_name, entries)
-
-        # Set row number to row of hidden frame of default clustering section. Used to append new frames
-        # TODO: It may not work when other widgets are rendered first
-        self.cluster_row = next(self.hiding_frames["clustering"].itervalues()).row + 1
-
-        if "reclustering" in self.hiding_frames:
-            self.recluster_row = next(self.hiding_frames["reclustering"].itervalues()).row + 1
 
         for section_name in self.get_recursive_clustering_sections("clustering"):
             self.append_entries(section_name)
@@ -358,14 +347,15 @@ class ValveConfigApp(object):
         if section_name.startswith("clustering"):
             default_section_name = "clustering"
             frame = self.frames[self.cluster_frame_index]
-            row = self.cluster_row
         elif section_name.startswith("reclustering"):
             default_section_name = "reclustering"
             frame = self.frames[self.recluster_frame_index]
-            row = self.recluster_row
         else:
             raise RuntimeError(
                 "Appending entries to sections other than clustering or reclusteriation is not allowed")
+
+        # Calculate row
+        row = frame.grid_size()[1] - len(frame.grid_slaves(None, 0)) - 1
 
         # Set option menu from recursive clustering to control hiding frames
         defaults.MENUS.append("{}:method".format(section_name))
@@ -391,11 +381,6 @@ class ValveConfigApp(object):
 
         remove_section_callback = utils.CallbackWrapper(self.callback_remove_section, section_name, inner_frame)
         remove_button.bind("<Button-1>", remove_section_callback)
-
-        if default_section_name == "clustering":
-            self.cluster_row += 1
-        else:
-            self.recluster_row += 1
 
     def entry_filler(self, parent, section_name, entries):
         """
@@ -438,15 +423,14 @@ class ValveConfigApp(object):
                     self.hiding_frames[section_name] = {}
 
                 if entry.optionmenu_value not in self.hiding_frames[section_name]:
-                    if len(self.hiding_frames[section_name]) != 0:
-                        hiding_frame_row = next(self.hiding_frames[section_name].itervalues()).row
-                    else:
-                        hiding_frame_row = row
 
                     self.hiding_frames[section_name][entry.optionmenu_value] = utils.HidingFrame(parent,
-                                                                                                 hiding_frame_row,
+                                                                                                 parent.grid_size()[1],
                                                                                                  text=entry.optionmenu_value.capitalize() + " options",
                                                                                                  style="HF.TFrame")
+
+                    # It must be showed first, to allocate space in frame, otherwise grid_size wont return proper value
+                    self.hiding_frames[section_name][entry.optionmenu_value].show()
 
                 hiding_frame = self.hiding_frames[section_name][entry.optionmenu_value]
 
@@ -454,15 +438,13 @@ class ValveConfigApp(object):
                     self.values[section_name] = {}
 
                 self.values[section_name][entry.config_name] = utils.entry_factory(hiding_frame,
-                                                                                   hiding_frame.inner_row,
+                                                                                   hiding_frame.grid_size()[1],
                                                                                    entry.name,
                                                                                    entry.default_values,
                                                                                    entry.help_text,
                                                                                    state,
                                                                                    info_text=entry.info_text,
                                                                                    warning_text=entry.warning_text)
-
-                hiding_frame.inner_row += 1
 
                 if entry.required:
                     self.required_entries[section_name][entry.config_name] = self.values[section_name][
@@ -473,7 +455,7 @@ class ValveConfigApp(object):
                         label_frame = ttk.LabelFrame(parent, text=entry.group_label)
                         label_frame.grid_columnconfigure(0, weight=1)
                         label_frame.grid_columnconfigure(1, weight=1)
-                        label_frame.grid(row=row, column=0, columnspan=2, pady=15, ipadx=30)
+                        label_frame.grid(row=parent.grid_size()[1], column=0, columnspan=2, pady=15, ipadx=30)
 
                         group_frames[entry.group_label] = [label_frame, 0]
 
@@ -483,10 +465,9 @@ class ValveConfigApp(object):
                     group_frames[entry.group_label][1] += 1
                 else:
                     entry_parent = parent
-                    entry_row = row
 
                 entry_widget = utils.entry_factory(entry_parent,
-                                                   entry_row,
+                                                   entry_parent.grid_size()[1],
                                                    entry.name,
                                                    entry.default_values,
                                                    entry.help_text,
@@ -509,8 +490,6 @@ class ValveConfigApp(object):
 
                 if entry.required:
                     self.required_entries[section_name][entry.config_name] = entry_widget
-
-            row += 1
 
         # Hide tab if unused
         if entries_appended == 0:

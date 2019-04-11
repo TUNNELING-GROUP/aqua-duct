@@ -674,7 +674,6 @@ class HidingFrame(ttk.Frame, object):
         self.columnconfigure(1, weight=1)
 
         self.row = row
-        self.inner_row = 1
 
     def show(self):
         """ Method to grid Frame with predefinied configuration. """
