@@ -27,7 +27,7 @@ import ttk
 import webbrowser
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from collections import OrderedDict, defaultdict
-from tkFileDialog import askopenfile, askdirectory
+from tkFileDialog import askopenfile, askdirectory, asksaveasfile
 
 import aquaduct
 import aquaduct.apps.valveconfig.defaults as defaults
@@ -232,18 +232,20 @@ class ValveConfigApp(object):
 
         def save_callback(*args):
             if self.config_filename.get() == "":
-                if self.open_config_file():
-                    self.save_config(self.config_filename.get())
+                f = asksaveasfile("w")
+                if self.save_config(f.name):
+                    self.parent.title("{} - {}".format(self.title, f.name))
+                    self.config_filename.set(f.name)
+                else:
+                    os.remove(f.name) # Remove opened file if saving cant be done
             else:
                 self.save_config(self.config_filename.get())
-
-                return
 
         file_menu.add_command(label="Save", command=save_callback)
 
         def save_as_callback(*args):
-            if self.open_config_file():
-                self.save_config(self.config_filename.get())
+            f = asksaveasfile("w")
+            self.save_config(f.name)
 
         file_menu.add_command(label="Save as", command=save_as_callback)
 
@@ -705,7 +707,7 @@ class ValveConfigApp(object):
                                        "Field \"{}\" in \"{}\" must be specified.".format(entry_full_name,
                                                                                           section_full_name))
                 self.notebook.select(first_found[2])
-                return
+                return False
 
         # Create config file backup
         shutil.copy(config_filename, config_filename + ".bak")
@@ -741,6 +743,8 @@ class ValveConfigApp(object):
 
         if required_checking:
             tkMessageBox.showinfo("Saved", "Saving complete")
+
+        return True
 
     def open_docs(self):
         webbrowser.open("http://www.aquaduct.pl/apidocs/valve/valve_config.html")
