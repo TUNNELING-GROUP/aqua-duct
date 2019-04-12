@@ -1550,27 +1550,51 @@ def stage_VI_run(config, options,
         if iscontour:
             with clui.fbm("Clusters contours"):
                 for c in inls.clusters_list:
-                    # coords for current cluster
-                    ics = inls.lim2clusters(c).coords
-                    if c == 0:
-                        c_name = 'out'
+                    if Reader.sandwich_mode:
+                        for layer in range(Reader.number_of_layers()):
+                            # coords for current cluster
+                            ics = inls.lim_to([spath.id.id[0] for spath in spaths], layer).lim2clusters(c).coords
+                            if c == 0:
+                                c_name = 'out'
+                            else:
+                                c_name = str(int(c))
+                            cmap = cmaps._cmap_jet_256
+                            # calcualte hdr
+                            # print inls.center_of_system, c_name, len(ics), alt_center_of_system
+                            if len(ics) < 3: continue
+                            h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
+                                        expand_by=float(options.cluster_area_expand),
+                                        center_of_system=inls.center_of_system)
+                            spp.multiline_begin()
+                            for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
+                                # print c_name + '_D%d' % fraction
+                                coords = hdr2contour(h, fraction=fraction / 100.)
+                                if coords is not None:
+                                    color = cmap[int(255 * (1 - fraction / 100.))]
+                                    spp.multiline_add(coords, color=color)
+                            spp.multiline_end(name=c_name + '_L{}_DC'.format(layer))
                     else:
-                        c_name = str(int(c))
-                    cmap = cmaps._cmap_jet_256
-                    # calcualte hdr
-                    # print inls.center_of_system, c_name, len(ics), alt_center_of_system
-                    if len(ics) < 3: continue
-                    h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
-                                expand_by=float(options.cluster_area_expand),
-                                center_of_system=inls.center_of_system)
-                    spp.multiline_begin()
-                    for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
-                        # print c_name + '_D%d' % fraction
-                        coords = hdr2contour(h, fraction=fraction / 100.)
-                        if coords is not None:
-                            color = cmap[int(255 * (1 - fraction / 100.))]
-                            spp.multiline_add(coords, color=color)
-                    spp.multiline_end(name=c_name + '_DC')
+                        # coords for current cluster
+                        ics = inls.lim2clusters(c).coords
+                        if c == 0:
+                            c_name = 'out'
+                        else:
+                            c_name = str(int(c))
+                        cmap = cmaps._cmap_jet_256
+                        # calcualte hdr
+                        # print inls.center_of_system, c_name, len(ics), alt_center_of_system
+                        if len(ics) < 3: continue
+                        h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
+                                    expand_by=float(options.cluster_area_expand),
+                                    center_of_system=inls.center_of_system)
+                        spp.multiline_begin()
+                        for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
+                            # print c_name + '_D%d' % fraction
+                            coords = hdr2contour(h, fraction=fraction / 100.)
+                            if coords is not None:
+                                color = cmap[int(255 * (1 - fraction / 100.))]
+                                spp.multiline_add(coords, color=color)
+                        spp.multiline_end(name=c_name + '_DC')
             spp.scatter(np.array([center_of_system]), color=cmap[10], name="CoS")
             if center_of_object is not None:
                 spp.scatter(np.array([center_of_object]), color=cmap[10], name="CoO")
@@ -1587,9 +1611,19 @@ def stage_VI_run(config, options,
             for nr, ct in enumerate(ctypes_generic_list):
                 clui.message(str(ct), cont=True)
                 for tn, tn_name in iter_over_tn():
-                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                    tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
-                    plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_raw' + tn_name, split=False, spp=spp)
+                    if Reader.sandwich_mode:
+                        for layer in range(Reader.number_of_layers()):
+                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()))
+                            sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                            tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+                            plot_spaths_traces(fof(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn))),
+                                               name=str(ct) + '_raw' + tn_name + '_L' + str(layer),
+                                               split=False,
+                                               spp=spp)
+                    else:
+                        sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                        tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+                        plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_raw' + tn_name, split=False, spp=spp)
                 for mp_nr in xrange(len(master_paths_separate) + 1):
                     mp_name = ""
                     mp = None
@@ -1616,10 +1650,23 @@ def stage_VI_run(config, options,
             for nr, ct in enumerate(ctypes_generic_list):
                 clui.message(str(ct), cont=True)
                 for tn, tn_name in iter_over_tn():
-                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                    tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
-                    plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth' + tn_name, split=False, spp=spp,
-                                       smooth=smooth)
+                    if Reader.sandwich_mode:
+                        for layer in range(Reader.number_of_layers()):
+                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()))
+
+                            sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                            tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+
+                            plot_spaths_traces(fof(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn))),
+                                               name=str(ct) + '_smooth' + tn_name + '_L' + str(layer),
+                                               split=False,
+                                               spp=spp,
+                                               smooth=smooth)
+                    else:
+                        sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                        tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+                        plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth' + tn_name, split=False, spp=spp,
+                                           smooth=smooth)
                 for mp_nr in xrange(len(master_paths_separate) + 1):
                     mp_name = ""
                     mp = None
@@ -1656,9 +1703,6 @@ def stage_VI_run(config, options,
                                            split=False,
                                            spp=spp,
                                            smooth=smooth)
-
-    fof = lambda sp: list(make_fractionof(sp, f=options.all_paths_amount))
-    tn_lim = lambda tn: spaths if tn is None else [sp for sp in spaths if tn == sp.id.name]
 
     def plot_paths(paths, tn_name, layer_name=""):
         if options.all_paths_raw:
@@ -1700,6 +1744,9 @@ def stage_VI_run(config, options,
                 plot_spaths_inlets(paths, name='smooth_paths_io' + tn_name + layer_name,
                                    states=options.paths_states,
                                    separate=not options.paths_states, smooth=smooth, spp=spp)
+
+    fof = lambda sp: list(make_fractionof(sp, f=options.all_paths_amount))
+    tn_lim = lambda tn: spaths if tn is None else [sp for sp in spaths if tn == sp.id.name]
 
     for tn, tn_name in iter_over_tn():
         if Reader.sandwich_mode:
