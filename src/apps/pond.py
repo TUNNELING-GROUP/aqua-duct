@@ -147,19 +147,19 @@ if __name__ == "__main__":
             #                    help="Calculate profiles for master paths using width as radii.")
             parser.add_argument("--io-threshold", action="store", dest="io_threshold", type=float, required=False,
                                 default=None,
-                                help="Percent value of maximum density which will be used to partition pocket into inner and outer.")
+                                help="Percent value of maximum density which will be used to partition pocket into inner and outer instead of mean value.")
             parser.add_argument("--path-id", action="store", dest="path_id", type=str, required=False,
                                 default=None, help="Calculate profiles for specified path ID.")
             parser.add_argument("--path-file", action="store", dest="path_file", type=str, required=False,
-                                default="path_coords.csv", help="Use coordinates from specified CSV file.")
+                                help="Use coordinates from specified CSV file.")
             parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
                                 default=2., help="Calculate profiles for path with given radius.")
             parser.add_argument("--raw-path", action="store_true", dest="raw_path", required=False,
-                                help="Use raw data from paths instead of single paths, only for path energy profiles calculations.")
-
+                                help="Use raw data from paths instead of single paths. "
+                                     "Used for path energy profiles calculations and for extracting raw path.")
             parser.add_argument("--extract-path", action="store", dest="extract_path", type=str, required=False,
                                 default=None, help="Extract path coordinates with specified ID.")
-            parser.add_argument("--coords-file", action="store", dest="coords_file", type=str, required=False,
+            parser.add_argument("--output-file", action="store", dest="output_file", type=str, required=False,
                                 default="path_coords.csv", help="Output CSV filename for extracted coordinates.")
 
 
@@ -389,6 +389,9 @@ if __name__ == "__main__":
                     rmu('reference_correction', float(ref))
                     clui.message('Reference correction: %0.4f [kJ/mol].' % ref)
 
+            if ref:
+                rmu('reference_density_correction', np.exp(ref/(-k * args.temp)))
+
             # ----------------------------------------------------------------------#
             # windows
 
@@ -408,7 +411,7 @@ if __name__ == "__main__":
                 elif (wnr == 0) and (args.wfull or (not many_windows)):
                     print("full %d:%d" % (window[0], window[1]))
                     rmu('full_window',[window[0], window[1]])
-                rmu('windows',windows)
+                rmu('windows', windows)
 
             # ----------------------------------------------------------------------#
             # calculate pockets
@@ -451,17 +454,18 @@ if __name__ == "__main__":
                                 D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window,
                                                         pbar=pbar, map_fun=pool.imap_unordered)
                                 H = (D[-1] / WSf) / grid_area
+
                                 if args.hotspots:
                                     hs = pocket.hot_spots(H)
                                     if hs is not None:
                                         hs = H >= hs
-                                if ref:
-                                    H = H - np.exp(ref / (-k * args.temp))
-                                if args.hotspots:
-                                    if hs is not None:
                                         hsmol2.write_scatter(D[0][hs], H[hs])
                                     else:
                                         hsmol2.write_scatter([], [])
+
+                                if ref:
+                                    H = H - np.exp(ref / (-k * args.temp))
+
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold), wmol2):
                                     mol2.write_scatter(D[0][I], H[I])
@@ -472,12 +476,20 @@ if __name__ == "__main__":
                                 D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window,
                                                         pbar=pbar, map_fun=pool.imap_unordered)
                                 H = (D[-1] / float(number_of_frames)) / grid_area
+
                                 if args.hotspots:
                                     hs = pocket.hot_spots(H)
+                                    mol2 = WriteMOL2(rdir + 'hotspots_full%s.mol2' % ptn)
                                     if hs is not None:
                                         hs = H >= hs
+                                        mol2.write_scatter(D[0][hs], H[hs])
+                                    else:
+                                        mol2.write_scatter([], [])
+                                    del mol2
+
                                 if ref:
                                     H = H - np.exp(ref / (-k * args.temp))
+
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold),
                                                    [WriteMOL2(rdir + 'outer_full%s.mol2' % ptn),
@@ -486,13 +498,6 @@ if __name__ == "__main__":
                                     volumes.append(sum(I) * grid_area)
                                     del mol2
                                 pockets_volume.write(('%d\t%d\t%0.1f\t%0.1f' % (window + tuple(volumes))) + os.linesep)
-                                if args.hotspots:
-                                    mol2 = WriteMOL2(rdir + 'hotspots_full%s.mol2' % ptn)
-                                    if hs is not None:
-                                        mol2.write_scatter(D[0][hs], H[hs])
-                                    else:
-                                        mol2.write_scatter([], [])
-                                    del mol2
                             save_cric()
                         pool.close()
                         pool.join()
@@ -619,7 +624,7 @@ if __name__ == "__main__":
                                             H = H[ind]
                                             centers = centers[ind]
                                             logger.warning("Cannot find paths within defined master radius, some points are skip.")
-                                        H = H - np.exp(ref / (-k * args.temp))
+                                        H = -k * args.temp * np.log(H) - ref
                                     with WriteMOL2(rdir + "mp_%s%s_radius%s.mol2" % (fname, fname_window_single, ptn),
                                                    mode=mode) as mol2:
                                         mol2.write_connected(centers, H)
@@ -638,82 +643,110 @@ if __name__ == "__main__":
             # Paths
             # ----------------------------------------------------------------------#
             # Extracting
+
+            def path_id_formatter(id):
+                """
+                Change tuple values to string with values separated by colon. Otherwise return string representation.
+                :param id: tuple
+                :return: string
+                """
+                if isinstance(id, tuple):
+                    return ":".join([str(x) for x in id])
+                else:
+                    return str(id)
+
             if args.extract_path:
-                options3 = config.get_stage_options(2)
-                with clui.fbm("Loading data dump from {} file.".format(options3.dump)):
-                    vda = get_vda_reader(options3.dump, mode="r")
-                    result3 = vda.load()
+                if not args.raw_path:
+                    options3 = config.get_stage_options(2)
+                    with clui.fbm("Loading data dump from {} file.".format(options3.dump)):
+                        vda = get_vda_reader(options3.dump, mode="r")
+                        result3 = vda.load()
+
+                        paths = result3.pop("spaths")
+                else:
+                    options2 = config.get_stage_options(1)
+                    with clui.fbm('Loading raw data dump from %s file' % options2.dump):
+                        vda = get_vda_reader(options2.dump, mode='r')
+                        result2 = vda.load()
+
+                        paths = result2.pop("paths")
 
                 with clui.fbm("Extracting path {} coordinates.".format(args.extract_path)):
                     try:
-                        spath = next(spath for spath in result3["spaths"] if str(spath.id) == args.extract_path)
+                        path = next(path for path in paths if path_id_formatter(path.id) == str(args.extract_path))
+
                     except StopIteration:
-                        spath = None
+                        path = None
 
-                    soptions = namedtuple('Options', result3["soptions"].keys())(*result3["soptions"].values())
-                    smooth_method = get_smooth_method(soptions)
+                    if path:
+                        if not args.raw_path:
+                            soptions = result3.pop("soptions")
+                            soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                            smooth_method = get_smooth_method(soptions)
+                            coords = path.get_coords_cont(smooth_method)
+                        else:
+                            coords = path.coords
 
-                    if spath:
-                        with open(rdir + args.coords_file, "w") as csvfile:
+                        with open(rdir + args.output_file, "w") as csvfile:
                             csv_writer = csv.writer(csvfile)
 
-                            for coord in spath.get_coords_cont(smooth_method):
+                            for coord in coords:
                                 csv_writer.writerow(coord)
                     else:
                         clui.message("Path with ID {} does not exists.".format(args.extract_path))
 
-                if spath:
-                    clui.message("Path saved to {}".format(args.coords_file))
+                if path:
+                    clui.message("Path saved to {}".format(args.output_file))
 
             # ----------------------------------------------------------------------#
             # Calculating energy profile for path
 
             if args.eng_pro and (args.path_id or args.path_file):
                 with clui.tictoc('Loading paths data'):
-
-                    options3 = config.get_stage_options(2)
-
                     if args.path_id:
-                        with clui.fbm('Loading data dump from %s file' % options3.dump):
-                            vda = get_vda_reader(options3.dump, mode='r')
-                            result3 = vda.load()
-                            paths = result3.pop("spaths")
+                        if not args.raw_path:
+                            options3 = config.get_stage_options(2)
+                            with clui.fbm("Loading data dump from {} file.".format(options3.dump)):
+                                vda = get_vda_reader(options3.dump, mode="r")
+                                result3 = vda.load()
+
+                                paths = result3.pop("spaths")
+                        else:
+                            options2 = config.get_stage_options(1)
+                            with clui.fbm('Loading raw data dump from %s file' % options2.dump):
+                                vda = get_vda_reader(options2.dump, mode='r')
+                                result2 = vda.load()
+
+                                paths = result2.pop("paths")
+
                         try:
-                            spath = next(spath for spath in paths if str(spath.id) == args.path_id)
+                            path = next(path for path in paths if path_id_formatter(path.id) == args.path_id)
 
-                            paths = [p for p in paths if p.id.name in paths_types]
+                            #soptions = result3.pop("soptions")
+                            #soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                            #smooth_method = get_smooth_method(soptions)
 
-                            soptions = result3.pop("soptions")
-                            soptions = namedtuple('Options', soptions.keys())(*soptions.values())
-                            smooth_method = get_smooth_method(soptions)
-
-                            coords = spath.get_coords_cont(smooth_method)
+                            if not args.raw_path:
+                                coords = path.get_coords_cont()
+                            else:
+                                coords = path.coords
                         except StopIteration:
                             coords = []
                     elif args.path_file:
-                        coords2 = []
+                        coords = []
                         with open(args.path_file, "r") as csvfile:
                             csv_reader = csv.reader(csvfile)
 
                             for row in csv_reader:
-                                coords2.append([float(r) for r in row])
+                                coords.append([float(r) for r in row])
 
-                        coords = np.array(coords2, dtype=np.float32)
+                        coords = np.array(coords, dtype=np.float32)
 
-                    if args.raw_path:
-                        options2 = config.get_stage_options(1)
-                        with clui.fbm('Loading data dump from %s file' % options2.dump):
-                            vda = get_vda_reader(options2.dump, mode='r')
-                            result2 = vda.load()
-
-                            paths = result2.pop("paths")
-                            paths = [p for p in paths if p.id.name in paths_types]
-
+                    if args.raw_path and args.raw_singl:
                         with clui.fbm('Preparing raw data'):
-                            if args.raw_singl:
-                                for p in paths:
-                                    p.discard_singletons(singl=args.raw_singl)
-                            paths = [p for p in paths if len(p.frames)]
+                            for p in paths:
+                                p.discard_singletons(singl=args.raw_singl)
+                        paths = [p for p in paths if len(p.frames)]
 
                     options6 = config.get_stage_options(5)
                     linmet = get_linearize_method(options6.simply_smooths)
@@ -734,6 +767,8 @@ if __name__ == "__main__":
                         pool = Pool(processes=optimal_threads.threads_count)
 
                         with clui.pbar(pbar_len, mess='Calculating path profile:') as pbar:
+                            path_name = args.path_id if args.path_id else ""
+
                             for wnr, window in enumerate(
                                     pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
 
@@ -767,14 +802,14 @@ if __name__ == "__main__":
                                             coords = coords[ind]
                                             logger.warning(
                                                 "Cannot find paths within defined path, some points are skip.")
-                                        H = H - np.exp(ref / (-k * args.temp))
+                                        H = -k * args.temp * np.log(H) - ref
                                     with WriteMOL2(
                                             rdir + "path%s_%s%s_radius%s.mol2" % (
-                                                    args.path_id, fname, fname_window_single, ptn),
+                                                    path_name, fname, fname_window_single, ptn),
                                             mode=mode) as mol2:
                                         mol2.write_connected(coords, H)
 
-                                    with open(rdir + "path%s_%s%s_radius.dat" % (args.path_id, fname, fname_window),
+                                    with open(rdir + "path%s_%s%s_radius.dat" % (path_name, fname, fname_window),
                                               'w') as dat:
                                         dat.write('len\tE' + os.linesep)
                                         L = np.hstack((0., np.cumsum(traces.diff(coords))))
