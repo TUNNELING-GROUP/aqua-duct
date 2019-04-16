@@ -1613,7 +1613,7 @@ def stage_VI_run(config, options,
                 for tn, tn_name in iter_over_tn():
                     if Reader.sandwich_mode:
                         for layer in range(Reader.number_of_layers()):
-                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()))
+                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()-1))
                             sps = lind(spaths, what2what(ctypes_generic, [ct]))
                             tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
                             plot_spaths_traces(fof(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn))),
@@ -1652,7 +1652,7 @@ def stage_VI_run(config, options,
                 for tn, tn_name in iter_over_tn():
                     if Reader.sandwich_mode:
                         for layer in range(Reader.number_of_layers()):
-                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()))
+                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()-1))
 
                             sps = lind(spaths, what2what(ctypes_generic, [ct]))
                             tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
@@ -1751,7 +1751,7 @@ def stage_VI_run(config, options,
     for tn, tn_name in iter_over_tn():
         if Reader.sandwich_mode:
             for layer in range(Reader.number_of_layers()):
-                clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()))
+                clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()-1))
                 plot_paths(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn)), tn_name, "_L{}".format(layer))
         else:
             plot_paths(tn_lim(tn), tn_name)
