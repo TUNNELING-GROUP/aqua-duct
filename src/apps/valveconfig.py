@@ -357,7 +357,7 @@ class ValveConfigApp(object):
                 "Appending entries to sections other than clustering or reclusteriation is not allowed")
 
         # Calculate row
-        row = frame.grid_size()[1] - len(frame.grid_slaves(None, 0)) - 1
+        row = len(frame.grid_slaves(None, 0)) + 2
 
         # Set option menu from recursive clustering to control hiding frames
         defaults.MENUS.append("{}:method".format(section_name))
