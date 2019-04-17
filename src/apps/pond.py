@@ -463,9 +463,6 @@ if __name__ == "__main__":
                                     else:
                                         hsmol2.write_scatter([], [])
 
-                                if ref:
-                                    H = H - np.exp(ref / (-k * args.temp))
-
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold), wmol2):
                                     mol2.write_scatter(D[0][I], H[I])
@@ -486,9 +483,6 @@ if __name__ == "__main__":
                                     else:
                                         mol2.write_scatter([], [])
                                     del mol2
-
-                                if ref:
-                                    H = H - np.exp(ref / (-k * args.temp))
 
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold),
