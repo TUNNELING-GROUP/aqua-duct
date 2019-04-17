@@ -877,6 +877,21 @@ def stage_IV_run(config, options,
             with clui.fbm("Renumber clusters"):
                 inls.renumber_clusters()
 
+        # ***** REMOVE INLETS IN SPECIFIED CLUSTERS *****
+        if options.remove_inlets:
+            with clui.fbm("Remove inlets") as emess:
+                inlets_removed_reference = []
+                inlets_removed_type = []
+                for i2r in options.remove_inlets.split(): # i2r is cluster id
+                    emess('%s' % i2r)
+                    inlets_removed_reference.extend(inls.lim2clusters(i2r).refs())
+                    inlets_removed_type.extend(inls.lim2clusters(i2r).types)
+                    inls.reomve_cluster(int(i2r))
+                # clusters removed, modify spaths
+                for r,t in zip(inlets_removed_reference,inlets_removed_type):
+                    pass
+
+
         ###################
         # CLUSTERING DONE #
         ###################
@@ -972,9 +987,6 @@ def stage_IV_run(config, options,
             'ctypes': ctypes,
             'master_paths': master_paths,
             'master_paths_smooth': master_paths_smooth}
-
-
-################################################################################
 
 
 ################################################################################
@@ -1738,6 +1750,7 @@ stage_I_run
 stage_II_run
 stage_III_run
 stage_IV_run
+stage_IV_et_d_run
 stage_V_run
 stage_VI_run
 '''.split()

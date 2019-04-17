@@ -547,11 +547,20 @@ inlets_clustering_section.add_entry(DefaultEntry(config_name="cluster_area_expan
                                                      help_text="Space occupied by clusters’ points can be expanded before KDE calculation. This option controls amount of A by which the cluster space is expanded. Average amount of expansion can be calcualted as E^(2/3).",
                                                      level=1))
 inlets_clustering_section.add_entry(DefaultEntry(config_name="inlets_center",
-                                                     name="Ceentral point for inlets: ",
+                                                     name="Central point for inlets: ",
                                                      default_values=[['cos','coo']],
                                                      help_text="Central point for inlets influencs cluster area calculations and cluster countours.",
                                                      warning_text="If `coo` is selected `calculate_coo` should be set `True`. ",
                                                      level=1))
+inlets_clustering_section.add_entry(DefaultEntry(config_name="remove_inlets",
+                                                     name="Remove inlets from specified clusters: ",
+                                                     default_values=[[None,str()]],
+                                                     help_text="Inlets in specified clusters are removed - corresponding paths are changed.",
+                                                     warning_text=" ",
+                                                     level=1))
+
+
+
 DEFAULTS.append(inlets_clustering_section)
 
 clustering_section = DefaultSection(config_name="clustering", name="Clustering", level=1)

@@ -310,6 +310,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'separate_master', 'False')
         config.set(section, 'separate_master_all', 'True')
         config.set(section, 'inlets_center', 'cos')
+        config.set(section, 'remove_inlets', 'None')
 
         ################
         # smooth
