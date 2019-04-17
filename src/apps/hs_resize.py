@@ -49,7 +49,7 @@ def hs_resize(meta_file, selection):
 
     states = cmd.count_states(selection=selection)
 
-    with gzip.open("/home/b4naser/Desktop/10ns/qwe/pond_meta.json") as f:
+    with gzip.open(meta_file) as f:
         ref = float(json.load(f)["reference_density_correction"])
 
     for state in range(1, states+1):
