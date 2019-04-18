@@ -391,13 +391,17 @@ class Inlets(object):
         # self.renumber_clusters()
 
     def remove_inlets(self, cluster):
-        # removes inlets completly - clusters and inlets 
-        n = self.clusters.clount(cluster)
-        for nr,c in enumerate(self.clusters[::-1],start=1):
-            self.clusters.pop(-nr)
-            self.inlets_list.pop(-nr)
-            self.inlets_ids.pop(-nr)
-        self.add_message_wrapper(message='cluster %d removed' % n, toleaf=cluster)
+        # removes inlets completly - clusters and inlets
+        n = self.clusters.count(cluster)
+        to_remove = []
+        for nr,c in enumerate(self.clusters):
+            if c == cluster:
+                to_remove.append(nr)
+        for tr in to_remove[::-1]:
+            self.clusters.pop(tr)
+            self.inlets_list.pop(tr)
+            self.inlets_ids.pop(tr)
+        self.add_message_wrapper(message='cluster %d removed' % cluster, toleaf=cluster)
 
 
     def small_clusters_to_outliers(self, maxsize):

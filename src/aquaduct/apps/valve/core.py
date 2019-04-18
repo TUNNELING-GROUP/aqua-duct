@@ -882,14 +882,16 @@ def stage_IV_run(config, options,
             with clui.fbm("Remove inlets") as emess:
                 inlets_removed_reference = []
                 inlets_removed_type = []
-                for i2r in options.remove_inlets.split(): # i2r is cluster id
-                    emess('%s' % i2r)
-                    inlets_removed_reference.extend(inls.lim2clusters(i2r).refs())
+                for i2r in map(int,options.remove_inlets.split()): # i2r is cluster id
+                    emess('%d' % i2r)
+                    inlets_removed_reference.extend(inls.lim2clusters(i2r).refs)
                     inlets_removed_type.extend(inls.lim2clusters(i2r).types)
-                    inls.reomve_cluster(int(i2r))
+                    inls.remove_inlets(i2r)
                 # clusters removed, modify spaths
                 for r,t in zip(inlets_removed_reference,inlets_removed_type):
-                    pass
+                    # find path of r
+                    p = next((sp for sp in spaths if sp.id == r))
+                    p.remove_inlet(t)
 
 
         ###################
@@ -967,7 +969,7 @@ def stage_IV_run(config, options,
                                     {ct: ctspc.get_master_path(resid=(0, nr), smooth=smooth)})
                             else:
                                 raise AssertionError(
-                                    "Internal bug, not consistent interation over traced names. Please send bug report to <%s>" % __mail__)
+                                    "Internal bug, not consistent iteration over traced names. Please send bug report to <%s>" % __mail__)
                             del ctspc
                         pbar.finish()
         gc.collect()
@@ -1797,7 +1799,6 @@ stage_I_run
 stage_II_run
 stage_III_run
 stage_IV_run
-stage_IV_et_d_run
 stage_V_run
 stage_VI_run
 '''.split()

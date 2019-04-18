@@ -720,6 +720,21 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
                         reference=self.id,
                         frame=self.path_out[-1])
 
+    def remove_inlet(self,inlet_type):
+        # only surface type can be removed
+        if InletTypeCodes.surface == inlet_type[0]:
+            if self.has_in and InletTypeCodes.incoming == inlet_type[1]:
+                self._path_object = SmartRange(self.path_in+self.path_object)
+                self._path_in = SmartRange([])
+                self._types_object = SmartRange(self.types_in+self.types_object)
+                self._types_in = SmartRange([])
+            elif self.has_out and InletTypeCodes.outgoing == inlet_type[1]:
+                self._path_object = SmartRange(self.path_object+self.path_out)
+                self._path_out = SmartRange([])
+                self._types_object = SmartRange(self.types_object+self.types_out)
+                self._types_out = SmartRange([])
+        #TODO: raise exceptions or at least warnings if wrong type of inlet is used
+
     ####################################################################################################################
     # coords
 
