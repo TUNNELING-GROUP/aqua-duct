@@ -988,7 +988,8 @@ def stage_IV_run(config, options,
     return {'inls': inls,
             'ctypes': ctypes,
             'master_paths': master_paths,
-            'master_paths_smooth': master_paths_smooth}
+            'master_paths_smooth': master_paths_smooth,
+            'spaths': spaths}
 
 
 ################################################################################
