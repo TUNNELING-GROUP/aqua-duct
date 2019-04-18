@@ -17,11 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from pymol import cmd, stored
-import json
 import gzip
+import json
 import random
 import string
+
+from numpy import log
+from pymol import cmd, stored
 
 
 def _sele_exists(sele):
@@ -52,12 +54,12 @@ def hs_resize(meta_file, selection):
     with gzip.open(meta_file) as f:
         ref = float(json.load(f)["reference_density_correction"])
 
-    for state in range(1, states+1):
+    for state in range(1, states + 1):
         stored.info = []
         cmd.iterate_state(state, selection, "stored.info.append((ID, partial_charge))")
 
         for id_, partial_charge in stored.info:
-            size = partial_charge/ref * 1.
+            size = log(partial_charge / ref * 1. + 1)
 
             cmd.select(temp_sele, "id {}".format(id_), state=state)
             cmd.set("sphere_scale", value=size, selection=temp_sele)
