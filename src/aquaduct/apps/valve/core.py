@@ -1392,10 +1392,18 @@ def stage_V_run(config, options,
             for frame in traj_reader.iterate_over_frames():
                 scope = traj_reader.parse_selection(options.scope_chull)
                 ch = scope.chull(inflate=options.scope_chull_inflate)
-                scope_size[-1].append((ch.area, ch.volume))
+                if ch is not None:
+                    scope_size[-1].append((ch.area, ch.volume))
+                else:
+                    logger.warning("Cannot get Convex Hull for Scope in %d:%d" % (number,frame))
+                    scope_size[-1].append((float('nan'), float('nan')))
                 res = traj_reader.parse_selection(options.object_chull)
                 ch = res.chull()
-                object_size[-1].append((ch.area, ch.volume))
+                if ch is not None:
+                    object_size[-1].append((ch.area, ch.volume))
+                else:
+                    logger.warning("Cannot get Convex Hull for Object in %d:%d" % (number,frame))
+                    object_size[-1].append((float('nan'), float('nan')))
                 pbar.next()
         for s_s, o_s in zip(scope_size, object_size):
             h = np.hstack((h, s_s, o_s))
