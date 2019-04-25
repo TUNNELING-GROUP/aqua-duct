@@ -1134,6 +1134,18 @@ def stage_V_run(config, options,
                 cl)
             pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
         pa.tend(header_line)
+
+        if Reader.sandwich_mode:
+            for layer in range(Reader.number_of_layers()):
+                pa("Clusters summary - inlets%s for layer %d" % message, layer)
+                pa.thead(header_line)
+                for nr, cl in enumerate(inls.clusters_list):
+                    inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype) and sp.id.id[0] == layer]).\
+                        lim2rnames(tname).\
+                        lim2clusters(cl)
+                    pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
+                pa.tend(header_line)
+
         if pbar:
             pbar.next()
 
@@ -1153,6 +1165,20 @@ def stage_V_run(config, options,
                 pa(make_line(line_template, clusters_area(cl, inls_lim, points=float(options.cluster_area_precision),
                                                           expand_by=float(options.cluster_area_expand))), nr=nr)
             pa.tend(header_line)
+
+            if Reader.sandwich_mode:
+                for layer in range(Reader.number_of_layers()):
+                    pa("Clusters summary - areas%s for layer %d" % message, layer)
+                    pa.thead(header_line)
+                    for nr, cl in enumerate(inls.clusters_list):
+
+                        inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype) and sp.id.id[0] == layer]).\
+                            lim2rnames(tname).\
+                            lim2clusters(cl)
+                        if inls_lim.size < 3: continue
+                        pa(make_line(line_template, clusters_area(cl, inls_lim, points=float(options.cluster_area_precision),
+                                                                  expand_by=float(options.cluster_area_expand))), nr=nr)
+
             if pbar:
                 pbar.next()
 
@@ -1194,6 +1220,45 @@ def stage_V_run(config, options,
             if pbar:
                 pbar.heartbeat()
         pa.tend(header_line)
+
+        if Reader.sandwich_mode:
+            for layer in range(Reader.number_of_layers()):
+                header_line, line_template = get_header_line_and_line_template(clusters_stats_prob_header(),
+                                                                               head_nr=head_nr)
+                pa("Clusters statistics (of paths%s) probabilities of transfers for layer %d" % message, layer)
+                pa.thead(header_line)
+                for nr, cl in enumerate(inls.clusters_list):
+                    sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
+                                 cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+                    pa(make_line(line_template, clusters_stats_prob(cl, sp_ct_lim)), nr=nr)
+                    if pbar:
+                        pbar.heartbeat()
+                pa.tend(header_line)
+
+                header_line, line_template = get_header_line_and_line_template(clusters_stats_len_header(),
+                                                                               head_nr=head_nr)
+                pa("Clusters statistics (of paths%s) mean lengths of transfers for layer %d" % message, layer)
+                pa.thead(header_line)
+                for nr, cl in enumerate(inls.clusters_list):
+                    sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
+                                 cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+                    pa(make_line(line_template, clusters_stats_len(cl, sp_ct_lim)), nr=nr)
+                    if pbar:
+                        pbar.heartbeat()
+                pa.tend(header_line)
+
+                header_line, line_template = get_header_line_and_line_template(clusters_stats_steps_header(),
+                                                                               head_nr=head_nr)
+                pa("Clusters statistics (of paths%s) mean frames numbers of transfers for layer %d" % message, layer)
+                pa.thead(header_line)
+                for nr, cl in enumerate(inls.clusters_list):
+                    sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
+                                 cl in ct.clusters and isinstance(sp, sptype) and sp.id.name in tname)
+                    pa(make_line(line_template, clusters_stats_steps(cl, sp_ct_lim)), nr=nr)
+                    if pbar:
+                        pbar.heartbeat()
+                pa.tend(header_line)
+
         if pbar:
             pbar.next()
 
@@ -1236,6 +1301,36 @@ def stage_V_run(config, options,
                    nr=nr)
             if pbar:
                 pbar.next(len(sps))
+
+        if Reader.sandwich_mode:
+            for layer in range(Reader.number_of_layers()):
+                pa("Separate paths clusters types summary - mean lengths of paths%s for layer %d" % message, layer)
+                pa.thead(header_line)
+
+                total_size = len([sp for sp in spaths if sp.id.name in tname and isinstance(sp, sptype)])
+                for nr, ct in enumerate(ctypes_generic_list):
+                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp, sptype)]
+                    # ctypes_size.append(len(sps))
+                    if len(sps) > 0:
+                        pa(make_line(line_template, ctypes_spaths_info(ct, sps, add_size_p100=total_size, show="len")),
+                           nr=nr)
+                    if pbar:
+                        pbar.next(len(sps))
+                pa.tend(header_line)
+                pa("Separate paths clusters types summary - mean number of frames of paths%s for layer %d" % message, layere)
+                pa.thead(header_line)
+                for nr, ct in enumerate(ctypes_generic_list):
+                    sps = lind(spaths, what2what(ctypes_generic, [ct]))
+                    sps = [sp for sp in sps if sp.id.name in tname and isinstance(sp, sptype)]
+                    # ctypes_size.append(len(sps))
+                    if len(sps) > 0:
+                        pa(make_line(line_template,
+                                     ctypes_spaths_info(ct, sps, add_size_p100=total_size, show="frames")),
+                           nr=nr)
+                    if pbar:
+                        pbar.next(len(sps))
+
         pa.tend(header_line)
 
     ############
