@@ -61,7 +61,7 @@ def hs_resize(meta_file, selection):
         for id_, partial_charge in stored.info:
             size = log(partial_charge / ref * 1. + 1)
 
-            cmd.select(temp_sele, "id {}".format(id_), state=state)
+            cmd.select(temp_sele, "{} and id {}".format(selection, id_), state=state)
             cmd.set("sphere_scale", value=size, selection=temp_sele)
             cmd.alter(temp_sele, "b={}".format(partial_charge))
 
