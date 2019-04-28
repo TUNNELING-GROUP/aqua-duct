@@ -554,9 +554,15 @@ inlets_clustering_section.add_entry(DefaultEntry(config_name="inlets_center",
                                                      level=1))
 inlets_clustering_section.add_entry(DefaultEntry(config_name="remove_inlets",
                                                      name="Remove inlets from specified clusters: ",
-                                                     default_values=[[None,str()]],
+                                                     default_values=[""],
                                                      help_text="Inlets in specified clusters are removed - corresponding paths are changed.",
-                                                     warning_text=" ",
+                                                     warning_text="",
+                                                     level=1))
+inlets_clustering_section.add_entry(DefaultEntry(config_name="clustering_order",
+                                                     name="Order of clustering operations: ",
+                                                     default_values=[['old-school','aquarius']],
+                                                     help_text="Order in which clustering related operations are executed.",
+                                                     warning_text="",
                                                      level=1))
 
 

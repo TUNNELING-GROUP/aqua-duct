@@ -742,7 +742,7 @@ def stage_IV_run(config, options,
             return inls.clusters.count(0)
         return 0
 
-    if inls.size > 0:
+    def clustering_clustering():
         # ***** CLUSTERING *****
         with clui.fbm("Performing clustering", cont=False):
             potentially_recursive_clustering(config=config,
@@ -751,11 +751,9 @@ def stage_IV_run(config, options,
                                                  spaths=spaths,
                                                  message='clustering',
                                                  max_level=max_level)
-        # with log.fbm("Performing clustering"):
-        #    clustering_function = get_clustering_method(coptions)
-        #    inls.perform_clustering(clustering_function)
         clui.message('Number of outliers: %d' % noo())
-        gc.collect()
+
+    def outliers_detection():
         # ***** OUTLIERS DETECTION *****
         if options.detect_outliers:
             with clui.fbm("Detecting outliers", cont=False):
@@ -783,26 +781,19 @@ def stage_IV_run(config, options,
                 inls.add_outliers_annotations(clusters)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
-        gc.collect()
+
+    def reclustering():
         # ***** RECLUSTERING *****
         if options.recluster_outliers:
             with clui.fbm("Performing reclustering of outliers", cont=False):
-                '''
-                potentially_recursive_clustering(config=config,
-                                                 clustering_name=config.recluster_name(),
-                                                 inlets_object=inls,
-                                                 spaths=spaths,
-                                                 traj_reader=traj_reader,
-                                                 message='reclustering',
-                                                 max_level=max_level)
-                '''
                 clustering_function = get_clustering_method(rcoptions, config)
                 # perform reclustering
                 # inls.recluster_outliers(clustering_function)
                 inls.recluster_cluster(clustering_function, 0)
             clui.message('Number of clusters detected so far: %d' % len(inls.clusters_list))
             clui.message('Number of outliers: %d' % noo())
-        gc.collect()
+
+    def singletons_removal():
         # ***** SINGLETONS REMOVAL *****
         if options.singletons_outliers:
             if int(options.singletons_outliers):
@@ -812,7 +803,8 @@ def stage_IV_run(config, options,
                 clui.message('Number of outliers: %d' % noo())
 
         # TODO: Move it after master paths!
-        gc.collect()
+
+    def add_passing_paths_to_clusters():
         # ***** ADD PASSING PATHS TO CLUSTERS *****
         if options.exclude_passing_in_clustering and options.add_passing_to_clusters:
             with clui.fbm("Adding passing paths inlets to clusters", cont=False):
@@ -863,20 +855,22 @@ def stage_IV_run(config, options,
                         pbar.finish()
                     if len(passing_inlets_ids):
                         inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids), toleaf=0)
-
-        gc.collect()
-
-        # ***** JOIN & RENUMBER CLUSTERS *****
+    def join_clusters():
+        # ***** JOIN CLUSTERS *****
         if options.join_clusters:
             with clui.fbm("Join clusters") as emess:
                 for c2j in options.join_clusters.split():
                     emess('%s' % c2j)
                     c2j = map(int, c2j.split('+'))
                     inls.join_clusters(c2j)
+
+    def renumber_clusters():
+        # ***** RENUMBER CLUSTERS *****
         if options.renumber_clusters:
             with clui.fbm("Renumber clusters"):
                 inls.renumber_clusters()
 
+    def remove_inlets_in_specified_clusters():
         # ***** REMOVE INLETS IN SPECIFIED CLUSTERS *****
         if options.remove_inlets:
             with clui.fbm("Remove inlets") as emess:
@@ -892,6 +886,18 @@ def stage_IV_run(config, options,
                     # find path of r
                     p = next((sp for sp in spaths if sp.id == r))
                     p.remove_inlet(t)
+
+    if inls.size > 0:
+        clustering_order = [clustering_clustering, reclustering, singletons_removal, add_passing_paths_to_clusters, join_clusters, renumber_clusters, remove_inlets_in_specified_clusters]
+        if options.clustering_order == "aquarius":
+            clui.message("Age of Aquarius.")
+            clustering_order = [clustering_clustering, join_clusters, renumber_clusters, outliers_detection, reclustering, singletons_removal, add_passing_paths_to_clusters, remove_inlets_in_specified_clusters]
+        elif options.clustering_order != "old-school":
+            logger.waring("Unknown clustering order mode '%s', falling back to 'old-school'")
+
+        for cluster_function in clustering_order:
+            cluster_function()
+            gc.collect()
 
 
         ###################
