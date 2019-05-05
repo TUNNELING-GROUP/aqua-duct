@@ -1526,13 +1526,17 @@ def spath_id_header():
 
 
 def spath_name_header():
-    return ['RES'], ['%4s']
+    return ['RES','RESID'], ['%4s','%6d']
 
 
 def add_path_id_head(gen):
-    sph, splt = zip(spath_id_header(), spath_name_header())
-    sph = [e[0] for e in sph]
-    splt = [e[0] for e in splt]
+    sph1, splt1 = spath_id_header()
+    sph2, splt2 = spath_name_header()
+    sph = sph1 + sph2
+    splt = splt1 + splt2
+
+    #sph = [e[0] for e in sph]
+    #splt = [e[0] for e in splt]
 
     @wraps(gen)
     def patched(*args, **kwargs):
@@ -1555,7 +1559,7 @@ def add_path_id(gen):
             add_id = kwargs.pop('add_id')
         line = gen(spath, *args, **kwargs)
         if add_id:
-            line = [spath.id, spath.id.name] + line
+            line = [spath.id, spath.id.name, spath.single_res_selection.topology_resid] + line
         return line
 
     return patched

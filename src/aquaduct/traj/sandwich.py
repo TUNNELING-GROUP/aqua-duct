@@ -471,6 +471,10 @@ class ReaderTraj(ReaderAccess):
         # residues ids to center of masses coordinates
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
+    def topology_resids(self, resids):
+        # returns resid from topology file
+        raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
+
     def atoms_masses(self, atomids):
         raise NotImplementedError("This is abstract class. Missing implementation in a child class.")
 
@@ -534,6 +538,11 @@ class ReaderTrajViaMDA(ReaderTraj):
         # residues ids to center of masses coordinates
         for rid in resids:
             yield self.trajectory_object.residues[rid].resname
+
+    def topology_resids(self, resids):
+        # returns resid from topology file
+        for rid in resids:
+            yield self.trajectory_object.residues[rid].resid
 
     def real_number_of_frames(self):
         # should return number of frames
@@ -883,6 +892,10 @@ class SingleResidueSelection(ReaderAccess):
         # resid is tuple (number,id) number is used to get reader_traj
         self.resid = resid[-1]
         self.number = resid[0]
+
+    @property
+    def topology_resid(self):
+        return self.get_reader().topology_resids([self.resid]).next()
 
     def get_reader(self):
         return self.reader.get_single_reader(self.number)

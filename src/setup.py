@@ -37,9 +37,16 @@ def install_requires_nice(level=0):
 author = __import__('aquaduct').__author__  # version str
 
 
+def readme():
+    with open('README.md') as f:
+        return f.read()
+
+
 setup(name='aquaduct',
       version=version,
       description='Tracing residues in MD simulation',
+      long_description=readme(),
+      long_description_content_type='text/markdown',
       author=author,
       author_email='info@aquaduct.pl',
       url='http://aquaduct.pl',
