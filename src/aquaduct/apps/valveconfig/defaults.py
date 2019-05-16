@@ -68,11 +68,24 @@ class DefaultSection(object):
 
         self.entries = []
 
+        # Changed to True when
+        self._nested = False
+
     def add_entry(self, entry):
-        if isinstance(entry, DefaultEntry):
+        """
+        Allow to add new entry to the section or nest other section.
+        Nested section will be showed in LabelFrame.
+        :param entry: Entry or section
+        :type entry DefaultEntry, DefaultSection
+        """
+        if isinstance(entry, DefaultEntry) or isinstance(entry, DefaultSection):
             self.entries.append(entry)
         else:
-            raise TypeError("Specified entry must be DefaultEntry instance.")
+            raise TypeError("entry must be DefaultEntry or DefaultSection type.")
+
+    def get_entries(self):
+        pass
+
 
 
 class DefaultEntry(object):
@@ -84,7 +97,7 @@ class DefaultEntry(object):
         :param config_name: Name of option in config.
         :param name: Brief label text, which will be displayed near widget.
         :param default_values: List of default values.
-        :param help_text: Tooltip content.
+        :param help_text: Tooltip text.
         :param level: Entry level. Check LEVELS dict for adjust it.
         :param group_label: Used to group labels into frames. Content is a title of frame.
         :param info_text: If present information icon with content of that variable will be displayed.
@@ -103,7 +116,7 @@ class DefaultEntry(object):
         self.group_label = group_label
 
         if info_text and warning_text:
-            raise ValueError("Information text and warning text specified.")
+            raise ValueError("There is no posibility to specify information and warning text.")
 
         self.info_text = info_text
         self.warning_text = warning_text
@@ -1207,7 +1220,8 @@ smooth_section.add_entry(DefaultEntry(config_name="polyorder",
                                       default_values=[int()],
                                       help_text="In savgol is polynomial order.",
                                       level=0))
-DEFAULTS.append(smooth_section)
+
+separate_paths_section.add_entry(smooth_section)
 
 VALVE_DEFAULTS = DefaultSection("", "", 0)
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-c",

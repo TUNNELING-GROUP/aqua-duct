@@ -19,6 +19,7 @@
 
 import Tkinter as tk
 import hashlib
+import traceback
 import os
 import shutil
 import tempfile
@@ -134,6 +135,9 @@ class ValveConfigApp(object):
     def prepare_section_frames(self):
         """ Parse DEFAULTS and depends on it create Notebook tabs and entries """
         for section in defaults.DEFAULTS:
+            if section._nested: # Skip nested frames which were added in runtime.
+                continue
+
             section_name = section.config_name
             section_name_long = section.name
             entries = section.entries
@@ -420,7 +424,22 @@ class ValveConfigApp(object):
                     continue
 
             entries_appended += 1
-            if entry.optionmenu_value:
+
+            if isinstance(entry, defaults.DefaultSection):
+                nested_frame = ttk.LabelFrame(parent, text=entry.name)
+
+                """
+                Adding in runtime section to DEFAULTS sections to let them be visible by 
+                defaults.get_default_entry or defaults.get_default_section functions during 
+                reloading values when level was changed.
+                """
+                entry._nested = True
+                defaults.DEFAULTS.append(entry)
+                self.entry_filler(nested_frame, entry.config_name, entry.entries)
+
+                if nested_frame.grid_size()[1]:
+                    nested_frame.grid(row=parent.grid_size()[1], column=0, columnspan=2, pady=15, ipadx=30)
+            elif entry.optionmenu_value:
                 if section_name not in self.hiding_frames:
                     self.hiding_frames[section_name] = {}
 
@@ -495,7 +514,8 @@ class ValveConfigApp(object):
 
         # Hide tab if unused
         if entries_appended == 0:
-            self.notebook.forget(self.scrolled_frames[parent])
+            if parent in self.scrolled_frames: # Only for sections that are part of notebook
+                self.notebook.forget(self.scrolled_frames[parent])
 
     def refresh_menus(self):
         """
@@ -621,9 +641,14 @@ class ValveConfigApp(object):
             if not result:
                 return
 
-        for section in defaults.DEFAULTS:
+        def load(section):
+            """
+            Allows to load default values recursively
+            :param section:
+            :return:
+            """
             if defaults.LEVELS[self.level.get()] > section.level:
-                continue
+                return
 
             for entry in section.entries:
                 # Skip entries that dont match level except inlets_clustering:max_level
@@ -631,7 +656,11 @@ class ValveConfigApp(object):
                     if not (section.config_name == "inlets_clustering" and entry.config_name == "max_level"):
                         continue
 
-                self.values[section.config_name][entry.config_name].set(entry.default_value)
+                if isinstance(entry, defaults.DefaultSection):
+                    load(entry)
+
+        for section in defaults.DEFAULTS:
+            load(section)
 
         # Delete appended clustering and reclustering sections
         if self.cluster_frame_index:
@@ -663,9 +692,9 @@ class ValveConfigApp(object):
 
     def get_active_frame_name(self, section_name):
         """
-        Return currently visible frame.
+        Return currently gridded HidingFrame in section_name.
 
-        :param section_name: Section name in which hiding frames will be considered.
+        :param section_name: Name of section from which active HidingFrame will be returned.
         :return: Name of chosen option menu value.
         """
         for method, frame in self.hiding_frames[section_name].iteritems():
@@ -738,7 +767,8 @@ class ValveConfigApp(object):
                 self.values_hash = self.get_values_hash()
         except Exception as e:
             # In case of error restore config from backup file
-            tkMessageBox.showinfo("Exeption", "There was error during saving configuration.\n{}".format(str(e)))
+            tkMessageBox.showinfo("Exeption", "There was error during saving configuration. See console for more information.\n{}".format(str(e)))
+            print(traceback.print_exc())
             shutil.copy(config_filename + ".bak", config_filename)
 
         os.remove(config_filename + ".bak")
