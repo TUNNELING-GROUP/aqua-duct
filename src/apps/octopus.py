@@ -516,7 +516,7 @@ class Octopus(object):
         results_frame.columnconfigure(2, weight=1)
         results_frame.pack(fill=tk.X, padx=100, pady=20)
 
-        ttk.Label(results_frame, text="Results file: ").grid(sticky="e", row=2, column=0)
+        ttk.Label(results_frame, text="Output file: ").grid(sticky="e", row=2, column=0)
         ttk.Entry(results_frame, textvariable=self.results_file).grid(sticky="we", row=2, column=1)
         rload = ttk.Button(results_frame, text="Load file", style="File.TButton")
         rload.grid(sticky="w", row=2, column=2)
