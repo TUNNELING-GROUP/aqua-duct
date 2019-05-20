@@ -676,6 +676,10 @@ class Octopus(object):
         state2_frame.pack()
 
         ttk.Label(state2_frame, text="Clusters info: ").grid(row=0, column=0)
+        clust_info_load2 = ttk.Button(state2_frame, command=lambda: self.load_file(self.clusters_info2),
+                                     text="Load file", style="File.TButton")
+        clust_info_load2.grid(sticky="w", row=0, column=3)
+
         tk.Entry(state2_frame, textvariable=self.clusters_info2).grid(row=0, column=1)
 
         cb2.configure(command=lambda: state2_frame.toggle())
