@@ -861,7 +861,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
         args = {}
 
         def update_command(*a):
-            cmd = "valve "
+            cmd = "valve_run "
             for arg, var in args.iteritems():
                 if isinstance(var.get(), bool):
                     if var.get():
@@ -914,7 +914,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
         args = {}
 
         def update_command(*a):
-            cmd = "pond "
+            cmd = "pond_run "
             for arg, var in args.iteritems():
                 if isinstance(var.get(), bool):
                     if var.get():
