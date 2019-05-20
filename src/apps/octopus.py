@@ -549,7 +549,7 @@ class Octopus(object):
         csv_load.bind("<Button-1>", lambda e: self.load_file(self.csv_file))
 
         ### 1
-        self.all1 = tk.BooleanVar()
+        self.all1 = tk.BooleanVar(value=1)
         self.molecules1 = tk.StringVar()
 
         option1_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
@@ -577,7 +577,7 @@ class Octopus(object):
         state1_frame.disable()
 
         ### 3
-        self.all3 = tk.BooleanVar()
+        self.all3 = tk.BooleanVar(value=1)
         self.molecules3 = tk.StringVar()
 
         option3_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
@@ -635,7 +635,7 @@ class Octopus(object):
         state4_frame.disable()
 
         ### 8
-        self.all8 = tk.StringVar()
+        self.all8 = tk.StringVar(value=1)
         self.molecules8 = tk.StringVar()
 
         option8_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
