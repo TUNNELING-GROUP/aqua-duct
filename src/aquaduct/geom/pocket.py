@@ -154,7 +154,7 @@ def outer_inner(H, threshold=None):
     if threshold:
         assert threshold <= 1.0, "Threshold cannot be higher that 1.0."
         assert threshold > 0.0, "Threshold cannot be equal or less than 0."
-    if not (H > 0).any():
+    if (H > 0).any():
         OI = H / H[H > 0].mean() if not threshold else H / (H[H > 0].max() * threshold)
         return OI < 1, OI >= 1
     return np.ones(H.shape) > 1, np.ones(H.shape) == 0 # fall back to outer pocket only
