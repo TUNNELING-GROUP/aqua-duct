@@ -1143,7 +1143,7 @@ def stage_V_run(config, options,
 
         if Reader.sandwich_mode:
             for layer in range(Reader.number_of_layers()):
-                pa("Clusters summary - inlets%s for layer %d" % message, layer)
+                pa("Clusters summary - inlets%s for layer %d" % (message, layer))
                 pa.thead(header_line)
                 for nr, cl in enumerate(inls.clusters_list):
                     inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype) and sp.id.id[0] == layer]).\
