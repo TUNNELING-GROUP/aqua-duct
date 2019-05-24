@@ -19,6 +19,7 @@
 
 import Tkinter as tk
 import hashlib
+import traceback
 import os
 import shutil
 import tempfile
@@ -27,7 +28,7 @@ import ttk
 import webbrowser
 from ConfigParser import ConfigParser, NoOptionError, NoSectionError
 from collections import OrderedDict, defaultdict
-from tkFileDialog import askopenfile, askdirectory
+from tkFileDialog import askopenfile, askdirectory, asksaveasfile
 
 import aquaduct
 import aquaduct.apps.valveconfig.defaults as defaults
@@ -53,12 +54,8 @@ class ValveConfigApp(object):
         self.hiding_frames = {}
 
         self.cluster_frame_index = None
-        # Row of the last element in clustering tab
-        self.cluster_row = 0
 
         self.recluster_frame_index = None
-        # Row of the last element in reclustering tab
-        self.recluster_row = 0
 
         # Used for identifying scroll frame by interior frame for removing it from notebook
         self.scrolled_frames = {}
@@ -138,6 +135,9 @@ class ValveConfigApp(object):
     def prepare_section_frames(self):
         """ Parse DEFAULTS and depends on it create Notebook tabs and entries """
         for section in defaults.DEFAULTS:
+            if section._nested: # Skip nested frames which were added in runtime.
+                continue
+
             section_name = section.config_name
             section_name_long = section.name
             entries = section.entries
@@ -169,13 +169,6 @@ class ValveConfigApp(object):
             ttk.Separator(frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=3)
 
             self.entry_filler(frame, section_name, entries)
-
-        # Set row number to row of hidden frame of default clustering section. Used to append new frames
-        # TODO: It may not work when other widgets are rendered first
-        self.cluster_row = next(self.hiding_frames["clustering"].itervalues()).row + 1
-
-        if "reclustering" in self.hiding_frames:
-            self.recluster_row = next(self.hiding_frames["reclustering"].itervalues()).row + 1
 
         for section_name in self.get_recursive_clustering_sections("clustering"):
             self.append_entries(section_name)
@@ -243,24 +236,20 @@ class ValveConfigApp(object):
 
         def save_callback(*args):
             if self.config_filename.get() == "":
-                self.open_config_file()
-
-                # If creating new file was canceled
-                if self.config_filename.get() == "":
-                    return
-
-            self.save_config(self.config_filename.get())
+                f = asksaveasfile("w")
+                if self.save_config(f.name):
+                    self.parent.title("{} - {}".format(self.title, f.name))
+                    self.config_filename.set(f.name)
+                else:
+                    os.remove(f.name) # Remove opened file if saving cant be done
+            else:
+                self.save_config(self.config_filename.get())
 
         file_menu.add_command(label="Save", command=save_callback)
 
         def save_as_callback(*args):
-            self.open_config_file()
-
-            # If creating new file was canceled
-            if self.config_filename.get() == "":
-                return
-
-            self.save_config(self.config_filename.get())
+            f = asksaveasfile("w")
+            self.save_config(f.name)
 
         file_menu.add_command(label="Save as", command=save_as_callback)
 
@@ -364,14 +353,15 @@ class ValveConfigApp(object):
         if section_name.startswith("clustering"):
             default_section_name = "clustering"
             frame = self.frames[self.cluster_frame_index]
-            row = self.cluster_row
         elif section_name.startswith("reclustering"):
             default_section_name = "reclustering"
             frame = self.frames[self.recluster_frame_index]
-            row = self.recluster_row
         else:
             raise RuntimeError(
                 "Appending entries to sections other than clustering or reclusteriation is not allowed")
+
+        # Calculate row
+        row = len(frame.grid_slaves(None, 0)) + 2
 
         # Set option menu from recursive clustering to control hiding frames
         defaults.MENUS.append("{}:method".format(section_name))
@@ -397,11 +387,6 @@ class ValveConfigApp(object):
 
         remove_section_callback = utils.CallbackWrapper(self.callback_remove_section, section_name, inner_frame)
         remove_button.bind("<Button-1>", remove_section_callback)
-
-        if default_section_name == "clustering":
-            self.cluster_row += 1
-        else:
-            self.recluster_row += 1
 
     def entry_filler(self, parent, section_name, entries):
         """
@@ -439,20 +424,34 @@ class ValveConfigApp(object):
                     continue
 
             entries_appended += 1
-            if entry.optionmenu_value:
+
+            if isinstance(entry, defaults.DefaultSection):
+                nested_frame = ttk.LabelFrame(parent, text=entry.name)
+
+                """
+                Adding in runtime section to DEFAULTS sections to let them be visible by 
+                defaults.get_default_entry or defaults.get_default_section functions during 
+                reloading values when level was changed.
+                """
+                entry._nested = True
+                defaults.DEFAULTS.append(entry)
+                self.entry_filler(nested_frame, entry.config_name, entry.entries)
+
+                if nested_frame.grid_size()[1]:
+                    nested_frame.grid(row=parent.grid_size()[1], column=0, columnspan=2, pady=15, ipadx=30)
+            elif entry.optionmenu_value:
                 if section_name not in self.hiding_frames:
                     self.hiding_frames[section_name] = {}
 
                 if entry.optionmenu_value not in self.hiding_frames[section_name]:
-                    if len(self.hiding_frames[section_name]) != 0:
-                        hiding_frame_row = next(self.hiding_frames[section_name].itervalues()).row
-                    else:
-                        hiding_frame_row = row
 
                     self.hiding_frames[section_name][entry.optionmenu_value] = utils.HidingFrame(parent,
-                                                                                                 hiding_frame_row,
+                                                                                                 parent.grid_size()[1],
                                                                                                  text=entry.optionmenu_value.capitalize() + " options",
                                                                                                  style="HF.TFrame")
+
+                    # It must be showed first, to allocate space in frame, otherwise grid_size wont return proper value
+                    self.hiding_frames[section_name][entry.optionmenu_value].show()
 
                 hiding_frame = self.hiding_frames[section_name][entry.optionmenu_value]
 
@@ -460,15 +459,13 @@ class ValveConfigApp(object):
                     self.values[section_name] = {}
 
                 self.values[section_name][entry.config_name] = utils.entry_factory(hiding_frame,
-                                                                                   hiding_frame.inner_row,
+                                                                                   hiding_frame.grid_size()[1],
                                                                                    entry.name,
                                                                                    entry.default_values,
                                                                                    entry.help_text,
                                                                                    state,
                                                                                    info_text=entry.info_text,
                                                                                    warning_text=entry.warning_text)
-
-                hiding_frame.inner_row += 1
 
                 if entry.required:
                     self.required_entries[section_name][entry.config_name] = self.values[section_name][
@@ -479,7 +476,7 @@ class ValveConfigApp(object):
                         label_frame = ttk.LabelFrame(parent, text=entry.group_label)
                         label_frame.grid_columnconfigure(0, weight=1)
                         label_frame.grid_columnconfigure(1, weight=1)
-                        label_frame.grid(row=row, column=0, columnspan=2, pady=15, ipadx=30)
+                        label_frame.grid(row=parent.grid_size()[1], column=0, columnspan=2, pady=15, ipadx=30)
 
                         group_frames[entry.group_label] = [label_frame, 0]
 
@@ -489,10 +486,9 @@ class ValveConfigApp(object):
                     group_frames[entry.group_label][1] += 1
                 else:
                     entry_parent = parent
-                    entry_row = row
 
                 entry_widget = utils.entry_factory(entry_parent,
-                                                   entry_row,
+                                                   entry_parent.grid_size()[1],
                                                    entry.name,
                                                    entry.default_values,
                                                    entry.help_text,
@@ -516,11 +512,10 @@ class ValveConfigApp(object):
                 if entry.required:
                     self.required_entries[section_name][entry.config_name] = entry_widget
 
-            row += 1
-
         # Hide tab if unused
         if entries_appended == 0:
-            self.notebook.forget(self.scrolled_frames[parent])
+            if parent in self.scrolled_frames: # Only for sections that are part of notebook
+                self.notebook.forget(self.scrolled_frames[parent])
 
     def refresh_menus(self):
         """
@@ -562,7 +557,9 @@ class ValveConfigApp(object):
                 self.parent.title("{} - {}".format(self.title, config_file.name))
                 self.config_filename.set(config_file.name)
         except AttributeError:
-            pass
+            return False
+
+        return True
 
     def recreate_gui(self, *args):
         """
@@ -644,9 +641,14 @@ class ValveConfigApp(object):
             if not result:
                 return
 
-        for section in defaults.DEFAULTS:
+        def load(section):
+            """
+            Allows to load default values recursively
+            :param section:
+            :return:
+            """
             if defaults.LEVELS[self.level.get()] > section.level:
-                continue
+                return
 
             for entry in section.entries:
                 # Skip entries that dont match level except inlets_clustering:max_level
@@ -654,7 +656,11 @@ class ValveConfigApp(object):
                     if not (section.config_name == "inlets_clustering" and entry.config_name == "max_level"):
                         continue
 
-                self.values[section.config_name][entry.config_name].set(entry.default_value)
+                if isinstance(entry, defaults.DefaultSection):
+                    load(entry)
+
+        for section in defaults.DEFAULTS:
+            load(section)
 
         # Delete appended clustering and reclustering sections
         if self.cluster_frame_index:
@@ -686,9 +692,9 @@ class ValveConfigApp(object):
 
     def get_active_frame_name(self, section_name):
         """
-        Return currently visible frame.
+        Return currently gridded HidingFrame in section_name.
 
-        :param section_name: Section name in which hiding frames will be considered.
+        :param section_name: Name of section from which active HidingFrame will be returned.
         :return: Name of chosen option menu value.
         """
         for method, frame in self.hiding_frames[section_name].iteritems():
@@ -730,7 +736,7 @@ class ValveConfigApp(object):
                                        "Field \"{}\" in \"{}\" must be specified.".format(entry_full_name,
                                                                                           section_full_name))
                 self.notebook.select(first_found[2])
-                return
+                return False
 
         # Create config file backup
         shutil.copy(config_filename, config_filename + ".bak")
@@ -761,11 +767,16 @@ class ValveConfigApp(object):
                 self.values_hash = self.get_values_hash()
         except Exception as e:
             # In case of error restore config from backup file
-            tkMessageBox.showinfo("Exeption", "There was error during saving configuration.\n{}".format(str(e)))
+            tkMessageBox.showinfo("Exeption", "There was error during saving configuration. See console for more information.\n{}".format(str(e)))
+            print(traceback.print_exc())
             shutil.copy(config_filename + ".bak", config_filename)
+
+        os.remove(config_filename + ".bak")
 
         if required_checking:
             tkMessageBox.showinfo("Saved", "Saving complete")
+
+        return True
 
     def open_docs(self):
         webbrowser.open("http://www.aquaduct.pl/apidocs/valve/valve_config.html")
@@ -806,7 +817,7 @@ class ValveConfigApp(object):
         window = tk.Toplevel(self.parent)
         window.title("About")
 
-        logo = tk.PhotoImage(data=get_img("logo.gif"))
+        logo = tk.PhotoImage(file=get_img("logo.gif"))
 
         logo_label = ttk.Label(window, image=logo)
         logo_label.image = logo
@@ -850,7 +861,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
         args = {}
 
         def update_command(*a):
-            cmd = "valve "
+            cmd = "valve_run "
             for arg, var in args.iteritems():
                 if isinstance(var.get(), bool):
                     if var.get():
@@ -860,7 +871,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
 
             command.set(cmd)
 
-        for row, entry in enumerate(defaults.POND_DEFAULTS.entries):
+        for row, entry in enumerate(defaults.VALVE_DEFAULTS.entries):
             var = utils.entry_factory(frame, row, entry.name, entry.default_values, entry.help_text)
             args[entry.config_name] = var
             var.input_var.trace("w", update_command)
@@ -903,7 +914,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
         args = {}
 
         def update_command(*a):
-            cmd = "pond "
+            cmd = "pond_run "
             for arg, var in args.iteritems():
                 if isinstance(var.get(), bool):
                     if var.get():

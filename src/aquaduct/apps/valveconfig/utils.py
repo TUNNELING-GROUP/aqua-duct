@@ -539,14 +539,14 @@ class DirEntry(Entry):
 
     def callback_load_dir(self, e):
         """
-        Callback for selecting file.
+        Callback for selecting dir.
 
-        Sets widget content to loaded file name.
+        Sets widget content to loaded dir name.
         """
         try:
-            with askdirectory() as f:
-                self.input_var.set(f.name)
-        except AttributeError:  # In case of cancel selecting file
+            selected_dir = askdirectory()
+            self.input_var.set(selected_dir)
+        except AttributeError:  # In case of cancel selecting dir
             pass
 
     def get(self):
@@ -674,7 +674,6 @@ class HidingFrame(ttk.Frame, object):
         self.columnconfigure(1, weight=1)
 
         self.row = row
-        self.inner_row = 1
 
     def show(self):
         """ Method to grid Frame with predefinied configuration. """

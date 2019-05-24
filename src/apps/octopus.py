@@ -516,7 +516,7 @@ class Octopus(object):
         results_frame.columnconfigure(2, weight=1)
         results_frame.pack(fill=tk.X, padx=100, pady=20)
 
-        ttk.Label(results_frame, text="Results file: ").grid(sticky="e", row=2, column=0)
+        ttk.Label(results_frame, text="Output file: ").grid(sticky="e", row=2, column=0)
         ttk.Entry(results_frame, textvariable=self.results_file).grid(sticky="we", row=2, column=1)
         rload = ttk.Button(results_frame, text="Load file", style="File.TButton")
         rload.grid(sticky="w", row=2, column=2)
@@ -549,7 +549,7 @@ class Octopus(object):
         csv_load.bind("<Button-1>", lambda e: self.load_file(self.csv_file))
 
         ### 1
-        self.all1 = tk.BooleanVar()
+        self.all1 = tk.BooleanVar(value=1)
         self.molecules1 = tk.StringVar()
 
         option1_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
@@ -577,7 +577,7 @@ class Octopus(object):
         state1_frame.disable()
 
         ### 3
-        self.all3 = tk.BooleanVar()
+        self.all3 = tk.BooleanVar(value=1)
         self.molecules3 = tk.StringVar()
 
         option3_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
@@ -635,7 +635,7 @@ class Octopus(object):
         state4_frame.disable()
 
         ### 8
-        self.all8 = tk.StringVar()
+        self.all8 = tk.StringVar(value=1)
         self.molecules8 = tk.StringVar()
 
         option8_frame = tk.Frame(container_data, bd=1, relief=tk.GROOVE)
@@ -676,6 +676,10 @@ class Octopus(object):
         state2_frame.pack()
 
         ttk.Label(state2_frame, text="Clusters info: ").grid(row=0, column=0)
+        clust_info_load2 = ttk.Button(state2_frame, command=lambda: self.load_file(self.clusters_info2),
+                                     text="Load file", style="File.TButton")
+        clust_info_load2.grid(sticky="w", row=0, column=3)
+
         tk.Entry(state2_frame, textvariable=self.clusters_info2).grid(row=0, column=1)
 
         cb2.configure(command=lambda: state2_frame.toggle())

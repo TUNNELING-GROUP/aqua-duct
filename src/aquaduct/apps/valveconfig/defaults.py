@@ -68,11 +68,24 @@ class DefaultSection(object):
 
         self.entries = []
 
+        # Changed to True when
+        self._nested = False
+
     def add_entry(self, entry):
-        if isinstance(entry, DefaultEntry):
+        """
+        Allow to add new entry to the section or nest other section.
+        Nested section will be showed in LabelFrame.
+        :param entry: Entry or section
+        :type entry DefaultEntry, DefaultSection
+        """
+        if isinstance(entry, DefaultEntry) or isinstance(entry, DefaultSection):
             self.entries.append(entry)
         else:
-            raise TypeError("Specified entry must be DefaultEntry instance.")
+            raise TypeError("entry must be DefaultEntry or DefaultSection type.")
+
+    def get_entries(self):
+        pass
+
 
 
 class DefaultEntry(object):
@@ -84,7 +97,7 @@ class DefaultEntry(object):
         :param config_name: Name of option in config.
         :param name: Brief label text, which will be displayed near widget.
         :param default_values: List of default values.
-        :param help_text: Tooltip content.
+        :param help_text: Tooltip text.
         :param level: Entry level. Check LEVELS dict for adjust it.
         :param group_label: Used to group labels into frames. Content is a title of frame.
         :param info_text: If present information icon with content of that variable will be displayed.
@@ -103,7 +116,7 @@ class DefaultEntry(object):
         self.group_label = group_label
 
         if info_text and warning_text:
-            raise ValueError("Information text and warning text specified.")
+            raise ValueError("There is no posibility to specify information and warning text.")
 
         self.info_text = info_text
         self.warning_text = warning_text
@@ -236,15 +249,15 @@ global_section.add_entry(DefaultEntry(config_name="sandwich",
                                       default_values=[False],
                                       help_text="If set True trajectories are read as layers.",
                                       level=1))
-global_section.add_entry(DefaultEntry(config_name="max_frame",
-                                      name="Maximal frame: ",
-                                      default_values=[str()],
-                                      help_text="Maximal number of frame to be read from trajectory data. If set None trajectory is read to the last possible frame.",
-                                      level=1))
 global_section.add_entry(DefaultEntry(config_name="min_frame",
                                       name="Minimal frame: ",
                                       default_values=[0],
                                       help_text="Minimal number of frame to be read from trajectory data.",
+                                      level=1))
+global_section.add_entry(DefaultEntry(config_name="max_frame",
+                                      name="Maximal frame: ",
+                                      default_values=[str()],
+                                      help_text="Maximal number of frame to be read from trajectory data. If set None trajectory is read to the last possible frame.",
                                       level=1))
 global_section.add_entry(DefaultEntry(config_name="step_frame",
                                       name="Frame step: ",
@@ -296,13 +309,13 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="scope_everyframe"
                                                   default_values=[False],
                                                   help_text="Flag to set Scope evaluation mode. If set True Scope is evaluated in every frame. This make sense if the definition is complex and depends on distances between molecular entities.",
                                                   level=0,
-                                                  warning_text=" "))
+                                                  warning_text="Could be time-consuming."))
 traceable_residues_section.add_entry(DefaultEntry(config_name="scope_convexhull_inflate",
                                                   name="Scope convex hull inflate: ",
                                                   default_values=[str()],
                                                   help_text="Increase (or if negative - decrease) size of the scope convex hull.",
                                                   level=0,
-                                                  warning_text=" "))
+                                                  warning_text="Could be time-consuming."))
 traceable_residues_section.add_entry(DefaultEntry(config_name="object",
                                                   name="Object: ",
                                                   default_values=[str()],
@@ -314,7 +327,7 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="add_passing",
                                                   default_values=[str()],
                                                   help_text="Definition of molecules that should be added to traced molecules even if they were not present in Object.",
                                                   level=0,
-                                                  warning_text=" "))
+                                                  warning_text="Could be time-consuming."))
 DEFAULTS.append(traceable_residues_section)
 
 raw_paths_section = DefaultSection(config_name="raw_paths", name="Raw paths", level=1)
@@ -346,13 +359,13 @@ raw_paths_section.add_entry(DefaultEntry(config_name="scope_everyframe",
                                          default_values=[False],
                                          help_text="Flag to set Scope evaluation mode. If set True Scope is evaluated in every frame. This make sense if the definition is complex and depends on distances between molecular entities. If None value from previous stage is used.",
                                          level=0,
-                                         warning_text=" "))
+                                         warning_text="Could be time-consuming."))
 raw_paths_section.add_entry(DefaultEntry(config_name="scope_convexhull_inflate",
-                                         name="Scope convexhull inflate: ",
+                                         name="Scope convex hull inflate: ",
                                          default_values=[str()],
                                          help_text="Increase (or if negative - decrease) size of the scope convex hull. If None, value from previous stage is used.",
                                          level=0,
-                                         warning_text=" "))
+                                         warning_text="Could be time-consuming."))
 raw_paths_section.add_entry(DefaultEntry(config_name="object",
                                          name="Object: ",
                                          default_values=[str()],
@@ -427,7 +440,7 @@ separate_paths_section.add_entry(DefaultEntry(config_name="auto_barber",
                                               group_label="Auto Barber"))
 separate_paths_section.add_entry(DefaultEntry(config_name="auto_barber_mincut",
                                               name="Auto Barber mincut: ",
-                                              default_values=[int()],
+                                              default_values=[str()],
                                               help_text="Minimal radius of spheres used in Auto Barber. If a sphere has radius smaller then this value it is not used in AutoBarber procedure. This option can be switched off by setting it to None.",
                                               level=0,
                                               group_label="Auto Barber"))
@@ -460,13 +473,13 @@ separate_paths_section.add_entry(DefaultEntry(config_name="allow_passing_paths",
                                               default_values=[False],
                                               help_text="If set True paths that do not enter the object are detected and added to the rest of paths as ‘passing’ paths.",
                                               level=0,
-                                              warning_text=" "))
+                                              warning_text="Required for hotspots and energy profiles calculations."))
 separate_paths_section.add_entry(DefaultEntry(config_name="calculate_coo",
-                                              name="Calculate cetner of object: ",
+                                              name="Calculate center of object: ",
                                               default_values=[False],
                                               help_text="If set True center of object is calculated by averaging coordinates of all paths in the object area.",
                                               level=0,
-                                              warning_text="Calculation of CoO may be very long for some systems "))
+                                              warning_text="Calculation of CoO may be very long for some systems."))
 
 DEFAULTS.append(separate_paths_section)
 
@@ -1006,7 +1019,7 @@ analysis_section.add_entry(DefaultEntry(config_name="create_master_paths",
                                         default_values=[False],
                                         help_text="If set to True master paths are created (fast CPU and big RAM recommended; 50k frames long simulation may need ca 20GB of memory)",
                                         level=0,
-                                        warning_text=" "))
+                                        warning_text="Required for energy profiles calculations and could be time-consuming"))
 analysis_section.add_entry(DefaultEntry(config_name="cluster_area",
                                         name="Cluster area: ",
                                         default_values=[True],
@@ -1222,7 +1235,8 @@ smooth_section.add_entry(DefaultEntry(config_name="polyorder",
                                       default_values=[int()],
                                       help_text="In savgol is polynomial order.",
                                       level=0))
-DEFAULTS.append(smooth_section)
+
+separate_paths_section.add_entry(smooth_section)
 
 VALVE_DEFAULTS = DefaultSection("", "", 0)
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
@@ -1237,12 +1251,12 @@ VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-t",
                                       help_text="Limit Aqua-Duct calculations to given number of threads.",
                                       level=None
                                       ))
-VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--force-save",
-                                      name="Force saving results: ",
-                                      default_values=[False],
-                                      help_text="Force saving results.",
-                                      level=None
-                                      ))
+# VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--force-save",
+#                                       name="Force saving results: ",
+#                                       default_values=[False],
+#                                       help_text="Force saving results.",
+#                                       level=None
+#                                       ))
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
                                       name="Debug mode: ",
                                       default_values=[False],
@@ -1250,8 +1264,8 @@ VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
                                       level=None
                                       ))
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
-                                      name="Debug mode: ",
-                                      default_values=[False],
+                                      name="Debug file: ",
+                                      default_values=[str()],
                                       help_text="Debug log file.",
                                       level=None
                                       ))
