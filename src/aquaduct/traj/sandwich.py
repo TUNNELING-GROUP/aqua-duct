@@ -394,6 +394,9 @@ class ReaderAccess(object):
     def get_reader_by_id(self, someid):
         return self.get_reader(someid[0])
 
+    def get_edges(self):
+        return Reader.edges
+
 
 ################################################################################
 # VdW radii
@@ -1031,5 +1034,5 @@ class SingleResidueSelection(ReaderAccess):
 
 ################################################################################
 
-# flag snadwich as imported
+# flag sandwich as imported
 GCS.sandwich_import = True

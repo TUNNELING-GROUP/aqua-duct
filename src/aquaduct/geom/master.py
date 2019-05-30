@@ -514,3 +514,6 @@ class FakeSingleResidueSelection(SingleResidueSelection):
     def coords_smooth(self, sranges, smooth):
         for srange in sranges:
             yield smooth(self.coords(srange.get()))
+
+    def get_edges(self):
+        return None

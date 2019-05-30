@@ -61,6 +61,9 @@ class GenericPathTypeCodes(object):
     out_name = 10
 
 
+
+
+
 class GenericPaths(GenericPathTypeCodes):
     # object to store paths... is it required?
     __slots__ = 'id single_res_selection name _types _frames max_possible_frame min_possible_frame'.split()
