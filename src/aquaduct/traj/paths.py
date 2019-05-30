@@ -36,7 +36,7 @@ from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader, SingleResidueSelection
 from array import array
 
-from itertools import chain
+from itertools import chain, imap
 
 
 class PathTypesCodes(object):
@@ -245,7 +245,23 @@ class GenericPaths(GenericPathTypeCodes):
             self._types.append(t)
             self._frames.append(f)
 
+    def _consider_edges(self,path):
+        edges = self.single_res_selection.get_edges()
+        if edges:
+            for e in edges:
+                if path:
+                    if e in path:
+                        yield path[:path.index(e)+1]
+                        path = path[path.index(e)+1:]
+            if path:
+                yield path
+        else:
+            yield path
+
     def _gpt(self):
+        return chain(*imap(self._consider_edges,self._gpt_core()))
+
+    def _gpt_core(self):
         # get, I'm just passing through
         n = len(self._frames)
         types = self.types
@@ -271,7 +287,10 @@ class GenericPaths(GenericPathTypeCodes):
                     if self.object_name not in block_types:
                         yield block_frames
 
-    def _gpo(self, frames_sr):
+    def _gpo(self):
+        return chain(*imap(self._consider_edges,self._gpo_core()))
+
+    def _gpo_core(self, frames_sr):
         n = len(frames_sr)
         types = self.types
         begin = 0
@@ -304,8 +323,10 @@ class GenericPaths(GenericPathTypeCodes):
                         break
                 if len(block_frames) > 0:
                     yield block_frames
+    def _gpi(self):
+        return chain(*imap(self._consider_edges,self._gpi_core()))
 
-    def _gpi(self, frames_sr):
+    def _gpi_core(self, frames_sr):
         n = len(frames_sr)
         types = self.types
         begin = 0
