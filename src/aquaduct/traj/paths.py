@@ -287,8 +287,8 @@ class GenericPaths(GenericPathTypeCodes):
                     if self.object_name not in block_types:
                         yield block_frames
 
-    def _gpo(self):
-        return chain(*imap(self._consider_edges,self._gpo_core()))
+    def _gpo(self, frames_sr):
+        return chain(*imap(self._consider_edges,self._gpo_core(frames_sr)))
 
     def _gpo_core(self, frames_sr):
         n = len(frames_sr)
@@ -323,8 +323,9 @@ class GenericPaths(GenericPathTypeCodes):
                         break
                 if len(block_frames) > 0:
                     yield block_frames
-    def _gpi(self):
-        return chain(*imap(self._consider_edges,self._gpi_core()))
+
+    def _gpi(self, frames_sr):
+        return chain(*imap(self._consider_edges,self._gpi_core(frames_sr)))
 
     def _gpi_core(self, frames_sr):
         n = len(frames_sr)
