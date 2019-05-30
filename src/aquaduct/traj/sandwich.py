@@ -236,6 +236,7 @@ class MasterReader(object):
         assert self.engine_name in ['mda']
         return OpenReaderTraj(topology, trajectory, number, window, self.engine_name)
 
+
     def __repr__(self):
         sandwich = ''
         if self.sandwich_mode:
@@ -274,6 +275,20 @@ class MasterReader(object):
             return self.strata(number=number)
         return self.baguette(number=number)
 
+    def get_single_raw_reader_per_trajectory(self, number):
+        # here number is a number of trajectory, starting from 0
+        if len(self.topology) == len(self.trajectory):
+            return self.engine(self.topology[number],
+                               [self.trajectory[number]],
+                               number=0,
+                               window=Window(0,None,1))
+        else:
+            return self.engine(self.topology[0],
+                               [self.trajectory[number]],
+                               number=0,
+                               window=Window(0,None,1))
+
+
     def get_single_reader(self, number):
         # returns single trajectory reader of number
         # is it is already opened it is returned directly
@@ -301,6 +316,34 @@ class MasterReader(object):
         # in sandwich it returns number of frames in first layer
         # in baguette it returns total number of frames (so it is also number of frames in layer 0)
         return open_traj_reader(self.get_single_reader(0)).real_number_of_frames()
+
+    def edges(self):
+        # should return list of edges of trajectory
+        # if one trajectory file is used there are two edges begin and end
+        # for each additional trajectory file additional edge marking joining point is returned
+        # make sense in non sandwich mode only
+
+        # to calculate this each individual file should be open as separate trajectory
+        # 1. get real number of frames for each part
+        rnf = [0]
+        for number in range(len(self.trajectory)):
+            #if len(rnf)==0:
+            #    rnf.append(0)
+            #else:
+            #    rnf.append(rnf[-1]+1)
+            #rnf.append(rnf[-1]-1+open_traj_reader(self.get_single_raw_reader_per_trajectory(number)).real_number_of_frames())
+            rnf.append(open_traj_reader(self.get_single_raw_reader_per_trajectory(number)).real_number_of_frames())
+        # cumulative sum
+        rnf = np.cumsum(rnf).tolist()
+        # 2. by using window try to calculate where are the edges
+        E = [] # list of edges
+        for rf in self.window.range(): # iterate over real frames
+            if rf >= rnf[0]:
+                # this is an edge
+                E.append(rf)
+                while rf >= rnf[0]:
+                    rnf.pop(0)
+        return E
 
     def number_of_frames(self, onelayer=False):
         # number of frames in the window times number of layers
@@ -478,7 +521,7 @@ class ReaderTraj(object):
         This is base class for MD data access engines.
         """
 
-        self.topology = topology
+        self.topology = topology # here, topology is only one file
         self.trajectory = trajectory
 
         if not isinstance(trajectory, list):
@@ -527,6 +570,7 @@ class ReaderTraj(object):
     def number_of_frames(self):
         # should return number of frames in this reader (window)
         return self.window.len()
+
 
     def open_trajectory(self):
         # should return any object that can be further used to parse trajectory

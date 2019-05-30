@@ -383,6 +383,9 @@ class GenericPaths(GenericPathTypeCodes):
                 yield path_in, path_core, path_out
 
     def find_paths_types(self, fullonly=False, passing=None):
+        # both loops below yields correct paths
+        # if waterfall let's split each of yielded paths again
+
         for path in self.find_paths(fullonly=fullonly):
             # yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
             # coords, types = self.get_single_path_types(path)
