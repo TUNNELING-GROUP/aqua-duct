@@ -168,6 +168,7 @@ class MasterReader(object):
     engine_name = 'mda'
     threads = 1
     threads_multiply = 1
+    edges = []
 
     def __del__(self):
         self.reset()
@@ -280,12 +281,12 @@ class MasterReader(object):
         if len(self.topology) == len(self.trajectory):
             return self.engine(self.topology[number],
                                [self.trajectory[number]],
-                               number=0,
+                               number=number,
                                window=Window(0,None,1))
         else:
             return self.engine(self.topology[0],
                                [self.trajectory[number]],
-                               number=0,
+                               number=number,
                                window=Window(0,None,1))
 
 
@@ -317,12 +318,13 @@ class MasterReader(object):
         # in baguette it returns total number of frames (so it is also number of frames in layer 0)
         return open_traj_reader(self.get_single_reader(0)).real_number_of_frames()
 
-    def edges(self):
+    def get_edges(self):
         # should return list of edges of trajectory
         # if one trajectory file is used there are two edges begin and end
         # for each additional trajectory file additional edge marking joining point is returned
         # make sense in non sandwich mode only
-
+        # reader has to be reset before and after
+        self.reset()
         # to calculate this each individual file should be open as separate trajectory
         # 1. get real number of frames for each part
         rnf = [0]
@@ -334,16 +336,19 @@ class MasterReader(object):
             #rnf.append(rnf[-1]-1+open_traj_reader(self.get_single_raw_reader_per_trajectory(number)).real_number_of_frames())
             rnf.append(open_traj_reader(self.get_single_raw_reader_per_trajectory(number)).real_number_of_frames())
         # cumulative sum
-        rnf = np.cumsum(rnf).tolist()
+        rnf = (np.cumsum(rnf)-1).tolist()
         # 2. by using window try to calculate where are the edges
         E = [] # list of edges
-        for rf in self.window.range(): # iterate over real frames
+        for nr,rf in enumerate(self.window.range()): # iterate over real frames
             if rf >= rnf[0]:
                 # this is an edge
-                E.append(rf)
-                while rf >= rnf[0]:
+                E.append(nr)
+                while len(rnf) and rf >= rnf[0]:
                     rnf.pop(0)
-        return E
+        if len(rnf):
+            E.append(nr)
+        self.reset()
+        return E[1:-1]
 
     def number_of_frames(self, onelayer=False):
         # number of frames in the window times number of layers
