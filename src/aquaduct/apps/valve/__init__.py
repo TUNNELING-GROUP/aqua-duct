@@ -224,6 +224,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'sps', 'True')
 
         config.set(section, 'sandwich', 'False')
+        config.set(section, 'waterfall', 'False')
         config.set(section, 'max_frame', 'None')
         config.set(section, 'min_frame', 'None')
         config.set(section, 'step_frame', 'None')

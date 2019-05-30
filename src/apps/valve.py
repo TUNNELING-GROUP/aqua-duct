@@ -211,10 +211,10 @@ if __name__ == "__main__":
             if goptions.sandwich:
                 clui.message("Sandwich mode with %d layers." % len(Reader.trajectory))
 
-            with clui.fbm("Calculating additional edges for waterfall option"):
-                Reader.edges = Reader.get_edges()
+            if goptions.waterfall:
+                with clui.fbm("Calculating additional edges for waterfall option"):
+                    Reader.edges = Reader.get_edges()
 
-            exit(0)
 
             # force_save
             force_save = args.force_save
