@@ -214,6 +214,10 @@ if __name__ == "__main__":
             if goptions.waterfall:
                 with clui.fbm("Calculating additional edges for waterfall option"):
                     Reader.edges = Reader.get_edges()
+                if Reader.edges:
+                    clui.message("Additional edges: "+", ".join(map(str,Reader.edges)))
+                else:
+                    clui.message("No additional edges were found.")
 
 
             # force_save
