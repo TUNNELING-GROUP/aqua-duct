@@ -31,7 +31,7 @@ from aquaduct.traj.inlets import Inlet, InletTypeCodes
 from aquaduct.utils.helpers import is_number, lind, glind, \
     SmartRange  # smart ranges are required here to provide backward compatibility with v0.3
 from aquaduct.utils.sets import intersection, glue, left, right
-from aquaduct.utils.helpers import tupleify, listify, arrayify1
+from aquaduct.utils.helpers import tupleify, listify, arrayify1, list_blocks_to_slices
 from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader, SingleResidueSelection
 from array import array
@@ -258,8 +258,72 @@ class GenericPaths(GenericPathTypeCodes):
         else:
             yield path
 
+
+    def _split_path_by_edges(self,path,passing=None):
+        edges = self.single_res_selection.get_edges()
+        if edges:
+            path_cont = sum(path, start=[])
+            path_part = [PathTypesCodes.path_in_code] * len(path[0]) + [PathTypesCodes.path_object_code] * len(
+                path[1]) + [PathTypesCodes.path_out_code] * len(path[2])
+            for e in edges:
+                if path_cont:
+                    if e in path_cont:
+                        path_cont_2y = path_cont[:path_cont.index(e) + 1]
+                        path_part_2y = path_part[:path_cont.index(e) + 1]
+                        path_part = path_part[path_cont.index(e) + 1:]
+                        path_cont = path_cont[path_cont.index(e) + 1:]
+                        # check if this is passing path
+                        if PathTypesCodes.path_object_code in path_part_2y:
+                            # this is normal path
+                            path_2y = [path_cont_2y[s] for s in list_blocks_to_slices(path_part_2y)]
+                            part_2y = [path_part_2y[s] for s in list_blocks_to_slices(path_part_2y)]
+                            if len(part_2y) == 1:
+                                # only object is present
+                                path_2y = [[], path_2y[0], []]
+                            if len(part_2y) == 2:
+                                # object and either in or out are present
+                                if PathTypesCodes.path_in_code in path_part_2y:
+                                    path_2y = [path_2y[0], path_2y[1], []]
+                                elif PathTypesCodes.path_out_code in path_part_2y:
+                                    path_2y = [[], path_2y[0], path_2y[1]]
+                            if len(part_2y) == 3:
+                                # all parts are present, yield normally
+                                pass
+                            yield path_2y
+                        elif passing:
+                            # this is passing path
+                            yield (path_cont_2y, [], [])
+            if path_cont:
+                path_part_2y = path_part
+                path_cont_2y = path_cont
+                if PathTypesCodes.path_object_code in path_part_2y:
+                    # this is normal path
+                    path_2y = [path_cont_2y[s] for s in list_blocks_to_slices(path_part_2y)]
+                    part_2y = [path_part_2y[s] for s in list_blocks_to_slices(path_part_2y)]
+                    if len(part_2y) == 1:
+                        # only object is present
+                        path_2y = [[], path_2y[0], []]
+                    if len(part_2y) == 2:
+                        # object and either in or out are present
+                        if PathTypesCodes.path_in_code in path_part_2y:
+                            path_2y = [path_2y[0], path_2y[1], []]
+                        elif PathTypesCodes.path_out_code in path_part_2y:
+                            path_2y = [[], path_2y[0], path_2y[1]]
+                    if len(part_2y) == 3:
+                        # all parts are present, yield normally
+                        pass
+                    yield path_2y
+                elif passing:
+                    # this is passing path
+                    yield (path_cont_2y, [], [])
+        else:
+            # yield path, coords, types
+            yield path
+
+
     def _gpt(self):
-        return chain(*imap(self._consider_edges,self._gpt_core()))
+        return self._gpt_core()
+        #return chain(*imap(self._consider_edges,self._gpt_core()))
 
     def _gpt_core(self):
         # get, I'm just passing through
@@ -288,7 +352,8 @@ class GenericPaths(GenericPathTypeCodes):
                         yield block_frames
 
     def _gpo(self, frames_sr):
-        return chain(*imap(self._consider_edges,self._gpo_core(frames_sr)))
+        return self._gpo_core(frames_sr)
+        #return chain(*imap(self._consider_edges,self._gpo_core(frames_sr)))
 
     def _gpo_core(self, frames_sr):
         n = len(frames_sr)
@@ -325,7 +390,8 @@ class GenericPaths(GenericPathTypeCodes):
                     yield block_frames
 
     def _gpi(self, frames_sr):
-        return chain(*imap(self._consider_edges,self._gpi_core(frames_sr)))
+        return self._gpi_core(frames_sr)
+        #return chain(*imap(self._consider_edges,self._gpi_core(frames_sr)))
 
     def _gpi_core(self, frames_sr):
         n = len(frames_sr)
@@ -407,22 +473,23 @@ class GenericPaths(GenericPathTypeCodes):
                             path_out = []
                 yield path_in, path_core, path_out
 
+
+
     def find_paths_types(self, fullonly=False, passing=None):
         # both loops below yields correct paths
         # if waterfall let's split each of yielded paths again
 
         for path in self.find_paths(fullonly=fullonly):
-            # yield path, self.get_single_path_coords(path), self.get_single_path_types(path)
-            # coords, types = self.get_single_path_types(path)
-            types = self.get_single_path_types(path)
-            # yield path, coords, types
-            yield path, types
+            for path_sbe in self._split_path_by_edges(path,passing):
+                types = self.get_single_path_types(path_sbe)
+                # yield path, coords, types
+                yield path_sbe, types
         if passing:
             for path in self._gpt():
-                # coords, types = self.get_single_path_types((path, [], []))
-                types = self.get_single_path_types((path, [], []))
-                # yield (path, [], []), coords, types
-                yield (path, [], []), types
+                for path_sbe in self._split_path_by_edges((path, [], []), passing):
+                    types = self.get_single_path_types(path_sbe)
+                    # yield path, coords, types
+                    yield path_sbe, types
 
     def get_single_path_types(self, spath):
         # returns typess for single path

@@ -567,7 +567,7 @@ def list_blocks_to_slices(l):
     :return: Generator of slices.
     :rtype: generator
     """
-    # TODO: poprawic opis
+    # TODO: improve description
     n = len(l)
     if n in [0, 1]:
         yield slice(None, None, None)
