@@ -262,7 +262,8 @@ class GenericPaths(GenericPathTypeCodes):
     def _split_path_by_edges(self,path,passing=None):
         edges = self.single_res_selection.get_edges()
         if edges:
-            path_cont = sum(path, start=[])
+            path_cont = []
+            map(path_cont.extend,path)
             path_part = [PathTypesCodes.path_in_code] * len(path[0]) + [PathTypesCodes.path_object_code] * len(
                 path[1]) + [PathTypesCodes.path_out_code] * len(path[2])
             for e in edges:

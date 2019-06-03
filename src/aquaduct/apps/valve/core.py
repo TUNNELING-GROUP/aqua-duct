@@ -20,7 +20,7 @@
 
 import gc
 from functools import partial
-from itertools import izip_longest, izip, chain
+from itertools import izip_longest, izip, chain, imap
 from multiprocessing import Pool, Queue, Process
 
 from scipy.spatial.distance import cdist
@@ -596,8 +596,10 @@ def stage_III_run(config, options,
         pool = Pool(processes=optimal_threads.threads_count)
         # ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
         n = max(1, len(paths) / optimal_threads.threads_count / 3)
+        #n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
+        #for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
         for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
             for sp, nr in sps_nrs:
                 spaths.append(sp)
