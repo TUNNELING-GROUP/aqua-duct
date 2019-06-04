@@ -245,81 +245,52 @@ class GenericPaths(GenericPathTypeCodes):
             self._types.append(t)
             self._frames.append(f)
 
-    def _consider_edges(self,path):
+    def _split_path_by_edges_(self,path):
+        # input: path tuple
+        # output: path_cont
         edges = self.single_res_selection.get_edges()
+        path_cont = []
+        map(path_cont.extend, path)
         if edges:
             for e in edges:
-                if path:
-                    if e in path:
-                        yield path[:path.index(e)+1]
-                        path = path[path.index(e)+1:]
-            if path:
-                yield path
-        else:
-            yield path
+                if e in path_cont:
+                    path_cont_2y = path_cont[:path_cont.index(e) + 1]
+                    path_cont = path_cont[path_cont.index(e) + 1:]
+                    yield path_cont_2y
+        if path_cont:
+            yield path_cont
 
-
-    def _split_path_by_edges(self,path,passing=None):
-        edges = self.single_res_selection.get_edges()
-        if edges:
-            path_cont = []
-            map(path_cont.extend,path)
-            path_part = [PathTypesCodes.path_in_code] * len(path[0]) + [PathTypesCodes.path_object_code] * len(
-                path[1]) + [PathTypesCodes.path_out_code] * len(path[2])
-            for e in edges:
-                if path_cont:
-                    if e in path_cont:
-                        path_cont_2y = path_cont[:path_cont.index(e) + 1]
-                        path_part_2y = path_part[:path_cont.index(e) + 1]
-                        path_part = path_part[path_cont.index(e) + 1:]
-                        path_cont = path_cont[path_cont.index(e) + 1:]
-                        # check if this is passing path
-                        if PathTypesCodes.path_object_code in path_part_2y:
-                            # this is normal path
-                            path_2y = [path_cont_2y[s] for s in list_blocks_to_slices(path_part_2y)]
-                            part_2y = [path_part_2y[s] for s in list_blocks_to_slices(path_part_2y)]
-                            if len(part_2y) == 1:
-                                # only object is present
-                                path_2y = [[], path_2y[0], []]
-                            if len(part_2y) == 2:
-                                # object and either in or out are present
-                                if PathTypesCodes.path_in_code in path_part_2y:
-                                    path_2y = [path_2y[0], path_2y[1], []]
-                                elif PathTypesCodes.path_out_code in path_part_2y:
-                                    path_2y = [[], path_2y[0], path_2y[1]]
-                            if len(part_2y) == 3:
-                                # all parts are present, yield normally
-                                pass
-                            yield path_2y
-                        elif passing:
-                            # this is passing path
-                            yield (path_cont_2y, [], [])
-            if path_cont:
-                path_part_2y = path_part
-                path_cont_2y = path_cont
-                if PathTypesCodes.path_object_code in path_part_2y:
-                    # this is normal path
-                    path_2y = [path_cont_2y[s] for s in list_blocks_to_slices(path_part_2y)]
-                    part_2y = [path_part_2y[s] for s in list_blocks_to_slices(path_part_2y)]
-                    if len(part_2y) == 1:
-                        # only object is present
-                        path_2y = [[], path_2y[0], []]
-                    if len(part_2y) == 2:
-                        # object and either in or out are present
-                        if PathTypesCodes.path_in_code in path_part_2y:
-                            path_2y = [path_2y[0], path_2y[1], []]
-                        elif PathTypesCodes.path_out_code in path_part_2y:
-                            path_2y = [[], path_2y[0], path_2y[1]]
-                    if len(part_2y) == 3:
-                        # all parts are present, yield normally
-                        pass
-                    yield path_2y
-                elif passing:
-                    # this is passing path
-                    yield (path_cont_2y, [], [])
+    def _split_path_by_types_(self,path):
+        # input: path_cont
+        # output: path tuple
+        types = self.get_path_cont_types(path)
+        # now, split it into single path or passing
+        if self.object_name in types:
+            if self.object_name == types[0]:
+                in_p = []
+            else:
+                in_p = path[:types.index(self.object_name)]
+                path = path[types.index(self.object_name):]
+                types = types[types.index(self.object_name):]
+            if self.object_name == types[0]:
+                out_p = []
+            else:
+                types = types[::-1]
+                path = path[::-1]
+                out_p = path[:types.index(self.object_name)]
+                path = path[types.index(self.object_name):]
+                types = types[types.index(self.object_name):]
+                types = types[::-1]
+                path = path[::-1]
+            return in_p,path,out_p
         else:
-            # yield path, coords, types
-            yield path
+            return (path,[],[]) # passing
+
+    def _consider_edges(self,path,passing=None):
+        for path_cont in self._split_path_by_edges_(path):
+            spath = self._split_path_by_types_(path_cont)
+            if len(spath[1])>0 or passing:
+                yield spath
 
 
     def _gpt(self):
@@ -481,16 +452,40 @@ class GenericPaths(GenericPathTypeCodes):
         # if waterfall let's split each of yielded paths again
 
         for path in self.find_paths(fullonly=fullonly):
-            for path_sbe in self._split_path_by_edges(path,passing):
+            for path_sbe in self._consider_edges(path,passing):
                 types = self.get_single_path_types(path_sbe)
                 # yield path, coords, types
                 yield path_sbe, types
         if passing:
             for path in self._gpt():
-                for path_sbe in self._split_path_by_edges((path, [], []), passing):
+                for path_sbe in self._consider_edges((path, [], []), passing):
+
                     types = self.get_single_path_types(path_sbe)
                     # yield path, coords, types
                     yield path_sbe, types
+
+    def get_path_cont_types(self,path_cont):
+
+        frames = self.frames
+        types = self.types
+
+        def get_be(p_):
+            # if len(p_) == 1:
+            # quit    return 0,1
+            return frames.index(p_[0]), frames.index(p_[-1]) + 1
+
+        if len(frames) == len(types):
+            # not full trajectory
+            if len(path_cont) > 0:
+                b, e = get_be(path_cont)
+                return types[b:e]
+        else:
+            # full trajectory
+            if len(path_cont) > 0:
+                b, e = path_cont[0], path_cont[-1] + 1
+                return types[b:e]
+        return []
+
 
     def get_single_path_types(self, spath):
         # returns typess for single path
@@ -502,6 +497,8 @@ class GenericPaths(GenericPathTypeCodes):
 
         frames = self.frames
         types = self.types
+
+
 
         def get_be(p_):
             # if len(p_) == 1:
