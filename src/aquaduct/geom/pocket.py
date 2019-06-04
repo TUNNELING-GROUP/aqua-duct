@@ -17,7 +17,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from aquaduct.traj.paths import GenericPaths
-
+from collections import defaultdict
+import operator
 import numpy as np
 from itertools import izip, imap
 
@@ -227,6 +228,28 @@ def sphere_radius(spaths, centers=None, radius=2., window=None, pbar=None, map_f
             pbar.next()
 
     return H
+
+
+def grid_point(v, g):
+    return v - (v % g) - (g if v % g == 0. else 0) + g/2
+
+
+def hotspots2(spaths, grid_size, window=None):
+    dens = defaultdict(int)
+    for path in spaths:
+        for c in get_spc(path, window=window):
+            cc = grid_point(c[0], grid_size), \
+                 grid_point(c[1], grid_size), \
+                 grid_point(c[2], grid_size)
+
+            dens[cc] += 1
+
+    min_ = 0.1*max(dens.iteritems(), key=operator.itemgetter(1))[0]
+    for k, v in dens.iteritems():
+        if v < min_:
+            del dens[k]
+
+    return list(dens.keys()), list(dens.values())
 
 
 def hot_spots(H):

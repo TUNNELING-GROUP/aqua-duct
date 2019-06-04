@@ -456,12 +456,8 @@ if __name__ == "__main__":
                                 H = (D[-1] / WSf) / grid_area
 
                                 if args.hotspots:
-                                    hs = pocket.hot_spots(H)
-                                    if hs is not None:
-                                        hs = H >= hs
-                                        hsmol2.write_scatter(D[0][hs], H[hs])
-                                    else:
-                                        hsmol2.write_scatter([], [])
+                                    hs = pocket.hotspots2(paths, args.grid_size, window=window)
+                                    hsmol2.write_scatter(hs[0], hs[1])
 
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold), wmol2):
@@ -475,13 +471,9 @@ if __name__ == "__main__":
                                 H = (D[-1] / float(number_of_frames)) / grid_area
 
                                 if args.hotspots:
-                                    hs = pocket.hot_spots(H)
+                                    hs = pocket.hotspots2(paths, args.grid_size, window=window)
                                     mol2 = WriteMOL2(rdir + 'hotspots_full%s.mol2' % ptn)
-                                    if hs is not None:
-                                        hs = H >= hs
-                                        mol2.write_scatter(D[0][hs], H[hs])
-                                    else:
-                                        mol2.write_scatter([], [])
+                                    mol2.write_scatter(hs[0], hs[1])
                                     del mol2
 
                                 volumes = []
