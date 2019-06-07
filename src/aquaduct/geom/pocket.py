@@ -234,7 +234,7 @@ def grid_point(v, g):
     return v - (v % g) - (g if v % g == 0. else 0) + g/2
 
 
-def hotspots2(spaths, grid_size, window=None):
+def hotspots2(spaths, grid_size, threshold=0.0,  window=None):
     dens = defaultdict(int)
     for path in spaths:
         for c in get_spc(path, window=window):
@@ -244,10 +244,15 @@ def hotspots2(spaths, grid_size, window=None):
 
             dens[cc] += 1
 
-    min_ = 0.1*max(dens.iteritems(), key=operator.itemgetter(1))[0]
-    for k, v in dens.iteritems():
+    max_key = max(dens.iteritems(), key=operator.itemgetter(1))[0]
+    min_ = threshold*dens[max_key]
+
+    dens_c = dens.copy()
+    for k, v in dens_c.iteritems():
         if v < min_:
             del dens[k]
+        else:
+            dens[k] = dens[k]/np.power(grid_size, 3.)/(window[-1] - window[0])
 
     return list(dens.keys()), list(dens.values())
 

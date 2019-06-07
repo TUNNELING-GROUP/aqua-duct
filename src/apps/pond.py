@@ -147,7 +147,10 @@ if __name__ == "__main__":
             #                    help="Calculate profiles for master paths using width as radii.")
             parser.add_argument("--io-threshold", action="store", dest="io_threshold", type=float, required=False,
                                 default=None,
-                                help="Percent value of maximum density which will be used to partition pocket into inner and outer instead of mean value.")
+                                help="Percent value of maximal density which will be used to partition pocket into inner and outer instead of mean value.")
+            parser.add_argument("--hs-threshold", action="store", dest="hs_threshold", type=float, required=False,
+                                default=None,
+                                help="Percent value of highest hotspot density below which hotspots with lower density will be skipped.")
             parser.add_argument("--path-id", action="store", dest="path_id", type=str, required=False,
                                 default=None, help="Calculate profiles for specified path ID.")
             parser.add_argument("--path-file", action="store", dest="path_file", type=str, required=False,
@@ -458,6 +461,7 @@ if __name__ == "__main__":
                                 if args.hotspots:
                                     hs = pocket.hotspots2(paths, args.grid_size, window=window)
                                     hsmol2.write_scatter(hs[0], hs[1])
+                                    del hsmol2
 
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold), wmol2):
@@ -789,6 +793,9 @@ if __name__ == "__main__":
                                             logger.warning(
                                                 "Cannot find paths within defined path, some points are skip.")
                                         H = -k * args.temp * np.log(H) - ref
+
+                                        print(H)
+
                                     with WriteMOL2(
                                             rdir + "path%s_%s%s_radius%s.mol2" % (
                                                     path_name, fname, fname_window_single, ptn),
