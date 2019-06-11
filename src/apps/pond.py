@@ -149,7 +149,7 @@ if __name__ == "__main__":
                                 default=None,
                                 help="Percent value of maximal density which will be used to partition pocket into inner and outer instead of mean value.")
             parser.add_argument("--hs-threshold", action="store", dest="hs_threshold", type=float, required=False,
-                                default=None,
+                                default=0.,
                                 help="Percent value of highest hotspot density below which hotspots with lower density will be skipped.")
             parser.add_argument("--path-id", action="store", dest="path_id", type=str, required=False,
                                 default=None, help="Calculate profiles for specified path ID.")
@@ -157,6 +157,9 @@ if __name__ == "__main__":
                                 help="Use coordinates from specified CSV file.")
             parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
                                 default=2., help="Calculate profiles for path with given radius.")
+            parser.add_argument("--path-smooth", action="store", dest="path_smooth", type=bool, required=False,
+                                default=True,
+                                help="If used path coordinates will be smoothed.")
             parser.add_argument("--raw-path", action="store_true", dest="raw_path", required=False,
                                 help="Use raw data from paths instead of single paths. "
                                      "Used for path energy profiles calculations and for extracting raw path.")
@@ -459,7 +462,7 @@ if __name__ == "__main__":
                                 H = (D[-1] / WSf) / grid_area
 
                                 if args.hotspots:
-                                    hs = pocket.hotspots2(paths, args.grid_size, window=window)
+                                    hs = pocket.hotspots2(paths, args.grid_size, threshold=args.hs_threshold, window=window)
                                     hsmol2.write_scatter(hs[0], hs[1])
                                     del hsmol2
 
@@ -475,7 +478,7 @@ if __name__ == "__main__":
                                 H = (D[-1] / float(number_of_frames)) / grid_area
 
                                 if args.hotspots:
-                                    hs = pocket.hotspots2(paths, args.grid_size, window=window)
+                                    hs = pocket.hotspots2(paths, args.grid_size, threshold=args.hs_threshold, window=window)
                                     mol2 = WriteMOL2(rdir + 'hotspots_full%s.mol2' % ptn)
                                     mol2.write_scatter(hs[0], hs[1])
                                     del mol2
@@ -673,6 +676,7 @@ if __name__ == "__main__":
                             soptions = result3.pop("soptions")
                             soptions = namedtuple('Options', soptions.keys())(*soptions.values())
                             smooth_method = get_smooth_method(soptions)
+
                             coords = path.get_coords_cont(smooth_method)
                         else:
                             coords = path.coords
@@ -712,12 +716,19 @@ if __name__ == "__main__":
                         try:
                             path = next(path for path in paths if path_id_formatter(path.id) == args.path_id)
 
-                            #soptions = result3.pop("soptions")
-                            #soptions = namedtuple('Options', soptions.keys())(*soptions.values())
-                            #smooth_method = get_smooth_method(soptions)
+                            if args.path_smooth:
+                                soptions = result3.pop("soptions")
+                                soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                                smooth_method = get_smooth_method(soptions)
 
                             if not args.raw_path:
-                                coords = path.get_coords_cont()
+                                if args.path_smooth:
+                                    soptions = result3.pop("soptions")
+                                    soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                                    smooth_method = get_smooth_method(soptions)
+                                    coords = path.get_coords_cont(smooth_method)
+                                else:
+                                    coords = path.get_coords_cont()
                             else:
                                 coords = path.coords
                         except StopIteration:

@@ -245,6 +245,7 @@ def hotspots2(spaths, grid_size, threshold=0.0,  window=None):
             dens[cc] += 1
 
     max_key = max(dens.iteritems(), key=operator.itemgetter(1))[0]
+    print threshold, dens[max_key]
     min_ = threshold*dens[max_key]
 
     dens_c = dens.copy()
