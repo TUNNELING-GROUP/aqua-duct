@@ -157,8 +157,7 @@ if __name__ == "__main__":
                                 help="Use coordinates from specified CSV file.")
             parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
                                 default=2., help="Calculate profiles for path with given radius.")
-            parser.add_argument("--path-smooth", action="store", dest="path_smooth", type=bool, required=False,
-                                default=True,
+            parser.add_argument("--path-smooth", action="store_true", dest="path_smooth", required=False,
                                 help="If used path coordinates will be smoothed.")
             parser.add_argument("--raw-path", action="store_true", dest="raw_path", required=False,
                                 help="Use raw data from paths instead of single paths. "
