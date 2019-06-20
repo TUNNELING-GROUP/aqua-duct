@@ -294,10 +294,6 @@ class GenericPaths(GenericPathTypeCodes):
 
 
     def _gpt(self):
-        return self._gpt_core()
-        #return chain(*imap(self._consider_edges,self._gpt_core()))
-
-    def _gpt_core(self):
         # get, I'm just passing through
         n = len(self._frames)
         types = self.types
@@ -324,10 +320,6 @@ class GenericPaths(GenericPathTypeCodes):
                         yield block_frames
 
     def _gpo(self, frames_sr):
-        return self._gpo_core(frames_sr)
-        #return chain(*imap(self._consider_edges,self._gpo_core(frames_sr)))
-
-    def _gpo_core(self, frames_sr):
         n = len(frames_sr)
         types = self.types
         begin = 0
@@ -362,10 +354,6 @@ class GenericPaths(GenericPathTypeCodes):
                     yield block_frames
 
     def _gpi(self, frames_sr):
-        return self._gpi_core(frames_sr)
-        #return chain(*imap(self._consider_edges,self._gpi_core(frames_sr)))
-
-    def _gpi_core(self, frames_sr):
         n = len(frames_sr)
         types = self.types
         begin = 0
