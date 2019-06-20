@@ -280,6 +280,7 @@ class GenericPaths(GenericPathTypeCodes):
                 types = types[::-1]
                 path = path[::-1]
                 out_p = path[:types.index(self.object_name)]
+                out_p = out_p[::-1]
                 path = path[types.index(self.object_name):]
                 types = types[types.index(self.object_name):]
                 types = types[::-1]
