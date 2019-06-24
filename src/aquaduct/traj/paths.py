@@ -266,25 +266,19 @@ class GenericPaths(GenericPathTypeCodes):
         types = self.get_path_cont_types(path)
         # now, split it into single path or passing
         if self.object_name in types:
-            # path: in-obj-out
-            if self.object_name == types[0]:
-                in_p = []
-            else:
-                in_p = path[:types.index(self.object_name)]
-                path = path[types.index(self.object_name):]
-                types = types[types.index(self.object_name):]
-            # path: obj-out
-            if self.object_name == types[-1]:
-                out_p = []
-            else:
-                types = types[::-1]
-                path = path[::-1]
-                out_p = path[:types.index(self.object_name)]
-                out_p = out_p[::-1]
-                path = path[types.index(self.object_name):]
-                types = types[types.index(self.object_name):]
-                types = types[::-1]
-                path = path[::-1]
+            # in
+            bp = types.index(self.object_name)
+            in_p = path[:bp]
+            path = path[bp:]
+            types = types[bp:]
+            # obj
+            types = types[::-1]
+            path = path[::-1]
+            ep = types.index(self.object_name)
+            out_p = path[:ep]
+            path = path[ep:]
+            out_p = out_p[::-1]
+            path = path[::-1]
             return in_p,path,out_p
         else:
             return (path,[],[]) # passing
