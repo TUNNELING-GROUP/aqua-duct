@@ -266,22 +266,19 @@ class GenericPaths(GenericPathTypeCodes):
         types = self.get_path_cont_types(path)
         # now, split it into single path or passing
         if self.object_name in types:
-            if self.object_name == types[0]:
-                in_p = []
-            else:
-                in_p = path[:types.index(self.object_name)]
-                path = path[types.index(self.object_name):]
-                types = types[types.index(self.object_name):]
-            if self.object_name == types[0]:
-                out_p = []
-            else:
-                types = types[::-1]
-                path = path[::-1]
-                out_p = path[:types.index(self.object_name)]
-                path = path[types.index(self.object_name):]
-                types = types[types.index(self.object_name):]
-                types = types[::-1]
-                path = path[::-1]
+            # in
+            bp = types.index(self.object_name)
+            in_p = path[:bp]
+            path = path[bp:]
+            types = types[bp:]
+            # obj
+            types = types[::-1]
+            path = path[::-1]
+            ep = types.index(self.object_name)
+            out_p = path[:ep]
+            path = path[ep:]
+            out_p = out_p[::-1]
+            path = path[::-1]
             return in_p,path,out_p
         else:
             return (path,[],[]) # passing
@@ -294,10 +291,6 @@ class GenericPaths(GenericPathTypeCodes):
 
 
     def _gpt(self):
-        return self._gpt_core()
-        #return chain(*imap(self._consider_edges,self._gpt_core()))
-
-    def _gpt_core(self):
         # get, I'm just passing through
         n = len(self._frames)
         types = self.types
@@ -324,10 +317,6 @@ class GenericPaths(GenericPathTypeCodes):
                         yield block_frames
 
     def _gpo(self, frames_sr):
-        return self._gpo_core(frames_sr)
-        #return chain(*imap(self._consider_edges,self._gpo_core(frames_sr)))
-
-    def _gpo_core(self, frames_sr):
         n = len(frames_sr)
         types = self.types
         begin = 0
@@ -362,10 +351,6 @@ class GenericPaths(GenericPathTypeCodes):
                     yield block_frames
 
     def _gpi(self, frames_sr):
-        return self._gpi_core(frames_sr)
-        #return chain(*imap(self._consider_edges,self._gpi_core(frames_sr)))
-
-    def _gpi_core(self, frames_sr):
         n = len(frames_sr)
         types = self.types
         begin = 0
