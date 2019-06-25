@@ -230,6 +230,27 @@ def sphere_radius(spaths, centers=None, radius=2., window=None, pbar=None, map_f
     return H
 
 
+def sphere_density_raw(trajs, mol_name, centers, radius, window=None, pbar=None, map_fun=map):
+    """ Calculate density of molecules from trajectories """
+    H = np.zeros(len(centers))
+
+    for traj_reader in trajs:
+        traj_reader = traj_reader.open()
+
+        for frame_no in range(int(window[0]), int(window[1])):
+            traj_reader.set_real_frame(frame_no)
+
+            for i, c in enumerate(centers):
+                selection_str = "({}) and (point {} {} {} {})".format(mol_name, *(tuple(c) + (radius,)))
+                traj_reader.parse_selection(selection_str)
+                H[i] += len(list(traj_reader.parse_selection(selection_str).residues().ids()))
+
+            if pbar:
+                pbar.next()
+
+    return H
+
+
 def grid_point(v, g):
     return v - (v % g) - (g if v % g == 0. else 0) + g/2
 

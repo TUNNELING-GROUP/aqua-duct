@@ -138,6 +138,9 @@ if __name__ == "__main__":
                                 help="Calculates hotspots if pockets are calculated.")
             parser.add_argument("--energy-profile", action="store_true", dest="eng_pro", required=False,
                                 help="Calculates energy profiles for master paths.")
+            # FIXME: Temporary option for loading master paths when they are not needed due to master_radius default value.
+            parser.add_argument("--master", action="store_true", dest="master", required=False,
+                                help="Enables master paths calculation.")
             parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False, default=2.,
                                 help="Calculate profiles for master paths with given radius.")
             parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False,
@@ -507,7 +510,7 @@ if __name__ == "__main__":
             # ----------------------------------------------------------------------#
             # load mater paths data
 
-            if args.master_radius:
+            if args.master_radius and args.master:
                 with clui.tictoc('Loading master paths data'):
                     # get stage IV options
                     options4 = config.get_stage_options(3)
@@ -521,6 +524,9 @@ if __name__ == "__main__":
                     options6 = config.get_stage_options(5)
 
                     linmet = get_linearize_method(options6.simply_smooths)
+            else:
+                # FIXME: Temporary solution for loading master paths when they are not needed due to master_radius default value.
+                mps = {}
 
             # ----------------------------------------------------------------------#
             # re load paths?
@@ -607,16 +613,14 @@ if __name__ == "__main__":
 
                                     centers, ids = linmet(mp.coords_cont, ids=True)
 
-                                    D = pocket.sphere_radius(paths, centers=centers, radius=args.master_radius,
-                                                             window=window, pbar=pbar, map_fun=pool.imap_unordered)
+                                    D = pocket.sphere_density_raw(Reader.iterate(threads=False), args.ref_mol,
+                                                                  centers=centers, radius=args.master_radius,
+                                                                  window=window, pbar=pbar)
+
                                     H = D / float(number_of_frames) / (4. / 3. * np.pi * float(args.master_radius) ** 3)
                                     if ref:
-                                        if np.any(D<=0):
-                                            ind = D > 0
-                                            H = H[ind]
-                                            centers = centers[ind]
-                                            logger.warning("Cannot find paths within defined master radius, some points are skip.")
                                         H = -k * args.temp * np.log(H) - ref
+
                                     with WriteMOL2(rdir + "mp_%s%s_radius%s.mol2" % (fname, fname_window_single, ptn),
                                                    mode=mode) as mol2:
                                         mol2.write_connected(centers, H)
@@ -696,22 +700,23 @@ if __name__ == "__main__":
 
             if args.eng_pro and (args.path_id or args.path_file):
                 with clui.tictoc('Loading paths data'):
+
+                    if not args.raw_path:
+                        options3 = config.get_stage_options(2)
+                        with clui.fbm("Loading data dump from {} file.".format(options3.dump)):
+                            vda = get_vda_reader(options3.dump, mode="r")
+                            result3 = vda.load()
+
+                            paths = result3.pop("spaths")
+                    else:
+                        options2 = config.get_stage_options(1)
+                        with clui.fbm('Loading raw data dump from %s file' % options2.dump):
+                            vda = get_vda_reader(options2.dump, mode='r')
+                            result2 = vda.load()
+
+                            paths = result2.pop("paths")
+
                     if args.path_id:
-                        if not args.raw_path:
-                            options3 = config.get_stage_options(2)
-                            with clui.fbm("Loading data dump from {} file.".format(options3.dump)):
-                                vda = get_vda_reader(options3.dump, mode="r")
-                                result3 = vda.load()
-
-                                paths = result3.pop("spaths")
-                        else:
-                            options2 = config.get_stage_options(1)
-                            with clui.fbm('Loading raw data dump from %s file' % options2.dump):
-                                vda = get_vda_reader(options2.dump, mode='r')
-                                result2 = vda.load()
-
-                                paths = result2.pop("paths")
-
                         try:
                             path = next(path for path in paths if path_id_formatter(path.id) == args.path_id)
 
@@ -790,21 +795,14 @@ if __name__ == "__main__":
                                     if wnr > 1:
                                         mode = 'a'
 
-                                    D = pocket.sphere_radius(paths, centers=coords, radius=args.path_radius,
-                                                             window=window, pbar=pbar,
-                                                             map_fun=pool.imap_unordered)
+                                    D = pocket.sphere_density_raw(Reader.iterate(threads=False), args.ref_mol,
+                                                                  centers=coords, radius=args.path_radius,
+                                                                  window=window, pbar=pbar)
+
                                     H = D / float(number_of_frames) / (
                                             4. / 3. * np.pi * float(args.path_radius) ** 3)
                                     if ref:
-                                        if np.any(D <= 0):
-                                            ind = D > 0
-                                            H = H[ind]
-                                            coords = coords[ind]
-                                            logger.warning(
-                                                "Cannot find paths within defined path, some points are skip.")
                                         H = -k * args.temp * np.log(H) - ref
-
-                                        print(H)
 
                                     with WriteMOL2(
                                             rdir + "path%s_%s%s_radius%s.mol2" % (
