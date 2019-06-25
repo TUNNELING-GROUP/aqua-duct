@@ -179,14 +179,16 @@ class ValveConfigApp(object):
         for section_name in self.get_recursive_clustering_sections("reclustering"):
             self.append_entries(section_name)
 
-        cluster_add_button = ttk.Button(self.frames[self.cluster_frame_index], text="Add clustering section")
-        # Setting row=1000 let skip calculating position of button each time new section is added
-        cluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
+        if self.cluster_frame_index:
+            cluster_add_button = ttk.Button(self.frames[self.cluster_frame_index], text="Add clustering section")
+            # Setting row=1000 let skip calculating position of button each time new section is added
+            cluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
 
-        cluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "clustering")
-        cluster_add_button.bind("<Button-1>", cluster_add_section_callback)
+            cluster_add_section_callback = utils.CallbackWrapper(self.callback_add_section, "clustering")
+            cluster_add_button.bind("<Button-1>", cluster_add_section_callback)
 
-        if "reclustering" in self.hiding_frames:
+        # if "reclustering" in self.hiding_frames:
+        if self.recluster_frame_index:
             recluster_add_button = ttk.Button(self.frames[self.recluster_frame_index], text="Add reclustering section")
             # Setting row=1000 let skip calculating position of button each time new section is added
             recluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
