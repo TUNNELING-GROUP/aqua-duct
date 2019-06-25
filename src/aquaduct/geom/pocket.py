@@ -251,34 +251,6 @@ def sphere_density_raw(trajs, mol_name, centers, radius, window=None, pbar=None,
     return H
 
 
-def grid_point(v, g):
-    return v - (v % g) - (g if v % g == 0. else 0) + g/2
-
-
-def hotspots2(spaths, grid_size, threshold=0.0,  window=None):
-    dens = defaultdict(int)
-    for path in spaths:
-        for c in get_spc(path, window=window):
-            cc = grid_point(c[0], grid_size), \
-                 grid_point(c[1], grid_size), \
-                 grid_point(c[2], grid_size)
-
-            dens[cc] += 1
-
-    max_key = max(dens.iteritems(), key=operator.itemgetter(1))[0]
-    print threshold, dens[max_key]
-    min_ = threshold*dens[max_key]
-
-    dens_c = dens.copy()
-    for k, v in dens_c.iteritems():
-        if v < min_:
-            del dens[k]
-        else:
-            dens[k] = dens[k]/np.power(grid_size, 3.)/(window[-1] - window[0])
-
-    return list(dens.keys()), list(dens.values())
-
-
 def hot_spots(H):
     return hot_spots_his(H)
 
