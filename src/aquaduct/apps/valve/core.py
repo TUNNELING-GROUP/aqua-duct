@@ -615,6 +615,9 @@ def stage_III_run(config, options,
                         new_paths.paths.append(paths.pop(nn))
                     tnpaths = []
         paths = new_paths.paths
+        if Reader.edges:
+            with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
+                waterfall_me(paths, pbar)
 
     ######################################################################
     # following procedures are run only if autobarber
