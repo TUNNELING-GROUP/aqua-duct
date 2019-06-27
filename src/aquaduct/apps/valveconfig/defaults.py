@@ -54,21 +54,24 @@ class dirtype(str):
 
 
 class DefaultSection(object):
-    def __init__(self, config_name, name, level):
+    def __init__(self, config_name, name, level, abs_level=None, additional=False):
         """
         Contrains info about section necessary to create it.
 
         :param config_name: Name of section in config.
         :param name: Brief label text, which will be displayed in Notebook tab.
-        :param level: Entry level. Check LEVELS dict for adjust it.
+        :param level: Entry level.
+        :param abs_level: If specified section will be shown only when corresponding level was chosen.
+        :param additional: If True values from that section wont be considered as default. Useful when section is mix of other sections.
         """
         self.config_name = config_name
         self.name = name
         self.level = level
+        self.abs_level = abs_level
+        self.additional = additional
 
         self.entries = []
 
-        # Changed to True when
         self._nested = False
 
     def add_entry(self, entry):
@@ -199,7 +202,7 @@ def get_default_section(section_name):
         section_name = "reclustering"
 
     for section in DEFAULTS:
-        if section.config_name == section_name:
+        if section.config_name == section_name and not section.additional:
             return section
 
     raise RuntimeError("Section {} does not exists.".format(section_name))
@@ -225,6 +228,141 @@ Grouping does not work in entries with specified optionmenu_value
 # @formatter:off
 DEFAULTS = []
 
+
+###
+# Initial, Easy
+###
+initial_section = DefaultSection(config_name="global", name="Initial", level=2, abs_level=2, additional=True)
+initial_section.add_entry(DefaultEntry(config_name="top",
+                                       name="Topology file: ",
+                                       default_values=[filetype()],
+                                       help_text="Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.",
+                                       level=2,
+                                       required=1))
+initial_section.add_entry(DefaultEntry(config_name="trj",
+                                       name="Trajectory file: ",
+                                       default_values=[manyfiletype()],
+                                       help_text="Path to trajectory file. Aqua-Duct supports NC and DCD trajectory files.",
+                                       level=2,
+                                       required=1))
+initial_section.add_entry(DefaultEntry(config_name="cache_dir",
+                                      name="Cache directory: ",
+                                      default_values=[dirtype("cache")],
+                                      help_text="Allows to set path to the directory for cache data.",
+                                      level=2))
+
+traceable_residues_nested = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=2)
+traceable_residues_nested.add_entry(DefaultEntry(config_name="scope",
+                                                  name="Scope: ",
+                                                  default_values=["protein"],
+                                                  help_text="Definition of Scope of interest.",
+                                                  level=2,
+                                                  required=1))
+traceable_residues_nested.add_entry(DefaultEntry(config_name="object",
+                                                  name="Object: ",
+                                                  default_values=[str()],
+                                                  help_text="Definition of Object of interest.",
+                                                  level=2,
+                                                  required=1))
+
+initial_section.add_entry(traceable_residues_nested)
+
+separate_paths_nested = DefaultSection(config_name="separate_paths", name="Separate paths", level=2)
+separate_paths_nested.add_entry(DefaultEntry(config_name="auto_barber",
+                                              name="Auto Barber: ",
+                                              default_values=[str()],
+                                              help_text="This option allows to select molecular entity used in Auto Barber procedure. ",
+                                              level=2))
+
+initial_section.add_entry(separate_paths_nested)
+
+DEFAULTS.append(initial_section)
+
+###
+# Clustering, Easy
+###
+clust_easy_section = DefaultSection(config_name="inlets_clustering", name="Clustering", level=2, abs_level=2, additional=True)
+clust_easy_section.add_entry(DefaultEntry(config_name="detect_outliers",
+                                                     name="Detect outliers: ",
+                                                     default_values=[["False", "Auto"]],
+                                                     help_text="If set, detection of outliers is executed. It could be set as a floating point distance threshold or set to Auto.",
+                                                     level=2))
+clust_easy_section.add_entry(DefaultEntry(config_name="singletons_outliers",
+                                                     name="Singletons outliers: ",
+                                                     default_values=["False"],
+                                                     help_text="Maximal size of cluster to be considered as outliers. If set to number > 0 clusters of that size are removed and their objects are moved to outliers.",
+                                                     level=2))
+clust_easy_section.add_entry(DefaultEntry(config_name="max_level",
+                                                     name="Max level: ",
+                                                     default_values=[0],
+                                                     help_text="Maximal number of recursive clustering levels.",
+                                                     level=0,
+                                                     info_text=" "))
+clust_easy_section.add_entry(DefaultEntry(config_name="join_clusters",
+                                                     name="Join clusters: ",
+                                                     default_values=[str()],
+                                                     help_text="This option allows to join selected clusters. Clusters’ IDs joined with + character lists clusters to be joined together. Several such blocks separated by space can be used. For example, if set to 1+3+4 5+6 clusters 1, 3, and 4 will be joined in one cluster and cluster 5, and 6 will be also joined in another cluster.",
+                                                     level=2,
+                                                     group_label="Post Clustering Optimalization"))
+clust_easy_section.add_entry(DefaultEntry(config_name="renumber_clusters",
+                                                     name="Renumber clusters: ",
+                                                     default_values=[False],
+                                                     help_text="If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
+                                                     level=2,
+                                                     group_label="Post Clustering Optimalization"))
+
+inner_clustering_section = DefaultSection(config_name="clustering", name="Clustering", level=2, abs_level=2, additional=True)
+inner_clustering_section.add_entry(DefaultEntry(config_name="name",
+                                              name="Name: ",
+                                              default_values=["clustering"],
+                                              help_text="Used to refer other clustering method in \"Recursive clustering\" option",
+                                              level=2))
+inner_clustering_section.add_entry(DefaultEntry(config_name="method",
+                                              name="Method: ",
+                                              default_values=[
+                                                  ("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")],
+                                              help_text="Name of clustering method. ",
+                                              level=2))
+
+# Barber options
+inner_clustering_section.add_entry(DefaultEntry(config_name="auto_barber",
+                                              name="Auto barber: ",
+                                              default_values=[str()],
+                                              help_text="This option allows to select molecular entity used in Auto Barber procedure.",
+                                              level=2,
+                                              optionmenu_value="barber"))
+
+# Meanshift options
+inner_clustering_section.add_entry(DefaultEntry(config_name="bandwidth",
+                                              name="Bandwidth: ",
+                                              default_values=["Auto"],
+                                              help_text="Bandwidth used in the RBF kernel. If Auto or None automatic method for bandwidth estimation is used.",
+                                              level=2,
+                                              optionmenu_value="meanshift"))
+
+# Birch options
+inner_clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
+                                              name="Cluster number: ",
+                                              default_values=[int()],
+                                              help_text="Number of clusters after the final clustering step, which treats the subclusters from the leaves as new samples. By default, this final clustering step is not performed and the subclusters are returned as they are.",
+                                              level=2,
+                                              optionmenu_value="birch"))
+
+# Kmeans options
+inner_clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
+                                              name="Cluster number: ",
+                                              default_values=[int()],
+                                              help_text="The number of clusters to form as well as the number of centroids to generate.",
+                                              level=2,
+                                              optionmenu_value="kmeans"))
+
+clust_easy_section.add_entry(inner_clustering_section)
+DEFAULTS.append(clust_easy_section)
+
+
+###
+# Global, Common
+###
 global_section = DefaultSection(config_name="global", name="General options", level=1)
 global_section.add_entry(DefaultEntry(config_name="top",
                                       name="Topology file: ",
@@ -276,7 +414,7 @@ global_section.add_entry(DefaultEntry(config_name="sps",
                                       level=1))
 global_section.add_entry(DefaultEntry(config_name="cache_dir",
                                       name="Cache directory: ",
-                                      default_values=[dirtype()],
+                                      default_values=[dirtype("cache")],
                                       help_text="Allows to set path to the directory for cache data.",
                                       level=1))
 global_section.add_entry(DefaultEntry(config_name="cache_mem",
@@ -592,20 +730,20 @@ clustering_section.add_entry(DefaultEntry(config_name="name",
                                               name="Name: ",
                                               default_values=["clustering"],
                                               help_text="Used to refer other clustering method in \"Recursive clustering\" option",
-                                              level=1))
+                                              level=2))
 clustering_section.add_entry(DefaultEntry(config_name="method",
                                               name="Method: ",
                                               default_values=[
                                                   ("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")],
                                               help_text="Name of clustering method. ",
-                                              level=1))
+                                              level=2))
 
 # Barber options
 clustering_section.add_entry(DefaultEntry(config_name="auto_barber",
                                               name="Auto barber: ",
                                               default_values=[str()],
                                               help_text="This option allows to select molecular entity used in Auto Barber procedure.",
-                                              level=1,
+                                              level=2,
                                               optionmenu_value="barber"))
 clustering_section.add_entry(DefaultEntry(config_name="auto_barber_mincut",
                                               name="Auto Barber mincut: ",
@@ -700,7 +838,7 @@ clustering_section.add_entry(DefaultEntry(config_name="bandwidth",
                                               name="Bandwidth: ",
                                               default_values=["Auto"],
                                               help_text="Bandwidth used in the RBF kernel. If Auto or None automatic method for bandwidth estimation is used.",
-                                              level=1,
+                                              level=2,
                                               optionmenu_value="meanshift"))
 clustering_section.add_entry(DefaultEntry(config_name="cluster_all",
                                               name="Cluster all points: ",
@@ -738,7 +876,7 @@ clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
                                               name="Cluster number: ",
                                               default_values=[int()],
                                               help_text="Number of clusters after the final clustering step, which treats the subclusters from the leaves as new samples. By default, this final clustering step is not performed and the subclusters are returned as they are.",
-                                              level=1,
+                                              level=2,
                                               optionmenu_value="birch"))
 
 # Kmeans options
@@ -746,7 +884,7 @@ clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
                                               name="Cluster number: ",
                                               default_values=[int()],
                                               help_text="The number of clusters to form as well as the number of centroids to generate.",
-                                              level=1,
+                                              level=2,
                                               optionmenu_value="kmeans"))
 clustering_section.add_entry(DefaultEntry(config_name="max_iter",
                                               name="Maximum number of iterations: ",
@@ -783,6 +921,8 @@ clustering_section.add_entry(DefaultEntry(config_name="recursive_threshold",
                                               default_values=[str()],
                                               help_text="Allows to set threshold that excludes clusters of certain size from reclustering. Value of this option comprises of operator and value. Operator can be one of the following: >, >=, <=, <. Value have to be expressed as floating number and it have to be in the range of 0 to 1. One can use several definitions separated by a space character. Only clusters of size complying with all thresholds definitions are submitted to reclustering.",
                                               level=1))
+
+
 DEFAULTS.append(clustering_section)
 
 reclustering_section = DefaultSection(config_name="reclustering", name="Reclustering", level=0)
@@ -1043,7 +1183,7 @@ analysis_section.add_entry(DefaultEntry(config_name="cluster_area_expand",
 
 DEFAULTS.append(analysis_section)
 
-visualize_section = DefaultSection(config_name="visualize", name="Visualize", level=1)
+visualize_section = DefaultSection(config_name="visualize", name="Visualize", level=2)
 visualize_section.add_entry(DefaultEntry(config_name="execute",
                                          name="Execute: ",
                                          default_values=[("run", "runonce", "skip")],
@@ -1058,14 +1198,14 @@ visualize_section.add_entry(DefaultEntry(config_name="all_paths_raw",
                                          name="All paths raw: ",
                                          default_values=[False],
                                          help_text="If True produces one object in PyMOL that holds all paths visualized by raw coordinates.",
-                                         level=1,
+                                         level=2,
                                          group_label="Raw paths",
                                          warning_text=" "))
 visualize_section.add_entry(DefaultEntry(config_name="all_paths_smooth",
                                          name="All paths smooth: ",
                                          default_values=[False],
                                          help_text="If True produces one object in PyMOL that holds all paths visualized by smooth coordinates.",
-                                         level=1,
+                                         level=2,
                                          group_label="Smooth paths"))
 visualize_section.add_entry(DefaultEntry(config_name="all_paths_split",
                                          name="All split paths: ",
@@ -1101,14 +1241,14 @@ visualize_section.add_entry(DefaultEntry(config_name="paths_raw",
                                          name="Paths raw: ",
                                          default_values=[False],
                                          help_text="If set True raw paths are displayed as separate objects or as one object with states corresponding to number of path.",
-                                         level=1,
+                                         level=2,
                                          group_label="Raw paths",
                                          warning_text=" "))
 visualize_section.add_entry(DefaultEntry(config_name="paths_smooth",
                                          name="Paths smooth: ",
                                          default_values=[False],
                                          help_text="If set True smooth paths are displayed as separate objects or as one object with states corresponding to number of path.",
-                                         level=1,
+                                         level=2,
                                          group_label="Smooth paths"))
 visualize_section.add_entry(DefaultEntry(config_name="paths_raw_io",
                                          name="Paths raw io: ",
@@ -1127,18 +1267,18 @@ visualize_section.add_entry(DefaultEntry(config_name="paths_states",
                                          name="Paths states: ",
                                          default_values=[False],
                                          help_text="If True objects displayed by paths_raw, paths_smooth, paths_raw_io, and paths_smooth_io are displayed as one object with states corresponding to number of paths. Otherwise they are displayed as separate objects.",
-                                         level=1))
+                                         level=2))
 visualize_section.add_entry(DefaultEntry(config_name="ctypes_raw",
                                          name="Ctypes raw: ",
                                          default_values=[False],
                                          help_text="Displays raw paths in a similar manner as non split all_paths_raw but each cluster type is displayed in separate object.",
-                                         level=1,
+                                         level=2,
                                          group_label="Raw paths"))
 visualize_section.add_entry(DefaultEntry(config_name="ctypes_smooth",
                                          name="Ctypes smooth: ",
                                          default_values=[False],
                                          help_text="Displays smooth paths in a similar manner as non split all_paths_smooth but each cluster type is displayed in separate object.",
-                                         level=1,
+                                         level=2,
                                          group_label="Smooth paths"))
 visualize_section.add_entry(DefaultEntry(config_name="ctypes_amount",
                                          name="Ctypes limit: ",
@@ -1149,7 +1289,7 @@ visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters",
                                          name="Visualize cluster of inlets: ",
                                          default_values=[True],
                                          help_text="If set True, clusters of inlets are visualized.",
-                                         level=1))
+                                         level=2))
 visualize_section.add_entry(DefaultEntry(config_name="inlets_clusters_amount",
                                          name="Inlets limit: ",
                                          default_values=[str()],
@@ -1160,7 +1300,7 @@ visualize_section.add_entry(DefaultEntry(config_name="show_molecule",
                                          name="Show molecule: ",
                                          default_values=[["protein", "False"]],
                                          help_text="If is set to selection of some molecular object in the system, for example to protein, this object is displayed.",
-                                         level=1))
+                                         level=2))
 visualize_section.add_entry(DefaultEntry(config_name="show_molecule_frames",
                                          name="Molecule frames: ",
                                          default_values=[0],
@@ -1170,7 +1310,7 @@ visualize_section.add_entry(DefaultEntry(config_name="show_scope_chull",
                                          name="Show scope convex hull: ",
                                          default_values=[["False", str()]],
                                          help_text="If is set to selection of some molecular object in the system, for example to protein, convex hull of this object is displayed.",
-                                         level=1))
+                                         level=2))
 visualize_section.add_entry(DefaultEntry(config_name="show_scope_chull_inflate",
                                          name="Show scope convex hull inflate: ",
                                          default_values=[str()],
@@ -1185,7 +1325,7 @@ visualize_section.add_entry(DefaultEntry(config_name="show_object_chull",
                                          name="Show object convex hull: ",
                                          default_values=[["False", ""]],
                                          help_text="If is set to selection of some molecular object in the system convex hull of this object is displayed. This works exacly the same way as show_chull but is meant to mark object shape. It can be achieved by using name * and molecular object definition plus some spatial constrains, for example those used in object definition.",
-                                         level=1))
+                                         level=2))
 visualize_section.add_entry(DefaultEntry(config_name="show_object_chull_frames",
                                          name="Object convex hull frames:",
                                          default_values=[0],
@@ -1195,7 +1335,7 @@ visualize_section.add_entry(DefaultEntry(config_name="cluster_area",
                                          name="Cluster area: ",
                                          default_values=[True],
                                          help_text="If set True, clusters’ areas are estimated with kernel density estimation method (KDE) and plotted as countour.",
-                                         level=1))
+                                         level=2))
 visualize_section.add_entry(DefaultEntry(config_name="cluster_area_precision",
                                          name="Cluster area precision: ",
                                          default_values=[10],
@@ -1242,6 +1382,8 @@ smooth_section.add_entry(DefaultEntry(config_name="polyorder",
                                       level=0))
 
 separate_paths_section.add_entry(smooth_section)
+
+
 
 VALVE_DEFAULTS = DefaultSection("", "", 0)
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
@@ -1411,6 +1553,7 @@ MENUS = [
 ]
 
 LEVELS = {
-    "Easy": 1,
+    "Easy": 2,
+    "Normal": 1,
     "Expert": 0
 }

@@ -97,11 +97,11 @@ class ValveConfigApp(object):
         load_frame.columnconfigure(1, weight=1)
 
         ttk.Button(load_frame, text="Load config", command=self.open_config_file).grid(sticky="E", row=0, column=0)
-        ttk.Button(load_frame, text="New file", command=self.create_new_config_file_dialog).grid(sticky="W",
-                                                                                                 row=0,
-                                                                                                 column=1,
-                                                                                                 padx=5,
-                                                                                                 pady=2)
+        ttk.Button(load_frame, text="New config", command=self.create_new_config_file_dialog).grid(sticky="W",
+                                                                                                   row=0,
+                                                                                                   column=1,
+                                                                                                   padx=5,
+                                                                                                   pady=2)
         ttk.Entry(load_frame, textvariable=self.config_filename, state="readonly").grid(sticky="EW",
                                                                                         row=1,
                                                                                         column=0,
@@ -141,6 +141,10 @@ class ValveConfigApp(object):
             section_name = section.config_name
             section_name_long = section.name
             entries = section.entries
+
+            if section.abs_level:
+                if section.abs_level != defaults.LEVELS[self.level.get()]:
+                    continue
 
             if defaults.LEVELS[self.level.get()] > section.level:
                 continue
@@ -242,8 +246,6 @@ class ValveConfigApp(object):
                 if self.save_config(f.name):
                     self.parent.title("{} - {}".format(self.title, f.name))
                     self.config_filename.set(f.name)
-                else:
-                    os.remove(f.name) # Remove opened file if saving cant be done
             else:
                 self.save_config(self.config_filename.get())
 
@@ -401,6 +403,9 @@ class ValveConfigApp(object):
         :param parent: Parent widget.
         :param section_name: Config section name.
         :param entries: List of entries.
+
+        If section is nested, it's level is not checked. It allow to nest section that have higher level,
+        but it cannot be visible in notebook.
         """
         # Keeps label frames with actual row
         group_frames = {}
@@ -410,7 +415,7 @@ class ValveConfigApp(object):
         entries_appended = 0
         for entry in entries:
             # If its primary reclustering or clustering section disable changing name of that section
-            # Additionaly it disable inlets_clustering:max_level if its on different level than chose
+            # Additionaly it disable inlets_clustering:max_level if config level is higher than max_level level
             state = tk.NORMAL
             if section_name == "clustering" and entry.config_name == "name":
                 state = tk.DISABLED
@@ -421,7 +426,8 @@ class ValveConfigApp(object):
                     state = tk.DISABLED
 
             # Skip entries that dont match level except inlets_clustering:max_level
-            if defaults.LEVELS[self.level.get()] > entry.level:
+            # and are not nested section
+            if defaults.LEVELS[self.level.get()] > entry.level and not isinstance(entry, defaults.DefaultSection):
                 if not (section_name == "inlets_clustering" and entry.config_name == "max_level"):
                     continue
 
@@ -429,6 +435,8 @@ class ValveConfigApp(object):
 
             if isinstance(entry, defaults.DefaultSection):
                 nested_frame = ttk.LabelFrame(parent, text=entry.name)
+                nested_frame.grid_columnconfigure(0, weight=1)
+                nested_frame.grid_columnconfigure(1, weight=1)
 
                 """
                 Adding in runtime section to DEFAULTS sections to let them be visible by 
@@ -446,7 +454,6 @@ class ValveConfigApp(object):
                     self.hiding_frames[section_name] = {}
 
                 if entry.optionmenu_value not in self.hiding_frames[section_name]:
-
                     self.hiding_frames[section_name][entry.optionmenu_value] = utils.HidingFrame(parent,
                                                                                                  parent.grid_size()[1],
                                                                                                  text=entry.optionmenu_value.capitalize() + " options",
@@ -516,7 +523,7 @@ class ValveConfigApp(object):
 
         # Hide tab if unused
         if entries_appended == 0:
-            if parent in self.scrolled_frames: # Only for sections that are part of notebook
+            if parent in self.scrolled_frames:  # Only for sections that are part of notebook
                 self.notebook.forget(self.scrolled_frames[parent])
 
     def refresh_menus(self):
@@ -526,7 +533,7 @@ class ValveConfigApp(object):
         for menu in defaults.MENUS:
             section_name, entry_name = menu.split(":")
 
-            if defaults.LEVELS[self.level.get()] <= defaults.get_default_section(section_name).level:
+            if self.values.get(section_name, None):
                 self.option_menu_changed(section_name, self.values[section_name][entry_name])
 
     def option_menu_changed(self, section, entry):
@@ -544,7 +551,7 @@ class ValveConfigApp(object):
 
     def add_max_level(self, value):
         """
-        Increments or decrements inlets_clustering:max_level by value.
+        Add value to max_level
 
         :param value: Number which will be added to max_level.
         """
@@ -579,6 +586,8 @@ class ValveConfigApp(object):
 
         for tab_id in self.notebook.tabs():
             self.notebook.forget(tab_id)
+
+        self.hiding_frames = {}
 
         self.prepare_section_frames()
         self.load_defaults()  # Reset values
@@ -660,6 +669,8 @@ class ValveConfigApp(object):
 
                 if isinstance(entry, defaults.DefaultSection):
                     load(entry)
+                else:
+                    self.values[section.config_name][entry.config_name].set(entry.default_value)
 
         for section in defaults.DEFAULTS:
             load(section)
@@ -677,7 +688,6 @@ class ValveConfigApp(object):
                 if isinstance(widget, ttk.Frame):
                     widget.grid_forget()
 
-        # Due to that earlier loop hide hiding frames too its necessary to refresh them
         self.refresh_menus()
 
         # Delete rest informations about appended sections
@@ -708,7 +718,7 @@ class ValveConfigApp(object):
         Save all values to config file.
 
         :param config_filename: Name of file where options will be saved.
-        :param required_checking: If False checking required fields and saving dialog is skipped.
+        :param required_checking: If False checking required fields and saving dialog is skipped. Needed to save options before changing level.
         """
         # Unhighlight all frames
         for section_name in self.required_entries:
@@ -769,7 +779,9 @@ class ValveConfigApp(object):
                 self.values_hash = self.get_values_hash()
         except Exception as e:
             # In case of error restore config from backup file
-            tkMessageBox.showinfo("Exeption", "There was error during saving configuration. See console for more information.\n{}".format(str(e)))
+            tkMessageBox.showinfo("Exeption",
+                                  "There was error during saving configuration. See console for more information.\n{}".format(
+                                      str(e)))
             print(traceback.print_exc())
             shutil.copy(config_filename + ".bak", config_filename)
 
