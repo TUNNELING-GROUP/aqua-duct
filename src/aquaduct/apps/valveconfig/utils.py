@@ -122,7 +122,7 @@ def entry_factory(parent, row, entry_name, default, help, state=tk.NORMAL, info_
     elif isinstance(default[0], defaults.manyfiletype):
         return ManyFileEntry(parent, row, entry_name, str(), help, info_text, warning_text)
     elif isinstance(default[0], defaults.dirtype):
-        return DirEntry(parent, row, entry_name, str(), help, info_text, warning_text)
+        return DirEntry(parent, row, entry_name, default[0], help, info_text, warning_text)
 
     else:
         return StandardEntry(parent, row, entry_name, default[0], help, state, info_text, warning_text)
