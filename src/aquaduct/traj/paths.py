@@ -435,19 +435,28 @@ class GenericPaths(GenericPathTypeCodes):
     def find_paths_types(self, fullonly=False, passing=None):
         # both loops below yields correct paths
         # if waterfall let's split each of yielded paths again
-
+        edges = self.single_res_selection.get_edges()
         for path in self.find_paths(fullonly=fullonly):
+            '''
             for path_sbe in self._consider_edges(path,passing):
                 types = self.get_single_path_types(path_sbe)
                 # yield path, coords, types
                 yield path_sbe, types
+            '''
+            types = self.get_single_path_types(path)
+            # yield path, coords, types
+            yield path, types
         if passing:
             for path in self._gpt():
+                '''
                 for path_sbe in self._consider_edges((path, [], []), passing):
-
                     types = self.get_single_path_types(path_sbe)
                     # yield path, coords, types
                     yield path_sbe, types
+                '''
+                types = self.get_single_path_types(path)
+                # yield path, coords, types
+                yield path, types
 
     def get_path_cont_types(self,path_cont):
 

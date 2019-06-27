@@ -893,7 +893,7 @@ class AtomSelection(Selection):
                 return [other_id in this_ids for other_id in other_residues.ids()]
 
     def containing_residues(self, other_residues, *args, **kwargs):
-        # Convienience wrapper for contains_residues.
+        # Convenience wrapper for contains_residues.
         # def get_res_in_scope(is_res_in_scope, res):
         other_new = OrderedDict()
         for iris, (number, resid) in zip(self.contains_residues(other_residues, *args, **kwargs), other_residues.ids()):

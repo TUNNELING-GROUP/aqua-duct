@@ -395,6 +395,22 @@ def stage_II_run(config, options,
             pool.close()
             pool.join()
     paths = new_paths.paths
+    # if edges then split each of path into smaller parts and adjust min_pf and max_pf
+    if Reader.edges:
+        N = len(paths) # number of paths
+        for n in range(N):
+            frames = paths[0].frames
+            types = paths[0].types
+            min_pf = 0
+            for max_pf in list(Reader.edges) + [number_of_frames - 1]:
+                p = GenericPaths(paths[0].id,
+                                 name_of_res=paths[0].name,
+                                 min_pf=min_pf,
+                                 max_pf=max_pf)
+                p.update_types_frames(types[min_pf:max_pf+1],frames[min_pf:max_pf+1])
+                paths.append(p)
+                min_pf = max_pf + 1
+            paths.pop(0)
 
     # rm tmp files
     for rn in results.itervalues():
@@ -1176,7 +1192,7 @@ def stage_V_run(config, options,
 
             if Reader.sandwich_mode:
                 for layer in range(Reader.number_of_layers()):
-                    pa("Clusters summary - areas%s for layer %d" % message, layer)
+                    pa("Clusters summary - areas%s for layer %d" % (message, layer))
                     pa.thead(header_line)
                     for nr, cl in enumerate(inls.clusters_list):
 
@@ -1233,7 +1249,7 @@ def stage_V_run(config, options,
             for layer in range(Reader.number_of_layers()):
                 header_line, line_template = get_header_line_and_line_template(clusters_stats_prob_header(),
                                                                                head_nr=head_nr)
-                pa("Clusters statistics (of paths%s) probabilities of transfers for layer %d" % message, layer)
+                pa("Clusters statistics (of paths%s) probabilities of transfers for layer %d" % (message, layer))
                 pa.thead(header_line)
                 for nr, cl in enumerate(inls.clusters_list):
                     sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
@@ -1245,7 +1261,7 @@ def stage_V_run(config, options,
 
                 header_line, line_template = get_header_line_and_line_template(clusters_stats_len_header(),
                                                                                head_nr=head_nr)
-                pa("Clusters statistics (of paths%s) mean lengths of transfers for layer %d" % message, layer)
+                pa("Clusters statistics (of paths%s) mean lengths of transfers for layer %d" % (message, layer))
                 pa.thead(header_line)
                 for nr, cl in enumerate(inls.clusters_list):
                     sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
@@ -1257,7 +1273,7 @@ def stage_V_run(config, options,
 
                 header_line, line_template = get_header_line_and_line_template(clusters_stats_steps_header(),
                                                                                head_nr=head_nr)
-                pa("Clusters statistics (of paths%s) mean frames numbers of transfers for layer %d" % message, layer)
+                pa("Clusters statistics (of paths%s) mean frames numbers of transfers for layer %d" % (message, layer))
                 pa.thead(header_line)
                 for nr, cl in enumerate(inls.clusters_list):
                     sp_ct_lim = ((sp, ct) for sp, ct in zip(spaths, ctypes) if
@@ -1312,7 +1328,7 @@ def stage_V_run(config, options,
 
         if Reader.sandwich_mode:
             for layer in range(Reader.number_of_layers()):
-                pa("Separate paths clusters types summary - mean lengths of paths%s for layer %d" % message, layer)
+                pa("Separate paths clusters types summary - mean lengths of paths%s for layer %d" % (message, layer))
                 pa.thead(header_line)
 
                 total_size = len([sp for sp in spaths if sp.id.name in tname and isinstance(sp, sptype)])
@@ -1326,7 +1342,7 @@ def stage_V_run(config, options,
                     if pbar:
                         pbar.next(len(sps))
                 pa.tend(header_line)
-                pa("Separate paths clusters types summary - mean number of frames of paths%s for layer %d" % message, layere)
+                pa("Separate paths clusters types summary - mean number of frames of paths%s for layer %d" % (message, layer))
                 pa.thead(header_line)
                 for nr, ct in enumerate(ctypes_generic_list):
                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
