@@ -241,6 +241,26 @@ def stage_I_run(config, options,
 
 ################################################################################
 
+def waterfall_me(paths,pbar=None):
+
+    number_of_frames = Reader.number_of_frames(onelayer=True)
+
+    N = len(paths)  # number of paths
+    for n in range(N):
+        frames = paths[0].frames
+        types = paths[0].types
+        min_pf = 0
+        for max_pf in list(Reader.edges) + [number_of_frames - 1]:
+            p = GenericPaths(paths[0].id,
+                             name_of_res=paths[0].name,
+                             min_pf=min_pf,
+                             max_pf=max_pf)
+            p.update_types_frames(types[min_pf:max_pf + 1], frames[min_pf:max_pf + 1])
+            paths.append(p)
+            min_pf = max_pf + 1
+        if pbar:
+            pbar.next()
+        paths.pop(0)
 
 # raw_paths
 def stage_II_run(config, options,
@@ -395,22 +415,12 @@ def stage_II_run(config, options,
             pool.close()
             pool.join()
     paths = new_paths.paths
+
+
     # if edges then split each of path into smaller parts and adjust min_pf and max_pf
     if Reader.edges:
-        N = len(paths) # number of paths
-        for n in range(N):
-            frames = paths[0].frames
-            types = paths[0].types
-            min_pf = 0
-            for max_pf in list(Reader.edges) + [number_of_frames - 1]:
-                p = GenericPaths(paths[0].id,
-                                 name_of_res=paths[0].name,
-                                 min_pf=min_pf,
-                                 max_pf=max_pf)
-                p.update_types_frames(types[min_pf:max_pf+1],frames[min_pf:max_pf+1])
-                paths.append(p)
-                min_pf = max_pf + 1
-            paths.pop(0)
+        with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
+            waterfall_me(paths,pbar)
 
     # rm tmp files
     for rn in results.itervalues():
@@ -480,6 +490,9 @@ def stage_III_run(config, options,
     if options.remove_unused_parts:
         with clui.pbar(len(spaths) + len(paths), "Removing unused parts of paths:") as pbar:
             paths = yield_generic_paths(spaths, progress=pbar)
+        if Reader.edges:
+            with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
+                waterfall_me(paths,pbar)
 
     ######################################################################
 
@@ -544,6 +557,9 @@ def stage_III_run(config, options,
                 if options.remove_unused_parts:
                     with clui.pbar(len(spaths) + len(paths), "Removing (again) unused parts of paths:") as pbar:
                         paths = yield_generic_paths(spaths, progress=pbar)
+                    if Reader.edges:
+                        with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
+                            waterfall_me(paths, pbar)
         else:
             clui.message("No paths were discarded - no values were set.")
 
@@ -665,6 +681,9 @@ def stage_III_run(config, options,
                     if options.remove_unused_parts:
                         with clui.pbar(len(spaths) + len(paths), "Removing (again) unused parts of paths:") as pbar:
                             paths = yield_generic_paths(spaths, progress=pbar)
+                        if Reader.edges:
+                            with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
+                                waterfall_me(paths, pbar)
             else:
                 clui.message("No paths were discarded - no values were set.")
 
