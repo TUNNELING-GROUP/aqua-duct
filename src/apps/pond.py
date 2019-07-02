@@ -727,11 +727,6 @@ if __name__ == "__main__":
                         try:
                             path = next(path for path in paths if path_id_formatter(path.id) == args.path_id)
 
-                            if args.path_smooth:
-                                soptions = result3.pop("soptions")
-                                soptions = namedtuple('Options', soptions.keys())(*soptions.values())
-                                smooth_method = get_smooth_method(soptions)
-
                             if not args.raw_path:
                                 if args.path_smooth:
                                     soptions = result3.pop("soptions")
