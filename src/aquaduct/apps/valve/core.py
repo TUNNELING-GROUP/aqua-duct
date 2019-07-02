@@ -255,7 +255,20 @@ def waterfall_me(paths,pbar=None):
                              name_of_res=paths[0].name,
                              min_pf=min_pf,
                              max_pf=max_pf)
-            p.update_types_frames(types[min_pf:max_pf + 1], frames[min_pf:max_pf + 1])
+            # boudaries are [min_pf:max_pf + 1], fid real indices
+            lo = None
+            if min_pf in frames:
+                lo = frames.index(min_pf)
+            hi = None
+            if (max_pf + 1) in frames:
+                hi = frames.index(max_pf+1)
+            # now, if both are None check if they are encircle path
+            if lo is None and hi is None:
+                if (max_pf + 1) < frames[0]:
+                    continue
+                if min_pf > frames[-1]:
+                    continue
+            p.update_types_frames(types[lo:hi], frames[lo:hi])
             paths.append(p)
             min_pf = max_pf + 1
         if pbar:
