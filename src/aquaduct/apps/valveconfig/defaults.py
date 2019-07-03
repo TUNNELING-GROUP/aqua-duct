@@ -235,7 +235,7 @@ DEFAULTS = []
 initial_section = DefaultSection(config_name="global", name="Initial", level=2, abs_level=2, additional=True)
 initial_section.add_entry(DefaultEntry(config_name="top",
                                        name="Topology file: ",
-                                       default_values=[filetype()],
+                                       default_values=[manyfiletype()],
                                        help_text="Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.",
                                        level=2,
                                        required=1))
@@ -298,18 +298,6 @@ clust_easy_section.add_entry(DefaultEntry(config_name="max_level",
                                                      help_text="Maximal number of recursive clustering levels.",
                                                      level=0,
                                                      info_text=" "))
-clust_easy_section.add_entry(DefaultEntry(config_name="join_clusters",
-                                                     name="Join clusters: ",
-                                                     default_values=[str()],
-                                                     help_text="This option allows to join selected clusters. Clusters’ IDs joined with + character lists clusters to be joined together. Several such blocks separated by space can be used. For example, if set to 1+3+4 5+6 clusters 1, 3, and 4 will be joined in one cluster and cluster 5, and 6 will be also joined in another cluster.",
-                                                     level=2,
-                                                     group_label="Post Clustering Optimalization"))
-clust_easy_section.add_entry(DefaultEntry(config_name="renumber_clusters",
-                                                     name="Renumber clusters: ",
-                                                     default_values=[False],
-                                                     help_text="If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
-                                                     level=2,
-                                                     group_label="Post Clustering Optimalization"))
 
 inner_clustering_section = DefaultSection(config_name="clustering", name="Clustering", level=2, abs_level=2, additional=True)
 inner_clustering_section.add_entry(DefaultEntry(config_name="name",
@@ -357,6 +345,20 @@ inner_clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
                                               optionmenu_value="kmeans"))
 
 clust_easy_section.add_entry(inner_clustering_section)
+
+clust_easy_section.add_entry(DefaultEntry(config_name="join_clusters",
+                                                     name="Join clusters: ",
+                                                     default_values=[str()],
+                                                     help_text="This option allows to join selected clusters. Clusters’ IDs joined with + character lists clusters to be joined together. Several such blocks separated by space can be used. For example, if set to 1+3+4 5+6 clusters 1, 3, and 4 will be joined in one cluster and cluster 5, and 6 will be also joined in another cluster.",
+                                                     level=2,
+                                                     group_label="Post Clustering Optimization"))
+clust_easy_section.add_entry(DefaultEntry(config_name="renumber_clusters",
+                                                     name="Renumber clusters: ",
+                                                     default_values=[False],
+                                                     help_text="If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
+                                                     level=2,
+                                                     group_label="Post Clustering Optimization"))
+
 DEFAULTS.append(clust_easy_section)
 
 
@@ -366,7 +368,7 @@ DEFAULTS.append(clust_easy_section)
 global_section = DefaultSection(config_name="global", name="General options", level=1)
 global_section.add_entry(DefaultEntry(config_name="top",
                                       name="Topology file: ",
-                                      default_values=[filetype()],
+                                      default_values=[manyfiletype()],
                                       help_text="Path to topology file. Aqua-Duct supports PDB, PRMTOP, PFS topology files.",
                                       level=1,
                                       required=1))
@@ -411,7 +413,7 @@ global_section.add_entry(DefaultEntry(config_name="sps",
                                       name="Single precision storage: ",
                                       default_values=[True],
                                       help_text="Try to store data in single precission storage.",
-                                      level=1))
+                                      level=0))
 global_section.add_entry(DefaultEntry(config_name="cache_dir",
                                       name="Cache directory: ",
                                       default_values=[dirtype("cache")],
@@ -680,13 +682,13 @@ inlets_clustering_section.add_entry(DefaultEntry(config_name="join_clusters",
                                                      default_values=[str()],
                                                      help_text="This option allows to join selected clusters. Clusters’ IDs joined with + character lists clusters to be joined together. Several such blocks separated by space can be used. For example, if set to 1+3+4 5+6 clusters 1, 3, and 4 will be joined in one cluster and cluster 5, and 6 will be also joined in another cluster.",
                                                      level=1,
-                                                     group_label="Post Clustering Optimalization"))
+                                                     group_label="Post Clustering Optimization"))
 inlets_clustering_section.add_entry(DefaultEntry(config_name="renumber_clusters",
                                                      name="Renumber clusters: ",
                                                      default_values=[False],
                                                      help_text="If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
                                                      level=1,
-                                                     group_label="Post Clustering Optimalization"))
+                                                     group_label="Post Clustering Optimization"))
 inlets_clustering_section.add_entry(DefaultEntry(config_name="cluster_area",
                                                      name="Cluster area: ",
                                                      default_values=[True],
@@ -696,12 +698,12 @@ inlets_clustering_section.add_entry(DefaultEntry(config_name="cluster_area_preci
                                                      name="Cluster area precision: ",
                                                      default_values=[20],
                                                      help_text="Precision of KDE method in clusters’ areas estimation method. This options controls number of grid points per one square A as used in KDE. Higher values means better precision. Number of points can be calculated as P^(2/3).",
-                                                     level=1))
+                                                     level=0))
 inlets_clustering_section.add_entry(DefaultEntry(config_name="cluster_area_expand",
-                                                     name="Epand cluster area: ",
+                                                     name="Expand cluster area: ",
                                                      default_values=[2],
                                                      help_text="Space occupied by clusters’ points can be expanded before KDE calculation. This option controls amount of A by which the cluster space is expanded. Average amount of expansion can be calcualted as E^(2/3).",
-                                                     level=1))
+                                                     level=0))
 inlets_clustering_section.add_entry(DefaultEntry(config_name="inlets_center",
                                                      name="Central point for inlets: ",
                                                      default_values=[['cos','coo']],
@@ -1123,7 +1125,7 @@ reclustering_section.add_entry(DefaultEntry(config_name="recursive_threshold",
                                                 level=1))
 DEFAULTS.append(reclustering_section)
 
-analysis_section = DefaultSection(config_name="analysis", name="Analysis", level=1)
+analysis_section = DefaultSection(config_name="analysis", name="Analysis", level=0)
 analysis_section.add_entry(DefaultEntry(config_name="execute",
                                         name="Execute: ",
                                         default_values=[("run", "runonce", "skip")],
