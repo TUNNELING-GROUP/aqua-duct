@@ -214,8 +214,8 @@ str() -> Regular Entry
 float() -> Smaller Entry
 int() -> Smaller entry
 bool() -> Checkbutton
-str(), filetype() -> Entry with file loading button
-str(), manyfiletype() -> Entry with file loading button with ability to duplicate itself
+filetype() -> Entry with file loading button
+manyfiletype() -> Entry with file loading button with ability to duplicate itself
 tuple() -> Option menu widget
 any widget, bool() -> widget with checkbox
 widget, float() -> create "widget_value(float_value)"
@@ -426,7 +426,16 @@ global_section.add_entry(DefaultEntry(config_name="cache_mem",
                                       level=1))
 DEFAULTS.append(global_section)
 
-traceable_residues_section = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=1)
+###
+# Tracking section for normal level, mixin of traceable residues and separate paths
+###
+tracking_section = DefaultSection(config_name="traceable_residues",
+                                  name="Tracking",
+                                  level=1,
+                                  abs_level=1,
+                                  additional=True)
+
+traceable_residues_section = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=0)
 traceable_residues_section.add_entry(DefaultEntry(config_name="execute",
                                                   name="Execute: ",
                                                   default_values=[("runonce", "run", "skip")],
@@ -474,6 +483,11 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="add_passing",
                                                   level=0,
                                                   warning_text="Could be time-consuming."))
 DEFAULTS.append(traceable_residues_section)
+
+tracking_section.add_entry(traceable_residues_section)
+tracking_section.add_entry(separate_paths_nested)
+
+DEFAULTS.append(tracking_section)
 
 raw_paths_section = DefaultSection(config_name="raw_paths", name="Raw paths", level=1)
 raw_paths_section.add_entry(DefaultEntry(config_name="execute",
@@ -537,7 +551,7 @@ raw_paths_section.add_entry(DefaultEntry(config_name="discard_empty_paths",
                                          info_text=" "))
 DEFAULTS.append(raw_paths_section)
 
-separate_paths_section = DefaultSection(config_name="separate_paths", name="Separate paths", level=1)
+separate_paths_section = DefaultSection(config_name="separate_paths", name="Separate paths", level=0)
 separate_paths_section.add_entry(DefaultEntry(config_name="execute",
                                               name="Execute: ",
                                               default_values=[("runonce", "run", "skip")],
@@ -1384,8 +1398,6 @@ smooth_section.add_entry(DefaultEntry(config_name="polyorder",
                                       level=0))
 
 separate_paths_section.add_entry(smooth_section)
-
-
 
 VALVE_DEFAULTS = DefaultSection("", "", 0)
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
