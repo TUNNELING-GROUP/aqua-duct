@@ -42,6 +42,7 @@ logger.addHandler(ch)
 import json
 import gzip
 import csv
+import sys
 from collections import namedtuple
 
 ################################################################################
@@ -620,7 +621,7 @@ if __name__ == "__main__":
 
                                     centers, ids = linmet(mp.coords_cont, ids=True)
 
-                                    D = pocket.sphere_density_raw(Reader.iterate(threads=False), args.ref_mol,
+                                    D = pocket.sphere_density_raw(Reader.iterate(), args.ref_mol,
                                                                   centers=centers, radius=args.master_radius,
                                                                   window=window, pbar=pbar)
 
@@ -761,7 +762,7 @@ if __name__ == "__main__":
                     coords = linmet(coords)
 
                 if len(coords):
-                    with clui.tictoc("Path profiles calculation"):
+                    with clui.tictoc("Path profiles calculation", stdout=sys.stdout):
 
                         W = args.windows
                         WS = args.wsize
@@ -769,36 +770,40 @@ if __name__ == "__main__":
                         many_windows = W > 1 or (W == 1 and (WS is not None))
                         many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
 
-                        pbar_len = len(paths) * (W + int(args.wfull))
+                        path_name = args.path_id if args.path_id else ""
 
-                        pool = Pool(processes=optimal_threads.threads_count)
+                        for wnr, window in enumerate(
+                                pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
 
-                        with clui.pbar(pbar_len, mess='Calculating path profile:') as pbar:
-                            path_name = args.path_id if args.path_id else ""
+                            number_of_frames = (window[-1] - window[0])
+                            if Reader.sandwich_mode:
+                                number_of_frames *= Reader.number_of_layers()
 
-                            for wnr, window in enumerate(
-                                    pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
+                            if wnr or args.wfull:  # or not many_windows:
 
-                                number_of_frames = (window[-1] - window[0])
-                                if Reader.sandwich_mode:
-                                    number_of_frames *= Reader.number_of_layers()
+                                # TODO: Handling names variables need to be refactored
+                                fname_window = ""
+                                fname_window_single = ""
+                                fname = ""
+                                if not wnr and args.wfull:
+                                    window_name = "full"
+                                    fname += 'full'
+                                elif wnr and many_windows:
+                                    fname_window = '_W%d' % wnr
+                                    fname_window_single = "_WX"
 
-                                if wnr or args.wfull:  # or not many_windows:
-                                    fname_window = ""
-                                    fname_window_single = ""
-                                    fname = ""
-                                    if not wnr and args.wfull:
-                                        fname += '_full'
-                                    elif wnr and many_windows:
-                                        fname_window = '_W%d' % wnr
-                                        fname_window_single = "_WX"
+                                window_name = fname if fname else wnr
+                                with clui.pbar(mess="Calculate energy for {} window".format(window_name),
+                                               maxval=int(number_of_frames)) as pbar:
+
+                                    pool = Pool(processes=optimal_threads.threads_count)
 
                                     mode = 'w'
                                     if wnr > 1:
                                         mode = 'a'
 
-                                    D = pocket.sphere_density_raw(Reader.iterate(threads=False), args.ref_mol,
-                                                                  centers=coords, radius=args.path_radius,
+                                    D = pocket.sphere_density_raw(Reader.iterate(), args.ref_mol,
+                                                                  coords, args.path_radius, pool,
                                                                   window=window, pbar=pbar)
 
                                     H = D / float(number_of_frames) / (
@@ -818,10 +823,10 @@ if __name__ == "__main__":
                                         L = np.hstack((0., np.cumsum(traces.diff(coords))))
                                         for l, E in izip(L, H):
                                             dat.write('%f\t%f%s' % (l, E, os.linesep))
-                                save_cric()
 
-                        pool.close()
-                        pool.join()
+                                    pool.close()
+                                    pool.join()
+                            save_cric()
                 else:
                     clui.message("Path with ID {} does not exists.".format(args.path_id))
 
