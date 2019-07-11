@@ -129,7 +129,7 @@ class Node(mpatches.PathPatch):
         codes.extend([mpath.Path.CURVE3] * (len(outer_arc) - 1))
 
         # Inner arc
-        inner_arc = generate_arc(0.9 * r, sa, ea, reversed_=True)
+        inner_arc = generate_arc(0.8 * r, sa, ea, reversed_=True)
         vertices.extend(inner_arc)
 
         codes.append(mpath.Path.LINETO)
@@ -322,8 +322,8 @@ class Chord(object):
 
             dest_node.reserve_arc(elink_arc)
 
-            l = Link(0.92 * r, sa0, sa1, ea0, ea1, source_node.color)
-            a = Arrow(0.92 * r, sa0, sa1, source_node.color)
+            l = Link(0.8 * r, sa0, sa1, ea0, ea1, source_node.color)
+            a = Arrow(0.81 * r, sa0, sa1, source_node.color)
 
             ax.add_patch(l)
             ax.add_patch(a)
