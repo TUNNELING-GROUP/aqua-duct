@@ -353,7 +353,7 @@ class Chord(object):
                         horizontalalignment="center",
                         fontsize=9,
                         rotation=180 - angle,
-                        color=complimentary_color)
+                        color="white")
 
 
 if __name__ == "__main__":
