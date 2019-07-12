@@ -308,6 +308,10 @@ inlets_center                       cos             Allows to choose center of i
                                                     areas and contours. If set `cos` center of system calculated as
                                                     average center of the scope area is used. Alternatively it can
                                                     be set to `coo`, then center of the object area is used.
+clustering_order                    old-school      Allow to change order of clustering steps.
+
+                                                    * **old-school** order - clustering, reclustering, removing singletons, adding passing paths to clusters, join clusters, renumbering clusters, removing inlets in specified_clusters
+                                                    * **aquarius** order - clustering, joining clusters, renumbering clusters, outliers detection, reclustering, removing singletons, adding passing paths to clusters, removing inlets in specified_clusters
 ==================================  ==============  ================================================================
 
 Stage **analysis**
