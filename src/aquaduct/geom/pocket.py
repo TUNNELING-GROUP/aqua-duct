@@ -159,7 +159,7 @@ def outer_inner(H, threshold=None):
     if (H > 0).any():
         OI = H / H[H > 0].mean() if not threshold else H / (H[H > 0].max() * threshold)
         return OI < 1, OI >= 1
-    return np.ones(H.shape) > 1, np.ones(H.shape) == 0 # fall back to outer pocket only
+    return np.ones(H.shape) > 1, np.ones(H.shape) == 0  # fall back to outer pocket only
 
 
 def windows(frames, windows=None, size=None):
@@ -206,6 +206,7 @@ class sphere_radius_worker(object):
         D = spatial.distance.cdist(coords, self.centers) <= self.radius
         return np.count_nonzero(D, 0)
 
+
 class sphere_radius_worker_lowmem(object):
     def __init__(self, window, centers, radius):
         self.window = window
@@ -215,7 +216,8 @@ class sphere_radius_worker_lowmem(object):
     def __call__(self, sp):
         coords = get_spc(sp, window=self.window)
         g = (int(np.count_nonzero(spatial.distance.cdist(coords, [c]) <= self.radius)) for c in self.centers)
-        return np.fromiter(g,dtype=np.int32)
+        return np.fromiter(g, dtype=np.int32)
+
 
 def sphere_radius(spaths, centers=None, radius=2., window=None, pbar=None, map_fun=None):
     H = np.zeros(len(centers), dtype=np.int32)
@@ -272,7 +274,7 @@ class sphere_density_raw_worker(object):
         for frame in traj_reader.iterate():
 
             # Skip if frame is not within range
-            if frame+base not in self.frames:
+            if frame + base not in self.frames:
                 continue
 
             # Calculate density of points for frame

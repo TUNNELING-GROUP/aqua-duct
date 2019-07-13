@@ -394,7 +394,7 @@ class Inlets(object):
         # removes inlets completly - clusters and inlets
         n = self.clusters.count(cluster)
         to_remove = []
-        for nr,c in enumerate(self.clusters):
+        for nr, c in enumerate(self.clusters):
             if c == cluster:
                 to_remove.append(nr)
         for tr in to_remove[::-1]:
@@ -402,7 +402,6 @@ class Inlets(object):
             self.inlets_list.pop(tr)
             self.inlets_ids.pop(tr)
         self.add_message_wrapper(message='cluster %d removed' % cluster, toleaf=cluster)
-
 
     def small_clusters_to_outliers(self, maxsize):
         new_out = 0
