@@ -821,6 +821,8 @@ def stage_IV_run(config, options,
     for sp in spaths:
         if isinstance(sp,PassingPath):
             print sp.id, map(len,sp.paths)
+            if len(sp.paths[0]) == 0:
+                import ipdb as pdb; pdb.set_trace()
 
 
     # enable real cache of ort
@@ -849,6 +851,12 @@ def stage_IV_run(config, options,
                           pbar=pbar)
     pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
+
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
+            if len(sp.paths[0]) == 0:
+                import ipdb as pdb; pdb.set_trace()
 
     def noo():
         # returns number of outliers
@@ -1011,6 +1019,14 @@ def stage_IV_run(config, options,
 
         for cluster_function in clustering_order:
             cluster_function()
+
+            for sp in spaths:
+                if isinstance(sp,PassingPath):
+                    print sp.id, map(len,sp.paths)
+                    if len(sp.paths[0]) == 0:
+                        import ipdb as pdb; pdb.set_trace()
+
+
             gc.collect()
 
 
@@ -1104,6 +1120,13 @@ def stage_IV_run(config, options,
         ctypes = inls.spaths2ctypes(spaths)
 
     ################################################################################
+
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
+            if len(sp.paths[0]) == 0:
+                import ipdb as pdb; pdb.set_trace()
+
 
     return {'inls': inls,
             'ctypes': ctypes,
@@ -1843,6 +1866,14 @@ def stage_VI_run(config, options,
     #print master_paths.keys()
     #print master_paths_smooth.keys()
     master_paths_separate = [k for k in master_paths.iterkeys() if isinstance(k, str)]
+
+
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
+            if len(sp.paths[0]) == 0:
+                import ipdb as pdb; pdb.set_trace()
+
     # TODO: is isinstance good in this instance?
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):

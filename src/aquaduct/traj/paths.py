@@ -1129,6 +1129,17 @@ class PassingPath(MacroMolPath):
                         frame=self.paths_last_out)
 
 
+    def remove_inlet(self,inlet_type):
+        # only surface type can be removed
+        if InletTypeCodes.surface == inlet_type[0]:
+            if self.has_in and InletTypeCodes.incoming == inlet_type[1]:
+                self.has_in = False
+            elif self.has_out and InletTypeCodes.outgoing == inlet_type[1]:
+                self.has_out = False
+        #TODO: raise exceptions or at least warnings if wrong type of inlet is used
+
+
+
 ####################################################################################################################
 
 
