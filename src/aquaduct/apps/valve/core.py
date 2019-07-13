@@ -463,6 +463,13 @@ def stage_II_run(config, options,
 
 ################################################################################
 
+def spaths_paths_ids(spaths):
+    seen = []
+    for sp in spaths:
+        if sp.id.id not in seen:
+            seen.append(sp.id.id)
+            yield sp.id.id
+
 
 # separate_paths
 def stage_III_run(config, options,
@@ -490,8 +497,8 @@ def stage_III_run(config, options,
         n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
-        #for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
-        for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+        for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+        #for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
             nr = 0  # if no spaths were returned
             for sp, nr in sps_nrs:
                 spaths.append(sp)
@@ -507,6 +514,7 @@ def stage_III_run(config, options,
 
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
+
 
     ######################################################################
 
@@ -556,22 +564,22 @@ def stage_III_run(config, options,
                 dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                               short_logic=short_logic)
                 n = max(1, optimal_threads.threads_count)
-                spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
-                # spaths_new = imap(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                new_spaths = NP(None)
+                new_spaths.reinit(pbar)
                 # CRIC AWARE MP!
                 if short_object is not None:
                     Reader.reset()
-                    spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
-                                                       (pbar.next(step=nr) is None) and (
-                                                               CRIC.update_cric(cric) is None))))
-                    save_cric()
+                    for pid in spaths_paths_ids(spaths):
+                        pool.apply_async(dse,args=([spaths.pop(nr) for nr in range(len(spaths)-1,-1,-1) if spaths[nr].id.id == pid],),callback=new_spaths.callback_cric_next)
                 else:
-                    spaths = list(chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
-
+                    for pid in spaths_paths_ids(spaths):
+                        pool.apply_async(dse,args=([spaths.pop(nr) for nr in range(len(spaths)-1,-1,-1) if spaths[nr].id.id == pid],),callback=new_spaths.callback_next)
+                save_cric()
                 pool.close()
                 pool.join()
                 gc.collect()
-            # del spaths
+                spaths = new_spaths.paths
+                del new_spaths
             spaths_nr_new = len(spaths)
             if spaths_nr == spaths_nr_new:
                 clui.message("No paths were discarded.")
@@ -689,20 +697,22 @@ def stage_III_run(config, options,
                     # dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                     #              short_logic=short_logic)
                     n = max(1, optimal_threads.threads_count)
-                    spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                    new_spaths = NP(None)
+                    new_spaths.reinit(pbar)
                     # CRIC AWARE MP!
                     if short_object is not None:
                         Reader.reset()
-                        spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
-                                                           (pbar.next(step=nr) is None) and (
-                                                                   CRIC.update_cric(cric) is None))))
+                        for pid in spaths_paths_ids(spaths):
+                            pool.apply_async(dse,args=([spaths.pop(nr) for nr in range(len(spaths)-1,-1,-1) if spaths[nr].id.id == pid],),callback=new_spaths.callback_cric_next)
                     else:
-                        spaths = list(
-                            chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
+                        for pid in spaths_paths_ids(spaths):
+                            pool.apply_async(dse,args=([spaths.pop(nr) for nr in range(len(spaths)-1,-1,-1) if spaths[nr].id.id == pid],),callback=new_spaths.callback_next)
                     save_cric()
                     pool.close()
                     pool.join()
                     gc.collect()
+                    spaths = new_spaths.paths
+                    del new_spaths
                 # del spathsqq
                 spaths_nr_new = len(spaths)
                 if spaths_nr == spaths_nr_new:
@@ -717,6 +727,7 @@ def stage_III_run(config, options,
                                 waterfall_me(paths, pbar)
             else:
                 clui.message("No paths were discarded - no values were set.")
+
 
     ######################################################################
 
@@ -735,12 +746,19 @@ def stage_III_run(config, options,
             pool = Pool(processes=optimal_threads.threads_count)
 
             n = max(1, optimal_threads.threads_count)
-            coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+
+
+
+            #coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+            #coos = imap(center_of_object, (sp for sp in spaths if not isinstance(sp,PassingPath)))
+            coos = pool.imap_unordered(center_of_object, (sp for sp in spaths if not isinstance(sp,PassingPath)))
+
             # CRIC AWARE MP!
             Reader.reset()
-            coos = list(chain.from_iterable((coo for nr, coo, cric in coos if
-                                             (pbar.next(step=nr) is None) and (
-                                                     CRIC.update_cric(cric) is None))))
+            coos = [coo for nr, coo, cric in coos if (pbar.next(step=nr) is None) and (CRIC.update_cric(cric) is None)]
+            #coos = list(chain.from_iterable((coo for nr, coo, cric in coos if
+            #                                 (pbar.next(step=nr) is None) and (
+            #                                         CRIC.update_cric(cric) is None))))
             save_cric()
             pool.close()
             pool.join()
