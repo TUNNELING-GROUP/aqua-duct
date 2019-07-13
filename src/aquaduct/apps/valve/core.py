@@ -273,11 +273,6 @@ def waterfall_me(paths,pbar=None):
             pbar.next()
         paths.pop(0)
 
-def print_all_paths(paths):
-    for p in paths:
-        frames = p.frames
-        print p.id, (p.min_possible_frame, p.max_possible_frame),(frames[0],frames[-1])
-
 
 # raw_paths
 def stage_II_run(config, options,
@@ -438,7 +433,6 @@ def stage_II_run(config, options,
     if Reader.edges:
         with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
             waterfall_me(paths,pbar)
-            print_all_paths(paths)
 
     # rm tmp files
     for rn in results.itervalues():
@@ -514,11 +508,6 @@ def stage_III_run(config, options,
 
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
-
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
-
 
     ######################################################################
 
@@ -597,10 +586,6 @@ def stage_III_run(config, options,
                             waterfall_me(paths, pbar)
         else:
             clui.message("No paths were discarded - no values were set.")
-
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
 
 
     ######################################################################
@@ -689,12 +674,6 @@ def stage_III_run(config, options,
             with clui.pbar(len(spaths), "Clean IDs:") as pbar:
                 correct_spaths_ids(spaths,pbar)
 
-
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
-
-
     clui.message("(Re)Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
 
@@ -742,20 +721,12 @@ def stage_III_run(config, options,
             else:
                 clui.message("No paths were discarded - no values were set.")
 
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
-
-
     ######################################################################
 
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):
             spaths = sorted(spaths, key=lambda sp: (sp.id.id, sp.id.nr))
 
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
 
     ######################################################################
 
@@ -818,13 +789,6 @@ def stage_IV_run(config, options,
                  center_of_object=None,
                  **kwargs):
 
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
-            if len(sp.paths[0]) == 0:
-                import ipdb as pdb; pdb.set_trace()
-
-
     # enable real cache of ort
     Reader.reset()
 
@@ -852,11 +816,6 @@ def stage_IV_run(config, options,
     pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
 
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
-            if len(sp.paths[0]) == 0:
-                import ipdb as pdb; pdb.set_trace()
 
     def noo():
         # returns number of outliers
@@ -1019,14 +978,6 @@ def stage_IV_run(config, options,
 
         for cluster_function in clustering_order:
             cluster_function()
-
-            for sp in spaths:
-                if isinstance(sp,PassingPath):
-                    print sp.id, map(len,sp.paths)
-                    if len(sp.paths[0]) == 0:
-                        import ipdb as pdb; pdb.set_trace()
-
-
             gc.collect()
 
 
@@ -1120,12 +1071,6 @@ def stage_IV_run(config, options,
         ctypes = inls.spaths2ctypes(spaths)
 
     ################################################################################
-
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
-            if len(sp.paths[0]) == 0:
-                import ipdb as pdb; pdb.set_trace()
 
 
     return {'inls': inls,
@@ -1868,11 +1813,6 @@ def stage_VI_run(config, options,
     master_paths_separate = [k for k in master_paths.iterkeys() if isinstance(k, str)]
 
 
-    for sp in spaths:
-        if isinstance(sp,PassingPath):
-            print sp.id, map(len,sp.paths)
-            if len(sp.paths[0]) == 0:
-                import ipdb as pdb; pdb.set_trace()
 
     # TODO: is isinstance good in this instance?
     if options.ctypes_raw:
