@@ -129,7 +129,7 @@ class Node(mpatches.PathPatch):
         codes.extend([mpath.Path.CURVE3] * (len(outer_arc) - 1))
 
         # Inner arc
-        inner_arc = generate_arc(0.9 * r, sa, ea, reversed_=True)
+        inner_arc = generate_arc(0.8 * r, sa, ea, reversed_=True)
         vertices.extend(inner_arc)
 
         codes.append(mpath.Path.LINETO)
@@ -275,7 +275,7 @@ class Chord(object):
                         "{} ({:.2f}%)".format(labels[i], 100.0 * size / sizes_sum),
                         verticalalignment="center",
                         horizontalalignment="center",
-                        fontsize=8,
+                        fontsize=10,
                         rotation=360 - angle)
             else:
                 legend_node_index.append(i)
@@ -322,13 +322,13 @@ class Chord(object):
 
             dest_node.reserve_arc(elink_arc)
 
-            l = Link(0.92 * r, sa0, sa1, ea0, ea1, source_node.color)
-            a = Arrow(0.92 * r, sa0, sa1, source_node.color)
+            l = Link(0.8 * r, sa0, sa1, ea0, ea1, source_node.color)
+            a = Arrow(0.81 * r, sa0, sa1, source_node.color)
 
             ax.add_patch(l)
             ax.add_patch(a)
 
-            if sa1 - sa0 > 5:
+            if sa1 - sa0 > 6:
                 # Complimentary color
                 rgb_color = hex2rgb(source_node.color.lstrip("#")) if isinstance(source_node.color,
                                                                                  str) else source_node.color
@@ -346,14 +346,14 @@ class Chord(object):
 
                 # Arrow text
                 angle = sa0 + (sa1 - sa0) / 2
-                pos = polar2point(sa0 + (sa1 - sa0) / 2, 0.9 * r)
+                pos = polar2point(sa0 + (sa1 - sa0) / 2, 0.86 * r)
                 ax.text(pos[0], pos[1],
                         link["value"],
                         verticalalignment="center",
                         horizontalalignment="center",
-                        fontsize=6,
+                        fontsize=9,
                         rotation=180 - angle,
-                        color=complimentary_color)
+                        color="white")
 
 
 if __name__ == "__main__":

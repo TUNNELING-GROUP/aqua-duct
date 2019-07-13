@@ -21,6 +21,7 @@ from collections import defaultdict
 import operator
 import numpy as np
 from itertools import izip, imap
+from multiprocessing import Manager
 
 from scipy import spatial
 
@@ -230,25 +231,100 @@ def sphere_radius(spaths, centers=None, radius=2., window=None, pbar=None, map_f
     return H
 
 
-def sphere_density_raw(trajs, mol_name, centers, radius, window=None, pbar=None, map_fun=map):
-    """ Calculate density of molecules from trajectories """
-    H = np.zeros(len(centers))
+class sphere_density_raw_worker(object):
+    def __init__(self, pbar_queue, mol_name, radius, centers, frames):
+        """
+        Worker used to calculate energy per each trajectory.
 
-    for traj_reader in trajs:
+        :param pbar_queue: Progress bar instance
+        :type pbar_queue: class:`aquaduct.clui.SimpleProgressBar`
+        :param mol_name: Name of molecule which amount will be calculated around points.
+        :type mol_name: str
+        :param radius: Radius of selection for each point.
+        :type radius: float
+        :param centers: Points of path
+        :type centers: Iterator
+        :param frames: Collection of frame numbers
+        :type frames: Iterator
+        """
+        self.pbar_queue = pbar_queue
+        self.mol_name = mol_name
+        self.radius = radius
+        self.centers = centers
+        self.frames = frames
+
+    def __call__(self, traj_reader):
+        """
+        Worker
+
+        :param traj_reader: Trajectory reader
+        :type traj_reader: Iterator
+        :return: Array with density for each point
+        :rtype: numpy.ndarray
+        """
+        H = np.zeros(len(self.centers))
+
         traj_reader = traj_reader.open()
 
-        for frame_no in range(int(window[0]), int(window[1])):
-            traj_reader.set_real_frame(frame_no)
+        # Iterating over trajectory reader starts from 0.
+        # It's needed to add value of first frame to check if frame is within frames range
+        base = traj_reader.window.start
+        for frame in traj_reader.iterate():
 
-            for i, c in enumerate(centers):
-                selection_str = "({}) and (point {} {} {} {})".format(mol_name, *(tuple(c) + (radius,)))
+            # Skip if frame is not within range
+            if frame+base not in self.frames:
+                continue
+
+            # Calculate density of points for frame
+            for i, c in enumerate(self.centers):
+                selection_str = "({}) and (point {} {} {} {})".format(self.mol_name, *(tuple(c) + (self.radius,)))
                 traj_reader.parse_selection(selection_str)
                 H[i] += len(list(traj_reader.parse_selection(selection_str).residues().ids()))
 
-            if pbar:
-                pbar.next()
+            # Indicate update of progress bar
+            self.pbar_queue.put(1)
 
-    return H
+        return H
+
+
+def sphere_density_raw(trajs, mol_name, centers, radius, pool, window=None, pbar=None):
+    """
+    Calculate density of sphere with specified radius and with center in each point.
+
+    :param trajs: Collection of trajectory readers
+    :type trajs: class:`aquaduct.sandwich.ReaderTraj`
+    :param mol_name: Name of molecule which amount will be calculated around points.
+    :type mol_name: str
+    :param radius: Radius of selection for each point.
+    :type radius: float
+    :param centers: Points of path
+    :type centers: Iterator
+    :param pool: Preconfigured Pool instance
+    :type pool: Preconfigured Pool instance
+    :return: Density for each center.
+    :rtype: numpy.ndarray
+    """
+
+    # Setup for queue and worker
+    pbar_queue = Manager().Queue()
+    worker = sphere_density_raw_worker(pbar_queue, mol_name, radius, centers, range(int(window[0]), int(window[1])))
+
+    # Container for collected data from workers
+    D = []
+
+    r = pool.map_async(worker, trajs, callback=D.append)
+
+    # Incrementing progress bar using queued values
+    for p in iter(pbar_queue.get, None):
+        pbar.next(step=p)
+
+        if pbar.current == pbar.maxval:
+            break
+
+    r.wait()
+
+    # Return summed results from processes
+    return np.array(D[0]).sum(axis=0)
 
 
 def hot_spots(H):

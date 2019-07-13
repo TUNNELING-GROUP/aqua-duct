@@ -247,6 +247,8 @@ class GenericPaths(GenericPathTypeCodes):
             self._types.append(t)
             self._frames.append(f)
 
+
+    '''
     def _split_path_by_edges_(self,path):
         # input: path tuple
         # output: path_cont
@@ -261,7 +263,9 @@ class GenericPaths(GenericPathTypeCodes):
                     yield path_cont_2y
         if path_cont:
             yield path_cont
+    '''
 
+    '''
     def _split_path_by_types_(self,path):
         # input: path_cont
         # output: path tuple
@@ -284,13 +288,15 @@ class GenericPaths(GenericPathTypeCodes):
             return in_p,path,out_p
         else:
             return (path,[],[]) # passing
+    '''
 
+    '''
     def _consider_edges(self,path,passing=None):
         for path_cont in self._split_path_by_edges_(path):
             spath = self._split_path_by_types_(path_cont)
             if len(spath[1])>0 or passing:
                 yield spath
-
+    '''
 
     def _gpt(self):
         # get, I'm just passing through
