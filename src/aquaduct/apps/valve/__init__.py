@@ -314,7 +314,6 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'remove_inlets', 'None')
         config.set(section, 'clustering_order', 'old-school')
 
-
         ################
         # smooth
         section = self.smooth_name()
