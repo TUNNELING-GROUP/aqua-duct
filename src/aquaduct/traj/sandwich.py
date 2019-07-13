@@ -342,7 +342,10 @@ class MasterReader(object):
         for nr,rf in enumerate(self.window.range()): # iterate over real frames
             if rf >= rnf[0]:
                 # this is an edge
-                E.append(nr)
+                if self.window.step > 1:
+                    E.append(nr-1)
+                else:
+                    E.append(nr)
                 while len(rnf) and rf >= rnf[0]:
                     rnf.pop(0)
         if len(rnf):

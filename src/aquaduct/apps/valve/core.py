@@ -34,7 +34,7 @@ from aquaduct.traj.barber import barber_paths
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath, MacroMolPath
-from aquaduct.traj.paths import yield_generic_paths
+from aquaduct.traj.paths import yield_generic_paths,correct_spaths_ids
 from aquaduct.traj.sandwich import ResidueSelection, Reader, mda_ver
 from aquaduct.utils.clui import roman
 from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof, make_fraction
@@ -250,31 +250,34 @@ def waterfall_me(paths,pbar=None):
         frames = paths[0].frames
         types = paths[0].types
         min_pf = 0
+        #print "initial",paths[0].id, (paths[0].min_possible_frame, paths[0].max_possible_frame),(frames[0],frames[-1])
         if len(frames):
             for max_pf in list(Reader.edges) + [number_of_frames - 1]:
-                p = GenericPaths(paths[0].id,
-                                 name_of_res=paths[0].name,
-                                 min_pf=min_pf,
-                                 max_pf=max_pf)
-                # boudaries are [min_pf:max_pf + 1], fid real indices
-                lo = None
-                if min_pf in frames:
-                    lo = frames.index(min_pf)
-                hi = None
-                if (max_pf + 1) in frames:
-                    hi = frames.index(max_pf+1)
-                # now, if both are None check if they are encircle path
-                if lo is None and hi is None:
-                    if (max_pf + 1) < frames[0]:
-                        continue
-                    if min_pf > frames[-1]:
-                        continue
-                p.update_types_frames(types[lo:hi], frames[lo:hi])
-                paths.append(p)
+                # min_pf and max_pf are limits of frames
+                this_frames = []
+                this_types = []
+                for f,t in zip(frames,types):
+                    if f >= min_pf and f <= max_pf:
+                        this_frames.append(f)
+                        this_types.append(t)
+                if len(this_frames):
+                    p = GenericPaths(paths[0].id,
+                                     name_of_res=paths[0].name,
+                                     min_pf=min_pf,
+                                     max_pf=max_pf)
+                    p.update_types_frames(this_types, this_frames)
+                    #print p.min_possible_frame,p.max_possible_frame,p.frames[0],p.frames[-1]
+                    paths.append(p)
                 min_pf = max_pf + 1
         if pbar:
             pbar.next()
         paths.pop(0)
+
+def print_all_paths(paths):
+    for p in paths:
+        frames = p.frames
+        print p.id, (p.min_possible_frame, p.max_possible_frame),(frames[0],frames[-1])
+
 
 # raw_paths
 def stage_II_run(config, options,
@@ -435,6 +438,7 @@ def stage_II_run(config, options,
     if Reader.edges:
         with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
             waterfall_me(paths,pbar)
+            print_all_paths(paths)
 
     # rm tmp files
     for rn in results.itervalues():
@@ -486,6 +490,7 @@ def stage_III_run(config, options,
         n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
+        #for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
         for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
             nr = 0  # if no spaths were returned
             for sp, nr in sps_nrs:
@@ -495,6 +500,10 @@ def stage_III_run(config, options,
         pool.close()
         pool.join()
         gc.collect()
+
+    if Reader.edges:
+        with clui.pbar(len(spaths), "Clean IDs:") as pbar:
+            correct_spaths_ids(spaths,pbar)
 
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
@@ -648,8 +657,8 @@ def stage_III_run(config, options,
         #n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
-        #for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
-        for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+        for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+        #for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
             for sp, nr in sps_nrs:
                 spaths.append(sp)
                 pbar.update(nr_all + nr + 1)
@@ -658,6 +667,11 @@ def stage_III_run(config, options,
         pool.join()
         gc.collect()
         pbar.finish()
+
+        if Reader.edges:
+            with clui.pbar(len(spaths), "Clean IDs:") as pbar:
+                correct_spaths_ids(spaths,pbar)
+
 
     clui.message("(Re)Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))

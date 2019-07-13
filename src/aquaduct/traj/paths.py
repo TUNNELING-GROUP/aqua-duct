@@ -106,6 +106,7 @@ class GenericPaths(GenericPathTypeCodes):
         else:
             self._types = SmartRange(types)
             self._frames = array('i', frames)
+        assert len(self._frames) == len(set(self._frames)), (len(self._frames),len(set(self._frames)))
 
     def __getstate__(self):
         return self.id, self.name, self._types, self._frames, self.max_possible_frame, self.min_possible_frame
@@ -237,6 +238,7 @@ class GenericPaths(GenericPathTypeCodes):
         self.add_type(frame, self.scope_name)
 
     def add_type(self, frame, ftype):
+        assert frame not in self._frames
         self._types.append(ftype)
         self._frames.append(frame)
 
@@ -454,9 +456,9 @@ class GenericPaths(GenericPathTypeCodes):
                     # yield path, coords, types
                     yield path_sbe, types
                 '''
-                types = self.get_single_path_types(path)
+                types = self.get_single_path_types((path, [], []))
                 # yield path, coords, types
-                yield path, types
+                yield (path, [], []), types
 
     def get_path_cont_types(self,path_cont):
 
@@ -491,7 +493,6 @@ class GenericPaths(GenericPathTypeCodes):
 
         frames = self.frames
         types = self.types
-
 
 
         def get_be(p_):
@@ -618,6 +619,17 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
                     yield sp, nr
                 else:
                     yield sp
+
+def correct_spaths_ids(spaths,pbar):
+    seen = {}
+    for sp in spaths:
+        if sp.id.id not in seen:
+            seen.update({sp.id.id: 0})
+        else:
+            seen[sp.id.id] += 1
+        sp.id.nr = seen[sp.id.id]
+        pbar.next()
+        #print str(sp.id)
 
 
 def yield_generic_paths(spaths, progress=None):
