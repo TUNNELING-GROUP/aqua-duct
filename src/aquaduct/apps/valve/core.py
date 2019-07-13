@@ -514,6 +514,10 @@ def stage_III_run(config, options,
 
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
+    print "Any passing?"
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id
 
     ######################################################################
 
@@ -593,6 +597,10 @@ def stage_III_run(config, options,
         else:
             clui.message("No paths were discarded - no values were set.")
 
+    print "Any passing?"
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id
     ######################################################################
 
     traced_names = get_traced_names(spaths)
@@ -710,6 +718,8 @@ def stage_III_run(config, options,
                     pool.close()
                     pool.join()
                     gc.collect()
+                    spaths = new_spaths.paths
+                    del new_spaths
                 # del spathsqq
                 spaths_nr_new = len(spaths)
                 if spaths_nr == spaths_nr_new:
@@ -742,7 +752,9 @@ def stage_III_run(config, options,
             pool = Pool(processes=optimal_threads.threads_count)
 
             n = max(1, optimal_threads.threads_count)
-            coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+            #coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+            coos = imap(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+
             # CRIC AWARE MP!
             Reader.reset()
             coos = list(chain.from_iterable((coo for nr, coo, cric in coos if

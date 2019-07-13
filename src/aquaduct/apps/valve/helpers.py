@@ -344,6 +344,7 @@ def discard_short_etc(spaths, short_paths=None, short_object=None, short_logic=N
 
 
 def center_of_object(spaths):
+    #import ipdb as pdb; pdb.set_trace()
     return len(spaths), [sp.center_of_object for sp in spaths], CRIC
 
 
