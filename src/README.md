@@ -22,18 +22,20 @@ residues in MD simulation. *valve* is a driver Python script. It uses
 *Aqua-Duct* is licensed under
 `GNU GPL v3 license <https://www.gnu.org/licenses/gpl-3.0.en.html>`.
 
-Source code is available at [github.com/tljm/aqua-duct](https://github.com/tljm/aqua-duct).
+Source code is available at [github.com/TUNNELING-GROUP/aqua-duct](https://github.com/TUNNELING-GROUP/aqua-duct/).
+
+Summary of the most important changes is available in our [changelog](docs/source/changelog.rst).
 
 ## Installation
 
-*Aqua-Duct* can be easily installed via PyPi::
+*Aqua-Duct* can be easily installed via PyPi:
 
     pip install aquaduct
 
 Detailed instructions on *Aqua-Duct* installation are available at
 [aquaduct.pl/installation](http://www.aquaduct.pl/installation/).
 
-To start using Aqua-Duct type::
+To start using Aqua-Duct type:
 
     valve.py --help
 
@@ -42,5 +44,10 @@ To start using Aqua-Duct type::
 If you encounter any problems with installation do not hesitate to
 contact us at [info@aquaduct.pl](mailto:info@aquaduct.pl?subject=Aqua-Duct). We are **REALLY** willing to help!
 
-You can also contact us at [github.com/tljm/aqua-duct](https://github.com/tljm/aqua-duct).
+You can also contact us at [github.com/TUNNELING-GROUP/aqua-duct](https://github.com/TUNNELING-GROUP/aqua-duct/).
 
+## Documentation
+
+Documentation can be found on our homepage [aquaduct.pl/documentation](http://aquaduct.pl/documentation/).
+
+The most recent documentation is also available at [TUNNELING-GROUP.github.io/aqua-duct](https://TUNNELING-GROUP.github.io/aqua-duct/).
