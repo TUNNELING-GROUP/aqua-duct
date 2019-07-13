@@ -8,14 +8,13 @@ Visit our homepage at [aquaduct.pl](http://aquaduct.pl/).
 
 ## Overview
 
-*Aqua-Duct* comprises of two main elements:
+*Aqua-Duct* comprises of several applications build on top of *aquaduct* Python module:
 
-1.  aquaduct,
-2.  valve.
+1. *valve* - performs most of core calculations including tracing of molecules.
+1. *kraken* - performs additional analysis of results.
+1. *pond* - calculates pockets, hotspots, and energy profiles.
 
-*aquaduct* is a Python module. It is a collection of tools to trace
-residues in MD simulation. *valve* is a driver Python script. It uses
-*aquaduct* to perform such a tracing.
+*Aqua-Duct* comes also with simple GUI interface - *valveconfig* - allowing to setup calculations in a convenient way.
 
 ## Availability
 
