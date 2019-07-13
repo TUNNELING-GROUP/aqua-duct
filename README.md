@@ -23,7 +23,7 @@ Visit our homepage at [aquaduct.pl](http://aquaduct.pl/).
 
 Source code is available at [github.com/TUNNELING-GROUP/aqua-duct](https://github.com/TUNNELING-GROUP/aqua-duct/).
 
-Summary of the most important changes is available in our [changelog](docs/source/changelog.rst).
+Summary of the most important changes is available in our [changelog](https://tunneling-group.github.io/aqua-duct/changelog.html).
 
 ## Installation
 
