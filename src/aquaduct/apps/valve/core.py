@@ -515,6 +515,10 @@ def stage_III_run(config, options,
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
 
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
+
 
     ######################################################################
 
@@ -593,6 +597,11 @@ def stage_III_run(config, options,
                             waterfall_me(paths, pbar)
         else:
             clui.message("No paths were discarded - no values were set.")
+
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
+
 
     ######################################################################
 
@@ -681,6 +690,11 @@ def stage_III_run(config, options,
                 correct_spaths_ids(spaths,pbar)
 
 
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
+
+
     clui.message("(Re)Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
 
@@ -728,12 +742,20 @@ def stage_III_run(config, options,
             else:
                 clui.message("No paths were discarded - no values were set.")
 
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
+
 
     ######################################################################
 
     if options.sort_by_id:
         with clui.fbm("Sort separate paths by resid"):
             spaths = sorted(spaths, key=lambda sp: (sp.id.id, sp.id.nr))
+
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
 
     ######################################################################
 
@@ -795,6 +817,12 @@ def stage_IV_run(config, options,
                  center_of_system=None,
                  center_of_object=None,
                  **kwargs):
+
+    for sp in spaths:
+        if isinstance(sp,PassingPath):
+            print sp.id, map(len,sp.paths)
+
+
     # enable real cache of ort
     Reader.reset()
 

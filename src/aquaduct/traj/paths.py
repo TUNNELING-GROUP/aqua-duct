@@ -616,6 +616,7 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
                 else:
                     # this is passing through
                     if passing:
+                        #import ipdb as pdb; pdb.set_trace()
                         sp = PassingPath(pid, paths, types)
                         sp.has_in = sp.paths_first_in > gp.min_possible_frame
                         sp.has_out = sp.paths_last_out < gp.max_possible_frame
