@@ -459,20 +459,26 @@ class SinglePathPlotter(object):
                     c = color_codes(etypes[0])
                 else:
                     c = color
-                self.cgo_pointers.add_pointer(point=coords[0],
-                                              direction=coords[1],
-                                              length=1.,
-                                              color=cc(c))
+                if len(coords) > 1:
+                    self.cgo_pointers.add_pointer(point=coords[0],
+                                                  direction=coords[1],
+                                                  length=1.,
+                                                  color=cc(c))
+                else:
+                    self.cgo_spheres.add(coords=coords, radius=None, color=cc(c))
             if plot_out:
                 if color is None:
                     c = color_codes(etypes[-1])
                 else:
                     c = color
-                self.cgo_pointers.add_pointer(point=coords[-1],
-                                              direction=coords[-2],
-                                              length=1.,
-                                              color=cc(c),
-                                              reverse=True)
+                if len(coords) > 1:
+                    self.cgo_pointers.add_pointer(point=coords[-1],
+                                                  direction=coords[-2],
+                                                  length=1.,
+                                                  color=cc(c),
+                                                  reverse=True)
+                else:
+                    self.cgo_spheres.add(coords=coords, radius=None, color=cc(c))
         self.pymol_connector.add_cgo_object(name, self.cgo_pointers.get(), state=state)
 
     def scatter(self, coords,
