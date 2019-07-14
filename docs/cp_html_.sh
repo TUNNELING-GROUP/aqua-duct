@@ -1,9 +1,9 @@
-rm -rf ../../tljm.github.io/aq/*
-cp -R build/html/* ../../tljm.github.io/aq
+rm -rf ../../TUNNELING-GROUP.github.io/aqua-duct/*
+cp -R build/html/* ../../TUNNELING-GROUP.github.io/aqua-duct/
 
 CWD=`pwd`
 
-cd ../../tljm.github.io/aq/
+cd ../../TUNNELING-GROUP.github.io/aqua-duct/
 
 mv _static static
 mv _images images
