@@ -542,7 +542,7 @@ class Kraken(object):
         container_csv.columnconfigure(2, weight=1)
         container_csv.pack(fill=tk.X, padx=100, pady=10)
 
-        ttk.Label(container_csv, text="CVS file: ").grid(sticky="e", row=0, column=0)
+        ttk.Label(container_csv, text="CSV file: ").grid(sticky="e", row=0, column=0)
         ttk.Entry(container_csv, textvariable=self.csv_file).grid(sticky="we", row=0, column=1)
         csv_load = ttk.Button(container_csv, text="Load file", style="File.TButton")
         csv_load.grid(sticky="w", row=0, column=2)
