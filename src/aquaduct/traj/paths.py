@@ -61,9 +61,6 @@ class GenericPathTypeCodes(object):
     out_name = 10
 
 
-
-
-
 class GenericPaths(GenericPathTypeCodes):
     # object to store paths... is it required?
     __slots__ = 'id single_res_selection name _types _frames max_possible_frame min_possible_frame'.split()
@@ -106,6 +103,7 @@ class GenericPaths(GenericPathTypeCodes):
         else:
             self._types = SmartRange(types)
             self._frames = array('i', frames)
+        assert len(self._frames) == len(set(self._frames)), (len(self._frames), len(set(self._frames)))
 
     def __getstate__(self):
         return self.id, self.name, self._types, self._frames, self.max_possible_frame, self.min_possible_frame
@@ -237,6 +235,7 @@ class GenericPaths(GenericPathTypeCodes):
         self.add_type(frame, self.scope_name)
 
     def add_type(self, frame, ftype):
+        assert frame not in self._frames
         self._types.append(ftype)
         self._frames.append(frame)
 
@@ -244,7 +243,6 @@ class GenericPaths(GenericPathTypeCodes):
         for f, t in izip(frames, types):
             self._types.append(t)
             self._frames.append(f)
-
 
     '''
     def _split_path_by_edges_(self,path):
@@ -436,8 +434,6 @@ class GenericPaths(GenericPathTypeCodes):
                             path_out = []
                 yield path_in, path_core, path_out
 
-
-
     def find_paths_types(self, fullonly=False, passing=None):
         # both loops below yields correct paths
         # if waterfall let's split each of yielded paths again
@@ -460,11 +456,11 @@ class GenericPaths(GenericPathTypeCodes):
                     # yield path, coords, types
                     yield path_sbe, types
                 '''
-                types = self.get_single_path_types(path)
+                types = self.get_single_path_types((path, [], []))
                 # yield path, coords, types
-                yield path, types
+                yield (path, [], []), types
 
-    def get_path_cont_types(self,path_cont):
+    def get_path_cont_types(self, path_cont):
 
         frames = self.frames
         types = self.types
@@ -486,7 +482,6 @@ class GenericPaths(GenericPathTypeCodes):
                 return types[b:e]
         return []
 
-
     def get_single_path_types(self, spath):
         # returns typess for single path
         # single path comprises of in,scope,out parts
@@ -497,8 +492,6 @@ class GenericPaths(GenericPathTypeCodes):
 
         frames = self.frames
         types = self.types
-
-
 
         def get_be(p_):
             # if len(p_) == 1:
@@ -615,6 +608,7 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
                 else:
                     # this is passing through
                     if passing:
+                        # import ipdb as pdb; pdb.set_trace()
                         sp = PassingPath(pid, paths, types)
                         sp.has_in = sp.paths_first_in > gp.min_possible_frame
                         sp.has_out = sp.paths_last_out < gp.max_possible_frame
@@ -624,6 +618,18 @@ def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
                     yield sp, nr
                 else:
                     yield sp
+
+
+def correct_spaths_ids(spaths, pbar):
+    seen = {}
+    for sp in spaths:
+        if sp.id.id not in seen:
+            seen.update({sp.id.id: 0})
+        else:
+            seen[sp.id.id] += 1
+        sp.id.nr = seen[sp.id.id]
+        pbar.next()
+        # print str(sp.id)
 
 
 def yield_generic_paths(spaths, progress=None):
@@ -813,20 +819,20 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
                         reference=self.id,
                         frame=self.path_out[-1])
 
-    def remove_inlet(self,inlet_type):
+    def remove_inlet(self, inlet_type):
         # only surface type can be removed
         if InletTypeCodes.surface == inlet_type[0]:
             if self.has_in and InletTypeCodes.incoming == inlet_type[1]:
-                self._path_object = SmartRange(self.path_in+self.path_object)
+                self._path_object = SmartRange(self.path_in + self.path_object)
                 self._path_in = SmartRange([])
-                self._types_object = SmartRange(self.types_in+self.types_object)
+                self._types_object = SmartRange(self.types_in + self.types_object)
                 self._types_in = SmartRange([])
             elif self.has_out and InletTypeCodes.outgoing == inlet_type[1]:
-                self._path_object = SmartRange(self.path_object+self.path_out)
+                self._path_object = SmartRange(self.path_object + self.path_out)
                 self._path_out = SmartRange([])
-                self._types_object = SmartRange(self.types_object+self.types_out)
+                self._types_object = SmartRange(self.types_object + self.types_out)
                 self._types_out = SmartRange([])
-        #TODO: raise exceptions or at least warnings if wrong type of inlet is used
+        # TODO: raise exceptions or at least warnings if wrong type of inlet is used
 
     ####################################################################################################################
     # coords
@@ -1114,6 +1120,15 @@ class PassingPath(MacroMolPath):
                         inlet_type=(InletTypeCodes.surface, InletTypeCodes.outgoing),
                         reference=self.id,
                         frame=self.paths_last_out)
+
+    def remove_inlet(self, inlet_type):
+        # only surface type can be removed
+        if InletTypeCodes.surface == inlet_type[0]:
+            if self.has_in and InletTypeCodes.incoming == inlet_type[1]:
+                self.has_in = False
+            elif self.has_out and InletTypeCodes.outgoing == inlet_type[1]:
+                self.has_out = False
+        # TODO: raise exceptions or at least warnings if wrong type of inlet is used
 
 
 ####################################################################################################################

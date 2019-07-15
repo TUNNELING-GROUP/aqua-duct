@@ -27,8 +27,10 @@ from os import pathsep
 import numpy as np
 import MDAnalysis as mda
 
+
 def mda_ver():
     return mda.__version__
+
 
 # FIXME: do it according to user options
 if mda.__version__ < '0.16':
@@ -196,7 +198,8 @@ class MasterReader(object):
 
         if len(self.topology) > 1:
             assert self.sandwich_mode, "Multiple topologies possible in sandwich mode only."
-            assert len(self.topology) == len(self.trajectory), "Number of topologies must be 1 or be equal to number of trajectories."
+            assert len(self.topology) == len(
+                self.trajectory), "Number of topologies must be 1 or be equal to number of trajectories."
 
         self.window.correct(self.real_number_of_frames())  # this corrects window
         self.reset()  # assert window correction clear all opened trajs
@@ -237,12 +240,12 @@ class MasterReader(object):
         assert self.engine_name in ['mda']
         return OpenReaderTraj(topology, trajectory, number, window, self.engine_name)
 
-
     def __repr__(self):
         sandwich = ''
         if self.sandwich_mode:
             sandwich = ',sandwich'
-        return "Reader(%s,%s,%r%s)" % ("[%s]" % (','.join(self.topology)), "[%s]" % (','.join(self.trajectory)), self.window, sandwich)
+        return "Reader(%s,%s,%r%s)" % (
+        "[%s]" % (','.join(self.topology)), "[%s]" % (','.join(self.trajectory)), self.window, sandwich)
 
     def sandwich(self, number=False):
         # generates readers of consecutive sandwich layers
@@ -282,19 +285,18 @@ class MasterReader(object):
             return self.engine(self.topology[number],
                                [self.trajectory[number]],
                                number=number,
-                               window=Window(0,None,1))
+                               window=Window(0, None, 1))
         else:
             return self.engine(self.topology[0],
                                [self.trajectory[number]],
                                number=number,
-                               window=Window(0,None,1))
-
+                               window=Window(0, None, 1))
 
     def get_single_reader(self, number):
         # returns single trajectory reader of number
         # is it is already opened it is returned directly
         # if not is opened and then recursive call is executed
-        #print "GetSingleReader(%r)" % (number,)
+        # print "GetSingleReader(%r)" % (number,)
         if self.sandwich_mode:
             if len(self.topology) == 1:
                 return self.engine(self.topology[0], self.trajectory[number], number=number, window=self.window)
@@ -329,20 +331,23 @@ class MasterReader(object):
         # 1. get real number of frames for each part
         rnf = [0]
         for number in range(len(self.trajectory)):
-            #if len(rnf)==0:
+            # if len(rnf)==0:
             #    rnf.append(0)
-            #else:
+            # else:
             #    rnf.append(rnf[-1]+1)
-            #rnf.append(rnf[-1]-1+open_traj_reader(self.get_single_raw_reader_per_trajectory(number)).real_number_of_frames())
+            # rnf.append(rnf[-1]-1+open_traj_reader(self.get_single_raw_reader_per_trajectory(number)).real_number_of_frames())
             rnf.append(open_traj_reader(self.get_single_raw_reader_per_trajectory(number)).real_number_of_frames())
         # cumulative sum
-        rnf = (np.cumsum(rnf)-1).tolist()
+        rnf = (np.cumsum(rnf) - 1).tolist()
         # 2. by using window try to calculate where are the edges
-        E = [] # list of edges
-        for nr,rf in enumerate(self.window.range()): # iterate over real frames
+        E = []  # list of edges
+        for nr, rf in enumerate(self.window.range()):  # iterate over real frames
             if rf >= rnf[0]:
                 # this is an edge
-                E.append(nr)
+                if self.window.step > 1:
+                    E.append(nr - 1)
+                else:
+                    E.append(nr)
                 while len(rnf) and rf >= rnf[0]:
                     rnf.pop(0)
         if len(rnf):
@@ -362,7 +367,7 @@ class MasterReader(object):
             return len(self.trajectory)
         nof = self.number_of_frames()
         nol = self.threads * self.threads_multiply
-        return nol if nof > nol else max(nof-1,1)
+        return nol if nof > nol else max(nof - 1, 1)
 
 
 # instance of MasterReader
@@ -386,7 +391,7 @@ class ReaderAccess(object):
 
     def get_reader(self, number):
         if number in Reader.open_reader_traj:
-            #print "Getting reader",number,"from opened readers."
+            # print "Getting reader",number,"from opened readers."
             return Reader.open_reader_traj[number]
         Reader.get_single_reader(number).open()
         return self.get_reader(number)
@@ -529,13 +534,13 @@ class ReaderTraj(object):
         This is base class for MD data access engines.
         """
 
-        self.topology = topology # here, topology is only one file
+        self.topology = topology  # here, topology is only one file
         self.trajectory = trajectory
 
         if not isinstance(trajectory, list):
             self.trajectory = [t.strip() for t in trajectory.split(pathsep)]
 
-        #print "ReaderTraj(%r,%r)" % (self.topology,self.trajectory)
+        # print "ReaderTraj(%r,%r)" % (self.topology,self.trajectory)
 
         self.number = number
         self.window = window
@@ -578,7 +583,6 @@ class ReaderTraj(object):
     def number_of_frames(self):
         # should return number of frames in this reader (window)
         return self.window.len()
-
 
     def open_trajectory(self):
         # should return any object that can be further used to parse trajectory
@@ -748,7 +752,7 @@ class Selection(ReaderAccess):
         for number, ids in self.selected.iteritems():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
-                return self.__class__({number: [ids[ix - ix_current]]}) # FIXME: looks like a bug!
+                return self.__class__({number: [ids[ix - ix_current]]})  # FIXME: looks like a bug!
             ix_current += len(ids)
         raise IndexError()
 
@@ -1021,7 +1025,7 @@ class SingleResidueSelection(ReaderAccess):
     def _coords(self, frames):
         # return coords for frames
         if len(frames):
-            #print "Trying to get reader",self.number,"for",len(frames),"frames"
+            # print "Trying to get reader",self.number,"for",len(frames),"frames"
             traj_reader = self.get_reader(self.number)
             for f in frames:
                 traj_reader.set_frame(f)

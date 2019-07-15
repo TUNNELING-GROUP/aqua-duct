@@ -55,9 +55,9 @@ class NP(object):
             self.pbar.next()
 
     def callback_cric_next(self, result):
-        CRIC.update_cric(result.pop(-1))
-        self.paths.extend(result)
-        self.next(len(result))
+        CRIC.update_cric(result[-1])
+        self.paths.extend(result[:-1])
+        self.next(len(result) - 1)
 
     def callback_next(self, result):
         self.paths.extend(result)
@@ -334,14 +334,18 @@ def get_linearize_method(loption):
 def discard_short_etc(spaths, short_paths=None, short_object=None, short_logic=None):
     # worker for discarding paths, can be time consuming because of filling coords cache
     if short_object is not None:
-        return len(spaths), [sp for sp in spaths if
-                             short_logic(sp.size > short_paths, sp.object_len > short_object)], CRIC
+        return [sp for sp in spaths if
+                short_logic(sp.size > short_paths, sp.object_len > short_object)] + [CRIC]
+        # return len(spaths), [sp for sp in spaths if
+        #                     short_logic(sp.size > short_paths, sp.object_len > short_object)], CRIC
     else:
-        return len(spaths), [sp for sp in spaths if sp.size > short_paths]
+        return [sp for sp in spaths if sp.size > short_paths]
+        # return len(spaths), [sp for sp in spaths if sp.size > short_paths]
 
 
-def center_of_object(spaths):
-    return len(spaths), [sp.center_of_object for sp in spaths], CRIC
+def center_of_object(spath):
+    # import ipdb as pdb; pdb.set_trace()
+    return 1, spath.center_of_object, CRIC
 
 
 def get_allow_size_function(rt=None):
@@ -361,12 +365,12 @@ def get_allow_size_function(rt=None):
 
 
 def potentially_recursive_clustering(config=None,
-                                         clustering_name=None,
-                                         inlets_object=None,
-                                         spaths=None,
-                                         message='clustering',
-                                         deep=0,
-                                         max_level=5):
+                                     clustering_name=None,
+                                     inlets_object=None,
+                                     spaths=None,
+                                     message='clustering',
+                                     deep=0,
+                                     max_level=5):
     with clui.fbm("Performing %s, level %d of %d" % (message, deep, max_level), cont=False):
         logger.debug('Clustering options section: %s' % clustering_name)
         cluster_options = config.get_cluster_options(section_name=clustering_name)
@@ -399,11 +403,11 @@ def potentially_recursive_clustering(config=None,
         if deep > max_level:
             return
         return potentially_recursive_clustering(config=config,
-                                                    clustering_name=cluster_options.recursive_clustering,
-                                                    inlets_object=inlets_object,
-                                                    spaths=spaths,
-                                                    deep=deep,
-                                                    max_level=max_level)
+                                                clustering_name=cluster_options.recursive_clustering,
+                                                inlets_object=inlets_object,
+                                                spaths=spaths,
+                                                deep=deep,
+                                                max_level=max_level)
 
 
 def make_line(template, line):

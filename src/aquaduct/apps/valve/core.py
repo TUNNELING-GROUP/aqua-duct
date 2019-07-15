@@ -34,7 +34,7 @@ from aquaduct.traj.barber import barber_paths
 from aquaduct.traj.inlets import InletClusterGenericType
 from aquaduct.traj.inlets import Inlets
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath, MacroMolPath
-from aquaduct.traj.paths import yield_generic_paths
+from aquaduct.traj.paths import yield_generic_paths, correct_spaths_ids
 from aquaduct.traj.sandwich import ResidueSelection, Reader, mda_ver
 from aquaduct.utils.clui import roman
 from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof, make_fraction
@@ -241,8 +241,7 @@ def stage_I_run(config, options,
 
 ################################################################################
 
-def waterfall_me(paths,pbar=None):
-
+def waterfall_me(paths, pbar=None):
     number_of_frames = Reader.number_of_frames(onelayer=True)
 
     N = len(paths)  # number of paths
@@ -250,31 +249,29 @@ def waterfall_me(paths,pbar=None):
         frames = paths[0].frames
         types = paths[0].types
         min_pf = 0
+        # print "initial",paths[0].id, (paths[0].min_possible_frame, paths[0].max_possible_frame),(frames[0],frames[-1])
         if len(frames):
             for max_pf in list(Reader.edges) + [number_of_frames - 1]:
-                p = GenericPaths(paths[0].id,
-                                 name_of_res=paths[0].name,
-                                 min_pf=min_pf,
-                                 max_pf=max_pf)
-                # boudaries are [min_pf:max_pf + 1], fid real indices
-                lo = None
-                if min_pf in frames:
-                    lo = frames.index(min_pf)
-                hi = None
-                if (max_pf + 1) in frames:
-                    hi = frames.index(max_pf+1)
-                # now, if both are None check if they are encircle path
-                if lo is None and hi is None:
-                    if (max_pf + 1) < frames[0]:
-                        continue
-                    if min_pf > frames[-1]:
-                        continue
-                p.update_types_frames(types[lo:hi], frames[lo:hi])
-                paths.append(p)
+                # min_pf and max_pf are limits of frames
+                this_frames = []
+                this_types = []
+                for f, t in zip(frames, types):
+                    if f >= min_pf and f <= max_pf:
+                        this_frames.append(f)
+                        this_types.append(t)
+                if len(this_frames):
+                    p = GenericPaths(paths[0].id,
+                                     name_of_res=paths[0].name,
+                                     min_pf=min_pf,
+                                     max_pf=max_pf)
+                    p.update_types_frames(this_types, this_frames)
+                    # print p.min_possible_frame,p.max_possible_frame,p.frames[0],p.frames[-1]
+                    paths.append(p)
                 min_pf = max_pf + 1
         if pbar:
             pbar.next()
         paths.pop(0)
+
 
 # raw_paths
 def stage_II_run(config, options,
@@ -430,11 +427,10 @@ def stage_II_run(config, options,
             pool.join()
     paths = new_paths.paths
 
-
     # if edges then split each of path into smaller parts and adjust min_pf and max_pf
     if Reader.edges:
         with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
-            waterfall_me(paths,pbar)
+            waterfall_me(paths, pbar)
 
     # rm tmp files
     for rn in results.itervalues():
@@ -458,6 +454,13 @@ def stage_II_run(config, options,
 
 
 ################################################################################
+
+def spaths_paths_ids(spaths):
+    seen = []
+    for sp in spaths:
+        if sp.id.id not in seen:
+            seen.append(sp.id.id)
+            yield sp.id.id
 
 
 # separate_paths
@@ -486,7 +489,8 @@ def stage_III_run(config, options,
         n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
-        for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+        for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+            # for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
             nr = 0  # if no spaths were returned
             for sp, nr in sps_nrs:
                 spaths.append(sp)
@@ -495,6 +499,10 @@ def stage_III_run(config, options,
         pool.close()
         pool.join()
         gc.collect()
+
+    if Reader.edges:
+        with clui.pbar(len(spaths), "Clean IDs:") as pbar:
+            correct_spaths_ids(spaths, pbar)
 
     clui.message("Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
@@ -506,7 +514,7 @@ def stage_III_run(config, options,
             paths = yield_generic_paths(spaths, progress=pbar)
         if Reader.edges:
             with clui.pbar(len(paths), 'Waterfall fall:') as pbar:
-                waterfall_me(paths,pbar)
+                waterfall_me(paths, pbar)
 
     ######################################################################
 
@@ -547,22 +555,26 @@ def stage_III_run(config, options,
                 dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                               short_logic=short_logic)
                 n = max(1, optimal_threads.threads_count)
-                spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
-                # spaths_new = imap(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                new_spaths = NP(None)
+                new_spaths.reinit(pbar)
                 # CRIC AWARE MP!
                 if short_object is not None:
                     Reader.reset()
-                    spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
-                                                       (pbar.next(step=nr) is None) and (
-                                                               CRIC.update_cric(cric) is None))))
-                    save_cric()
+                    for pid in spaths_paths_ids(spaths):
+                        pool.apply_async(dse, args=(
+                            [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
+                                         callback=new_spaths.callback_cric_next)
                 else:
-                    spaths = list(chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
-
+                    for pid in spaths_paths_ids(spaths):
+                        pool.apply_async(dse, args=(
+                            [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
+                                         callback=new_spaths.callback_next)
+                save_cric()
                 pool.close()
                 pool.join()
                 gc.collect()
-            # del spaths
+                spaths = new_spaths.paths
+                del new_spaths
             spaths_nr_new = len(spaths)
             if spaths_nr == spaths_nr_new:
                 clui.message("No paths were discarded.")
@@ -645,11 +657,11 @@ def stage_III_run(config, options,
         pool = Pool(processes=optimal_threads.threads_count)
         # ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
         n = max(1, len(paths) / optimal_threads.threads_count / 3)
-        #n = max(1, optimal_threads.threads_count)
+        # n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
-        #for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
-        for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+        for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+            # for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
             for sp, nr in sps_nrs:
                 spaths.append(sp)
                 pbar.update(nr_all + nr + 1)
@@ -658,6 +670,10 @@ def stage_III_run(config, options,
         pool.join()
         gc.collect()
         pbar.finish()
+
+        if Reader.edges:
+            with clui.pbar(len(spaths), "Clean IDs:") as pbar:
+                correct_spaths_ids(spaths, pbar)
 
     clui.message("(Re)Created %d separate paths out of %d raw paths" %
                  (len(spaths), len(paths)))
@@ -675,20 +691,26 @@ def stage_III_run(config, options,
                     # dse = partial(discard_short_etc, short_paths=short_paths, short_object=short_object,
                     #              short_logic=short_logic)
                     n = max(1, optimal_threads.threads_count)
-                    spaths_new = pool.imap_unordered(dse, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+                    new_spaths = NP(None)
+                    new_spaths.reinit(pbar)
                     # CRIC AWARE MP!
                     if short_object is not None:
                         Reader.reset()
-                        spaths = list(chain.from_iterable((sps for nr, sps, cric in spaths_new if
-                                                           (pbar.next(step=nr) is None) and (
-                                                                   CRIC.update_cric(cric) is None))))
+                        for pid in spaths_paths_ids(spaths):
+                            pool.apply_async(dse, args=(
+                                [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
+                                             callback=new_spaths.callback_cric_next)
                     else:
-                        spaths = list(
-                            chain.from_iterable((sps for nr, sps in spaths_new if pbar.next(step=nr) is None)))
+                        for pid in spaths_paths_ids(spaths):
+                            pool.apply_async(dse, args=(
+                                [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
+                                             callback=new_spaths.callback_next)
                     save_cric()
                     pool.close()
                     pool.join()
                     gc.collect()
+                    spaths = new_spaths.paths
+                    del new_spaths
                 # del spathsqq
                 spaths_nr_new = len(spaths)
                 if spaths_nr == spaths_nr_new:
@@ -721,12 +743,17 @@ def stage_III_run(config, options,
             pool = Pool(processes=optimal_threads.threads_count)
 
             n = max(1, optimal_threads.threads_count)
-            coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+
+            # coos = pool.imap_unordered(center_of_object, (spaths[i:i + n] for i in xrange(0, len(spaths), n)))
+            # coos = imap(center_of_object, (sp for sp in spaths if not isinstance(sp,PassingPath)))
+            coos = pool.imap_unordered(center_of_object, (sp for sp in spaths if not isinstance(sp, PassingPath)))
+
             # CRIC AWARE MP!
             Reader.reset()
-            coos = list(chain.from_iterable((coo for nr, coo, cric in coos if
-                                             (pbar.next(step=nr) is None) and (
-                                                     CRIC.update_cric(cric) is None))))
+            coos = [coo for nr, coo, cric in coos if (pbar.next(step=nr) is None) and (CRIC.update_cric(cric) is None)]
+            # coos = list(chain.from_iterable((coo for nr, coo, cric in coos if
+            #                                 (pbar.next(step=nr) is None) and (
+            #                                         CRIC.update_cric(cric) is None))))
             save_cric()
             pool.close()
             pool.join()
@@ -749,7 +776,7 @@ def stage_III_run(config, options,
     clui.message("Number of paths: %d" % len(paths))
     clui.message("Number of spaths: %d" % len(spaths))
 
-    #return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict()}
+    # return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict()}
     return {'paths': paths, 'spaths': spaths, 'options': options._asdict(), 'soptions': soptions._asdict(),
             'center_of_object': coos}
 
@@ -783,10 +810,11 @@ def stage_IV_run(config, options,
     elif options.inlets_center != 'cos':
         logger.warning("Unknown value of `inlets_center` option %r. Falling back to 'cos'." % options.inlets_center)
     if options.inlets_center == 'coo' and center_of_object is None:
-        logger.warning("Value of 'coo' not available. Use `calculate_coo` in stage III. Falling back to 'cos'." % inlets_center)
+        logger.warning(
+            "Value of 'coo' not available. Use `calculate_coo` in stage III. Falling back to 'cos'." % inlets_center)
     inls = Inlets(spaths, center_of_system=inlets_center,
-                          passing=not options.exclude_passing_in_clustering,
-                          pbar=pbar)
+                  passing=not options.exclude_passing_in_clustering,
+                  pbar=pbar)
     pbar.finish()
     clui.message("Number of inlets: %d" % inls.size)
 
@@ -800,11 +828,11 @@ def stage_IV_run(config, options,
         # ***** CLUSTERING *****
         with clui.fbm("Performing clustering", cont=False):
             potentially_recursive_clustering(config=config,
-                                                 clustering_name=config.cluster_name(),
-                                                 inlets_object=inls,
-                                                 spaths=spaths,
-                                                 message='clustering',
-                                                 max_level=max_level)
+                                             clustering_name=config.cluster_name(),
+                                             inlets_object=inls,
+                                             spaths=spaths,
+                                             message='clustering',
+                                             max_level=max_level)
         clui.message('Number of outliers: %d' % noo())
 
     def outliers_detection():
@@ -909,6 +937,7 @@ def stage_IV_run(config, options,
                         pbar.finish()
                     if len(passing_inlets_ids):
                         inls.add_message_wrapper(message='+%d passing' % len(passing_inlets_ids), toleaf=0)
+
     def join_clusters():
         # ***** JOIN CLUSTERS *****
         if options.join_clusters:
@@ -930,29 +959,31 @@ def stage_IV_run(config, options,
             with clui.fbm("Remove inlets") as emess:
                 inlets_removed_reference = []
                 inlets_removed_type = []
-                for i2r in map(int,options.remove_inlets.split()): # i2r is cluster id
+                for i2r in map(int, options.remove_inlets.split()):  # i2r is cluster id
                     emess('%d' % i2r)
                     inlets_removed_reference.extend(inls.lim2clusters(i2r).refs)
                     inlets_removed_type.extend(inls.lim2clusters(i2r).types)
                     inls.remove_inlets(i2r)
                 # clusters removed, modify spaths
-                for r,t in zip(inlets_removed_reference,inlets_removed_type):
+                for r, t in zip(inlets_removed_reference, inlets_removed_type):
                     # find path of r
                     p = next((sp for sp in spaths if sp.id == r))
                     p.remove_inlet(t)
 
     if inls.size > 0:
-        clustering_order = [clustering_clustering, reclustering, singletons_removal, add_passing_paths_to_clusters, join_clusters, renumber_clusters, remove_inlets_in_specified_clusters]
+        clustering_order = [clustering_clustering, reclustering, singletons_removal, add_passing_paths_to_clusters,
+                            join_clusters, renumber_clusters, remove_inlets_in_specified_clusters]
         if options.clustering_order == "aquarius":
             clui.message("Age of Aquarius.")
-            clustering_order = [clustering_clustering, join_clusters, renumber_clusters, outliers_detection, reclustering, singletons_removal, add_passing_paths_to_clusters, remove_inlets_in_specified_clusters]
+            clustering_order = [clustering_clustering, join_clusters, renumber_clusters, outliers_detection,
+                                reclustering, singletons_removal, add_passing_paths_to_clusters,
+                                remove_inlets_in_specified_clusters]
         elif options.clustering_order != "old-school":
             logger.waring("Unknown clustering order mode '%s', falling back to 'old-school'")
 
         for cluster_function in clustering_order:
             cluster_function()
             gc.collect()
-
 
         ###################
         # CLUSTERING DONE #
@@ -1200,8 +1231,9 @@ def stage_V_run(config, options,
                 pa("Clusters summary - inlets%s for layer %d" % (message, layer))
                 pa.thead(header_line)
                 for nr, cl in enumerate(inls.clusters_list):
-                    inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype) and sp.id.id[0] == layer]).\
-                        lim2rnames(tname).\
+                    inls_lim = inls.lim2spaths(
+                        [sp for sp in spaths if isinstance(sp, sptype) and sp.id.id[0] == layer]). \
+                        lim2rnames(tname). \
                         lim2clusters(cl)
                     pa(make_line(line_template, clusters_inlets(cl, inls_lim)), nr=nr)
                 pa.tend(header_line)
@@ -1232,12 +1264,14 @@ def stage_V_run(config, options,
                     pa.thead(header_line)
                     for nr, cl in enumerate(inls.clusters_list):
 
-                        inls_lim = inls.lim2spaths([sp for sp in spaths if isinstance(sp, sptype) and sp.id.id[0] == layer]).\
-                            lim2rnames(tname).\
+                        inls_lim = inls.lim2spaths(
+                            [sp for sp in spaths if isinstance(sp, sptype) and sp.id.id[0] == layer]). \
+                            lim2rnames(tname). \
                             lim2clusters(cl)
                         if inls_lim.size < 3: continue
-                        pa(make_line(line_template, clusters_area(cl, inls_lim, points=float(options.cluster_area_precision),
-                                                                  expand_by=float(options.cluster_area_expand))), nr=nr)
+                        pa(make_line(line_template,
+                                     clusters_area(cl, inls_lim, points=float(options.cluster_area_precision),
+                                                   expand_by=float(options.cluster_area_expand))), nr=nr)
 
             if pbar:
                 pbar.next()
@@ -1378,7 +1412,8 @@ def stage_V_run(config, options,
                     if pbar:
                         pbar.next(len(sps))
                 pa.tend(header_line)
-                pa("Separate paths clusters types summary - mean number of frames of paths%s for layer %d" % (message, layer))
+                pa("Separate paths clusters types summary - mean number of frames of paths%s for layer %d" % (
+                    message, layer))
                 pa.thead(header_line)
                 for nr, ct in enumerate(ctypes_generic_list):
                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
@@ -1550,14 +1585,14 @@ def stage_V_run(config, options,
                 if ch is not None:
                     scope_size[-1].append((ch.area, ch.volume))
                 else:
-                    logger.warning("Cannot get Convex Hull for Scope in %d:%d" % (number,frame))
+                    logger.warning("Cannot get Convex Hull for Scope in %d:%d" % (number, frame))
                     scope_size[-1].append((float('nan'), float('nan')))
                 res = traj_reader.parse_selection(options.object_chull)
                 ch = res.chull()
                 if ch is not None:
                     object_size[-1].append((ch.area, ch.volume))
                 else:
-                    logger.warning("Cannot get Convex Hull for Object in %d:%d" % (number,frame))
+                    logger.warning("Cannot get Convex Hull for Object in %d:%d" % (number, frame))
                     object_size[-1].append((float('nan'), float('nan')))
                 pbar.next()
         for s_s, o_s in zip(scope_size, object_size):
@@ -1780,9 +1815,10 @@ def stage_VI_run(config, options,
     fof = lambda sp: list(make_fractionof(sp, f=options.ctypes_amount))
 
     # master paths can have some keys which are not of ct type - names of molecules
-    #print master_paths.keys()
-    #print master_paths_smooth.keys()
+    # print master_paths.keys()
+    # print master_paths_smooth.keys()
     master_paths_separate = [k for k in master_paths.iterkeys() if isinstance(k, str)]
+
     # TODO: is isinstance good in this instance?
     if options.ctypes_raw:
         with clui.fbm("CTypes raw"):
@@ -1791,7 +1827,7 @@ def stage_VI_run(config, options,
                 for tn, tn_name in iter_over_tn():
                     if Reader.sandwich_mode:
                         for layer in range(Reader.number_of_layers()):
-                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()-1))
+                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
                             sps = lind(spaths, what2what(ctypes_generic, [ct]))
                             tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
                             plot_spaths_traces(fof(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn))),
@@ -1830,7 +1866,7 @@ def stage_VI_run(config, options,
                 for tn, tn_name in iter_over_tn():
                     if Reader.sandwich_mode:
                         for layer in range(Reader.number_of_layers()):
-                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()-1))
+                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
 
                             sps = lind(spaths, what2what(ctypes_generic, [ct]))
                             tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
@@ -1929,11 +1965,10 @@ def stage_VI_run(config, options,
     for tn, tn_name in iter_over_tn():
         if Reader.sandwich_mode:
             for layer in range(Reader.number_of_layers()):
-                clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers()-1))
+                clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
                 plot_paths(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn)), tn_name, "_L{}".format(layer))
         else:
             plot_paths(tn_lim(tn), tn_name)
-
 
     if options.show_molecule:
         pymol_connector.orient_on(molecule_name)

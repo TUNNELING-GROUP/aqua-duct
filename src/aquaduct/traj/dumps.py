@@ -30,7 +30,7 @@ class WriteMOL2(object):
 
     def print_atom_line(self, xyz, bf):
         atom = "%7d  H         %3.4f   %3.4f    %3.4f H       1  FIL1        %3.4f" % (
-        self.current_atom, xyz[0], xyz[1], xyz[2], bf)
+            self.current_atom, xyz[0], xyz[1], xyz[2], bf)
         return atom + os.linesep
 
     def print_bond_line(self, bid, ba, bb, btype='1'):
