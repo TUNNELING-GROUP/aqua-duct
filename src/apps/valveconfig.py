@@ -142,7 +142,7 @@ class ValveConfigApp(object):
             section_name_long = section.name
             entries = section.entries
 
-            if section.abs_level:
+            if section.abs_level is not None:
                 if section.abs_level != defaults.LEVELS[self.level.get()]:
                     continue
 
