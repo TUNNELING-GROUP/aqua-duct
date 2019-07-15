@@ -435,14 +435,22 @@ def cluster_area(file_processor, suffix=""):
     ax.set_ylabel("Area")
 
     column_names = file_processor.get_column_names("Clusters summary - areas" + suffix)
+    clusters_id = file_processor.get_column_values("Clusters summary - areas" + suffix, "Cluster")
 
     x = [name for name in column_names if name.startswith("D")]
     x.sort(key=lambda x: int(x[1:]), reverse=True)
 
-    y = [file_processor.get_column_values("Clusters summary - areas" + suffix, density)[0] for density in x]
+    # Values for each density
+    column_values = [file_processor.get_column_values("Clusters summary - areas" + suffix, density) for density in x]
+
+    # Transpose matrix to get values for each cluster
+    y_set = zip(*column_values)
+
+    for cluster_id, y in zip(clusters_id, y_set):
+        ax.plot(x, y, label="Cluster {}".format(cluster_id))
 
     ax.set_xlim((0, len(x) - 1))
-    ax.plot(x, y)
+    ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
 
     return fig
 
