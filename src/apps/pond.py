@@ -517,131 +517,131 @@ if __name__ == "__main__":
 
             # ----------------------------------------------------------------------#
             # load mater paths data
+            if args.master:
+                if args.master_radius and args.master:
+                    with clui.tictoc('Loading master paths data'):
+                        # get stage IV options
+                        options4 = config.get_stage_options(3)
 
-            if args.master_radius and args.master:
-                with clui.tictoc('Loading master paths data'):
-                    # get stage IV options
-                    options4 = config.get_stage_options(3)
+                        with clui.fbm('Loading data dump from %s file' % options4.dump):
+                            vda = get_vda_reader(options4.dump, mode='r')
+                            result4 = vda.load()
+                            mps = result4.pop(
+                                'master_paths_smooth')  # FIXME: let user decide what kind of master paths are used
 
-                    with clui.fbm('Loading data dump from %s file' % options4.dump):
-                        vda = get_vda_reader(options4.dump, mode='r')
-                        result4 = vda.load()
-                        mps = result4.pop(
-                            'master_paths_smooth')  # FIXME: let user decide what kind of master paths are used
+                        options6 = config.get_stage_options(5)
 
-                    options6 = config.get_stage_options(5)
+                        linmet = get_linearize_method(options6.simply_smooths)
+                else:
+                    # FIXME: Temporary solution for loading master paths when they are not needed due to master_radius default value.
+                    mps = {}
 
-                    linmet = get_linearize_method(options6.simply_smooths)
-            else:
-                # FIXME: Temporary solution for loading master paths when they are not needed due to master_radius default value.
-                mps = {}
+                # ----------------------------------------------------------------------#
+                # re load paths?
 
-            # ----------------------------------------------------------------------#
-            # re load paths?
+                if args.master_radius and args.raw_master and (not args.raw):
+                    with clui.tictoc('ReLoading paths (raw data)'):
+                        # get stage II options
+                        options2 = config.get_stage_options(1)
+                        with clui.fbm('Loading data dump from %s file' % options2.dump):
+                            vda = get_vda_reader(options2.dump, mode='r')
+                            result2 = vda.load()
+                        with clui.fbm('Preparing raw data'):
+                            paths = result2.pop('paths')
+                            if args.raw_singl:
+                                for p in paths:
+                                    p.discard_singletons(singl=args.raw_singl)
+                            paths = [p for p in paths if len(p.frames)]
+                            if paths_types:
+                                paths = [p for p in paths if p.name in paths_types]
 
-            if args.master_radius and args.raw_master and (not args.raw):
-                with clui.tictoc('ReLoading paths (raw data)'):
-                    # get stage II options
-                    options2 = config.get_stage_options(1)
-                    with clui.fbm('Loading data dump from %s file' % options2.dump):
-                        vda = get_vda_reader(options2.dump, mode='r')
-                        result2 = vda.load()
-                    with clui.fbm('Preparing raw data'):
-                        paths = result2.pop('paths')
-                        if args.raw_singl:
-                            for p in paths:
-                                p.discard_singletons(singl=args.raw_singl)
-                        paths = [p for p in paths if len(p.frames)]
-                        if paths_types:
-                            paths = [p for p in paths if p.name in paths_types]
+                # ----------------------------------------------------------------------#
+                # master paths profiles
 
-            # ----------------------------------------------------------------------#
-            # master paths profiles
+                limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
+                if limit_ctypes != [""]:
+                    clui.message('Limiting master paths data to %s ctypes.' % (' '.join(limit_ctypes)))
+                    for ctk in mps.keys():
+                        if str(ctk) not in limit_ctypes:
+                            mps.pop(ctk)
 
-            limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
-            if limit_ctypes != [""]:
-                clui.message('Limiting master paths data to %s ctypes.' % (' '.join(limit_ctypes)))
-                for ctk in mps.keys():
-                    if str(ctk) not in limit_ctypes:
-                        mps.pop(ctk)
+                if args.master_radius and len(mps) == 0:
+                    clui.message("No master paths data.")
 
-            if args.master_radius and len(mps) == 0:
-                clui.message("No master paths data.")
+                if args.eng_pro and len(mps) and ref is not None:
+                    with clui.tictoc('Master paths profiles calulation)'):
 
-            if args.eng_pro and len(mps) and ref is not None:
-                with clui.tictoc('Master paths profiles calulation)'):
+                        limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
+                        if limit_ctypes != [""]:
+                            for ctk in mps.keys():
+                                if str(ctk) not in limit_ctypes:
+                                    mps.pop(ctk)
 
-                    limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
-                    if limit_ctypes != [""]:
-                        for ctk in mps.keys():
-                            if str(ctk) not in limit_ctypes:
-                                mps.pop(ctk)
+                        W = args.windows
+                        WS = args.wsize
 
-                    W = args.windows
-                    WS = args.wsize
+                        many_windows = W > 1 or (W == 1 and (WS is not None))
+                        many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
 
-                    many_windows = W > 1 or (W == 1 and (WS is not None))
-                    many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
+                        pbar_len = len(paths) * len(mps) * (W + int(args.wfull))
 
-                    pbar_len = len(paths) * len(mps) * (W + int(args.wfull))
+                        pool = Pool(processes=optimal_threads.threads_count)
 
-                    pool = Pool(processes=optimal_threads.threads_count)
+                        with clui.pbar(pbar_len, mess='Calculating master paths profiles:') as pbar:
 
-                    with clui.pbar(pbar_len, mess='Calculating master paths profiles:') as pbar:
+                            # number_of_frames = Reader.number_of_frames(onelayer=False)
+                            # window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
 
-                        # number_of_frames = Reader.number_of_frames(onelayer=False)
-                        # window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
+                            for wnr, window in enumerate(
+                                    pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
 
-                        for wnr, window in enumerate(
-                                pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
+                                number_of_frames = (window[-1] - window[0])
+                                if Reader.sandwich_mode:
+                                    number_of_frames *= Reader.number_of_layers()
 
-                            number_of_frames = (window[-1] - window[0])
-                            if Reader.sandwich_mode:
-                                number_of_frames *= Reader.number_of_layers()
+                                if wnr or args.wfull:  # or not many_windows:
 
-                            if wnr or args.wfull:  # or not many_windows:
+                                    for ctype, mp in mps.iteritems():
+                                        if isinstance(mp,dict):
+                                            logger.warning("Pond cannot yet handle MasterPaths calculated with separate_master option.")
+                                            logger.warning("MasterPaths for %s skip." % ctype)
+                                            continue
+                                        fname_window = ""
+                                        fname_window_single = ""
+                                        fname = str(ctype).replace(':', '-')
+                                        if not wnr and args.wfull:
+                                            fname += '_full'
+                                        elif wnr and many_windows:
+                                            fname_window = '_W%d' % wnr
+                                            fname_window_single = "_WX"
 
-                                for ctype, mp in mps.iteritems():
-                                    if isinstance(mp,dict):
-                                        logger.warning("Pond cannot yet handle MasterPaths calculated with separate_master option.")
-                                        logger.warning("MasterPaths for %s skip." % ctype)
-                                        continue
-                                    fname_window = ""
-                                    fname_window_single = ""
-                                    fname = str(ctype).replace(':', '-')
-                                    if not wnr and args.wfull:
-                                        fname += '_full'
-                                    elif wnr and many_windows:
-                                        fname_window = '_W%d' % wnr
-                                        fname_window_single = "_WX"
+                                        mode = 'w'
+                                        if wnr > 1:
+                                            mode = 'a'
 
-                                    mode = 'w'
-                                    if wnr > 1:
-                                        mode = 'a'
+                                        centers, ids = linmet(mp.coords_cont, ids=True)
 
-                                    centers, ids = linmet(mp.coords_cont, ids=True)
+                                        D = pocket.sphere_density_raw(Reader.iterate(), args.ref_mol,
+                                                                      centers=centers, radius=args.master_radius,
+                                                                      window=window, pbar=pbar)
 
-                                    D = pocket.sphere_density_raw(Reader.iterate(), args.ref_mol,
-                                                                  centers=centers, radius=args.master_radius,
-                                                                  window=window, pbar=pbar)
+                                        H = D / float(number_of_frames) / (4. / 3. * np.pi * float(args.master_radius) ** 3)
+                                        if ref:
+                                            H = -k * args.temp * np.log(H) - ref
 
-                                    H = D / float(number_of_frames) / (4. / 3. * np.pi * float(args.master_radius) ** 3)
-                                    if ref:
-                                        H = -k * args.temp * np.log(H) - ref
+                                        with WriteMOL2(rdir + "mp_%s%s_radius%s.mol2" % (fname, fname_window_single, ptn),
+                                                       mode=mode) as mol2:
+                                            mol2.write_connected(centers, H)
 
-                                    with WriteMOL2(rdir + "mp_%s%s_radius%s.mol2" % (fname, fname_window_single, ptn),
-                                                   mode=mode) as mol2:
-                                        mol2.write_connected(centers, H)
+                                        with open(rdir + "mp_%s%s_radius.dat" % (fname, fname_window), 'w') as dat:
+                                            dat.write('len\tE' + os.linesep)
+                                            L = np.hstack((0., np.cumsum(traces.diff(centers))))
+                                            for l, E in izip(L, H):
+                                                dat.write('%f\t%f%s' % (l, E, os.linesep))
+                                    save_cric()
 
-                                    with open(rdir + "mp_%s%s_radius.dat" % (fname, fname_window), 'w') as dat:
-                                        dat.write('len\tE' + os.linesep)
-                                        L = np.hstack((0., np.cumsum(traces.diff(centers))))
-                                        for l, E in izip(L, H):
-                                            dat.write('%f\t%f%s' % (l, E, os.linesep))
-                                save_cric()
-
-                    pool.close()
-                    pool.join()
+                        pool.close()
+                        pool.join()
 
             # ----------------------------------------------------------------------#
             # Paths
