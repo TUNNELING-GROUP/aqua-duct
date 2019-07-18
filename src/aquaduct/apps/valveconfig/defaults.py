@@ -87,9 +87,18 @@ class DefaultSection(object):
         else:
             raise TypeError("entry must be DefaultEntry or DefaultSection type.")
 
-    def get_entries(self):
-        pass
+    def iter_entries(self):
+        """
+        Iterates through section entries.
+        """
+        def iter_inner(section):
+            for entry in section.entries:
+                if isinstance(entry, DefaultSection):
+                    iter_inner(entry)
+                else:
+                    yield section, entry
 
+        return iter_inner(self)
 
 
 class DefaultEntry(object):
@@ -252,7 +261,8 @@ initial_section.add_entry(DefaultEntry(config_name="cache_dir",
                                       help_text="Allows to set path to the directory for cache data.",
                                       level=2))
 
-traceable_residues_nested = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=2)
+traceable_residues_nested = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=2,
+                                           additional=True)
 traceable_residues_nested.add_entry(DefaultEntry(config_name="scope",
                                                   name="Scope: ",
                                                   default_values=["protein"],
@@ -268,7 +278,7 @@ traceable_residues_nested.add_entry(DefaultEntry(config_name="object",
 
 initial_section.add_entry(traceable_residues_nested)
 
-separate_paths_nested = DefaultSection(config_name="separate_paths", name="Separate paths", level=2)
+separate_paths_nested = DefaultSection(config_name="separate_paths", name="Separate paths", level=2, additional=True)
 separate_paths_nested.add_entry(DefaultEntry(config_name="auto_barber",
                                               name="Auto Barber: ",
                                               default_values=[str()],
