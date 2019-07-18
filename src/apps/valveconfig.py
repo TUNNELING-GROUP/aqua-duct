@@ -174,16 +174,13 @@ class ValveConfigApp(object):
 
             self.entry_filler(frame, section_name, entries)
 
-        for section_name in self.get_recursive_clustering_sections("clustering"):
-            self.append_entries(section_name)
-
-            # Increment max_level
-            self.add_max_level(1)
-
-        for section_name in self.get_recursive_clustering_sections("reclustering"):
-            self.append_entries(section_name)
-
         if self.cluster_frame_index:
+            for section_name in self.get_recursive_clustering_sections("clustering"):
+                self.append_entries(section_name)
+
+                # Increment max_level
+                self.add_max_level(1)
+
             cluster_add_button = ttk.Button(self.frames[self.cluster_frame_index], text="Add clustering section")
             # Setting row=1000 let skip calculating position of button each time new section is added
             cluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
@@ -193,6 +190,9 @@ class ValveConfigApp(object):
 
         # if "reclustering" in self.hiding_frames:
         if self.recluster_frame_index:
+            for section_name in self.get_recursive_clustering_sections("reclustering"):
+                self.append_entries(section_name)
+
             recluster_add_button = ttk.Button(self.frames[self.recluster_frame_index], text="Add reclustering section")
             # Setting row=1000 let skip calculating position of button each time new section is added
             recluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
@@ -354,6 +354,9 @@ class ValveConfigApp(object):
 
         :param section_name: Config section name where new frames will be appended, allowed are "clustering" or "reclustering".
         """
+        if self.cluster_frame_index or self.recluster_frame_index:
+            return
+
         if section_name.startswith("clustering"):
             default_section_name = "clustering"
             frame = self.frames[self.cluster_frame_index]
@@ -652,28 +655,17 @@ class ValveConfigApp(object):
             if not result:
                 return
 
-        def load(section):
-            """
-            Allows to load default values recursively
-            :param section:
-            :return:
-            """
+        for section in defaults.DEFAULTS:
             if defaults.LEVELS[self.level.get()] > section.level:
-                return
+                continue
 
-            for entry in section.entries:
+            for entry_section, entry in section.iter_entries():
                 # Skip entries that dont match level except inlets_clustering:max_level
                 if defaults.LEVELS[self.level.get()] > entry.level:
-                    if not (section.config_name == "inlets_clustering" and entry.config_name == "max_level"):
+                    if not (entry_section.config_name == "inlets_clustering" and entry.config_name == "max_level"):
                         continue
 
-                if isinstance(entry, defaults.DefaultSection):
-                    load(entry)
-                else:
-                    self.values[section.config_name][entry.config_name].set(entry.default_value)
-
-        for section in defaults.DEFAULTS:
-            load(section)
+                self.values[entry_section.config_name][entry.config_name].set(entry.default_value)
 
         # Delete appended clustering and reclustering sections
         if self.cluster_frame_index:
@@ -755,25 +747,38 @@ class ValveConfigApp(object):
         try:
             with open(config_filename, "w+") as config_file:
                 config = ConfigParser()
-                config.readfp(config_file)
 
-                for section_name in self.values:
-                    if not config.has_section(section_name):
-                        config.add_section(section_name)
+                for section in defaults.DEFAULTS:
+                    if section.config_name == "clustering" and not self.cluster_frame_index:
+                        continue
 
-                    for option_name, value in self.values[section_name].iteritems():
-                        default_value = defaults.get_default_entry(section_name, option_name).default_value
+                    if section.config_name == "reclustering" and not self.recluster_frame_index:
+                        continue
 
-                        # Skip empty strings and entries which are not visible
-                        if value.get() != "" and value.get() != default_value:
-                            if not defaults.get_default_entry(section_name, option_name).optionmenu_value:
-                                config.set(section_name, option_name, value.get())
-                            # This take care of saving options only from visible frame
-                            else:
-                                if defaults.get_default_entry(section_name,
-                                                              option_name).optionmenu_value == self.get_active_frame_name(
-                                    section_name):
-                                    config.set(section_name, option_name, value.get())
+                    if section.additional:
+                        continue
+
+                    if not config.has_section(section.config_name):
+                        config.add_section(section.config_name)
+
+                    for entry_section, entry in section.iter_entries():
+                        value = None
+
+                        # Try to get value from entry
+                        try:
+                            value = self.values[section.config_name][entry.config_name].get()
+                        except KeyError:
+                            value = entry.default_value
+
+                        if not value:
+                            continue
+
+                        if entry.optionmenu_value:
+                            # Save options only from chosen options in optionmenu
+                            if entry.optionmenu_value == self.get_active_frame_name(section.config_name):
+                                config.set(section.config_name, entry.config_name, value)
+                        else:
+                            config.set(section.config_name, entry.config_name, value)
 
                 config.write(config_file)
                 self.values_hash = self.get_values_hash()
