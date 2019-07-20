@@ -770,7 +770,7 @@ class ValveConfigApp(object):
                         except KeyError:
                             value = entry.default_value
 
-                        if not value:
+                        if value == "":
                             continue
 
                         if entry.optionmenu_value:
