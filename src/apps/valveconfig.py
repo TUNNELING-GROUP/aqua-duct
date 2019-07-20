@@ -233,17 +233,17 @@ class ValveConfigApp(object):
         file_menu.add_command(label="New", command=self.create_new_config_file_dialog)
 
         def open_config():
-            self.open_config_file()
-            self.load_config_values(self.config_filename.get())
+            if self.open_config_file():
+                self.load_config_values(self.config_filename.get())
 
-            self.values_hash = self.get_values_hash()
+                self.values_hash = self.get_values_hash()
 
         file_menu.add_command(label="Open", command=open_config)
 
         def save_callback(*args):
             if self.config_filename.get() == "":
                 f = asksaveasfile("w")
-                if self.save_config(f.name):
+                if f and self.save_config(f.name):
                     self.parent.title("{} - {}".format(self.title, f.name))
                     self.config_filename.set(f.name)
             else:
@@ -253,7 +253,9 @@ class ValveConfigApp(object):
 
         def save_as_callback(*args):
             f = asksaveasfile("w")
-            self.save_config(f.name)
+            if f and self.save_config(f.name) and self.config_filename.get() == "":
+                self.parent.title("{} - {}".format(self.title, f.name))
+                self.config_filename.set(f.name)
 
         file_menu.add_command(label="Save as", command=save_as_callback)
 
