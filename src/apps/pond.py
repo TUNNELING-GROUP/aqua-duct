@@ -569,7 +569,7 @@ if __name__ == "__main__":
                     clui.message("No master paths data.")
 
                 if args.eng_pro and len(mps) and ref is not None:
-                    with clui.tictoc('Master paths profiles calulation)'):
+                    with clui.tictoc('Master paths profiles calculation'):
 
                         limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
                         if limit_ctypes != [""]:
@@ -583,37 +583,34 @@ if __name__ == "__main__":
                         many_windows = W > 1 or (W == 1 and (WS is not None))
                         many_windows = many_windows and WS < Reader.number_of_frames(onelayer=True)
 
-                        pbar_len = len(paths) * len(mps) * (W + int(args.wfull))
+                        for wnr, window in enumerate(
+                                pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
 
-                        pool = Pool(processes=optimal_threads.threads_count)
+                            number_of_frames = (window[-1] - window[0])
+                            if Reader.sandwich_mode:
+                                number_of_frames *= Reader.number_of_layers()
 
-                        with clui.pbar(pbar_len, mess='Calculating master paths profiles:') as pbar:
+                            if wnr or args.wfull:  # or not many_windows:
+                                for ctype, mp in mps.iteritems():
+                                    if isinstance(mp,dict):
+                                        logger.warning("Pond cannot yet handle MasterPaths calculated with separate_master option.")
+                                        logger.warning("MasterPaths for %s skip." % ctype)
+                                        continue
 
-                            # number_of_frames = Reader.number_of_frames(onelayer=False)
-                            # window = pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS).next() # only full window
+                                    fname_window = ""
+                                    fname_window_single = ""
+                                    fname = str(ctype).replace(':', '-')
+                                    if not wnr and args.wfull:
+                                        fname += 'full'
+                                    elif wnr and many_windows:
+                                        fname_window = '_W%d' % wnr
+                                        fname_window_single = "_WX"
 
-                            for wnr, window in enumerate(
-                                    pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
+                                    window_name = fname if fname else wnr
+                                    with clui.pbar(mess="Calculate energy for {} window".format(window_name),
+                                                   maxval=int(number_of_frames)) as pbar:
 
-                                number_of_frames = (window[-1] - window[0])
-                                if Reader.sandwich_mode:
-                                    number_of_frames *= Reader.number_of_layers()
-
-                                if wnr or args.wfull:  # or not many_windows:
-
-                                    for ctype, mp in mps.iteritems():
-                                        if isinstance(mp,dict):
-                                            logger.warning("Pond cannot yet handle MasterPaths calculated with separate_master option.")
-                                            logger.warning("MasterPaths for %s skip." % ctype)
-                                            continue
-                                        fname_window = ""
-                                        fname_window_single = ""
-                                        fname = str(ctype).replace(':', '-')
-                                        if not wnr and args.wfull:
-                                            fname += '_full'
-                                        elif wnr and many_windows:
-                                            fname_window = '_W%d' % wnr
-                                            fname_window_single = "_WX"
+                                        pool = Pool(processes=optimal_threads.threads_count)
 
                                         mode = 'w'
                                         if wnr > 1:
@@ -622,7 +619,7 @@ if __name__ == "__main__":
                                         centers, ids = linmet(mp.coords_cont, ids=True)
 
                                         D = pocket.sphere_density_raw(Reader.iterate(), args.ref_mol,
-                                                                      centers=centers, radius=args.master_radius,
+                                                                      centers, args.master_radius, pool,
                                                                       window=window, pbar=pbar)
 
                                         H = D / float(number_of_frames) / (4. / 3. * np.pi * float(args.master_radius) ** 3)
@@ -638,10 +635,9 @@ if __name__ == "__main__":
                                             L = np.hstack((0., np.cumsum(traces.diff(centers))))
                                             for l, E in izip(L, H):
                                                 dat.write('%f\t%f%s' % (l, E, os.linesep))
-                                    save_cric()
-
-                        pool.close()
-                        pool.join()
+                                    pool.close()
+                                    pool.join()
+                                save_cric()
 
             # ----------------------------------------------------------------------#
             # Paths
@@ -780,7 +776,6 @@ if __name__ == "__main__":
                                 number_of_frames *= Reader.number_of_layers()
 
                             if wnr or args.wfull:  # or not many_windows:
-
                                 # TODO: Handling names variables need to be refactored
                                 fname_window = ""
                                 fname_window_single = ""
