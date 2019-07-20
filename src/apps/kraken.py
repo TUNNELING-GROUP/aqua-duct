@@ -29,6 +29,7 @@ from tkFileDialog import askopenfile
 
 import matplotlib.pyplot as plt
 
+import aquaduct
 import aquaduct.apps.valveconfig.utils as utils
 from aquaduct.apps.chord import Chord, color_gen
 from aquaduct.apps.valveconfig import get_img
@@ -499,6 +500,10 @@ class Kraken(object):
         logo_label.image = logo
         logo_label.pack(padx=20, pady=20)
 
+        # Used to auto positioning depending on length of version string
+        version = "ver. " + aquaduct.version_nice()
+        ttk.Label(logo_label, text=version, background="white").place(relx=1, rely=1, x=-len(version) * 7, y=-20)
+
         self.main_frame = utils.VerticalScrolledFrame(self.parent)
         self.main_frame.pack(expand=1, fill="both")
         self.main_frame = self.main_frame.interior
@@ -962,6 +967,9 @@ if __name__ == "__main__":
     root = tk.Tk()
     root.configure(background="white")
     root.resizable(1, 1)
+
+    aq_icon = tk.PhotoImage(file=get_img("icon.gif"))
+    root.tk.call('wm', 'iconphoto', root._w, aq_icon)
 
     s = ttk.Style()
     s.theme_use("clam")
