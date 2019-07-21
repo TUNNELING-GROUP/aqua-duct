@@ -356,7 +356,10 @@ class ValveConfigApp(object):
 
         :param section_name: Config section name where new frames will be appended, allowed are "clustering" or "reclustering".
         """
-        if self.cluster_frame_index or self.recluster_frame_index:
+        if not self.cluster_frame_index:
+            return
+
+        if not self.recluster_frame_index:
             return
 
         if section_name.startswith("clustering"):
@@ -472,14 +475,17 @@ class ValveConfigApp(object):
                 if section_name not in self.values:
                     self.values[section_name] = {}
 
-                self.values[section_name][entry.config_name] = utils.entry_factory(hiding_frame,
-                                                                                   hiding_frame.grid_size()[1],
-                                                                                   entry.name,
-                                                                                   entry.default_values,
-                                                                                   entry.help_text,
-                                                                                   state,
-                                                                                   info_text=entry.info_text,
-                                                                                   warning_text=entry.warning_text)
+                if entry.optionmenu_value not in self.values[section_name]:
+                    self.values[section_name][entry.optionmenu_value] = {}
+
+                self.values[section_name][entry.optionmenu_value][entry.config_name] = utils.entry_factory(hiding_frame,
+                                                                                                           hiding_frame.grid_size()[1],
+                                                                                                           entry.name,
+                                                                                                           entry.default_values,
+                                                                                                           entry.help_text,
+                                                                                                           state,
+                                                                                                           info_text=entry.info_text,
+                                                                                                           warning_text=entry.warning_text)
 
                 if entry.required:
                     self.required_entries[section_name][entry.config_name] = self.values[section_name][
@@ -603,9 +609,10 @@ class ValveConfigApp(object):
     def get_values_hash(self):
         """ Compute hash from values. """
         hash = hashlib.md5()
-        for section_name in self.values:
-            for value in self.values[section_name].itervalues():
-                hash.update(str(value.get()))
+        hash.update(str(self.values))
+        # for section_name in self.values:
+        #     for value in self.values[section_name].itervalues():
+        #         hash.update(str(value.get()))
 
         return hash.digest()
 
@@ -725,17 +732,47 @@ class ValveConfigApp(object):
             first_found = [None, None, None]  # Keeps info of first found unfilled entry
             for i, section_name in enumerate(self.values):
                 for entry_name in self.values[section_name]:
-                    if not self.values[section_name][entry_name].get() and entry_name in self.required_entries[
-                        section_name]:
-                        section_full_name = defaults.get_default_section(section_name).name
-                        entry_full_name = defaults.get_default_entry(section_name, entry_name).name[:-2]
+                    if isinstance(self.values[section_name][entry_name], dict):
+                        for entry_name_optionmenu, entry_value_optionmenu in self.values[section_name][entry_name].iteritems():
+                            if not entry_value_optionmenu.get() and entry_name_optionmenu in self.required_entries[section_name]:
+                                section_full_name = defaults.get_default_section(section_name).name
+                                entry_full_name = defaults.get_default_entry(section_name, entry_value_optionmenu).name[:-2]
 
-                        if not first_found[0]:
-                            first_found[0] = section_full_name
-                            first_found[1] = entry_full_name
-                            first_found[2] = tabs_id[i]
+                                if not first_found[0]:
+                                    first_found[0] = section_full_name
+                                    first_found[1] = entry_full_name
+                                    first_found[2] = tabs_id[i]
 
-                        self.required_entries[section_name][entry_name].highlight()
+                                self.required_entries[section_name][entry_name].highlight()
+                    else:
+                        if not self.values[section_name][entry_name].get() and entry_name in self.required_entries[section_name]:
+                            section_full_name = defaults.get_default_section(section_name).name
+                            entry_full_name = defaults.get_default_entry(section_name, entry_name).name[:-2]
+
+                            if not first_found[0]:
+                                first_found[0] = section_full_name
+                                first_found[1] = entry_full_name
+                                first_found[2] = tabs_id[i]
+
+                            self.required_entries[section_name][entry_name].highlight()
+
+                    # default_entry = defaults.get_default_entry(section_name, entry_name)
+                    # if default_entry.optionmenu_value:
+                    #     entry = self.values[section_name][default_entry.optionmenu_value][entry_name]
+                    # else:
+                    #     entry = self.values[section_name][entry_name]
+
+                    # if not entry.get() and entry_name in self.required_entries[
+                    #     section_name]:
+                    #     section_full_name = defaults.get_default_section(section_name).name
+                    #     entry_full_name = defaults.get_default_entry(section_name, entry_name).name[:-2]
+                    #
+                    #     if not first_found[0]:
+                    #         first_found[0] = section_full_name
+                    #         first_found[1] = entry_full_name
+                    #         first_found[2] = tabs_id[i]
+                    #
+                    #     self.required_entries[section_name][entry_name].highlight()
 
             if first_found[2]:  # 0 and 1 indexes is not checked because it can be just an empty string
                 tkMessageBox.showerror("Unfilled field",
@@ -751,10 +788,10 @@ class ValveConfigApp(object):
                 config = ConfigParser()
 
                 for section in defaults.DEFAULTS:
-                    if section.config_name == "clustering" and not self.cluster_frame_index:
+                    if section.config_name == "clustering" and self.cluster_frame_index is None:
                         continue
 
-                    if section.config_name == "reclustering" and not self.recluster_frame_index:
+                    if section.config_name == "reclustering" and self.recluster_frame_index is None:
                         continue
 
                     if section.additional:
@@ -768,11 +805,14 @@ class ValveConfigApp(object):
 
                         # Try to get value from entry
                         try:
-                            value = self.values[section.config_name][entry.config_name].get()
+                            if entry.optionmenu_value:
+                                value = self.values[section.config_name][entry.optionmenu_value][entry.config_name].get()
+                            else:
+                                value = self.values[section.config_name][entry.config_name].get()
                         except KeyError:
                             value = entry.default_value
 
-                        if value == "":
+                        if value == "" or value == 0:
                             continue
 
                         if entry.optionmenu_value:
@@ -781,6 +821,38 @@ class ValveConfigApp(object):
                                 config.set(section.config_name, entry.config_name, value)
                         else:
                             config.set(section.config_name, entry.config_name, value)
+
+                # Add created clustering and reclustering sections
+                clustering_section_names = [key for key in self.values.keys() if
+                                            key.startswith("clustering") and not key == "clustering"]
+                reclustering_section_names = [key for key in self.values.keys() if
+                                              key.startswith("reclustering") and not key == "reclustering"]
+
+                for section_name in clustering_section_names + reclustering_section_names:
+                    section_config_name = self.values[section_name]["name"].get()
+                    config.add_section(section_config_name)
+
+                    for entry_section, entry in defaults.get_default_section(section_name).iter_entries():
+                        value = None
+
+                        # Try to get value from entry
+                        try:
+                            if entry.optionmenu_value:
+                                value = self.values[section_name][entry.optionmenu_value][entry.config_name].get()
+                            else:
+                                value = self.values[section_name][entry.config_name].get()
+                        except KeyError:
+                            value = entry.default_value
+
+                        if value == "" or value == 0:
+                            continue
+
+                        if entry.optionmenu_value:
+                            # Save options only from chosen options in optionmenu
+                            if entry.optionmenu_value == self.get_active_frame_name(section_name):
+                                config.set(section_config_name, entry.config_name, value)
+                        else:
+                            config.set(section_config_name, entry.config_name, value)
 
                 config.write(config_file)
                 self.values_hash = self.get_values_hash()
