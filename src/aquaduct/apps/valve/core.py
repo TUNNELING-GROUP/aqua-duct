@@ -1761,6 +1761,7 @@ def stage_VI_run(config, options,
         from aquaduct.geom import hdr
         from aquaduct.geom.hdr_contour import hdr2contour, iscontour
         if iscontour:
+            cmap = cmaps._cmap_jet_256
             with clui.fbm("Clusters contours"):
                 for c in inls.clusters_list:
                     if Reader.sandwich_mode:
@@ -1771,7 +1772,6 @@ def stage_VI_run(config, options,
                                 c_name = 'out'
                             else:
                                 c_name = str(int(c))
-                            cmap = cmaps._cmap_jet_256
                             # calcualte hdr
                             # print inls.center_of_system, c_name, len(ics), alt_center_of_system
                             if len(ics) < 3: continue
@@ -1793,7 +1793,6 @@ def stage_VI_run(config, options,
                             c_name = 'out'
                         else:
                             c_name = str(int(c))
-                        cmap = cmaps._cmap_jet_256
                         # calcualte hdr
                         # print inls.center_of_system, c_name, len(ics), alt_center_of_system
                         if len(ics) < 3: continue
