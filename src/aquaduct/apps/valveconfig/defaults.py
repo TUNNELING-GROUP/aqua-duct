@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import copy
 
 class longstr(str):
     """
@@ -484,7 +485,7 @@ traceable_residues_section.add_entry(DefaultEntry(config_name="add_passing",
                                                   warning_text="Could be time-consuming."))
 DEFAULTS.append(traceable_residues_section)
 
-tracking_section.add_entry(traceable_residues_section)
+tracking_section.add_entry(copy.copy(traceable_residues_section))
 tracking_section.add_entry(separate_paths_nested)
 
 DEFAULTS.append(tracking_section)
