@@ -560,12 +560,20 @@ def stage_III_run(config, options,
                 # CRIC AWARE MP!
                 if short_object is not None:
                     Reader.reset()
-                    for pid in spaths_paths_ids(spaths):
+                    #for sp in spaths: print str(sp.id),str(sp.id.id)
+                    #for pid in spaths_paths_ids(spaths): print str(pid)
+
+                    for pid in list(spaths_paths_ids(spaths)):
+                        #print str(pid)
+                        #pinput = [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid]
+                        #print "input",pinput
+                        #new_spaths.callback_cric_next(dse(pinput))
+
                         pool.apply_async(dse, args=(
                             [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
                                          callback=new_spaths.callback_cric_next)
                 else:
-                    for pid in spaths_paths_ids(spaths):
+                    for pid in list(spaths_paths_ids(spaths)):
                         pool.apply_async(dse, args=(
                             [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
                                          callback=new_spaths.callback_next)
@@ -696,12 +704,12 @@ def stage_III_run(config, options,
                     # CRIC AWARE MP!
                     if short_object is not None:
                         Reader.reset()
-                        for pid in spaths_paths_ids(spaths):
+                        for pid in list(spaths_paths_ids(spaths)):
                             pool.apply_async(dse, args=(
                                 [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
                                              callback=new_spaths.callback_cric_next)
                     else:
-                        for pid in spaths_paths_ids(spaths):
+                        for pid in list(spaths_paths_ids(spaths)):
                             pool.apply_async(dse, args=(
                                 [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
                                              callback=new_spaths.callback_next)
