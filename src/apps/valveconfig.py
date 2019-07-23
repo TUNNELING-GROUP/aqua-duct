@@ -356,10 +356,10 @@ class ValveConfigApp(object):
 
         :param section_name: Config section name where new frames will be appended, allowed are "clustering" or "reclustering".
         """
-        if not self.cluster_frame_index:
+        if section_name.startswith("clustering") and not self.cluster_frame_index:
             return
 
-        if not self.recluster_frame_index:
+        if section_name.startswith("reclustering") and not self.recluster_frame_index:
             return
 
         if section_name.startswith("clustering"):
