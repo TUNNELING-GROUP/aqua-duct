@@ -152,9 +152,6 @@ if __name__ == "__main__":
             parser.add_argument("--io-threshold", action="store", dest="io_threshold", type=float, required=False,
                                 default=None,
                                 help="Percent value of maximal density which will be used to partition pocket into inner and outer instead of mean value.")
-            parser.add_argument("--hs-threshold", action="store", dest="hs_threshold", type=float, required=False,
-                                default=0.,
-                                help="Percent value of highest hotspot density below which hotspots with lower density will be skipped.")
             parser.add_argument("--path-id", action="store", dest="path_id", type=str, required=False,
                                 default=None, help="Calculate profiles for specified path ID.")
             parser.add_argument("--path-file", action="store", dest="path_file", type=str, required=False,
