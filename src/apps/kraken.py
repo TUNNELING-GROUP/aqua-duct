@@ -360,7 +360,7 @@ def volume_scope_area(csv_processor):
     fig, ax = plt.subplots()
     ax.set_title("Scope area")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("Area")
+    ax.set_ylabel(u"Area \u00C5^2$")
 
     x = csv_processor.get_column_values("# frame")
     y = csv_processor.get_column_values("scope_area")
@@ -378,7 +378,7 @@ def volume_scope_volume(csv_processor):
     fig, ax = plt.subplots()
     ax.set_title("Scope volume")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("Volume")
+    ax.set_ylabel(u"Volume \u00C5^3$")
 
     x = csv_processor.get_column_values("# frame")
     y = csv_processor.get_column_values("scope_volume")
@@ -396,7 +396,7 @@ def volume_object_area(csv_processor):
     fig, ax = plt.subplots()
     ax.set_title("Object area")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("Area")
+    ax.set_ylabel(u"Area \u00C5^2$")
 
     x = csv_processor.get_column_values("# frame")
     y = csv_processor.get_column_values("object_area")
@@ -414,7 +414,7 @@ def volume_object_volume(csv_processor):
     fig, ax = plt.subplots()
     ax.set_title("Object volume")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("Area")
+    ax.set_ylabel(u"Volume \u00C5^3$")
 
     x = csv_processor.get_column_values("# frame")
     y = csv_processor.get_column_values("object_volume")
