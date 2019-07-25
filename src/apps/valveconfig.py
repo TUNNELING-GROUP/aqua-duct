@@ -690,7 +690,10 @@ class ValveConfigApp(object):
                     if not (entry_section.config_name == "inlets_clustering" and entry.config_name == "max_level"):
                         continue
 
-                self.values[entry_section.config_name][entry.config_name].set(entry.default_value)
+                if entry.optionmenu_value:
+                    self.values[entry_section.config_name][entry.optionmenu_value][entry.config_name].set(entry.default_value)
+                else:
+                    self.values[entry_section.config_name][entry.config_name].set(entry.default_value)
 
         # Delete appended clustering and reclustering sections
         if self.cluster_frame_index:
