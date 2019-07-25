@@ -609,7 +609,7 @@ def stage_III_run(config, options,
     if options.auto_barber:
         new_paths = NP(None)  # no progress bar (yet)
         for tn in iter_over_tn():  # tn is a list of traced names
-            with clui.fbm("AutoBarber calcluations for %s" % ' '.join(tn), cont=False):
+            with clui.fbm("AutoBarber calculations for %s" % ' '.join(tn), cont=False):
                 wtc = WhereToCut(spaths=[sp for sp in spaths if sp.id.name in tn],
                                  selection=options.auto_barber,
                                  mincut=options.auto_barber_mincut,
