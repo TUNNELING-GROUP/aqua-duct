@@ -270,7 +270,7 @@ class ValveConfigApp(object):
         # Run menu
         run_menu = tk.Menu(menu_bar, tearoff=0)
         run_menu.add_command(label="Valve", command=self.valve_run_dialog)
-        run_menu.add_command(label="Pond", command=self.pond_run_dialog)
+        # run_menu.add_command(label="Pond", command=self.pond_run_dialog)
         menu_bar.add_cascade(label="Run", menu=run_menu)
 
         # Help menu
