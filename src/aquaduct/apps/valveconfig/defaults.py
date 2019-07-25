@@ -438,7 +438,7 @@ tracking_section.add_entry(copy.copy(traceable_residues_section))
 tracking_section.add_entry(separate_paths_nested)
 
 tracking_analysis_nested_section = DefaultSection(config_name="analysis",
-                                                  name="Calculate scope object size",
+                                                  name="Calculate scope and object size",
                                                   level=1,
                                                   abs_level=1,
                                                   additional=True)

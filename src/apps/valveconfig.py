@@ -816,7 +816,6 @@ class ValveConfigApp(object):
                     if not config.has_section(section.config_name):
                         config.add_section(section.config_name)
 
-                    print(section.config_name)
                     for entry_section, entry in section.iter_entries():
                         value = None
 
