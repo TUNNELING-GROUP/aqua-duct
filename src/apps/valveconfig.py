@@ -595,6 +595,9 @@ class ValveConfigApp(object):
         # Save values to temporary file.
         self.save_config(tmpfile.name, required_checking=False)
 
+        self.cluster_frame_index = None
+        self.recluster_frame_index = None
+
         for tab_id in self.notebook.tabs():
             self.notebook.forget(tab_id)
 
@@ -800,6 +803,7 @@ class ValveConfigApp(object):
                     if not config.has_section(section.config_name):
                         config.add_section(section.config_name)
 
+                    print(section.config_name)
                     for entry_section, entry in section.iter_entries():
                         value = None
 
