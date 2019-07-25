@@ -244,6 +244,7 @@ def stage_I_run(config, options,
 def waterfall_me(paths, pbar=None):
     number_of_frames = Reader.number_of_frames(onelayer=True)
 
+
     N = len(paths)  # number of paths
     for n in range(N):
         frames = paths[0].frames
@@ -260,6 +261,10 @@ def waterfall_me(paths, pbar=None):
                         this_frames.append(f)
                         this_types.append(t)
                 if len(this_frames):
+                    #p = GenericPaths(paths[0].id,
+                    #                 name_of_res=paths[0].name,
+                    #                 min_pf=0,
+                    #                 max_pf=number_of_frames-1)
                     p = GenericPaths(paths[0].id,
                                      name_of_res=paths[0].name,
                                      min_pf=min_pf,
@@ -560,15 +565,8 @@ def stage_III_run(config, options,
                 # CRIC AWARE MP!
                 if short_object is not None:
                     Reader.reset()
-                    #for sp in spaths: print str(sp.id),str(sp.id.id)
-                    #for pid in spaths_paths_ids(spaths): print str(pid)
 
                     for pid in list(spaths_paths_ids(spaths)):
-                        #print str(pid)
-                        #pinput = [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid]
-                        #print "input",pinput
-                        #new_spaths.callback_cric_next(dse(pinput))
-
                         pool.apply_async(dse, args=(
                             [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
                                          callback=new_spaths.callback_cric_next)
@@ -719,7 +717,7 @@ def stage_III_run(config, options,
                     gc.collect()
                     spaths = new_spaths.paths
                     del new_spaths
-                # del spathsqq
+                # del spaths
                 spaths_nr_new = len(spaths)
                 if spaths_nr == spaths_nr_new:
                     clui.message("No paths were discarded.")
