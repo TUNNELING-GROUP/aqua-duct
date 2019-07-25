@@ -310,68 +310,7 @@ clust_easy_section.add_entry(DefaultEntry(config_name="max_level",
                                           level=0,
                                           info_text=" "))
 
-inner_clustering_section = DefaultSection(config_name="clustering", name="Clustering", level=2, abs_level=2, additional=True)
-inner_clustering_section.add_entry(DefaultEntry(config_name="name",
-                                                name="Name: ",
-                                                default_values=["clustering"],
-                                                help_text="Used to refer other clustering method in \"Recursive clustering\" option",
-                                                level=2))
-inner_clustering_section.add_entry(DefaultEntry(config_name="method",
-                                                name="Method: ",
-                                                default_values=[
-                                                    ("barber", "dbscan", "affprop", "meanshift", "birch", "kmeans")],
-                                                help_text="Name of clustering method. ",
-                                                level=2))
-
-# Barber options
-inner_clustering_section.add_entry(DefaultEntry(config_name="auto_barber",
-                                                name="Auto barber: ",
-                                                default_values=[str()],
-                                                help_text="This option allows to select molecular entity used in Auto Barber procedure.",
-                                                level=2,
-                                                optionmenu_value="barber"))
-
-# Meanshift options
-inner_clustering_section.add_entry(DefaultEntry(config_name="bandwidth",
-                                                name="Bandwidth: ",
-                                                default_values=["Auto"],
-                                                help_text="Bandwidth used in the RBF kernel. If Auto or None automatic method for bandwidth estimation is used.",
-                                                level=2,
-                                                optionmenu_value="meanshift"))
-
-# Birch options
-inner_clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
-                                                name="Cluster number: ",
-                                                default_values=[int()],
-                                                help_text="Number of clusters after the final clustering step, which treats the subclusters from the leaves as new samples. By default, this final clustering step is not performed and the subclusters are returned as they are.",
-                                                level=2,
-                                                optionmenu_value="birch"))
-
-# Kmeans options
-inner_clustering_section.add_entry(DefaultEntry(config_name="n_clusters",
-                                                name="Cluster number: ",
-                                                default_values=[int()],
-                                                help_text="The number of clusters to form as well as the number of centroids to generate.",
-                                                level=2,
-                                                optionmenu_value="kmeans"))
-
-clust_easy_section.add_entry(inner_clustering_section)
-
-clust_easy_section.add_entry(DefaultEntry(config_name="join_clusters",
-                                          name="Join clusters: ",
-                                          default_values=[str()],
-                                          help_text="This option allows to join selected clusters. Clusters’ IDs joined with + character lists clusters to be joined together. Several such blocks separated by space can be used. For example, if set to 1+3+4 5+6 clusters 1, 3, and 4 will be joined in one cluster and cluster 5, and 6 will be also joined in another cluster.",
-                                          level=2,
-                                          group_label="Post Clustering Optimization"))
-clust_easy_section.add_entry(DefaultEntry(config_name="renumber_clusters",
-                                          name="Renumber clusters: ",
-                                          default_values=[False],
-                                          help_text="If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
-                                          level=2,
-                                          group_label="Post Clustering Optimization"))
-
 DEFAULTS.append(clust_easy_section)
-
 
 ###
 # Global, Common
@@ -1441,6 +1380,22 @@ smooth_section.add_entry(DefaultEntry(config_name="polyorder",
                                       level=0))
 
 separate_paths_section.add_entry(smooth_section)
+
+# Added rest of easy clustering section entries
+clust_easy_section.add_entry(copy.copy(clustering_section))
+
+clust_easy_section.add_entry(DefaultEntry(config_name="join_clusters",
+                                          name="Join clusters: ",
+                                          default_values=[str()],
+                                          help_text="This option allows to join selected clusters. Clusters’ IDs joined with + character lists clusters to be joined together. Several such blocks separated by space can be used. For example, if set to 1+3+4 5+6 clusters 1, 3, and 4 will be joined in one cluster and cluster 5, and 6 will be also joined in another cluster.",
+                                          level=2,
+                                          group_label="Post Clustering Optimization"))
+clust_easy_section.add_entry(DefaultEntry(config_name="renumber_clusters",
+                                          name="Renumber clusters: ",
+                                          default_values=[False],
+                                          help_text="If set True, clusters have consecutive numbers starting from 1 (or 0 if outliers are present) starting from the bigest cluster.",
+                                          level=2,
+                                          group_label="Post Clustering Optimization"))
 
 VALVE_DEFAULTS = DefaultSection("", "", 0)
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
