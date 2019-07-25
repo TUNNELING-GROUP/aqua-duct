@@ -220,9 +220,9 @@ def stage_I_run(config, options,
                 all_res.add(passing)
                 all_res.uniquify()
 
-    unsandwitchize = not Reader.sandwich_mode and len(number_frame_rid_in_object) > 1
-    if unsandwitchize:
-        with clui.fbm("Unsandwitchize traced residues"):
+    unsandwichize = not Reader.sandwich_mode and len(number_frame_rid_in_object) > 1
+    if unsandwichize:
+        with clui.fbm("Unsandwichize traced residues"):
             # all_res, each layer should comprise of the same res
             all_res_ids = sorted(set([i[-1] for i in all_res.ids()]))
             all_res = ResidueSelection({0: all_res_ids})
@@ -393,8 +393,8 @@ def stage_II_run(config, options,
     # now, results holds 012 matrices, make paths out of it
     # TODO: Following could be easily written in parallel.
 
-    unsandwitchize = not Reader.sandwich_mode and len(results) > 1
-    if not unsandwitchize:
+    unsandwichize = not Reader.sandwich_mode and len(results) > 1
+    if not unsandwichize:
         with clui.pbar(len(all_res), 'Creating raw paths:') as pbar:
             new_paths = NP(pbar)
             for number in sorted(results.keys()):
@@ -414,7 +414,7 @@ def stage_II_run(config, options,
                 pool.close()
                 pool.join()
 
-    elif unsandwitchize:
+    elif unsandwichize:
         # make coherent paths
         # paths names, paths
         max_pf = Reader.number_of_frames() - 1
