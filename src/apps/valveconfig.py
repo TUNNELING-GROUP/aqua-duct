@@ -547,6 +547,19 @@ class ValveConfigApp(object):
             if self.values.get(section_name, None):
                 self.option_menu_changed(section_name, self.values[section_name][entry_name])
 
+    def re_clustering_exists(self, section_name):
+        """
+        Returns true if clustering or reclustering sections exists
+
+        It omit ability to create recursive sections
+
+        :param section_name: Section name
+        :type str
+        :return: True if section exists, otherwise False
+        :rtype bool
+        """
+        return section_name in self.hiding_frames
+
     def option_menu_changed(self, section, entry):
         """
         Callback for option menu that control hiding frames
@@ -791,13 +804,13 @@ class ValveConfigApp(object):
                 config = ConfigParser()
 
                 for section in defaults.DEFAULTS:
-                    if section.config_name == "clustering" and self.cluster_frame_index is None:
-                        continue
-
-                    if section.config_name == "reclustering" and self.recluster_frame_index is None:
-                        continue
-
                     if section.additional:
+                        continue
+
+                    if section.config_name == "clustering" and not self.re_clustering_exists(section.config_name):
+                        continue
+
+                    if section.config_name == "reclustering" and not self.re_clustering_exists(section.config_name):
                         continue
 
                     if not config.has_section(section.config_name):
