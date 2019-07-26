@@ -604,7 +604,7 @@ if __name__ == "__main__":
                                         fname_window_single = "_WX"
 
                                     window_name = fname if fname else wnr
-                                    with clui.pbar(mess="Calculate energy for {} window".format(window_name),
+                                    with clui.pbar(mess="Calculate energy for window {}".format(window_name),
                                                    maxval=int(number_of_frames)) as pbar:
 
                                         pool = Pool(processes=optimal_threads.threads_count)
@@ -785,7 +785,7 @@ if __name__ == "__main__":
                                     fname_window_single = "_WX"
 
                                 window_name = fname if fname else wnr
-                                with clui.pbar(mess="Calculate energy for {} window".format(window_name),
+                                with clui.pbar(mess="Calculate energy for window {}".format(window_name),
                                                maxval=int(number_of_frames)) as pbar:
 
                                     pool = Pool(processes=optimal_threads.threads_count)
