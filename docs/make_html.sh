@@ -59,7 +59,7 @@ sed -e 's/AQPIP/'"$AQPIP"'/' source/aquaduct_install.template > source/aquaduct_
 
 # AQ installation requirements
 echo "* Python 2.7 (CPython implementation)" > source/aquaduct_install_requires.rst
-printf 'install_requires_nice(1)' | python -i ../src/setup.py -n --name | sed '1d' 2>&1 >> source/aquaduct_install_requires.rst | cat > /dev/null
+printf 'install_requires_nice(1)' | python2.7 -i ../src/setup.py -n --name | sed '1d' 2>&1 >> source/aquaduct_install_requires.rst | cat > /dev/null
 
 rm -rf -- build/html*
 $MAKE SPHINXBUILD=$SPHINXBUILD html

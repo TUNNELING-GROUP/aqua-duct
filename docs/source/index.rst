@@ -16,4 +16,7 @@ Welcome to Aqua-Duct's documentation!
     Valve tutorial <valve/valve_tutorial>
     Aqua-Duct API documentation <modules>
 
-.. include:: other_versions.rst
+
+PDF version of this documentation is also `available <Aqua-Duct.pdf>`_.
+
+Go back to `current version <../index.html>`_ documentation.
