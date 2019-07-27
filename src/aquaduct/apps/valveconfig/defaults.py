@@ -1399,9 +1399,9 @@ clust_easy_section.add_entry(DefaultEntry(config_name="renumber_clusters",
 
 VALVE_DEFAULTS = DefaultSection("", "", 0)
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-c",
-                                      name="Config file path: ",
+                                      name="Config absolute file path: ",
                                       default_values=[filetype()],
-                                      help_text="Full path to config file.",
+                                      help_text="Absolute path to config file.",
                                       level=None
                                       ))
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="-t",
@@ -1423,9 +1423,9 @@ VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug",
                                       level=None
                                       ))
 VALVE_DEFAULTS.add_entry(DefaultEntry(config_name="--debug-file",
-                                      name="Debug file path: ",
+                                      name="Debug absolute file path: ",
                                       default_values=[filetype()],
-                                      help_text="Full path to debug file.",
+                                      help_text="Absolute path to debug file.",
                                       level=None
                                       ))
 
