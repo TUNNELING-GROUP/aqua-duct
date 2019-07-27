@@ -245,9 +245,12 @@ class ValveConfigApp(object):
         def save_callback(*args):
             if self.config_filename.get() == "":
                 f = asksaveasfile("w")
+                f.close()
                 if f and self.save_config(f.name):
                     self.parent.title("{} - {}".format(self.title, f.name))
                     self.config_filename.set(f.name)
+                else:
+                    os.remove(f.name)
             else:
                 self.save_config(self.config_filename.get())
 
@@ -605,6 +608,7 @@ class ValveConfigApp(object):
         :param args: Event informations.
         """
         tmpfile = tempfile.NamedTemporaryFile(delete=False)
+        tmpfile.close()
         tmp_filename = tmpfile.name
 
         # Save values to temporary file.
