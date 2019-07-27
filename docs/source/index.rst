@@ -17,4 +17,6 @@ Welcome to Aqua-Duct's documentation!
     Aqua-Duct API documentation <modules>
     Changelog <changelog>
 
-.. include:: other_versions.rst
+PDF version of this documentation is also `available <Aqua-Duct.pdf>`_.
+
+Go back to `current version <../index.html>`_ documentation.
