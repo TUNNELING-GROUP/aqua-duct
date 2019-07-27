@@ -1006,7 +1006,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
         # Update field with opened config file
         args["-c"].set(self.config_filename.get())
 
-        run_cb = utils.CallbackWrapper(os.system, command.get())
+        run_cb = utils.CallbackWrapper(os.system, command.get() + " & disown")
         run_button = ttk.Button(frame, text="Run")
         run_button.bind("<Button-1>", run_cb)
         run_button.grid(row=1000, column=0, columnspan=2)
