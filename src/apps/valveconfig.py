@@ -66,6 +66,8 @@ class ValveConfigApp(object):
         self.required_entries = defaultdict(dict)
 
         self.config_filename = tk.StringVar()
+        # Used to determine if max_level difference message should be displayed
+        self.config_loaded = False
 
         self.values_hash = self.get_values_hash()
 
@@ -324,7 +326,7 @@ class ValveConfigApp(object):
         Finds recursively all section used in recursive_clustering options
 
         :param section_name: Config section name from which fetching will start.
-        :return Section names.
+        :return Uniqe section names without section_name param.
         :rtype: list
         """
         if section_name != "clustering" and section_name != "reclustering":
@@ -336,10 +338,10 @@ class ValveConfigApp(object):
                 config = ConfigParser()
                 config.readfp(config_file)
 
-                clustering_sections = []
         except IOError:  # File is empty
             return []
 
+        clustering_sections = []
         try:
             clustering_section = config.get(section_name, "recursive_clustering")
             while clustering_section not in clustering_sections and clustering_section != "None":
@@ -348,7 +350,7 @@ class ValveConfigApp(object):
         except (NoOptionError, NoSectionError):
             pass
 
-        return clustering_sections
+        return list(set(clustering_sections).difference([section_name]))
 
     def append_entries(self, section_name):
         """
@@ -641,6 +643,13 @@ class ValveConfigApp(object):
 
         :param config_filename: Name of file with configuration.
         """
+        # Config can be loaded when UI was created.
+        # Checking if there is no additional clustering or reclustering sections and add them.
+        if self.re_clustering_exists("clustering"):
+            for section_name in self.get_recursive_clustering_sections("clustering"):
+                if not self.re_clustering_exists(section_name):
+                    self.append_entries(section_name)
+
         with open(config_filename, "r") as config_file:
             config = ConfigParser()
             config.readfp(config_file)
@@ -648,25 +657,39 @@ class ValveConfigApp(object):
             for section_name in self.values:
                 for entry_name in self.values[section_name]:
 
-                    try:
-                        config_value = config.get(section_name, entry_name)
+                    # Additional for is required to handle clustering/reclustering methods
+                    entries = [entry_name] if not isinstance(self.values[section_name][entry_name], dict) else self.values[section_name][entry_name]
+                    for entry_name in entries:
+                        try:
+                            config_value = config.get(section_name, entry_name)
 
-                        #  Inform user that config max_level differ from number of found recursive clustering
-                        result = True
-                        if section_name == "inlets_clustering" and entry_name == "max_level":
-                            if self.values["inlets_clustering"]["max_level"] != config_value:
-                                result = tkMessageBox.askyesno("Max level",
-                                                               "Config max_level value differs from number of found clustering sections.\n"
-                                                               "Do you want to keep value from configuration file?")
+                            #  Inform user that config max_level differ from number of found recursive clustering
+                            result = True
+                            if section_name == "inlets_clustering" and entry_name == "max_level" and self.config_loaded:
+                                if self.values["inlets_clustering"]["max_level"].get() != int(config_value):
+                                    result = tkMessageBox.askyesno("Max level",
+                                                                   "Config max_level value differs from number of found clustering sections.\n"
+                                                                   "Do you want to keep value from configuration file?")
 
-                        if not result:
+                            if not result:
+                                continue
+
+                            optionmenu_value = defaults.get_default_entry(section_name, entry_name).optionmenu_value
+                            if optionmenu_value:
+                                try:
+                                    method = config.get(section_name, "method")
+                                except NoOptionError:
+                                    method = defaults.get_default_entry(section_name, "method")
+
+                                self.values[section_name][method][entry_name].set(config_value)
+                            else:
+                                self.values[section_name][entry_name].set(config_value)
+                        except NoOptionError:
                             continue
+                        except NoSectionError:
+                            break
 
-                        self.values[section_name][entry_name].set(config_value)
-                    except NoOptionError:
-                        continue
-                    except NoSectionError:
-                        break
+        self.config_loaded = True
 
     def load_defaults(self, reset=False, *args):
         """
