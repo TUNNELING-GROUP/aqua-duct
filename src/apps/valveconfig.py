@@ -802,24 +802,6 @@ class ValveConfigApp(object):
 
                             self.required_entries[section_name][entry_name].highlight()
 
-                    # default_entry = defaults.get_default_entry(section_name, entry_name)
-                    # if default_entry.optionmenu_value:
-                    #     entry = self.values[section_name][default_entry.optionmenu_value][entry_name]
-                    # else:
-                    #     entry = self.values[section_name][entry_name]
-
-                    # if not entry.get() and entry_name in self.required_entries[
-                    #     section_name]:
-                    #     section_full_name = defaults.get_default_section(section_name).name
-                    #     entry_full_name = defaults.get_default_entry(section_name, entry_name).name[:-2]
-                    #
-                    #     if not first_found[0]:
-                    #         first_found[0] = section_full_name
-                    #         first_found[1] = entry_full_name
-                    #         first_found[2] = tabs_id[i]
-                    #
-                    #     self.required_entries[section_name][entry_name].highlight()
-
             if first_found[2]:  # 0 and 1 indexes is not checked because it can be just an empty string
                 tkMessageBox.showerror("Unfilled field",
                                        "Field \"{}\" in \"{}\" must be specified.".format(entry_full_name,
@@ -852,9 +834,9 @@ class ValveConfigApp(object):
                         # Try to get value from entry
                         try:
                             if entry.optionmenu_value:
-                                value = self.values[section.config_name][entry.optionmenu_value][entry.config_name].get()
+                                value = self.values[entry_section.config_name][entry.optionmenu_value][entry.config_name].get()
                             else:
-                                value = self.values[section.config_name][entry.config_name].get()
+                                value = self.values[entry_section.config_name][entry.config_name].get()
                         except KeyError:
                             value = entry.default_value
 
