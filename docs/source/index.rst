@@ -31,3 +31,10 @@ Technical documentation
 
 
 PDF version of the documentation is also `available <Aqua-Duct.pdf>`_.
+
+Documentation of older Aqua-Duct versions
+-----------------------------------------
+
+* Aqua-Duct `v0.5 <v0.5>`_
+* Aqua-Duct `v0.3 <v0.3>`_
+* Aqua-Duct `v0.2 <v0.2>`_
