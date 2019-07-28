@@ -18,3 +18,6 @@ Welcome to Aqua-Duct's documentation!
     Changelog <changelog>
 
 
+PDF version of this documentation is also `available <Aqua-Duct.pdf>`_.
+
+Go back to `current version <../index.html>`_ documentation.
