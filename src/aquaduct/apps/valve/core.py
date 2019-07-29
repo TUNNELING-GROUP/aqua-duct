@@ -575,9 +575,9 @@ def stage_III_run(config, options,
                         pool.apply_async(dse, args=(
                             [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
                                          callback=new_spaths.callback_next)
-                save_cric()
                 pool.close()
                 pool.join()
+                save_cric()
                 gc.collect()
                 spaths = new_spaths.paths
                 del new_spaths
@@ -711,9 +711,9 @@ def stage_III_run(config, options,
                             pool.apply_async(dse, args=(
                                 [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
                                              callback=new_spaths.callback_next)
-                    save_cric()
                     pool.close()
                     pool.join()
+                    save_cric()
                     gc.collect()
                     spaths = new_spaths.paths
                     del new_spaths
