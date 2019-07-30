@@ -333,6 +333,8 @@ class SimpleProgressBar(object):
         self.tcurrent = self.begin
         self.tictoclist = []
 
+        self.last_eta = None
+
         self.last_rotate_time = self.begin
         self.last_rotate_idx = 0
 
@@ -388,7 +390,16 @@ class SimpleProgressBar(object):
         periteration = diff / self.current
         expected = periteration * self.maxval
         eta = periteration * (self.maxval - self.current)
-
+        percent = 1 - self.percent() / 100.
+        if self.last_eta is not None:
+            if eta >= self.last_eta:
+                self.last_eta = eta
+                eta += eta * percent
+            else:
+                self.last_eta = eta
+        eta_uncertain = eta * percent**2
+        if eta_uncertain > eta/10:
+            return smart_time_string(eta)+" +/- "+smart_time_string(eta_uncertain)
         return smart_time_string(eta)
 
     def percent(self):
@@ -450,9 +461,10 @@ class SimpleProgressBar(object):
 
     def heartbeat(self):
         # with self.lock:
-        if time.time() - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!
-            self.tcurrent = time.time()
-            self.show()
+        self.tcurrent = time.time()
+        self.show()
+        #if self.tcurrent - self.last_rotate_time > 2.:  # FIXME: magic constant, remove it!
+        #    self.show()
 
     def next(self, step=None):
         if step is None:
