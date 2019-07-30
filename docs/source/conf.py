@@ -86,7 +86,7 @@ master_doc = 'index'
 import aquaduct
 project = u'Aqua-Duct'
 author = aquaduct.__author_doc__
-copyright = u'2016, 2017, 2018 ' + unicode(author)
+copyright = u'2016, 2017, 2018, 2019 ' + unicode(author)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -142,6 +142,7 @@ keep_warnings = True
 # a list of builtin themes.
 #html_theme = 'default'
 html_theme = 'bizstyle'
+
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
