@@ -565,7 +565,6 @@ def stage_III_run(config, options,
                 # CRIC AWARE MP!
                 if short_object is not None:
                     Reader.reset()
-
                     for pid in list(spaths_paths_ids(spaths)):
                         pool.apply_async(dse, args=(
                             [spaths.pop(nr) for nr in range(len(spaths) - 1, -1, -1) if spaths[nr].id.id == pid],),
@@ -681,8 +680,7 @@ def stage_III_run(config, options,
             with clui.pbar(len(spaths), "Clean IDs:") as pbar:
                 correct_spaths_ids(spaths, pbar)
 
-    clui.message("(Re)Created %d separate paths out of %d raw paths" %
-                 (len(spaths), len(paths)))
+        clui.message("(Re)Created %d separate paths out of %d raw paths" % (len(spaths), len(paths)))
 
     ######################################################################
 
