@@ -231,6 +231,7 @@ class ValveConfig(ConfigSpecialNames):
 
         config.set(section, 'cache_dir', 'None')
         config.set(section, 'cache_mem', 'False')
+        config.set(section, 'cache_type', 'full')
 
         ################
         snr = 0  # stage number
@@ -509,6 +510,12 @@ def valve_load_config(filename, config):
         config.load_config(filename)
         goptions = config.get_global_options()
 
+        # coords cache type
+        if goptions.cache_type not in ['full','simple']:
+            logger.warning("Unknown cache type '%s', using 'full' by default" % goptions.cache_type)
+        else:
+            logger.info("Using '%s' cache type." % goptions.cache_type)
+        GCS.cachetype = goptions.cache_type
         # cache dir & netcdf
         GCS.cachedir = goptions.cache_dir
         GCS.cachemem = goptions.cache_mem

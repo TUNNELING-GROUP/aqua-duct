@@ -260,6 +260,11 @@ initial_section.add_entry(DefaultEntry(config_name="cache_dir",
                                        default_values=[dirtype("cache")],
                                        help_text="Allows to set path to the directory for cache data.",
                                        level=2))
+initial_section.add_entry(DefaultEntry(config_name="cache_type",
+                                       name="Cache type: ",
+                                       default_values=[dirtype("full")],
+                                       help_text="Allows to set type of coordinates cache.",
+                                       level=2))
 
 traceable_residues_nested = DefaultSection(config_name="traceable_residues", name="Traceable residues", level=2,
                                            additional=True)

@@ -37,6 +37,7 @@ class GlobalConfigStore(object):
     netcdf = False
     nc4 = False
     sandwich_import = False
+    cachetype = 'full'
 
     @property
     def cachedir(self):

@@ -1012,11 +1012,28 @@ class SingleResidueSelection(ReaderAccess):
         # resid is tuple (number,id) number is used to get reader_traj
         self.resid = resid[-1]
         self.number = resid[0]
+        # to optionally simplify CRIC store lets read minimal and maximal frame
+        # and always ask for full range and then slice it according to frames.
+        traj_reader = self.get_reader(self.number)
+        # full range always
+        self.always_request_frames = SmartRangeIncrement(0,traj_reader.number_of_frames())
 
     def coords(self, frames):
         if isinstance(frames, SmartRange):
             if len(frames):
-                return np.vstack([coords_range(srange, self.number, self.resid) for srange in frames.raw])
+                if GCS.cachetype == 'simple':
+                    # this is naive version
+                    full_coords = coords_range(self.always_request_frames,self.number,self.resid)
+                    #return np.vstack([full_coords[list(srange.get()),:] for srange in frames.raw])
+                    def get_partial_coords():
+                        for sr in frames.raw:
+                            lo = sr.first_element() - self.always_request_frames.first_element()
+                            hi = lo + len(sr)
+                            yield full_coords[lo:hi,:]
+                    return np.vstack(list(get_partial_coords()))
+                else: # if full
+                    # the normal way
+                    return np.vstack([coords_range(srange, self.number, self.resid) for srange in frames.raw])
             return self._coords([])
         else:
             return self._coords(frames)
