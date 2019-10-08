@@ -25,7 +25,7 @@ version = __import__('aquaduct').version_nice()  # version str
 install_requires = ['numpy>=1.10.0',  # this is required by MDA
                     'scipy>=0.17.1',
                     'scikit-learn>=0.16.0',
-                    'MDAnalysis[amber]==0.16.2',
+                    'MDAnalysis[amber]==0.16.2|>0.20',
                     'joblib>=0.13'
                     ]
 
@@ -73,7 +73,7 @@ setup(name='aquaduct',
                    'Environment :: Console',
                    'Intended Audience :: Science/Research',
                    'Operating System :: POSIX',
-                   'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python',
                    ],
       include_package_data=True
       )
