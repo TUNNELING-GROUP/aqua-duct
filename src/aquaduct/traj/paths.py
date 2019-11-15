@@ -21,7 +21,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from itertools import izip
+
 from collections import OrderedDict
 from aquaduct.utils import clui
 import numpy as np
@@ -36,7 +36,7 @@ from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader, SingleResidueSelection
 from array import array
 
-from itertools import chain, imap
+from itertools import chain
 
 
 class PathTypesCodes(object):
@@ -136,7 +136,7 @@ class GenericPaths(GenericPathTypeCodes):
             frame = self._frames.first_element()
             for sr in self._types.raw:
                 if sr.element == self.object_name:
-                    yield xrange(frame, frame + sr.times)
+                    yield range(frame, frame + sr.times)
                 frame += sr.times
 
         return chain(*get_foo())
@@ -147,7 +147,7 @@ class GenericPaths(GenericPathTypeCodes):
             frame = self._frames.first_element()
             for sr in self._types.raw:
                 if sr.element == self.scope_name:
-                    yield xrange(frame, frame + sr.times)
+                    yield range(frame, frame + sr.times)
                 frame += sr.times
 
         return chain(*get_fos())
@@ -240,7 +240,7 @@ class GenericPaths(GenericPathTypeCodes):
         self._frames.append(frame)
 
     def add_frames_types(self, frames, types):
-        for f, t in izip(frames, types):
+        for f, t in zip(frames, types):
             self._types.append(t)
             self._frames.append(f)
 
@@ -584,6 +584,8 @@ class SinglePathID(object):
             return self.id == other.id and self.nr == other.nr and self.name == other.name
         return False
 
+    def __hash__(self):
+        return hash(str(self))
 
 @listify
 def yield_single_paths(gps, fullonly=None, progress=None, passing=None):
@@ -651,12 +653,12 @@ def yield_generic_paths(spaths, progress=None):
             progress.next()
     # because paths stores now frames as array and produces smartranges on demand with fast_array option
     # it is required to keep frames (and types) in order, otherwise smartranges are wrong
-    for p in rid_seen.itervalues():
+    for p in rid_seen.values():
         new_order = np.argsort(p.frames)
         p.update_types_frames(glind(p.types, new_order), glind(p.frames, new_order))
         progress.next()
 
-    return rid_seen.values()
+    return list(rid_seen.values())
 
 
 class MacroMolPath(PathTypesCodes, InletTypeCodes):
@@ -674,10 +676,10 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         self.id = path_id
         self.single_res_selection = SingleResidueSelection(self.id.id)
         # for paths use SmartRanges and then provide methods to read them
-        self._path_in, self._path_object, self._path_out = map(SmartRange, paths)
+        self._path_in, self._path_object, self._path_out = list(map(SmartRange, paths))
         # similarly, do it with types
         # self.path_in, self.path_object, self.path_out = paths
-        self._types_in, self._types_object, self._types_out = map(SmartRange, types)
+        self._types_in, self._types_object, self._types_out = list(map(SmartRange, types))
         # self.types_in, self.types_object, self.types_out = types
 
         # self.coords_in, self.coords_object, self.coords_out = map(make_default_array, coords)
@@ -698,7 +700,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     def add_paths4(self, path_in, path_object, path_object_strict, path_out):
         # init empty path
-        self.__path_in, self.__path_object, self.__path_out = map(SmartRange, (path_in, path_object, path_out))
+        self.__path_in, self.__path_object, self.__path_out = list(map(SmartRange, (path_in, path_object, path_out)))
         self.__types_in = SmartRange([GenericPathTypeCodes.scope_name] * len(path_in))
         self.__types_out = SmartRange([GenericPathTypeCodes.scope_name] * len(path_out))
 
@@ -933,7 +935,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
     @property
     def sizes(self):
-        return map(len, self._paths)
+        return list(map(len, self._paths))
 
     @property
     def begins(self):

@@ -14,10 +14,10 @@ class TestMake_iterable(TestCase):
         check3 = make_iterable(iterable3)
         chceck4 = make_iterable(noniterable)
 
-        self.assertEquals(check1, iterable)
-        self.assertEquals(check2, iterable2)
-        self.assertEquals(check3, iterable3)
-        self.assertEquals(chceck4, [noniterable])
+        self.assertEqual(check1, iterable)
+        self.assertEqual(check2, iterable2)
+        self.assertEqual(check3, iterable3)
+        self.assertEqual(chceck4, [noniterable])
 
     def test_empty(self):
         # function will throw an exception if something is empty

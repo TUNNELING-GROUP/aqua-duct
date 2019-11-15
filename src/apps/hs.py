@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import ConfigParser
+import configparser
 import argparse
 import sys
 from collections import defaultdict
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    config = ConfigParser.RawConfigParser()
+    config = configparser.RawConfigParser()
     config.readfp(open(args.config_file, "r"))
 
     top_file = config.get("global", "top")
@@ -101,18 +101,18 @@ if __name__ == "__main__":
     else:
         optimal_threads.threads_count = int(args.threads)
 
-    print "Threads used: {}".format(optimal_threads.threads_count)
+    print("Threads used: {}".format(optimal_threads.threads_count))
 
     Reader(top_file, trj_files, window=Window(args.minf, args.maxf, args.stepf), threads=optimal_threads.threads_count)
 
-    print "Frame range: {}-{} Step: {}".format(Reader.window.start, Reader.window.stop, Reader.window.step)
-    print "Distance from hotspot: {}".format(args.distance)
+    print("Frame range: {}-{} Step: {}".format(Reader.window.start, Reader.window.stop, Reader.window.step))
+    print("Distance from hotspot: {}".format(args.distance))
 
     residue_occurences = defaultdict(dict)
 
     stime = time()
 
-    print "\nFinding the hottest place in the universe:"
+    print("\nFinding the hottest place in the universe:")
     for traj_reader in Reader.iterate():
         traj_reader = traj_reader.open()
 
@@ -121,7 +121,7 @@ if __name__ == "__main__":
         for frame in traj_reader.iterate():
             sys.stdout.write("\r {}".format(time() - stime))
             in_area = defaultdict(dict)
-            for number, ids in protein_atoms.selected.iteritems():
+            for number, ids in protein_atoms.selected.items():
                 number_reader = protein_atoms.get_reader(number)
                 for id_, coord in enumerate(number_reader.atoms_positions(ids)):
                     for hotspot_id, hotspot_coord in enumerate(hotspots_coords):
@@ -133,10 +133,10 @@ if __name__ == "__main__":
                             in_area[hotspot_id][number].append(id_)
 
             in_area_selections = {}
-            for hotspot_id, selection in in_area.iteritems():
+            for hotspot_id, selection in in_area.items():
                 in_area_selections[hotspot_id] = AtomSelection(selection)
 
-            for hotspot_id, hotspot_atom_selection in in_area_selections.iteritems():
+            for hotspot_id, hotspot_atom_selection in in_area_selections.items():
                 for id_, name in zip(hotspot_atom_selection.residues().ids(),
                                      hotspot_atom_selection.residues().names()):
                     if (id_[1], name) not in residue_occurences[hotspot_id]:
@@ -144,14 +144,14 @@ if __name__ == "__main__":
 
                     residue_occurences[hotspot_id][(id_[1], name)] += 1
 
-    print "\n"
+    print("\n")
     window_len = float(Reader.window.len())
-    for hotspot_id, hotspot_occurences in residue_occurences.iteritems():
-        print "-" * 20
-        print hotspot_id, hotspots_coords[hotspot_id]
-        print "-" * 20
+    for hotspot_id, hotspot_occurences in residue_occurences.items():
+        print("-" * 20)
+        print(hotspot_id, hotspots_coords[hotspot_id])
+        print("-" * 20)
         for i, res in enumerate(sorted(hotspot_occurences, key=hotspot_occurences.get, reverse=True)):
             if i == args.maxaa:
                 break
-            print "{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
-                                                     round(hotspot_occurences[res] / window_len, 2) * 100)
+            print("{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
+                                                     round(hotspot_occurences[res] / window_len, 2) * 100))

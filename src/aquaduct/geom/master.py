@@ -23,7 +23,7 @@ from aquaduct import logger
 
 import multiprocessing
 from multiprocessing import Queue, Manager, Lock, Value, Process
-from itertools import izip_longest, izip
+from itertools import zip_longest
 from functools import partial
 
 import numpy as np
@@ -125,7 +125,7 @@ class CTypeSpathsCollectionWorker(object):
 
         # get zz coords, zz means zip_zip - for all spaths
         coords_zz = []
-        for sp, sl in izip(self.spaths, sp_slices_):
+        for sp, sl in zip(self.spaths, sp_slices_):
             # self.lock.acquire()
             # coords_zz_element = sp.get_coords_cont(smooth=self.smooth)
             # coords_zz.append(coords_zz_element[sl])
@@ -134,7 +134,7 @@ class CTypeSpathsCollectionWorker(object):
 
         # make lens_zz which are lens corrected to the lenghts of coords_zz and normalized to zip_zip number of obejcts
         lens_zz = []
-        for l, coord_z in izip(self.lens_cache, coords_zz):
+        for l, coord_z in zip(self.lens_cache, coords_zz):
             # l is lenght for one spath
             # coord_z are coordinates of this path (sliced to current chunk)
             if len(coord_z) > 0:
@@ -166,7 +166,7 @@ class CTypeSpathsCollectionWorker(object):
         del coords_zz_cat
 
         # concatenate zip_zip gtypes
-        types_zz_cat = list(concatenate(*[sp.gtypes_cont[sl] for sp, sl in izip(self.spaths, sp_slices_)]))
+        types_zz_cat = list(concatenate(*[sp.gtypes_cont[sl] for sp, sl in zip(self.spaths, sp_slices_)]))
         del sp_slices_
         # append type porbability to types
 
@@ -335,7 +335,7 @@ class CTypeSpathsCollection(object):
             td_out = len(types[sls[-1]])
         # the rest is object
         td_obj = len(types) - td_in - td_out
-        return map(lambda x: float(x) / len(types), (td_in, td_obj, td_out))
+        return [float(x) / len(types) for x in (td_in, td_obj, td_out)]
 
     def types_distribution(self):
         """
@@ -457,7 +457,7 @@ class CTypeSpathsCollection(object):
             types = self.types_prob_to_types(types)
 
         # make frames
-        frames = xrange(len(coords))
+        frames = range(len(coords))
 
         # finalize
 

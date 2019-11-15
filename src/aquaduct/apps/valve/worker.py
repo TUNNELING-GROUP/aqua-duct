@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gc
-from itertools import izip, chain
+from itertools import chain
 
 import numpy as np
 from aquaduct.apps.data import GCS
@@ -162,7 +162,7 @@ def stage_II_worker_q(input_queue, results_queue, pbar_queue):
         progress_gc = 0
         progress_freq_flex = min(1, progress_freq)
         # the loop over frames, use izip otherwise iteration over frames does not work
-        for rid_in_object, frame in izip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
+        for rid_in_object, frame in zip(iterate_or_die(frame_rid_in_object, times=number_of_frames),
                                          traj_reader.iterate_over_frames()):
             # do we have object data?
             if not is_number_frame_rid_in_object:
@@ -177,7 +177,7 @@ def stage_II_worker_q(input_queue, results_queue, pbar_queue):
                                                       convex_hull_inflate=scope_convexhull_inflate,
                                                       known_true=None)  # known_true could be rid_in_object
             # store results in the container
-            number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
+            number_frame_object_scope[frame, :] = np.array(list(map(sum, zip(is_res_in_object, is_res_in_scope))),
                                                            dtype=np.int8)
             # increase progress counter and report progress if needed
             progress += 1
@@ -238,7 +238,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
             progress_freq_flex = min(1, progress_freq)
             # which all_res should be evalated?
             all_res_eval = np.ones(len(all_res_this_ids), dtype=bool)
-            for rid_in_object, frame in izip(
+            for rid_in_object, frame in zip(
                     iterate_or_die(frame_rid_in_object, times=number_of_frames, reverse=reverse),
                     traj_reader.iterate_over_frames(reverse=reverse)):
                 # do we have object data?
@@ -250,7 +250,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                 all_res_eval[is_res_in_object] = False
                 if reverse:
                     all_res_eval[number_frame_object_scope[frame, :] > 0] = False
-                all_res_this_ids_eval = (i[-1] for te, i in izip(all_res_eval, all_res_this_ids) if te)
+                all_res_this_ids_eval = (i[-1] for te, i in zip(all_res_eval, all_res_this_ids) if te)
                 all_res_this_layer_eval = ResidueSelection(
                     {all_res_this_layer.numbers()[0]: list(all_res_this_ids_eval)})
                 # should scope be evaluated?
@@ -262,7 +262,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                                                                known_true=None)  # known_true could be rid_in_object
                 is_res_in_scope = np.zeros(len(all_res_this_ids), dtype=bool)
                 is_res_in_scope[
-                    [int(nr) for nr, iris in izip(np.argwhere(all_res_eval), is_res_in_scope_eval) if iris]] = True
+                    [int(nr) for nr, iris in zip(np.argwhere(all_res_eval), is_res_in_scope_eval) if iris]] = True
                 if not reverse:
                     is_res_in_scope[is_res_in_object] = True
                 # store results in the container
@@ -270,7 +270,7 @@ def stage_II_worker_q_twoways(input_queue, results_queue, pbar_queue):
                     number_frame_object_scope[frame, is_res_in_scope] = 1
                     is_res_in_scope[is_res_in_object] = True
                 else:
-                    number_frame_object_scope[frame, :] = np.array(map(sum, izip(is_res_in_object, is_res_in_scope)),
+                    number_frame_object_scope[frame, :] = np.array(list(map(sum, zip(is_res_in_object, is_res_in_scope))),
                                                                    dtype=np.int8)
                 # increase progress counter and report progress if needed
                 progress += 1

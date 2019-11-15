@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import numpy as np
-import cPickle as pickle
+import pickle as pickle
 import os
 import tarfile
 
@@ -66,16 +66,16 @@ class BasicPymolCGOLines(BasicPymolCGO):
         if color is not None:
             self.cgo_entity.append(cgo.COLOR)
             # self.cgo_entity.extend(map(float, color))
-            self.cgo_entity.append(self.make_color_triple(map(float, color)))
+            self.cgo_entity.append(self.make_color_triple(list(map(float, color))))
 
         if coords is not None:
             for nr, coord in enumerate(coords):
                 if self.previous is not None:
                     self.cgo_entity.append(cgo.VERTEX)
-                    self.cgo_entity.extend(map(float, self.previous))
+                    self.cgo_entity.extend(list(map(float, self.previous)))
 
                     self.cgo_entity.append(cgo.VERTEX)
-                    self.cgo_entity.extend(map(float, coord))
+                    self.cgo_entity.extend(list(map(float, coord)))
                 self.previous = coord
 
 
@@ -98,10 +98,10 @@ class BasicPymolCGOSpheres(BasicPymolCGO):
                     else:
                         c = color[0]
                     self.cgo_entity.append(cgo.COLOR)
-                    self.cgo_entity.append(self.make_color_triple(map(float, c)))
+                    self.cgo_entity.append(self.make_color_triple(list(map(float, c))))
                     # self.cgo_entity.extend(map(float, c))
                 self.cgo_entity.append(cgo.SPHERE)
-                self.cgo_entity.extend(map(float, coord))
+                self.cgo_entity.extend(list(map(float, coord)))
                 if radius is not None:
                     if len(radius) > 1:
                         r = radius[nr]
@@ -122,12 +122,12 @@ class BasicPymolCGOPointers(BasicPymolCGO):
         # color to colors... ???
         if coords1 is not None and coords2 is not None:
             self.cgo_entity.append(cgo.CONE)
-            self.cgo_entity.extend(map(float, coords1))
-            self.cgo_entity.extend(map(float, coords2))
+            self.cgo_entity.extend(list(map(float, coords1)))
+            self.cgo_entity.extend(list(map(float, coords2)))
             self.cgo_entity.append(float(radius1))
             self.cgo_entity.append(float(radius2))
-            self.cgo_entity.append(self.make_color_triple(map(float, color1)))
-            self.cgo_entity.append(self.make_color_triple(map(float, color2)))
+            self.cgo_entity.append(self.make_color_triple(list(map(float, color1))))
+            self.cgo_entity.append(self.make_color_triple(list(map(float, color2))))
             # self.cgo_entity.extend(map(float, color1))
             # self.cgo_entity.extend(map(float, color2))
 
@@ -153,7 +153,7 @@ class SimpleTarWriteHelper(object):
         self.tar_fh = tarfile.open(filename, 'w:gz')
 
     def save_object2tar(self, obj, name):
-        with open(self.tmp_file, 'w') as f:
+        with open(self.tmp_file, 'wb') as f:
             pickle.dump(obj, f)
         self.save_file2tar(self.tmp_file, name)
 

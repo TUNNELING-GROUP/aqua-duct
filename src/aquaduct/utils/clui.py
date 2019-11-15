@@ -76,8 +76,8 @@ roman = roman_emulation()
 def emit_message_to_file_in_root_logger(mess):
     # emits message to the file used by file handler in the root logger
     # assumes there is only one file handler
-    if logging.FileHandler in map(type, root_logger.handlers):
-        fh = root_logger.handlers[map(type, root_logger.handlers).index(logging.FileHandler)]
+    if logging.FileHandler in list(map(type, root_logger.handlers)):
+        fh = root_logger.handlers[list(map(type, root_logger.handlers)).index(logging.FileHandler)]
         with fh.lock:
             with open(fh.baseFilename, 'a') as logfile:
                 logfile.write(mess)
@@ -87,8 +87,8 @@ def emit_tvtb_to_file_in_root_logger(tvtb):
     # emits special message to the file used by file handler in the root logger
     # assumes there is only one file handler
     # tvtb should be output of sys.exc_info()
-    if logging.FileHandler in map(type, root_logger.handlers):
-        fh = root_logger.handlers[map(type, root_logger.handlers).index(logging.FileHandler)]
+    if logging.FileHandler in list(map(type, root_logger.handlers)):
+        fh = root_logger.handlers[list(map(type, root_logger.handlers)).index(logging.FileHandler)]
         with fh.lock:
             with open(fh.baseFilename, 'a') as logfile:
                 t, v, tb = tvtb
@@ -199,7 +199,7 @@ def smart_time_string(s, rl=0, t=1.1, maximal_length=None, maximal_units=5):
     """
     # assert isinstance(maximal_length, (int, long))
     # assert maximal_length > 0
-    assert isinstance(maximal_units, (int, long))
+    assert isinstance(maximal_units, int)
     assert maximal_units > 0
     assert maximal_units < 6
 
@@ -314,7 +314,7 @@ class SimpleProgressBar(object):
         self.iterable = iterable
 
         assert isinstance(maxval,
-                          (int, long)), 'Parameter maxval should be of int or long type, %r given instead.' % type(
+                          int), 'Parameter maxval should be of int or long type, %r given instead.' % type(
             maxval)
         if maxval < 1:
             self.maxval = 1
@@ -352,7 +352,7 @@ class SimpleProgressBar(object):
     def iter(self, finish=False):
         for e in self.iterable:
             yield e
-            self.next()
+            next(self)
         if finish:
             self.finish()
 
@@ -542,15 +542,15 @@ class SimpleTree(object):
                 self.name = float(self.name)
             else:
                 self.name = int(self.name)
-        self.message = map(str, d['message'])
-        self.branches = map(lambda treestr: SimpleTree(treestr=treestr), map(str, d['branches']))
+        self.message = list(map(str, d['message']))
+        self.branches = [SimpleTree(treestr=treestr) for treestr in list(map(str, d['branches']))]
 
     def __repr__(self):
         # this can be used to rebuild
-        return json.dumps({'name': self.name, 'message': self.message, 'branches': map(repr, self.branches)})
+        return json.dumps({'name': self.name, 'message': self.message, 'branches': list(map(repr, self.branches))})
 
     def __str__(self):
-        return "%s {%s} %s" % (str(self.name), "; ".join(self.message), str(map(str, self.branches)))
+        return "%s {%s} %s" % (str(self.name), "; ".join(self.message), str(list(map(str, self.branches))))
 
     def is_leaf(self):
         return len(self.branches) == 0

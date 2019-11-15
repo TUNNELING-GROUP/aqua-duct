@@ -21,7 +21,7 @@
 What have I got in my pocket?
 """
 
-from __future__ import print_function
+
 
 ################################################################################
 # reuse AQ logger
@@ -216,7 +216,7 @@ if __name__ == "__main__":
             from aquaduct.apps.valve.helpers import get_linearize_method
             from aquaduct.apps.valve.helpers import get_smooth_method
             from aquaduct.geom import traces
-            from itertools import izip
+            
             import os
             from aquaduct.geom.smooth import SavgolSmooth
 
@@ -558,7 +558,7 @@ if __name__ == "__main__":
                 limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
                 if limit_ctypes != [""]:
                     clui.message('Limiting master paths data to %s ctypes.' % (' '.join(limit_ctypes)))
-                    for ctk in mps.keys():
+                    for ctk in list(mps.keys()):
                         if str(ctk) not in limit_ctypes:
                             mps.pop(ctk)
 
@@ -570,7 +570,7 @@ if __name__ == "__main__":
 
                         limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
                         if limit_ctypes != [""]:
-                            for ctk in mps.keys():
+                            for ctk in list(mps.keys()):
                                 if str(ctk) not in limit_ctypes:
                                     mps.pop(ctk)
 
@@ -588,7 +588,7 @@ if __name__ == "__main__":
                                 number_of_frames *= Reader.number_of_layers()
 
                             if wnr or args.wfull:  # or not many_windows:
-                                for ctype, mp in mps.iteritems():
+                                for ctype, mp in mps.items():
                                     if isinstance(mp,dict):
                                         logger.warning("Pond cannot yet handle MasterPaths calculated with separate_master option.")
                                         logger.warning("MasterPaths for %s skip." % ctype)
@@ -630,7 +630,7 @@ if __name__ == "__main__":
                                         with open(rdir + "mp_%s%s_radius.dat" % (fname, fname_window), 'w') as dat:
                                             dat.write('len\tE' + os.linesep)
                                             L = np.hstack((0., np.cumsum(traces.diff(centers))))
-                                            for l, E in izip(L, H):
+                                            for l, E in zip(L, H):
                                                 dat.write('%f\t%f%s' % (l, E, os.linesep))
                                     pool.close()
                                     pool.join()
@@ -678,7 +678,7 @@ if __name__ == "__main__":
                     if path:
                         if not args.raw_path:
                             soptions = result3.pop("soptions")
-                            soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                            soptions = namedtuple('Options', list(soptions.keys()))(*list(soptions.values()))
                             smooth_method = get_smooth_method(soptions)
 
                             coords = path.get_coords_cont(smooth_method)
@@ -724,7 +724,7 @@ if __name__ == "__main__":
                             if not args.raw_path:
                                 if args.path_smooth:
                                     soptions = result3.pop("soptions")
-                                    soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                                    soptions = namedtuple('Options', list(soptions.keys()))(*list(soptions.values()))
                                     smooth_method = get_smooth_method(soptions)
                                     coords = path.get_coords_cont(smooth_method)
                                 else:
@@ -813,7 +813,7 @@ if __name__ == "__main__":
                                               'w') as dat:
                                         dat.write('len\tE' + os.linesep)
                                         L = np.hstack((0., np.cumsum(traces.diff(coords))))
-                                        for l, E in izip(L, H):
+                                        for l, E in zip(L, H):
                                             dat.write('%f\t%f%s' % (l, E, os.linesep))
 
                                     pool.close()
