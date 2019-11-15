@@ -82,7 +82,7 @@ class Smooth(object):
             return coords
         if self.recursive:
             coords_smooth = None
-            for r in xrange(self.recursive):
+            for r in range(self.recursive):
                 if coords_smooth is not None:
                     coords_smooth = self.smooth(coords_smooth)
                 else:
@@ -191,7 +191,7 @@ class WindowSmooth(Smooth, IntWindow):
         :param Iterable coords: Input coordinates to be smoothed.
         """
         n = len(coords)
-        for pos in xrange(n):
+        for pos in range(n):
             lo, hi = self.max_window_at_pos(pos, n)
             lo = max(pos - self.window, lo)
             hi = min(pos + self.window, hi)
@@ -230,7 +230,7 @@ class DistanceWindowSmooth(Smooth, FloatWindow):
         if window < 1:
             window = 1
 
-        for pos in xrange(n):
+        for pos in range(n):
             lo, hi = self.max_window_at_pos(pos, n)
             lo = max(pos - window, lo)
             hi = min(pos + window, hi)
@@ -257,7 +257,7 @@ class ActiveWindowSmooth(Smooth, FloatWindow):
         n = len(coords)
         d = traces.diff(coords)
 
-        for pos in xrange(n):
+        for pos in range(n):
             # lower boudary
             lb = pos
             ld = 0
@@ -295,7 +295,7 @@ class MaxStepSmooth(Smooth):
         """
         n = len(coords)
 
-        for pos in xrange(n):
+        for pos in range(n):
             current_coord = coords[pos]
             if pos == 0:
                 # yield first

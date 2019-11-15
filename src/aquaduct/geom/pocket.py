@@ -20,7 +20,7 @@ from aquaduct.traj.paths import GenericPaths
 from collections import defaultdict
 import operator
 import numpy as np
-from itertools import izip, imap
+
 from multiprocessing import Manager
 
 from scipy import spatial
@@ -129,10 +129,10 @@ def distribution(spaths, grid_size=1., edges=None, window=None, pbar=None, map_f
     :rtype tuple of numpy.ndarrays
     :return: Coordinates of pocket and number of points.
     '''
-    maxc = np.array(map(max, edges))
-    minc = np.array(map(min, edges))
+    maxc = np.array(list(map(max, edges)))
+    minc = np.array(list(map(min, edges)))
     # H = np.zeros(map(int,map(np.ceil,(maxc - minc) / grid_size)))
-    H = np.zeros(tuple(map(lambda e: len(e) - 1 if len(e) > 1 else 1, edges)))
+    H = np.zeros(tuple([len(e) - 1 if len(e) > 1 else 1 for e in edges]))
     if map_fun is None:
         map_fun = map
     map_worker = distribution_worker(edges=edges, window=window)
@@ -309,7 +309,7 @@ def sphere_density_raw(trajs, mol_name, centers, radius, pool, window=None, pbar
 
     # Setup for queue and worker
     pbar_queue = Manager().Queue()
-    worker = sphere_density_raw_worker(pbar_queue, mol_name, radius, centers, range(int(window[0]), int(window[1])))
+    worker = sphere_density_raw_worker(pbar_queue, mol_name, radius, centers, list(range(int(window[0]), int(window[1]))))
 
     # Container for collected data from workers
     D = []
@@ -335,7 +335,7 @@ def hot_spots(H):
 
 def hot_spots_his(H, bins=(5, 101)):
     bn = []
-    for b in xrange(*bins):
+    for b in range(*bins):
         his = np.histogram(H, bins=b)
         if 0 in his[0]:
             i = int(np.argwhere(his[0] == 0)[0])

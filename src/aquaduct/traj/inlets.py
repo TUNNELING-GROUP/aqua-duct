@@ -25,7 +25,8 @@ import numpy as np
 from collections import namedtuple, OrderedDict
 from scipy.spatial.distance import pdist, squareform
 import copy
-from itertools import izip_longest
+from itertools import zip_longest
+from functools import total_ordering
 
 from aquaduct.utils.helpers import is_iterable, listify, lind
 from aquaduct.utils import clui
@@ -64,6 +65,8 @@ class InletTypeCodes(ProtoInletTypeCodes):
 # because of passing paths one more type could be considered ???
 # this might be also done in a different way
 
+
+@total_ordering
 class InletClusterGenericType(object):
     def __init__(self, inp, out):
         super(InletClusterGenericType, self).__init__()
@@ -144,6 +147,15 @@ class InletClusterGenericType(object):
             return sort_for_cmp(self.output, other.output)
         else:
             return value
+
+    def __eq__(self, other):
+        return self.__cmp__(other) == 0
+
+    def __ne__(self, other):
+        return self.__cmp__(other) != 0
+
+    def __lt__(self, other):
+        return self.__cmp__(other) < 0
 
     def __hash__(self):
         return hash(str(self))
@@ -427,9 +439,9 @@ class Inlets(object):
     def renumber_clusters(self):
         old_clusters = list(self.clusters)
         if 0 in self.clusters_list:
-            new_numbers = range(len(self.clusters_list))
+            new_numbers = list(range(len(self.clusters_list)))
         else:
-            new_numbers = range(1, len(self.clusters_list) + 1)
+            new_numbers = list(range(1, len(self.clusters_list) + 1))
         old_numbers = self.clusters_list
         if old_numbers != new_numbers:
             for nr, c in enumerate(self.clusters):
@@ -477,7 +489,7 @@ class Inlets(object):
 
     @property
     def clusters_size(self):
-        return map(self.clusters.count, self.clusters_list)
+        return list(map(self.clusters.count, self.clusters_list))
 
     def join_clusters(self, clusters2join):
         new_cluster = max(self.clusters_list) + 1
@@ -531,7 +543,7 @@ class Inlets(object):
                                     pbar=None)  # do not propagate pabr
         new_inlets.number_of_clustered_inlets = self.number_of_clustered_inlets
 
-        for inlet, ids, cluster, sphere, w in izip_longest(self.inlets_list, self.inlets_ids, self.clusters,
+        for inlet, ids, cluster, sphere, w in zip_longest(self.inlets_list, self.inlets_ids, self.clusters,
                                                            self.spheres, what):
             if w in towhat:
                 new_inlets.inlets_list.append(inlet)

@@ -20,7 +20,7 @@ from aquaduct import logger
 
 import re
 from collections import OrderedDict, namedtuple
-from itertools import imap
+
 from os.path import splitext
 from os import pathsep
 
@@ -72,7 +72,7 @@ elif GCS.cachemem:
 
         @wraps(func)
         def memoized_func(*args, **kwargs):
-            key = ','.join(map(str, args)) + '&' + ','.join(map(lambda kv: ':'.join(map(str, kv)), kwargs.iteritems()))
+            key = ','.join(map(str, args)) + '&' + ','.join([':'.join(map(str, kv)) for kv in iter(kwargs.items())])
             logger.debug('Looking for cache key %s' % key)
             if key not in cache:
                 cache[key] = func(*args, **kwargs)
@@ -124,8 +124,8 @@ class Window(object):
     def range(self, reverse=False):
         # returns range object
         if reverse:
-            return xrange(self.stop, self.start - 1, -1 * self.step)
-        return xrange(self.start, self.stop + 1, self.step)
+            return range(self.stop, self.start - 1, -1 * self.step)
+        return range(self.start, self.stop + 1, self.step)
 
     def get_real(self, frame):
         # recalculates real frame
@@ -212,7 +212,7 @@ class MasterReader(object):
     def __getstate__(self):
         # if pickle dump is required, this will not be used in the future
         # do not pass open_reader_traj
-        return dict(((k, v) for k, v in self.__dict__.iteritems() if k not in ['open_reader_traj']))
+        return dict(((k, v) for k, v in self.__dict__.items() if k not in ['open_reader_traj']))
 
     def __setstate__(self, state):
         # if pickle dump is required, this will not be used in the future
@@ -264,7 +264,7 @@ class MasterReader(object):
 
     def strata(self, number=False):
         # generates slices of baquette
-        for nr in xrange(self.number_of_layers()):
+        for nr in range(self.number_of_layers()):
             if number:
                 yield nr + 1, self.get_single_reader(nr + 1)
             else:
@@ -655,12 +655,12 @@ class ReaderTrajViaMDA(ReaderTraj):
 
     def open_trajectory(self):
         topology = splitext(self.topology)[1][1:]
-        for afk in mda_available_formats.keys():
+        for afk in list(mda_available_formats.keys()):
             if afk.match(topology):
                 topology = mda_available_formats[afk]
                 break
         trajectory = splitext(self.trajectory[0])[1][1:]
-        for afk in mda_available_formats.keys():
+        for afk in list(mda_available_formats.keys()):
             if afk.match(trajectory):
                 trajectory = mda_available_formats[afk]
                 break
@@ -735,8 +735,8 @@ class Selection(ReaderAccess):
     def __init__(self, selected):
 
         self.selected = OrderedDict(selected)
-        for number, ids in self.selected.iteritems():
-            self.selected[number] = list(imap(defaults.int_default, ids))
+        for number, ids in self.selected.items():
+            self.selected[number] = list(map(defaults.int_default, ids))
 
     def layer(self, number):
         if number in self.selected:
@@ -744,12 +744,12 @@ class Selection(ReaderAccess):
         return self.__class__({})
 
     def numbers(self):
-        return self.selected.keys()
+        return list(self.selected.keys())
 
     def ix(self, ix):
         # gets selection of index ix
         ix_current = 0
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
                 return self.__class__({number: [ids[ix - ix_current]]})  # FIXME: looks like a bug!
@@ -765,7 +765,7 @@ class Selection(ReaderAccess):
 
     def len(self):
         _len = 0
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             _len += len(ids)
         return _len
 
@@ -774,7 +774,7 @@ class Selection(ReaderAccess):
 
     def add(self, other):
 
-        for number, ids in other.selected.iteritems():
+        for number, ids in other.selected.items():
             if number in self.selected:
                 self.selected[number] = self.selected[number] + list(ids)
             else:
@@ -787,7 +787,7 @@ class Selection(ReaderAccess):
         :param other: Other selection.
         """
         empty_keys = []
-        for number, ids in other.selected.iteritems():
+        for number, ids in other.selected.items():
             self.selected[number] = [id_ for id_ in self.selected[number] if id_ not in ids]
 
             if not self.selected[number]:
@@ -798,13 +798,13 @@ class Selection(ReaderAccess):
 
     def uniquify(self):
 
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             self.selected[number] = sorted(set(ids))
 
     def ids(self):
         # report it in this order! always!
         # these are not unique! run run uniqify first!
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             for i in ids:
                 yield (number, i)
 
@@ -821,21 +821,21 @@ class Selection(ReaderAccess):
 class AtomSelection(Selection):
 
     def vdw(self):
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             for aid in ids:
                 yield self.get_reader(number).atom_vdw(aid)
 
     def residues(self):
         # returns residues selection
         def get_unique_residues():
-            for number, ids in self.selected.iteritems():
+            for number, ids in self.selected.items():
                 number_reader = self.get_reader(number)
                 yield number, sorted(set(map(number_reader.atom2residue, ids)))
 
         return ResidueSelection(get_unique_residues())
 
     def coords(self):
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             number_reader = self.get_reader(number)
             for coord in number_reader.atoms_positions(ids):  # .tolist():
                 yield coord
@@ -843,7 +843,7 @@ class AtomSelection(Selection):
     def center_of_mass(self):
         center = np.zeros(3)
         total_mass = 0
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             masses = self.get_reader(number).atoms_masses(ids)
             masses.shape = (len(masses), 1)
             total_mass += sum(masses)
@@ -918,13 +918,13 @@ class AtomSelection(Selection):
 class ResidueSelection(Selection):
 
     def coords(self):
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             number_reader = self.get_reader(number)
             for coord in number_reader.residues_positions(ids):
                 yield coord  # .tolist()
 
     def names(self):
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             for name in self.get_reader(number).residues_names(ids):
                 yield name
 
@@ -944,7 +944,7 @@ def coords_range_core(srange, number, rid):
         reader = Reader.get_single_reader(number).open()
         for f in srange.get():
             reader.set_frame(f)
-            yield reader.residues_positions([rid]).next()
+            yield next(reader.residues_positions([rid]))
 
     return coords_range_core_inner(srange, number, rid)
 
@@ -1046,7 +1046,7 @@ class SingleResidueSelection(ReaderAccess):
             traj_reader = self.get_reader(self.number)
             for f in frames:
                 traj_reader.set_frame(f)
-                yield traj_reader.residues_positions([self.resid]).next()
+                yield next(traj_reader.residues_positions([self.resid]))
 
     def coords_smooth(self, sranges, smooth):
         for coord in smooth_coords_ranges(sranges, self.number, self.resid, smooth):

@@ -60,8 +60,8 @@ def version_nice():
 __version__ = version_nice()
 __mail__ = 'info@aquaduct.pl'
 
-__author__ = u'Tomasz Magdziarz, Michał Banas, Alicja Płuciennik, Michał Stolarczyk'
-__author_doc__ = u'Tomasz Magdziarz, Karolina Mitusińska, Agata Raczyńska, Artur Góra'
+__author__ = 'Tomasz Magdziarz, Michał Banas, Alicja Płuciennik, Michał Stolarczyk'
+__author_doc__ = 'Tomasz Magdziarz, Karolina Mitusińska, Agata Raczyńska, Artur Góra'
 
 
 def greetings():

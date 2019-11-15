@@ -32,8 +32,8 @@ class TestArrayify(TestCase):
         res2 = (2, 2)
         obj = do_sth_with_table(tables)
         obj2 = do_sth_with_table(tables2)
-        self.assertEquals(obj.shape, res)
-        self.assertEquals(obj2.shape, res)
+        self.assertEqual(obj.shape, res)
+        self.assertEqual(obj2.shape, res)
 
     def test_size_other_input(self):
         # tuples and lists are good input
@@ -45,7 +45,7 @@ class TestArrayify(TestCase):
         tuple_in = ((1, 2, 3), (4, 5, 6))
         res = (1, 2)
         obj = do_sth_with_table(tuple_in)
-        self.assertEquals(obj.shape, res)
+        self.assertEqual(obj.shape, res)
 
     def test_non_iterable(self):
         # non iterable output of internal function
@@ -58,4 +58,4 @@ class TestArrayify(TestCase):
         res = (1, 1)
         obj = do_sth_with_table(one_element)
 
-        self.assertEquals(obj.shape, res)
+        self.assertEqual(obj.shape, res)

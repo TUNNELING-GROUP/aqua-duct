@@ -75,8 +75,8 @@ class CoordsRangeIndexCache(object):
         return self.cache[number][rid]
 
     def update_cric(self, cric):
-        for number, rid_frc in cric.cache.iteritems():
-            for rid, frc in rid_frc.iteritems():
+        for number, rid_frc in cric.cache.items():
+            for rid, frc in rid_frc.items():
                 this_frc = self.get_frc(number, rid)
                 for srange in frc.collection:
                     this_frc.append(srange)
@@ -95,9 +95,9 @@ class CoordsRangeIndexCache(object):
     def getstate(self):
         # this is saved as json so it constitutes format
         return ((int(k),
-                 ((int(kk), map(int, SmartRange.raw2sequence(SmartRange(fast_raw=vv.collection).raw_increment))) for
+                 ((int(kk), list(map(int, SmartRange.raw2sequence(SmartRange(fast_raw=vv.collection).raw_increment)))) for
                   kk, vv
-                  in v.iteritems())) for k, v in self.cache.iteritems())
+                  in v.items())) for k, v in self.cache.items())
 
 
 CRIC = CoordsRangeIndexCache()
@@ -116,7 +116,7 @@ def get_cric_reader(mode='r'):
             if mode == 'w' and not os.path.exists(GCS.cachedir):
                 os.makedirs(GCS.cachedir)
             logger.debug("Preparing CRIC store with file %s", data_file_name)
-            return gzip.open(data_file_name, mode=mode, compresslevel=9)
+            return gzip.open(data_file_name, mode=mode+'t', compresslevel=6)
         except IOError:
             logger.warning("Unable to access CRIC data in cache dir [%s]." % GCS.cachedir)
             pass
@@ -220,12 +220,12 @@ class FramesRangeCollection(object):
                     sr = SmartRangeIncrement(sr.element, sr.times)
                 if sr.contains(srange):
                     # case 3
-                    yield sr, xrange(srange.first_element() - sr.first_element(),
+                    yield sr, range(srange.first_element() - sr.first_element(),
                                      srange.first_element() - sr.first_element() + len(srange))
                     srange = None
                     break
                 # case 4
-                yield sr, xrange(srange.first_element() - sr.first_element(),
+                yield sr, range(srange.first_element() - sr.first_element(),
                                  srange.first_element() - sr.first_element() +
                                  sr.last_element() - srange.first_element() + 1)
                 srange = SmartRangeIncrement(sr.last_element() + 1,

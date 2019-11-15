@@ -30,13 +30,13 @@ class DBCache(object):
     def __call__(self, func, *args, **kwargs):
         def wrapper(*args, **kwargs):
             key = md5(','.join(map(str, args)) + '&' + ','.join(
-                map(lambda kv: ':'.join(map(str, kv)), kwargs.iteritems()))).hexdigest()
+                [':'.join(map(str, kv)) for kv in iter(kwargs.items())])).hexdigest()
 
             logger.debug('Looking for cache key {}'.format(key))
 
             try:
                 coords = np.load(self.db_dir + key + ".npy")
-                print "Data fetched"
+                print("Data fetched")
                 return coords
             except IOError:
                 coords = func(*args, **kwargs)
