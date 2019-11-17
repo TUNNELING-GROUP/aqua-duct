@@ -34,6 +34,9 @@ from aquaduct.utils.sets import intersection, glue, left, right
 from aquaduct.utils.helpers import tupleify, listify, arrayify1, list_blocks_to_slices
 from aquaduct.utils.maths import make_default_array
 from aquaduct.traj.sandwich import Reader, SingleResidueSelection
+
+
+
 from array import array
 
 from itertools import chain
@@ -105,6 +108,8 @@ class GenericPaths(GenericPathTypeCodes):
             self._frames = array('i', frames)
         assert len(self._frames) == len(set(self._frames)), (len(self._frames), len(set(self._frames)))
 
+    '''
+
     def __getstate__(self):
         return self.id, self.name, self._types, self._frames, self.max_possible_frame, self.min_possible_frame
 
@@ -119,7 +124,11 @@ class GenericPaths(GenericPathTypeCodes):
             self.min_possible_frame = state['min_possible_frame']
         else:
             self.id, self.name, self._types, self._frames, self.max_possible_frame, self.min_possible_frame = state
+
+            Reader.reset()
         self.single_res_selection = SingleResidueSelection(self.id)
+
+    '''
 
     # info methods
     @property
@@ -636,6 +645,8 @@ def correct_spaths_ids(spaths, pbar):
 
 def yield_generic_paths(spaths, progress=None):
     rid_seen = OrderedDict()
+
+
     number_of_frames = Reader.number_of_frames(onelayer=True) - 1
     t_object = GenericPathTypeCodes.object_name
     for sp in spaths:
@@ -691,12 +702,16 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
 
         self._object_len = None
 
+
+    '''
     def __getstate__(self):
         return self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len
 
     def __setstate__(self, state):
         self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len = state
         self.single_res_selection = SingleResidueSelection(self.id.id)
+
+    '''
 
     def add_paths4(self, path_in, path_object, path_object_strict, path_out):
         # init empty path

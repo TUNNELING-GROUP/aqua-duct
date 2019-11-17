@@ -36,6 +36,10 @@ from aquaduct.traj.inlets import Inlets
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath, MacroMolPath
 from aquaduct.traj.paths import yield_generic_paths, correct_spaths_ids
 from aquaduct.traj.sandwich import ResidueSelection, Reader, mda_ver
+
+
+
+
 from aquaduct.utils.clui import roman
 from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof, make_fraction
 from aquaduct.utils.helpers import range2int, what2what, lind, robust_and, robust_or
@@ -141,6 +145,7 @@ def get_traced_names(some_paths):
 # traceable_residues
 def stage_I_run(config, options,
                 **kwargs):
+
     Reader.reset()
 
     clui.message("Loop over frames - search of residues in object:")
@@ -242,6 +247,8 @@ def stage_I_run(config, options,
 ################################################################################
 
 def waterfall_me(paths, pbar=None):
+
+
     number_of_frames = Reader.number_of_frames(onelayer=True)
 
 
@@ -285,6 +292,7 @@ def stage_II_run(config, options,
                  # res_ids_in_object_over_frames=None,
                  **kwargs):
     # disable real cache of ort
+
     Reader.reset()
 
     ####################################################################################################################
@@ -407,9 +415,12 @@ def stage_II_run(config, options,
                                                                all_res_layer.names()))
 
                 pool = Pool(processes=optimal_threads.threads_count)
+                #list(map(new_paths.callback_append_next, map(assign_nonsandwiched_paths(),
+                #                                                             zip(paths_this_layer,
+                #                                                                 results_n(results[number]).T))))
                 list(map(new_paths.callback_append_next, pool.imap_unordered(assign_nonsandwiched_paths(),
-                                                                        zip(paths_this_layer,
-                                                                             results_n(results[number]).T))))
+                                                                             zip(paths_this_layer,
+                                                                                 results_n(results[number]).T))))
 
                 pool.close()
                 pool.join()
@@ -473,6 +484,7 @@ def stage_III_run(config, options,
                   paths=None,
                   **kwargs):
     soptions = config.get_smooth_options()
+
 
     Reader.reset()
 
@@ -795,6 +807,7 @@ def stage_IV_run(config, options,
                  center_of_object=None,
                  **kwargs):
     # enable real cache of ort
+
     Reader.reset()
 
     coptions = config.get_cluster_options()
@@ -1098,6 +1111,7 @@ def stage_V_run(config, options,
                 reader=None,
                 **kwargs):
     # enable real cache of ort
+
     Reader.reset()
 
     # file handle?
@@ -1637,6 +1651,7 @@ def stage_VI_run(config, options,
                  center_of_object=None,
                  **kwargs):
     # enable real cache of ort
+
     Reader.reset()
 
     from aquaduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter

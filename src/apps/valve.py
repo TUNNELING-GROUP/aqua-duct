@@ -189,6 +189,8 @@ if __name__ == "__main__":
 
             from aquaduct.traj.sandwich import Reader, Window
 
+
+
             # STAGE 0
 
             # Maximal frame checks

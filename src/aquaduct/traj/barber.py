@@ -29,6 +29,9 @@ from aquaduct.utils import clui
 from aquaduct.utils.helpers import listify
 from aquaduct.utils.helpers import lind, SmartRange
 from aquaduct.traj.sandwich import ReaderAccess, Reader
+
+
+
 from aquaduct.geom import Sphere, do_cut_thyself
 from aquaduct.utils.multip import optimal_threads
 from multiprocessing import Pool
@@ -42,6 +45,7 @@ __mail__ = 'info@aquaduct.pl'
 @listify
 def spaths2spheres(spaths, minmax=None, selection=None, tovdw=None, forceempty=None):
     mincut, mincut_val, maxcut, maxcut_val, mincut_level, maxcut_level = minmax
+
     for sp in spaths:
 
         traj_reader = Reader.get_reader_by_id(sp.id.id).open()
@@ -97,6 +101,7 @@ def spaths2spheres(spaths, minmax=None, selection=None, tovdw=None, forceempty=N
 @listify
 def inlets2spheres(inlets, minmax=None, selection=None, tovdw=None, forceempty=None):
     mincut, mincut_val, maxcut, maxcut_val, mincut_level, maxcut_level = minmax
+
     for inlet in inlets:
 
         traj_reader = Reader.get_reader_by_id(inlet.reference.id).open()
@@ -222,6 +227,7 @@ class WhereToCut(ReaderAccess):
             n_add = len(spaths)
         minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
 
+
         Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
         n = max(1, optimal_threads.threads_count)
@@ -259,6 +265,7 @@ class WhereToCut(ReaderAccess):
             pbar = clui.pbar(len(inlets.inlets_list))
             n_add = len(inlets.inlets_list)
         minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
+
 
         Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
@@ -300,6 +307,8 @@ class WhereToCut(ReaderAccess):
         return nr
 
     def inlet2sphere(self, inlet):
+
+
         traj_reader = Reader.get_reader_by_id(inlet.reference.id).open()
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
