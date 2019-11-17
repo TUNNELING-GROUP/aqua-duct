@@ -28,7 +28,8 @@ from setuptools import find_packages, setup
 from aquaduct.traj.sandwich import open_traj_reader, ResidueSelection
 from aquaduct.utils.helpers import create_tmpfile, iterate_or_die
 
-from aquaduct.apps.valve.core import GenericPaths
+#from aquaduct.apps.valve.core import GenericPaths
+from aquaduct.traj.paths import GenericPaths
 from aquaduct.apps.valve.helpers import results_n
 
 

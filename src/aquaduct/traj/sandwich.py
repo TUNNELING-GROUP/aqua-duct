@@ -540,6 +540,8 @@ class ReaderTraj(object):
         if not isinstance(trajectory, list):
             self.trajectory = [t.strip() for t in trajectory.split(pathsep)]
 
+        if not topology or (isinstance(topology,str) and len(topology.strip())==0):
+            raise TypeError('Empty topology file')
         # print "ReaderTraj(%r,%r)" % (self.topology,self.trajectory)
 
         self.number = number
@@ -664,6 +666,8 @@ class ReaderTrajViaMDA(ReaderTraj):
             if afk.match(trajectory):
                 trajectory = mda_available_formats[afk]
                 break
+        print("%"*80)
+        print(topology,trajectory)
         return mda.Universe(self.topology,
                             self.trajectory,
                             topology_format=topology,
