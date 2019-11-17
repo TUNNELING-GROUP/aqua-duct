@@ -157,6 +157,7 @@ class OpenReaderTraj(namedtuple('OpenReaderTraj', 'topology trajectory number wi
 
 
 class MasterReader(object):
+
     # only one MasterReader object can be used
     # it does not use ANY direct call to ANY MD access software
 
@@ -218,6 +219,14 @@ class MasterReader(object):
         # if pickle dump is required, this will not be used in the future
         self.__dict__ = state
         self.open_reader_traj = {}
+
+    def getrecallstate(self):
+        # TODO: to be removed?
+        return dict(topology=self.topology,
+                    trajectory=self.trajectory,
+                    window=self.window,
+                    sandwich=self.sandwich_mode,
+                    threads=self.threads)
 
     '''
     @property
@@ -381,6 +390,8 @@ def open_traj_reader_engine(ort):
 
 
 def open_traj_reader(ort):
+
+
     if ort.number not in Reader.open_reader_traj:
         Reader.open_reader_traj.update({ort.number: open_traj_reader_engine(ort)})
     return Reader.open_reader_traj[ort.number]
@@ -390,6 +401,8 @@ class ReaderAccess(object):
     # ReaderAccess class provides reader property that returns current instance of MasterReader
 
     def get_reader(self, number):
+
+
         if number in Reader.open_reader_traj:
             # print "Getting reader",number,"from opened readers."
             return Reader.open_reader_traj[number]
@@ -400,6 +413,8 @@ class ReaderAccess(object):
         return self.get_reader(someid[0])
 
     def get_edges(self):
+
+
         return Reader.edges
 
 
@@ -666,8 +681,8 @@ class ReaderTrajViaMDA(ReaderTraj):
             if afk.match(trajectory):
                 trajectory = mda_available_formats[afk]
                 break
-        print("%"*80)
-        print(topology,trajectory)
+        #print("%"*80)
+        #print(topology,trajectory)
         return mda.Universe(self.topology,
                             self.trajectory,
                             topology_format=topology,
@@ -945,6 +960,8 @@ def coords_range_core(srange, number, rid):
 
     @arrayify(shape=(None, 3))
     def coords_range_core_inner(srange, number, rid):
+
+
         reader = Reader.get_single_reader(number).open()
         for f in srange.get():
             reader.set_frame(f)
@@ -1021,6 +1038,7 @@ class SingleResidueSelection(ReaderAccess):
         traj_reader = self.get_reader(self.number)
         # full range always
         self.always_request_frames = SmartRangeIncrement(0,traj_reader.number_of_frames())
+
 
     def coords(self, frames):
         if isinstance(frames, SmartRange):
