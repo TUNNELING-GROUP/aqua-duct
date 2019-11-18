@@ -21,6 +21,8 @@ import numpy as np
 import pickle as pickle
 import os
 import tarfile
+import json
+
 
 import aquaduct.visual.pymol_cgo as cgo
 
@@ -154,7 +156,8 @@ class SimpleTarWriteHelper(object):
 
     def save_object2tar(self, obj, name):
         with open(self.tmp_file, 'wb') as f:
-            pickle.dump(obj, f)
+            pickle.dump(obj, f, protocol=2) # this is for python2
+            #json.dump(obj,f)
         self.save_file2tar(self.tmp_file, name)
 
     def save_file2tar(self, filename, name):
@@ -242,6 +245,7 @@ from os import close,unlink
 from os.path import splitext,isfile
 import tarfile
 import cPickle as pickle
+import json
 from tempfile import mkstemp
 fd, pdb_filename = mkstemp(suffix=".pdb")
 close(fd)
@@ -271,6 +275,7 @@ def load_object(filename,name,state):
     global max_state
     print "Loading %s" % splitext(filename)[0]
     obj=pickle.load(data_fh.extractfile(filename))
+    #obj=json.load(data_fh.extractfile(filename))
     if name in args.fc.split():
         forced_color=args.fc.split()[args.fc.split().index(name)+1]
         forced_color=cmd.get_color_tuple(forced_color)
