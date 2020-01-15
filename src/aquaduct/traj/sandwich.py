@@ -169,10 +169,10 @@ class MasterReader(object):
         :param list topology:  List of topologies. Each element is a file name.
         :param list trajectory: List of trajectories. Each element is a file name.
         :param Window window: Frames window to read.
-        :param bool sandwich: Flag for setting sandwitch mode.
+        :param bool sandwich: Flag for setting sandwich mode.
 
         If no sandiwch mode is used, number of topologies has to be precisely 1.
-        In sandwich mode it can be either 1 or equal to the nuber of trajectory files.
+        In sandwich mode it can be either 1 or equal to the number of trajectory files.
         """
 
         if not isinstance(topology, list):
@@ -198,6 +198,7 @@ class MasterReader(object):
     def reset(self):
         self.open_reader_traj = {}
 
+    '''
     def __getstate__(self):
         # if pickle dump is required, this will not be used in the future
         # do not pass open_reader_traj
@@ -208,6 +209,7 @@ class MasterReader(object):
         self.__dict__ = state
         self.open_reader_traj = {}
 
+    '''
     def getrecallstate(self):
         # TODO: to be removed?
         return dict(topology=self.topology,
