@@ -26,6 +26,8 @@ What have I got in my pocket?
 ################################################################################
 # reuse AQ logger
 
+from __future__ import absolute_import
+from __future__ import print_function
 import logging
 from aquaduct import logger, logger_name
 
@@ -412,10 +414,10 @@ if __name__ == "__main__":
             for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
                 middle = sum(window) / 2
                 if wnr and many_windows:
-                    print("W%d %d:%d middle: %d" % (wnr, window[0], window[1], middle))
+                    print(("W%d %d:%d middle: %d" % (wnr, window[0], window[1], middle)))
                     windows.append([wnr, window[0], window[1], middle])
                 elif (wnr == 0) and (args.wfull or (not many_windows)):
-                    print("full %d:%d" % (window[0], window[1]))
+                    print(("full %d:%d" % (window[0], window[1])))
                     rmu('full_window',[window[0], window[1]])
                 rmu('windows', windows)
 
@@ -823,7 +825,7 @@ if __name__ == "__main__":
                     clui.message("Path with ID {} does not exists.".format(args.path_id))
 
             Reader.reset()
-            with gzip.open(rdir + 'pond_meta.json', mode='w', compresslevel=9) as f:
+            with gzip.open(rdir + 'pond_meta.json', mode='wt', compresslevel=9) as f:
                 json.dump(results_meta, f)
                 # TODO: consider usage of IterEncoder - move it to aquaduct/apps/data.py module
 
