@@ -156,7 +156,7 @@ class SimpleTarWriteHelper(object):
 
     def save_object2tar(self, obj, name):
         with open(self.tmp_file, 'wb') as f:
-            pickle.dump(obj, f, protocol=2) # this is for python2
+            pickle.dump(obj, f, protocol=2) # this is for compatibility with python2
             #json.dump(obj,f)
         self.save_file2tar(self.tmp_file, name)
 

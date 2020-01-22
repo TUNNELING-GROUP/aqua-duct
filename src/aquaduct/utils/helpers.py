@@ -21,6 +21,8 @@
 Collection of helpers - functions and decorators.
 """
 
+from aquaduct import logger
+
 import numpy as np
 from collections import Iterable
 from functools import wraps
@@ -28,7 +30,10 @@ from os import close
 from tempfile import mkstemp
 from itertools import chain
 from aquaduct.utils.maths import defaults
+from distutils.version import StrictVersion
 
+def version_parser(v):
+    return StrictVersion(v)
 
 ########################################################################
 #  aliens
@@ -429,6 +434,19 @@ def noaction(gen):
         return gen(*args, **kwargs)
 
     return patched
+
+def memory_in_memory(func):
+    # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
+    cache = func.cache = {}
+    @wraps(func)
+    def memoized_func(*args, **kwargs):
+        key = ','.join(map(str, args)) + '&' + ','.join([':'.join(map(str, kv)) for kv in iter(kwargs.items())])
+        logger.debug('Looking for cache key %s' % key)
+        if key not in cache:
+            cache[key] = func(*args, **kwargs)
+            logger.debug("New key added to cache.")
+        return cache[key]
+    return memoized_func
 
 
 def listify(gen):
