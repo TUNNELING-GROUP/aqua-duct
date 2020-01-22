@@ -17,30 +17,35 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from aquaduct import logger
-
-import re
-from collections import OrderedDict, namedtuple
-
-from os.path import splitext
-from os import pathsep
-
-import numpy as np
+from aquaduct.utils.helpers import version_parser
 import MDAnalysis as mda
 
+################################################################################
+# Check MDAnalysis version
 
 def mda_ver():
-    return mda.__version__
+    return version_parser(mda.__version__)
 
 
 # FIXME: do it according to user options
-if mda.__version__ < '0.16':
+if mda_ver() < version_parser('0.16'):
     logger.error('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.', mda.__version__)
     raise NotImplementedError('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.' % mda.__version__)
 
-if mda.__version__ >= '0.17' and mda.__version__ < '0.20':
+if mda_ver() < version_parser('0.17') and mda_ver() < version_parser('0.20'):
     logger.warning('Unsupported MDAnalysis version %s.', mda.__version__)
     logger.warning('Trying to mitigate potential problems by setting `use_periodic_selections = False`.')
     mda.core.flags['use_periodic_selections'] = False
+
+################################################################################
+# rest of imports
+
+import re
+from os.path import splitext
+from os import pathsep
+from collections import OrderedDict, namedtuple
+
+import numpy as np
 
 from MDAnalysis.topology.core import guess_atom_element
 
@@ -52,34 +57,17 @@ from aquaduct.apps.data import GCS, CRIC
 from aquaduct.utils.maths import defaults
 
 ################################################################################
-# memory decorator
+# import or create memory decorator
 
 if GCS.cachedir:
     from joblib import Memory
-
     memory_cache = Memory(cachedir=GCS.cachedir,
-                          verbose=0)  # mmap have to be switched off, otherwise smoothing does not work properly
+                          verbose=0)
+    # mmap have to be switched off, otherwise smoothing does not work properly
     # memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)
     memory = memory_cache.cache
 elif GCS.cachemem:
-    from functools import wraps
-
-
-    # TODO: rework this to adapt it accordingly, moce it to utils?
-    # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
-    def memory(func):
-        cache = func.cache = {}
-
-        @wraps(func)
-        def memoized_func(*args, **kwargs):
-            key = ','.join(map(str, args)) + '&' + ','.join([':'.join(map(str, kv)) for kv in iter(kwargs.items())])
-            logger.debug('Looking for cache key %s' % key)
-            if key not in cache:
-                cache[key] = func(*args, **kwargs)
-                logger.debug("New key added to cache.")
-            return cache[key]
-
-        return memoized_func
+    from aquaduct.utils.helpers import memory_in_memory as memory
 else:
     from aquaduct.utils.helpers import noaction as memory
 
