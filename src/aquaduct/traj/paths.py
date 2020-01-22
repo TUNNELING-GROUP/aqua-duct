@@ -571,11 +571,11 @@ class SinglePathID(object):
     __slots__ = 'id nr name'.split()
 
     def __init__(self, path_id=None, nr=None, name=None):
-        assert path_id is not None, "path_id connot be None."
+        assert path_id is not None, "path_id cannot be None."
         self.id = path_id
-        assert nr is not None, "nr connot be None."
+        assert nr is not None, "nr cannot be None."
         self.nr = nr
-        assert name is not None, "name connot be None."
+        assert name is not None, "name cannot be None."
         self.name = name
 
     def __getstate__(self):
