@@ -35,6 +35,10 @@ from distutils.version import StrictVersion
 def version_parser(v):
     return StrictVersion(v)
 
+def ion(i):
+    # int or None
+    return i if i is None or str(i).lower() == 'none' else int(i)
+
 ########################################################################
 #  aliens
 

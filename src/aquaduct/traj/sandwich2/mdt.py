@@ -5,30 +5,13 @@ from aquaduct import logger
 
 from aquaduct.traj.sandwich2.reader import BaseReader
 
-from aquaduct.utils.helpers import version_parser
 from os.path import splitext
 import re
 
 
 
-import MDAnalysis as md
+import mdtraj as md
 
-################################################################################
-# Check MDAnalysis version
-
-def mda_ver():
-    return version_parser(md.__version__)
-
-
-# FIXME: do it according to user options
-if mda_ver() < version_parser('0.16'):
-    logger.error('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.', md.__version__)
-    raise NotImplementedError('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.' % md.__version__)
-
-if mda_ver() < version_parser('0.17') and mda_ver() < version_parser('0.20'):
-    logger.warning('Unsupported MDAnalysis version %s.', md.__version__)
-    logger.warning('Trying to mitigate potential problems by setting `use_periodic_selections = False`.')
-    md.core.flags['use_periodic_selections'] = False
 
 
 ################################################################################
@@ -53,10 +36,10 @@ def open_raw(topology, trajectory):
         if afk.match(trajectory_ext):
             trajectory_ext = available_formats[afk]
             break
-    return md.Universe(topology,
-                       trajectory,
-                       topology_format=topology_ext,
-                       format=trajectory_ext)
+    return mda.Universe(topology,
+                        trajectory,
+                        topology_format=topology_ext,
+                        format=trajectory_ext)
 
 
 ################################################################################

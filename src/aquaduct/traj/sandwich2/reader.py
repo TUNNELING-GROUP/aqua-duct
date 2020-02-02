@@ -4,6 +4,7 @@
 from abc import ABC, abstractmethod
 
 
+
 class BaseReader(ABC):
 
     def __init__(self,topology,trajectory,

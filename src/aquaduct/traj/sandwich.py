@@ -55,6 +55,7 @@ from aquaduct.utils.helpers import arrayify, create_tmpfile, tupleify
 from aquaduct.utils.maths import make_default_array
 from aquaduct.apps.data import GCS, CRIC
 from aquaduct.utils.maths import defaults
+from aquaduct.utils.helpers import ion
 
 ################################################################################
 # import or create memory decorator
@@ -76,51 +77,38 @@ else:
 # trajectory window object
 
 class Window(object):
-    def __init__(self, start, stop, step):
-        self.start = self._none_or_int(start)
-        self.stop = self._none_or_int(stop)
-        self.step = self._none_or_int(step)
+    def __init__(self, *args):
+        self.slice = slice(*map(ion,args))
+        # real number of frames
+        self.rnof = None
 
-    @staticmethod
-    def _none_or_int(nr):
-        if nr is not None:
-            return int(nr)
+    @property
+    def start(self):
+        return self.range()[0]
+
+    @property
+    def stop(self):
+        return self.range()[-1]
+
+    @property
+    def step(self):
+        return self.slice.step or 1
 
     def __repr__(self):
         return "Window(%r:%r:%r)" % (self.start, self.stop, self.step)
 
-    def correct(self, real_frame_no):
-        if self.start is None:
-            self.start = 0
-        elif self.start < 0:
-            self.start = 0
-        elif self.start > real_frame_no:
-            self.start = real_frame_no - 1
-
-        if self.stop is None:
-            self.stop = real_frame_no - 1
-        elif self.stop < 0:
-            self.stop = 0
-        elif self.stop > real_frame_no:
-            self.stop = real_frame_no - 1
-
-        if self.step is None:
-            self.step = 1
-        elif self.step < 0:
-            self.step = 1
+    def set_rnof(self, real_number_of_frames):
+        assert isinstance(real_number_of_frames,int)
+        self.rnof = real_number_of_frames
 
     def range(self, reverse=False):
         # returns range object
         if reverse:
-            return range(self.stop, self.start - 1, -1 * self.step)
-        return range(self.start, self.stop + 1, self.step)
-
-    def get_real(self, frame):
-        # recalculates real frame
-        return self.start + frame * self.step
+            return self.range(reverse=False)[::-1]
+        return range(self.rnof)[self.slice]
 
     def len(self):
-        # lenght of window
+        # length of window
         return len(self.range())
 
     def split(self, slices=None):
@@ -190,7 +178,7 @@ class MasterReader(object):
             assert len(self.topology) == len(
                 self.trajectory), "Number of topologies must be 1 or be equal to number of trajectories."
 
-        self.window.correct(self.real_number_of_frames())  # this corrects window
+        self.window.set_rnof(self.real_number_of_frames())  # this corrects window
         self.reset()  # assert window correction clear all opened trajs
 
         self.threads = threads
