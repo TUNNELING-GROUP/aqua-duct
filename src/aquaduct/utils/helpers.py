@@ -24,7 +24,7 @@ Collection of helpers - functions and decorators.
 from aquaduct import logger
 
 import numpy as np
-from collections import Iterable
+from collections.abc import Iterable
 from functools import wraps
 from os import close
 from tempfile import mkstemp
