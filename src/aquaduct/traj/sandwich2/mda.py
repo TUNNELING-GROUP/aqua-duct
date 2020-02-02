@@ -1,22 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2018-2019  Tomasz Magdziarz, Michał Banas <info@aquaduct.pl>
-# Copyright (C) 2020  Tomasz Magdziarz <info@aquaduct.pl>
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+from aquaduct.traj.sandwich2.reader import BaseReader
 
 from aquaduct import logger
 from aquaduct.utils.helpers import version_parser
@@ -43,13 +29,8 @@ if mda_ver() < version_parser('0.17') and mda_ver() < version_parser('0.20'):
     mda.core.flags['use_periodic_selections'] = False
 
 
-ENGINE_MDA = 'mda'
-
-available_engines = [ENGINE_MDA]
-
-
 ################################################################################
-# mda
+# raw
 
 mda_available_formats = {re.compile('(nc|NC)'): 'nc',
                          re.compile('(prmtop|parmtop|top|PRMTOP|PARMTOP|TOP)'): 'PRMTOP',
@@ -59,7 +40,7 @@ mda_available_formats = {re.compile('(nc|NC)'): 'nc',
                          re.compile('(crd|CRD)'): 'crd',
                          re.compile('(xtc|XTC)'): 'XTC'}
 
-def open_raw_mda(topology, trajectory):
+def open_raw(topology, trajectory):
     topology_ext = splitext(topology)[1][1:]
     for afk in list(mda_available_formats.keys()):
         if afk.match(topology_ext):
@@ -75,10 +56,22 @@ def open_raw_mda(topology, trajectory):
                         topology_format=topology_ext,
                         format=trajectory_ext)
 
-################################################################################
-
-def open_raw(topology, trajectory, engine):
-    if engine == ENGINE_MDA:
-        return open_raw_mda(topology,trajectory)
 
 ################################################################################
+
+
+class Reader(BaseReader):
+
+    def open_trajectory(self):
+        # returns raw trajectory objet to be interpreted by this class
+        return open_raw(self.topology,self.trajectory)
+
+
+    def close_trajectory(self):
+        if hasattr(self, 'trajectory_object'):
+            if hasattr(self.trajectory_object, 'trajectory'):
+                if hasattr(self.trajectory_object.trajectory, 'close'):
+                    self.trajectory_object.trajectory.close()
+
+    def physical_number_of_frames(self):
+        return len(self.trajectory_object.trajectory)
