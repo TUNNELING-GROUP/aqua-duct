@@ -17,12 +17,8 @@ import mdtraj as md
 ################################################################################
 # raw
 
-available_formats = {re.compile('(nc|NC)'): 'nc',
-                     re.compile('(prmtop|parmtop|top|PRMTOP|PARMTOP|TOP)'): 'PRMTOP',
-                     re.compile('(dcd|DCD)'): 'LAMMPS',
-                     re.compile('(psf|PSF)'): 'psf',
+available_formats = {re.compile('(dcd|DCD)'): 'LAMMPS',
                      re.compile('(pdb|PDB)'): 'pdb',
-                     re.compile('(crd|CRD)'): 'crd',
                      re.compile('(xtc|XTC)'): 'XTC'}
 
 def open_raw(topology, trajectory):
@@ -36,11 +32,7 @@ def open_raw(topology, trajectory):
         if afk.match(trajectory_ext):
             trajectory_ext = available_formats[afk]
             break
-    return mda.Universe(topology,
-                        trajectory,
-                        topology_format=topology_ext,
-                        format=trajectory_ext)
-
+    return md.load(trajectory,top=topology)
 
 ################################################################################
 

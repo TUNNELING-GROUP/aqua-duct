@@ -13,8 +13,8 @@ from itertools import zip_longest
 ENGINE_MDA = 'mda'
 """Code name for MDAnalysis engine."""
 ENGINE_MDT = 'mdt'
-"""Code name for MDTraj engine."""
-available_engines = [ENGINE_MDA, ENGINE_MDT]
+"""Code name for MDTraj engine. This engine is not available yet."""
+available_engines = [ENGINE_MDA]
 """List of available MD engines."""
 
 
@@ -61,23 +61,23 @@ class MetaReader(object):
 
     def physical_number_of_frames(self):
         nof = 0
-        for top,traj in self.iter_top_traj_pairs():
-            reader = self.get_reader(top,traj)
+        for top, traj in self.iter_top_traj_pairs():
+            reader = self.get_reader(top, traj)
             nof += reader.open().physical_number_of_frames()
         return nof
 
-    def get_reader(self,*args,**kwargs):
+    def get_reader(self, *args, **kwargs):
         return ProtoReader(engine=self.engine, *args, **kwargs)
 
     def iter_top_traj_pairs(self):
         # iterates over possible topology and trajectory pairs
         if self.mode in [self.sandwich, self.shortbread]:
-            for top,traj in zip_longest(self.topology,
-                                        self.trajectory,
-                                        fillvalue=self.topology[0]):
-                yield top,[traj]
+            for top, traj in zip_longest(self.topology,
+                                         self.trajectory,
+                                         fillvalue=self.topology[0]):
+                yield top, [traj]
         elif self.mode == self.baguette:
-            yield self.topology[0],self.trajectory
+            yield self.topology[0], self.trajectory
 
 
 ################################################################################
@@ -114,9 +114,11 @@ class ProtoReader(object):
         """
         if self.engine == ENGINE_MDA:
             from aquaduct.traj.sandwich2.mda import Reader
+        elif self.engine == ENGINE_MDT:
+            from aquaduct.traj.sandwich2.mdt import Reader
         # return reader for current engine
-        return Reader(self.topology,self.trajectory,
+        return Reader(self.topology, self.trajectory,
                       frames=self.frames,
                       number=self.number)
 
-
+################################################################################

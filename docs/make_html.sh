@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PYTHON=python2.7
+PYTHON=python3.7
 
 # this builds current
 
@@ -16,9 +16,9 @@ then
 fi
 if [ -n "`which gmake`" ]
 then
-    MAKE=gmake
+    MAKE="gmake -j2"
 else
-    MAKE=make
+    MAKE="make -j2"
 fi
 
 #PYTHONPATH_CACHE=$PYTHONPATH

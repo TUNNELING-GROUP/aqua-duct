@@ -11,7 +11,7 @@ cp -r src/README $PDIR
 cp -r src/setup.py $PDIR
 cp -r src/ubuntu_mdanalysis_install_helper.sh $PDIR
 
-rm -rf $PDIR/testing
+rm -rf $PDIR/tests
 
 if [ `uname` = 'OpenBSD' ]
 then
