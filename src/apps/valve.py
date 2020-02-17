@@ -277,5 +277,8 @@ if __name__ == "__main__":
             valve_end()
             logger.info('Valve calulations finished.')
     except BaseException:
-        clui.emit_tvtb_to_file_in_root_logger(exc_info())
-        raise
+        try:
+            clui.emit_tvtb_to_file_in_root_logger(exc_info())
+            raise
+        except Exception as e:
+            raise e
