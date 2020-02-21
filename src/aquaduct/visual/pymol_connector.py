@@ -214,7 +214,7 @@ parser.add_argument("--force-color",action="store",dest="fc",required=False,defa
 parser.add_argument("--fast",action="store_true",dest="fast",required=False,help="Hides all objects while loading.")
 args,unknown=parser.parse_known_args()
 import sys
-if unknown: print >> sys.stderr, "WARNING: Unknown options were used: "+" ".join(unknown)
+if unknown: print( >> sys.stderr, "WARNING: Unknown options were used: "+" ".join(unknown))
 def _kd_order():
     if args.keep=='' and args.discard!='': return 'd'
     if args.keep!='' and args.discard=='': return 'k'
@@ -238,7 +238,7 @@ def proceed(name):
     return True
 from pymol import cmd,finish_launching
 finish_launching()
-print "Loading Aqua-Duct visualization..."
+print("Loading Aqua-Duct visualization...")
 cmd.set("cgo_line_width",%d)
 cmd.set("line_smooth","off")
 from os import close,unlink
@@ -254,8 +254,8 @@ arch_file="%s"
 if not isfile(arch_file):
     import pymol
     if pymol.IS_WINDOWS:
-        print "Please open visualization script using 'Open with' context menu and choose PyMol executable."
-        print "Alternatively, if you have PyMol installed as Python module, open visulaization script with Python executable."
+        print("Please open visualization script using 'Open with' context menu and choose PyMol executable.")
+        print("Alternatively, if you have PyMol installed as Python module, open visulaization script with Python executable.")
     while (pymol._ext_gui is None): pymol = reload(pymol)
     while (not hasattr(pymol._ext_gui,'root')): pymol = reload(pymol)
     import tkFileDialog
@@ -273,7 +273,7 @@ def decode_color(cgo_object,fc=None):
 def load_object(filename,name,state):
     if not proceed(name): return
     global max_state
-    print "Loading %s" % splitext(filename)[0]
+    print("Loading %s" % splitext(filename)[0])
     obj=pickle.load(data_fh.extractfile(filename))
     #obj=json.load(data_fh.extractfile(filename))
     if name in args.fc.split():
@@ -345,20 +345,20 @@ def load_pdb(filename,name,state):
             self.script_fh.write('''data_fh.close()
 unlink(pdb_filename)
 if args.fast: cmd.enable("all")
-print "Aqua-Duct visualization loaded."
+print("Aqua-Duct visualization loaded.")
 if args.session:
-    print "Preparing data to save session..."
+    print("Preparing data to save session...")
     for state in range(max_state):
         cmd.set_frame(state+1)
         cmd.refresh()
         if (state+1)%100==0:
-            print "wait... %d of %d done..." % (state+1,max_state)
-    print "%d of %d done." % (state+1,max_state)
-    print "Saving session..."
+            print("wait... %d of %d done..." % (state+1,max_state))
+    print("%d of %d done." % (state+1,max_state))
+    print("Saving session...")
     cmd.set_frame(1)
     cmd.save(args.session,state=0)
-    print "Let the Valve be always open!"
-    print "Goodby!"
+    print("Let the Valve be always open!")
+    print("Goodbye!")
     cmd.quit()
 ''')
             self.script_fh.write(os.linesep)
