@@ -19,14 +19,17 @@
 
 import ConfigParser
 import argparse
+import pprint
 import sys
-from collections import defaultdict
+from collections import defaultdict, namedtuple, Counter
 from time import time
 
 import numpy as np
 
 from aquaduct.traj.sandwich import Reader, Window, AtomSelection
 from aquaduct.utils.multip import optimal_threads
+
+pp = pprint.PrettyPrinter(indent=4, width=2)
 
 
 class ReadMOL2(object):
@@ -70,6 +73,62 @@ class ReadMOL2(object):
         self.file.close()
 
 
+TrajectoryAtom = namedtuple("TrajectoryAtom", "traj_number atom_id frame")
+AminoacidID = namedtuple("AminoacidID", "hotspot_id residue_id residue_name")
+
+
+class HotspotInDistanceAggregator(object):
+    def __init__(self, frame_number):
+        """
+        Aggregates atoms in hotspots' distance
+        """
+        self.frame_number = frame_number
+        print(self.frame_number)
+        self._atoms_in_hotspots_distance = defaultdict(list)
+
+    def append(self, traj_reader_number, hotspot_id, atom_id, frame):
+        self._atoms_in_hotspots_distance[hotspot_id].append(TrajectoryAtom(traj_reader_number, atom_id, frame))
+
+    def generate_raport(self):
+        amino_acids_list = self.get_counted_amino_acids()
+        for amino_acid_id, count in sorted(amino_acids_list.iteritems(), key=lambda item: item[1], reverse=True):
+            print "{:<7} | {:5} | {:3} | {}%".format(amino_acid_id[0], amino_acid_id[1], amino_acid_id[2],
+                                                     count * 100 / self.frame_number)
+
+    def get_counted_amino_acids(self):
+        amino_acids_list = []
+        for hotspot_id, traj_atoms in self._atoms_in_hotspots_distance.iteritems():
+            for traj_atom in traj_atoms:
+                atom_selection = AtomSelection({traj_atom.traj_number: [traj_atom.atom_id]})
+                residues_ids = atom_selection.residues().ids()
+                residues_names = atom_selection.residues().names()
+                for residue_id, residue_name in zip(residues_ids, residues_names):
+                    amino_acids_list.append((hotspot_id, residue_id, residue_name))
+        return Counter(amino_acids_list)
+
+    def _convert_key_value_to_list(self, dictionary):
+        return [[key, value] for key, value in dictionary.iteritems()]
+
+    def _convert_to_selection_dict(self, traj_atoms):
+        atoms_per_traj = defaultdict(list)
+        for traj_atom in traj_atoms:
+            atoms_per_traj[traj_atom.traj_number].append(traj_atom.atom_id)
+
+        return dict(atoms_per_traj)
+
+
+def is_in_distance(base_coordinates, coordinates, distance):
+    """
+    Indicate whether coord is in distance of base_coord
+    :param list base_coordinates: Coordinates from which distance will be checked
+    :param list coordinates: Coordinates which will be check if they are in distance
+    :param float distance: Maximal distance from base_coord
+    :return: Indication whether coordinates are in distance of base_coordinates
+    :rtype: bool
+    """
+    return float(np.linalg.norm(base_coordinates - coordinates)) < float(distance)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config_file", help="Config filename.")
@@ -110,48 +169,44 @@ if __name__ == "__main__":
 
     residue_occurences = defaultdict(dict)
 
-    stime = time()
+    hotspot_aggregator = HotspotInDistanceAggregator(Reader.window.len())
+    atom_hotspot_distance = args.distance
 
     print "\nFinding the hottest place in the universe:"
-    for traj_reader in Reader.iterate():
+    for traj_reader_number, traj_reader in Reader.iterate(number=True):
         traj_reader = traj_reader.open()
+        protein_selection = traj_reader.parse_selection("protein")
 
-        protein_atoms = traj_reader.parse_selection("protein")
+        for traj_frame in traj_reader.iterate():
+            for selected_atoms_ids in protein_selection.selected.itervalues():
+                selected_atoms_coordinates = traj_reader.atoms_positions(selected_atoms_ids)
+                for atom_id, atom_coordinates in zip(selected_atoms_ids, selected_atoms_coordinates):
+                    for hotspot_id, hotspot_coordinates in enumerate(hotspots_coords):
+                        if is_in_distance(hotspot_coordinates, atom_coordinates, atom_hotspot_distance):
+                            hotspot_aggregator.append(traj_reader_number, hotspot_id, atom_id, traj_frame)
 
-        for frame in traj_reader.iterate():
-            sys.stdout.write("\r {}".format(time() - stime))
-            in_area = defaultdict(dict)
-            for number, ids in protein_atoms.selected.iteritems():
-                number_reader = protein_atoms.get_reader(number)
-                for id_, coord in enumerate(number_reader.atoms_positions(ids)):
-                    for hotspot_id, hotspot_coord in enumerate(hotspots_coords):
+    hotspot_aggregator.generate_raport()
 
-                        if float(np.linalg.norm(coord - hotspot_coord)) < float(args.distance):
-                            if number not in in_area[hotspot_id]:
-                                in_area[hotspot_id][number] = list()
+    # in_area_selections = {}
+    # for hotspot_id, selection in in_area.iteritems():
+    #     in_area_selections[hotspot_id] = AtomSelection(selection)
+    #
+    # for hotspot_id, hotspot_atom_selection in in_area_selections.iteritems():
+    #     for amino_acid_id, name in zip(hotspot_atom_selection.residues().ids(),
+    #                                    hotspot_atom_selection.residues().names()):
+    #         if (amino_acid_id[1], name) not in residue_occurences[hotspot_id]:
+    #             residue_occurences[hotspot_id][(amino_acid_id[1], name)] = 0
+    #
+    #         residue_occurences[hotspot_id][(amino_acid_id[1], name)] += 1
 
-                            in_area[hotspot_id][number].append(id_)
-
-            in_area_selections = {}
-            for hotspot_id, selection in in_area.iteritems():
-                in_area_selections[hotspot_id] = AtomSelection(selection)
-
-            for hotspot_id, hotspot_atom_selection in in_area_selections.iteritems():
-                for id_, name in zip(hotspot_atom_selection.residues().ids(),
-                                     hotspot_atom_selection.residues().names()):
-                    if (id_[1], name) not in residue_occurences[hotspot_id]:
-                        residue_occurences[hotspot_id][(id_[1], name)] = 0
-
-                    residue_occurences[hotspot_id][(id_[1], name)] += 1
-
-    print "\n"
-    window_len = float(Reader.window.len())
-    for hotspot_id, hotspot_occurences in residue_occurences.iteritems():
-        print "-" * 20
-        print hotspot_id, hotspots_coords[hotspot_id]
-        print "-" * 20
-        for i, res in enumerate(sorted(hotspot_occurences, key=hotspot_occurences.get, reverse=True)):
-            if i == args.maxaa:
-                break
-            print "{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
-                                                     round(hotspot_occurences[res] / window_len, 2) * 100)
+    # print "\n"
+    # window_len = float(Reader.window.len())
+    # for hotspot_id, hotspot_occurences in residue_occurences.iteritems():
+    #     print "-" * 20
+    #     print hotspot_id, hotspots_coords[hotspot_id]
+    #     print "-" * 20
+    #     for i, res in enumerate(sorted(hotspot_occurences, key=hotspot_occurences.get, reverse=True)):
+    #         if i == args.maxaa:
+    #             break
+    #         print "{:<7} | {:5} | {:3} | {}%".format(i, res[0] + 1, res[1],
+    #                                                  round(hotspot_occurences[res] / window_len, 2) * 100)
