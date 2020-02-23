@@ -692,6 +692,11 @@ class ReaderTrajViaMDA(ReaderTraj):
         # atoms ids to coordinates
         return self.trajectory_object.atoms[atomids].positions
 
+    def atoms_names(self, atoms_ids):
+        # residues ids to center of masses coordinates
+        for atom_id in atoms_ids:
+            yield self.trajectory_object.atoms[atom_id].type
+
     def residues_positions(self, resids):
         # residues ids to center of masses coordinates
         return (res.atoms.center_of_geometry() for res in
@@ -731,12 +736,21 @@ class ReaderTrajViaMDA(ReaderTraj):
 # Selection objects
 
 class Selection(ReaderAccess):
-
-    def __init__(self, selected):
+    def __init__(self, selected=None):
+        if selected is None:
+            selected = {}
 
         self.selected = OrderedDict(selected)
         for number, ids in self.selected.iteritems():
             self.selected[number] = list(imap(defaults.int_default, ids))
+
+    @property
+    def traj_reader_number(self):
+        return self.selected.keys()[0]
+
+    @property
+    def selected_items(self):
+        return np.array(self.selected.values()[0])
 
     def layer(self, number):
         if number in self.selected:
@@ -833,6 +847,11 @@ class AtomSelection(Selection):
                 yield number, sorted(set(map(number_reader.atom2residue, ids)))
 
         return ResidueSelection(get_unique_residues())
+
+    def names(self):
+        for number, ids in self.selected.iteritems():
+            for name in self.get_reader(number).atoms_names(ids):
+                yield name
 
     def coords(self):
         for number, ids in self.selected.iteritems():
