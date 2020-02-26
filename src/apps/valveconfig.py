@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.7
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
@@ -631,7 +631,7 @@ class ValveConfigApp(object):
     def get_values_hash(self):
         """ Compute hash from values. """
         hash = hashlib.md5()
-        hash.update(str(self.values))
+        hash.update((str(self.values)).encode('utf-8'))
         # for section_name in self.values:
         #     for value in self.values[section_name].itervalues():
         #         hash.update(str(value.get()))
@@ -846,9 +846,9 @@ class ValveConfigApp(object):
                         if entry.optionmenu_value:
                             # Save options only from chosen options in optionmenu
                             if entry.optionmenu_value == self.get_active_frame_name(section.config_name):
-                                config.set(section.config_name, entry.config_name, value)
+                                config.set(section.config_name, entry.config_name, str(value))
                         else:
-                            config.set(section.config_name, entry.config_name, value)
+                            config.set(section.config_name, entry.config_name, str(value))
 
                 # Add created clustering and reclustering sections
                 clustering_section_names = [key for key in list(self.values.keys()) if
@@ -878,9 +878,9 @@ class ValveConfigApp(object):
                         if entry.optionmenu_value:
                             # Save options only from chosen options in optionmenu
                             if entry.optionmenu_value == self.get_active_frame_name(section_name):
-                                config.set(section_config_name, entry.config_name, value)
+                                config.set(section_config_name, entry.config_name, str(value))
                         else:
-                            config.set(section_config_name, entry.config_name, value)
+                            config.set(section_config_name, entry.config_name, str(value))
 
                 config.write(config_file)
                 self.values_hash = self.get_values_hash()
