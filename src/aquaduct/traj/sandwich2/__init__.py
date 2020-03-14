@@ -14,7 +14,7 @@ ENGINE_MDA = 'mda'
 """Code name for MDAnalysis engine."""
 ENGINE_MDT = 'mdt'
 """Code name for MDTraj engine. This engine is not available yet."""
-available_engines = [ENGINE_MDA]
+available_engines = [ENGINE_MDA, ENGINE_MDT]
 """List of available MD engines."""
 
 

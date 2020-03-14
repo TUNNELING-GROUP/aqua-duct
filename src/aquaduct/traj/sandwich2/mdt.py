@@ -32,6 +32,7 @@ def open_raw(topology, trajectory):
         if afk.match(trajectory_ext):
             trajectory_ext = available_formats[afk]
             break
+
     return md.load(trajectory,top=topology)
 
 ################################################################################
