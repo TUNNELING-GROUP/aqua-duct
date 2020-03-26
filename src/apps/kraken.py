@@ -1000,7 +1000,6 @@ if __name__ == "__main__":
 
     s.configure("TLabel", padding=5)
     s.configure("File.TButton", padding=0, font=("TkDefaultFont", 8))  # Loading file button
-    tempdir = tempfile.TemporaryDirectory
 
     app = Kraken(root)
     root.mainloop()
