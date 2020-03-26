@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
-# Copyright (C) 2018-2019  Michał Banas
+# Copyright (C) 2018-2019  Michał Banas <-- an absolute tosser
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,13 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import tkinter as tk
 import base64
 import csv
 import re
 import tkinter.messagebox
 import tkinter.ttk
-from io import StringIO
+from io import BytesIO
 from collections import defaultdict
 from tkinter.filedialog import askopenfile
 
@@ -111,7 +113,7 @@ class CSVDataProcessor(object):
         self.file = open(filename, "r")
         self.csv_reader = csv.DictReader(self.file)
 
-        self.column_names = list(self.csv_reader.next().keys())
+        self.column_names = list(next(self.csv_reader).keys())
         self.seek_file()
 
     def get_column_values(self, column_name):
@@ -345,7 +347,9 @@ def chord_diagram_flows(file_processor, labels={}, colors={}, threshold=0.):
 
     clusters_ids = []
     sizes = []
-    for k, v in sorted(iter(sizes_d.items()), key=lambda x: x[0]):
+    #cannot sort ints and strings together
+    #for k, v in sorted(iter(sizes_d.items()), key=lambda x: x[0]):
+    for k, v in (iter(sizes_d.items())):
         clusters_ids.append(str(k))
         sizes.append(v)
 
@@ -806,7 +810,7 @@ class Kraken(object):
                 log(tk.END, "* All ")
 
                 try:
-                    plot = StringIO()
+                    plot = BytesIO()
                     cluster_inlets(f).savefig(plot, format="png", bbox_inches="tight")
                     plots.append(plot)
 
@@ -821,7 +825,7 @@ class Kraken(object):
                     log(tk.END, "* {} ".format(molecule))
 
                     try:
-                        plot = StringIO()
+                        plot = BytesIO()
                         cluster_inlets(f, suffix=" of {}".format(molecule)).savefig(plot, format="png",
                                                                                     bbox_inches="tight")
                         plots.append(plot)
@@ -860,7 +864,7 @@ class Kraken(object):
             cg = color_gen()
             colors = [colors_file.pop(str(i), next(cg)) for i in ids]
 
-            plot = StringIO()
+            plot = BytesIO()
             relative_clusters_flows(c, clusters, labels, colors).savefig(plot, format="png", bbox_inches="tight")
             plots.append(plot)
 
@@ -869,7 +873,7 @@ class Kraken(object):
         if self.v3.get():
             log(tk.END, "{}\nGenerating Molecule entry time distribution\n".format("-" * 30))
             if self.all3.get():
-                plot = StringIO()
+                plot = BytesIO()
                 ligands_time(f).savefig(plot, format="png")
                 plots.append(plot)
 
@@ -878,7 +882,7 @@ class Kraken(object):
                 for molecule in molecules:
                     log(tk.END, "* {} ".format(molecule))
 
-                    plot = StringIO()
+                    plot = BytesIO()
                     ligands_time(f, molecule).savefig(plot, format="png", bbox_inches="tight")
                     plots.append(plot)
 
@@ -901,12 +905,12 @@ class Kraken(object):
             threshold = float(self.chord_threshold.get()) if self.chord_threshold.get() else 0.0
 
             log(tk.END, "* Clusters sizes ")
-            plot1 = StringIO()
+            plot1 = BytesIO()
             chord_diagram_sizes(f, labels, colors).savefig(plot1, format="png", dpi=2 ** 7, bbox_inches="tight")
             log(tk.END, "\u2714\n", "success")
 
             log(tk.END, "* Clusters flows ")
-            plot2 = StringIO()
+            plot2 = BytesIO()
             chord_diagram_flows(f, labels, colors, threshold).savefig(plot2, format="png", dpi=2 ** 7,
                                                                       bbox_inches="tight")
             log(tk.END, "\u2714\n", "success")
@@ -918,16 +922,16 @@ class Kraken(object):
         if self.v7.get():
             log(tk.END, "{}\nGenerating Volumes\n".format("-" * 30))
 
-            plot1 = StringIO()
+            plot1 = BytesIO()
             volume_scope_area(c).savefig(plot1, format="png", bbox_inches="tight")
 
-            plot2 = StringIO()
+            plot2 = BytesIO()
             volume_scope_volume(c).savefig(plot2, format="png", bbox_inches="tight")
 
-            plot3 = StringIO()
+            plot3 = BytesIO()
             volume_object_area(c).savefig(plot3, format="png", bbox_inches="tight")
 
-            plot4 = StringIO()
+            plot4 = BytesIO()
             volume_object_volume(c).savefig(plot4, format="png", bbox_inches="tight")
 
             plots.extend([plot1, plot2, plot3, plot4])
@@ -938,7 +942,7 @@ class Kraken(object):
             log(tk.END, "{}\nGenerating Clusters areas\n".format("-" * 30))
 
             if self.all8.get():
-                plot = StringIO()
+                plot = BytesIO()
                 cluster_area(f).savefig(plot, format="png", bbox_inches="tight")
                 plots.append(plot)
 
@@ -949,7 +953,7 @@ class Kraken(object):
                     log(tk.END, "* {} ".format(molecule))
 
                     try:
-                        plot = StringIO()
+                        plot = BytesIO()
                         cluster_area(f, suffix=" of {}".format(molecule)).savefig(plot, format="png")
                         plots.append(plot)
                         log(tk.END, "\u2714\n", "success")
@@ -960,13 +964,14 @@ class Kraken(object):
             log(tk.END, "Done.\n", "success")
 
         # Save plots to file
-        logo_base64 = base64.b64encode(open(get_img("logo.gif"), "rb").read())
-        html = """<div style="text-align:center; margin-bottom: 40px"><a href="http://www.tunnelinggroup.pl"><img src="data:image/gif;base64,{}"></a></div>""".format(
-            logo_base64)
+        logo_base64 = base64.b64encode(open(get_img("logo.gif"), "rb").read()).decode("UTF-8")
+        html = """<div style=\"text-align:center; margin-bottom: 40px\"><a href=\"http://www.tunnelinggroup.pl\"><img src=\"data:image/gif;base64,{}\"></a></div>""".format(logo_base64)
+        
         for i, f in enumerate(plots):
-            html += """<div style="text-align: center">
-    <img style="max-width:100%" src=\"data:image/png;base64,{}\">
-</div>""".format(base64.encodestring(f.getvalue()))
+            f.seek(0)
+            html += """<div style=\"text-align: center\">
+    <img style=\"max-width:100%\" src=\"data:image/png;base64,{}\">
+</div>""".format(base64.b64encode(f.getvalue()).decode("UTF-8"))
 
         html += "<div style=\"text-align:center\"><h3>Document generated by <span style=\"color:#38b2fa\">Kraken</span>.</h3></div>"
 
@@ -995,6 +1000,7 @@ if __name__ == "__main__":
 
     s.configure("TLabel", padding=5)
     s.configure("File.TButton", padding=0, font=("TkDefaultFont", 8))  # Loading file button
+    tempdir = tempfile.TemporaryDirectory
 
     app = Kraken(root)
     root.mainloop()
