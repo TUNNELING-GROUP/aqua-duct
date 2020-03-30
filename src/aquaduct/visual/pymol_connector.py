@@ -214,7 +214,7 @@ parser.add_argument("--force-color",action="store",dest="fc",required=False,defa
 parser.add_argument("--fast",action="store_true",dest="fast",required=False,help="Hides all objects while loading.")
 args,unknown=parser.parse_known_args()
 import sys
-if unknown: print( >> sys.stderr, "WARNING: Unknown options were used: "+" ".join(unknown))
+if unknown: print("WARNING: Unknown options were used: "+" ".join(unknown), sys.stderr)
 def _kd_order():
     if args.keep=='' and args.discard!='': return 'd'
     if args.keep!='' and args.discard=='': return 'k'
@@ -244,7 +244,7 @@ cmd.set("line_smooth","off")
 from os import close,unlink
 from os.path import splitext,isfile
 import tarfile
-import cPickle as pickle
+import pickle as pickle
 import json
 from tempfile import mkstemp
 fd, pdb_filename = mkstemp(suffix=".pdb")
@@ -291,7 +291,7 @@ def load_object(filename,name,state):
 def load_pdb(filename,name,state):
     if not proceed(name): return
     global max_state
-    with open(pdb_filename,'w') as fpdb:
+    with open(pdb_filename,'wb') as fpdb:
         fpdb.write(data_fh.extractfile(filename).read())
     cmd.load(pdb_filename,state=state,object=name)
     if state>max_state:
