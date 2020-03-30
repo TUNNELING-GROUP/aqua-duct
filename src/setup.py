@@ -25,7 +25,7 @@ version = __import__('aquaduct').version_nice()  # version str
 install_requires = ['numpy>=1.10.0',  # this is required by MDA
                     'scipy>=0.17.1',
                     'scikit-learn>=0.16.0',
-                    'MDAnalysis[amber]==0.16.2|>0.20',
+                    'MDAnalysis[amber]>=0.16.2',
                     'joblib>=0.13'
                     ]
 
@@ -57,7 +57,7 @@ setup(name='aquaduct',
       license='GNU GPL v3',
       keywords='molecular-dynamics solvent',
       packages=find_packages(include=['aquaduct*']),
-      python_requires='>=2.7, <3',
+      python_requires='>=3',
       install_requires=install_requires,
       extras_require={'full_pymol': ["pymol>=1.4"],
                       'graphs': ['matplotlib'],
