@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# this modlue is a prototype and have to be rewritten
+# this modlue is a prototype and has to be rewritten
 
 from aquaduct import logger
 
@@ -309,7 +309,7 @@ class CTypeSpathsCollection(object):
                 # weighted average by paths lengths
                 sizes.append(int(np.average([len(sp.types[part]) for sp in self.spaths], 0, lens)))
             logger.debug("Full size is %d.", max(30, sum(sizes) / 3))
-        return max(30, sum(sizes) / 3)  # total size (desired), min 30 - a good low limit default?
+        return int(max(30, sum(sizes) / 3))  # total size (desired), min 30 - a good low limit default?
 
     @staticmethod
     def simple_types_distribution(types):

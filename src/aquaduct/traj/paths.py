@@ -703,7 +703,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         self._object_len = None
 
 
-    '''
+    
     def __getstate__(self):
         return self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len
 
@@ -711,7 +711,7 @@ class MacroMolPath(PathTypesCodes, InletTypeCodes):
         self.id, self._path_in, self._path_object, self._path_out, self._types_in, self._types_object, self._types_out, self._object_len = state
         self.single_res_selection = SingleResidueSelection(self.id.id)
 
-    '''
+    
 
     def add_paths4(self, path_in, path_object, path_object_strict, path_out):
         # init empty path
