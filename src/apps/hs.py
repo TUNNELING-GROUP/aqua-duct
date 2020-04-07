@@ -110,10 +110,13 @@ class AtomsSelectionInHotspotDistanceCounter(object):
 
             for atom_selection in atom_selections:
                 residues = atom_selection.residues()
-                all_atoms_residues.extend(zip(residues.ids(), residues.names()))
+                all_atoms_residues.extend(zip([_id for _, _id in residues.ids()], residues.names()))
 
             if len(all_atoms_residues):
                 amino_acids_count[hotspot_id] = Counter(all_atoms_residues)
+                print(hotspot_id)
+                pprint.pprint(amino_acids_count[hotspot_id])
+                print("---")
 
             atoms_in_residues_counter = AtomsInResiduesCounter()
             for atom_selection in atom_selections:
@@ -134,14 +137,14 @@ class ResultConsoleReporter(object):
         self._hotspots_coordinates = hotspots_coordinates
         self._counted_atoms_in_residues = counted_atoms_in_residues
 
-        for hotspot_id, amino_acid_counts in counted_amino_acids.iteritems():
+        for hotspot_id, amino_acid_counts in sorted(counted_amino_acids.iteritems(), key=lambda aminoacid: aminoacid[0]):
             print self._get_hotspot_header(hotspot_id)
             print self._get_header()
             for ((amino_acid_id), amino_acid_name), count in amino_acid_counts.iteritems():
                 print self._get_result_line(hotspot_id, amino_acid_id, amino_acid_name, count)
 
     def _get_result_line(self, hotspot_id, amino_acid_id, amino_acid_name, count):
-        return "{:^10} | {:^13} | {:^15} | {:>18} | {}".format(hotspot_id, amino_acid_id[1], amino_acid_name,
+        return "{:^10} | {:^13} | {:^15} | {:>18} | {}".format(hotspot_id, amino_acid_id, amino_acid_name,
                                                                self._get_percentage_presence(count),
                                                                self._get_atom_presence(hotspot_id, amino_acid_id))
 
@@ -244,7 +247,7 @@ if __name__ == "__main__":
     hotspot_counter = AtomsSelectionInHotspotDistanceCounter(Reader.window.len())
     atom_hotspot_distance = args.distance
 
-    print "\nFinding amino acids:",
+    print "\nFinding amino acids:"
     start_time = time.time()
     for traj_reader_number, traj_reader in Reader.iterate(number=True):
         traj_reader = traj_reader.open()
@@ -253,7 +256,7 @@ if __name__ == "__main__":
         for traj_frame in traj_reader.iterate():
             frame_atoms_coordinates = traj_reader.atoms_positions(selected_atoms_ids)
             for hotspot_id, hotspot_coordinates in enumerate(hotspots_coords):
-                sys.stdout.write("\r {}".format(time.time() - start_time))
+                sys.stdout.write("\rExecution time: {:.2f}".format(time.time() - start_time))
                 atoms_in_hotspot_distance = get_atoms_in_hotspot_distance_selection(hotspot_coordinates,
                                                                                     atom_hotspot_distance,
                                                                                     traj_reader_number,
@@ -263,5 +266,7 @@ if __name__ == "__main__":
                 hotspot_counter.append_selection(hotspot_id, atoms_in_hotspot_distance)
 
     counted_amino_acids, counted_atoms_per_residues = hotspot_counter.get_counted()
+
+    print("\n") # New line after execution time
 
     ResultConsoleReporter(Reader.window.len(), hotspots_coords, counted_amino_acids, counted_atoms_per_residues)
