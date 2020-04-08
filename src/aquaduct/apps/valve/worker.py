@@ -94,7 +94,7 @@ def stage_I_worker_q(input_queue, results_queue, pbar_queue):
         traj_reader = open_traj_reader(traj_reader_proto)
 
         if not scope_everyframe:
-            scope = traj_reader.parse_selection(scope)
+            scope_selection = traj_reader.parse_selection(scope)
 
         progress = 0
         progress_freq_flex = min(1, progress_freq)
@@ -102,13 +102,13 @@ def stage_I_worker_q(input_queue, results_queue, pbar_queue):
         # the loop over frames
         for frame in traj_reader.iterate_over_frames():
             if scope_everyframe:
-                scope = traj_reader.parse_selection(scope)
+                scope_selection = traj_reader.parse_selection(scope)
             # center of system
-            center_of_system += scope.center_of_mass()
+            center_of_system += scope_selection.center_of_mass()
             # current res selection
             res = traj_reader.parse_selection(object_selection).residues()
             # find matching residues, ie those which are in the scope:
-            res_new = scope.containing_residues(res, convex_hull=scope_convexhull,
+            res_new = scope_selection.containing_residues(res, convex_hull=scope_convexhull,
                                                 convex_hull_inflate=scope_convexhull_inflate)
             res_new.uniquify()  # here is a list of residues in this layer that are in the object and in the scope
             # TODO: change way of center_of_system calculation to reflect center of object?
