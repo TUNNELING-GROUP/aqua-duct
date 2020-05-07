@@ -90,9 +90,12 @@ Niektóre z tych skryptów mogą sprawiać jakieś kłopoty. Adept wiedzy tajemn
 
 Przypomniał mi się jeszcze jeden cytat, jakoś tu dziwnie pasuje. Chodzi mi o "Siostrzeńca czarodzieja" C.S. Lewisa:
 
-> Wędrowcze z dalekich stron, \\
-> Uderz w dzwon i czekaj na niebezpieczeństwa, \\
-> Lub do szaleństwa łam sobie głowę, \\
+> Wędrowcze z dalekich stron,
+>
+> Uderz w dzwon i czekaj na niebezpieczeństwa,
+>
+> Lub do szaleństwa łam sobie głowę,
+>
 > Co byś przeżył gdybyś uderzył.
 
 Cytat z głowy więc może niedokładny ale oddaje ryzyko korzystania z tych skryptów.
