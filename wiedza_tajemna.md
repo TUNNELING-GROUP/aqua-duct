@@ -65,7 +65,7 @@ Teoretycznie sprawa jest prosta. Wystarczy uruchomić dwa skrypty:
 1. `make_html.sh`
 1. `make_pdf.sh`
 
-W praktyce trzeba to i owo zainstalować: sphinx i przyjaciele, dość kompletny texlive, i może jeszcze parę rzeczy.
+W praktyce trzeba to i owo zainstalować: sphinx i przyjaciele, dość kompletny texlive, i może kilka innych rzeczy.
 
 ## Publikowanie dokumentacji
 
@@ -90,13 +90,10 @@ Niektóre z tych skryptów mogą sprawiać jakieś kłopoty. Adept wiedzy tajemn
 
 Przypomniał mi się jeszcze jeden cytat, jakoś tu dziwnie pasuje. Chodzi mi o "Siostrzeńca czarodzieja" C.S. Lewisa:
 
-> Wędrowcze z dalekich stron,
->
-> Uderz w dzwon i czekaj na niebezpieczeństwa,
->
-> Lub do szaleństwa łam sobie głowę,
->
+> Wędrowcze z dalekich stron, \\
+> Uderz w dzwon i czekaj na niebezpieczeństwa, \\
+> Lub do szaleństwa łam sobie głowę, \\
 > Co byś przeżył gdybyś uderzył.
 
-Cytat z głowy więc może nie dokładny ale oddaje ryzyko korzystania z tych skryptów.
+Cytat z głowy więc może niedokładny ale oddaje ryzyko korzystania z tych skryptów.
 
