@@ -73,7 +73,7 @@ def clusters_inlets(cluster, inlets):
 
 @add_cluster_id_head
 def clusters_area_header():
-    header = ('D' + ' D'.join(map(str, range(100, 85, -5) + range(80, 40, -10)))).split()
+    header = ('D' + ' D'.join(map(str, list(range(100, 85, -5)) + list(range(80, 40, -10))))).split()
     line_template = ['%8.2f'] * len(header)
     return header, line_template
 
@@ -83,7 +83,7 @@ def clusters_area(cluster, inlets, points=10, expand_by=1):
     # HDR
     h = hdr.HDR(np.array(inlets.coords), points=points, expand_by=expand_by, center_of_system=inlets.center_of_system)
     line = list()
-    for fraction in range(100, 85, -5) + range(80, 40, -10):
+    for fraction in list(range(100, 85, -5)) + list(range(80, 40, -10)):
         line.append(h.area(fraction=fraction / 100.))
     return line
 
@@ -91,7 +91,7 @@ def clusters_area(cluster, inlets, points=10, expand_by=1):
 @add_cluster_id_head
 def clusters_stats_prob_header():
     header = 'IN-OUT diff N IN-OUT_prob diff_prob N_prob'.split()
-    line_template = ['%8d'] * (len(header) / 2) + ['%12.2f'] * (len(header) / 2)
+    line_template = ['%8d'] * int((len(header) / 2)) + ['%12.2f'] * int((len(header) / 2))
     # header += 'IN_len OUT_len Both_len'.split()
     # line_template += ['%9.1f'] * 3
     return header, line_template
@@ -118,7 +118,7 @@ def clusters_stats_prob(cluster, sp_ct):
             d += 1
     line += [io, d, N]
     summa = float(sum([io, d, N]))
-    line += map(lambda x: x / summa if summa else float('nan'), [io, d, N])
+    line += [x / summa if summa else float('nan') for x in [io, d, N]]
     return line
 
 

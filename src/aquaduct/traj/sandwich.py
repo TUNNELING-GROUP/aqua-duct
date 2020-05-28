@@ -17,30 +17,35 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from aquaduct import logger
-
-import re
-from collections import OrderedDict, namedtuple
-from itertools import imap
-from os.path import splitext
-from os import pathsep
-
-import numpy as np
+from aquaduct.utils.helpers import version_parser
 import MDAnalysis as mda
 
+################################################################################
+# Check MDAnalysis version
 
 def mda_ver():
-    return mda.__version__
+    return version_parser(mda.__version__)
 
 
 # FIXME: do it according to user options
-if mda.__version__ < '0.16':
+if mda_ver() < version_parser('0.16'):
     logger.error('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.', mda.__version__)
     raise NotImplementedError('Unsupported MDAnalysis version %s; should be 0.16.2 or > 0.19.' % mda.__version__)
 
-if mda.__version__ >= '0.17' and mda.__version__ < '0.20':
+if mda_ver() < version_parser('0.17') and mda_ver() < version_parser('0.20'):
     logger.warning('Unsupported MDAnalysis version %s.', mda.__version__)
     logger.warning('Trying to mitigate potential problems by setting `use_periodic_selections = False`.')
     mda.core.flags['use_periodic_selections'] = False
+
+################################################################################
+# rest of imports
+
+import re
+from os.path import splitext
+from os import pathsep
+from collections import OrderedDict, namedtuple
+
+import numpy as np
 
 from MDAnalysis.topology.core import guess_atom_element
 
@@ -52,34 +57,17 @@ from aquaduct.apps.data import GCS, CRIC
 from aquaduct.utils.maths import defaults
 
 ################################################################################
-# memory decorator
+# import or create memory decorator
 
 if GCS.cachedir:
     from joblib import Memory
-
     memory_cache = Memory(cachedir=GCS.cachedir,
-                          verbose=0)  # mmap have to be switched off, otherwise smoothing does not work properly
+                          verbose=0)
+    # mmap have to be switched off, otherwise smoothing does not work properly
     # memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)
     memory = memory_cache.cache
 elif GCS.cachemem:
-    from functools import wraps
-
-
-    # TODO: rework this to adapt it accordingly, moce it to utils?
-    # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
-    def memory(func):
-        cache = func.cache = {}
-
-        @wraps(func)
-        def memoized_func(*args, **kwargs):
-            key = ','.join(map(str, args)) + '&' + ','.join(map(lambda kv: ':'.join(map(str, kv)), kwargs.iteritems()))
-            logger.debug('Looking for cache key %s' % key)
-            if key not in cache:
-                cache[key] = func(*args, **kwargs)
-                logger.debug("New key added to cache.")
-            return cache[key]
-
-        return memoized_func
+    from aquaduct.utils.helpers import memory_in_memory as memory
 else:
     from aquaduct.utils.helpers import noaction as memory
 
@@ -124,8 +112,8 @@ class Window(object):
     def range(self, reverse=False):
         # returns range object
         if reverse:
-            return xrange(self.stop, self.start - 1, -1 * self.step)
-        return xrange(self.start, self.stop + 1, self.step)
+            return range(self.stop, self.start - 1, -1 * self.step)
+        return range(self.start, self.stop + 1, self.step)
 
     def get_real(self, frame):
         # recalculates real frame
@@ -157,6 +145,7 @@ class OpenReaderTraj(namedtuple('OpenReaderTraj', 'topology trajectory number wi
 
 
 class MasterReader(object):
+
     # only one MasterReader object can be used
     # it does not use ANY direct call to ANY MD access software
 
@@ -180,10 +169,10 @@ class MasterReader(object):
         :param list topology:  List of topologies. Each element is a file name.
         :param list trajectory: List of trajectories. Each element is a file name.
         :param Window window: Frames window to read.
-        :param bool sandwich: Flag for setting sandwitch mode.
+        :param bool sandwich: Flag for setting sandwich mode.
 
         If no sandiwch mode is used, number of topologies has to be precisely 1.
-        In sandwich mode it can be either 1 or equal to the nuber of trajectory files.
+        In sandwich mode it can be either 1 or equal to the number of trajectory files.
         """
 
         if not isinstance(topology, list):
@@ -209,15 +198,25 @@ class MasterReader(object):
     def reset(self):
         self.open_reader_traj = {}
 
+    '''
     def __getstate__(self):
         # if pickle dump is required, this will not be used in the future
         # do not pass open_reader_traj
-        return dict(((k, v) for k, v in self.__dict__.iteritems() if k not in ['open_reader_traj']))
+        return dict(((k, v) for k, v in self.__dict__.items() if k not in ['open_reader_traj']))
 
     def __setstate__(self, state):
         # if pickle dump is required, this will not be used in the future
         self.__dict__ = state
         self.open_reader_traj = {}
+
+    '''
+    def getrecallstate(self):
+        # TODO: to be removed?
+        return dict(topology=self.topology,
+                    trajectory=self.trajectory,
+                    window=self.window,
+                    sandwich=self.sandwich_mode,
+                    threads=self.threads)
 
     '''
     @property
@@ -264,7 +263,7 @@ class MasterReader(object):
 
     def strata(self, number=False):
         # generates slices of baquette
-        for nr in xrange(self.number_of_layers()):
+        for nr in range(self.number_of_layers()):
             if number:
                 yield nr + 1, self.get_single_reader(nr + 1)
             else:
@@ -381,6 +380,8 @@ def open_traj_reader_engine(ort):
 
 
 def open_traj_reader(ort):
+
+
     if ort.number not in Reader.open_reader_traj:
         Reader.open_reader_traj.update({ort.number: open_traj_reader_engine(ort)})
     return Reader.open_reader_traj[ort.number]
@@ -390,6 +391,8 @@ class ReaderAccess(object):
     # ReaderAccess class provides reader property that returns current instance of MasterReader
 
     def get_reader(self, number):
+
+
         if number in Reader.open_reader_traj:
             # print "Getting reader",number,"from opened readers."
             return Reader.open_reader_traj[number]
@@ -400,6 +403,8 @@ class ReaderAccess(object):
         return self.get_reader(someid[0])
 
     def get_edges(self):
+
+
         return Reader.edges
 
 
@@ -540,6 +545,8 @@ class ReaderTraj(object):
         if not isinstance(trajectory, list):
             self.trajectory = [t.strip() for t in trajectory.split(pathsep)]
 
+        if not topology or (isinstance(topology,str) and len(topology.strip())==0):
+            raise TypeError('Empty topology file')
         # print "ReaderTraj(%r,%r)" % (self.topology,self.trajectory)
 
         self.number = number
@@ -655,15 +662,17 @@ class ReaderTrajViaMDA(ReaderTraj):
 
     def open_trajectory(self):
         topology = splitext(self.topology)[1][1:]
-        for afk in mda_available_formats.keys():
+        for afk in list(mda_available_formats.keys()):
             if afk.match(topology):
                 topology = mda_available_formats[afk]
                 break
         trajectory = splitext(self.trajectory[0])[1][1:]
-        for afk in mda_available_formats.keys():
+        for afk in list(mda_available_formats.keys()):
             if afk.match(trajectory):
                 trajectory = mda_available_formats[afk]
                 break
+        #print("%"*80)
+        #print(topology,trajectory)
         return mda.Universe(self.topology,
                             self.trajectory,
                             topology_format=topology,
@@ -735,8 +744,8 @@ class Selection(ReaderAccess):
     def __init__(self, selected):
 
         self.selected = OrderedDict(selected)
-        for number, ids in self.selected.iteritems():
-            self.selected[number] = list(imap(defaults.int_default, ids))
+        for number, ids in self.selected.items():
+            self.selected[number] = list(map(defaults.int_default, ids))
 
     def layer(self, number):
         if number in self.selected:
@@ -744,12 +753,12 @@ class Selection(ReaderAccess):
         return self.__class__({})
 
     def numbers(self):
-        return self.selected.keys()
+        return list(self.selected.keys())
 
     def ix(self, ix):
         # gets selection of index ix
         ix_current = 0
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             if ix_current + len(ids) >= ix + 1:
                 # it is here!
                 return self.__class__({number: [ids[ix - ix_current]]})  # FIXME: looks like a bug!
@@ -765,7 +774,7 @@ class Selection(ReaderAccess):
 
     def len(self):
         _len = 0
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             _len += len(ids)
         return _len
 
@@ -774,7 +783,7 @@ class Selection(ReaderAccess):
 
     def add(self, other):
 
-        for number, ids in other.selected.iteritems():
+        for number, ids in other.selected.items():
             if number in self.selected:
                 self.selected[number] = self.selected[number] + list(ids)
             else:
@@ -787,7 +796,7 @@ class Selection(ReaderAccess):
         :param other: Other selection.
         """
         empty_keys = []
-        for number, ids in other.selected.iteritems():
+        for number, ids in other.selected.items():
             self.selected[number] = [id_ for id_ in self.selected[number] if id_ not in ids]
 
             if not self.selected[number]:
@@ -798,13 +807,13 @@ class Selection(ReaderAccess):
 
     def uniquify(self):
 
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             self.selected[number] = sorted(set(ids))
 
     def ids(self):
         # report it in this order! always!
         # these are not unique! run run uniqify first!
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             for i in ids:
                 yield (number, i)
 
@@ -821,21 +830,21 @@ class Selection(ReaderAccess):
 class AtomSelection(Selection):
 
     def vdw(self):
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             for aid in ids:
                 yield self.get_reader(number).atom_vdw(aid)
 
     def residues(self):
         # returns residues selection
         def get_unique_residues():
-            for number, ids in self.selected.iteritems():
+            for number, ids in self.selected.items():
                 number_reader = self.get_reader(number)
                 yield number, sorted(set(map(number_reader.atom2residue, ids)))
 
         return ResidueSelection(get_unique_residues())
 
     def coords(self):
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             number_reader = self.get_reader(number)
             for coord in number_reader.atoms_positions(ids):  # .tolist():
                 yield coord
@@ -843,7 +852,7 @@ class AtomSelection(Selection):
     def center_of_mass(self):
         center = np.zeros(3)
         total_mass = 0
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             masses = self.get_reader(number).atoms_masses(ids)
             masses.shape = (len(masses), 1)
             total_mass += sum(masses)
@@ -918,13 +927,13 @@ class AtomSelection(Selection):
 class ResidueSelection(Selection):
 
     def coords(self):
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             number_reader = self.get_reader(number)
             for coord in number_reader.residues_positions(ids):
                 yield coord  # .tolist()
 
     def names(self):
-        for number, ids in self.selected.iteritems():
+        for number, ids in self.selected.items():
             for name in self.get_reader(number).residues_names(ids):
                 yield name
 
@@ -941,10 +950,12 @@ def coords_range_core(srange, number, rid):
 
     @arrayify(shape=(None, 3))
     def coords_range_core_inner(srange, number, rid):
+
+
         reader = Reader.get_single_reader(number).open()
         for f in srange.get():
             reader.set_frame(f)
-            yield reader.residues_positions([rid]).next()
+            yield next(reader.residues_positions([rid]))
 
     return coords_range_core_inner(srange, number, rid)
 
@@ -1018,6 +1029,7 @@ class SingleResidueSelection(ReaderAccess):
         # full range always
         self.always_request_frames = SmartRangeIncrement(0,traj_reader.number_of_frames())
 
+
     def coords(self, frames):
         if isinstance(frames, SmartRange):
             if len(frames):
@@ -1046,7 +1058,7 @@ class SingleResidueSelection(ReaderAccess):
             traj_reader = self.get_reader(self.number)
             for f in frames:
                 traj_reader.set_frame(f)
-                yield traj_reader.residues_positions([self.resid]).next()
+                yield next(traj_reader.residues_positions([self.resid]))
 
     def coords_smooth(self, sranges, smooth):
         for coord in smooth_coords_ranges(sranges, self.number, self.resid, smooth):

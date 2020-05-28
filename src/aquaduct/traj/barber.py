@@ -29,11 +29,14 @@ from aquaduct.utils import clui
 from aquaduct.utils.helpers import listify
 from aquaduct.utils.helpers import lind, SmartRange
 from aquaduct.traj.sandwich import ReaderAccess, Reader
+
+
+
 from aquaduct.geom import Sphere, do_cut_thyself
 from aquaduct.utils.multip import optimal_threads
 from multiprocessing import Pool
 from functools import partial
-from itertools import chain, izip, imap
+from itertools import chain
 from aquaduct.apps.data import CRIC
 
 __mail__ = 'info@aquaduct.pl'
@@ -42,6 +45,7 @@ __mail__ = 'info@aquaduct.pl'
 @listify
 def spaths2spheres(spaths, minmax=None, selection=None, tovdw=None, forceempty=None):
     mincut, mincut_val, maxcut, maxcut_val, mincut_level, maxcut_level = minmax
+
     for sp in spaths:
 
         traj_reader = Reader.get_reader_by_id(sp.id.id).open()
@@ -97,6 +101,7 @@ def spaths2spheres(spaths, minmax=None, selection=None, tovdw=None, forceempty=N
 @listify
 def inlets2spheres(inlets, minmax=None, selection=None, tovdw=None, forceempty=None):
     mincut, mincut_val, maxcut, maxcut_val, mincut_level, maxcut_level = minmax
+
     for inlet in inlets:
 
         traj_reader = Reader.get_reader_by_id(inlet.reference.id).open()
@@ -222,16 +227,17 @@ class WhereToCut(ReaderAccess):
             n_add = len(spaths)
         minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
 
+
         Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
         n = max(1, optimal_threads.threads_count)
-        chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
+        chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in range(int(n_add / n) + int(np.sign(n_add % n))))
 
         add_function = partial(spaths2spheres, minmax=minmax, selection=self.selection, tovdw=self.tovdw,
                                forceempty=self.forceempty)
         _spaths = chain(spaths)
         Reader.reset()
-        spheres_new = pool.imap(add_function, ([_spaths.next() for cc in xrange(c)] for c in chunks))
+        spheres_new = pool.imap(add_function, ([next(_spaths) for cc in range(c)] for c in chunks))
 
         nr = 0
         for spheres in spheres_new:
@@ -260,16 +266,17 @@ class WhereToCut(ReaderAccess):
             n_add = len(inlets.inlets_list)
         minmax = self.check_minmaxcuts() + (self.mincut_level, self.maxcut_level)
 
+
         Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
         # pool = Pool(processes=1)
         n = max(1, optimal_threads.threads_count)
-        chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in xrange(n_add / n + np.sign(n_add % n)))
+        chunks = (n if chunk <= (n_add / n - 1) else (n_add % n) for chunk in range(n_add / n + np.sign(n_add % n)))
 
         add_function = partial(inlets2spheres, minmax=minmax, selection=self.selection, tovdw=self.tovdw,
                                forceempty=self.forceempty)
         _inlets = chain(inlets)
-        spheres_new = pool.imap(add_function, [[_inlets.next() for cc in xrange(c)] for c in chunks])
+        spheres_new = pool.imap(add_function, [[next(_inlets) for cc in range(c)] for c in chunks])
         # spheres_new = imap(add_function, ([_inlets.next() for cc in xrange(c)] for c in chunks))
 
         nr = 0
@@ -300,6 +307,8 @@ class WhereToCut(ReaderAccess):
         return nr
 
     def inlet2sphere(self, inlet):
+
+
         traj_reader = Reader.get_reader_by_id(inlet.reference.id).open()
         mincut, mincut_val, maxcut, maxcut_val = self.check_minmaxcuts()
         barber = traj_reader.parse_selection(self.selection)
@@ -420,7 +429,7 @@ class WhereToCut(ReaderAccess):
             del distances
             # check if cci overlaps with any of already found clouds
             cloud_id_intersections = []
-            for cloud_id, cloud in clouds.iteritems():
+            for cloud_id, cloud in clouds.items():
                 if current_cloud.intersection(cloud):
                     # current cloud intersects with cloud
                     cloud_id_intersections.append(cloud_id)
@@ -429,7 +438,7 @@ class WhereToCut(ReaderAccess):
                 for cii in cloud_id_intersections:
                     current_cloud = current_cloud.union(clouds.pop(cii))
                     # current id?
-            current_id = clouds.keys()
+            current_id = list(clouds.keys())
             if current_id:
                 for cid in range(max(current_id) + 2):
                     if cid not in current_id:
@@ -443,7 +452,7 @@ class WhereToCut(ReaderAccess):
 
         # chnage nrs id to global ids; add redundant spheres
         nrs_gids = [nrs.nr for nrs in noredundant_spheres]
-        for cloud_id, cloud in clouds.iteritems():
+        for cloud_id, cloud in clouds.items():
 
             cloud = sorted(list(cloud))
 

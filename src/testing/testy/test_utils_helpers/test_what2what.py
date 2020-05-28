@@ -19,15 +19,15 @@ class TestWhat2what(TestCase):
         check2 = what2what(list_what_2, list_towhat)
         res = ()
         res2 = (0, 1)
-        self.assertEquals(check, res)
-        self.assertEquals(check2, res2)
+        self.assertEqual(check, res)
+        self.assertEqual(check2, res2)
 
     def test_whatifoneisnotpresent(self):
         list_what_3 = [2, 50, 3]
         list_towhat = [1, 2, 2, 3, 4]
         check = what2what(list_what_3, list_towhat)
         res = (0, 2)
-        self.assertEquals(check, res)
+        self.assertEqual(check, res)
 
 
 class TestWat2what4diffTypes(TestCase):
@@ -47,7 +47,7 @@ class TestWat2what4diffTypes(TestCase):
         check = what2what(list_what, list_towhat)
         check2 = what2what(list_what_2, list_towhat_2)
         self.assertEqual(check, (0,))
-        self.assertEquals(check2, (1,))
+        self.assertEqual(check2, (1,))
 
     def test_whatif_tuplevslist(self):
         # different types within input are allowed
@@ -59,8 +59,8 @@ class TestWat2what4diffTypes(TestCase):
         check2 = what2what(list_what_2, list_towhat_2)
         res = (0,)
         res2 = (0, 1)
-        self.assertEquals(check, res)
-        self.assertEquals(check2, res2)
+        self.assertEqual(check, res)
+        self.assertEqual(check2, res2)
 
     def test_what_about_strins(self):
         # wow! it can deal with strings! :D
@@ -68,4 +68,4 @@ class TestWat2what4diffTypes(TestCase):
         list_towhat = "this string is iterable and it has 'b' inside, something "
         check = what2what(list_what, list_towhat)
         res = (0, 1, 2)
-        self.assertEquals(check, res)
+        self.assertEqual(check, res)

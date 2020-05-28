@@ -25,7 +25,7 @@ It cannot import sandwich. Directly or indirectly.
 
 from aquaduct import logger, greetings as greetings_aquaduct, version_nice as aquaduct_version_nice
 
-import ConfigParser
+import configparser
 import os
 from collections import OrderedDict, namedtuple
 from keyword import iskeyword
@@ -47,7 +47,7 @@ class ConfigSpecialNames(object):
                           'auto': Auto}
 
     def special_name(self, name):
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, str):
             if name.lower() in self.special_names_dict:
                 return self.special_names_dict[name.lower()]
         return name
@@ -70,7 +70,7 @@ class ValveConfig(ConfigSpecialNames):
             else:
                 logger.debug('Keyword <%s> in config file skipped.' % opt)
         options = OrderedDict(options)
-        options_nt = namedtuple('Options', options.keys())
+        options_nt = namedtuple('Options', list(options.keys()))
         return options_nt(**options)
 
     @staticmethod
@@ -187,7 +187,7 @@ class ValveConfig(ConfigSpecialNames):
     def get_default_config(self):
         # snr = 0 # stage number
 
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
 
         def common(section):
             for setting in self.common_config_names():
@@ -475,7 +475,7 @@ class ValveConfig(ConfigSpecialNames):
                 comment = self.get_general_comment(name)
                 if comment:
                     output.extend(['# %s' % line for line in comment])
-            for key, value in opts._asdict().iteritems():  # loop over options
+            for key, value in opts._asdict().items():  # loop over options
                 if key in skip_list:
                     continue
                 # comment scope etc. in stage II if dump_template

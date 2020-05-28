@@ -206,7 +206,7 @@ class SimpleTracePlotter(object):
                    **kwargs):
         # path is a tuple of length 3, its elements represent in,object, out parts of path
         # color is a tuple of length 3, its elements correspond to colors of consecutive path parts
-        color = map(cc, color)
+        color = list(map(cc, color))
         for nr, trace in enumerate(traces.midpoints(path)):
             # mid points!
             if len(trace) > 0:

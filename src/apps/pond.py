@@ -21,11 +21,13 @@
 What have I got in my pocket?
 """
 
-from __future__ import print_function
+
 
 ################################################################################
 # reuse AQ logger
 
+from __future__ import absolute_import
+from __future__ import print_function
 import logging
 from aquaduct import logger, logger_name
 
@@ -216,7 +218,7 @@ if __name__ == "__main__":
             from aquaduct.apps.valve.helpers import get_linearize_method
             from aquaduct.apps.valve.helpers import get_smooth_method
             from aquaduct.geom import traces
-            from itertools import izip
+            
             import os
             from aquaduct.geom.smooth import SavgolSmooth
 
@@ -412,10 +414,10 @@ if __name__ == "__main__":
             for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
                 middle = sum(window) / 2
                 if wnr and many_windows:
-                    print("W%d %d:%d middle: %d" % (wnr, window[0], window[1], middle))
+                    print(("W%d %d:%d middle: %d" % (wnr, window[0], window[1], middle)))
                     windows.append([wnr, window[0], window[1], middle])
                 elif (wnr == 0) and (args.wfull or (not many_windows)):
-                    print("full %d:%d" % (window[0], window[1]))
+                    print(("full %d:%d" % (window[0], window[1])))
                     rmu('full_window',[window[0], window[1]])
                 rmu('windows', windows)
 
@@ -558,7 +560,7 @@ if __name__ == "__main__":
                 limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
                 if limit_ctypes != [""]:
                     clui.message('Limiting master paths data to %s ctypes.' % (' '.join(limit_ctypes)))
-                    for ctk in mps.keys():
+                    for ctk in list(mps.keys()):
                         if str(ctk) not in limit_ctypes:
                             mps.pop(ctk)
 
@@ -570,7 +572,7 @@ if __name__ == "__main__":
 
                         limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
                         if limit_ctypes != [""]:
-                            for ctk in mps.keys():
+                            for ctk in list(mps.keys()):
                                 if str(ctk) not in limit_ctypes:
                                     mps.pop(ctk)
 
@@ -588,7 +590,7 @@ if __name__ == "__main__":
                                 number_of_frames *= Reader.number_of_layers()
 
                             if wnr or args.wfull:  # or not many_windows:
-                                for ctype, mp in mps.iteritems():
+                                for ctype, mp in mps.items():
                                     if isinstance(mp,dict):
                                         logger.warning("Pond cannot yet handle MasterPaths calculated with separate_master option.")
                                         logger.warning("MasterPaths for %s skip." % ctype)
@@ -630,7 +632,7 @@ if __name__ == "__main__":
                                         with open(rdir + "mp_%s%s_radius.dat" % (fname, fname_window), 'w') as dat:
                                             dat.write('len\tE' + os.linesep)
                                             L = np.hstack((0., np.cumsum(traces.diff(centers))))
-                                            for l, E in izip(L, H):
+                                            for l, E in zip(L, H):
                                                 dat.write('%f\t%f%s' % (l, E, os.linesep))
                                     pool.close()
                                     pool.join()
@@ -678,7 +680,7 @@ if __name__ == "__main__":
                     if path:
                         if not args.raw_path:
                             soptions = result3.pop("soptions")
-                            soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                            soptions = namedtuple('Options', list(soptions.keys()))(*list(soptions.values()))
                             smooth_method = get_smooth_method(soptions)
 
                             coords = path.get_coords_cont(smooth_method)
@@ -724,7 +726,7 @@ if __name__ == "__main__":
                             if not args.raw_path:
                                 if args.path_smooth:
                                     soptions = result3.pop("soptions")
-                                    soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                                    soptions = namedtuple('Options', list(soptions.keys()))(*list(soptions.values()))
                                     smooth_method = get_smooth_method(soptions)
                                     coords = path.get_coords_cont(smooth_method)
                                 else:
@@ -813,7 +815,7 @@ if __name__ == "__main__":
                                               'w') as dat:
                                         dat.write('len\tE' + os.linesep)
                                         L = np.hstack((0., np.cumsum(traces.diff(coords))))
-                                        for l, E in izip(L, H):
+                                        for l, E in zip(L, H):
                                             dat.write('%f\t%f%s' % (l, E, os.linesep))
 
                                     pool.close()
@@ -823,7 +825,7 @@ if __name__ == "__main__":
                     clui.message("Path with ID {} does not exists.".format(args.path_id))
 
             Reader.reset()
-            with gzip.open(rdir + 'pond_meta.json', mode='w', compresslevel=9) as f:
+            with gzip.open(rdir + 'pond_meta.json', mode='wt', compresslevel=9) as f:
                 json.dump(results_meta, f)
                 # TODO: consider usage of IterEncoder - move it to aquaduct/apps/data.py module
 

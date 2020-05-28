@@ -15,9 +15,9 @@ def intersection_simple(a, b):
     if sa in [[0, 1, 2, 3], [2, 3, 0, 1], [0, 2, 1, 3], [2, 0, 3, 1], [0, 2, 3, 1], [2, 0, 1, 3]]:
         if sa[1:3] in [[1, 2], [3, 0]]:
             if s[1] == s[2]:
-                return range(s[sa[1]], s[sa[2]] + 1)
+                return list(range(s[sa[1]], s[sa[2]] + 1))
         else:
-            return range(s[sa[1]], s[sa[2]] + 1)
+            return list(range(s[sa[1]], s[sa[2]] + 1))
     return []
 
 
@@ -45,8 +45,8 @@ def glue(a, b):
 def glue_simple(a, b):
     if a[-1] >= b[0]:
         if a[0] > b[-1]:
-            return range(min(a[0], b[0]), b[-1] + 1) + range(a[0], max(a[-1], b[-1]) + 1)
-        return range(min(a[0], b[0]), max(a[-1], b[-1]) + 1)
+            return list(range(min(a[0], b[0]), b[-1] + 1)) + list(range(a[0], max(a[-1], b[-1]) + 1))
+        return list(range(min(a[0], b[0]), max(a[-1], b[-1]) + 1))
     return []
 
 

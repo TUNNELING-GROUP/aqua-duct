@@ -16,12 +16,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Tkinter as tk
+import tkinter as tk
 import os
-import ttk
-from tkFileDialog import askopenfile, askdirectory
+import tkinter.ttk
+from tkinter.filedialog import askopenfile, askdirectory
 
-import defaults
+from . import defaults
 from aquaduct.apps.valveconfig import get_img
 
 
@@ -34,10 +34,10 @@ def get_widget_bg(widget):
     :rtype: str
     """
     try:
-        return ttk.Style().lookup(widget["style"], "background")
+        return tkinter.ttk.Style().lookup(widget["style"], "background")
     except tk.TclError:
         # FIXME: Appending T may cause errors
-        return ttk.Style().lookup("T" + widget.winfo_class(), "background")
+        return tkinter.ttk.Style().lookup("T" + widget.winfo_class(), "background")
 
 
 def widget_factory(parent, default, state=tk.NORMAL):
@@ -59,30 +59,30 @@ def widget_factory(parent, default, state=tk.NORMAL):
         v = tk.StringVar()
         v.set(default)
 
-        w = ttk.Entry(parent, textvariable=v, width=30, state=state, background=get_widget_bg(parent))
+        w = tkinter.ttk.Entry(parent, textvariable=v, width=30, state=state, background=get_widget_bg(parent))
     elif isinstance(default, bool):
         v = tk.BooleanVar()
         v.set(default)
 
-        w = ttk.Checkbutton(parent, variable=v, offvalue=False, onvalue=True, state=state)
+        w = tkinter.ttk.Checkbutton(parent, variable=v, offvalue=False, onvalue=True, state=state)
     elif isinstance(default, int):
         v = tk.IntVar()
         v.set(default)
 
-        w = ttk.Entry(parent, textvariable=v, width=5, state=state, background=get_widget_bg(parent))
+        w = tkinter.ttk.Entry(parent, textvariable=v, width=5, state=state, background=get_widget_bg(parent))
     elif isinstance(default, float):
         v = tk.DoubleVar()
         v.set(default)
 
-        w = ttk.Entry(parent, textvariable=v, width=5, state=state, background=get_widget_bg(parent))
+        w = tkinter.ttk.Entry(parent, textvariable=v, width=5, state=state, background=get_widget_bg(parent))
     elif isinstance(default, tuple):
         v = tk.StringVar()
 
-        w = ttk.OptionMenu(parent, v, default[0], *default)
+        w = tkinter.ttk.OptionMenu(parent, v, default[0], *default)
     elif isinstance(default, list):
         v = tk.StringVar()
 
-        w = ttk.Combobox(parent, textvariable=v)
+        w = tkinter.ttk.Combobox(parent, textvariable=v)
         w["values"] = default
         w.current(0)
     else:
@@ -245,7 +245,7 @@ class StandardEntry(Entry):
         """
         super(StandardEntry, self).__init__(parent, row)
 
-        ttk.Label(parent, text=entry_name_long, background=get_widget_bg(parent)).grid(sticky=self.label_sticky,
+        tkinter.ttk.Label(parent, text=entry_name_long, background=get_widget_bg(parent)).grid(sticky=self.label_sticky,
                                                                                        row=row, column=0)
 
         widget, self.input_var = widget_factory(self.input_frame, default, state)
@@ -292,7 +292,7 @@ class BoolEntry(Entry):
 
         self.entry_name_long = entry_name_long
 
-        ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
+        tkinter.ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
         input_widget, self.input_var = widget_factory(self.input_frame, input_default)
         input_widget.pack(side=tk.RIGHT)
@@ -350,14 +350,14 @@ class FileEntry(Entry):
         """
         super(FileEntry, self).__init__(parent, row)
 
-        ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
+        tkinter.ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
         self.input_widget, self.input_var = widget_factory(self.input_frame, default)
         self.input_widget.pack(side=tk.LEFT, padx=5, pady=5)
 
         ToolTip.create(self.input_widget, help)
 
-        load_file_button = ttk.Button(self.input_frame, text="Load", style="File.TButton")
+        load_file_button = tkinter.ttk.Button(self.input_frame, text="Load", style="File.TButton")
         load_file_button.pack(side=tk.LEFT, padx=5)
 
         load_file_button.bind("<Button-1>", self.callback_load_file)
@@ -419,7 +419,7 @@ class ManyFileEntry(Entry):
         self.input_vars = []
         self.frames = []  # Store single row of widgets
 
-        ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
+        tkinter.ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
         self.append_entry()
 
@@ -441,7 +441,7 @@ class ManyFileEntry(Entry):
 
         ToolTip.create(input_widget, self.help)
 
-        load_file_button = ttk.Button(frame, text="Load", style="File.TButton")
+        load_file_button = tkinter.ttk.Button(frame, text="Load", style="File.TButton")
         load_file_button.pack(side=tk.LEFT, padx=5)
 
         callback = CallbackWrapper(self.callback_load_file, self.input_vars.index(input_var))
@@ -485,7 +485,7 @@ class ManyFileEntry(Entry):
         if value == "":
             self.input_vars[0].set("")
 
-            for i in reversed(range(1, len(self.frames))):
+            for i in reversed(list(range(1, len(self.frames)))):
                 self.frames[i].pack_forget()
                 del self.frames[i]
                 del self.input_vars[i]
@@ -520,14 +520,14 @@ class DirEntry(Entry):
         """
         super(DirEntry, self).__init__(parent, row)
 
-        ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
+        tkinter.ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
         self.input_widget, self.input_var = widget_factory(self.input_frame, default)
         self.input_widget.pack(side=tk.LEFT, padx=5, pady=5)
 
         ToolTip.create(self.input_widget, help)
 
-        load_file_button = ttk.Button(self.input_frame, text="Load", style="File.TButton")
+        load_file_button = tkinter.ttk.Button(self.input_frame, text="Load", style="File.TButton")
         load_file_button.pack(side=tk.LEFT, padx=5)
 
         load_file_button.bind("<Button-1>", self.callback_load_dir)
@@ -581,7 +581,7 @@ class ParenthesedEntry(Entry):
         """
         super(ParenthesedEntry, self).__init__(parent, row)
 
-        ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
+        tkinter.ttk.Label(parent, text=entry_name_long).grid(sticky=self.label_sticky, row=row, column=0)
 
         input_widget, self.input_var = widget_factory(self.input_frame, input_default)
         input_widget.pack(side=tk.LEFT)
@@ -626,7 +626,7 @@ class ParenthesedEntry(Entry):
             self.control_var.set(0.0)
 
 
-class WarningIconWidget(ttk.Label, object):
+class WarningIconWidget(tkinter.ttk.Label, object):
     def __init__(self, parent, text):
         """
         Widget with waring icon and Tooltip information
@@ -640,7 +640,7 @@ class WarningIconWidget(ttk.Label, object):
         ToolTip.create(self, text)
 
 
-class InfoIconWidget(ttk.Label, object):
+class InfoIconWidget(tkinter.ttk.Label, object):
     def __init__(self, parent, text):
         """
         Widget with info icon and Tooltip information
@@ -654,7 +654,7 @@ class InfoIconWidget(ttk.Label, object):
         ToolTip.create(self, text)
 
 
-class HidingFrame(ttk.Frame, object):
+class HidingFrame(tkinter.ttk.Frame, object):
     def __init__(self, parent, row, text, **kwargs):
         """
         Frame that remembers inner row for griding new widgets.
@@ -667,7 +667,7 @@ class HidingFrame(ttk.Frame, object):
         """
         super(HidingFrame, self).__init__(parent, **kwargs)
 
-        ttk.Label(self, text=text, style="HF.TFrame.Label").grid(
+        tkinter.ttk.Label(self, text=text, style="HF.TFrame.Label").grid(
             sticky="W", row=0, column=0, columnspan=2, padx=5, pady=5)
 
         self.columnconfigure(0, weight=1)
@@ -733,7 +733,7 @@ class ToolTip(object):
                        "help", "noActivates")
         except tk.TclError:
             pass
-        label = ttk.Label(tw, text=self.text, justify=tk.LEFT,
+        label = tkinter.ttk.Label(tw, text=self.text, justify=tk.LEFT,
                           background="#ffffe0", relief=tk.SOLID, borderwidth=1,
                           font=("TkDefaultFont", "8", "normal"), wraplength=400)
         label.pack(ipadx=1)

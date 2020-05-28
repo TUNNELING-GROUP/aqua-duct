@@ -22,7 +22,7 @@ This module provides functions for clustering.
 Clustering is done by :mod:`scikit-learn` module.
 """
 
-from itertools import izip
+
 import numpy as np
 from sklearn.cluster import KMeans, MeanShift, estimate_bandwidth
 from aquaduct.utils.helpers import Auto
@@ -64,7 +64,7 @@ class BarberCluster(object):
             wtc.spheres = spheres
         elif radii is not None:
             spheres = [Sphere(center=center, radius=radius, nr=nr) for nr, (center, radius) in
-                       enumerate(izip(coords, radii))]
+                       enumerate(zip(coords, radii))]
             wtc.spheres = spheres
         else:
             raise TypeError('Either spheres or radii have to be specified.')
@@ -72,7 +72,7 @@ class BarberCluster(object):
         # clouds to labels!
         labels = np.zeros(len(spheres))
         spheres_id = [s.nr for s in spheres]
-        for cloud_id, cloud in clouds.iteritems():
+        for cloud_id, cloud in clouds.items():
             labels[[spheres_id.index(c) for c in cloud]] = cloud_id
         return BarberClusterResult(labels)
 
@@ -147,7 +147,7 @@ class PerformClustering(object):
         if self.method is BarberCluster:
             method = self.method()
             self.method_results = method.fit(coords, spheres)
-            self.clusters = map(int, self.method_results.labels_ + 1)
+            self.clusters = list(map(int, self.method_results.labels_ + 1))
         else:
             if self.method is MeanShift:
                 if len(coords) < 6:
@@ -167,7 +167,7 @@ class PerformClustering(object):
                             return self.clusters
                 method = self.method(**self.method_kwargs)
             self.method_results = method.fit(coords)
-            self.clusters = map(int, self.method_results.labels_ + 1)
+            self.clusters = list(map(int, self.method_results.labels_ + 1))
         return self.clusters
 
     def centers(self):

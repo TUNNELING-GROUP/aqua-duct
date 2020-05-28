@@ -50,7 +50,7 @@ def spath_name_header():
 def add_path_id_head(gen):
     @wraps(gen)
     def patched(*args, **kwargs):
-        sph, splt = zip(spath_id_header(), spath_name_header())
+        sph, splt = list(zip(spath_id_header(), spath_name_header()))
         sph = [e[0] for e in sph]
         splt = [e[0] for e in splt]
 
@@ -144,7 +144,7 @@ def spath_basic_info_header():
 def spath_basic_info(spath):
     line = [spath.begins]
     if not isinstance(spath, PassingPath):
-        line.extend(map(len, (spath.path_in, spath.path_object)))
+        line.extend(list(map(len, (spath.path_in, spath.path_object))))
         line.append(spath.path_object_strict_len)
         line.append(len(spath.path_out))
         # line.extend(map(len, (spath.path_in, spath.path_object, spath.path_out)))
@@ -228,7 +228,7 @@ def spath_steps_info_header(total=None):
     header = 'InpS InpStdS ObjS ObjStdS OutS OutStdS'.split()
     if total:
         header = ['TotS', 'TotStdS'] + header
-    line_template = ['%8.2f', '%8.3f'] * (len(header) / 2)
+    line_template = ['%8.2f', '%8.3f'] * int(len(header) / 2)
     return header, line_template
 
 
@@ -246,7 +246,7 @@ def spath_steps_info(spath, total=None):
             line += [float('nan'), float('nan')] * 3
         return line
     line += spath_steps_info(spath, add_id=False, total=False)
-    t = traces.midpoints((spath.coords_cont,)).next()
+    t = next(traces.midpoints((spath.coords_cont,)))
     if len(t) > 0:
         line = list(traces.length_step_std(t)[1:]) + line
     else:
@@ -309,7 +309,7 @@ def spath_full_info(spath, ctype=None, total=None):
 @add_size_head
 def spaths_lenght_total_header():
     header = 'Tot TotStd Inp InpStd Obj ObjStd Out OutStd'.split()
-    line_template = ['%9.1f', '%9.2f'] * (len(header) / 2)
+    line_template = ['%9.1f', '%9.2f'] * int(len(header) / 2)
     return header, line_template
 
 
