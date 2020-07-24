@@ -54,7 +54,7 @@ class Smooth(object):
         """
         :param int recursive: Number of recursions of the method, everything evaluated to ``False`` is equivalent to 1.
         """
-        super(Smooth, self).__init__()
+        super(Smooth, self).__init__(**kwargs)
         self.recursive = recursive
 
     def smooth(self, coords):
