@@ -127,14 +127,14 @@ if __name__ == "__main__":
                                 help="Calculate reference value with scope and reference molecules.")
             parser.add_argument("--reference-radius", action="store", dest="ref_radius", type=float, required=False,
                                 default=2.,
-                                help="Radius of reference.")
+                                help="Radius of reference in [Å].")
             parser.add_argument("--reference-mol", action="store", dest="ref_mol", type=str, required=False,
                                 default='resname WAT',
                                 help="Selection of reference molecules.")
             parser.add_argument("--temperature", action="store", dest="temp", type=float, required=False, default=300.,
-                                help="Simulation temperature.")
+                                help="Simulation temperature in [K].")
             parser.add_argument("--gsize", action="store", dest="grid_size", type=float, required=False, default=1.,
-                                help="Size of grid's cells.")
+                                help="Size of grid's cells in in [Å].")
             parser.add_argument("--pockets", action="store_true", dest="pockets", required=False,
                                 help="Calculate pockets.")
             parser.add_argument("--hotspots", action="store_true", dest="hotspots", required=False,
@@ -145,7 +145,7 @@ if __name__ == "__main__":
             parser.add_argument("--master", action="store_true", dest="master", required=False,
                                 help="Enables master paths calculation.")
             parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False, default=2.,
-                                help="Calculate profiles for master paths with given radius.")
+                                help="Calculate profiles for master paths with given radius in [Å].")
             parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False,
                                 default="",
                                 help="Limit calculations to given ctypes.")
@@ -159,7 +159,7 @@ if __name__ == "__main__":
             parser.add_argument("--path-file", action="store", dest="path_file", type=str, required=False,
                                 help="Use coordinates from specified CSV file.")
             parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
-                                default=2., help="Calculate profiles for path with given radius.")
+                                default=2., help="Calculate profiles for path with given radius in [Å].")
             parser.add_argument("--path-smooth", action="store_true", dest="path_smooth", required=False,
                                 help="If used path coordinates will be smoothed.")
             parser.add_argument("--raw-path", action="store_true", dest="raw_path", required=False,
@@ -395,7 +395,7 @@ if __name__ == "__main__":
 
                     ref = -k * args.temp * np.log(ref)
                     rmu('reference_correction', float(ref))
-                    clui.message('Reference correction: %0.4f [kJ/mol].' % ref)
+                    clui.message('Reference value: %0.4f [kJ/mol/K].' % ref)
 
             if ref:
                 rmu('reference_density_correction', np.exp(ref/(-k * args.temp)))
