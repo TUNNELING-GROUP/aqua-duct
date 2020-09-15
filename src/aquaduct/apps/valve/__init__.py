@@ -33,6 +33,7 @@ from keyword import iskeyword
 from aquaduct.apps.data import GCS, load_cric
 from aquaduct.geom.cluster_available_methods import get_required_params, \
     AVAILABLE_METHODS as available_clustering_methods
+from aquaduct.geom.smooth_available_methods import AVAILABLE_SMOOTHING_METHODS as available_smoothing_methods
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import Auto
 
@@ -441,6 +442,15 @@ class ValveConfig(ConfigSpecialNames):
                     for param in params:
                         out.append('%s = None' % param)
                     # out.append('')
+            return out
+        if section == self.smooth_name():
+            out = ['Possible smoothing methods:']
+            # get default clustering method
+            defmet = self.config.get(section, 'method')
+            for method in available_smoothing_methods:
+                if method == defmet:
+                    continue
+                out.append('method = %s' % method)
             return out
 
     def dump_config(self, dump_template=False):
