@@ -22,3 +22,5 @@ AVAILABLE_METHODS = ['dbscan', 'kmeans', 'affprop', 'meanshift', 'birch', 'barbe
 def get_required_params(method):
     if method == 'kmeans':
         return ['n_clusters']
+    if method == 'birch':
+        return ['n_clusters']

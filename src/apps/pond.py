@@ -169,6 +169,7 @@ if __name__ == "__main__":
                                 default=None, help="Extract path coordinates with specified ID.")
             parser.add_argument("--output-file", action="store", dest="output_file", type=str, required=False,
                                 default="path_coords.csv", help="Output CSV filename for extracted coordinates.")
+            parser.add_argument("--output-suffix", action="store", dest="output_suffix", type=str, required=False, default="", help="Arbitrary suffix appended to output filenames.")
 
 
             args = parser.parse_args()
@@ -261,6 +262,7 @@ if __name__ == "__main__":
 
             results_meta = {'options': vars(args)}
             rmu = lambda k, v: results_meta.update({k: v})
+            args.output_suffix = "_%s" % args.output_suffix
 
             # ----------------------------------------------------------------------#
             # load paths
@@ -433,7 +435,7 @@ if __name__ == "__main__":
                     grid_size = args.grid_size
                     grid_area = grid_size ** 3
                     with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
-                        pockets_volume = open(rdir + 'volumes.dat', 'w')
+                        pockets_volume = open(rdir + ('volumes%s.dat' % args.output_suffix), 'w')
                         pockets_volume.write(('\t'.join('W_start W_end Outer Inner'.split())) + os.linesep)
                         pool = Pool(processes=optimal_threads.threads_count)
                         edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar, map_fun=pool.imap_unordered)
@@ -455,10 +457,10 @@ if __name__ == "__main__":
 
                             if wnr and many_windows:
                                 if wmol2 is None:
-                                    wmol2 = [WriteMOL2(rdir + 'outer%s.mol2' % ptn),
-                                             WriteMOL2(rdir + 'inner%s.mol2' % ptn)]
+                                    wmol2 = [WriteMOL2(rdir + 'outer%s%s.mol2' % (ptn, args.output_suffix)),
+                                             WriteMOL2(rdir + 'inner%s%s.mol2' % (ptn, args.output_suffix))]
                                 if hsmol2 is None and args.hotspots:
-                                    hsmol2 = WriteMOL2(rdir + 'hotspots%s.mol2' % ptn)
+                                    hsmol2 = WriteMOL2(rdir + 'hotspots%s%s.mol2' % (ptn, args.output_suffix))
                                 D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window,
                                                         pbar=pbar, map_fun=pool.imap_unordered)
                                 H = (D[-1] / WSf) / grid_area
@@ -484,7 +486,7 @@ if __name__ == "__main__":
 
                                 if args.hotspots:
                                     hs = pocket.hot_spots(H)
-                                    mol2 = WriteMOL2(rdir + 'hotspots_full%s.mol2' % ptn)
+                                    mol2 = WriteMOL2(rdir + 'hotspots_full%s%s.mol2' % (ptn, args.output_suffix))
                                     if hs is not None:
                                         hs = H >= hs
                                         mol2.write_scatter(D[0][hs], H[hs])
@@ -494,8 +496,8 @@ if __name__ == "__main__":
 
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold),
-                                                   [WriteMOL2(rdir + 'outer_full%s.mol2' % ptn),
-                                                    WriteMOL2(rdir + 'inner_full%s.mol2' % ptn)]):
+                                                   [WriteMOL2(rdir + 'outer_full%s%s.mol2' % (ptn, args.output_suffix)),
+                                                    WriteMOL2(rdir + 'inner_full%s%s.mol2' % (ptn, args.output_suffix))]):
                                     mol2.write_scatter(D[0][I], H[I])
                                     volumes.append(sum(I) * grid_area)
                                     del mol2
@@ -625,7 +627,7 @@ if __name__ == "__main__":
                                         if ref:
                                             H = -k * args.temp * np.log(H) - ref
 
-                                        with WriteMOL2(rdir + "mp_%s%s_radius%s.mol2" % (fname, fname_window_single, ptn),
+                                        with WriteMOL2(rdir + "mp_%s%s_radius%s%s.mol2" % (fname, fname_window_single, ptn, args.output_suffix),
                                                        mode=mode) as mol2:
                                             mol2.write_connected(centers, H)
 
@@ -806,8 +808,8 @@ if __name__ == "__main__":
                                         H = -k * args.temp * np.log(H) - ref
 
                                     with WriteMOL2(
-                                            rdir + "path%s_%s%s_radius%s.mol2" % (
-                                                    path_name, fname, fname_window_single, ptn),
+                                            rdir + "path%s_%s%s_radius%s%s.mol2" % (
+                                                    path_name, fname, fname_window_single, ptn, args.output_suffix),
                                             mode=mode) as mol2:
                                         mol2.write_connected(coords, H)
 
@@ -825,7 +827,7 @@ if __name__ == "__main__":
                     clui.message("Path with ID {} does not exists.".format(args.path_id))
 
             Reader.reset()
-            with gzip.open(rdir + 'pond_meta.json', mode='wt', compresslevel=9) as f:
+            with gzip.open(rdir + ('pond_meta%s.json' % args.output_suffix), mode='wt', compresslevel=9) as f:
                 json.dump(results_meta, f)
                 # TODO: consider usage of IterEncoder - move it to aquaduct/apps/data.py module
 
