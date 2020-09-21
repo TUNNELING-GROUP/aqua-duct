@@ -435,7 +435,7 @@ if __name__ == "__main__":
                     grid_size = args.grid_size
                     grid_area = grid_size ** 3
                     with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
-                        pockets_volume = open(rdir + ('volumes%s.dat' % args.output_suffix), 'w')
+                        pockets_volume = open(rdir + ('volumes%s%s.dat' % (ptn, args.output_suffix), 'w')
                         pockets_volume.write(('\t'.join('W_start W_end Outer Inner'.split())) + os.linesep)
                         pool = Pool(processes=optimal_threads.threads_count)
                         edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar, map_fun=pool.imap_unordered)
@@ -827,7 +827,7 @@ if __name__ == "__main__":
                     clui.message("Path with ID {} does not exists.".format(args.path_id))
 
             Reader.reset()
-            with gzip.open(rdir + ('pond_meta%s.json' % args.output_suffix), mode='wt', compresslevel=9) as f:
+            with gzip.open(rdir + ('pond_meta%s%s.json' % (ptn, args.output_suffix)), mode='wt', compresslevel=9) as f:
                 json.dump(results_meta, f)
                 # TODO: consider usage of IterEncoder - move it to aquaduct/apps/data.py module
 
