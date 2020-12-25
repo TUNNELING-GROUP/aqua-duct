@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-cd ~/Research/aqua-duct/docs
+cd ~/home/kara/Desktop/AQ/aqua-duct/docs/
 
 
 ./make_html.sh
 
-PYTHON=python2.7
+PYTHON=python3.7
 
 SPHINX_APIDOC="sphinx-apidoc"
 if [ -x ~/.local/bin/sphinx-apidoc ]
@@ -28,7 +28,7 @@ export PYTHONPATH=~/.local/lib/python2.7/site-packages:`pwd`/../src:$PYTHONPATH
 
 $MAKE SPHINXBUILD="$SPHINXBUILD" latexpdf
 
-cp build/latex/Aqua-Duct.pdf build/html
+#cp build/latex/Aqua-Duct.pdf build/html
 
 #rsync -avz -P --delete build/html/ 192.168.1.15:/home/tljm/public_html/aq/
 
