@@ -253,6 +253,7 @@ def ligands_time(file_processor, molecule=None):
     outs_width = out_values
 
     fig = plt.figure(figsize=(6, 6))
+    #plt.rcParams['axes.labelsize'] = 16
     fig_dpi = fig.get_dpi()
 
     h = [Size.Fixed(1.0), Size.Fixed(max_frame/fig_dpi)]
@@ -279,8 +280,8 @@ def ligands_time(file_processor, molecule=None):
     ax.set_ylim((0, max(path_nr)))
     ax.yaxis.set_major_locator(plt.MaxNLocator(integer=True))
 
-    ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
-
+    #ax.legend(bbox_to_anchor=(1.02, 1), loc="upper left")
+    ax.legend(bbox_to_anchor=(0, 1), loc="upper left")
     return fig
 
 
@@ -383,7 +384,7 @@ def volume_scope_area(csv_processor):
     fig, ax = plt.subplots()
     ax.set_title("Scope area")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("Area \u00C5^2$")
+    ax.set_ylabel("Area \u00C5^2")
 
     x = csv_processor.get_column_values("# frame")
     y = csv_processor.get_column_values("scope_area")
@@ -401,7 +402,7 @@ def volume_scope_volume(csv_processor):
     fig, ax = plt.subplots()
     ax.set_title("Scope volume")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("Volume \u00C5^3$")
+    ax.set_ylabel("Volume \u00C5^3")
 
     x = csv_processor.get_column_values("# frame")
     y = csv_processor.get_column_values("scope_volume")
@@ -419,7 +420,7 @@ def volume_object_area(csv_processor):
     fig, ax = plt.subplots()
     ax.set_title("Object area")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("Area \u00C5^2$")
+    ax.set_ylabel("Area \u00C5^2")
 
     x = csv_processor.get_column_values("# frame")
     y = csv_processor.get_column_values("object_area")
@@ -437,7 +438,7 @@ def volume_object_volume(csv_processor):
     fig, ax = plt.subplots()
     ax.set_title("Object volume")
     ax.set_xlabel("Frame")
-    ax.set_ylabel("Volume \u00C5^3$")
+    ax.set_ylabel("Volume \u00C5^3")
 
     x = csv_processor.get_column_values("# frame")
     y = csv_processor.get_column_values("object_volume")
@@ -456,7 +457,7 @@ def cluster_area(file_processor, suffix=""):
 
     ax.set_title("Clusters area" + suffix)
     ax.set_xlabel("Density")
-    ax.set_ylabel("Area")
+    ax.set_ylabel("Area \u00C5^2")
 
     column_names = file_processor.get_column_names("Clusters summary - areas" + suffix)
     clusters_id = file_processor.get_column_values("Clusters summary - areas" + suffix, "Cluster")

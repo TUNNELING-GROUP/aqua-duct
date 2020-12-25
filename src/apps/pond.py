@@ -262,7 +262,10 @@ if __name__ == "__main__":
 
             results_meta = {'options': vars(args)}
             rmu = lambda k, v: results_meta.update({k: v})
-            args.output_suffix = "_%s" % args.output_suffix
+            if args.output_suffix:
+                args.output_suffix = '_%s' % args.output_suffix
+            else: 
+                args.output_suffix = ''
 
             # ----------------------------------------------------------------------#
             # load paths
@@ -435,7 +438,7 @@ if __name__ == "__main__":
                     grid_size = args.grid_size
                     grid_area = grid_size ** 3
                     with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
-                        pockets_volume = open(rdir + ('volumes%s%s.dat' % (ptn, args.output_suffix), 'w')
+                        pockets_volume = open((rdir + ('volumes%s%s.dat' % (ptn, args.output_suffix))), 'w')
                         pockets_volume.write(('\t'.join('W_start W_end Outer Inner'.split())) + os.linesep)
                         pool = Pool(processes=optimal_threads.threads_count)
                         edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar, map_fun=pool.imap_unordered)
@@ -446,7 +449,6 @@ if __name__ == "__main__":
                             WSf = float(WS)
                         if Reader.sandwich_mode:
                             WSf *= Reader.number_of_layers()
-
                         wmol2 = None
                         hsmol2 = None
                         for wnr, window in enumerate(

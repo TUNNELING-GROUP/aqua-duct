@@ -78,7 +78,7 @@ class ValveConfig(ConfigSpecialNames):
     def common_config_names():
         # execute - what to do: skip, run
         # load - load previous results form file name
-        # save - save results to file name
+        # save - save results to file name 
         return 'execute dump'.split()
 
     @staticmethod
@@ -243,6 +243,7 @@ class ValveConfig(ConfigSpecialNames):
 
         common(section)
         common_traj_data(section)
+        config.set(section, 'scope_convexhull', 'True')
         config.set(section, 'scope_everyframe', 'False')
         config.set(section, 'scope_convexhull_inflate', 'None')
 
@@ -329,6 +330,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'method', 'barber')
         config.set(section, self.recursive_clustering_name(), self.cluster_name())
         config.set(section, self.recursive_threshold_name(), 'False')
+        config.set(section, 'auto_barber', 'None')
 
         ################
         # reclustering
