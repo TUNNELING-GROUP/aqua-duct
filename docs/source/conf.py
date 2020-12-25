@@ -14,7 +14,7 @@
 
 import sys
 import os
-
+sys.path.insert(0, "/home/kara/Desktop/AQ/aqua-duct/src/")
 # Following is due to stupid Debian policy of using dist-packages directory.
 # Ubuntu inherits this behavior. It prevents virtualenv of being effective
 # in building docs for cutting edge AQ in the presence of globally instaled
@@ -85,8 +85,9 @@ master_doc = 'index'
 # General information about the project.
 import aquaduct
 project = u'Aqua-Duct'
-author = aquaduct.__author_doc__
-copyright = u'2016, 2017, 2018, 2019 ' + unicode(author)
+#author = aquaduct.__author_doc__
+author = u'Tomasz Magdziarz, Karolina Mitusińska, Agata Raczyńska, Artur Góra'
+copyright = u'2016, 2017, 2018, 2019 ' + author
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
