@@ -1,0 +1,27 @@
+image: "python:3.6"
+
+before_script:
+  - python --version
+
+cache:
+  key: pip-cache
+  paths:
+    - .cache/pip
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+stages:
+  - release
+
+release:gitlab-registry:
+  stage: release
+  when: manual
+  variables:
+    TWINE_PASSWORD: $CI_PACKAGE_DEPLOY_TOKEN
+    TWINE_USERNAME: $CI_PACKAGE_DEPLOY_TOKEN_NAME
+  script:
+    - pip install twine==3.8.0
+    - cd src
+    - python setup.py sdist
+    - python -m twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
