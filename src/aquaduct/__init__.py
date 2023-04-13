@@ -43,7 +43,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 1, 5, 0
+    return "1.5.1.dev0"
 
 
 def version_nice():
@@ -54,7 +54,7 @@ def version_nice():
     :rtype: str
     """
 
-    return '.'.join(map(str, version()))
+    return version()
 
 
 __version__ = version_nice()
