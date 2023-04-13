@@ -231,45 +231,45 @@ if __name__ == "__main__":
             run_status = {}
 
             # STAGE I
-            result1 = valve_exec_stage(0, config, stage_I_run, force_save=force_save,
-                                       run_status=run_status)
+            # result1 = valve_exec_stage(0, config, stage_I_run, force_save=force_save,
+            #                            run_status=run_status)
 
-            # STAGE II
-            result2 = valve_exec_stage(1, config, stage_II_run, force_save=force_save,
-                                       run_status=run_status,
-                                       **result1)
-
-            # STAGE III
-            result3 = valve_exec_stage(2, config, stage_III_run, force_save=force_save,
-                                       run_status=run_status,
-                                       **result2)
-
-            # STAGE IV
-            result4 = valve_exec_stage(3, config, stage_IV_run, force_save=force_save,
-                                       run_status=run_status,
-                                       center_of_system=result1['center_of_system'],
-                                       #center_of_object=result3['center_of_object'],
-                                       **result3)
-
-            # STAGE V
-            results = {}
-            for result in (result2, result3, result4):
-                results.update(result)
-
-            result5 = valve_exec_stage(4, config, stage_V_run,
-                                       run_status=run_status,
-                                       no_io=True,
-                                       **results)
+            # # STAGE II
+            # result2 = valve_exec_stage(1, config, stage_II_run, force_save=force_save,
+            #                            run_status=run_status,
+            #                            **result1)
+            #
+            # # STAGE III
+            # result3 = valve_exec_stage(2, config, stage_III_run, force_save=force_save,
+            #                            run_status=run_status,
+            #                            **result2)
+            #
+            # # STAGE IV
+            # result4 = valve_exec_stage(3, config, stage_IV_run, force_save=force_save,
+            #                            run_status=run_status,
+            #                            center_of_system=result1['center_of_system'],
+            #                            #center_of_object=result3['center_of_object'],
+            #                            **result3)
+            #
+            # # STAGE V
+            # results = {}
+            # for result in (result2, result3, result4):
+            #     results.update(result)
+            #
+            # result5 = valve_exec_stage(4, config, stage_V_run,
+            #                            run_status=run_status,
+            #                            no_io=True,
+            #                            **results)
 
             # STAGE VI
             results = {}
-            for result in (result3, result4):
-                results.update(result)
+            # for result in (result3, result4):
+            #     results.update(result)
 
             result6 = valve_exec_stage(5, config, stage_VI_run,
                                        run_status=run_status,
                                        no_io=True,
-                                       center_of_system=result1['center_of_system'],
+                                       # center_of_system=result1['center_of_system'],
                                        #center_of_object=result3['center_of_object'],
                                        **results)
             ############################################################################

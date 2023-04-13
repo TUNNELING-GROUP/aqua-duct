@@ -1642,13 +1642,13 @@ def stage_V_run(config, options,
 
 
 def stage_VI_run(config, options,
-                 spaths=None,
-                 inls=None,
-                 ctypes=None,
-                 master_paths=None,
-                 master_paths_smooth=None,
-                 center_of_system=None,
-                 center_of_object=None,
+                 # spaths=None,
+                 # inls=None,
+                 # ctypes=None,
+                 # master_paths=None,
+                 # master_paths_smooth=None,
+                 # center_of_system=None,
+                 # center_of_object=None,
                  **kwargs):
     # enable real cache of ort
 
@@ -1661,16 +1661,16 @@ def stage_VI_run(config, options,
     soptions = config.get_smooth_options()
     smooth = get_smooth_method(soptions)
 
-    traced_names = get_traced_names(spaths)
+    # traced_names = get_traced_names(spaths)
 
-    def iter_over_tn():
-        if not options.split_by_type:
-            yield None, ""
-        else:
-            if options.retain_all_types:
-                yield None, ""
-            for tn in traced_names:
-                yield tn, "_%s" % str(tn)
+    # def iter_over_tn():
+    #     if not options.split_by_type:
+    #         yield None, ""
+    #     else:
+    #         if options.retain_all_types:
+    #             yield None, ""
+    #         for tn in traced_names:
+    #             yield tn, "_%s" % str(tn)
 
     # start pymol
     with clui.fbm("Starting PyMOL connection", cont=False):
@@ -1685,8 +1685,8 @@ def stage_VI_run(config, options,
         else:
             spp = SinglePathPlotter(pymol_connector, linearize=None)
 
-    ctypes_generic = [ct.generic for ct in ctypes]
-    ctypes_generic_list = sorted(list(set(ctypes_generic)))
+    # ctypes_generic = [ct.generic for ct in ctypes]
+    # ctypes_generic_list = sorted(list(set(ctypes_generic)))
 
     if options.show_molecule:
         molecule_name = ''
@@ -1735,204 +1735,204 @@ def stage_VI_run(config, options,
                         logger.debug('Object convex hull calculations failed for frame %d.' % frame)
 
     fof = lambda sp: np.array(list(make_fractionof(sp, f=options.inlets_clusters_amount)))
-    if options.inlets_clusters:
-        tn_lim = lambda tn: inls if tn is None else inls.lim2rnames(tn)
-        with clui.fbm("Clusters"):
-            for tn, tn_name in iter_over_tn():
-                # TODO: require stage V for that?
-                # no_of_clusters = len(inls.clusters_list)  # total, including outliers
-                cmap = ColorMapDistMap()
-                for c in tn_lim(tn).clusters_list:
-                    if Reader.sandwich_mode:
-                        for layer in range(Reader.number_of_layers()):
-                            # coords for current cluster and layer
-                            ics = tn_lim(tn).lim_to([spath.id.id[0] for spath in spaths], layer).lim2clusters(c).coords
-                            # Skip empty clusters
-                            if not len(ics):
-                                continue
-                            if c == 0:
-                                c_name = 'out'
-                            else:
-                                c_name = str(int(c))
-                            spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s_L%s" % (c_name, tn_name, layer))
-                            if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
-                                radii = tn_lim(tn).lim2clusters(c).radii
-                                if len(radii) > 0:
-                                    spp.scatter(ics, color=cmap(c), radius=radii,
-                                                name="cluster_radii_%s%s" % (c_name, tn_name))
-                    else:
-                        # coords for current cluster
-                        ics = tn_lim(tn).lim2clusters(c).coords
-                        if c == 0:
-                            c_name = 'out'
-                        else:
-                            c_name = str(int(c))
-                        spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s" % (c_name, tn_name))
-                        if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
-                            radii = tn_lim(tn).lim2clusters(c).radii
-                            if len(radii) > 0:
-                                spp.scatter(ics, color=cmap(c), radius=radii,
-                                            name="cluster_radii_%s%s" % (c_name, tn_name))
+    # if options.inlets_clusters:
+    #     tn_lim = lambda tn: inls if tn is None else inls.lim2rnames(tn)
+    #     with clui.fbm("Clusters"):
+    #         for tn, tn_name in iter_over_tn():
+    #             # TODO: require stage V for that?
+    #             # no_of_clusters = len(inls.clusters_list)  # total, including outliers
+    #             cmap = ColorMapDistMap()
+    #             for c in tn_lim(tn).clusters_list:
+    #                 if Reader.sandwich_mode:
+    #                     for layer in range(Reader.number_of_layers()):
+    #                         # coords for current cluster and layer
+    #                         ics = tn_lim(tn).lim_to([spath.id.id[0] for spath in spaths], layer).lim2clusters(c).coords
+    #                         # Skip empty clusters
+    #                         if not len(ics):
+    #                             continue
+    #                         if c == 0:
+    #                             c_name = 'out'
+    #                         else:
+    #                             c_name = str(int(c))
+    #                         spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s_L%s" % (c_name, tn_name, layer))
+    #                         if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
+    #                             radii = tn_lim(tn).lim2clusters(c).radii
+    #                             if len(radii) > 0:
+    #                                 spp.scatter(ics, color=cmap(c), radius=radii,
+    #                                             name="cluster_radii_%s%s" % (c_name, tn_name))
+    #                 else:
+    #                     # coords for current cluster
+    #                     ics = tn_lim(tn).lim2clusters(c).coords
+    #                     if c == 0:
+    #                         c_name = 'out'
+    #                     else:
+    #                         c_name = str(int(c))
+    #                     spp.scatter(fof(ics), color=cmap(c), name="cluster_%s%s" % (c_name, tn_name))
+    #                     if False:  # TODO: This does not work any more in that way. Rewrite it or remove it
+    #                         radii = tn_lim(tn).lim2clusters(c).radii
+    #                         if len(radii) > 0:
+    #                             spp.scatter(ics, color=cmap(c), radius=radii,
+    #                                         name="cluster_radii_%s%s" % (c_name, tn_name))
 
-    if options.cluster_area:
-        from aquaduct.geom import hdr
-        from aquaduct.geom.hdr_contour import hdr2contour, iscontour
-        if iscontour:
-            cmap = cmaps._cmap_jet_256
-            with clui.fbm("Clusters contours"):
-                for c in inls.clusters_list:
-                    if Reader.sandwich_mode:
-                        for layer in range(Reader.number_of_layers()):
-                            # coords for current cluster
-                            ics = inls.lim_to([spath.id.id[0] for spath in spaths], layer).lim2clusters(c).coords
-                            if c == 0:
-                                c_name = 'out'
-                            else:
-                                c_name = str(int(c))
-                            # calcualte hdr
-                            # print inls.center_of_system, c_name, len(ics), alt_center_of_system
-                            if len(ics) < 3: continue
-                            h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
-                                        expand_by=float(options.cluster_area_expand),
-                                        center_of_system=inls.center_of_system)
-                            spp.multiline_begin()
-                            for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
-                                # print c_name + '_D%d' % fraction
-                                coords = hdr2contour(h, fraction=fraction / 100.)
-                                if coords is not None:
-                                    color = cmap[int(255 * (1 - fraction / 100.))]
-                                    spp.multiline_add(coords, color=color)
-                            spp.multiline_end(name=c_name + '_L{}_DC'.format(layer))
-                    else:
-                        # coords for current cluster
-                        ics = inls.lim2clusters(c).coords
-                        if c == 0:
-                            c_name = 'out'
-                        else:
-                            c_name = str(int(c))
-                        # calcualte hdr
-                        # print inls.center_of_system, c_name, len(ics), alt_center_of_system
-                        if len(ics) < 3: continue
-                        h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
-                                    expand_by=float(options.cluster_area_expand),
-                                    center_of_system=inls.center_of_system)
-                        spp.multiline_begin()
-                        for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
-                            # print c_name + '_D%d' % fraction
-                            coords = hdr2contour(h, fraction=fraction / 100.)
-                            if coords is not None:
-                                color = cmap[int(255 * (1 - fraction / 100.))]
-                                spp.multiline_add(coords, color=color)
-                        spp.multiline_end(name=c_name + '_DC')
-            spp.scatter(np.array([center_of_system]), color=cmap[10], name="CoS")
-            if center_of_object is not None:
-                spp.scatter(np.array([center_of_object]), color=cmap[10], name="CoO")
+    # if options.cluster_area:
+    #     from aquaduct.geom import hdr
+    #     from aquaduct.geom.hdr_contour import hdr2contour, iscontour
+    #     if iscontour:
+    #         cmap = cmaps._cmap_jet_256
+    #         with clui.fbm("Clusters contours"):
+    #             for c in inls.clusters_list:
+    #                 if Reader.sandwich_mode:
+    #                     for layer in range(Reader.number_of_layers()):
+    #                         # coords for current cluster
+    #                         ics = inls.lim_to([spath.id.id[0] for spath in spaths], layer).lim2clusters(c).coords
+    #                         if c == 0:
+    #                             c_name = 'out'
+    #                         else:
+    #                             c_name = str(int(c))
+    #                         # calcualte hdr
+    #                         # print inls.center_of_system, c_name, len(ics), alt_center_of_system
+    #                         if len(ics) < 3: continue
+    #                         h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
+    #                                     expand_by=float(options.cluster_area_expand),
+    #                                     center_of_system=inls.center_of_system)
+    #                         spp.multiline_begin()
+    #                         for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
+    #                             # print c_name + '_D%d' % fraction
+    #                             coords = hdr2contour(h, fraction=fraction / 100.)
+    #                             if coords is not None:
+    #                                 color = cmap[int(255 * (1 - fraction / 100.))]
+    #                                 spp.multiline_add(coords, color=color)
+    #                         spp.multiline_end(name=c_name + '_L{}_DC'.format(layer))
+    #                 else:
+    #                     # coords for current cluster
+    #                     ics = inls.lim2clusters(c).coords
+    #                     if c == 0:
+    #                         c_name = 'out'
+    #                     else:
+    #                         c_name = str(int(c))
+    #                     # calcualte hdr
+    #                     # print inls.center_of_system, c_name, len(ics), alt_center_of_system
+    #                     if len(ics) < 3: continue
+    #                     h = hdr.HDR(np.array(ics), points=float(options.cluster_area_precision),
+    #                                 expand_by=float(options.cluster_area_expand),
+    #                                 center_of_system=inls.center_of_system)
+    #                     spp.multiline_begin()
+    #                     for fraction in range(100, 0, -5):  # range(100, 85, -5) + range(80, 40, -10):
+    #                         # print c_name + '_D%d' % fraction
+    #                         coords = hdr2contour(h, fraction=fraction / 100.)
+    #                         if coords is not None:
+    #                             color = cmap[int(255 * (1 - fraction / 100.))]
+    #                             spp.multiline_add(coords, color=color)
+    #                     spp.multiline_end(name=c_name + '_DC')
+    #         spp.scatter(np.array([center_of_system]), color=cmap[10], name="CoS")
+    #         if center_of_object is not None:
+    #             spp.scatter(np.array([center_of_object]), color=cmap[10], name="CoO")
 
     fof = lambda sp: list(make_fractionof(sp, f=options.ctypes_amount))
 
     # master paths can have some keys which are not of ct type - names of molecules
     # print master_paths.keys()
     # print master_paths_smooth.keys()
-    master_paths_separate = [k for k in master_paths.keys() if isinstance(k, str)]
+    # master_paths_separate = [k for k in master_paths.keys() if isinstance(k, str)]
 
     # TODO: is isinstance good in this instance?
-    if options.ctypes_raw:
-        with clui.fbm("CTypes raw"):
-            for nr, ct in enumerate(ctypes_generic_list):
-                clui.message(str(ct), cont=True)
-                for tn, tn_name in iter_over_tn():
-                    if Reader.sandwich_mode:
-                        for layer in range(Reader.number_of_layers()):
-                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
-                            sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                            tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
-                            plot_spaths_traces(fof([spath for spath in tn_lim(tn) if spath.id.id[0] == layer]),
-                                               name=str(ct) + '_raw' + tn_name + '_L' + str(layer),
-                                               split=False,
-                                               spp=spp)
-                    else:
-                        sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                        tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
-                        plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_raw' + tn_name, split=False, spp=spp)
-                for mp_nr in range(len(master_paths_separate) + 1):
-                    mp_name = ""
-                    mp = None
-                    if mp_nr:
-                        mp_name = master_paths_separate[mp_nr - 1]
-                        if ct in master_paths[mp_name]:
-                            mp = master_paths[mp_name][ct]
-                            mp_name = "_" + mp_name
-                    else:
-                        if ct in master_paths:
-                            mp = master_paths[ct]
-                        else:
-                            mp = None
-                    if mp is not None:
-                        plot_spaths_traces([mp],
-                                           name=str(ct) + '_raw_master' + mp_name,
-                                           split=False,
-                                           spp=spp,
-                                           smooth=lambda anything: anything)
+    # if options.ctypes_raw:
+    #     with clui.fbm("CTypes raw"):
+    #         for nr, ct in enumerate(ctypes_generic_list):
+    #             clui.message(str(ct), cont=True)
+    #             for tn, tn_name in iter_over_tn():
+    #                 if Reader.sandwich_mode:
+    #                     for layer in range(Reader.number_of_layers()):
+    #                         clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
+    #                         sps = lind(spaths, what2what(ctypes_generic, [ct]))
+    #                         tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+    #                         plot_spaths_traces(fof([spath for spath in tn_lim(tn) if spath.id.id[0] == layer]),
+    #                                            name=str(ct) + '_raw' + tn_name + '_L' + str(layer),
+    #                                            split=False,
+    #                                            spp=spp)
+    #                 else:
+    #                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
+    #                     tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+    #                     plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_raw' + tn_name, split=False, spp=spp)
+    #             for mp_nr in range(len(master_paths_separate) + 1):
+    #                 mp_name = ""
+    #                 mp = None
+    #                 if mp_nr:
+    #                     mp_name = master_paths_separate[mp_nr - 1]
+    #                     if ct in master_paths[mp_name]:
+    #                         mp = master_paths[mp_name][ct]
+    #                         mp_name = "_" + mp_name
+    #                 else:
+    #                     if ct in master_paths:
+    #                         mp = master_paths[ct]
+    #                     else:
+    #                         mp = None
+    #                 if mp is not None:
+    #                     plot_spaths_traces([mp],
+    #                                        name=str(ct) + '_raw_master' + mp_name,
+    #                                        split=False,
+    #                                        spp=spp,
+    #                                        smooth=lambda anything: anything)
 
-    master_paths_separate = [k for k in master_paths_smooth.keys() if isinstance(k, str)]
-    if options.ctypes_smooth:
-        with clui.fbm("CTypes smooth"):
-            for nr, ct in enumerate(ctypes_generic_list):
-                clui.message(str(ct), cont=True)
-                for tn, tn_name in iter_over_tn():
-                    if Reader.sandwich_mode:
-                        for layer in range(Reader.number_of_layers()):
-                            clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
-
-                            sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                            tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
-
-                            plot_spaths_traces(fof([spath for spath in tn_lim(tn) if spath.id.id[0] == layer]),
-                                               name=str(ct) + '_smooth' + tn_name + '_L' + str(layer),
-                                               split=False,
-                                               spp=spp,
-                                               smooth=smooth)
-                    else:
-                        sps = lind(spaths, what2what(ctypes_generic, [ct]))
-                        tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
-                        plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth' + tn_name, split=False, spp=spp,
-                                           smooth=smooth)
-                for mp_nr in range(len(master_paths_separate) + 1):
-                    mp_name = ""
-                    mp = None
-                    if mp_nr:
-                        mp_name = master_paths_separate[mp_nr - 1]
-                        if ct in master_paths_smooth[mp_name]:
-                            mp = master_paths_smooth[mp_name][ct]
-                            mp_name = "_" + mp_name
-                    else:
-                        if ct in master_paths_smooth:
-                            mp = master_paths_smooth[ct]
-                        else:
-                            mp = None
-                    if mp is not None:
-                        plot_spaths_traces([mp],
-                                           name=str(ct) + '_smooth_master' + mp_name,
-                                           split=False,
-                                           spp=spp,
-                                           smooth=lambda anything: anything)
-                    mp = None
-                    if mp_nr:
-                        mp_name = master_paths_separate[mp_nr - 1]
-                        if ct in master_paths[mp_name]:
-                            mp = master_paths[mp_name][ct]
-                            mp_name = "_" + mp_name
-                    else:
-                        if ct in master_paths_smooth:
-                            mp = master_paths_smooth[ct]
-                        else:
-                            mp = None
-                    if mp is not None:
-                        plot_spaths_traces([mp],
-                                           name=str(ct) + '_raw_master_smooth' + mp_name,
-                                           split=False,
-                                           spp=spp,
-                                           smooth=smooth)
+    # master_paths_separate = [k for k in master_paths_smooth.keys() if isinstance(k, str)]
+    # if options.ctypes_smooth:
+    #     with clui.fbm("CTypes smooth"):
+    #         for nr, ct in enumerate(ctypes_generic_list):
+    #             clui.message(str(ct), cont=True)
+    #             for tn, tn_name in iter_over_tn():
+    #                 if Reader.sandwich_mode:
+    #                     for layer in range(Reader.number_of_layers()):
+    #                         clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
+    #
+    #                         sps = lind(spaths, what2what(ctypes_generic, [ct]))
+    #                         tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+    #
+    #                         plot_spaths_traces(fof([spath for spath in tn_lim(tn) if spath.id.id[0] == layer]),
+    #                                            name=str(ct) + '_smooth' + tn_name + '_L' + str(layer),
+    #                                            split=False,
+    #                                            spp=spp,
+    #                                            smooth=smooth)
+    #                 else:
+    #                     sps = lind(spaths, what2what(ctypes_generic, [ct]))
+    #                     tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
+    #                     plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth' + tn_name, split=False, spp=spp,
+    #                                        smooth=smooth)
+    #             for mp_nr in range(len(master_paths_separate) + 1):
+    #                 mp_name = ""
+    #                 mp = None
+    #                 if mp_nr:
+    #                     mp_name = master_paths_separate[mp_nr - 1]
+    #                     if ct in master_paths_smooth[mp_name]:
+    #                         mp = master_paths_smooth[mp_name][ct]
+    #                         mp_name = "_" + mp_name
+    #                 else:
+    #                     if ct in master_paths_smooth:
+    #                         mp = master_paths_smooth[ct]
+    #                     else:
+    #                         mp = None
+    #                 if mp is not None:
+    #                     plot_spaths_traces([mp],
+    #                                        name=str(ct) + '_smooth_master' + mp_name,
+    #                                        split=False,
+    #                                        spp=spp,
+    #                                        smooth=lambda anything: anything)
+    #                 mp = None
+    #                 if mp_nr:
+    #                     mp_name = master_paths_separate[mp_nr - 1]
+    #                     if ct in master_paths[mp_name]:
+    #                         mp = master_paths[mp_name][ct]
+    #                         mp_name = "_" + mp_name
+    #                 else:
+    #                     if ct in master_paths_smooth:
+    #                         mp = master_paths_smooth[ct]
+    #                     else:
+    #                         mp = None
+    #                 if mp is not None:
+    #                     plot_spaths_traces([mp],
+    #                                        name=str(ct) + '_raw_master_smooth' + mp_name,
+    #                                        split=False,
+    #                                        spp=spp,
+    #                                        smooth=smooth)
 
     def plot_paths(paths, tn_name, layer_name=""):
         if options.all_paths_raw:
@@ -1976,15 +1976,15 @@ def stage_VI_run(config, options,
                                    separate=not options.paths_states, smooth=smooth, spp=spp)
 
     fof = lambda sp: list(make_fractionof(sp, f=options.all_paths_amount))
-    tn_lim = lambda tn: spaths if tn is None else [sp for sp in spaths if tn == sp.id.name]
-
-    for tn, tn_name in iter_over_tn():
-        if Reader.sandwich_mode:
-            for layer in range(Reader.number_of_layers()):
-                clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
-                plot_paths([spath for spath in tn_lim(tn) if spath.id.id[0] == layer], tn_name, "_L{}".format(layer))
-        else:
-            plot_paths(tn_lim(tn), tn_name)
+    # tn_lim = lambda tn: spaths if tn is None else [sp for sp in spaths if tn == sp.id.name]
+    #
+    # for tn, tn_name in iter_over_tn():
+    #     if Reader.sandwich_mode:
+    #         for layer in range(Reader.number_of_layers()):
+    #             clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
+    #             plot_paths([spath for spath in tn_lim(tn) if spath.id.id[0] == layer], tn_name, "_L{}".format(layer))
+    #     else:
+    #         plot_paths(tn_lim(tn), tn_name)
 
     if options.show_molecule:
         pymol_connector.orient_on(molecule_name)
@@ -1992,14 +1992,14 @@ def stage_VI_run(config, options,
     if is_pymol_connector_session(options.save):
         with clui.fbm("Saving session (%s)" % options.save):
             clui.message("")  # new line
-            pbar = clui.pbar(len(spaths))
-            # FIXME: Loop over states is not required if there is no object with many states.
-            import time
-            for state in range(len(spaths)):
-                pymol_connector.cmd.set_frame(state + 1)
-                pbar.update(state)
-                time.sleep(0.1)
-            pbar.finish()
+            # pbar = clui.pbar(len(spaths))
+            # # FIXME: Loop over states is not required if there is no object with many states.
+            # import time
+            # for state in range(len(spaths)):
+            #     pymol_connector.cmd.set_frame(state + 1)
+            #     pbar.update(state)
+            #     time.sleep(0.1)
+            # pbar.finish()
             clui.message("Finalizing session saving...", cont=True)  # new line
             pymol_connector.cmd.set_frame(1)
             pymol_connector.cmd.save(options.save, state=0)
