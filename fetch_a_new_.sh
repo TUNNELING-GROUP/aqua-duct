@@ -13,7 +13,7 @@ else
 fi
 
 # target repo
-REPO="test"
+REPO="proto_target"
 # init clean target repo
 rm -rf $REPO $REPO.git
 mkdir $REPO.git
