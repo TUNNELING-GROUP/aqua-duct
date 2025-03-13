@@ -74,11 +74,15 @@ fi
 git remote set-url origin $TARGET_URL
 
 # push to new remote
-if [ "$PUSH" = true ]; then
-    for BRANCH in $BRANCHES; do
-        git checkout $BRANCH
+for BRANCH in $BRANCHES; do
+    git checkout $BRANCH
+    if [ "$PUSH" = true ]; then
         git push
-    done
+    else
+        echo "Warning: Skipping push to new remote due to missing --push option."
+    fi
+done
+if [ "$PUSH" = true ]; then
     git push --tags
 else
     echo "Warning: Skipping push to new remote due to missing --push option."
