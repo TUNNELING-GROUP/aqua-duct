@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
@@ -22,7 +22,7 @@
 This is a driver for Aqua-Duct.
 """
 
-from __future__ import print_function
+
 
 ################################################################################
 # reuse AQ logger
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     with installation package and is also available at"
     https://www.gnu.org/licenses/gpl-3.0.txt""")
 
-                print(u"""Aqua-Duct, a tool facilitating analysis of the flow of solvent
+                print("""Aqua-Duct, a tool facilitating analysis of the flow of solvent
     molecules in molecular dynamic simulations
     Copyright (C) 2016-2018  {author}
                              <{mail}>
@@ -188,6 +188,8 @@ if __name__ == "__main__":
             ############################################################################
 
             from aquaduct.traj.sandwich import Reader, Window
+
+
 
             # STAGE 0
 

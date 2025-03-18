@@ -295,7 +295,7 @@ def get_clustering_method(coptions, config):
 
 def get_linearize_method(loption):
     if loption:
-        assert isinstance(loption, (str, unicode)), "Wrong Linearize method definition: %r" % loption
+        assert isinstance(loption, str), "Wrong Linearize method definition: %r" % loption
         possible_formats = [
             re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
             re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
@@ -360,7 +360,7 @@ def get_allow_size_function(rt=None):
                      '=>': operator.ge,
                      '<=': operator.le,
                      '<': operator.lt}
-    assert op in operator_dict.keys(), "Unsupported operator %s in threshold %s" % (op, rt)
+    assert op in list(operator_dict.keys()), "Unsupported operator %s in threshold %s" % (op, rt)
     return lambda size_of_cluster: operator_dict[op](size_of_cluster, vl)
 
 
@@ -375,7 +375,7 @@ def potentially_recursive_clustering(config=None,
         logger.debug('Clustering options section: %s' % clustering_name)
         cluster_options = config.get_cluster_options(section_name=clustering_name)
         clui.message('Clustering options:')
-        for k, v in cluster_options._asdict().iteritems():
+        for k, v in cluster_options._asdict().items():
             clui.message("%s = %s" % (str(k), str(v)))
         # TODO: Print clustering options in a nice way!
         clustering_function = get_clustering_method(cluster_options, config)
@@ -471,7 +471,7 @@ class SkipSizeFunction(object):
     def __init__(self, ths_def):
 
         self.thresholds = []
-        if isinstance(ths_def, (str, unicode)):
+        if isinstance(ths_def, str):
             for thd in ths_def.split():
                 self.thresholds.append(get_allow_size_function(thd))
 
@@ -500,7 +500,7 @@ class PrintAnalysis(object):
             info2print = (self.nr_template % (nr + 1)) + info2print
         if self.output2stderr:
             clui.message(info2print)
-        print >> self.filehandle, info2print
+        print(info2print, file=self.filehandle)
 
     def sep(self):
         self(asep())

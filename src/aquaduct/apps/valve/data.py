@@ -21,7 +21,7 @@ from aquaduct import logger
 # logger = logging.getLogger(__name__)
 
 from aquaduct.utils.clui import SimpleTree
-import cPickle as pickle
+import pickle as pickle
 import gzip
 import os
 from collections import OrderedDict
@@ -52,7 +52,7 @@ from aquaduct.traj.inlets import InletClusterExtendedType, InletClusterGenericTy
 from aquaduct.traj.barber import Sphere
 from aquaduct.geom.master import FakeSingleResidueSelection
 
-from itertools import chain, izip
+from itertools import chain
 import json
 
 
@@ -180,7 +180,7 @@ class ValveDataCodec(object):
             #   S is a number of traced molecules in N layer
 
             # save layers
-            layers = np.array(value.selected.keys(), dtype=np.int32)
+            layers = np.array(list(value.selected.keys()), dtype=np.int32)
             yield ValveDataCodec.varname(name, 'layers'), layers
             # save each layer as separate array
             for l in layers:
@@ -236,7 +236,7 @@ class ValveDataCodec(object):
                     chain(*(p.name for p in value if p.id[0] == N)), dtype='S1').reshape(P, 3)
                 yield ValveDataCodec.varname(name, 'layer', N, 'ids'), np.fromiter(
                     (p.id[-1] for p in value if p.id[0] == N), dtype=np.int32)
-                mmf = (p for p in value if p.id[0] == N).next()
+                mmf = next((p for p in value if p.id[0] == N))
                 yield ValveDataCodec.varname(name, 'layer', N, 'min_max_frames'), np.array(
                     (mmf.min_possible_frame, mmf.max_possible_frame), dtype=np.int32)
                 oors = [SmartRange(p.frames_of_object) for p in value if p.id[0] == N]
@@ -293,7 +293,7 @@ class ValveDataCodec(object):
             #   None is replaced by -1
 
             yield ValveDataCodec.varname(name), np.fromiter(
-                chain(*(map(lambda c: -1 if c is None else c, ct.clusters) for ct in value)), dtype=np.int32).reshape(
+                chain(*([-1 if c is None else c for c in ct.clusters] for ct in value)), dtype=np.int32).reshape(
                 len(value), 4)
 
         if name in ['master_paths', 'master_paths_smooth']:
@@ -318,20 +318,20 @@ class ValveDataCodec(object):
 
             M = len(value)
             yield ValveDataCodec.varname(name, 'keys'), np.fromiter(
-                chain(*(map(lambda c: -1 if c is None else c, ct.clusters) for ct in value.keys())),
+                chain(*([-1 if c is None else c for c in ct.clusters] for ct in list(value.keys()))),
                 dtype=np.int32).reshape(len(value), 2)
-            yield ValveDataCodec.varname(name, 'names'), np.fromiter(chain(*(p.id.name for p in value.values())),
+            yield ValveDataCodec.varname(name, 'names'), np.fromiter(chain(*(p.id.name for p in list(value.values()))),
                                                                      dtype='S1').reshape(M, 3)
             yield ValveDataCodec.varname(name, 'ids'), np.fromiter(
-                chain(*((p.id.id[0], p.id.id[-1], p.id.nr) for p in value.values())), dtype=np.int32).reshape(M, 3)
+                chain(*((p.id.id[0], p.id.id[-1], p.id.nr) for p in list(value.values()))), dtype=np.int32).reshape(M, 3)
             yield ValveDataCodec.varname(name, 'frames'), np.fromiter(
-                chain(*((p.begins, p.ends) + tuple(p.sizes) for p in value.values())), dtype=np.int32).reshape(M, 5)
-            yield ValveDataCodec.varname(name, 'widths'), np.fromiter(chain(*(p.width_cont for p in value.values())),
+                chain(*((p.begins, p.ends) + tuple(p.sizes) for p in list(value.values()))), dtype=np.int32).reshape(M, 5)
+            yield ValveDataCodec.varname(name, 'widths'), np.fromiter(chain(*(p.width_cont for p in list(value.values()))),
                                                                       dtype=np.float32)
-            MS = sum((p.size for p in value.values()))
+            MS = sum((p.size for p in list(value.values())))
             yield ValveDataCodec.varname(name, 'coords'), np.fromiter(
-                chain(*chain(*(p.coords_cont for p in value.values()))), dtype=np.float32).reshape(MS, 3)
-            osf = [SmartRange(p.path_object_strict()) for p in value.values()]
+                chain(*chain(*(p.coords_cont for p in list(value.values())))), dtype=np.float32).reshape(MS, 3)
+            osf = [SmartRange(p.path_object_strict()) for p in list(value.values())]
             yield ValveDataCodec.varname(name, 'object', 'sizes'), np.fromiter(
                 (2 * len(list(o.raw_increment)) for o in osf), dtype=np.int32)
             yield ValveDataCodec.varname(name, 'object'), np.fromiter(
@@ -397,7 +397,7 @@ class ValveDataCodec(object):
             out = []
             # number of layers
             layers = int(data[ValveDataCodec.varname(name, 'layers')][:].copy())
-            for nr in xrange(layers):
+            for nr in range(layers):
                 out_ = []
                 sizes = data[ValveDataCodec.varname(name, 'layer', nr, 'sizes')]
                 layer = data[ValveDataCodec.varname(name, 'layer', nr)]
@@ -420,7 +420,7 @@ class ValveDataCodec(object):
                 scope_frames = data[ValveDataCodec.varname(name, 'layer', N, 'scope')]
                 seek_object = 0
                 seek_scope = 0
-                for osize, ssize, n, pid in izip(object_sizes, scope_sizes, names, ids):
+                for osize, ssize, n, pid in zip(object_sizes, scope_sizes, names, ids):
                     out.append(
                         GenericPaths(tuple(map(int, (N, pid))), name_of_res=str(n.tostring()), min_pf=int(mmf[0]),
                                      max_pf=int(mmf[1])))
@@ -441,9 +441,9 @@ class ValveDataCodec(object):
                 object_strict = data[ValveDataCodec.varname(name, 'layer', N, 'object')]
                 single_path_nr = 0
                 seek_object = 0
-                for n, pid, ft, iss in izip(names, ids, frames_table, is_single):
+                for n, pid, ft, iss in zip(names, ids, frames_table, is_single):
                     spid = SinglePathID(path_id=tuple(map(int, (N, pid[0]))), nr=int(pid[-1]), name=str(n.tostring()))
-                    path = range(ft[0], ft[1] + 1)
+                    path = list(range(ft[0], ft[1] + 1))
                     if iss:
                         out.append(SinglePath(spid, [[], [], []], [[], [], []]))
                         seek = 0
@@ -466,8 +466,7 @@ class ValveDataCodec(object):
 
         if name == 'ctypes':
             ctypes = data[ValveDataCodec.varname(name)]
-            return map(lambda cc: InletClusterExtendedType(cc[0], cc[2], cc[3], cc[1]),
-                       (map(lambda c: None if c == -1 else c, ct) for ct in ctypes))
+            return [InletClusterExtendedType(cc[0], cc[2], cc[3], cc[1]) for cc in ([None if c == -1 else c for c in ct] for ct in ctypes)]
 
         if name in ['master_paths', 'master_paths_smooth']:
             out = {}
@@ -480,10 +479,10 @@ class ValveDataCodec(object):
             object_strict = data[ValveDataCodec.varname(name, 'object')]
             seek_widths = 0
             seek_object = 0
-            for mpnr, (k, n, pid, ft) in enumerate(izip(keys, names, ids, frames_table)):
-                key = InletClusterGenericType(*map(lambda c: None if c == -1 else c, k))
+            for mpnr, (k, n, pid, ft) in enumerate(zip(keys, names, ids, frames_table)):
+                key = InletClusterGenericType(*[None if c == -1 else c for c in k])
                 spid = SinglePathID(path_id=tuple(map(int, pid[:2])), nr=int(pid[-1]), name=str(n.tostring()))
-                path = range(ft[0], ft[1] + 1)
+                path = list(range(ft[0], ft[1] + 1))
 
                 mp = SinglePath(spid, [[], [], []], [[], [], []])
                 seek = 0
@@ -499,7 +498,7 @@ class ValveDataCodec(object):
                     SmartRange(fast_minc_seq=object_strict[seek_object:seek_object + path_object_strict_size]).get())
                 seek_object += path_object_strict_size
 
-                fsrs = FakeSingleResidueSelection(spid.id, xrange(ft[0], ft[1] + 1),
+                fsrs = FakeSingleResidueSelection(spid.id, range(ft[0], ft[1] + 1),
                                                   coords[seek_widths:seek_widths + ft[1] - ft[0] + 1].copy())
                 mp = SinglePath(spid, [[], [], []], [[], [], []], single_res_selection=fsrs)
 
@@ -527,7 +526,7 @@ class ValveDataCodec(object):
             type_ = data[ValveDataCodec.varname(name, 'inlets_list', 'type')]
             ref_ids = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'ids')]
             ref_name = data[ValveDataCodec.varname(name, 'inlets_list', 'reference', 'name')]
-            for c, f, t, pid, n in izip(coords, frame, type_, ref_ids, ref_name):
+            for c, f, t, pid, n in zip(coords, frame, type_, ref_ids, ref_name):
                 spid = SinglePathID(path_id=tuple(map(int, pid[:2].copy())), nr=int(pid[-1].copy()),
                                     name=str(n.copy().tostring()))
                 # inls.inlets_list.append(Inlet(coords=c.copy(), type=onlytype[t.copy()], reference=spid, frame=f.copy()))
@@ -540,7 +539,7 @@ class ValveDataCodec(object):
 
             spheres = data[ValveDataCodec.varname(name, 'spheres')]
             spheres_nr = data[ValveDataCodec.varname(name, 'spheres', 'nr')]
-            for s, nr in izip(spheres, spheres_nr):
+            for s, nr in zip(spheres, spheres_nr):
                 inls.spheres.append(Sphere(s[:3].copy(), s[-1].copy(), nr.copy()))
 
             inls.tree = SimpleTree(treestr=str(data[ValveDataCodec.varname(name, 'tree')][:].copy().tostring()))
@@ -596,7 +595,7 @@ class ValveDataAccess_nc(ValveDataAccess):
         v[:] = value
 
     def dump(self, **kwargs):
-        for name, value in kwargs.iteritems():
+        for name, value in kwargs.items():
             for nname, vvalue in ValveDataCodec.encode(name, value):
                 self.set_variable(nname, vvalue)
 
@@ -604,15 +603,15 @@ class ValveDataAccess_nc(ValveDataAccess):
     def load(self):
         # names of data objects
         names = list(
-            set([name.split('.')[0] for name in self.data_file.variables.keys() if name not in self.not_variable]))
-        all_names = [name for name in self.data_file.variables.keys() if name not in self.not_variable]
+            set([name.split('.')[0] for name in list(self.data_file.variables.keys()) if name not in self.not_variable]))
+        all_names = [name for name in list(self.data_file.variables.keys()) if name not in self.not_variable]
         for name in names:
             # if 'inls' in name: continue
             # read all parts of object and decode
             this_object = dict(((n, self.get_variable(n, copy=False)) for n in all_names if
                                 name == n or (name + '.') == n[:len(name) + 1]))
             yield name, ValveDataCodec.decode(name, this_object)
-            for k in this_object.keys():
+            for k in list(this_object.keys()):
                 v = this_object.pop(k)[:]
                 if hasattr(v, 'copy'):
                     v.copy()
@@ -656,9 +655,9 @@ class ValveDataAccess_pickle(ValveDataAccess):
     def load(self):
         data = {}
         # this is to mimic v0.3 behaviour
-        for _name, _value in self.data.iteritems():
+        for _name, _value in self.data.items():
             if _name == self.mimic_old_var_name:
-                for name, value in _value.iteritems():
+                for name, value in _value.items():
                     '''
                     if isinstance(value, CompactSelectionMDA):
                         value = value.toSelectionMDA(self.reader)
@@ -668,7 +667,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
                     # TODO: following is to overcome problems with missing names when data is <0.4
                     ################################################################################
                     if name == 'paths':
-                        for path_name, path in value.iteritems():
+                        for path_name, path in value.items():
                             if not hasattr(path, 'name'):
                                 path.name = self.unknown_names
                     if name == 'spaths':
@@ -686,7 +685,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
                     data.update({name: value})
                 break
             else:
-                for name, value in self.data.iteritems():
+                for name, value in self.data.items():
                     '''
                     if isinstance(value, CompactSelectionMDA):
                         value = value.toSelectionMDA(self.reader)
@@ -718,7 +717,7 @@ class ValveDataAccess_pickle(ValveDataAccess):
         return data
 
     def dump(self, **kwargs):
-        for name, value in kwargs.iteritems():
+        for name, value in kwargs.items():
             self.set_variable(name, value)
 
     def get_variable(self, name):

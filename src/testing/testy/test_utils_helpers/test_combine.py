@@ -32,7 +32,7 @@ class TestCombineExist(TestCase):
         testing2_2 = ((1, 2), (3, 4))
         case2_2 = combine(testing2_2)
         result2_2 = [[1, 4], [1, 3], [2, 4], [2, 3]]
-        self.assertEquals(case2_2 == result2_2)
+        self.assertEqual(case2_2 == result2_2)
 
     def test_combine_range(self):
         # function can take letters as argument

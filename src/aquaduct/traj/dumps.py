@@ -61,7 +61,7 @@ class WriteMOL2(object):
             self.fh.write(self.print_atom_line(xyz, b))
             self.current_atom += 1
         self.fh.write("@<TRIPOS>BOND" + os.linesep)
-        for b in xrange(1, len(scatter)):
+        for b in range(1, len(scatter)):
             self.fh.write(self.print_bond_line(b, b, b + 1))
         self.current_atom = 1
 

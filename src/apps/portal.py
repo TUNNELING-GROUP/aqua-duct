@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
@@ -72,16 +72,16 @@ if __name__ == "__main__":
 
         from aquaduct.geom.convexhull import SciPyConvexHull
 
-        print "frame",
+        print("frame", end=' ')
         for nr, area in enumerate(areas):
-            print ("a%da" % (nr + 1)), ("a%dv" % (nr + 1)),
-        print ""
+            print(("a%da" % (nr + 1)), ("a%dv" % (nr + 1)), end=' ')
+        print("")
 
         for traj_reader in Reader.iterate():
             traj_reader = traj_reader.open()
             for frame in traj_reader.iterate_over_frames():
-                print frame,
+                print(frame, end=' ')
                 for area in areas:
                     chull = traj_reader.parse_selection(area).chull()
-                    print chull.area, chull.volume,
-                print ""
+                    print(chull.area, chull.volume, end=' ')
+                print("")

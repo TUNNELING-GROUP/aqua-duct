@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.7
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
@@ -17,18 +17,18 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import Tkinter as tk
+import tkinter as tk
 import hashlib
 import traceback
 import os
 import shutil
 import tempfile
-import tkMessageBox
-import ttk
+import tkinter.messagebox
+import tkinter.ttk
 import webbrowser
-from ConfigParser import ConfigParser, NoOptionError, NoSectionError
+from configparser import ConfigParser, NoOptionError, NoSectionError
 from collections import OrderedDict, defaultdict
-from tkFileDialog import askopenfile, askdirectory, asksaveasfile
+from tkinter.filedialog import askopenfile, askdirectory, asksaveasfile
 
 import aquaduct
 import aquaduct.apps.valveconfig.defaults as defaults
@@ -46,8 +46,8 @@ class ValveConfigApp(object):
         self.values = OrderedDict()
 
         # Used to hide that frame, after all entries are shown
-        self.init_frame = ttk.Frame(self.parent)
-        self.notebook = ttk.Notebook(self.parent)
+        self.init_frame = tkinter.ttk.Frame(self.parent)
+        self.notebook = tkinter.ttk.Notebook(self.parent)
 
         self.level = None
 
@@ -85,26 +85,26 @@ class ValveConfigApp(object):
         # Logo
         logo = tk.PhotoImage(file=get_img("logo.gif"))
 
-        logo_label = ttk.Label(self.parent, image=logo, padding=-2)
+        logo_label = tkinter.ttk.Label(self.parent, image=logo, padding=-2)
         logo_label.image = logo
         logo_label.pack(padx=20, pady=20)
 
         # Used to auto positioning depending on length of version string
         version = "ver. " + aquaduct.version_nice()
-        ttk.Label(logo_label, text=version, background="white").place(relx=1, rely=1, x=-len(version) * 7, y=-20)
+        tkinter.ttk.Label(logo_label, text=version, background="white").place(relx=1, rely=1, x=-len(version) * 7, y=-20)
 
         # Frame with loading configuration file
-        load_frame = ttk.LabelFrame(self.init_frame, text="Configuration file")
+        load_frame = tkinter.ttk.LabelFrame(self.init_frame, text="Configuration file")
         load_frame.columnconfigure(0, weight=1)
         load_frame.columnconfigure(1, weight=1)
 
-        ttk.Button(load_frame, text="Load config", command=self.open_config_file).grid(sticky="E", row=0, column=0)
-        ttk.Button(load_frame, text="New config", command=self.create_new_config_file_dialog).grid(sticky="W",
+        tkinter.ttk.Button(load_frame, text="Load config", command=self.open_config_file).grid(sticky="E", row=0, column=0)
+        tkinter.ttk.Button(load_frame, text="New config", command=self.create_new_config_file_dialog).grid(sticky="W",
                                                                                                    row=0,
                                                                                                    column=1,
                                                                                                    padx=5,
                                                                                                    pady=2)
-        ttk.Entry(load_frame, textvariable=self.config_filename, state="readonly").grid(sticky="EW",
+        tkinter.ttk.Entry(load_frame, textvariable=self.config_filename, state="readonly").grid(sticky="EW",
                                                                                         row=1,
                                                                                         column=0,
                                                                                         columnspan=2,
@@ -112,16 +112,16 @@ class ValveConfigApp(object):
                                                                                         pady=2)
 
         # Level selection
-        level_frame = ttk.LabelFrame(self.init_frame, text="Configuration level")
+        level_frame = tkinter.ttk.LabelFrame(self.init_frame, text="Configuration level")
 
         self.level = tk.StringVar()
 
         # List of sorted levels from easiest to hardest
         self.levels = []
-        for level_name, _ in reversed(sorted(defaults.LEVELS.iteritems(), key=lambda (k, v): (v, k))):
+        for level_name, _ in reversed(sorted(iter(defaults.LEVELS.items()), key=lambda k_v: (k_v[1], k_v[0]))):
             self.levels.append(level_name)
 
-        ttk.OptionMenu(level_frame, self.level, self.levels[0], *self.levels).pack(pady=20)
+        tkinter.ttk.OptionMenu(level_frame, self.level, self.levels[0], *self.levels).pack(pady=20)
 
         load_frame.pack(fill=tk.X, padx=100, pady=20)
         level_frame.pack(fill=tk.X, padx=100, pady=20)
@@ -130,7 +130,7 @@ class ValveConfigApp(object):
             self.prepare_section_frames()
             self.create_interface()
 
-        ttk.Button(self.init_frame, text="Forward", command=show_new_gui).pack(pady=50)
+        tkinter.ttk.Button(self.init_frame, text="Forward", command=show_new_gui).pack(pady=50)
 
         self.init_frame.pack(expand=1, fill="both")
 
@@ -168,11 +168,11 @@ class ValveConfigApp(object):
 
             self.notebook.add(scroll_frame, text=section_name_long)
 
-            ttk.Label(frame,
+            tkinter.ttk.Label(frame,
                       text=section_name_long,
                       style="Title.TLabel",
                       background=utils.get_widget_bg(self.parent)).grid(row=0, column=0, columnspan=2)
-            ttk.Separator(frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=3)
+            tkinter.ttk.Separator(frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=3)
 
             self.entry_filler(frame, section_name, entries)
 
@@ -183,7 +183,7 @@ class ValveConfigApp(object):
                 # Increment max_level
                 self.add_max_level(1)
 
-            cluster_add_button = ttk.Button(self.frames[self.cluster_frame_index], text="Add clustering section")
+            cluster_add_button = tkinter.ttk.Button(self.frames[self.cluster_frame_index], text="Add clustering section")
             # Setting row=1000 let skip calculating position of button each time new section is added
             cluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
 
@@ -195,7 +195,7 @@ class ValveConfigApp(object):
             for section_name in self.get_recursive_clustering_sections("reclustering"):
                 self.append_entries(section_name)
 
-            recluster_add_button = ttk.Button(self.frames[self.recluster_frame_index], text="Add reclustering section")
+            recluster_add_button = tkinter.ttk.Button(self.frames[self.recluster_frame_index], text="Add reclustering section")
             # Setting row=1000 let skip calculating position of button each time new section is added
             recluster_add_button.grid(row=1000, column=0, columnspan=2, pady=20)
 
@@ -385,21 +385,21 @@ class ValveConfigApp(object):
 
         default_entries = defaults.get_default_section(default_section_name)
 
-        inner_frame = ttk.Frame(frame, style="I.TFrame")
+        inner_frame = tkinter.ttk.Frame(frame, style="I.TFrame")
         inner_frame.columnconfigure(0, weight=1)
         inner_frame.columnconfigure(1, weight=1)
         inner_frame.grid(sticky="EW", row=row, column=0, columnspan=2, padx=60, pady=10)
 
-        ttk.Label(inner_frame, text="Recursive clustering", style="ITitle.TLabel").grid(
+        tkinter.ttk.Label(inner_frame, text="Recursive clustering", style="ITitle.TLabel").grid(
             row=0,
             column=0,
             pady=5,
             columnspan=2)
-        ttk.Separator(inner_frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=2)
+        tkinter.ttk.Separator(inner_frame, orient=tk.HORIZONTAL).grid(sticky="EW", row=1, column=0, columnspan=2)
 
         self.entry_filler(inner_frame, section_name, default_entries.entries)
 
-        remove_button = ttk.Button(inner_frame, text="Remove")
+        remove_button = tkinter.ttk.Button(inner_frame, text="Remove")
         remove_button.grid(row=999, column=0, columnspan=2, pady=5)
 
         remove_section_callback = utils.CallbackWrapper(self.callback_remove_section, section_name, inner_frame)
@@ -447,7 +447,7 @@ class ValveConfigApp(object):
             entries_appended += 1
 
             if isinstance(entry, defaults.DefaultSection):
-                nested_frame = ttk.LabelFrame(parent, text=entry.name)
+                nested_frame = tkinter.ttk.LabelFrame(parent, text=entry.name)
                 nested_frame.grid_columnconfigure(0, weight=1)
                 nested_frame.grid_columnconfigure(1, weight=1)
 
@@ -498,7 +498,7 @@ class ValveConfigApp(object):
             else:
                 if entry.group_label:
                     if entry.group_label not in group_frames:
-                        label_frame = ttk.LabelFrame(parent, text=entry.group_label)
+                        label_frame = tkinter.ttk.LabelFrame(parent, text=entry.group_label)
                         label_frame.grid_columnconfigure(0, weight=1)
                         label_frame.grid_columnconfigure(1, weight=1)
                         label_frame.grid(row=parent.grid_size()[1], column=0, columnspan=2, pady=15, ipadx=30)
@@ -572,7 +572,7 @@ class ValveConfigApp(object):
         :param section: Section name where hiding frame is located.
         :param entry: Option menu widget, which control hiding frames in section.
         """
-        for method, hidden_frame in self.hiding_frames[section].iteritems():
+        for method, hidden_frame in self.hiding_frames[section].items():
             if method == entry.get():
                 hidden_frame.show()
             else:
@@ -631,7 +631,7 @@ class ValveConfigApp(object):
     def get_values_hash(self):
         """ Compute hash from values. """
         hash = hashlib.md5()
-        hash.update(str(self.values))
+        hash.update((str(self.values)).encode('utf-8'))
         # for section_name in self.values:
         #     for value in self.values[section_name].itervalues():
         #         hash.update(str(value.get()))
@@ -671,7 +671,7 @@ class ValveConfigApp(object):
                             result = True
                             if section_name == "inlets_clustering" and entry_name == "max_level" and self.config_loaded:
                                 if self.values["inlets_clustering"]["max_level"].get() != int(config_value):
-                                    result = tkMessageBox.askyesno("Max level",
+                                    result = tkinter.messagebox.askyesno("Max level",
                                                                    "Config max_level value differs from number of found clustering sections.\n"
                                                                    "Do you want to keep value from configuration file?")
 
@@ -702,7 +702,7 @@ class ValveConfigApp(object):
         :param reset: If set to True confirmation will be needed to reset.
         """
         if reset:
-            result = tkMessageBox.askyesno("Reset values", "Are you sure to reset all values?")
+            result = tkinter.messagebox.askyesno("Reset values", "Are you sure to reset all values?")
 
             if not result:
                 return
@@ -726,19 +726,19 @@ class ValveConfigApp(object):
         if self.cluster_frame_index:
             cluster_frame = self.frames[self.cluster_frame_index]
             for widget in cluster_frame.grid_slaves():
-                if isinstance(widget, ttk.Frame):
+                if isinstance(widget, tkinter.ttk.Frame):
                     widget.grid_forget()
 
         if self.recluster_frame_index:
             recluster_frame = self.frames[self.recluster_frame_index]
             for widget in recluster_frame.grid_slaves():
-                if isinstance(widget, ttk.Frame):
+                if isinstance(widget, tkinter.ttk.Frame):
                     widget.grid_forget()
 
         self.refresh_menus()
 
         # Delete rest informations about appended sections
-        for section_name in self.values.iterkeys():
+        for section_name in self.values.keys():
             if section_name.startswith("clustering") or section_name.startswith("clustering"):
                 if section_name != "clustering" and section_name != "reclustering":
                     del self.values[section_name]
@@ -756,7 +756,7 @@ class ValveConfigApp(object):
         :param section_name: Name of section from which active HidingFrame will be returned.
         :return: Name of chosen option menu value.
         """
-        for method, frame in self.hiding_frames[section_name].iteritems():
+        for method, frame in self.hiding_frames[section_name].items():
             if any(frame.grid_info()):
                 return method
 
@@ -779,7 +779,7 @@ class ValveConfigApp(object):
             for i, section_name in enumerate(self.values):
                 for entry_name in self.values[section_name]:
                     if isinstance(self.values[section_name][entry_name], dict):
-                        for entry_name_optionmenu, entry_value_optionmenu in self.values[section_name][entry_name].iteritems():
+                        for entry_name_optionmenu, entry_value_optionmenu in self.values[section_name][entry_name].items():
                             if not entry_value_optionmenu.get() and entry_name_optionmenu in self.required_entries[section_name]:
                                 section_full_name = defaults.get_default_section(section_name).name
                                 entry_full_name = defaults.get_default_entry(section_name, entry_value_optionmenu).name[:-2]
@@ -803,7 +803,7 @@ class ValveConfigApp(object):
                             self.required_entries[section_name][entry_name].highlight()
 
             if first_found[2]:  # 0 and 1 indexes is not checked because it can be just an empty string
-                tkMessageBox.showerror("Unfilled field",
+                tkinter.messagebox.showerror("Unfilled field",
                                        "Field \"{}\" in \"{}\" must be specified.".format(entry_full_name,
                                                                                           section_full_name))
                 self.notebook.select(first_found[2])
@@ -846,14 +846,14 @@ class ValveConfigApp(object):
                         if entry.optionmenu_value:
                             # Save options only from chosen options in optionmenu
                             if entry.optionmenu_value == self.get_active_frame_name(section.config_name):
-                                config.set(section.config_name, entry.config_name, value)
+                                config.set(section.config_name, entry.config_name, str(value))
                         else:
-                            config.set(section.config_name, entry.config_name, value)
+                            config.set(section.config_name, entry.config_name, str(value))
 
                 # Add created clustering and reclustering sections
-                clustering_section_names = [key for key in self.values.keys() if
+                clustering_section_names = [key for key in list(self.values.keys()) if
                                             key.startswith("clustering") and not key == "clustering"]
-                reclustering_section_names = [key for key in self.values.keys() if
+                reclustering_section_names = [key for key in list(self.values.keys()) if
                                               key.startswith("reclustering") and not key == "reclustering"]
 
                 for section_name in clustering_section_names + reclustering_section_names:
@@ -878,24 +878,24 @@ class ValveConfigApp(object):
                         if entry.optionmenu_value:
                             # Save options only from chosen options in optionmenu
                             if entry.optionmenu_value == self.get_active_frame_name(section_name):
-                                config.set(section_config_name, entry.config_name, value)
+                                config.set(section_config_name, entry.config_name, str(value))
                         else:
-                            config.set(section_config_name, entry.config_name, value)
+                            config.set(section_config_name, entry.config_name, str(value))
 
                 config.write(config_file)
                 self.values_hash = self.get_values_hash()
         except Exception as e:
             # In case of error restore config from backup file
-            tkMessageBox.showinfo("Exeption",
+            tkinter.messagebox.showinfo("Exeption",
                                   "There was error during saving configuration. See console for more information.\n{}".format(
                                       str(e)))
-            print(traceback.print_exc())
+            print((traceback.print_exc()))
             shutil.copy(config_filename + ".bak", config_filename)
 
         os.remove(config_filename + ".bak")
 
         if required_checking:
-            tkMessageBox.showinfo("Saved", "Saving complete")
+            tkinter.messagebox.showinfo("Saved", "Saving complete")
 
         return True
 
@@ -916,12 +916,12 @@ class ValveConfigApp(object):
             directory_name.set(askdirectory())
             window.lift()  # Move to foreground
 
-        ttk.Label(window, text="Directory:").grid(row=0, column=0)
-        ttk.Entry(window, textvariable=directory_name, state="readonly").grid(row=0, column=1)
-        ttk.Button(window, text="Choose directory", command=select_dir, style="File.TButton").grid(row=0, column=2)
+        tkinter.ttk.Label(window, text="Directory:").grid(row=0, column=0)
+        tkinter.ttk.Entry(window, textvariable=directory_name, state="readonly").grid(row=0, column=1)
+        tkinter.ttk.Button(window, text="Choose directory", command=select_dir, style="File.TButton").grid(row=0, column=2)
 
-        ttk.Label(window, text="File name:").grid(row=1, column=0)
-        ttk.Entry(window, textvariable=file_name).grid(row=1, column=1)
+        tkinter.ttk.Label(window, text="File name:").grid(row=1, column=0)
+        tkinter.ttk.Entry(window, textvariable=file_name).grid(row=1, column=1)
 
         def create(dir_var, filename_var):
             path = dir_var.get() + os.path.sep + filename_var.get()
@@ -932,7 +932,7 @@ class ValveConfigApp(object):
             window.destroy()
 
         create_callback = utils.CallbackWrapper(create, directory_name, file_name)
-        ttk.Button(window, text="Create", command=create_callback).grid(row=3, column=0, columnspan=3)
+        tkinter.ttk.Button(window, text="Create", command=create_callback).grid(row=3, column=0, columnspan=3)
 
     def about(self):
         window = tk.Toplevel(self.parent)
@@ -940,18 +940,18 @@ class ValveConfigApp(object):
 
         logo = tk.PhotoImage(file=get_img("logo.gif"))
 
-        logo_label = ttk.Label(window, image=logo)
+        logo_label = tkinter.ttk.Label(window, image=logo)
         logo_label.image = logo
         logo_label.pack()
 
-        content = u"""Aqua-Duct {}
+        content = """Aqua-Duct {}
 
 ValveConfigurator
 
 Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
 
-        ttk.Label(window, text=content, justify=tk.CENTER).pack()
-        ttk.Label(window, text=aquaduct.__author__, justify=tk.CENTER).pack()
+        tkinter.ttk.Label(window, text=content, justify=tk.CENTER).pack()
+        tkinter.ttk.Label(window, text=aquaduct.__author__, justify=tk.CENTER).pack()
 
         hyperlink = tk.Label(window, text="http://www.tunnelinggroup.pl/", foreground="blue", justify=tk.CENTER)
         hyperlink.pack()
@@ -961,10 +961,10 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
     def valve_run_dialog(self):
         """ Open dialog with options to run Valve """
         if self.config_filename.get() == "":
-            tkMessageBox.showinfo("Config file", "You have to save or open existing config.")
+            tkinter.messagebox.showinfo("Config file", "You have to save or open existing config.")
             return
         elif self.values_hash != self.get_values_hash():
-            result = tkMessageBox.askyesno("Unsaved config", "There are unsaved changed. Are you sure to continue?")
+            result = tkinter.messagebox.askyesno("Unsaved config", "There are unsaved changed. Are you sure to continue?")
 
             if not result:
                 return
@@ -983,7 +983,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
 
         def update_command(*a):
             cmd = "valve_run "
-            for arg, var in args.iteritems():
+            for arg, var in args.items():
                 if isinstance(var.get(), bool):
                     if var.get():
                         cmd += arg + " "
@@ -1007,17 +1007,17 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
         args["-c"].set(self.config_filename.get())
 
         run_cb = utils.CallbackWrapper(os.system, command.get() + " & disown")
-        run_button = ttk.Button(frame, text="Run")
+        run_button = tkinter.ttk.Button(frame, text="Run")
         run_button.bind("<Button-1>", run_cb)
         run_button.grid(row=1000, column=0, columnspan=2)
 
     def pond_run_dialog(self):
         """ Open dialog with options to run Valve """
         if self.config_filename.get() == "":
-            tkMessageBox.showinfo("Config file", "You have to save or open existing config.")
+            tkinter.messagebox.showinfo("Config file", "You have to save or open existing config.")
             return
         elif self.values_hash != self.get_values_hash():
-            result = tkMessageBox.askyesno("Unsaved config", "There are unsaved changed. Are you sure to continue?")
+            result = tkinter.messagebox.askyesno("Unsaved config", "There are unsaved changed. Are you sure to continue?")
 
             if not result:
                 return
@@ -1036,7 +1036,7 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
 
         def update_command(*a):
             cmd = "pond_run "
-            for arg, var in args.iteritems():
+            for arg, var in args.items():
                 if isinstance(var.get(), bool):
                     if var.get():
                         cmd += arg + " "
@@ -1060,13 +1060,13 @@ Copyright Tunneling Group \xa9 2018""".format(aquaduct.version_nice())
         args["-c"].set(self.config_filename.get())
 
         run_cb = utils.CallbackWrapper(os.system, command.get())
-        run_button = ttk.Button(frame, text="Run")
+        run_button = tkinter.ttk.Button(frame, text="Run")
         run_button.bind("<Button-1>", run_cb)
         run_button.grid(row=1000, column=0, columnspan=2)
 
     def on_window_close(self):
         if self.get_values_hash() != self.values_hash:
-            result = tkMessageBox.askyesno("Unsaved changes", "You have unsaved changes. Are you want to quit?")
+            result = tkinter.messagebox.askyesno("Unsaved changes", "You have unsaved changes. Are you want to quit?")
             if result:
                 self.parent.destroy()
         else:
@@ -1081,7 +1081,7 @@ if __name__ == "__main__":
     aq_icon = tk.PhotoImage(file=get_img("icon.gif"))
     root.tk.call('wm', 'iconphoto', root._w, aq_icon)
 
-    s = ttk.Style()
+    s = tkinter.ttk.Style()
 
     s.theme_use("clam")
 

@@ -22,4 +22,4 @@ class TestCreate_tmpfile(TestCase):
 
     def test_chceck_directory(self):
         temporaryfile2 = create_tmpfile(ext='traj')
-        self.assertEquals(temporaryfile2.endswith('.traj'), True)
+        self.assertEqual(temporaryfile2.endswith('.traj'), True)

@@ -136,14 +136,14 @@ class ColorMapDistMap(object):
         r = e1[0] - e2[0]
         g = e1[1] - e2[1]
         b = e1[2] - e2[2]
-        return np.sqrt((((512 + rmean) * r * r) >> 8) + 4 * g * g + (((767 - rmean) * b * b) >> 8))
+        return np.sqrt((int((512 + rmean) * r * r) >> 8) + 4 * g * g + (int((767 - rmean) * b * b) >> 8))
 
     def __do_cadex(self):
         m = len(self.cmap)  # number of objects
         k = len(self.cmap)
         # indices
         mi = []  # model
-        ti = range(m)  # test
+        ti = list(range(m))  # test
         # FIRST OBJECT
         # get distance to mean object
         Xm = np.array(self.cmap).mean(axis=0)  # mean object

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
 # Copyright (C) 2018-2019  Tomasz Magdziarz <info@aquaduct.pl>
@@ -16,11 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-AVAILABLE_METHODS = ['dbscan', 'kmeans', 'affprop', 'meanshift', 'birch', 'barber']
-
-
-def get_required_params(method):
-    if method == 'kmeans':
-        return ['n_clusters']
-    if method == 'birch':
-        return ['n_clusters']
+AVAILABLE_SMOOTHING_METHODS = ['window', 'dwin', 'awin', 'mss', 'window_mss', 'dwin_mss', 'awin_mss', 'savgol']

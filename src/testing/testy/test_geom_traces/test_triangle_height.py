@@ -17,7 +17,7 @@ class TestTriangle_height(TestCase):
         B = 2, 2
         C = 2, 4
         case = triangle_height(A, B, C)
-        self.assertEquals(case, 2)
+        self.assertEqual(case, 2)
 
     def test_3dim(self):
         A = 0, 2, 0
@@ -31,4 +31,4 @@ class TestTriangle_height(TestCase):
         B = 0, 0, 0
         C = 0, 0, 0
         case = triangle_height(A, B, C)
-        self.assertEquals(case, 0)
+        self.assertEqual(case, 0)

@@ -20,7 +20,7 @@
 Module performs HDR 2D calculations only with Gaussian Kerneld Density Estimator
 as impelemented in :mod:`scipy.stats`.
 '''
-from itertools import imap
+
 import numpy as np
 from scipy.stats import gaussian_kde
 from aquaduct.geom.pca import PCA, Polarize
@@ -101,4 +101,4 @@ class HDR(object):
         :return: Area of cluster calculated in the Cartesian space.
         '''
         i = self._fraction2indices(fraction=fraction)
-        return sum((square_area(*tuple(sq)) for sq in imap(self._square_me, self.positions.T[i])))
+        return sum((square_area(*tuple(sq)) for sq in map(self._square_me, self.positions.T[i])))

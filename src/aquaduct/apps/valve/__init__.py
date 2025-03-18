@@ -25,7 +25,7 @@ It cannot import sandwich. Directly or indirectly.
 
 from aquaduct import logger, greetings as greetings_aquaduct, version_nice as aquaduct_version_nice
 
-import ConfigParser
+import configparser
 import os
 from collections import OrderedDict, namedtuple
 from keyword import iskeyword
@@ -33,6 +33,7 @@ from keyword import iskeyword
 from aquaduct.apps.data import GCS, load_cric
 from aquaduct.geom.cluster_available_methods import get_required_params, \
     AVAILABLE_METHODS as available_clustering_methods
+from aquaduct.geom.smooth_available_methods import AVAILABLE_SMOOTHING_METHODS as available_smoothing_methods
 from aquaduct.utils import clui
 from aquaduct.utils.helpers import Auto
 
@@ -47,7 +48,7 @@ class ConfigSpecialNames(object):
                           'auto': Auto}
 
     def special_name(self, name):
-        if isinstance(name, (str, unicode)):
+        if isinstance(name, str):
             if name.lower() in self.special_names_dict:
                 return self.special_names_dict[name.lower()]
         return name
@@ -70,14 +71,14 @@ class ValveConfig(ConfigSpecialNames):
             else:
                 logger.debug('Keyword <%s> in config file skipped.' % opt)
         options = OrderedDict(options)
-        options_nt = namedtuple('Options', options.keys())
+        options_nt = namedtuple('Options', list(options.keys()))
         return options_nt(**options)
 
     @staticmethod
     def common_config_names():
         # execute - what to do: skip, run
         # load - load previous results form file name
-        # save - save results to file name
+        # save - save results to file name 
         return 'execute dump'.split()
 
     @staticmethod
@@ -187,7 +188,7 @@ class ValveConfig(ConfigSpecialNames):
     def get_default_config(self):
         # snr = 0 # stage number
 
-        config = ConfigParser.RawConfigParser()
+        config = configparser.RawConfigParser()
 
         def common(section):
             for setting in self.common_config_names():
@@ -242,6 +243,7 @@ class ValveConfig(ConfigSpecialNames):
 
         common(section)
         common_traj_data(section)
+        config.set(section, 'scope_convexhull', 'True')
         config.set(section, 'scope_everyframe', 'False')
         config.set(section, 'scope_convexhull_inflate', 'None')
 
@@ -328,6 +330,7 @@ class ValveConfig(ConfigSpecialNames):
         config.set(section, 'method', 'barber')
         config.set(section, self.recursive_clustering_name(), self.cluster_name())
         config.set(section, self.recursive_threshold_name(), 'False')
+        config.set(section, 'auto_barber', 'None')
 
         ################
         # reclustering
@@ -442,6 +445,15 @@ class ValveConfig(ConfigSpecialNames):
                         out.append('%s = None' % param)
                     # out.append('')
             return out
+        if section == self.smooth_name():
+            out = ['Possible smoothing methods:']
+            # get default clustering method
+            defmet = self.config.get(section, 'method')
+            for method in available_smoothing_methods:
+                if method == defmet:
+                    continue
+                out.append('method = %s' % method)
+            return out
 
     def dump_config(self, dump_template=False):
         skip_list = '''simply_smooths'''.split()  # these options are very optional!
@@ -475,7 +487,7 @@ class ValveConfig(ConfigSpecialNames):
                 comment = self.get_general_comment(name)
                 if comment:
                     output.extend(['# %s' % line for line in comment])
-            for key, value in opts._asdict().iteritems():  # loop over options
+            for key, value in opts._asdict().items():  # loop over options
                 if key in skip_list:
                     continue
                 # comment scope etc. in stage II if dump_template

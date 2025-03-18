@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # Aqua-Duct, a tool facilitating analysis of the flow of solvent molecules in molecular dynamic simulations
@@ -21,11 +21,13 @@
 What have I got in my pocket?
 """
 
-from __future__ import print_function
+
 
 ################################################################################
 # reuse AQ logger
 
+from __future__ import absolute_import
+from __future__ import print_function
 import logging
 from aquaduct import logger, logger_name
 
@@ -125,14 +127,14 @@ if __name__ == "__main__":
                                 help="Calculate reference value with scope and reference molecules.")
             parser.add_argument("--reference-radius", action="store", dest="ref_radius", type=float, required=False,
                                 default=2.,
-                                help="Radius of reference.")
+                                help="Radius of reference in [Å].")
             parser.add_argument("--reference-mol", action="store", dest="ref_mol", type=str, required=False,
                                 default='resname WAT',
                                 help="Selection of reference molecules.")
             parser.add_argument("--temperature", action="store", dest="temp", type=float, required=False, default=300.,
-                                help="Simulation temperature.")
+                                help="Simulation temperature in [K].")
             parser.add_argument("--gsize", action="store", dest="grid_size", type=float, required=False, default=1.,
-                                help="Size of grid's cells.")
+                                help="Size of grid's cells in in [Å].")
             parser.add_argument("--pockets", action="store_true", dest="pockets", required=False,
                                 help="Calculate pockets.")
             parser.add_argument("--hotspots", action="store_true", dest="hotspots", required=False,
@@ -143,7 +145,7 @@ if __name__ == "__main__":
             parser.add_argument("--master", action="store_true", dest="master", required=False,
                                 help="Enables master paths calculation.")
             parser.add_argument("--master-radius", action="store", dest="master_radius", type=float, required=False, default=2.,
-                                help="Calculate profiles for master paths with given radius.")
+                                help="Calculate profiles for master paths with given radius in [Å].")
             parser.add_argument("--master-ctypes", action="store", dest="master_ctypes", type=str, required=False,
                                 default="",
                                 help="Limit calculations to given ctypes.")
@@ -157,7 +159,7 @@ if __name__ == "__main__":
             parser.add_argument("--path-file", action="store", dest="path_file", type=str, required=False,
                                 help="Use coordinates from specified CSV file.")
             parser.add_argument("--path-radius", action="store", dest="path_radius", type=float, required=False,
-                                default=2., help="Calculate profiles for path with given radius.")
+                                default=2., help="Calculate profiles for path with given radius in [Å].")
             parser.add_argument("--path-smooth", action="store_true", dest="path_smooth", required=False,
                                 help="If used path coordinates will be smoothed.")
             parser.add_argument("--raw-path", action="store_true", dest="raw_path", required=False,
@@ -167,6 +169,7 @@ if __name__ == "__main__":
                                 default=None, help="Extract path coordinates with specified ID.")
             parser.add_argument("--output-file", action="store", dest="output_file", type=str, required=False,
                                 default="path_coords.csv", help="Output CSV filename for extracted coordinates.")
+            parser.add_argument("--output-suffix", action="store", dest="output_suffix", type=str, required=False, default="", help="Arbitrary suffix appended to output filenames.")
 
 
             args = parser.parse_args()
@@ -216,7 +219,7 @@ if __name__ == "__main__":
             from aquaduct.apps.valve.helpers import get_linearize_method
             from aquaduct.apps.valve.helpers import get_smooth_method
             from aquaduct.geom import traces
-            from itertools import izip
+            
             import os
             from aquaduct.geom.smooth import SavgolSmooth
 
@@ -259,6 +262,10 @@ if __name__ == "__main__":
 
             results_meta = {'options': vars(args)}
             rmu = lambda k, v: results_meta.update({k: v})
+            if args.output_suffix:
+                args.output_suffix = '_%s' % args.output_suffix
+            else: 
+                args.output_suffix = ''
 
             # ----------------------------------------------------------------------#
             # load paths
@@ -393,7 +400,7 @@ if __name__ == "__main__":
 
                     ref = -k * args.temp * np.log(ref)
                     rmu('reference_correction', float(ref))
-                    clui.message('Reference correction: %0.4f [kJ/mol].' % ref)
+                    clui.message('Reference value: %0.4f [kJ/mol/K].' % ref)
 
             if ref:
                 rmu('reference_density_correction', np.exp(ref/(-k * args.temp)))
@@ -412,10 +419,10 @@ if __name__ == "__main__":
             for wnr, window in enumerate(pocket.windows(Reader.number_of_frames(onelayer=True), windows=W, size=WS)):
                 middle = sum(window) / 2
                 if wnr and many_windows:
-                    print("W%d %d:%d middle: %d" % (wnr, window[0], window[1], middle))
+                    print(("W%d %d:%d middle: %d" % (wnr, window[0], window[1], middle)))
                     windows.append([wnr, window[0], window[1], middle])
                 elif (wnr == 0) and (args.wfull or (not many_windows)):
-                    print("full %d:%d" % (window[0], window[1]))
+                    print(("full %d:%d" % (window[0], window[1])))
                     rmu('full_window',[window[0], window[1]])
                 rmu('windows', windows)
 
@@ -431,7 +438,7 @@ if __name__ == "__main__":
                     grid_size = args.grid_size
                     grid_area = grid_size ** 3
                     with clui.pbar(len(paths) * (1 + W + int(args.wfull)), mess='Calculating pockets:') as pbar:
-                        pockets_volume = open(rdir + 'volumes.dat', 'w')
+                        pockets_volume = open((rdir + ('volumes%s%s.dat' % (ptn, args.output_suffix))), 'w')
                         pockets_volume.write(('\t'.join('W_start W_end Outer Inner'.split())) + os.linesep)
                         pool = Pool(processes=optimal_threads.threads_count)
                         edges = pocket.find_edges(paths, grid_size=grid_size, pbar=pbar, map_fun=pool.imap_unordered)
@@ -442,7 +449,6 @@ if __name__ == "__main__":
                             WSf = float(WS)
                         if Reader.sandwich_mode:
                             WSf *= Reader.number_of_layers()
-
                         wmol2 = None
                         hsmol2 = None
                         for wnr, window in enumerate(
@@ -453,10 +459,10 @@ if __name__ == "__main__":
 
                             if wnr and many_windows:
                                 if wmol2 is None:
-                                    wmol2 = [WriteMOL2(rdir + 'outer%s.mol2' % ptn),
-                                             WriteMOL2(rdir + 'inner%s.mol2' % ptn)]
+                                    wmol2 = [WriteMOL2(rdir + 'outer%s%s.mol2' % (ptn, args.output_suffix)),
+                                             WriteMOL2(rdir + 'inner%s%s.mol2' % (ptn, args.output_suffix))]
                                 if hsmol2 is None and args.hotspots:
-                                    hsmol2 = WriteMOL2(rdir + 'hotspots%s.mol2' % ptn)
+                                    hsmol2 = WriteMOL2(rdir + 'hotspots%s%s.mol2' % (ptn, args.output_suffix))
                                 D = pocket.distribution(paths, grid_size=grid_size, edges=edges, window=window,
                                                         pbar=pbar, map_fun=pool.imap_unordered)
                                 H = (D[-1] / WSf) / grid_area
@@ -482,7 +488,7 @@ if __name__ == "__main__":
 
                                 if args.hotspots:
                                     hs = pocket.hot_spots(H)
-                                    mol2 = WriteMOL2(rdir + 'hotspots_full%s.mol2' % ptn)
+                                    mol2 = WriteMOL2(rdir + 'hotspots_full%s%s.mol2' % (ptn, args.output_suffix))
                                     if hs is not None:
                                         hs = H >= hs
                                         mol2.write_scatter(D[0][hs], H[hs])
@@ -492,8 +498,8 @@ if __name__ == "__main__":
 
                                 volumes = []
                                 for I, mol2 in zip(pocket.outer_inner(D[-1], args.io_threshold),
-                                                   [WriteMOL2(rdir + 'outer_full%s.mol2' % ptn),
-                                                    WriteMOL2(rdir + 'inner_full%s.mol2' % ptn)]):
+                                                   [WriteMOL2(rdir + 'outer_full%s%s.mol2' % (ptn, args.output_suffix)),
+                                                    WriteMOL2(rdir + 'inner_full%s%s.mol2' % (ptn, args.output_suffix))]):
                                     mol2.write_scatter(D[0][I], H[I])
                                     volumes.append(sum(I) * grid_area)
                                     del mol2
@@ -558,7 +564,7 @@ if __name__ == "__main__":
                 limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
                 if limit_ctypes != [""]:
                     clui.message('Limiting master paths data to %s ctypes.' % (' '.join(limit_ctypes)))
-                    for ctk in mps.keys():
+                    for ctk in list(mps.keys()):
                         if str(ctk) not in limit_ctypes:
                             mps.pop(ctk)
 
@@ -570,7 +576,7 @@ if __name__ == "__main__":
 
                         limit_ctypes = [ct.strip() for ct in args.master_ctypes.split(' ')]
                         if limit_ctypes != [""]:
-                            for ctk in mps.keys():
+                            for ctk in list(mps.keys()):
                                 if str(ctk) not in limit_ctypes:
                                     mps.pop(ctk)
 
@@ -588,7 +594,7 @@ if __name__ == "__main__":
                                 number_of_frames *= Reader.number_of_layers()
 
                             if wnr or args.wfull:  # or not many_windows:
-                                for ctype, mp in mps.iteritems():
+                                for ctype, mp in mps.items():
                                     if isinstance(mp,dict):
                                         logger.warning("Pond cannot yet handle MasterPaths calculated with separate_master option.")
                                         logger.warning("MasterPaths for %s skip." % ctype)
@@ -623,14 +629,14 @@ if __name__ == "__main__":
                                         if ref:
                                             H = -k * args.temp * np.log(H) - ref
 
-                                        with WriteMOL2(rdir + "mp_%s%s_radius%s.mol2" % (fname, fname_window_single, ptn),
+                                        with WriteMOL2(rdir + "mp_%s%s_radius%s%s.mol2" % (fname, fname_window_single, ptn, args.output_suffix),
                                                        mode=mode) as mol2:
                                             mol2.write_connected(centers, H)
 
                                         with open(rdir + "mp_%s%s_radius.dat" % (fname, fname_window), 'w') as dat:
                                             dat.write('len\tE' + os.linesep)
                                             L = np.hstack((0., np.cumsum(traces.diff(centers))))
-                                            for l, E in izip(L, H):
+                                            for l, E in zip(L, H):
                                                 dat.write('%f\t%f%s' % (l, E, os.linesep))
                                     pool.close()
                                     pool.join()
@@ -678,7 +684,7 @@ if __name__ == "__main__":
                     if path:
                         if not args.raw_path:
                             soptions = result3.pop("soptions")
-                            soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                            soptions = namedtuple('Options', list(soptions.keys()))(*list(soptions.values()))
                             smooth_method = get_smooth_method(soptions)
 
                             coords = path.get_coords_cont(smooth_method)
@@ -724,7 +730,7 @@ if __name__ == "__main__":
                             if not args.raw_path:
                                 if args.path_smooth:
                                     soptions = result3.pop("soptions")
-                                    soptions = namedtuple('Options', soptions.keys())(*soptions.values())
+                                    soptions = namedtuple('Options', list(soptions.keys()))(*list(soptions.values()))
                                     smooth_method = get_smooth_method(soptions)
                                     coords = path.get_coords_cont(smooth_method)
                                 else:
@@ -804,8 +810,8 @@ if __name__ == "__main__":
                                         H = -k * args.temp * np.log(H) - ref
 
                                     with WriteMOL2(
-                                            rdir + "path%s_%s%s_radius%s.mol2" % (
-                                                    path_name, fname, fname_window_single, ptn),
+                                            rdir + "path%s_%s%s_radius%s%s.mol2" % (
+                                                    path_name, fname, fname_window_single, ptn, args.output_suffix),
                                             mode=mode) as mol2:
                                         mol2.write_connected(coords, H)
 
@@ -813,7 +819,7 @@ if __name__ == "__main__":
                                               'w') as dat:
                                         dat.write('len\tE' + os.linesep)
                                         L = np.hstack((0., np.cumsum(traces.diff(coords))))
-                                        for l, E in izip(L, H):
+                                        for l, E in zip(L, H):
                                             dat.write('%f\t%f%s' % (l, E, os.linesep))
 
                                     pool.close()
@@ -823,7 +829,7 @@ if __name__ == "__main__":
                     clui.message("Path with ID {} does not exists.".format(args.path_id))
 
             Reader.reset()
-            with gzip.open(rdir + 'pond_meta.json', mode='w', compresslevel=9) as f:
+            with gzip.open(rdir + ('pond_meta%s%s.json' % (ptn, args.output_suffix)), mode='wt', compresslevel=9) as f:
                 json.dump(results_meta, f)
                 # TODO: consider usage of IterEncoder - move it to aquaduct/apps/data.py module
 

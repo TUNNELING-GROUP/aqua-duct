@@ -8,24 +8,24 @@ class TestVector_norm(TestCase):
     def test_vector_norm(self):
         test_val = (5)
         case1 = vector_norm(test_val)
-        self.assertEquals(case1, 5)
+        self.assertEqual(case1, 5)
 
     def test_tuple_norm(self):
         # input can be a tuple...
         test_val = (4, 3)
         case = vector_norm(test_val)
-        self.assertEquals(case, 5)
+        self.assertEqual(case, 5)
 
     def test_list(self):
         # ...or it can be a list
         test_val = [4, 3]
         case = vector_norm(test_val)
-        self.assertEquals(case, 5)
+        self.assertEqual(case, 5)
 
     def test_large_triangle(self):
         test_val = (9, 12)
         case = vector_norm(test_val)
-        self.assertEquals(case, 15)
+        self.assertEqual(case, 15)
 
     def test_3d(self):
         # calculate 3 dimensional vector length too

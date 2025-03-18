@@ -25,7 +25,7 @@ version = __import__('aquaduct').version_nice()  # version str
 install_requires = ['numpy>=1.10.0',  # this is required by MDA
                     'scipy>=0.17.1',
                     'scikit-learn>=0.16.0',
-                    'MDAnalysis[amber]==0.16.2',
+                    'MDAnalysis[amber]>=0.16.2',
                     'joblib>=0.13'
                     ]
 
@@ -33,7 +33,7 @@ install_requires = ['numpy>=1.10.0',  # this is required by MDA
 def install_requires_nice(level=0):
     import re
     for ir in install_requires:
-        print (" " * 4 * level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)', ir))
+        print((" " * 4 * level) + "* " + " ".join(re.split('(>=|==|<=|>|<|=)', ir)))
 
 
 author = __import__('aquaduct').__author__  # version str
@@ -48,8 +48,8 @@ setup(name='aquaduct',
       long_description_content_type="text/markdown",
       url='http://aquaduct.pl',
       project_urls={
-          'Documentation': 'http://aquaduct.pl/documentation/',
-          'Source': 'https://github.com/TUNNELING-GROUP/aqua-duct/',
+          'Documentation': 'https://tunneling-group.github.io/aqua-duct/',
+          'Source': 'https://github.com/TUNNELING-GROUP/aqua-duct',
           'Tracker': 'https://github.com/TUNNELING-GROUP/aqua-duct/issues/',
       },
       author=author,
@@ -57,7 +57,7 @@ setup(name='aquaduct',
       license='GNU GPL v3',
       keywords='molecular-dynamics solvent',
       packages=find_packages(include=['aquaduct*']),
-      python_requires='>=2.7, <3',
+      python_requires='>=3',
       install_requires=install_requires,
       extras_require={'full_pymol': ["pymol>=1.4"],
                       'graphs': ['matplotlib'],
@@ -69,11 +69,11 @@ setup(name='aquaduct',
                'apps/kraken.py', 'apps/kraken_run',
                'apps/hs_resize.py', ],
       provides=['aquaduct'],
-      classifiers=['Development Status :: 4 - Beta',
+      classifiers=['Development Status :: 5 - Production/Stable',
                    'Environment :: Console',
                    'Intended Audience :: Science/Research',
                    'Operating System :: POSIX',
-                   'Programming Language :: Python :: 2.7',
+                   'Programming Language :: Python',
                    ],
       include_package_data=True
       )

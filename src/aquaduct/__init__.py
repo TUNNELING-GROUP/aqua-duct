@@ -43,7 +43,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 1, 0, 5
+    return 1, 5, 0, "dev1"
 
 
 def version_nice():
@@ -60,8 +60,8 @@ def version_nice():
 __version__ = version_nice()
 __mail__ = 'info@aquaduct.pl'
 
-__author__ = u'Tomasz Magdziarz, Michał Banas, Alicja Płuciennik, Michał Stolarczyk'
-__author_doc__ = u'Tomasz Magdziarz, Karolina Mitusińska, Agata Raczyńska, Artur Góra'
+__author__ = 'Tomasz Magdziarz, Michał Banas, Alicja Płuciennik, Michał Stolarczyk'
+__author_doc__ = 'Tomasz Magdziarz, Karolina Mitusińska, Agata Raczyńska, Artur Góra'
 
 
 def greetings():

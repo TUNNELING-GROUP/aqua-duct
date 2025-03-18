@@ -20,7 +20,7 @@
 
 import gc
 from functools import partial
-from itertools import izip_longest, izip, chain, imap
+from itertools import zip_longest, chain
 from multiprocessing import Pool, Queue, Process
 
 from scipy.spatial.distance import cdist
@@ -36,6 +36,10 @@ from aquaduct.traj.inlets import Inlets
 from aquaduct.traj.paths import GenericPaths, yield_single_paths, SinglePath, MacroMolPath
 from aquaduct.traj.paths import yield_generic_paths, correct_spaths_ids
 from aquaduct.traj.sandwich import ResidueSelection, Reader, mda_ver
+
+
+
+
 from aquaduct.utils.clui import roman
 from aquaduct.utils.helpers import iterate_or_die, fractionof, make_fractionof, make_fraction
 from aquaduct.utils.helpers import range2int, what2what, lind, robust_and, robust_or
@@ -123,7 +127,7 @@ def valve_exec_stage(stage, config, stage_run, no_io=False, run_status=None, for
         gc.collect()
         if not no_io:
             if result is not None:
-                return dict(((key, val) for key, val in result.iteritems() if 'options' not in key))
+                return dict(((key, val) for key, val in result.items() if 'options' not in key))
 
 
 ################################################################################
@@ -141,6 +145,7 @@ def get_traced_names(some_paths):
 # traceable_residues
 def stage_I_run(config, options,
                 **kwargs):
+
     Reader.reset()
 
     clui.message("Loop over frames - search of residues in object:")
@@ -160,7 +165,7 @@ def stage_I_run(config, options,
 
     # prepare and start pool of workers
     pool = [Process(target=stage_I_worker_q, args=(input_queue, results_queue, pbar_queue)) for dummy in
-            xrange(optimal_threads.threads_count)]
+            range(optimal_threads.threads_count)]
     [p.start() for p in pool]
 
     if options.scope_convexhull_inflate:
@@ -242,6 +247,8 @@ def stage_I_run(config, options,
 ################################################################################
 
 def waterfall_me(paths, pbar=None):
+
+
     number_of_frames = Reader.number_of_frames(onelayer=True)
 
 
@@ -285,6 +292,7 @@ def stage_II_run(config, options,
                  # res_ids_in_object_over_frames=None,
                  **kwargs):
     # disable real cache of ort
+
     Reader.reset()
 
     ####################################################################################################################
@@ -321,10 +329,10 @@ def stage_II_run(config, options,
             logger.info('Twoway trajectory scan enabled.')
             pool = [Process(target=stage_II_worker_q_twoways, args=(input_queue, results_queue, pbar_queue)) for dummy
                     in
-                    xrange(optimal_threads.threads_count)]
+                    range(optimal_threads.threads_count)]
         else:
             pool = [Process(target=stage_II_worker_q, args=(input_queue, results_queue, pbar_queue)) for dummy in
-                    xrange(optimal_threads.threads_count)]
+                    range(optimal_threads.threads_count)]
         [p.start() for p in pool]
 
         if options.scope_convexhull_inflate:
@@ -332,7 +340,7 @@ def stage_II_run(config, options,
         # feed input_queue with data
         if Reader.sandwich_mode:
             for results_count, (frame_rid_in_object, (number, traj_reader)) in enumerate(
-                    izip(iterate_or_die(number_frame_rid_in_object,
+                    zip(iterate_or_die(number_frame_rid_in_object,
                                         times=Reader.number_of_layers()),
                          Reader.iterate(number=True))):
                 all_res_layer = all_res.layer(number)
@@ -377,7 +385,7 @@ def stage_II_run(config, options,
     pbar = clui.pbar((results_count + 1) + 1, 'Collecting results from layers:')
     results = {}
     for nr, result in enumerate(iter(results_queue.get, None)):
-        for rk in result.keys():
+        for rk in list(result.keys()):
             if rk not in results:
                 results.update({rk: result[rk]})
             else:
@@ -403,13 +411,16 @@ def stage_II_run(config, options,
                 paths_this_layer = (GenericPaths(resid,
                                                  name_of_res=resname,
                                                  min_pf=0, max_pf=number_of_frames - 1)
-                                    for resid, resname in izip(all_res_layer.ids(),
+                                    for resid, resname in zip(all_res_layer.ids(),
                                                                all_res_layer.names()))
 
                 pool = Pool(processes=optimal_threads.threads_count)
-                map(new_paths.callback_append_next, pool.imap_unordered(assign_nonsandwiched_paths(),
-                                                                        izip(paths_this_layer,
-                                                                             results_n(results[number]).T)))
+                #list(map(new_paths.callback_append_next, map(assign_nonsandwiched_paths(),
+                #                                                             zip(paths_this_layer,
+                #                                                                 results_n(results[number]).T))))
+                list(map(new_paths.callback_append_next, pool.imap_unordered(assign_nonsandwiched_paths(),
+                                                                             zip(paths_this_layer,
+                                                                                 results_n(results[number]).T))))
 
                 pool.close()
                 pool.join()
@@ -426,7 +437,7 @@ def stage_II_run(config, options,
             pool_func = assign_sandwiched_paths(all_res_ids, all_res_names, max_pf, results)
 
             pool = Pool(processes=optimal_threads.threads_count)
-            map(new_paths.callback_append_next, pool.imap_unordered(pool_func, range(len(all_res_ids))))
+            list(map(new_paths.callback_append_next, pool.imap_unordered(pool_func, list(range(len(all_res_ids))))))
 
             pool.close()
             pool.join()
@@ -438,7 +449,7 @@ def stage_II_run(config, options,
             waterfall_me(paths, pbar)
 
     # rm tmp files
-    for rn in results.itervalues():
+    for rn in results.values():
         if not isinstance(rn, np.ndarray):
             os.unlink(rn[0])
 
@@ -474,6 +485,7 @@ def stage_III_run(config, options,
                   **kwargs):
     soptions = config.get_smooth_options()
 
+
     Reader.reset()
 
     if options.allow_passing_paths:
@@ -494,7 +506,7 @@ def stage_III_run(config, options,
         n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
-        for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+        for sps_nrs in map(ysp, (paths[i:i + n] for i in range(0, len(paths), n))):
             # for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
             nr = 0  # if no spaths were returned
             for sp, nr in sps_nrs:
@@ -623,7 +635,7 @@ def stage_III_run(config, options,
                 tnpaths = [nr for nr, p in enumerate(paths) if p.name in tn][::-1]  # ids of tn paths, reversed
                 if len(wtc.spheres):
                     n = max(1, optimal_threads.threads_count)
-                    with clui.pbar(maxval=len(xrange(0, len(tnpaths), n)), mess="AutoBarber in action:") as pbar:
+                    with clui.pbar(maxval=len(range(0, len(tnpaths), n)), mess="AutoBarber in action:") as pbar:
                         Reader.reset()
                         pool = Pool(processes=optimal_threads.threads_count)
                         bp = partial(barber_paths, spheres=wtc.spheres, only_for_names=tn)
@@ -661,11 +673,11 @@ def stage_III_run(config, options,
         Reader.reset()
         pool = Pool(processes=optimal_threads.threads_count)
         # ysp = partial(yield_single_paths, progress=True, passing=options.allow_passing_paths)
-        n = max(1, len(paths) / optimal_threads.threads_count / 3)
+        n = int(max(1, len(paths) / optimal_threads.threads_count / 3))
         # n = max(1, optimal_threads.threads_count)
         spaths = []
         nr_all = 0
-        for sps_nrs in imap(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
+        for sps_nrs in map(ysp, (paths[i:i + n] for i in range(0, len(paths), n))):
             # for sps_nrs in pool.imap_unordered(ysp, (paths[i:i + n] for i in xrange(0, len(paths), n))):
             for sp, nr in sps_nrs:
                 spaths.append(sp)
@@ -795,6 +807,7 @@ def stage_IV_run(config, options,
                  center_of_object=None,
                  **kwargs):
     # enable real cache of ort
+
     Reader.reset()
 
     coptions = config.get_cluster_options()
@@ -903,7 +916,7 @@ def stage_IV_run(config, options,
                 # get single paths only (no passing paths)
                 spaths_single = [sp for sp in spaths if sp.is_single()]
                 # ids of passing paths
-                spaths_passing_ids = [nr for nr in xrange(len(spaths)) if spaths[nr].is_passing()]
+                spaths_passing_ids = [nr for nr in range(len(spaths)) if spaths[nr].is_passing()]
                 if len(spaths_passing_ids) == 0:
                     clui.message("No passing paths to add.")
                 else:
@@ -948,7 +961,7 @@ def stage_IV_run(config, options,
             with clui.fbm("Join clusters") as emess:
                 for c2j in options.join_clusters.split():
                     emess('%s' % c2j)
-                    c2j = map(int, c2j.split('+'))
+                    c2j = list(map(int, c2j.split('+')))
                     inls.join_clusters(c2j)
 
     def renumber_clusters():
@@ -1098,6 +1111,7 @@ def stage_V_run(config, options,
                 reader=None,
                 **kwargs):
     # enable real cache of ort
+
     Reader.reset()
 
     # file handle?
@@ -1437,7 +1451,7 @@ def stage_V_run(config, options,
     pa("List of separate paths and properties")
     header_line, line_template = get_header_line_and_line_template(spath_full_info_header(total=True), head_nr=head_nr)
     pa.thead(header_line)
-    for nr, (sp, ctype) in enumerate(izip_longest(spaths, ctypes, fillvalue=None)):
+    for nr, (sp, ctype) in enumerate(zip_longest(spaths, ctypes, fillvalue=None)):
         if ctype is not None:
             ctype = ctype.generic
         pa(make_line(line_template, spath_full_info(sp, ctype=ctype, total=True)), nr=nr)
@@ -1573,12 +1587,10 @@ def stage_V_run(config, options,
         for number, traj_reader in Reader.iterate(number=True):
             traj_reader = traj_reader.open()
             if Reader.sandwich_mode:
-                header += map(lambda s: '%s_%d' % (s, number),
-                              ['scope_area', 'scope_volume', 'object_area', 'object_volume'])
+                header += ['%s_%d' % (s, number) for s in ['scope_area', 'scope_volume', 'object_area', 'object_volume']]
                 fmt += ['%0.3f', '%0.2f'] * 2
             elif not len(scope_size):
-                header += map(lambda s: '%s' % s,
-                              ['scope_area', 'scope_volume', 'object_area', 'object_volume'])
+                header += ['%s' % s for s in ['scope_area', 'scope_volume', 'object_area', 'object_volume']]
                 fmt += ['%0.3f', '%0.2f'] * 2
             if Reader.sandwich_mode or not len(scope_size):
                 scope_size.append([])
@@ -1603,7 +1615,7 @@ def stage_V_run(config, options,
             h = np.hstack((h, s_s, o_s))
         pbar.finish()
     # add frame column?
-    frame_col = np.array([range(max_frame)]).T
+    frame_col = np.array([list(range(max_frame))]).T
     h = np.hstack((frame_col, h))
     header = ['frame'] + header
     fmt = ['%u'] + fmt
@@ -1611,7 +1623,7 @@ def stage_V_run(config, options,
     if options.save:
         h_fname = options.save + '.csv'
     else:
-        import cStringIO as StringIO
+        import io as StringIO
         h_fname = StringIO.StringIO()
     np.savetxt(h_fname, h,
                fmt=fmt,
@@ -1639,6 +1651,7 @@ def stage_VI_run(config, options,
                  center_of_object=None,
                  **kwargs):
     # enable real cache of ort
+
     Reader.reset()
 
     from aquaduct.visual.pymol_connector import ConnectToPymol, SinglePathPlotter
@@ -1820,7 +1833,7 @@ def stage_VI_run(config, options,
     # master paths can have some keys which are not of ct type - names of molecules
     # print master_paths.keys()
     # print master_paths_smooth.keys()
-    master_paths_separate = [k for k in master_paths.iterkeys() if isinstance(k, str)]
+    master_paths_separate = [k for k in master_paths.keys() if isinstance(k, str)]
 
     # TODO: is isinstance good in this instance?
     if options.ctypes_raw:
@@ -1833,7 +1846,7 @@ def stage_VI_run(config, options,
                             clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
                             sps = lind(spaths, what2what(ctypes_generic, [ct]))
                             tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
-                            plot_spaths_traces(fof(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn))),
+                            plot_spaths_traces(fof([spath for spath in tn_lim(tn) if spath.id.id[0] == layer]),
                                                name=str(ct) + '_raw' + tn_name + '_L' + str(layer),
                                                split=False,
                                                spp=spp)
@@ -1841,7 +1854,7 @@ def stage_VI_run(config, options,
                         sps = lind(spaths, what2what(ctypes_generic, [ct]))
                         tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
                         plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_raw' + tn_name, split=False, spp=spp)
-                for mp_nr in xrange(len(master_paths_separate) + 1):
+                for mp_nr in range(len(master_paths_separate) + 1):
                     mp_name = ""
                     mp = None
                     if mp_nr:
@@ -1861,7 +1874,7 @@ def stage_VI_run(config, options,
                                            spp=spp,
                                            smooth=lambda anything: anything)
 
-    master_paths_separate = [k for k in master_paths_smooth.iterkeys() if isinstance(k, str)]
+    master_paths_separate = [k for k in master_paths_smooth.keys() if isinstance(k, str)]
     if options.ctypes_smooth:
         with clui.fbm("CTypes smooth"):
             for nr, ct in enumerate(ctypes_generic_list):
@@ -1874,7 +1887,7 @@ def stage_VI_run(config, options,
                             sps = lind(spaths, what2what(ctypes_generic, [ct]))
                             tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
 
-                            plot_spaths_traces(fof(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn))),
+                            plot_spaths_traces(fof([spath for spath in tn_lim(tn) if spath.id.id[0] == layer]),
                                                name=str(ct) + '_smooth' + tn_name + '_L' + str(layer),
                                                split=False,
                                                spp=spp,
@@ -1884,7 +1897,7 @@ def stage_VI_run(config, options,
                         tn_lim = lambda tn: sps if tn is None else [sp for sp in sps if tn == sp.id.name]
                         plot_spaths_traces(fof(tn_lim(tn)), name=str(ct) + '_smooth' + tn_name, split=False, spp=spp,
                                            smooth=smooth)
-                for mp_nr in xrange(len(master_paths_separate) + 1):
+                for mp_nr in range(len(master_paths_separate) + 1):
                     mp_name = ""
                     mp = None
                     if mp_nr:
@@ -1969,7 +1982,7 @@ def stage_VI_run(config, options,
         if Reader.sandwich_mode:
             for layer in range(Reader.number_of_layers()):
                 clui.message("Paths in layer {}/{}:".format(layer, Reader.number_of_layers() - 1))
-                plot_paths(filter(lambda spath: spath.id.id[0] == layer, tn_lim(tn)), tn_name, "_L{}".format(layer))
+                plot_paths([spath for spath in tn_lim(tn) if spath.id.id[0] == layer], tn_name, "_L{}".format(layer))
         else:
             plot_paths(tn_lim(tn), tn_name)
 

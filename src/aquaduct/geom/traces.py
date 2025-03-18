@@ -234,7 +234,7 @@ def triangle_angles(A, B, C):
     # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
     # returns list of arguments where angle is given in radians , the output is as follow: [BAC,CAB,ABC]
-    A, B, C = map(np.array, (A, B, C))
+    A, B, C = list(map(np.array, (A, B, C)))
     a = C - A
     b = B - A
     c = C - B
@@ -261,7 +261,7 @@ def triangle_angles_last(A, B, C):
     # A,B,C are point in the space
     # input: 3 space coords of points (as tuple or list)
     # returns list with one value of ABC angle in radians
-    A, B, C = map(np.array, (A, B, C))
+    A, B, C = list(map(np.array, (A, B, C)))
     a = C - A
     b = B - A
     c = C - B
@@ -286,7 +286,7 @@ def triangle_height(A, B, C):
     # input: 3 space coords of points (as tuple or list)
     # output float, value of triangle height
     angles = triangle_angles_last(A, B, C)  # ta funkcja zwraca tylko 1 element
-    A, B, C = map(np.array, (A, B, C))
+    A, B, C = list(map(np.array, (A, B, C)))
     c = vector_norm(B - A)
     h = np.sin(angles[-1]) * c
     if np.isnan(h):
@@ -466,7 +466,7 @@ class LinearizeRecursive(object):
         if size == 2 and lengths[-1] is None:
             return [0]
         if size <= 3:
-            return range(size)
+            return list(range(size))
         sp = 0
         ep = size - 1
         mp = np.argwhere(lengths > max(lengths) / 2)

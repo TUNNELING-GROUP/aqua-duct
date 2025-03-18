@@ -21,6 +21,8 @@
 Collection of helpers - functions and decorators.
 """
 
+from aquaduct import logger
+
 import numpy as np
 from collections import Iterable
 from functools import wraps
@@ -28,7 +30,10 @@ from os import close
 from tempfile import mkstemp
 from itertools import chain
 from aquaduct.utils.maths import defaults
+from distutils.version import StrictVersion
 
+def version_parser(v):
+    return StrictVersion(v)
 
 ########################################################################
 #  aliens
@@ -230,11 +235,11 @@ def range2int(r, uniq=True):
     for rr in r.split():
         if ':' in rr:
             if rr.count(':') == 1:
-                r1, r2 = map(int, rr.split(':'))
+                r1, r2 = list(map(int, rr.split(':')))
                 r3 = 1
             if rr.count(':') == 2:
-                r1, r3, r2 = map(int, rr.split(':'))
-            out.extend(range(r1, r2 + 1, r3))
+                r1, r3, r2 = list(map(int, rr.split(':')))
+            out.extend(list(range(r1, r2 + 1, r3)))
         else:
             out.append(int(rr))
     if uniq:
@@ -336,7 +341,7 @@ def chop(l, n=1):
     :rtype: generator
     """
     assert n > 0
-    return (l[i:i + n] for i in xrange(0, len(l), n))
+    return (l[i:i + n] for i in range(0, len(l), n))
 
 
 def chunk(l, n=1):
@@ -429,6 +434,19 @@ def noaction(gen):
         return gen(*args, **kwargs)
 
     return patched
+
+def memory_in_memory(func):
+    # https://medium.com/@nkhaja/memoization-and-decorators-with-python-32f607439f84
+    cache = func.cache = {}
+    @wraps(func)
+    def memoized_func(*args, **kwargs):
+        key = ','.join(map(str, args)) + '&' + ','.join([':'.join(map(str, kv)) for kv in iter(kwargs.items())])
+        logger.debug('Looking for cache key %s' % key)
+        if key not in cache:
+            cache[key] = func(*args, **kwargs)
+            logger.debug("New key added to cache.")
+        return cache[key]
+    return memoized_func
 
 
 def listify(gen):
@@ -636,18 +654,18 @@ def iterate_or_die(something, times=None, reverse=False):
         if reverse:
             return reversed(something)
         return something
-    return (something for dummy in xrange(times))
+    return (something for dummy in range(times))
 
 
 def strech_zip(*args):
-    ns = map(float, map(len, args))
+    ns = list(map(float, list(map(len, args))))
     N = int(max(ns))
     for n in range(N):
         yield tuple([args[nr][int(cN / N * n)] for nr, cN in enumerate(ns)])
 
 
 def compress_zip(*args):
-    ns = map(float, map(len, args))
+    ns = list(map(float, list(map(len, args))))
     N = int(min(ns))
     position = [0.] * len(args)
     for n in range(N):
@@ -663,10 +681,10 @@ def compress_zip(*args):
 
 
 def zip_zip(*args, **kwargs):
-    if 'N' in kwargs.keys():
+    if 'N' in list(kwargs.keys()):
         N = kwargs['N']
     else:
-        N = int(min(map(float, map(len, args))))
+        N = int(min(list(map(float, list(map(len, args))))))
     position = [0.] * len(args)
     for n in range(N):
         this_yield = []
@@ -685,21 +703,21 @@ def zip_zip(*args, **kwargs):
 
 
 def xzip_xzip(*args, **kwargs):
-    if 'N' in kwargs.keys():
+    if 'N' in list(kwargs.keys()):
         N = kwargs['N']
     else:
-        N = int(min(map(float, args)))
+        N = int(min(list(map(float, args))))
     position = [0.] * len(args)
 
-    for n in xrange(N):
+    for n in range(N):
         this_yield = []
         # next_position = [float(a) / N + p for a, p in zip(args, position)]
-        next_position_ = (float(args[i]) / N + position[i] for i in xrange(len(args)))
+        next_position_ = (float(args[i]) / N + position[i] for i in range(len(args)))
         next_position = []
-        for i in xrange(len(args)):
+        for i in range(len(args)):
             a = args[i]
             ip = int(position[i])
-            next_position.append(next_position_.next())
+            next_position.append(next(next_position_))
             inp = int(next_position[-1])
             if n + 1 == N:
                 this_yield.append(slice(ip, None))
@@ -819,7 +837,7 @@ class SmartRangeIncrement(SmartRangeFunction):
     # type = 'i'
 
     def get(self):
-        return (self.element + i for i in xrange(self.times))
+        return (self.element + i for i in range(self.times))
 
     def rev(self):
         return SmartRangeDecrement(self.element + self.times - 1, self.times)
@@ -836,7 +854,7 @@ class SmartRangeDecrement(SmartRangeFunction):
     # type = 'd'
 
     def get(self):
-        return (self.element - i for i in xrange(self.times))
+        return (self.element - i for i in range(self.times))
 
     def rev(self):
         return SmartRangeIncrement(self.element - self.times + 1, self.times)
@@ -858,7 +876,7 @@ class SmartRange(object):
         self._max = None
 
         if iterable is not None:
-            map(self.append, iterable)
+            list(map(self.append, iterable))
         if fast_raw is not None:
             # make it from raw collection
             self._min = []
@@ -882,7 +900,7 @@ class SmartRange(object):
                 self._elements = [SmartRangeIncrement(e, t) for e, t in fast_minc_pairs]
             else:
                 fms = chain(fast_minc_seq)
-                self._elements = [SmartRangeIncrement(e, t) for e, t in ((ee, fms.next()) for ee in fms)]
+                self._elements = [SmartRangeIncrement(e, t) for e, t in ((ee, next(fms)) for ee in fms)]
             self._len = sum((t for e, t in self.raw2pairs(self._elements)))
             if self._len:
                 self._min = self._elements[0].element
