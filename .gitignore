@@ -1,3 +1,36 @@
+# IDE Specific Files and Folders
+# ---------------------------------
+.idea/
+.project
+.pydevproject
+.settings/
+_linux/
+code.style.schemes.xml
+debugger.xml
+editor.codeinsight.xml
+filetypes.xml
+ide.general.xml
+vcs.xml
+codestyles/
+.kateproject*
+.vscode/
+
+# Python Specific Files and Folders
+# ---------------------------------
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Temporary and Backup Files
+# ---------------------------------
+*.*~
+.*.swp
+*.orig
+*.rst
+
+# Amber/Molecular Dynamics Files
+# ---------------------------------
 *.prmtop
 *.binpos
 *.traj
@@ -5,41 +38,23 @@
 *.dcd
 *.pdb
 *.dump
-*.pyc
-*.pyo
-*.orig
-*.*~
-.*.swp
-*.rst
 
-.project
-.pydevproject
-.idea
-.settings
-_linux
-code.style.schemes.xml
-debugger.xml
-editor.codeinsight.xml
-filetypes.xml
-ide.general.xml
-vcs.xml
-codestyles
-.kateproject*
-
-valve_tests
-real_traj
-
-docs_spell.geany
-pull_traj.sh
-
-**/build
-**/dist
+# Build and Distribution Files
+# ---------------------------------
+**/build/
+**/dist/
 **/*egg*
-ves
+ves/
+
+# Miscellaneous Files and Folders
+# ---------------------------------
 tags
 .vimrc
 tmux.sh
+docs_spell.geany
+pull_traj.sh
 
-__pycache__
-.vscode
-.env
+# Data Files and Folders (Large or Generated)
+# ---------------------------------
+valve_tests/
+real_traj/
