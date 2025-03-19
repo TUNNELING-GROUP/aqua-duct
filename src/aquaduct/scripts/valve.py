@@ -41,7 +41,7 @@ logger.addHandler(ch)
 ################################################################################
 
 
-if __name__ == "__main__":
+def main():
     from sys import exc_info
 
     try:
@@ -281,3 +281,6 @@ if __name__ == "__main__":
     except BaseException:
         clui.emit_tvtb_to_file_in_root_logger(exc_info())
         raise
+
+if __name__ == "__main__":
+    main()
