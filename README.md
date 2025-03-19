@@ -38,6 +38,32 @@ To start using Aqua-Duct type:
 
     valve.py --help
 
+### Installing in Python3.9 with requirements.txt
+
+You can also install *Aqua-Duct* using the `requirements.txt` file in a Python 3.9 environment. Here is an example:
+
+1. Create a virtual environment with Python 3.9:
+
+    ```sh
+    python3.9 -m venv venv
+    ```
+
+2. Activate the virtual environment:
+
+    ```sh
+    source venv/bin/activate
+    ```
+
+3. Install the dependencies from `requirements.txt`:
+
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+Using a virtual environment is optional but recommended to manage dependencies and avoid conflicts with other Python packages.
+
+This will install all necessary dependencies for *Aqua-Duct*.
+
 ## Troubleshooting
 
 If you encounter any problems with installation do not hesitate to
@@ -50,3 +76,4 @@ You can also contact us at [github.com/TUNNELING-GROUP/aqua-duct](https://github
 Documentation can be found on our homepage [aquaduct.pl/documentation](http://aquaduct.pl/documentation/).
 
 The most recent documentation is also available at [TUNNELING-GROUP.github.io/aqua-duct](https://TUNNELING-GROUP.github.io/aqua-duct/).
+
