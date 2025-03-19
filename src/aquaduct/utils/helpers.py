@@ -24,13 +24,13 @@ Collection of helpers - functions and decorators.
 from aquaduct import logger
 
 import numpy as np
-from collections import Iterable
+from collections.abc import Iterable
 from functools import wraps
 from os import close
 from tempfile import mkstemp
 from itertools import chain
 from aquaduct.utils.maths import defaults
-from distutils.version import StrictVersion
+from packaging.version import Version as StrictVersion
 
 def version_parser(v):
     return StrictVersion(v)
