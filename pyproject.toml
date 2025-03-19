@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "aquaduct"
 description = "A project that includes the main package aquaduct and helper scripts in src/apps."
 license = { text = "GNU GPL v3" }
-dynamic = ["version"] # important line
+dynamic = ["version"]
 dependencies = [
     "python>=3.8",
     # Add your main package dependencies here
