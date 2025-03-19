@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=6.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aquaduct"
+description = "A project that includes the main package aquaduct and helper scripts in src/apps."
+license = { text = "GNU GPL v3" }
+dynamic = ["version"] # important line
+dependencies = [
+    "python>=3.8",
+    # Add your main package dependencies here
+    # e.g., "requests>=2.25.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    # Add your development dependencies here
+    # e.g., "pytest>=6.2.2"
+]
+
+[project.scripts]
+valve = "aquaduct.scripts.valve:main"
+
+[tool.setuptools_scm]
+version_scheme = "guess-next-dev"
+local_scheme = "node-and-date"
