@@ -1,4 +1,3 @@
-
 *.prmtop
 *.binpos
 *.traj
@@ -33,12 +32,9 @@ real_traj
 docs_spell.geany
 pull_traj.sh
 
-
-
-docs/build
-src/build
-src/dist
-src/*egg*
+**/build
+**/dist
+**/*egg*
 ves
 tags
 .vimrc
