@@ -42,6 +42,8 @@ dependencies = [
 dev = [
     # Add your development dependencies here
     # e.g., "pytest>=6.2.2"
+    "build",
+    "coverage"
 ]
 
 [project.scripts]
