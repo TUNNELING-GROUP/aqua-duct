@@ -40,3 +40,6 @@ tags
 .vimrc
 tmux.sh
 
+__pycache__
+.vscode
+.env
