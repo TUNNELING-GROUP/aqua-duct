@@ -17,4 +17,3 @@ netcdf4 = "~=1.7.0"
 
 [requires]
 python_version = "3.13"
-python_full_version = "3.13.2"
