@@ -9,7 +9,7 @@ mdanalysis = "~=2.9.0"
 matplotlib = "~=3.10.0"
 numpy = "~=2.2.0"
 scipy = "~=1.15.0"
-packaging = "*"
+packaging = "~=24.0"
 scikit-learn = "~=1.6.0"
 netcdf4 = "~=1.7.0"
 
