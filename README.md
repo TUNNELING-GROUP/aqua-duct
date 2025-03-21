@@ -40,29 +40,17 @@ To start using Aqua-Duct type:
 
 ### Installing in Python3.9 with requirements.txt
 
-You can also install *Aqua-Duct* using the `requirements.txt` file in a Python 3.9 environment. Here is an example:
+You can also install *Aqua-Duct* using the `requirements.txt` file in a Python 3.9:
 
-1. Create a virtual environment with Python 3.9:
-
-    ```sh
-    python3.9 -m venv venv
-    ```
-
-2. Activate the virtual environment:
-
-    ```sh
-    source venv/bin/activate
-    ```
-
-3. Install the dependencies from `requirements.txt`:
-
-    ```sh
-    pip install -r requirements.txt
-    ```
-
-Using a virtual environment is optional but recommended to manage dependencies and avoid conflicts with other Python packages.
+```sh
+pip install -r requirements.txt
+```
 
 This will install all necessary dependencies for *Aqua-Duct*.
+
+> **NOTE**:
+>
+> Using a virtual environment is recommended to manage dependencies and avoid conflicts with other Python packages.
 
 ## Troubleshooting
 
