@@ -61,7 +61,7 @@ from aquaduct.utils.maths import defaults
 
 if GCS.cachedir:
     from joblib import Memory
-    memory_cache = Memory(cachedir=GCS.cachedir,
+    memory_cache = Memory(location=GCS.cachedir,
                           verbose=0)
     # mmap have to be switched off, otherwise smoothing does not work properly
     # memory_cache = Memory(cachedir=GCS.cachedir, mmap_mode='r', verbose=0)

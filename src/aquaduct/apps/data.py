@@ -235,7 +235,7 @@ class FramesRangeCollection(object):
 class IterEncoder(json.JSONEncoder):
 
     def default(self, o):
-        if isinstance(o, collections.Iterable):
+        if isinstance(o, collections.abc.Iterable):
             return list(o)
         return super(IterEncoder, self).default(o)
 

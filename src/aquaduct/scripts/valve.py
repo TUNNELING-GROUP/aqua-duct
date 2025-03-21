@@ -164,7 +164,7 @@ def main():
             # get global options
             goptions = config.get_global_options()
 
-            from aquaduct.apps.valve.core import *
+            from aquaduct.apps.valve.core import valve_exec_stage, stage_I_run, stage_II_run, stage_III_run, stage_IV_run, stage_V_run, stage_VI_run
 
             ############################################################################
 
