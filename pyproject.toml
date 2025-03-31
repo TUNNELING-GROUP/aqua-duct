@@ -1,32 +1,47 @@
 [build-system]
-requires = ["setuptools>=42", "wheel", "setuptools_scm[toml]>=6.0"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.5.0", "poetry-dynamic-versioning[plugin]>=1.0.0"]
+build-backend = "poetry_dynamic_versioning.backend"
 
-[project]
+[tool.poetry]
 name = "aquaduct"
 description = "A project that includes the main package aquaduct and helper scripts in src/apps."
 license = "GPL-3.0-or-later"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+homepage = "https://example.com/aquaduct"
+repository = "https://github.com/yourusername/aquaduct"
+packages = [{include = "aquaduct", from = "src"}]
+version = "1.6.0.post23.dev0+c6042fd"  # Required placeholder for poetry-dynamic-versioning
 dynamic = ["version"]
-dependencies = [
-    "python>=3.9",
-    "MDAnalysis~=2.9.0",
-    "matplotlib~=3.10.0",
-    "numpy~=2.2.0",
-    "scipy~=1.15.0",
-    "packaging~=24.0",
-    "scikit-learn~=1.6.0",
-    "netCDF4~=1.7.0"
-]
 
-[project.optional-dependencies]
-dev = [
-    "build",
-    "coverage"
-]
+[tool.poetry.dependencies]
+python = ">=3.9"
+MDAnalysis = "~2.9.0"
+matplotlib = "~3.10.0"
+numpy = "~2.2.0"
+scipy = "~1.15.0"
+packaging = "~24.0"
+scikit-learn = "~1.6.0"
+netCDF4 = "~1.7.0"
 
-[project.scripts]
+[tool.poetry.group.dev.dependencies]
+build = "*"
+coverage = "*"
+sphinx = "*"
+sphinxcontrib-aafig = "*"
+poetry-dynamic-versioning = {extras = ["plugin"], version = "*"}
+
+[tool.poetry.scripts]
 valve = "aquaduct.scripts.valve:main"
 
-[tool.setuptools_scm]
-version_scheme = "guess-next-dev"
-local_scheme = "node-and-date"
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "pep440"
+dirty = false
+substitution.files = [
+    "src/aquaduct/__init__.py",
+]
+# substitution.patterns = [
+#     "(__version__ = )['\"]([^'\"]+)['\"]",
+# ]
