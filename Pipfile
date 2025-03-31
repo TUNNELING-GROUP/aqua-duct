@@ -12,8 +12,14 @@ scipy = "~=1.15.0"
 packaging = "~=24.0"
 scikit-learn = "~=1.6.0"
 netcdf4 = "~=1.7.0"
+tk = "*"
 
 [dev-packages]
+build = "*"
+coverage = "*"
+sphinx = "*"
+sphinxcontrib-aafig = "*"
+poetry-dynamic-versioning = {extras = ["plugin"], version = "*"}
 
 [requires]
 python_version = "3.13"
