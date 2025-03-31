@@ -14,7 +14,7 @@
 
 import sys
 import os
-sys.path.insert(0, "/home/kara/Desktop/AQ/aqua-duct/src/")
+
 # Following is due to stupid Debian policy of using dist-packages directory.
 # Ubuntu inherits this behavior. It prevents virtualenv of being effective
 # in building docs for cutting edge AQ in the presence of globally instaled
@@ -44,7 +44,7 @@ extensions = [
 ]
 extensions.append('aafigure.sphinxext')
 
-intersphinx_mapping = {'python': ('https://docs.python.org/2', None),
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None),
                        'numpy': ('https://docs.scipy.org/doc/numpy/', None),
                        'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
                        'sklearn': ('http://scikit-learn.org/stable', None)}
@@ -235,7 +235,7 @@ latex_elements = {
 #'pointsize': '10pt',
 
 # Additional stuff for the LaTeX preamble.
-'preamble': '''\usepackage{longtable}
+'preamble': r'''\usepackage{longtable}
 \usepackage{enumitem}
 \setlistdepth{99}
 \setcounter{tocdepth}{2}
@@ -250,7 +250,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'Aqua-Duct.tex', u'Aqua-Duct Documentation',
-   unicode(' \\and '.join(map(unicode.strip, author.split(',')))), 'manual'),
+   str(' \\and '.join(map(str.strip, author.split(',')))), 'manual'),
 
 ]
 
@@ -281,7 +281,7 @@ latex_use_parts = True
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'aquaduct', u'Aqua-Duct Documentation',
-     [unicode(author)], 1)
+     [str(author)], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -295,7 +295,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'Aqua-Duct', u'Aqua-Duct Documentation',
-   unicode(author), 'Aqua-Duct', 'One line description of project.',
+   str(author), 'Aqua-Duct', 'One line description of project.',
    'Miscellaneous'),
 ]
 

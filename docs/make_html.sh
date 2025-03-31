@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PYTHON=python3.7.5
+PYTHON=python3
 
 # this builds current
 
