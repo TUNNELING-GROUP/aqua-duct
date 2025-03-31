@@ -29,7 +29,7 @@ __pycache__/
 *.orig
 *.rst
 
-# Amber/Molecular Dynamics Files
+# Amber/Molecular Dynamics Files and AQ results
 # ---------------------------------
 *.prmtop
 *.binpos
@@ -38,6 +38,9 @@ __pycache__/
 *.dcd
 *.pdb
 *.dump
+5_*.txt*
+6_*.py
+6_*.tar.gz
 
 # Build and Distribution Files
 # ---------------------------------
