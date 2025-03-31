@@ -41,6 +41,8 @@ def hs_resize(meta_file, selection):
     USAGE:
     hs_resize /path/to/pond_meta.json hotspot_selection
     """
+    
+    
     if not _sele_exists(selection):
         raise RuntimeError("Selection \"{}\" does not exists.".format(selection))
 

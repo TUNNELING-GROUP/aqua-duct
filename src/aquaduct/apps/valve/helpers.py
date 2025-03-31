@@ -297,15 +297,15 @@ def get_linearize_method(loption):
     if loption:
         assert isinstance(loption, str), "Wrong Linearize method definition: %r" % loption
         possible_formats = [
-            re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
-            re.compile('^(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
-            re.compile('^(recursive|oneway|hobbit)(triangle|vector)$')]
+            re.compile(r'^(recursive|oneway|hobbit)(triangle|vector)[(][+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?[)]$'),
+            re.compile(r'^(recursive|oneway|hobbit)(triangle|vector)[(][)]$'),
+            re.compile(r'^(recursive|oneway|hobbit)(triangle|vector)$')]
         assert True in [pf.match(loption.lower()) is not None for pf in
                         possible_formats], "Wrong Linearize method definition: %s" % loption
         # http://stackoverflow.com/questions/12929308/python-regular-expression-that-matches-floating-point-numbers#12929311
         way = [w for w in ['recursive', 'oneway', 'hobbit'] if w in loption.lower()][0]
         crit = [c for c in ['triangle', 'vector'] if c in loption.lower()][0]
-        threshold = re.compile('[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?').findall(loption)
+        threshold = re.compile(r'[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?').findall(loption)
         if len(threshold):
             threshold = float(threshold[0][0])
         else:

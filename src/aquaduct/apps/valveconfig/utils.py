@@ -321,13 +321,15 @@ class BoolEntry(Entry):
             return False
 
     def set(self, value):
-        """
-        Set Entry value.
+        '''
+        Set the value of the BoolEntry.
 
-        :param value: Value that input widget will be set too.
+        :param value: The value to set, expected to be a boolean.
+        :type value: bool
+
         If False it will set only Checkbox value to False and input widget to "".
         If value have str type it will set Checkbox to True and input widget to that value.
-        """
+        '''
         if value == "False" or value == False:  # If value = 0 expression should be true
             self.control_var.set(False)
             self.input_var.set("")

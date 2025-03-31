@@ -123,10 +123,10 @@ def distribution(spaths, grid_size=1., edges=None, window=None, pbar=None, map_f
     '''
     :param list spaths: List of single like path objects.
     :param float grid_size: Size of grid cell in A.
-    :param list of numpy.ndarrays edges: Edges of bins of grid spanning all submited paths.
+    :param list[numpy.ndarrays] edges: Edges of bins of grid spanning all submited paths.
     :param tuple window: Optional frames window.
     :param pbar: Optional progress object providing next() method.
-    :rtype tuple of numpy.ndarrays
+    :rtype: tuple of numpy.ndarrays
     :return: Coordinates of pocket and number of points.
     '''
     maxc = np.array(list(map(max, edges)))

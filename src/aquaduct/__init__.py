@@ -57,7 +57,7 @@ def version_nice():
     return '.'.join(map(str, version()))
 
 
-__version__ = version_nice()
+__version__ = "0.0.0"  # This will be replaced during build
 __mail__ = 'info@aquaduct.pl'
 
 __author__ = 'Tomasz Magdziarz, Michał Banas, Alicja Płuciennik, Michał Stolarczyk'

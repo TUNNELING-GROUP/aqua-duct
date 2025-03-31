@@ -854,7 +854,7 @@ class Kraken(object):
             clusters = []
             ids = []
             for column_name in c.column_names:
-                match = re.match("amol_apaths_(\d+)_walk$", column_name)
+                match = re.match(r"amol_apaths_(\d+)_walk$", column_name)
                 if match:
                     clusters.append(match.group(0))
                     ids.append(int(match.group(1)))

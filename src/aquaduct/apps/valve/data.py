@@ -60,6 +60,13 @@ import json
 # Version checking
 
 def check_version_compliance(current, loaded, what):
+    """
+    Check version compliance between current and loaded versions.
+
+    :param current: Current version tuple.
+    :param loaded: Loaded version tuple.
+    :param what: Description of the version being checked.
+    """
     if current[0] > loaded[0]:
         logger.error('Loaded data has %s major version lower then the application.' % what)
     if current[0] < loaded[0]:
@@ -157,7 +164,8 @@ class ValveDataCodec(object):
         :param name: Base for variable name.
         :param suffix: Optional suffixes.
         :return: Name of variable made by combining base name and suffixes (if any).
-        Base name and suffixes are joined with dot '.'.
+                 Base name and suffixes are joined with dot '.'.
+
         '''
         if len(suffix):
             suff = '.'.join(map(str, suffix))

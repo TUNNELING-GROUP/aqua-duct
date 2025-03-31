@@ -56,7 +56,7 @@ def polar2point(angle, r):
 
 def generate_arc(r, sa, ea, max_angle=5, reversed_=False):
     """
-    Generate arc vertrices with control points for quadratic Bezier curve.
+    Generate arc vertices with control points for quadratic Bezier curve.
 
     :param r: Radius
     :param sa: Start angle.
@@ -153,6 +153,15 @@ class Node(mpatches.PathPatch):
     def get_arc_offset(self):
         return self._link_angle
 
+    def set(self, value):
+        '''
+        Set the value of the Node.
+
+        :param value: The value to set.
+        :type value: Any
+        '''
+        super().set(value)
+
 
 class Link(mpatches.PathPatch):
     def __init__(self, r, sa0, sa1, ea0, ea1, color):
@@ -205,6 +214,15 @@ class Link(mpatches.PathPatch):
         path = mpath.Path(vertices, codes)
         super(Link, self).__init__(path, facecolor=color, linewidth=0, alpha=0.6)
 
+    def set(self, value):
+        '''
+        Set the value of the Link.
+
+        :param value: The value to set.
+        :type value: Any
+        '''
+        super().set(value)
+
 
 class Arrow(mpatches.PathPatch):
     def __init__(self, r, sa, ea, color, max_angle=45):
@@ -239,6 +257,15 @@ class Arrow(mpatches.PathPatch):
 
         path = mpath.Path(vertices, codes)
         super(Arrow, self).__init__(path, facecolor=color, linewidth=0)
+
+    def set(self, value):
+        '''
+        Set the value of the Arrow.
+
+        :param value: The value to set.
+        :type value: Any
+        '''
+        super().set(value)
 
 
 class Chord(object):
