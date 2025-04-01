@@ -240,9 +240,9 @@ latex_elements = {
 \setlistdepth{99}
 \setcounter{tocdepth}{2}
 \setcounter{secnumdepth}{3}
-\let\oldsection\section
-\\renewcommand\section{\clearpage\oldsection}
 ''',
+# \let\oldsection\section
+# \\renewcommand\section{\clearpage\oldsection}
 }
 
 # Grouping the document tree into LaTeX files. List of tuples
