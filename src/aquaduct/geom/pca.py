@@ -105,7 +105,7 @@ class Polarize(object):
 
         .. note::
 
-            Component f is in range 0 - 2\pi.
+            Component f is in range 0 - 2\\pi.
 
         :param center: Center of the hypothetical sphere.
         :param rvar: Desired amount of variance of *r* component measured as fraction of mean *t* and *f* variance.
