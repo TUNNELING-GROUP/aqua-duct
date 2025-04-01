@@ -11,7 +11,7 @@ readme = "README.md"
 homepage = "https://example.com/aquaduct"
 repository = "https://github.com/yourusername/aquaduct"
 packages = [{include = "aquaduct", from = "src"}]
-version = "1.6.0.post23.dev0+c6042fd"  # Required placeholder for poetry-dynamic-versioning
+version = "0.0.0"  # Required placeholder for poetry-dynamic-versioning
 dynamic = ["version"]
 
 [tool.poetry.dependencies]

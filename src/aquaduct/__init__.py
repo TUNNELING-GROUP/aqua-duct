@@ -26,14 +26,23 @@ import logging
 try:  # Python 2.7+
     from logging import NullHandler
 except ImportError:
+
     class NullHandler(logging.Handler):
         def emit(self, record):
             pass
+
 
 logger_name = __name__
 logger = logging.getLogger(logger_name)
 logger.addHandler(NullHandler())
 logger.setLevel(logging.DEBUG)
+
+
+__version__ = "0.0.0"  # This will be replaced during build
+__mail__ = "info@aquaduct.pl"
+
+__author__ = "Tomasz Magdziarz, Michał Banas, Alicja Płuciennik, Michał Stolarczyk"
+__author_doc__ = "Tomasz Magdziarz, Karolina Mitusińska, Agata Raczyńska, Artur Góra"
 
 
 def version():
@@ -43,7 +52,7 @@ def version():
     :return: 3 element tuple of int numbers
     :rtype: tuple
     """
-    return 1, 5, 1, "dev1"
+    return __version__.split(".")
 
 
 def version_nice():
@@ -54,37 +63,18 @@ def version_nice():
     :rtype: str
     """
 
-    return '.'.join(map(str, version()))
-
-
-__version__ = "0.0.0"  # This will be replaced during build
-__mail__ = 'info@aquaduct.pl'
-
-__author__ = 'Tomasz Magdziarz, Michał Banas, Alicja Płuciennik, Michał Stolarczyk'
-__author_doc__ = 'Tomasz Magdziarz, Karolina Mitusińska, Agata Raczyńska, Artur Góra'
+    return __version__
 
 
 def greetings():
     """
     Returns fancy greetings of :mod:`aquaduct`. It has a form of ASCII-like
-    graphic. Currently it returns following string::
-
-        ------------------------------------------------
-                  ~ ~ ~ A Q U A - D U C T ~ ~ ~
-        ################################################
-        ####        ########        ########        ####
-        =@            \%%/            (==)            @=
-        #              ##              ##              #
-        #              ##              ##              #
-        #              ##              ##              #
-        #              ##              ##              #
-        ------------------------------------------------
-
+    graphic.
 
     :return: :mod:`aquaduct` fancy greetings.
     :rtype: str
     """
-    greet = '''------------------------------------------------
+    greet = r"""------------------------------------------------
           ~ ~ ~ A Q U A - D U C T ~ ~ ~
 ################################################
 ####        ########        ########        ####
@@ -93,7 +83,7 @@ def greetings():
 #              ##              ##              #
 #              ##              ##              #
 #              ##              ##              #
-------------------------------------------------'''
+------------------------------------------------"""
     #          C l a s s i c a l  o r d e r
     # ------------------------------------------------'''
     return greet
