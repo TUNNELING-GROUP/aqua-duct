@@ -26,4 +26,4 @@ six==1.16.0
 threadpoolctl==3.5.0                          
 tqdm==4.66.5                             
 zipp==3.20.2                              
-
+contourpy==1.2.1
