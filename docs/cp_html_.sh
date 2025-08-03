@@ -5,15 +5,15 @@ CWD=`pwd`
 
 cd ../../TUNNELING-GROUP.github.io/aqua-duct/
 
-mv _static static
-mv _images images
-mv _modules modules
-mv _sources sources
+mv static static
+mv images images
+mv modules modules
+mv sources sources
 
-sed -i 's/_static/static/g' `grep -Rl 'static' *`
-sed -i 's/_images/images/g' `grep -Rl 'images' *`
-sed -i 's/_modules/modules/g' `grep -Rl 'modules' *`
-sed -i 's/_sources/sources/g' `grep -Rl 'sources' *`
+sed -i 's/static/static/g' `grep -Rl 'static' *`
+sed -i 's/images/images/g' `grep -Rl 'images' *`
+sed -i 's/modules/modules/g' `grep -Rl 'modules' *`
+sed -i 's/sources/sources/g' `grep -Rl 'sources' *`
 
 git add .
 git commit --message "docs update $(date)"
