@@ -1,47 +1,59 @@
 [build-system]
-requires = ["poetry-core>=1.5.0", "poetry-dynamic-versioning[plugin]>=1.0.0"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["setuptools>=40.0"]
+build-backend = "setuptools.build_meta"
 
-[tool.poetry]
+[project]
 name = "aquaduct"
-description = "A project that includes the main package aquaduct and helper scripts in src/apps."
+description = "Tracing molecules in MD simulation"
 license = "GPL-3.0-or-later"
-authors = ["Your Name <your.email@example.com>"]
-readme = "README.md"
-homepage = "https://example.com/aquaduct"
-repository = "https://github.com/yourusername/aquaduct"
-packages = [{include = "aquaduct", from = "src"}]
-version = "0.0.0"  # Required placeholder for poetry-dynamic-versioning
-dynamic = ["version"]
-
-[tool.poetry.dependencies]
-python = ">=3.9"
-MDAnalysis = "~2.9.0"
-matplotlib = "~3.10.0"
-numpy = "~2.2.0"
-scipy = "~1.15.0"
-packaging = "~24.0"
-scikit-learn = "~1.6.0"
-netCDF4 = "~1.7.0"
-
-[tool.poetry.group.dev.dependencies]
-build = "*"
-coverage = "*"
-sphinx = "*"
-sphinxcontrib-aafig = "*"
-poetry-dynamic-versioning = {extras = ["plugin"], version = "*"}
-
-[tool.poetry.scripts]
-valve = "aquaduct.scripts.valve:main"
-
-[tool.poetry-dynamic-versioning]
-enable = true
-vcs = "git"
-style = "pep440"
-dirty = false
-substitution.files = [
-    "src/aquaduct/__init__.py",
+# TODO: Add authors
+authors = [
+    {"name" = "general", "email" = "info@aquaduct.pl"},
 ]
-# substitution.patterns = [
-#     "(__version__ = )['\"]([^'\"]+)['\"]",
-# ]
+# TODO: Check versioning
+dynamic = ["version"]
+readme = "README.md"
+dependencies = [
+    "cftime>=1.6.4.post1",
+    "contourpy>=1.3.2",
+    "cycler>=0.12.1",
+    "fasteners>=0.19",
+    "fonttools>=4.59.0",
+    "GridDataFormats>=1.0.2",
+    "importlib_resources>=6.5.2",
+    "joblib>=1.5.1",
+    "kiwisolver>=1.4.8",
+    "matplotlib>=3.10.5",
+    "mda-xdrlib>=0.2.0",
+    "MDAnalysis>=2.9.0",
+    "mmtf-python>=1.1.3",
+    "mrcfile>=1.5.4",
+    "msgpack>=1.1.1",
+    "netCDF4>=1.7.2",
+    "numpy>=2.2.6",
+    "packaging>=25.0",
+    "pillow>=11.3.0",
+    "pyparsing>=3.2.3",
+    "python-dateutil>=2.9.0.post0",
+    "scikit-learn>=1.7.1",
+    "scipy>=1.15.3",
+    "six>=1.17.0",
+    "threadpoolctl>=3.6.0",
+    "tqdm>=4.67.1",
+    "zipp>=3.23.0"
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "Operating System :: POSIX",
+    "Programming Language :: Python"
+]
+keywords = ["molecular dynamics", "solvent"]
+
+[project.urls]
+Homepage = "https://www.aquaduct.pl"
+Documentation = "https://tunneling-group.github.io/aqua-duct"
+Repository = "https://github.com/TUNNELING-GROUP/aqua-duct"
+Issues = "https://github.com/TUNNELING-GROUP/aqua-duct/issues"

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+PORTAL=$(which portal.py)
+env LD_LIBRARY_PATH="" $PORTAL "$@"
+

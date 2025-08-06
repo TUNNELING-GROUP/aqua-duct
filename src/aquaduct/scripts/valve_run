@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+VALVE=$(which valve.py)
+env LD_LIBRARY_PATH="" $VALVE "$@"
+
