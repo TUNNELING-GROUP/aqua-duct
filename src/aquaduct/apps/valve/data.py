@@ -67,17 +67,17 @@ def check_version_compliance(current, loaded, what):
     :param loaded: Loaded version tuple.
     :param what: Description of the version being checked.
     """
-    if current[0] > loaded[0]:
+    if int(current[0]) > loaded[0]:
         logger.error('Loaded data has %s major version lower then the application.' % what)
-    if current[0] < loaded[0]:
+    if int(current[0]) < loaded[0]:
         logger.error('Loaded data has %s major version higher then the application.' % what)
-    if current[0] != loaded[0]:
+    if int(current[0]) != loaded[0]:
         logger.error('Possible problems with API compliance.')
-    if current[1] > loaded[1]:
+    if int(current[1]) > loaded[1]:
         logger.warning('Loaded data has %s minor version lower then the application.' % what)
-    if current[1] < loaded[1]:
+    if int(current[1]) < loaded[1]:
         logger.warning('Loaded data has %s minor version higher then the application.' % what)
-    if current[1] != loaded[1]:
+    if int(current[1]) != loaded[1]:
         logger.warning('Possible problems with API compliance.')
 
 

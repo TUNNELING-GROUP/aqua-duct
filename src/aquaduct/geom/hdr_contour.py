@@ -25,7 +25,8 @@ from aquaduct import logger
 
 iscontour = True
 try:
-    from matplotlib import _contour
+    # from matplotlib import _contour
+    import contourpy as _contour
 except ImportError:
     logger.warning("Cannot import _contour from matplotlib, contour calculations will be skipped.")
     iscontour = False
@@ -33,8 +34,10 @@ except ImportError:
 
 def hdr2contour(hdr, fraction=0.9):
     # X,Y,Z,no mask,corner mask,nchunk = 0
-    _c = _contour.QuadContourGenerator(hdr.X, hdr.Y, hdr.Z, None, True, 0)
+    # _c = _contour.QuadContourGenerator(hdr.X, hdr.Y, hdr.Z, None, True, 0)
+    _c = _contour.Mpl2014ContourGenerator(x=hdr.X, y=hdr.Y, z=hdr.Z, mask=None,
+            corner_mask=True, x_chunk_size=0, y_chunk_size=0)
     cc = _c.create_contour(hdr.Z.max() * (1 - fraction))
-    if len(cc) == 0:
+    if len(cc[0]) == 0:
         return
-    return hdr.pca.undo(cc[0], pc=[0, 1])
+    return hdr.pca.undo(cc[0][0], pc=[0, 1])
