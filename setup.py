@@ -31,5 +31,7 @@ setup(
         "Intended Audience :: Science/Research",
         "Operating System :: POSIX",
         "Programming Language :: Python"
-        ]
+        ],
+    package_data = {"": ["apps/valveconfig/*.gif"]},
+    include_pakacge_data = True
     )
