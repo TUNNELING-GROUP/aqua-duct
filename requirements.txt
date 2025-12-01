@@ -3,7 +3,7 @@ cftime==1.6.4
 contourpy==1.2.1
 cycler==0.12.1                                
 fasteners==0.19                                
-fonttools==4.54.1                              
+fonttools==4.61.0                              
 GridDataFormats==1.0.2                         
 importlib_resources==6.4.5                     
 joblib==1.1.1                                  
